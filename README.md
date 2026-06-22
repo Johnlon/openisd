@@ -17,7 +17,7 @@ Please volunteer your time with ideas and feedback and pull requests for improvi
 
 ## Who am I?
 
-I am a software engineer with 40 years of experience and would like to the right thing here and have a bit of fun at the same time.
+I am a software engineer with 40 years of experience and would like to do the right thing here and have a bit of fun at the same time.
 
 My bio, CV and all my Hackaday projects can be found on my personal page https://johnlon.github.io/
 
