@@ -1,0 +1,29 @@
+{
+  "$schema": "./sources.schema.md",
+  "version": 1,
+  "description": "Federated driver-data sources. Resonate links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this list (and you can paste any GitHub repo ad hoc). Add a source by opening a PR that appends an entry here.",
+  "sources": [
+    {
+      "name": "Resonate built-in",
+      "type": "github",
+      "repo": "Johnlon/resonate",
+      "branch": "main",
+      "path": "drivers",
+      "fileExtension": ".wdr",
+      "url": "https://github.com/Johnlon/resonate/tree/main/drivers",
+      "description": "Drivers bundled with this repository.",
+      "license": "MIT"
+    },
+    {
+      "name": "MWisBest / WinISDDrivers",
+      "type": "github",
+      "repo": "MWisBest/WinISDDrivers",
+      "branch": "master",
+      "path": "",
+      "fileExtension": ".wdr",
+      "url": "https://github.com/MWisBest/WinISDDrivers",
+      "description": "~108 subwoofer driver files for WinISD.",
+      "license": "see repository"
+    }
+  ]
+}

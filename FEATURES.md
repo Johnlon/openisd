@@ -103,7 +103,11 @@ proven by another tool.
 - ⬜ WinISD `.wpr` project import — *00 Simulator does this; Lazarus binary format, needs a sample*
 - ⬜ Unibox spreadsheet import — *seen in 00 Simulator*
 - 🔨 Open, version-controlled driver database (`drivers/`) — seeded
-- ⬜ In-app driver browser / search / filter by size & params — *SpeakerBoxLite has 5,000+ / 300+ brands*
+- ✅ **Federated driver sources** — link to other repos (`drivers/sources.json`)
+  instead of copying; *no other surveyed tool federates its driver data*
+- ✅ **In-app driver browser** — pick a federated source or paste any GitHub repo,
+  search the list, load a `.wdr` on demand
+- ⬜ Filter drivers by size / params; richer metadata index — *SpeakerBoxLite has 5,000+ / 300+ brands in one DB*
 - ⬜ Paste raw datasheet text → infer T/S params — *seen in 00 Simulator*
 - ⬜ “Copy from” an existing driver — *seen in 00 Simulator*
 - ⬜ Import other formats (SPL/ZMA traces, other tools’ exports)
@@ -149,9 +153,11 @@ proven by another tool.
 
 ## 8. Data, sharing & community
 - ✅ JSON project save / load
+- ✅ **Federated driver data** — `drivers/sources.json` links external `.wdr`
+  repos; add one via PR, no re-hosting
 - ⬜ **URL-encoded shareable designs** — paste a design as a link — *00 Simulator already ships this; table stakes, not a differentiator*
-- 🔨 Community driver-data contribution flow (PR a `.wdr`)
-- ⬜ Static hosting on GitHub Pages (one canonical URL)
+- 🔨 Community driver-data contribution flow (PR a `.wdr`, or a source link)
+- ✅ Static hosting on GitHub Pages (<https://johnlon.github.io/resonate/>)
 
 ## 9. Learning & docs
 - ✅ Documented engine + conventions (`CONTRIBUTING.md`)
@@ -188,7 +194,9 @@ narrower and sharper:
   not an open project.
 - **Open *data*, not just open code.** A community-owned, version-controlled
   driver commons that no single operator can wall off or take down. None of the
-  closed tools open their aggregated driver data.
+  closed tools open their aggregated driver data — and Resonate goes further by
+  **federating**: it links to other people's `.wdr` repos rather than hoarding,
+  so the commons grows without a central gatekeeper.
 - **Provable physics.** Published validation against the closed-form solutions,
   re-checked in CI on every push. No competitor surveyed makes (let alone proves)
   this claim.

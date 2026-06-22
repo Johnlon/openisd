@@ -47,12 +47,33 @@
   .tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;background:var(--panel2);color:var(--acc2)}
   a{color:var(--acc)}
   details summary{cursor:pointer;color:var(--mut)}
+  /* modal / driver browser */
+  .overlay{position:fixed;inset:0;background:rgba(4,8,14,.66);display:none;align-items:center;justify-content:center;z-index:50}
+  .overlay.on{display:flex}
+  .modal{width:min(720px,92vw);max-height:86vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .modal h2{margin:0;font-size:14px;padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .modal h2 .x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:18px;line-height:1}
+  .modal .body{padding:12px 14px;overflow-y:auto}
+  .srcrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .srcrow select,.srcrow input{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:5px;padding:5px 7px;font:inherit}
+  .srcrow input{flex:1;min-width:160px}
+  .srcmeta{font-size:11px;color:var(--mut);margin:2px 0 10px}
+  .srcmeta a{color:var(--acc)}
+  .filter{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:5px;padding:6px 8px;font:inherit;margin-bottom:8px}
+  .dlist{border:1px solid var(--line);border-radius:6px;max-height:42vh;overflow-y:auto}
+  .ditem{padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12px}
+  .ditem:last-child{border-bottom:none}
+  .ditem:hover{background:var(--panel2)}
+  .ditem b{color:var(--acc2)}
+  .status{font-size:12px;color:var(--mut);padding:8px 2px}
+  .status.err{color:var(--bad)}
 </style>
 </head>
 <body>
 <header>
   <h1>Resonate<span style="color:var(--acc)"> ~</span> &nbsp;<small>open loudspeaker enclosure simulator &middot; community-owned &middot; runs anywhere</small></h1>
   <div class="sp"></div>
+  <button id="btnBrowse" class="pri">Browse drivers</button>
   <button id="btnImport">Import .wdr / project</button>
   <button id="btnExportWdr">Export driver .wdr</button>
   <button id="btnExport">Save project</button>
@@ -70,6 +91,23 @@
       <div class="readout" id="readout"></div>
     </div>
     <div class="stat" id="stat"></div>
+  </div>
+</div>
+
+<div class="overlay" id="browseOverlay">
+  <div class="modal">
+    <h2>Browse driver library <span class="x" id="browseClose">&times;</span></h2>
+    <div class="body">
+      <div class="srcrow">
+        <select id="srcSelect"></select>
+        <input id="srcCustom" placeholder="…or paste a GitHub repo: owner/repo or full URL">
+        <button id="srcLoad">Load</button>
+      </div>
+      <div class="srcmeta" id="srcMeta"></div>
+      <input class="filter" id="srcFilter" placeholder="Filter drivers…">
+      <div class="dlist" id="dList"></div>
+      <div class="status" id="srcStatus"></div>
+    </div>
   </div>
 </div>
 
@@ -770,6 +808,103 @@ document.getElementById('fileImport').onchange=e=>{
   }catch(err){ alert('Could not read "'+f.name+'": '+err.message);} };
   rd.readAsText(f);
 };
+/* =========================================================================
+   FEDERATED DRIVER BROWSER
+   Reads drivers/sources.json (a list of external driver repos) and lets you
+   pull a .wdr from any of them — or any GitHub repo you paste — on demand.
+   We link, never re-host. GitHub's API + raw content allow cross-origin reads.
+   ========================================================================= */
+// Fallback list bundled in case sources.json can't be fetched (offline / file://)
+const DEFAULT_SOURCES = [
+  {name:'Resonate built-in', type:'github', repo:'Johnlon/resonate', branch:'main', path:'drivers', fileExtension:'.wdr', url:'https://github.com/Johnlon/resonate/tree/main/drivers'},
+  {name:'MWisBest / WinISDDrivers', type:'github', repo:'MWisBest/WinISDDrivers', branch:'master', path:'', fileExtension:'.wdr', url:'https://github.com/MWisBest/WinISDDrivers'},
+];
+const browse = { sources:[], files:[], source:null };
+const ov=document.getElementById('browseOverlay');
+const $=id=>document.getElementById(id);
+
+async function loadSources(){
+  // Try the live registry first so the list stays current; fall back to bundled.
+  try{
+    const r=await fetch('drivers/sources.json',{cache:'no-store'});
+    if(r.ok){ const j=await r.json(); if(j&&Array.isArray(j.sources)&&j.sources.length) return j.sources; }
+  }catch(e){/* offline or file:// — use defaults */}
+  return DEFAULT_SOURCES;
+}
+function parseRepoInput(s){
+  s=s.trim(); if(!s) return null;
+  let m=s.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?(?:\/tree\/([^/]+)(?:\/(.*))?)?$/i);
+  if(m) return {name:m[1]+'/'+m[2], type:'github', repo:m[1]+'/'+m[2], branch:m[3]||'', path:m[4]||'', fileExtension:'.wdr', url:'https://github.com/'+m[1]+'/'+m[2]};
+  m=s.match(/^([\w.-]+)\/([\w.-]+)$/);            // owner/repo shorthand
+  if(m) return {name:s, type:'github', repo:s, branch:'', path:'', fileExtension:'.wdr', url:'https://github.com/'+s};
+  return null;
+}
+async function ghDefaultBranch(repo){
+  const r=await fetch(`https://api.github.com/repos/${repo}`);
+  if(!r.ok) throw new Error('repo not found ('+r.status+')');
+  return (await r.json()).default_branch||'main';
+}
+async function listFiles(src){
+  const branch = src.branch || await ghDefaultBranch(src.repo);
+  const r=await fetch(`https://api.github.com/repos/${src.repo}/git/trees/${branch}?recursive=1`);
+  if(!r.ok) throw new Error('cannot list files ('+r.status+(r.status===403?', GitHub rate limit — try later':'')+')');
+  const tree=(await r.json()).tree||[];
+  const ext=(src.fileExtension||'.wdr').toLowerCase();
+  const base=(src.path||'').replace(/^\/|\/$/g,'');
+  return tree.filter(t=>t.type==='blob' && t.path.toLowerCase().endsWith(ext)
+                       && (!base || t.path.toLowerCase().startsWith(base.toLowerCase()+'/')))
+             .map(t=>({path:t.path, branch, repo:src.repo,
+                       name:t.path.split('/').pop().replace(/\.wdr$/i,'')}));
+}
+function rawUrl(f){ return `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path.split('/').map(encodeURIComponent).join('/')}`; }
+
+function renderFileList(){
+  const q=$('srcFilter').value.toLowerCase();
+  const shown=browse.files.filter(f=>f.name.toLowerCase().includes(q));
+  $('dList').innerHTML = shown.length
+    ? shown.slice(0,500).map((f,i)=>`<div class="ditem" data-i="${browse.files.indexOf(f)}"><b>${f.name}</b></div>`).join('')
+    : '<div class="status">No matching drivers.</div>';
+  $('srcStatus').textContent = `${shown.length} of ${browse.files.length} drivers`+(shown.length>500?' (showing first 500)':'');
+}
+async function selectSource(src){
+  browse.source=src; browse.files=[];
+  $('srcMeta').innerHTML = src.url ? `<a href="${src.url}" target="_blank" rel="noopener">${src.url}</a>`+(src.description?` — ${src.description}`:'') : (src.description||'');
+  $('dList').innerHTML=''; $('srcStatus').className='status'; $('srcStatus').textContent='Loading file list…';
+  try{
+    browse.files = await listFiles(src);
+    renderFileList();
+  }catch(err){ $('srcStatus').className='status err'; $('srcStatus').textContent='Error: '+err.message; }
+}
+async function pickFile(f){
+  $('srcStatus').className='status'; $('srcStatus').textContent='Loading '+f.name+'…';
+  try{
+    const r=await fetch(rawUrl(f)); if(!r.ok) throw new Error('fetch failed ('+r.status+')');
+    state.driverRaw = parseWdr(await r.text());
+    buildSide(); buildTabs(); render();
+    ov.classList.remove('on');
+  }catch(err){ $('srcStatus').className='status err'; $('srcStatus').textContent='Could not load: '+err.message; }
+}
+async function openBrowser(){
+  ov.classList.add('on');
+  if(!browse.sources.length){
+    browse.sources = await loadSources();
+    $('srcSelect').innerHTML = browse.sources.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+  }
+  if(browse.sources.length) selectSource(browse.sources[0]);
+}
+$('btnBrowse').onclick=openBrowser;
+$('browseClose').onclick=()=>ov.classList.remove('on');
+ov.onclick=e=>{ if(e.target===ov) ov.classList.remove('on'); };
+$('srcSelect').onchange=e=>selectSource(browse.sources[+e.target.value]);
+$('srcFilter').oninput=renderFileList;
+$('dList').onclick=e=>{ const d=e.target.closest('.ditem'); if(d) pickFile(browse.files[+d.dataset.i]); };
+$('srcLoad').onclick=()=>{
+  const src=parseRepoInput($('srcCustom').value);
+  if(!src){ $('srcStatus').className='status err'; $('srcStatus').textContent='Enter owner/repo or a github.com URL'; return; }
+  selectSource(src);
+};
+$('srcCustom').onkeydown=e=>{ if(e.key==='Enter') $('srcLoad').click(); };
+
 document.getElementById('btnAbout').onclick=()=>{
   const eb=ebp(state.driver);
   alert(
