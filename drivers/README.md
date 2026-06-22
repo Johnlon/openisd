@@ -45,3 +45,17 @@ app first and sanity-check the curves; note your source in the PR.
 `.wdr` is WinISD's driver format: INI-style text, a `[Driver]` section of
 `Key=Value` lines in SI units. Resonate imports the core T/S set and re-derives a
 self-consistent parameter set (scraped files are often internally inconsistent).
+
+## Provenance
+
+- The bulk of this library (~420 mostly car-audio sub drivers) comes from a
+  community `.wdr` collection shared by *mtg90* on AVS Forum:
+  <https://www.avsforum.com/threads/common-sub-driver-winisd-files.2928258/>.
+  Each file parsed and derived to a finite, consistent T/S set before inclusion
+  (one file with incomplete parameters was dropped). T/S parameters are factual
+  measurements; these files are bundled to seed the open commons.
+- A handful (Beyma, Dayton, SB Acoustics, Tang Band, Visaton) are from the
+  maintainer's own WinISD library.
+
+Spotted a wrong number? Open a PR — the point of an open commons is that anyone
+can correct it.
