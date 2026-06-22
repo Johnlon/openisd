@@ -1,0 +1,17 @@
+name: engine
+
+on:
+  push:
+  pull_request:
+
+# The physics is the product. Every push re-proves it against the closed form.
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate simulation engine
+        run: node test/engine.test.mjs

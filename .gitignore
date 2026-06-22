@@ -1,0 +1,9 @@
+# dependencies (none required — Resonate has no build step)
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

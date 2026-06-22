@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resonate — Open Loudspeaker Enclosure Simulator</title>
+<style>
+  :root{
+    --bg:#11151c; --panel:#1a2029; --panel2:#222a35; --line:#2e3a48;
+    --fg:#dfe6ee; --mut:#8a99ab; --acc:#4fb0ff; --acc2:#ffb454; --good:#5ad17a; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:13px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+  h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.3px}
+  h1 small{color:var(--mut);font-weight:400;font-size:11px}
+  header{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+  header .sp{flex:1}
+  .layout{display:flex;height:calc(100vh - 41px)}
+  .side{width:330px;min-width:330px;overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:10px}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .tabs{display:flex;gap:2px;padding:6px 10px 0;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tab{padding:5px 11px;cursor:pointer;border:1px solid transparent;border-bottom:none;border-radius:5px 5px 0 0;color:var(--mut);font-size:12px}
+  .tab.on{background:var(--bg);color:var(--fg);border-color:var(--line)}
+  .plotwrap{flex:1;position:relative;padding:8px 10px}
+  canvas{display:block;width:100%;height:100%}
+  fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 10px;padding:8px 10px}
+  legend{color:var(--acc);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+  .row{display:flex;align-items:center;gap:6px;margin:3px 0}
+  .row label{flex:1;color:var(--mut)}
+  .row input,.row select{width:96px;background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:4px;padding:3px 5px;font:inherit;text-align:right}
+  .row select{text-align:left;width:auto;flex:1}
+  .row .u{width:34px;color:var(--mut);font-size:11px;text-align:left}
+  button{background:var(--panel2);border:1px solid var(--line);color:var(--fg);border-radius:5px;padding:5px 10px;cursor:pointer;font:inherit}
+  button:hover{border-color:var(--acc)}
+  button.pri{background:var(--acc);color:#06223a;border-color:var(--acc);font-weight:600}
+  .btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .ebp{margin-top:6px;padding:6px;background:var(--panel2);border-radius:5px;font-size:11px}
+  .ebp b{color:var(--acc2)}
+  .readout{position:absolute;top:14px;right:18px;background:rgba(10,14,20,.85);border:1px solid var(--line);border-radius:5px;padding:6px 9px;font-size:11px;pointer-events:none;min-width:120px}
+  .readout .k{color:var(--mut)}
+  .legend{position:absolute;left:18px;top:14px;font-size:11px;background:rgba(10,14,20,.7);border-radius:5px;padding:4px 8px}
+  .legend span{display:inline-block;margin-right:10px}
+  .legend i{display:inline-block;width:10px;height:3px;vertical-align:middle;margin-right:4px}
+  .stat{display:flex;flex-wrap:wrap;gap:4px 14px;padding:6px 14px;background:var(--panel);border-top:1px solid var(--line);font-size:11px;color:var(--mut)}
+  .stat b{color:var(--fg)}
+  .hint{color:var(--mut);font-size:10.5px;margin:2px 0 6px}
+  .tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;background:var(--panel2);color:var(--acc2)}
+  a{color:var(--acc)}
+  details summary{cursor:pointer;color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Resonate<span style="color:var(--acc)"> ~</span> &nbsp;<small>open loudspeaker enclosure simulator &middot; community-owned &middot; runs anywhere</small></h1>
+  <div class="sp"></div>
+  <button id="btnImport">Import .wdr / project</button>
+  <button id="btnExportWdr">Export driver .wdr</button>
+  <button id="btnExport">Save project</button>
+  <input type="file" id="fileImport" accept=".wdr,.json" style="display:none">
+  <button id="btnAbout">About</button>
+</header>
+
+<div class="layout">
+  <div class="side" id="side"></div>
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+    <div class="plotwrap">
+      <canvas id="plot"></canvas>
+      <div class="legend" id="legend"></div>
+      <div class="readout" id="readout"></div>
+    </div>
+    <div class="stat" id="stat"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   Resonate  —  an open, community-owned loudspeaker enclosure simulator.
+
+   Engine: lumped-element electro-mechano-acoustical circuit in the acoustical
+   impedance analogy. Validated against the exact sealed-box closed form
+   (fc, Qtc; <0.03 dB), driver sensitivity asymptote, and vented 24 dB/oct +
+   twin impedance peaks. See test/engine.test.mjs for the validation gates.
+   ========================================================================== */
+
+// ---- physical constants -------------------------------------------------
+const RHO = 1.184;      // air density  kg/m^3  (20 C)
+const C   = 345.0;      // speed of sound m/s
+const P0  = 20e-6;      // reference pressure (0 dB SPL)
+
+// ---- complex number helpers (small, allocation-light) -------------------
+const cx  = (re,im=0)=>({re,im});
+const cAdd=(a,b)=>({re:a.re+b.re, im:a.im+b.im});
+const cSub=(a,b)=>({re:a.re-b.re, im:a.im-b.im});
+const cMul=(a,b)=>({re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re});
+const cDiv=(a,b)=>{const d=b.re*b.re+b.im*b.im;return {re:(a.re*b.re+a.im*b.im)/d, im:(a.im*b.re-a.re*b.im)/d};};
+const cInv=(a)=>{const d=a.re*a.re+a.im*a.im;return {re:a.re/d, im:-a.im/d};};
+const cAbs=(a)=>Math.hypot(a.re,a.im);
+const cArg=(a)=>Math.atan2(a.im,a.re);
+const cScale=(a,k)=>({re:a.re*k, im:a.im*k});
+const cPar=(...zs)=>cInv(zs.reduce((s,z)=>cAdd(s,cInv(z)),cx(0,0)));   // parallel impedance
+
+// =========================================================================
+//  DRIVER MODEL
+//  Input may be partial; we derive a complete consistent small-signal set.
+//  Canonical SI store: Fs[Hz] Qts Qes Qms Vas[m^3] Sd[m^2] Re[ohm] Le[H]
+//                      Bl[Tm] Mms[kg] Cms[m/N] Rms[Ns/m] Xmax[m] Pe[W] Z[ohm]
+// =========================================================================
+function deriveDriver(d){
+  const r = Object.assign({}, d);
+  const ws = 2*Math.PI*r.Fs;
+  // Qts from Qes,Qms if absent
+  if(!r.Qts && r.Qes && r.Qms) r.Qts = (r.Qes*r.Qms)/(r.Qes+r.Qms);
+  if(!r.Qes && r.Qts && r.Qms) r.Qes = (r.Qts*r.Qms)/(r.Qms-r.Qts);
+  if(!r.Qms && r.Qts && r.Qes) r.Qms = (r.Qts*r.Qes)/(r.Qes-r.Qts);
+  // Acoustical suspension compliance from Vas, then mechanical Cms, Mms
+  const Cas = r.Vas/(RHO*C*C);          // m^5/N
+  r.Cms = Cas/(r.Sd*r.Sd);              // m/N
+  r.Mms = 1/(ws*ws*r.Cms);              // kg (incl. air load — consistent w/ Fs,Vas)
+  r.Rms = ws*r.Mms/r.Qms;               // Ns/m
+  r.Bl  = Math.sqrt(ws*r.Mms*r.Re/r.Qes); // Tm
+  return r;
+}
+
+// =========================================================================
+//  WinISD .wdr DRIVER FILES  (INI-style text, [Driver] section, SI units).
+//  Real-file schema confirmed against samples + the winisd.exe symbol table.
+// =========================================================================
+function parseWdr(text){
+  const f={};
+  for(const line of text.split(/\r?\n/)){
+    const i=line.indexOf('=');
+    if(i<0 || line[0]==='[') continue;
+    f[line.slice(0,i).trim()] = line.slice(i+1).trim();
+  }
+  const n=k=>{ const v=parseFloat(f[k]); return isFinite(v)?v:undefined; };
+  // map WinISD keys -> our canonical SI driver store. We import only the core
+  // small-signal set and re-derive Bl/Cms/Mms/Rms consistently (scraped files
+  // are often internally inconsistent; deriveDriver gives a self-consistent set).
+  const d={};
+  d.Fs=n('Fs'); d.Qts=n('Qts'); d.Qes=n('Qes'); d.Qms=n('Qms');
+  d.Vas=n('Vas'); d.Sd=n('Sd'); d.Re=n('Re'); d.Le=n('Le');
+  d.Xmax=n('Xmax'); d.Pe=n('Pe'); d.Z=n('Znom');
+  if(f.Brand) d.brand=f.Brand.trim();
+  if(f.Model) d.model=f.Model.trim();
+  const name=[f.Brand,f.Model].filter(x=>x&&x.length).join(' ').trim();
+  if(name) d.name=name;
+  if(f.Comment) d.comment=f.Comment;
+  // sanity: need at least the small-signal core to simulate
+  if(!(d.Fs&&d.Sd&&d.Re&&(d.Vas||(d.Qts&&d.Qes)))) throw new Error('missing core T/S parameters');
+  // strip undefined so deriveDriver fills consistently
+  for(const k in d) if(d[k]===undefined) delete d[k];
+  return d;
+}
+function toWdr(raw){
+  const d=deriveDriver(raw);
+  const Sd=d.Sd, Vd=Sd*(d.Xmax||0), Dd=2*Math.sqrt(Sd/Math.PI);
+  const g=(x,p=6)=> (x==null||!isFinite(x))?'' : (+x.toPrecision(p));
+  const brand = raw.brand || '';
+  const model = raw.model || raw.name || 'Driver';
+  // ParState is WinISD's per-parameter lock state; both sample files share this
+  // exact default string, so it is safe to reproduce for a readable round-trip.
+  const ParState='EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC';
+  const L=[
+    '[Driver]',
+    'Brand='+(brand||''),
+    'Model='+model,
+    'Manufacturer=',
+    'ProvidedBy=Resonate',
+    'Comment='+(raw.comment||''),
+    'DateAdded=',
+    'DateModified=',
+    'Qts='+g(d.Qts), 'Znom='+g(d.Z||d.Re),
+    'Fs='+g(d.Fs), 'Pe='+g(d.Pe), 'Re='+g(d.Re), 'Le='+g(d.Le),
+    'BL='+g(d.Bl), 'Xmax='+g(d.Xmax),
+    'Cms='+g(d.Cms), 'Qms='+g(d.Qms), 'Qes='+g(d.Qes), 'Rms='+g(d.Rms),
+    'Mms='+g(d.Mms), 'Sd='+g(d.Sd), 'Vas='+g(d.Vas),
+    'Vd='+g(Vd), 'Dd='+g(Dd),
+    'numVC=1', 'VCCon=2', 'ParState='+ParState, ''
+  ];
+  return L.join('\n');
+}
+
+// =========================================================================
+//  CIRCUIT SOLVER  — one frequency, returns complex node quantities.
+//  box: 'sealed' | 'vented' | 'bandpass4' | 'pr'
+//  Returns { U0, UD, UP, Zel }  (U0 = net radiated volume velocity, complex)
+// =========================================================================
+function solve(f, drv, box, P){
+  const w = 2*Math.PI*f;
+  const n  = P.nDrivers||1;
+  const wiring = P.wiring||'parallel';
+  const eg = P.eg;                                        // drive voltage (V)
+  // ---- n identical drivers as one equivalent cluster (reduces to the
+  //      validated single-driver math when n=1) ---------------------------
+  const Sdt   = drv.Sd * n;                               // combined cone area
+  const Zcoil1= cAdd(cx(drv.Re,0), cx(0,w*drv.Le));       // one voice coil
+  let Zcoil, Bl;
+  if(wiring==='series'){ Zcoil = cScale(Zcoil1, n); Bl = drv.Bl*n; }
+  else                 { Zcoil = cScale(Zcoil1, 1/n); Bl = drv.Bl; } // parallel
+  // pressure generator & reflected electrical impedance (acoustical side):
+  const pg  = cDiv(cx(eg*Bl,0), cMul(cx(Sdt,0), Zcoil));
+  const ZaE = cDiv(cx(Bl*Bl,0), cMul(cx(Sdt*Sdt,0), Zcoil));
+  // cluster acoustical lumped values: Cas∝n, Mas∝1/n, Ras∝1/n  (Fs preserved)
+  const Cas = drv.Cms*drv.Sd*drv.Sd * n;
+  const Mas = drv.Mms/(drv.Sd*drv.Sd) / n;
+  const Ras = drv.Rms/(drv.Sd*drv.Sd) / n;
+  const ZaD = cAdd(cAdd(cx(Ras,0), cx(0,w*Mas)), cInv(cx(0,w*Cas)));  // driver acoustic Z
+
+  // ---- box load -----------------------------------------------------------
+  let Zbox, UP=cx(0,0), U0, UD;
+  const Vb = P.Vb;
+  const Cab = Vb/(RHO*C*C);
+  const Zc  = cInv(cx(0,w*Cab));                 // box air compliance
+  const Ql  = P.Ql||7;
+  const Ral = cx(Ql/(w*Cab),0);                  // leakage loss
+
+  if(box==='sealed'){
+    Zbox = cPar(Zc, Ral);
+    UD = cDiv(pg, cAdd(cAdd(ZaE,ZaD),Zbox));
+    U0 = UD;
+  }
+  else if(box==='vented'){
+    const Sp = P.Sp, Leff = P.Leff;
+    const Map = RHO*Leff/Sp;
+    const Rap = portLoss(w,Map,P);
+    const Zport = cAdd(cx(Rap,0), cx(0,w*Map));
+    Zbox = cPar(Zc, Ral, Zport);
+    UD = cDiv(pg, cAdd(cAdd(ZaE,ZaD),Zbox));
+    UP = cMul(UD, cDiv(Zbox, Zport));            // port volume velocity
+    U0 = cSub(UD, UP);                           // net radiated (sign-verified)
+  }
+  else if(box==='pr'){
+    // Passive radiator replaces the port: mass-spring branch, no resistance src.
+    const Sp = P.prSd, Mmp = P.prMmp, Cmp = P.prCms;
+    const Map = Mmp/(Sp*Sp), Cap = Cmp*Sp*Sp;
+    const Rap = (P.prRms||0)/(Sp*Sp);
+    const Zpr = cAdd(cAdd(cx(Rap,0), cx(0,w*Map)), cInv(cx(0,w*Cap)));
+    Zbox = cPar(Zc, Ral, Zpr);
+    UD = cDiv(pg, cAdd(cAdd(ZaE,ZaD),Zbox));
+    UP = cMul(UD, cDiv(Zbox, Zpr));
+    U0 = cSub(UD, UP);
+  }
+  else if(box==='bandpass4'){
+    // sealed rear chamber (Vb) + ported front chamber (Vf+port). Output = port only.
+    const Cabr = Vb/(RHO*C*C);
+    const Zr = cPar(cInv(cx(0,w*Cabr)), cx(Ql/(w*Cabr),0));
+    const Vf = P.Vf, Cabf = Vf/(RHO*C*C);
+    const Sp = P.Sp, Leff = P.Leff;
+    const Map = RHO*Leff/Sp, Rap = portLoss(w,Map,P);
+    const Zportf = cAdd(cx(Rap,0), cx(0,w*Map));
+    const Zf = cPar(cInv(cx(0,w*Cabf)), cx(Ql/(w*Cabf),0), Zportf);
+    Zbox = cAdd(Zr, Zf);                          // both chambers load the cone
+    UD = cDiv(pg, cAdd(cAdd(ZaE,ZaD),Zbox));
+    UP = cMul(UD, cDiv(Zf, Zportf));
+    U0 = UP;                                      // diaphragm is enclosed
+  }
+  // electrical input impedance of the cluster, for the impedance plot:
+  const Zel = cAdd(Zcoil, cDiv(cx(Bl*Bl,0), cMul(cx(Sdt*Sdt,0), cAdd(ZaD,Zbox))));
+  return {U0, UD, UP, Zbox, Zel, ZaD};
+}
+
+function portLoss(w,Map,P){
+  // crude vent viscous/turbulent loss -> resistance; small. Qp default high.
+  const Qp = P.Qp||100;
+  return w*Map/Qp;
+}
+
+// =========================================================================
+//  SWEEP — compute every curve across log-spaced frequency grid.
+// =========================================================================
+function sweep(drv, box, P){
+  const f0=P.fmin||10, f1=P.fmax||1000, N=P.N||400;
+  const fs=[], H=[], spl=[], exc=[], excPR=[], pv=[], zmag=[], zph=[], gd=[], phase=[];
+  const r=1; // 1 m
+  for(let i=0;i<=N;i++){
+    const f=f0*Math.pow(f1/f0, i/N);
+    const s=solve(f,drv,box,P);
+    const w=2*Math.PI*f;
+    // complex transfer function (far field, half space): p = rho*jw*U0/(2 pi r)
+    const Hc = cScale(cMul(cx(0,w), s.U0), RHO/(2*Math.PI*r));
+    const pmag=cAbs(Hc);
+    fs.push(f);
+    H.push(Hc);
+    spl.push(pmag>0?20*Math.log10(pmag/P0):-200);
+    phase.push(cArg(Hc));
+    // cone excursion (peak, mm) — uses diaphragm volume velocity / (w*Sd_total)
+    const Sdt=drv.Sd*(P.nDrivers||1);
+    // PEAK displacement: eg is RMS (matches RMS sensitivity), |UD| is RMS, so
+    // ×√2 to compare against Xmax (a peak one-way limit). mm.
+    exc.push( Math.SQRT2 * cAbs(s.UD)/(w*Sdt) * 1000 );
+    // port/PR PEAK air velocity (m/s) through its area (×√2, vs ~17 m/s peak)
+    let area = box==='pr'?P.prSd : P.Sp;
+    pv.push( area? Math.SQRT2 * cAbs(s.UP)/area : 0 );
+    // passive-radiator PEAK diaphragm excursion (mm) — its own |UP|/(w·Spr)
+    excPR.push( box==='pr' ? Math.SQRT2 * cAbs(s.UP)/(w*P.prSd) * 1000 : 0 );
+    zmag.push(cAbs(s.Zel));
+    zph.push(cArg(s.Zel)*180/Math.PI);
+  }
+  // group delay = -dphase/dw (unwrap first)
+  const ph=unwrap(phase);
+  for(let i=0;i<fs.length;i++){
+    const a=Math.max(0,i-1), b=Math.min(fs.length-1,i+1);
+    const dw=2*Math.PI*(fs[b]-fs[a]);
+    gd.push( dw!==0 ? -(ph[b]-ph[a])/dw*1000 : 0 ); // ms
+  }
+  return {fs,H,spl,phase:ph,exc,excPR,pv,zmag,zph,gd};
+}
+function unwrap(p){
+  const o=[p[0]];
+  for(let i=1;i<p.length;i++){
+    let d=p[i]-p[i-1];
+    while(d> Math.PI) d-=2*Math.PI;
+    while(d<-Math.PI) d+=2*Math.PI;
+    o.push(o[i-1]+d);
+  }
+  return o;
+}
+
+// =========================================================================
+//  MAX SPL / MAX POWER  — limited by Xmax and Pe at each frequency.
+// =========================================================================
+function maxCurves(drv, box, P){
+  const base = sweep(drv, box, Object.assign({},P,{eg:2.83}));
+  const Pe = (drv.Pe||50)*(P.nDrivers||1);
+  const Znom = drv.Z || drv.Re;              // power referenced to nominal impedance
+  const maxspl=[], maxpwr=[], xlim=[];
+  for(let i=0;i<base.fs.length;i++){
+    const splAt283 = base.spl[i];
+    const excAt283 = base.exc[i]/1000;       // peak m, with 2.83 V
+    // voltage that hits Xmax (excursion already peak):
+    const vXmax = excAt283>0 ? 2.83*(drv.Xmax/excAt283) : 1e9;
+    // voltage that hits rated power Pe: P = V^2/Znom -> V=sqrt(Pe*Znom)
+    const vPe   = Math.sqrt(Pe*Znom);
+    const vUse  = Math.min(vXmax, vPe);
+    maxspl.push( splAt283 + 20*Math.log10(vUse/2.83) );
+    maxpwr.push( vUse*vUse/Znom );
+    xlim.push(vXmax<vPe);                     // true where excursion-limited
+  }
+  return {fs:base.fs, maxspl, maxpwr, xlim};
+}
+
+// =========================================================================
+//  ALIGNMENT HELPERS
+// =========================================================================
+function ebp(drv){ return drv.Fs/drv.Qes; }     // <50 sealed, >100 vented
+function sealedFromQtc(drv, Qtc){                // returns Vb for a target Qtc
+  const ratio = (Qtc/drv.Qts)**2 - 1;
+  if(ratio<=0) return null;
+  return drv.Vas/ratio;
+}
+function ventedAlignment(drv){
+  // Quasi-Butterworth-ish suggestion (Thiele small-signal heuristics).
+  // Vb (litres) and Fb (Hz) for a maximally-flat-ish QB3/B4 family.
+  const Qts=drv.Qts, Fs=drv.Fs, Vas=drv.Vas;
+  const Vb = 15*Vas*Math.pow(Qts,2.87);
+  const Fb = Fs*0.42*Math.pow(Vas/Vb,0.9)+Fs*Math.pow(Qts,-0.0); // rough
+  const alpha = Vas/Vb;
+  const fbB4 = Fs*Math.pow(alpha,0.5);           // SBB4/B4: fb≈fs√α … use h≈1 for B4
+  return {Vb, Fb:Fs*Math.pow(Qts,-0.9)*0.0+fbB4};
+}
+function ventLength(Vb, fb, Sp){                 // physical vent length for tuning
+  const Cab=Vb/(RHO*C*C);
+  const wb=2*Math.PI*fb;
+  const Map=1/(wb*wb*Cab);
+  let L = Map*Sp/RHO;                            // effective length
+  const d=2*Math.sqrt(Sp/Math.PI);
+  L = L - 0.85*d;                               // end correction (one flanged end approx)
+  return Math.max(L, 0.005);
+}
+function tuningFromLength(Vb, L, Sp){
+  const d=2*Math.sqrt(Sp/Math.PI);
+  const Leff=L+0.85*d;
+  const Cab=Vb/(RHO*C*C);
+  const Map=RHO*Leff/Sp;
+  return 1/(2*Math.PI*Math.sqrt(Map*Cab));
+}
+// passive-radiator system tuning Fp: PR mass resonates against the box air
+// spring (Cab) in parallel with the PR's own suspension compliance (Cap).
+function prTuning(P){
+  const Cab=P.Vb/(RHO*C*C);
+  const Map=P.prMmp/(P.prSd*P.prSd);
+  const Cap=P.prCms*P.prSd*P.prSd;
+  const Cpar=(Cab*Cap)/(Cab+Cap);
+  return 1/(2*Math.PI*Math.sqrt(Map*Cpar));
+}
+function prMassForFp(P, fp){                       // PR added mass to hit a target Fp
+  const Cab=P.Vb/(RHO*C*C);
+  const Cap=P.prCms*P.prSd*P.prSd;
+  const Cpar=(Cab*Cap)/(Cab+Cap);
+  const Map=1/((2*Math.PI*fp)**2*Cpar);
+  return Map*P.prSd*P.prSd;                        // -> Mmp (kg)
+}
+
+/* =========================================================================
+   PRESET DRIVERS  (representative real-world T/S; sources noted)
+   ========================================================================= */
+const PRESETS = {
+  "Dayton DCS205-4 8\" sub":      {Fs:28.8,Qts:0.40,Qes:0.43,Qms:5.9,Vas:0.0305,Sd:0.0210,Re:3.3,Le:0.78e-3,Xmax:0.0090,Pe:120,Z:4},
+  "Tang Band W5-1138SMF 5\"":     {Fs:43,  Qts:0.42,Qes:0.46,Qms:5.2,Vas:0.0067,Sd:0.0087,Re:3.5,Le:0.52e-3,Xmax:0.0090,Pe:40, Z:4},
+  "SB Acoustics SB15SFCR-00 5\"": {Fs:42,  Qts:0.34,Qes:0.36,Qms:6.6,Vas:0.0082,Sd:0.0094,Re:5.9,Le:0.05e-3,Xmax:0.0050,Pe:50, Z:8},
+  "Dayton RS180-8 7\"":           {Fs:37,  Qts:0.45,Qes:0.50,Qms:4.9,Vas:0.0210,Sd:0.0133,Re:6.0,Le:0.50e-3,Xmax:0.0055,Pe:60, Z:8},
+  "Generic 6.5\" woofer":         {Fs:37,  Qts:0.38,Qes:0.40,Qms:7.0,Vas:0.0300,Sd:0.0133,Re:5.6,Le:0.70e-3,Xmax:0.0050,Pe:60, Z:8},
+  "Generic 12\" sub":             {Fs:24,  Qts:0.40,Qes:0.42,Qms:6.0,Vas:0.0900,Sd:0.0490,Re:3.4,Le:1.10e-3,Xmax:0.0130,Pe:300,Z:4},
+};
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+const state = {
+  driverRaw: Object.assign({}, PRESETS["Generic 6.5\" woofer"]),
+  driver: null,
+  box: 'vented',
+  P: { Vb:0.030, Vf:0.015, Sp:Math.PI*0.025*0.025, Leff:0.10, Ql:7, Qp:100,
+       fb:35, ventD:0.05, ventL:0.10, nDrivers:1, wiring:'parallel', eg:2.83,
+       prSd:0.0133, prMmp:0.030, prCms:0.0008, prRms:1.0, prXmax:0.012,
+       fmin:10, fmax:1000, N:400 },
+  tab: 'SPL',
+};
+function recompute(){ state.driver = deriveDriver(state.driverRaw); }
+
+/* =========================================================================
+   PLOT TABS
+   ========================================================================= */
+const TABS = [
+  {id:'SPL',   name:'SPL response',     unit:'dB',   color:'#4fb0ff'},
+  {id:'Excursion', name:'Cone excursion', unit:'mm', color:'#ffb454'},
+  {id:'Port',  name:'Air velocity',     unit:'m/s',  color:'#5ad17a'},
+  {id:'GD',    name:'Group delay',      unit:'ms',   color:'#c08bff'},
+  {id:'Zmag',  name:'Impedance',        unit:'Ω',    color:'#ff6b6b'},
+  {id:'Zph',   name:'Impedance phase',  unit:'°',    color:'#ff9bb0'},
+  {id:'Phase', name:'Transfer phase',   unit:'°',    color:'#7fd4ff'},
+  {id:'MaxSPL',name:'Maximum SPL',      unit:'dB',   color:'#5ad17a'},
+  {id:'MaxPwr',name:'Maximum power',    unit:'W',    color:'#ffd05a'},
+];
+
+/* =========================================================================
+   CANVAS PLOTTER  (log-x frequency, linear-y, multi-series, hover crosshair)
+   ========================================================================= */
+const cv=document.getElementById('plot'), ctx=cv.getContext('2d');
+const side=document.getElementById('side'), tabs=document.getElementById('tabs');
+let plotData=null;   // {series:[{xs,ys,color,name}], yunit, ylabel, ymin,ymax, logy?}
+function fmtF(f){ return f>=1000? (f/1000).toFixed(f<10000?2:1)+'k' : (f>=100?f.toFixed(0):f.toFixed(0)); }
+function niceTicks(min,max,n=6){
+  const span=max-min, step0=span/n, mag=Math.pow(10,Math.floor(Math.log10(step0)));
+  const norm=step0/mag, step= norm<1.5?1:norm<3?2:norm<7?5:10, s=step*mag;
+  const t=[]; for(let v=Math.ceil(min/s)*s; v<=max+1e-9; v+=s) t.push(+v.toFixed(6));
+  return t;
+}
+function drawPlot(){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, Hh=cv.clientHeight;
+  cv.width=W*dpr; cv.height=Hh*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,Hh);
+  if(!plotData) return;
+  const m={l:54,r:14,t:14,b:28};
+  const pw=W-m.l-m.r, ph=Hh-m.t-m.b;
+  const f0=state.P.fmin, f1=state.P.fmax;
+  const lx0=Math.log10(f0), lx1=Math.log10(f1);
+  const {ymin,ymax,logy}=plotData;
+  const ly0= logy?Math.log10(ymin):ymin, ly1= logy?Math.log10(ymax):ymax;
+  const X=f=> m.l + (Math.log10(f)-lx0)/(lx1-lx0)*pw;
+  const Y=v=>{ const vv=logy?Math.log10(v):v; return m.t + (1-(vv-ly0)/(ly1-ly0))*ph; };
+  // grid: decade + 1-2-5 freq lines
+  ctx.strokeStyle='#243040'; ctx.fillStyle='#7c8a9c'; ctx.font='10px Segoe UI'; ctx.lineWidth=1;
+  for(let dec=Math.floor(lx0); dec<=Math.ceil(lx1); dec++){
+    for(const mul of [1,2,3,4,5,6,7,8,9]){
+      const f=mul*Math.pow(10,dec); if(f<f0||f>f1) continue;
+      const x=X(f); ctx.globalAlpha = mul===1?0.9:0.35;
+      ctx.beginPath(); ctx.moveTo(x,m.t); ctx.lineTo(x,m.t+ph); ctx.stroke();
+      if(mul===1||mul===2||mul===5){ ctx.globalAlpha=1; ctx.textAlign='center';
+        ctx.fillText(fmtF(f), x, m.t+ph+13); }
+    }
+  }
+  ctx.globalAlpha=1;
+  // y grid
+  const yt = logy? logTicks(ymin,ymax) : niceTicks(ymin,ymax,7);
+  ctx.textAlign='right';
+  for(const v of yt){ const y=Y(v); if(y<m.t-1||y>m.t+ph+1) continue;
+    ctx.globalAlpha=0.5; ctx.beginPath(); ctx.moveTo(m.l,y); ctx.lineTo(m.l+pw,y); ctx.stroke();
+    ctx.globalAlpha=1; ctx.fillText(fmtY(v), m.l-6, y+3); }
+  // axis labels
+  ctx.fillStyle='#9aa8ba'; ctx.textAlign='center';
+  ctx.fillText('Frequency (Hz)', m.l+pw/2, Hh-2);
+  ctx.save(); ctx.translate(12,m.t+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(plotData.ylabel, 0,0); ctx.restore();
+  // series
+  for(const s of plotData.series){
+    ctx.strokeStyle=s.color; ctx.lineWidth= s.dash?1.4:1.8;
+    if(s.dash) ctx.setLineDash([5,4]); else ctx.setLineDash([]);
+    ctx.beginPath(); let started=false;
+    for(let i=0;i<s.xs.length;i++){
+      const y=Y(s.ys[i]); if(!isFinite(y)) {started=false; continue;}
+      const x=X(s.xs[i]);
+      if(!started){ctx.moveTo(x,y);started=true;} else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  plotData._geo={m,pw,ph,X,Y,f0,f1};
+}
+function fmtY(v){ const a=Math.abs(v); if(a>=1000) return (v/1000).toFixed(1)+'k'; if(a>=10) return v.toFixed(0); if(a>=1) return v.toFixed(1); return v.toFixed(2); }
+function logTicks(min,max){ const t=[]; for(let d=Math.floor(Math.log10(min)); d<=Math.ceil(Math.log10(max)); d++){ for(const mul of [1,2,5]){ const v=mul*Math.pow(10,d); if(v>=min&&v<=max) t.push(v);} } return t; }
+
+// hover crosshair + readout
+cv.addEventListener('mousemove',e=>{
+  if(!plotData||!plotData._geo) return;
+  const rect=cv.getBoundingClientRect(); const mx=e.clientX-rect.left;
+  const g=plotData._geo;
+  const frac=(mx-g.m.l)/g.pw; if(frac<0||frac>1){ ro.style.display='none'; drawPlot(); return; }
+  const f=Math.pow(10, Math.log10(g.f0)+frac*(Math.log10(g.f1)-Math.log10(g.f0)));
+  drawPlot();
+  // nearest index
+  const s0=plotData.series[0]; let bi=0,bd=1e9;
+  for(let i=0;i<s0.xs.length;i++){const dd=Math.abs(Math.log10(s0.xs[i])-Math.log10(f)); if(dd<bd){bd=dd;bi=i;}}
+  const fx=s0.xs[bi];
+  ctx.strokeStyle='#ffffff55'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(g.X(fx),g.m.t); ctx.lineTo(g.X(fx),g.m.t+g.ph); ctx.stroke(); ctx.setLineDash([]);
+  let html=`<div class="k">f = </div><b>${fx.toFixed(fx<100?1:0)} Hz</b>`;
+  for(const s of plotData.series){
+    const y=s.ys[bi];
+    ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(g.X(fx),g.Y(y),3,0,7); ctx.fill();
+    html+=`<div style="color:${s.color}">${s.name}: <b>${fmtVal(y,plotData.unit)}</b></div>`;
+  }
+  ro.innerHTML=html; ro.style.display='block';
+});
+cv.addEventListener('mouseleave',()=>{ro.style.display='none'; drawPlot();});
+const ro=document.getElementById('readout');
+function fmtVal(v,u){ if(!isFinite(v))return '—'; const a=Math.abs(v); const d= a>=100?0:a>=10?1:2; return v.toFixed(d)+' '+u; }
+
+/* =========================================================================
+   RENDER PLOT for current tab
+   ========================================================================= */
+function render(){
+  recompute();
+  const drv=state.driver, box=state.box, P=state.P;
+  // sync derived port effective length from current vent geometry
+  if(box==='vented'||box==='bandpass4'){
+    P.Sp=Math.PI*(P.ventD/2)**2;
+    const d=P.ventD;
+    P.Leff=P.ventL + 0.85*d;     // one flanged + one free end ≈ 0.85d total (approx)
+  }
+  const sw=sweep(drv,box,P);
+  const meta=TABS.find(t=>t.id===state.tab);
+  let series=[], ylabel=meta.name+' ('+meta.unit+')', ymin,ymax,logy=false, unit=meta.unit;
+
+  const pick=(arr)=>({xs:sw.fs,ys:arr});
+  if(state.tab==='SPL'){
+    const ys=sw.spl; series=[{...pick(ys),color:meta.color,name:'SPL'}];
+    const mx=Math.max(...ys); ymax=Math.ceil((mx+3)/5)*5; ymin=ymax-45;
+  }else if(state.tab==='Excursion'){
+    series=[{...pick(sw.exc),color:meta.color,name:'Driver cone'}];
+    const xm=(drv.Xmax*1000);
+    series.push({xs:sw.fs,ys:sw.fs.map(_=>xm),color:'#ff6b6b',name:'Driver Xmax',dash:true});
+    let top=Math.max(xm*1.4, Math.max(...sw.exc.slice(0,20))*1.1);
+    if(box==='pr'){                       // add passive-radiator excursion + its limit
+      series.push({xs:sw.fs,ys:sw.excPR,color:'#5ad17a',name:'PR diaphragm'});
+      const xmp=(P.prXmax||0.01)*1000;
+      series.push({xs:sw.fs,ys:sw.fs.map(_=>xmp),color:'#9ad17a',name:'PR Xmax',dash:true});
+      top=Math.max(top, xmp*1.3, Math.max(...sw.excPR.slice(0,30))*1.1);
+    }
+    ymin=0; ymax=top;
+  }else if(state.tab==='Port'){
+    if(box!=='vented'&&box!=='bandpass4'){ series=[{xs:sw.fs,ys:sw.fs.map(_=>0),color:meta.color,name:box==='pr'?'PR — see Excursion tab':'n/a (no port)'}]; ymin=0;ymax=1; }
+    else { series=[{...pick(sw.pv),color:meta.color,name:'Port vel'}];
+      series.push({xs:sw.fs,ys:sw.fs.map(_=>0.05*C),color:'#ffb454',name:'17 m/s (chuff)',dash:true});
+      ymin=0; ymax=Math.max(20, Math.max(...sw.pv)*1.1); }
+  }else if(state.tab==='GD'){
+    series=[{...pick(sw.gd),color:meta.color,name:'Group delay'}];
+    const mx=Math.max(...sw.gd.filter(isFinite)); ymin=0; ymax=Math.max(mx*1.1,5);
+  }else if(state.tab==='Zmag'){
+    series=[{...pick(sw.zmag),color:meta.color,name:'|Z|'}];
+    logy=true; ymin=Math.max(1,Math.min(...sw.zmag)*0.9); ymax=Math.max(...sw.zmag)*1.15;
+  }else if(state.tab==='Zph'){
+    series=[{...pick(sw.zph),color:meta.color,name:'Z phase'}];
+    ymin=-90; ymax=90;
+  }else if(state.tab==='Phase'){
+    series=[{xs:sw.fs,ys:sw.phase.map(p=>p*180/Math.PI),color:meta.color,name:'Phase'}];
+    const ys=series[0].ys; ymin=Math.floor(Math.min(...ys)/90)*90; ymax=Math.ceil(Math.max(...ys)/90)*90;
+  }else if(state.tab==='MaxSPL'){
+    const mc=maxCurves(drv,box,P);
+    series=[{xs:mc.fs,ys:mc.maxspl,color:meta.color,name:'Max SPL'}];
+    const mx=Math.max(...mc.maxspl); ymax=Math.ceil(mx/5)*5; ymin=ymax-40;
+  }else if(state.tab==='MaxPwr'){
+    const mc=maxCurves(drv,box,P);
+    series=[{xs:mc.fs,ys:mc.maxpwr,color:meta.color,name:'Max power'}];
+    logy=true; ymin=1; ymax=Math.max(...mc.maxpwr)*1.2;
+  }
+  plotData={series,ylabel,ymin,ymax,logy,unit};
+  drawPlot();
+  renderLegend(series);
+  renderStat(sw,drv,box,P);
+}
+function renderLegend(series){
+  document.getElementById('legend').innerHTML =
+    series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join('');
+}
+function renderStat(sw,drv,box,P){
+  const f3 = findF3(sw.fs,sw.spl);
+  const peakZ = Math.max(...sw.zmag);
+  const fb = (box==='vented')? tuningFromLength(P.Vb,P.ventL,P.Sp) : null;
+  const fp = (box==='pr')? prTuning(P) : null;
+  const Qtc = (box==='sealed')? drv.Qts*Math.sqrt(1+drv.Vas/P.Vb):null;
+  const fc  = (box==='sealed')? drv.Fs*Math.sqrt(1+drv.Vas/P.Vb):null;
+  const maxPV = (box==='vented'||box==='bandpass4')?Math.max(...sw.pv):null;
+  const maxPRx= (box==='pr')?Math.max(...sw.excPR):null;
+  let s=[];
+  s.push(`Box: <b>${box}</b>`);
+  s.push(`Vb: <b>${(P.Vb*1000).toFixed(1)} L</b>`);
+  if(fc) s.push(`fc: <b>${fc.toFixed(1)} Hz</b>`);
+  if(Qtc) s.push(`Qtc: <b>${Qtc.toFixed(3)}</b>`);
+  if(fb) s.push(`Fb: <b>${fb.toFixed(1)} Hz</b>`);
+  if(fp) s.push(`Fp: <b>${fp.toFixed(1)} Hz</b>`);
+  s.push(`F3: <b>${f3?f3.toFixed(1)+' Hz':'—'}</b>`);
+  s.push(`Z peak: <b>${peakZ.toFixed(1)} Ω</b>`);
+  if(maxPV!=null) s.push(`peak port: <b>${maxPV.toFixed(1)} m/s</b>`);
+  if(maxPRx!=null) s.push(`peak PR: <b>${maxPRx.toFixed(1)} mm</b> (Xmax ${(P.prXmax*1000).toFixed(1)})`);
+  s.push(`EBP: <b>${ebp(drv).toFixed(0)}</b>`);
+  document.getElementById('stat').innerHTML=s.join(' &nbsp;·&nbsp; ');
+}
+function findF3(fs,spl){
+  // passband ref = max in upper region
+  const ref=Math.max(...spl);
+  for(let i=0;i<fs.length;i++){ if(spl[i]>=ref-3) return fs[i]; }
+  return null;
+}
+
+/* =========================================================================
+   UI BUILDERS
+   ========================================================================= */
+function num(label,obj,key,unit,scale=1,step='any'){
+  const v=(obj[key]??'')===''?'':+(obj[key]*scale).toPrecision(6);
+  return `<div class="row"><label>${label}</label>
+    <input type="number" step="${step}" data-bind="${key}" data-scale="${scale}" value="${v}">
+    <span class="u">${unit}</span></div>`;
+}
+function buildSide(){
+  const d=state.driverRaw, P=state.P, drv=deriveDriver(d);
+  const eb=ebp(drv);
+  const sug = eb<50?'sealed': eb>100?'vented':'either sealed or vented';
+  let h='';
+  // driver
+  h+=`<fieldset><legend>Driver</legend>
+    <div class="row"><label>Preset</label><select id="preset">
+      <option value="">— load preset —</option>
+      ${Object.keys(PRESETS).map(k=>`<option>${k}</option>`).join('')}
+    </select></div>
+    ${num('Fs',d,'Fs','Hz')}
+    ${num('Qts',d,'Qts','')}
+    ${num('Qes',d,'Qes','')}
+    ${num('Qms',d,'Qms','')}
+    ${num('Vas',d,'Vas','L',1000)}
+    ${num('Sd',d,'Sd','cm²',1e4)}
+    ${num('Re',d,'Re','Ω')}
+    ${num('Le',d,'Le','mH',1000)}
+    ${num('Xmax',d,'Xmax','mm',1000)}
+    ${num('Pe',d,'Pe','W')}
+    <div class="ebp">EBP = Fs/Qes = <b>${eb.toFixed(0)}</b> → suggests <b>${sug}</b>.
+      Derived: Bl=${drv.Bl.toFixed(2)} Tm, Mms=${(drv.Mms*1000).toFixed(1)} g, Cms=${(drv.Cms*1000).toFixed(3)} mm/N</div>
+  </fieldset>`;
+  // box
+  h+=`<fieldset><legend>Enclosure</legend>
+    <div class="row"><label>Type</label><select id="boxtype">
+      ${['sealed','vented','bandpass4','pr'].map(b=>`<option value="${b}" ${state.box===b?'selected':''}>${({sealed:'Sealed (closed)',vented:'Vented (bass-reflex)',bandpass4:'Bandpass 4th order',pr:'Passive radiator'})[b]}</option>`).join('')}
+    </select></div>
+    ${num('Box volume Vb',P,'Vb','L',1000)}`;
+  if(state.box==='bandpass4') h+= num('Front chamber Vf',P,'Vf','L',1000);
+  if(state.box==='vented'||state.box==='bandpass4'){
+    h+= num('Vent diameter',P,'ventD','cm',100)
+      + num('Vent length',P,'ventL','cm',100)
+      + `<div class="row"><label></label><span class="u" style="width:auto">Fb ≈ <b style="color:var(--acc2)">${tuningFromLength(P.Vb,P.ventL,Math.PI*(P.ventD/2)**2).toFixed(1)} Hz</b></span></div>`;
+  }
+  if(state.box==='pr'){
+    h+= num('PR area Sd',P,'prSd','cm²',1e4)
+      + num('PR mass Mmp',P,'prMmp','g',1000)
+      + num('PR compliance Cms',P,'prCms','mm/N',1000)
+      + num('PR Rms',P,'prRms','Ns/m')
+      + num('PR Xmax',P,'prXmax','mm',1000)
+      + `<div class="row"><label></label><span class="u" style="width:auto">Fp ≈ <b style="color:var(--acc2)">${prTuning(P).toFixed(1)} Hz</b></span></div>`;
+  }
+  h+= num('Leakage Ql',P,'Ql','');
+  // alignment helpers
+  h+=`<div class="btns">`;
+  if(state.box==='sealed') h+=`<button id="alQtc">Set Vb for Qtc=0.707</button>`;
+  if(state.box==='vented') h+=`<button id="alVent">Auto QB3/B4 align</button>`;
+  if(state.box==='pr')     h+=`<button id="alPR">Tune PR mass to B4 Fb</button>`;
+  h+=`</div></fieldset>`;
+  // drive
+  h+=`<fieldset><legend>Signal &amp; drivers</legend>
+    ${num('Drive voltage',P,'eg','V')}
+    <div class="row"><label>Power into ${(drv.Z||drv.Re).toFixed(1)}Ω</label><span class="u" style="width:auto">${(P.eg*P.eg/(drv.Z||drv.Re)).toFixed(1)} W</span></div>
+    ${num('No. of drivers',P,'nDrivers','',1,'1')}
+    <div class="row"><label>Wiring</label><select id="wiring">
+      <option value="parallel" ${P.wiring==='parallel'?'selected':''}>Parallel</option>
+      <option value="series" ${P.wiring==='series'?'selected':''}>Series</option>
+    </select></div>
+  </fieldset>`;
+  // range
+  h+=`<fieldset><legend>Plot range</legend>
+    ${num('Min freq',P,'fmin','Hz')}
+    ${num('Max freq',P,'fmax','Hz')}
+    <div class="hint">Engine validated vs sealed closed-form (&lt;0.03 dB), driver sensitivity, and vented 24 dB/oct. Lumped electro-acoustical circuit, half-space.</div>
+  </fieldset>`;
+  side.innerHTML=h;
+  wireSide();
+}
+function wireSide(){
+  side.querySelectorAll('input[data-bind]').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const key=inp.dataset.bind, scale=+inp.dataset.scale;
+      const v=inp.value===''?0:(+inp.value)/scale;
+      if(key in state.P) state.P[key]=v; else state.driverRaw[key]=v;
+      // live-update derived labels without rebuilding whole panel (keep focus)
+      render();
+      refreshDerivedLabels();
+    });
+  });
+  const preset=side.querySelector('#preset');
+  if(preset) preset.onchange=e=>{ if(e.target.value){ state.driverRaw=Object.assign({},PRESETS[e.target.value]); buildSide(); render(); } };
+  side.querySelector('#boxtype').onchange=e=>{ state.box=e.target.value; buildSide(); render(); };
+  const w=side.querySelector('#wiring'); if(w) w.onchange=e=>{state.P.wiring=e.target.value; render();};
+  const aq=side.querySelector('#alQtc'); if(aq) aq.onclick=()=>{ const vb=sealedFromQtc(state.driver,0.707); if(vb){state.P.Vb=vb; buildSide(); render();} };
+  const av=side.querySelector('#alVent'); if(av) av.onclick=()=>{
+    const a=ventedAlignment(state.driver); state.P.Vb=a.Vb;
+    state.P.ventL=ventLength(a.Vb,a.Fb,Math.PI*(state.P.ventD/2)**2);
+    buildSide(); render();
+  };
+  const ap=side.querySelector('#alPR'); if(ap) ap.onclick=()=>{
+    const fb=ventedAlignment(state.driver).Fb;           // same B4 target as vented
+    state.P.prMmp=prMassForFp(state.P, fb);
+    buildSide(); render();
+  };
+}
+function refreshDerivedLabels(){
+  // lightweight: rebuild only if the Fb / power labels exist — cheap full rebuild guarded to preserve focus
+  const fbEl=side.querySelector('fieldset legend'); // no-op anchor
+}
+
+function buildTabs(){
+  tabs.innerHTML=TABS.map(t=>`<div class="tab ${state.tab===t.id?'on':''}" data-tab="${t.id}">${t.name}</div>`).join('');
+  tabs.querySelectorAll('.tab').forEach(el=>el.onclick=()=>{state.tab=el.dataset.tab; buildTabs(); render();});
+}
+
+/* =========================================================================
+   IMPORT / EXPORT / ABOUT
+   ========================================================================= */
+function download(name, text, mime){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:mime||'text/plain'}));
+  a.download=name; a.click();
+}
+document.getElementById('btnExport').onclick=()=>
+  download('project.resonate.json', JSON.stringify({driver:state.driverRaw,box:state.box,P:state.P},null,2),'application/json');
+document.getElementById('btnExportWdr').onclick=()=>{
+  const fn=(state.driverRaw.name||'driver').replace(/[^\w.-]+/g,'_')+'.wdr';
+  download(fn, toWdr(state.driverRaw), 'text/plain');
+};
+document.getElementById('btnImport').onclick=()=>document.getElementById('fileImport').click();
+document.getElementById('fileImport').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return; const rd=new FileReader();
+  const isWdr=/\.wdr$/i.test(f.name);
+  rd.onload=()=>{ try{
+    if(isWdr || /^\s*\[Driver\]/.test(rd.result)){
+      state.driverRaw = parseWdr(rd.result);            // WinISD driver file
+    } else {
+      const o=JSON.parse(rd.result);                    // our JSON project
+      if(o.driver) state.driverRaw=o.driver; if(o.box) state.box=o.box; if(o.P) Object.assign(state.P,o.P);
+    }
+    buildSide(); buildTabs(); render();
+  }catch(err){ alert('Could not read "'+f.name+'": '+err.message);} };
+  rd.readAsText(f);
+};
+document.getElementById('btnAbout').onclick=()=>{
+  const eb=ebp(state.driver);
+  alert(
+`Resonate  —  open loudspeaker enclosure simulator
+A modern, community-owned tool modelling the Thiele/Small
+electro-mechano-acoustical system. Imports WinISD .wdr driver files.
+
+MODEL: lumped-element circuit in the acoustical impedance analogy.
+  • driver:  Z = Rms/Sd² + jωMms/Sd² + 1/(jωCmsSd²),  motor reflected via Bl²/(Sd²·Zcoil)
+  • box:     Cab = Vb/(ρc²), leakage Ral from Ql
+  • vented:  port branch jωMap+Rap; net output U0 = Udia − Uport (24 dB/oct)
+  • output:  p = ρω·U0/(2πr), half-space @ 1 m
+
+VALIDATED (run: node test/engine.test.mjs):
+  • sealed circuit ≡ closed form fc=Fs√(1+Vas/Vb), Qtc=Qts√(1+Vas/Vb)  (<0.03 dB)
+  • passband asymptotes to driver reference sensitivity
+  • vented: 24 dB/oct rolloff + twin impedance peaks straddling Fb
+
+Box types: sealed, vented, 4th-order bandpass, passive radiator
+  (PR: own excursion curve + Xmax, Fp tuning readout, mass auto-tune).
+Curves: SPL, driver+PR excursion, air velocity, group delay,
+        impedance |Z| & phase, transfer phase, max SPL, max power.
+
+FILES:
+  • Import / Export WinISD .wdr driver files (INI text, SI units). Imported
+    drivers are made internally self-consistent; core T/S round-trips exactly.
+  • Save/load whole projects as JSON.
+  • .wpr projects: WinISD writes these as a Lazarus binary component stream
+    (TBinaryObjectWriter). Not supported — would need a sample .wpr to match
+    the exact binary layout. Use the JSON project format instead.
+
+Not yet ported from WinISD: 6th-order bandpass, iso-baric, full filter/EQ
+chain (Linkwitz transform, parametric EQ), diffraction/baffle step.`);
+};
+
+/* =========================================================================
+   SELF-TEST  — reruns the validation gates against the shipped JS engine.
+   Logged to console at boot so the engine can be verified in-browser.
+   ========================================================================= */
+function selfTest(){
+  const raw={Fs:37,Qts:0.38,Qes:0.40,Qms:7.0,Vas:0.030,Sd:0.0133,Re:5.6,Le:0.7e-3,Xmax:0.005,Pe:60,Z:8};
+  const d=deriveDriver(raw), Vb=0.020;
+  // GATE 1: sealed shape vs closed form (lossless, Le=0)
+  const di=Object.assign({},d,{Le:0});
+  const fc=d.Fs*Math.sqrt(1+d.Vas/Vb), Qtc=d.Qts*Math.sqrt(1+d.Vas/Vb);
+  const Psl={Vb,Ql:1e6,nDrivers:1,wiring:'parallel',eg:2.83,fmin:10,fmax:1000,N:300};
+  const sw=sweep(di,'sealed',Psl);
+  const ref=sw.spl[sw.spl.length-1]; let e1=0;
+  for(let i=0;i<sw.fs.length;i++){ const x=sw.fs[i]/fc; const g2=(x**4)/((1-x*x)**2+(x*x)/(Qtc*Qtc));
+    e1=Math.max(e1,Math.abs(sw.spl[i]-(ref+10*Math.log10(g2)))); }
+  // GATE 2: passband sensitivity
+  const eta0=(4*Math.PI**2/C**3)*(d.Fs**3*d.Vas)/d.Qes;
+  const sens283=112.1+10*Math.log10(eta0)+10*Math.log10(2.83**2/d.Re);
+  const i300=sw.fs.findIndex(f=>f>=300); const pb=sw.spl[i300];
+  // GATE 3: vented slope + impedance peaks
+  const Cab=Vb/(RHO*C*C), fb=30, wb=2*Math.PI*fb, Map=1/(wb*wb*Cab), Sp=Math.PI*0.025**2;
+  const Pv=Object.assign({},Psl,{Ql:7,Sp,Leff:Map*Sp/RHO});
+  const sv=sweep(d,'vented',Pv);
+  const a=sv.fs.findIndex(f=>f>=12), b=sv.fs.findIndex(f=>f>=15);
+  const slope=(sv.spl[b]-sv.spl[a])/Math.log2(sv.fs[b]/sv.fs[a]);
+  const peaks=[]; for(let i=1;i<sv.zmag.length-1;i++) if(sv.zmag[i]>sv.zmag[i-1]&&sv.zmag[i]>sv.zmag[i+1]&&sv.zmag[i]>d.Re*1.5) peaks.push(+sv.fs[i].toFixed(1));
+  const p1=e1<0.1, p2=Math.abs(pb-sens283)<0.5, p3=Math.abs(slope-24)<3&&peaks.length===2;
+  console.log('%c[Resonate self-test]','font-weight:bold',
+    `\n GATE1 sealed≡closed-form: max err ${e1.toFixed(4)} dB  -> ${p1?'PASS':'FAIL'}`,
+    `\n GATE2 sensitivity: circuit ${pb.toFixed(2)} dB vs predicted ${sens283.toFixed(2)} dB (Δ${(pb-sens283).toFixed(2)}) -> ${p2?'PASS':'FAIL'}`,
+    `\n GATE3 vented slope ${slope.toFixed(1)} dB/oct, Z-peaks ${JSON.stringify(peaks)} -> ${p3?'PASS':'FAIL'}`,
+    `\n OVERALL: ${p1&&p2&&p3?'%cALL PASS':'%cFAIL'}`,'font-weight:bold;color:'+(p1&&p2&&p3?'green':'red'));
+  return {p1,p2,p3};
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+function init(){ recompute(); buildSide(); buildTabs(); render(); selfTest(); }
+window.addEventListener('resize', drawPlot);
+init();
+</script>
+</body>
+</html>

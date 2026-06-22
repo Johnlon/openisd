@@ -1,0 +1,24 @@
+{
+  "name": "resonate",
+  "version": "0.1.0",
+  "description": "Open, community-owned loudspeaker enclosure simulator that runs in any browser.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node test/engine.test.mjs"
+  },
+  "keywords": [
+    "loudspeaker",
+    "speaker",
+    "enclosure",
+    "thiele-small",
+    "winisd",
+    "acoustics",
+    "diyaudio",
+    "simulator"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
