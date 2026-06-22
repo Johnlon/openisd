@@ -63,8 +63,17 @@ not a contract — pick what interests you and open a PR.
 - [ ] **P3** L-pad / level matching
 - [ ] **P3** Multi-driver system summation (2- and 3-way), driver offset / acoustic centre
 
+## Storage & sharing
+- [x] **P1** URL-encoded designs — the full design (driver, box, params, graph
+      selection, comparisons) lives in a shareable link; no server needed
+- [x] **P1** Export / import the complete design as a JSON file
+- [ ] **P2** Optional Google Drive storage — let users save and open designs in
+      their *own* Google Drive. Keeps personal storage entirely on the user's
+      side with no server or accounts on ours (opt-in; nothing stored unless the
+      user chooses it)
+- [ ] **P3** Optional Dropbox / generic cloud storage on the same opt-in basis
+
 ## UX & platform
-- [ ] **P1** URL-encoded shareable designs — a design becomes a link
 - [ ] **P1** Save / restore graph layout (which graphs, sizes, positions)
 - [ ] **P2** Draggable / resizable graph panels
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path

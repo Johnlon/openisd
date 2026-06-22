@@ -39,6 +39,7 @@
   .drvsum:hover .ed{border-color:var(--acc)}
   .drvspecs{font-size:10.5px;color:var(--mut);padding:4px 8px 2px;line-height:1.5}
   .drvspecs b{color:var(--acc2)}
+  .flash{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--acc);color:#06223a;font-weight:600;padding:8px 16px;border-radius:6px;font-size:12px;z-index:80;transition:opacity .4s;pointer-events:none}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 10px;padding:8px 10px}
   legend{color:var(--acc);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
   .row{display:flex;align-items:center;gap:6px;margin:3px 0}
@@ -87,7 +88,8 @@
   <button id="btnBrowse" class="pri">Browse drivers</button>
   <button id="btnImport">Import .wdr / project</button>
   <button id="btnExportWdr">Export driver .wdr</button>
-  <button id="btnExport">Save project</button>
+  <button id="btnShare">Share link</button>
+  <button id="btnExport">Export design</button>
   <input type="file" id="fileImport" accept=".wdr,.json" style="display:none">
   <button id="btnAbout">About</button>
 </header>
@@ -838,11 +840,44 @@ function download(name, text, mime){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:mime||'text/plain'}));
   a.download=name; a.click();
 }
+// ---- complete app state: driver + box + params + which graphs + comparisons ----
+function serializeState(){
+  return { v:1, driver:state.driverRaw, box:state.box, P:state.P, graphs:state.graphs,
+    compare: state.compare.map(d=>({driver:d.driver, box:d.box, P:d.P, name:d.name, color:d.color})) };
+}
+function applyState(o){
+  if(!o) return false;
+  if(o.driver) state.driverRaw=o.driver;
+  if(o.box) state.box=o.box;
+  if(o.P) state.P=Object.assign(state.P, o.P);
+  if(Array.isArray(o.graphs)&&o.graphs.length) state.graphs=o.graphs;
+  if(Array.isArray(o.compare)) state.compare=o.compare.map(c=>({driver:c.driver, box:c.box, P:c.P, name:c.name, color:c.color}));
+  return true;
+}
+// ---- share-by-URL (state lives in the link; no server) ----
+const b64urlEnc=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64urlDec=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+function stateToUrl(){ return location.origin+location.pathname+'#s='+b64urlEnc(JSON.stringify(serializeState())); }
+function loadStateFromUrl(){
+  const m=(location.hash||'').match(/[#&]s=([^&]+)/);
+  if(!m) return false;
+  try{ return applyState(JSON.parse(b64urlDec(m[1]))); }catch(e){ return false; }
+}
+
 document.getElementById('btnExport').onclick=()=>
-  download('project.resonate.json', JSON.stringify({driver:state.driverRaw,box:state.box,P:state.P},null,2),'application/json');
+  download('design.resonate.json', JSON.stringify(serializeState(),null,2),'application/json');
 document.getElementById('btnExportWdr').onclick=()=>{
   const fn=(state.driverRaw.name||'driver').replace(/[^\w.-]+/g,'_')+'.wdr';
   download(fn, toWdr(state.driverRaw), 'text/plain');
+};
+document.getElementById('btnShare').onclick=()=>{
+  const url=stateToUrl();
+  try{ history.replaceState(null,'',url); }catch(e){}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(
+      ()=>flash('Share link copied to clipboard'),
+      ()=>prompt('Copy this share link:', url));
+  } else prompt('Copy this share link:', url);
 };
 document.getElementById('btnImport').onclick=()=>document.getElementById('fileImport').click();
 document.getElementById('fileImport').onchange=e=>{
@@ -852,13 +887,18 @@ document.getElementById('fileImport').onchange=e=>{
     if(isWdr || /^\s*\[Driver\]/.test(rd.result)){
       state.driverRaw = parseWdr(rd.result);            // WinISD driver file
     } else {
-      const o=JSON.parse(rd.result);                    // our JSON project
-      if(o.driver) state.driverRaw=o.driver; if(o.box) state.box=o.box; if(o.P) Object.assign(state.P,o.P);
+      applyState(JSON.parse(rd.result));                // full Resonate design
     }
     buildSide(); render();
   }catch(err){ alert('Could not read "'+f.name+'": '+err.message);} };
   rd.readAsText(f);
 };
+function flash(msg){
+  let el=document.getElementById('flashMsg');
+  if(!el){ el=document.createElement('div'); el.id='flashMsg'; el.className='flash'; document.body.appendChild(el); }
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(el._t); el._t=setTimeout(()=>{ el.style.opacity='0'; }, 1800);
+}
 /* =========================================================================
    FEDERATED DRIVER BROWSER
    Reads drivers/sources.json (a list of external driver repos) and lets you
@@ -1030,7 +1070,8 @@ function selfTest(){
 /* =========================================================================
    BOOT
    ========================================================================= */
-function init(){ recompute(); buildSide(); render(); selfTest(); }
+function init(){ loadStateFromUrl(); recompute(); buildSide(); render(); selfTest(); }
+window.addEventListener('hashchange', ()=>{ if(loadStateFromUrl()){ buildSide(); render(); } });
 window.addEventListener('resize', drawAll);
 init();
 </script>
