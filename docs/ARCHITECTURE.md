@@ -33,16 +33,19 @@ that is a conscious decision to revisit this — not a default direction.
 
 ---
 
-## AD-2: No build step — offline-safe module style
+## AD-2: Offline-safe module style (build step is a separate question)
 
-**Decision:** The shipped app uses classic `<script src>` includes, not ES
-modules (`import` / `<script type="module">`). No bundler, no transpiler.
+**Decision:** The shipped app uses classic `<script src>` includes rather than
+ES modules (`import` / `<script type="module">`).
 
 **Rationale:**
 - ES module `import` uses CORS fetch semantics. On a `file://` origin (double-
-  clicking `index.html`) this silently fails, breaking the offline promise.
-- A build step adds toolchain complexity and a contributor barrier — the whole
-  point of a single-file app is that anyone can open it and read the source.
+  clicking `index.html` offline) this silently fails — the app breaks invisibly
+  without a local server. Classic `<script src>` works on `file://`.
+- This is a constraint on how the **app runs**, not on the development workflow.
+  A build step (bundler, transpiler, etc.) is a separate, independent decision:
+  it is fine to have one if it makes development easier, provided the *output*
+  satisfies the offline constraint.
 
 **Implication:** Core modules use a dual export pattern so they run in both the
 browser (as `<script src>`) and in Node.js tests (`require()`):
