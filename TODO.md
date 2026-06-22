@@ -29,6 +29,10 @@ That doesn't scale. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the targe
       renders non-blank canvases, driver collapse/expand, `.wdr` import changes
       the curve, share-link round-trip. This automates the rendering check we
       currently push onto the user.
+- [ ] **Research** Chrome's MCP server (browser-automation MCP) as a functional-
+      test driver — evaluate vs Playwright for driving the real app and checking
+      rendered canvases; note setup, CI fit, and whether it can replace or
+      complement Playwright.
 - [ ] **P0** Expand CI to run both suites on every push / PR.
 - [ ] **P0** Persist current design across reloads (ctrl-R must keep the selected
       driver) — auto-save state to `localStorage`, restore on load.

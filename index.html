@@ -460,7 +460,7 @@ const state = {
   driver: null,
   box: 'vented',
   P: { Vb:0.030, Vf:0.015, Sp:Math.PI*0.025*0.025, Leff:0.10, Ql:7, Qp:100,
-       fb:35, ventD:0.05, ventL:0.10, nDrivers:1, wiring:'parallel', eg:2.83,
+       fb:35, ventD:0.05, ventL:0.10, nDrivers:1, wiring:'parallel', Pin:1, eg:2.83,
        prSd:0.0133, prMmp:0.030, prCms:0.0008, prRms:1.0, prXmax:0.012,
        fmin:10, fmax:1000, N:400 },
   graphs: ['SPL','Excursion','Zmag','GD'],   // graphs shown simultaneously
@@ -493,7 +493,12 @@ const ggrid=document.getElementById('ggrid'), gtoolbar=document.getElementById('
 let GR=[];                       // [{id,panel,canvas,ctx,title,read,plotData}]
 const DPAL=['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];  // design colours when comparing
 // per-design curve cache (so each design is swept once, not once per graph)
-function syncP(d){ if(d.box==='vented'||d.box==='bandpass4'){ d.P.Sp=Math.PI*(d.P.ventD/2)**2; d.P.Leff=d.P.ventL+0.85*d.P.ventD; } return d; }
+function driveVoltage(P,drv){ return Math.sqrt((P.Pin!=null?P.Pin:1)*(drv.Z||drv.Re||8)); } // W -> V into nominal Z
+function syncP(d){
+  if(d.box==='vented'||d.box==='bandpass4'){ d.P.Sp=Math.PI*(d.P.ventD/2)**2; d.P.Leff=d.P.ventL+0.85*d.P.ventD; }
+  if(d.P.Pin!=null) d.P.eg=driveVoltage(d.P,d.driver);   // power is the primary input (WinISD convention); derive voltage
+  return d;
+}
 function designCurves(d){ if(!d._sw){ syncP(d); d._sw=sweep(d.driver,d.box,d.P); } return d._sw; }
 function designMax(d){ if(!d._mc){ syncP(d); d._mc=maxCurves(d.driver,d.box,d.P); } return d._mc; }
 function fmtF(f){ return f>=1000? (f/1000).toFixed(f<10000?2:1)+'k' : (f>=100?f.toFixed(0):f.toFixed(0)); }
@@ -682,6 +687,7 @@ function render(){
   drawAll();
   renderStat(designCurves(cur), cur.driver, cur.box, cur.P);
   buildToolbar();
+  saveLocal();
 }
 function renderStat(sw,drv,box,P){
   const f3 = findF3(sw.fs,sw.spl);
@@ -782,8 +788,8 @@ function buildSide(){
   h+=`</div></fieldset>`;
   // drive
   h+=`<fieldset><legend>Signal &amp; drivers</legend>
-    ${num('Drive voltage',P,'eg','V')}
-    <div class="row"><label>Power into ${(drv.Z||drv.Re).toFixed(1)}Ω</label><span class="u" style="width:auto">${(P.eg*P.eg/(drv.Z||drv.Re)).toFixed(1)} W</span></div>
+    ${num('Input power',P,'Pin','W')}
+    <div class="row"><label>Drive voltage @ ${(drv.Z||drv.Re).toFixed(1)}Ω</label><span class="u" style="width:auto">${driveVoltage(P,drv).toFixed(2)} V</span></div>
     ${num('No. of drivers',P,'nDrivers','',1,'1')}
     <div class="row"><label>Wiring</label><select id="wiring">
       <option value="parallel" ${P.wiring==='parallel'?'selected':''}>Parallel</option>
@@ -863,6 +869,9 @@ function loadStateFromUrl(){
   if(!m) return false;
   try{ return applyState(JSON.parse(b64urlDec(m[1]))); }catch(e){ return false; }
 }
+// ---- auto-persist across reloads (ctrl-R keeps the current design) ----
+function saveLocal(){ try{ localStorage.setItem('resonate.state', JSON.stringify(serializeState())); }catch(e){} }
+function loadLocal(){ try{ const s=localStorage.getItem('resonate.state'); if(s) return applyState(JSON.parse(s)); }catch(e){} return false; }
 
 document.getElementById('btnExport').onclick=()=>
   download('design.resonate.json', JSON.stringify(serializeState(),null,2),'application/json');
@@ -1070,7 +1079,7 @@ function selfTest(){
 /* =========================================================================
    BOOT
    ========================================================================= */
-function init(){ loadStateFromUrl(); recompute(); buildSide(); render(); selfTest(); }
+function init(){ if(!loadStateFromUrl()) loadLocal(); recompute(); buildSide(); render(); selfTest(); }
 window.addEventListener('hashchange', ()=>{ if(loadStateFromUrl()){ buildSide(); render(); } });
 window.addEventListener('resize', drawAll);
 init();
