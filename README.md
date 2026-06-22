@@ -36,8 +36,11 @@ file. Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
 > ## ▶ [**Launch Resonate**](https://johnlon.github.io/resonate/)
-> Runs in your browser — nothing to install. Also works offline: download
-> `index.html` and open it directly.
+> DOES NOY WORK on phone yet - this was literally 4 hours of hacking.
+> 
+> Runs in your browser — nothing to install.
+> Also works offline: download
+> `index.html` and open it directly. Help build the mobile version.
 
 ---
 
