@@ -112,7 +112,8 @@ your machine unless you choose to share them.
 The intention is to keep it that way for as long as it's feasible. Any feature
 that genuinely required a backend would be a large, explicit architectural
 decision — not a default direction. The goal is that as much of the app's functionality remains free as long as
-that's feasible. The source is MIT-licensed; if the maintainers vanish, fork it and
+that's feasible. If a backend turns out to be necessary for something, that's
+a decision for the community to make together. The source is MIT-licensed; if the maintainers vanish, fork it and
 carry on.
 
 ## License
