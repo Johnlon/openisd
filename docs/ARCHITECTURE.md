@@ -32,10 +32,8 @@ work without them.
 that is a conscious decision to revisit this — not a default direction.
 
 **Consequence: backend = auth stack.** The moment any backend infrastructure
-exists, authn/authz is required — which means an IDP, session management, and
-all the associated complexity. That is not a small add-on; it is a second major
-project running in parallel. The preferred IDP, if and when this is ever needed,
-is Google. This reinforces keeping the app client-side for as long as feasible.
+exists, authn/authz is required — which means an IDP and session management.
+The preferred IDP, if and when this is ever needed, is Google.
 
 ---
 
