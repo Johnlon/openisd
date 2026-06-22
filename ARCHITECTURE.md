@@ -3,6 +3,10 @@
 Decisions that are hard to reverse and shape everything else. Record them here
 so future contributors understand *why*, not just *what*.
 
+**Domain:** resonate-sim.io — purchased, currently redirecting to
+https://johnlon.github.io/resonate/
+
+
 ---
 
 ## AD-1: Client-side only — no backend

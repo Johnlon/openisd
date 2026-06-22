@@ -35,7 +35,7 @@ Thiele/Small parameters. No install, no licence key, runs on a phone. One HTML
 file. Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
-> ## ▶ [**Launch Resonate**](https://johnlon.github.io/resonate/)
+> ## ▶ [**Launch Resonate**](https://resonate-sim.io)
 > DOES NOT WORK on phone yet - this was literally 4 hours of hacking.
 > 
 > Runs in your browser — nothing to install.
