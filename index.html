@@ -18,9 +18,6 @@
   .layout{display:flex;height:calc(100vh - 41px)}
   .side{width:330px;min-width:330px;overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:10px}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-  .tabs{display:flex;gap:2px;padding:6px 10px 0;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .tab{padding:5px 11px;cursor:pointer;border:1px solid transparent;border-bottom:none;border-radius:5px 5px 0 0;color:var(--mut);font-size:12px}
-  .tab.on{background:var(--bg);color:var(--fg);border-color:var(--line)}
   canvas{display:block;width:100%;height:100%}
   /* graph toolbar */
   .gtoolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
@@ -55,11 +52,6 @@
   .btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
   .ebp{margin-top:6px;padding:6px;background:var(--panel2);border-radius:5px;font-size:11px}
   .ebp b{color:var(--acc2)}
-  .readout{position:absolute;top:14px;right:18px;background:rgba(10,14,20,.85);border:1px solid var(--line);border-radius:5px;padding:6px 9px;font-size:11px;pointer-events:none;min-width:120px}
-  .readout .k{color:var(--mut)}
-  .legend{position:absolute;left:18px;top:14px;font-size:11px;background:rgba(10,14,20,.7);border-radius:5px;padding:4px 8px}
-  .legend span{display:inline-block;margin-right:10px}
-  .legend i{display:inline-block;width:10px;height:3px;vertical-align:middle;margin-right:4px}
   .stat{display:flex;flex-wrap:wrap;gap:4px 14px;padding:6px 14px;background:var(--panel);border-top:1px solid var(--line);font-size:11px;color:var(--mut)}
   .stat b{color:var(--fg)}
   .hint{color:var(--mut);font-size:10.5px;margin:2px 0 6px}
