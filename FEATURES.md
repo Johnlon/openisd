@@ -26,13 +26,17 @@ proven by another tool.
 - **SoundForm** by *u/BusyEntrepreneur9636* — closed beta, access by DM —
   <https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
 - **SpeakerDesign.dev** — 100% free, no login, closed source —
-  <https://speakerdesign.dev/> — a suite: T/S Parameters (+ personal driver DB),
-  a guided **Driver Wizard** (sealed presets; vented QB3/SBB4/EBS alignments;
-  bandpass/PR/ABC “coming”), a Box Simulator (sealed + vented only; SPL +
-  excursion; Ql/Qa/Qp box-loss model), a Box Calculator (volume + displacement +
-  3D assembly), a strong **Cutlist Optimizer** (bin-packing, kerf, rip/cross
-  cuts, PDF), and an open **knowledge base + tutorial**. Its *simulation* is
-  narrower than Resonate’s; its construction + education tooling is ahead.
+  <https://speakerdesign.dev/> — a deep suite: T/S Parameters (+ personal driver
+  DB), a guided **Driver Wizard** (sealed presets; vented QB3/SBB4/EBS; bandpass/
+  PR/ABC “coming”), a **Box Simulator** that nearly matches Resonate (transfer
+  mag, excursion, port velocity, impedance, phase, group delay, max power, max
+  SPL; full Ql/Qa/Qp losses; **1–4 vents, round or slot, selectable end-
+  correction; drag-to-adjust Vb/Fb with locking; frequency presets; listening
+  distance**), a detailed **Box Calculator** (6 assembly cases, driver/port
+  displacement, bracing, lining, component volumes, cutlist), a polished
+  **Cutlist Optimizer** (bin-packing, kerf, rotate, fractional inches, PDF), and
+  an open **knowledge base + tutorial**. Sealed/vented only (no bandpass/PR/`.wdr`
+  yet), but broader than Resonate on vents, construction, and education.
 - **SpeakerBoxLite** — established freemium / PAYG (web + iOS + Android), closed
   source — <https://speakerboxlite.com/> — the most feature-complete of the
   field: 5,000+ drivers, transmission line, full crossover suite, 3D builder,
@@ -63,6 +67,14 @@ proven by another tool.
 - ✅ Leakage loss `Ql`
 - ✅ Port/vent loss `Qp`
 - ⬜ Absorption / fill loss `Qa` — *full Ql/Qa/Qp set seen in SpeakerDesign.dev*
+
+### Vent / port modelling
+- ✅ Single round vent (diameter, length, area, Fb readout)
+- ✅ End-correction (fixed ~0.85d)
+- ⬜ Multiple vents (1–4) — *seen in SpeakerDesign.dev*
+- ⬜ Slot / rectangular vents — *seen in SpeakerDesign.dev*
+- ⬜ Selectable end-correction (free/flanged combos, custom) — *seen in SpeakerDesign.dev*
+- ⬜ Drag-to-adjust Vb / Fb with lock-one — *seen in SpeakerDesign.dev & 00 Simulator*
 
 ## 2. Analysis & graphs
 - ✅ SPL / frequency response (half-space, 1 m)
@@ -98,6 +110,9 @@ proven by another tool.
 
 ## 4. Electronics & signal chain
 - ✅ Input drive voltage / power
+- ⬜ Series / source resistance (amp + cabling) — *seen in SpeakerDesign.dev, 00 Sim*
+- ⬜ Configurable listening distance (currently fixed 1 m) — *seen in SpeakerDesign.dev, 00 Sim*
+- ⬜ Frequency-range presets (sub / woofer / wide / custom) — *seen in SpeakerDesign.dev*
 - ⬜ EQ: parametric (peaking) — *WinISD core feature; 00 Simulator has on-graph editing*
 - ⬜ EQ: Linkwitz transform — *seen in 00 Simulator*
 - ⬜ EQ: high-shelf / low-shelf — *seen in 00 Simulator*
@@ -113,8 +128,9 @@ proven by another tool.
 
 ## 6. Construction & woodworking output
 *The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this.*
-- ⬜ Net/gross internal volume from panel thickness
+- ⬜ Net/gross internal volume from panel thickness (+ separate baffle thickness)
 - ⬜ Driver & port displacement subtraction
+- ⬜ Bracing / lining / component (xover, plate amp) volume subtraction — *seen in SpeakerDesign.dev*
 - ⬜ Panel cut list + 6-panel dimension breakdown — *SoundForm, SpeakerDesign.dev, SpeakerBoxLite*
 - ⬜ 3D enclosure model / assembly view — *SpeakerDesign.dev, SpeakerBoxLite (“Smart 3D Builder”)*
 - ⬜ Cut-list / sheet-layout optimiser — *SpeakerDesign.dev, SpeakerBoxLite*
@@ -154,11 +170,15 @@ proven by another tool.
 
 ## Honest competitive position
 
-The field is more advanced than “WinISD is dead” implies. **00 Simulator** in
-particular is feature-rich, polished, actively developed, and already does
-several things once imagined as Resonate differentiators (WinISD-compatible
-export, URL design sharing, amp-load graph, EQ chain). **SpeakerBoxLite** is the
-broadest (transmission line, full crossover, 5,000+ drivers) but paywalled.
+The field is far more advanced than “WinISD is dead” implies — and closer
+inspection makes this *more* true, not less. **00 Simulator** is feature-rich,
+polished, actively developed, and already does several things once imagined as
+Resonate differentiators (WinISD-compatible export, URL design sharing, amp-load
+graph, EQ chain). **SpeakerDesign.dev**’s simulator roughly matches Resonate’s
+graph set and *exceeds* it on vents/ports, construction, and education.
+**SpeakerBoxLite** is the broadest (transmission line, full crossover, 5,000+
+drivers) but paywalled. On raw features Resonate is, at best, mid-pack — and
+behind on construction/woodworking entirely.
 
 So Resonate does **not** win on features today. Its genuine, defensible edge is
 narrower and sharper:
@@ -177,8 +197,9 @@ narrower and sharper:
 
 ## Where it needs to catch up
 EQ chain, amplifier-load graph, datasheet→params paste, 6th-order bandpass, `.wpr`
-import, and construction output (cut list / 3D). All tractable on the existing
-engine — good first contributions.
+import, richer vents (multi/slot/end-correction), series resistance + listening
+distance, and construction output (volume calc, cut list, 3D). All tractable on
+the existing engine — good first contributions.
 
 ## Strategic implication for the “unite” pitch
 The honest framing isn’t “mine is better.” It’s: the best tools are closing up or
