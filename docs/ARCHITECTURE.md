@@ -7,8 +7,9 @@ so future contributors understand *why*, not just *what*.
 
 ## AD-1: Client-side only — no backend
 
-**Decision:** The core simulator runs entirely in the browser. No server, no
-account, no API calls required for the physics engine or file operations.
+**Decision:** The core simulator runs entirely in the browser for as long as
+that remains feasible. No server, no account, no API calls required for the
+physics engine or file operations.
 
 **Rationale:**
 - A backend costs money to run, introduces availability risk, and creates a
@@ -27,7 +28,8 @@ cloud features are desirable (e.g. Google Drive integration), they are strictly
 opt-in additions that degrade gracefully; the core simulator must continue to
 work without them.
 
-**Status:** Adopted. Not up for casual revision.
+**Status:** Adopted. If a feature genuinely cannot be delivered client-side,
+that is a conscious decision to revisit this — not a default direction.
 
 ---
 

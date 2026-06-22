@@ -105,14 +105,15 @@ and a pull request. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the
 
 ## Free?
 
-Yes, unconditionally. The entire app runs in your browser — there is no backend,
-no server, no account. The physics engine is client-side JavaScript; your designs
-never leave your machine unless you choose to share them.
+Yes. The entire app runs in your browser — there is no backend, no server, no
+account. The physics engine is client-side JavaScript; your designs never leave
+your machine unless you choose to share them.
 
-Any future feature that required a paid backend would be a large, deliberate
-architectural change — not something that happens by default. The core simulator
-will always run offline for free. The source is MIT-licensed; if the maintainers
-vanish, fork it and carry on.
+The intention is to keep it that way for as long as it's feasible. Any feature
+that genuinely required a backend would be a large, explicit architectural
+decision — not a default direction. The core simulator will always run offline
+for free. The source is MIT-licensed; if the maintainers vanish, fork it and
+carry on.
 
 ## License
 
