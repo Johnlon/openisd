@@ -5,8 +5,10 @@
   "description": "Open, community-owned loudspeaker enclosure simulator that runs in any browser.",
   "license": "MIT",
   "scripts": {
-    "start": "node server.js",
-    "test": "node test/engine.test.mjs && node test/golden.test.mjs && playwright test",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node test/engine.test.mjs && node test/golden.test.mjs && npx playwright test",
     "gen-golden": "node test/gen-golden.mjs"
   },
   "keywords": [
@@ -24,6 +26,12 @@
     "url": ""
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.0"
+    "@playwright/test": "^1.61.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "vite": "^8.0.16",
+    "vite-plugin-pwa": "^1.3.0"
+  },
+  "dependencies": {
+    "vue": "^3.5.38"
   }
 }

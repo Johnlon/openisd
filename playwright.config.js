@@ -3,16 +3,16 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './test',
   testMatch: '**/*.browser.spec.js',
-  timeout: 15000,
+  timeout: 30000,
   use: {
     browserName: 'chromium',
     headless: true,
-    baseURL: 'http://localhost:7788',
+    baseURL: 'http://localhost:5173',
   },
   webServer: {
-    command: 'node server.js',
-    url: 'http://localhost:7788',
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
     reuseExistingServer: true,
-    timeout: 5000,
+    timeout: 15000,
   },
 });
