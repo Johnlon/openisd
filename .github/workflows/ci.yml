@@ -14,4 +14,4 @@ jobs:
         with:
           node-version: '20'
       - name: Validate simulation engine
-        run: node test/engine.test.mjs
+        run: npm test

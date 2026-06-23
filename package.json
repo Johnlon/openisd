@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "Open, community-owned loudspeaker enclosure simulator that runs in any browser.",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "test": "node test/engine.test.mjs"
+    "test": "node test/engine.test.mjs && node test/golden.test.mjs",
+    "gen-golden": "node test/gen-golden.mjs"
   },
   "keywords": [
     "loudspeaker",

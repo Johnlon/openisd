@@ -11,18 +11,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const html = readFileSync(join(here, '..', 'index.html'), 'utf8');
-
-// Pull the pure-engine portion (everything before the DOM/canvas code) and
-// expose its functions without touching a browser.
-const start = html.indexOf('"use strict";') + 13;
-const end   = html.indexOf('CANVAS PLOTTER');
-const engineSrc = html.slice(start, html.lastIndexOf('/*', end));
-const api = new Function(engineSrc +
-  '\nreturn {deriveDriver,sweep,maxCurves,parseWdr,toWdr,prTuning,prMassForFp,ventedAlignment,RHO,C};')();
-const { deriveDriver, sweep, parseWdr, toWdr, prTuning, prMassForFp, RHO, C } = api;
+const here    = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const { deriveDriver, sweep, parseWdr, toWdr, prTuning, prMassForFp, RHO, C } =
+  require('../src/core/index.js');
 
 let fails = 0;
 const check = (name, ok, detail='') => {
