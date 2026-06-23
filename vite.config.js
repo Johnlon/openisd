@@ -2,11 +2,15 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const base = process.env.GITHUB_PAGES ? '/resonate/' : '/';
+
 export default defineConfig({
+  base,
   plugins: [
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      base,
       manifest: {
         name: 'Resonate',
         short_name: 'Resonate',
@@ -14,7 +18,7 @@ export default defineConfig({
         theme_color: '#11151c',
         background_color: '#11151c',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/resonate/',
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
