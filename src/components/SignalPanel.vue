@@ -33,11 +33,11 @@ function setIEC() {
     </div>
     <div class="row" title="Drive voltage = √(Pin × Re). Edit directly to set an exact voltage — input power updates automatically. Use 2.83V for IEC 60268-5 sensitivity reference (1W into 8Ω).">
       <label>Drive voltage</label>
+      <button class="iec-btn" @click="setIEC" title="Set to 2.83V — IEC 60268-5 sensitivity standard">2.83V</button>
       <input class="v-input" type="number" step="0.01" min="0"
              :value="driveV.toFixed(3)"
              @change="onVoltageInput">
       <span class="u">V</span>
-      <button class="iec-btn" @click="setIEC" title="Set to 2.83V — IEC 60268-5 sensitivity standard">2.83V</button>
     </div>
     <div class="row" title="Series resistance (wire, crossover DCR, amplifier output impedance). WinISD default is 0.1 Ω.">
       <label>Series resistance</label>
@@ -67,7 +67,7 @@ function setIEC() {
 .iec-btn {
   font-size: 11px;
   padding: 1px 6px;
-  margin-left: 3px;
+  margin-right: 3px;
   background: none;
   border: 1px solid var(--mut);
   border-radius: 3px;
