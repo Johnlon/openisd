@@ -10,8 +10,8 @@
     "prebuild": "node scripts/bundle-drivers.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs && node test/golden.test.mjs && npx playwright test",
-    "test:unit": "node --test test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs",
+    "test": "node --test test/config.test.mjs test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs && node test/golden.test.mjs && npx playwright test",
+    "test:unit": "node --test test/config.test.mjs test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs",
     "gen-golden": "node test/gen-golden.mjs"
   },
   "keywords": [

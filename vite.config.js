@@ -6,6 +6,11 @@ const base = process.env.GITHUB_PAGES ? '/resonate/' : '/';
 
 export default defineConfig({
   base,
+  server: {
+    watch: {
+      ignored: ['**/drivers/**/_html/**', '**/drivers/**/datasheets/**'],
+    },
+  },
   plugins: [
     vue(),
     VitePWA({
