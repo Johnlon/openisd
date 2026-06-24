@@ -281,7 +281,19 @@ function removePR(id) {
         </div>
       </div>
     </template>
-    <div class="row">
+    <div class="btns">
+      <button v-if="state.box === 'sealed'" @click="setVbForQtc"
+        title="Sets the box volume so the system Q (Qtc) equals 0.707 — the Butterworth (B2) alignment. Maximally flat frequency response.">
+        Set Vb for Qtc=0.707
+      </button>
+      <button v-if="state.box === 'vented'" @click="autoVentAlign"
+        title="Applies the QB3 or B4 vented alignment for this driver. Sets Vb and vent length for optimal bass-reflex tuning.">
+        Auto QB3/B4 align
+      </button>
+      <button v-if="state.box === 'pr'" @click="autoPRMass"
+        title="Calculates and sets the added mass so Fp matches the B4 alignment's optimal tuning for this driver. B4 = 4th-order Butterworth — flat response to Fp, then steep rolloff.">
+        Tune added mass to B4 Fp
+      </button>
       <button class="losses-toggle" @click="showLosses = !showLosses">
         Box losses {{ showLosses ? '▾' : '▸' }}
       </button>
@@ -302,20 +314,6 @@ function removePR(id) {
         <span class="losses-note">Real stuffing also increases apparent Vb — this model captures resistive loss only.</span>
       </div>
     </template>
-    <div class="btns">
-      <button v-if="state.box === 'sealed'" @click="setVbForQtc"
-        title="Sets the box volume so the system Q (Qtc) equals 0.707 — the Butterworth (B2) alignment. Maximally flat frequency response.">
-        Set Vb for Qtc=0.707
-      </button>
-      <button v-if="state.box === 'vented'" @click="autoVentAlign"
-        title="Applies the QB3 or B4 vented alignment for this driver. Sets Vb and vent length for optimal bass-reflex tuning.">
-        Auto QB3/B4 align
-      </button>
-      <button v-if="state.box === 'pr'" @click="autoPRMass"
-        title="Calculates and sets the added mass so Fp matches the B4 alignment's optimal tuning for this driver. B4 = 4th-order Butterworth — flat response to Fp, then steep rolloff.">
-        Tune added mass to B4 Fp
-      </button>
-    </div>
   </fieldset>
 </template>
 
