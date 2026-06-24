@@ -92,7 +92,7 @@ console.log('\nResonate engine validation\n');
 
 // --- WinISD .wdr import + self-consistent round-trip ------------------------
 {
-  const text = readFileSync(join(here, '..', 'drivers', 'Tang Band W5-1138SMF.wdr'), 'utf8');
+  const text = readFileSync(join(here, '..', 'drivers', 'loudspeakerdatabase', 'Tang Band W5-1138SMF.wdr'), 'utf8');
   const imp = parseWdr(text);
   check('.wdr import reads brand/model + core T/S',
         imp.name==='Tang Band W5-1138SMF' && imp.Fs===45 && imp.Sd===0.0094,

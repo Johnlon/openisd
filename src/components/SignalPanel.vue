@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { state, driver } from '../store.js';
 
 const drv = driver;
-const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value.Z || drv.value.Re || 8)));
+const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value.Re || 8)));
 </script>
 
 <template>
@@ -15,7 +15,7 @@ const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value.Z || drv
       <span class="u">W</span>
     </div>
     <div class="row">
-      <label>Drive voltage @ {{ (drv.Z||drv.Re).toFixed(1) }}Ω</label>
+      <label>Drive voltage (Re={{ drv.Re.toFixed(2) }}Ω)</label>
       <span style="width:96px;text-align:right;color:var(--acc2)">{{ driveV.toFixed(2) }} V</span>
       <span class="u"></span>
     </div>

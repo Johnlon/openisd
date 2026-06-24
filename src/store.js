@@ -28,7 +28,9 @@ export const syncedP = computed(() => {
     p.Sp   = Math.PI * (p.ventD / 2) ** 2;
     p.Leff = p.ventL + 0.85 * p.ventD;
   }
-  p.eg = Math.sqrt((p.Pin ?? 1) * (driver.value.Z || driver.value.Re || 8));
+  // T/S power convention: P = eg²/Re — power into DC resistance, not nominal impedance.
+  // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
+  p.eg = Math.sqrt((p.Pin ?? 1) * (driver.value.Re || 8));
   return p;
 });
 

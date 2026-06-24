@@ -89,20 +89,21 @@ export function sweep(drv, box, P) {
 /**
  * Maximum SPL and power curves — sweep at 2.83 V then scale to Xmax and Pe limits.
  * Voltage limit: v_Xmax = 2.83 · (Xmax / x_at_2.83V)
- * Power limit:   v_Pe   = √(Pe · Znom)
+ * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
+ *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
 export function maxCurves(drv, box, P) {
   const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
   const Pe   = (drv.Pe || 50) * (P.nDrivers || 1);
-  const Znom = drv.Z || drv.Re;
+  const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
   const maxspl = [], maxpwr = [], xlim = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
     const vXmax = excAt283 > 0 ? 2.83 * (drv.Xmax / excAt283) : 1e9;
-    const vPe   = Math.sqrt(Pe * Znom);
+    const vPe   = Math.sqrt(Pe * Re);
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));
-    maxpwr.push(vUse * vUse / Znom);
+    maxpwr.push(vUse * vUse / Re);
     xlim.push(vXmax < vPe);
   }
   return { fs: base.fs, maxspl, maxpwr, xlim };
