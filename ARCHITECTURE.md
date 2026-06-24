@@ -127,3 +127,30 @@ attribute. No exceptions.
 in review. Claude Code agent instructions (CLAUDE.md) enforce this at authoring time.
 
 **Status:** Adopted 2026-06-24.
+
+---
+
+## UI-2: All docs, tooltips, values, and refs must cross-reference WinISD where relevant
+
+**Rule:** Every tooltip, label, default value, doc section, and parameter description
+must mention its WinISD equivalent wherever one exists. This includes:
+- The name WinISD uses for the parameter
+- WinISD's default value (if it has one)
+- Where it appears in the WinISD UI (which tab, popup, or field)
+- Any known difference in behaviour or convention between Resonate and WinISD
+
+**Rationale:**
+- Resonate's primary audience is WinISD users migrating to or cross-checking
+  against an open, browser-based alternative. They arrive with WinISD mental models.
+- Without cross-references, users spend time hunting for familiar controls or
+  doubt whether Resonate's results are comparable.
+- WinISD is the canonical reference for compatibility — every parameter that has
+  a WinISD counterpart should make that mapping explicit.
+
+**Examples of correct application:**
+- Tooltip: `"Leakage loss. WinISD default: Ql=10. Found in Box tab → Advanced→ popup."`
+- Tooltip: `"Drive voltage. Called 'Driver input voltage (each)' in WinISD."`
+- Default value comment: `// Ql=10, Qa=100 — WinISD 0.7.0.950 defaults`
+- Doc section heading: `"Box losses (WinISD: Advanced→ Ql / Qa)"`
+
+**Status:** Adopted 2026-06-24.
