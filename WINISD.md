@@ -58,6 +58,17 @@ Note: 2.83 V is the IEC 60268-5 sensitivity standard and is *not* what WinISD us
 WinISD's Re-based convention means its SPL curves are reference-power curves, not
 IEC sensitivity curves.
 
+### ✓ Confirmed: 2.83V IEC mode matches "2.83V/1m" datasheets for 8Ω drivers (2026-06-24)
+
+Test driver: **Morel UW 1258** (8Ω nominal). Measured on IEC baffle, Brüel & Kjær 3144 mic.
+Datasheet: **"Sensitivity 2.83V/1m 87 dB SPL"**
+Resonate 2.83V IEC mode: **87 dB** ✓ — exact match (confirmed directly in Resonate, not via WinISD).
+
+IEC baffle (1.2×1.2 m flat baffle) is half-space (2π sr) — identical to WinISD/Resonate radiation model.
+For 8Ω drivers with explicit "2.83V/1m" datasheet specs, the 2.83V IEC mode is correct.
+
+---
+
 ### ⚠ Observed sensitivity offset vs datasheet (2026-06-24)
 
 Test driver: Tang Band W5-1138SMF (Re ≈ 3.24 Ω, 4 Ω nominal). Datasheet: **82 dB 1W/1m**.
