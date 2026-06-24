@@ -102,11 +102,41 @@ proven by another tool.
 - ✅ **WinISD `.wdr` export** — *00 Simulator also exports WinISD-compatible files*
 - ⬜ WinISD `.wpr` project import — *00 Simulator does this; `.wpr` is plain INI text in current WinISD (sections decoded), so this is feasible*
 - ⬜ Unibox spreadsheet import — *seen in 00 Simulator*
-- 🔨 Open, version-controlled driver database (`drivers/`) — seeded
-- ✅ **Federated driver sources** — link to other repos (`drivers/sources.json`)
-  instead of copying; *no other surveyed tool federates its driver data*
-- ✅ **In-app driver browser** — pick a federated source or paste any GitHub repo,
-  search the list, load a `.wdr` on demand
+
+### Driver library — 2,100+ drivers, instant load
+- ✅ **Pre-bundled at build time** — all local `.wdr` collections are baked into
+  the app JS; no GitHub API calls, no rate limits, no spinners. The full library
+  loads in the same round-trip as the page itself.
+- ✅ **Federated driver sources** — `drivers/sources.json` links external `.wdr`
+  repos so the community can grow the library without forking Resonate; *no other
+  surveyed tool federates its driver data*
+- ✅ **In-app driver browser** — token-based multi-word search (case-insensitive,
+  every word must match), pure alphabetical list, source tags with clickable links
+- ✅ **Newer-version highlighting** — when the same driver exists in multiple
+  collections, the entry with the latest `DateModified` is highlighted in accent
+  colour; older copies are dimmed so you can see at a glance which measurement to
+  trust and where it came from
+- ✅ **Date normalisation** — dates from different scrapers and manual entries
+  are canonicalised to `YYYY-MM-DD` for consistent display regardless of origin
+- ✅ **SpeakerBoxLite opt-in** — one click loads ~6,000 community measurements
+  from speakerboxlite.com on top of the bundled library (fetched live, CORS-permitting)
+- ✅ **Paste any GitHub repo** — add a custom `owner/repo` or full GitHub URL to
+  pull `.wdr` files from any public repository in the browser
+
+### Vendor scrapers (automated data pipelines)
+- ✅ **SB Acoustics** — 194 drivers scraped from sbacoustics.com, including
+  the full Satori and SB series, with datasheet URLs in machine-readable `_meta.json`
+- ✅ **Parts Express** — 1,509 drivers scraped from the PE woofer guide API;
+  T/S parameters taken directly from the PE datasheet fields (not keyed by hand)
+- 🔨 **SoundImports** — European multi-brand distributor; scraper live, data
+  growing (Accuton, HiVi, Faital, Morel, ScanSpeak, Seas, Satori, Wavecor, …)
+- ⬜ **Wavecor**, **Dayton Audio** — scrapers written, pending full run
+- ✅ **Meta file standard** — every scraped `.wdr` gets a `_meta.json` with
+  quality grade (`M` = machine-scraped, unverified), datasheet URL, and scrape
+  provenance so human reviewers know exactly where each number came from
+- ✅ **WDR schema documentation** (`drivers/README.md`) — canonical field names,
+  SI units, common mistakes table, date semantics, quality review workflow; the
+  single source of truth for scraper authors and human contributors
 - ⬜ Filter drivers by size / params; richer metadata index — *SpeakerBoxLite has 5,000+ / 300+ brands in one DB*
 - ⬜ Paste raw datasheet text → infer T/S params — *seen in 00 Simulator*
 - ⬜ “Copy from” an existing driver — *seen in 00 Simulator*
@@ -141,8 +171,7 @@ proven by another tool.
 - ⬜ 3D-printable port export (STL) — *seen in SpeakerBoxLite*
 
 ## 7. Platform & UX
-- ✅ Single HTML file, no build step, no dependencies
-- ✅ Runs anywhere with a browser (desktop, tablet, phone)
+- ✅ Runs anywhere with a browser (desktop, tablet, phone), no install, no login
 - ✅ Dark theme
 - ✅ Hover crosshair + value readout on every graph
 - ✅ Alignment helpers (Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
@@ -156,7 +185,8 @@ proven by another tool.
 - ✅ **Federated driver data** — `drivers/sources.json` links external `.wdr`
   repos; add one via PR, no re-hosting
 - ✅ **URL-encoded shareable designs** — paste a design as a link
-- 🔨 Community driver-data contribution flow (PR a `.wdr`, or a source link)
+- ✅ **Community contribution flow** — PR a `.wdr` file or a new source URL;
+  WDR schema + meta standard documented so contributors know exactly what's expected
 - ✅ Static hosting on GitHub Pages (<https://johnlon.github.io/resonate/>)
 
 ## 9. Learning & docs
@@ -176,42 +206,45 @@ proven by another tool.
 
 ## Honest competitive position
 
-The field is far more advanced than “WinISD is dead” implies — and closer
-inspection makes this *more* true, not less. **00 Simulator** is feature-rich,
-polished, actively developed, and already does several things once imagined as
-Resonate differentiators (WinISD-compatible export, URL design sharing, amp-load
-graph, EQ chain). **SpeakerDesign.dev**’s simulator roughly matches Resonate’s
-graph set and *exceeds* it on vents/ports, construction, and education.
-**SpeakerBoxLite** is the broadest (transmission line, full crossover, 5,000+
-drivers) but paywalled. On raw features Resonate is, at best, mid-pack — and
-behind on construction/woodworking entirely.
+The field is more advanced than “WinISD is dead” implies. **00 Simulator** is
+feature-rich and actively developed. **SpeakerDesign.dev** matches Resonate’s
+graph set and exceeds it on vents and construction. **SpeakerBoxLite** is the
+broadest tool (transmission line, full crossover, 5,000+ drivers) but paywalled.
+On raw simulation features alone, Resonate is mid-pack today.
 
-So Resonate does **not** win on features today. Its genuine, defensible edge is
-narrower and sharper:
+But the driver library story has changed materially. Resonate now ships with
+**2,100+ bundled drivers** from SB Acoustics, Parts Express, and community
+measurement collections — loaded instantly from the app bundle, not fetched from a
+rate-limited API. A live scraper pipeline keeps that number growing. No surveyed
+competitor offers an open, version-controlled, machine-readable driver commons with
+automated ingestion pipelines and a human-review quality framework.
 
-- **Open source, now — not “if it goes stale.”** 00 Simulator *pledges* to open
-  up someday; Resonate’s code is MIT and public today. A promise to open later is
-  not an open project.
-- **Open *data*, not just open code.** A community-owned, version-controlled
-  driver commons that no single operator can wall off or take down. None of the
-  closed tools open their aggregated driver data — and Resonate goes further by
-  **federating**: it links to other people's `.wdr` repos rather than hoarding,
-  so the commons grows without a central gatekeeper.
-- **Provable physics.** Published validation against the closed-form solutions,
-  re-checked in CI on every push. No competitor surveyed makes (let alone proves)
-  this claim.
-- **Truly ownerless longevity.** MIT + on disk in every clone = it cannot die or
-  get paywalled. That’s a structural guarantee, not a maintainer’s good intentions.
+Resonate’s defensible edges:
+
+- **Open source, now.** 00 Simulator pledges to open source “if it goes stale.”
+  Resonate is MIT, public, and forkable today — not contingent on a maintainer’s
+  goodwill.
+- **Open *data*, growing.** 2,100+ drivers in a version-controlled commons, with
+  vendor scraper pipelines adding new measurements automatically. The data carries
+  quality grades, datasheet provenance, and scrape timestamps so you know exactly
+  where every number came from. No closed tool opens its aggregated driver data at
+  all, let alone federates it.
+- **Federated, not hoarded.** Any `.wdr` repo on GitHub can be linked into
+  Resonate’s browser with one PR to `sources.json` — no re-hosting, no import
+  queue. The commons grows without a central gatekeeper.
+- **Provable physics.** Validated against closed-form Thiele/Small solutions,
+  re-verified on every push in CI. No competitor surveyed makes this claim.
+- **Truly ownerless longevity.** MIT + on disk in every clone = it cannot die,
+  be paywalled, or have its driver data locked away.
 
 ## Where it needs to catch up
-EQ chain, amplifier-load graph, datasheet→params paste, 6th-order bandpass, `.wpr`
-import, richer vents (multi/slot/end-correction), series resistance + listening
-distance, and construction output (volume calc, cut list, 3D). All tractable on
-the existing engine — good first contributions.
+Construction output (volume calc, cut list, 3D), amplifier-load graph, richer
+vents (multi/slot/selectable end-correction), 6th-order bandpass, `.wpr` import,
+datasheet→params paste, and EQ shelves. All tractable on the existing engine.
 
-## Strategic implication for the “unite” pitch
-The honest framing isn’t “mine is better.” It’s: the best tools are closing up or
-charging, and even the friendliest only *promises* to open up if it dies. Resonate
-is the neutral, already-open foundation to pool effort and data into — so no one
-has to trust a single operator’s goodwill. The ask to other authors stands, but
-the hook is **open now + open data + provable**, not feature superiority.
+## Strategic framing
+The honest pitch isn’t “mine is better at simulation.” It’s: the best tools are
+closing up or charging, and even the friendliest only promises to open if it dies.
+Resonate is the neutral, already-open foundation — code *and* data — that no one
+can take away. As the driver library approaches 5,000+ drivers with verified
+provenance, that data commons becomes the deepest moat of all.
