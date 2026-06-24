@@ -2,8 +2,9 @@ node_modules/
 dist/
 test-results/
 
-# Scraper HTML cache — raw fetched pages, never commit
+# Scraper cache — raw HTML and PDF datasheets, never commit (URLs kept in _meta.json)
 drivers/**/_html/
+drivers/**/datasheets/
 
 # OS / editor cruft
 .DS_Store
