@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/10-sb29nrx75-6-norex/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/10in-SB29NRX75-6.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=21.0
 Qts=0.35
 Qes=0.38

@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5-satori-mr13p-8/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MR13P-8.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=45.0
 Qts=0.31
 Qes=0.33

@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/dayton-audio-daex25x4-4.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=285.0
 Znom=8.0
 Re=7.3

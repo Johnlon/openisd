@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-s220-6-222.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/S220-6-222/S220-6-222.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=25.0
 Qts=0.26
 Qes=0.27

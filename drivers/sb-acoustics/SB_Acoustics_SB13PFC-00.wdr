@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5-sb13pfc-00-paper/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB13PFC-00-OEM-only.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=23.0
 Qms=5.9
 Mms=0.036

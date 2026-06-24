@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5in-sb15nac30-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB15NAC30-4-OEM-only.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=35.0
 Qts=0.3
 Qes=0.32

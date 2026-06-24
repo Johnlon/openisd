@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c158-8-085.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C158-8-085/Accuton-C158-8-085-woofer.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=37.0
 Qts=0.36
 Qes=0.39

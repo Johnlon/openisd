@@ -193,6 +193,7 @@ def to_wdr(brand: str, model: str, fields: dict,
         f"Comment={comment}",
         f"DateAdded={date_added}",
         f"DateModified={date_modified}",
+        "portingle=Y",
     ]
 
     # T/S fields — only emit if value was sourced

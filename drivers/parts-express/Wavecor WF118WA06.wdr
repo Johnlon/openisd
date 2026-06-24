@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Wavecor-WF118WA06-4-1-2-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1138 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.55
 Znom=8
 Fs=66

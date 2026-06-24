@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Dayton-Audio-RS270-4-10-Reference-Woofer-4-Ohm-295-382 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.27
 Znom=4
 Fs=20.9

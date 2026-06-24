@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/6in-sb17mfc35-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17MFC35-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=30.0
 Qts=0.28
 Qes=0.3

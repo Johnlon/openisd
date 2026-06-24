@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5in-satori-mw13p-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MW13P-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=41.0
 Qts=0.27
 Qes=0.29

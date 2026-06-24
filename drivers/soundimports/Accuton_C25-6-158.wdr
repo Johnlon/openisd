@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c25-6-158.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C25-6-158/C25-6-158%20CEL.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=905.0
 Qts=0.73
 Qes=0.97

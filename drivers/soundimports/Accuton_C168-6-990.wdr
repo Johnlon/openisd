@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c168-6-990.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C168-6-990/C168-6-990.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=55.0
 Qts=0.21
 Qes=0.22

@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c220-11-221.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C220-11-221/c220_11_221-datasheet.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=25.0
 Qms=6.74
 Znom=11.0

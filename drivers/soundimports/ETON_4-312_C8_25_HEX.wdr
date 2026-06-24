@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/eton-4-312-c8-25-hex.html | Datasheet: https://doc.soundimports.nl/pdf/brands/ETON/SYMPHONY%20II/SYMPHONY_II_4-312_C8_25_HEX.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=71.0
 Qts=0.39
 Qes=0.42

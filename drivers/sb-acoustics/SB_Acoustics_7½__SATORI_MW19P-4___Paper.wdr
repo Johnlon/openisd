@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/7½in-satori-mw19p-4-2/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/7.5in-SATORI-MW19P-4-1.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=29.0
 Qts=0.24
 Qes=0.26

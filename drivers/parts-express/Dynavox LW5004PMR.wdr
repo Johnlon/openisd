@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Dynavox-LW5004PMR-5-1-4-Woofer-295-600 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.56
 Znom=8
 Fs=61.7

@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Wavecor-WF120BD06-4-3-4-Balanced-Drive-Paper-Cone-Mid-Woofer-8-Ohm-298-1150 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.47
 Znom=8
 Fs=50

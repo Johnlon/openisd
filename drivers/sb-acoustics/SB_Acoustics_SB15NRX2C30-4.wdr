@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5in-sb15nrx2c30-4-norex/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/5in-SB15NRX2C30-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=34.5
 Qts=0.28
 Qes=0.3

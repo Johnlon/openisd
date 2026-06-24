@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb29rdnc-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/SB29RDNC-C000-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=680.0
 Qts=0.45
 Qes=0.72

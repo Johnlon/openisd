@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/HP-5210-5-1-4-Poly-Cone-Rubber-Surround-Woofer-8-Ohm-299-2164 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.34
 Znom=8
 Fs=53

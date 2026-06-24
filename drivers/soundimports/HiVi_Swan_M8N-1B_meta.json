@@ -1,0 +1,8 @@
+{
+  "file": "HiVi_Swan_M8N-1B.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.soundimports.eu/en/hivi-m8n-1b.html",
+  "reviewedBy": null
+}

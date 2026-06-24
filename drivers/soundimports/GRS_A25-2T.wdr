@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/grs-a25-2t.html | Datasheet: https://doc.soundimports.nl/pdf/brands/GRS/A25-2T/GRS-A25-2T-data-sheet.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=730.0
 Znom=6.0
 Re=5.4

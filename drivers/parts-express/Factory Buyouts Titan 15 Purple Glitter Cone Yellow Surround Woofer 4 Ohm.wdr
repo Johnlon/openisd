@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Titan-15-Purple-Glitter-Cone-Yellow-Surround-Woofer-4-Ohm-299-1054 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=1.725
 Znom=4
 Fs=30

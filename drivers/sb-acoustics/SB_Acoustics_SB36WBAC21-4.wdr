@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/1-sb36wbac21-4-aluminum/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/1in-SB36WBAC21-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=200.0
 Qts=0.41
 Qes=1.05

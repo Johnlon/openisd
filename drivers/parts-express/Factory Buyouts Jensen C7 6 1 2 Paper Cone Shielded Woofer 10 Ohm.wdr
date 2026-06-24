@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Jensen-C7-6-1-2-Paper-Cone-Shielded-Woofer-10-Ohm-299-2092 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.76
 Znom=12
 Fs=83.4

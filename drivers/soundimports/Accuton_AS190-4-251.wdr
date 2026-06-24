@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-as190-4-251.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/AS190-4-251/AS190-9-251%20CELL.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=33.4
 Qts=0.44
 Qes=0.49

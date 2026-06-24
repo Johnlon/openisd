@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Peerless-SLS-250S38CP00-04-10-Paper-Cone-Woofer-4-Ohm-264-1598 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.38
 Znom=4
 Fs=26.1

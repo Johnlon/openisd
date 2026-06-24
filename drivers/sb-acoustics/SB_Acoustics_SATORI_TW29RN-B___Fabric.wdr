@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/satori-tw29rn-b/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/SATORI-TW29RN-B.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=700.0
 Qts=0.49
 Qes=0.65

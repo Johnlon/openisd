@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2024/04/7.5in-SATORI-MT19CP-8.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=1200.0
 Qts=0.31
 Qes=0.33

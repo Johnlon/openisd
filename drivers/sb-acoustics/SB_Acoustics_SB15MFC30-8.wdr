@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/5in-sb15mfc30-8/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/5in-SB15MFC30-8.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=39.0
 Qts=0.37
 Qes=0.4

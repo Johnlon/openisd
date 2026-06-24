@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Morel-MSW-168-Shallow-Classic-Series-6-DPC-Cone-Woofer-8-Ohms-297-006 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.41
 Znom=8
 Fs=44

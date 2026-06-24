@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Peerless-TPY05W08O0088-5-1-4-Heritage-Family-Woofer-8-Ohm-264-1636 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.57
 Znom=8
 Fs=85

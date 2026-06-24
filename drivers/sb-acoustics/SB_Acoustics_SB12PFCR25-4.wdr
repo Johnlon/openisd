@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/4-sb12pfcr25-4-coax/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/4in-SB12PFCR25-4-COAX.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=1300.0
 Qts=0.33
 Qes=0.36

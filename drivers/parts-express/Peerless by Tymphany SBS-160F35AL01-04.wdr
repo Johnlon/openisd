@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Peerless-SBS-160F35AL01-04-6-1-2-Aluminum-Cone-Woofer-4-Ohm-264-1564 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.6
 Znom=4
 Fs=46.15

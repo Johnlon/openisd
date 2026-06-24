@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/6in-sb17nrx2c35-4-norex/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17NRX2C35-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=36.0
 Qts=0.37
 Qes=0.41

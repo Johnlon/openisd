@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/WP-5211-5-1-4-Pair-Poly-Cone-Foam-Surround-Woofer-8-Ohms-299-2238 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.86
 Znom=8
 Fs=66

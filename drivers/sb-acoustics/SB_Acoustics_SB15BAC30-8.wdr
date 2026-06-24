@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb15bac30-8-coax/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2026/03/5-inch-SB15BAC30-8-COAX.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=1120.0
 Qts=0.36
 Qes=0.39

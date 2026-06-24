@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c173-6-096.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C173-6-096/C173-6-096.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=50.0
 Qts=0.22
 Qes=0.24

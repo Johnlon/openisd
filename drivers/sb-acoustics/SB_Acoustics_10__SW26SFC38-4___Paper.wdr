@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/10-sw26sfc38-4-paper/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2023/06/10in-SW26SFC38-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=27.0
 Qts=0.29
 Qes=0.3

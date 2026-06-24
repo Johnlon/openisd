@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb29sdnc-c000-4-fabric/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2023/06/SB29SDNC-C000-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=630.0
 Qts=0.49
 Qes=0.79

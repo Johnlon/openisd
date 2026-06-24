@@ -6,6 +6,7 @@ ProvidedBy=SoundImports (scraped via soundimports.eu)
 Comment=Source: https://www.soundimports.eu/en/accuton-c30-4-358.html | Datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C30-4-358/Datasheet%20C30-6-358.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=810.0
 Qts=0.62
 Qes=0.81

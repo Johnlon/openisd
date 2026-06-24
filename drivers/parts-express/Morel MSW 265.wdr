@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Morel-MSW-265-Shallow-Classic-Series-8-Paper-Cone-Woofer-4-Ohms-297-008 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.44
 Znom=4
 Fs=30

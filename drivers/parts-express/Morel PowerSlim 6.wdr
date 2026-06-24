@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Morel-PowerSlim-6-Ultra-Slim-6-DPC-Dome-Shallow-Woofer-297-014 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.95
 Znom=4
 Fs=66

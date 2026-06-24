@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Dayton-Audio-ES180TiA-8-7-Esoteric-Series-Woofer-8-Ohm-295-398 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.4
 Znom=8
 Fs=33.7

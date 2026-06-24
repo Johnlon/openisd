@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/10in-sb29nrx-00-norex/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/09/10in-SB29NRX-00.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=10.2
 Qms=10.8
 Mms=0.505

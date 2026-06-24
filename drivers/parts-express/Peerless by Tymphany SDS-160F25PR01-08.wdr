@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Peerless-SDS-160F25PR01-08-6-1-2-Paper-Cone-Woofer-Speaker-264-1146 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.49
 Znom=8
 Fs=42

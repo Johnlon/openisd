@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/10in-sw26dbac76-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/09/10in-SW26DBAC76-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=22.0
 Qts=0.46
 Qes=0.51

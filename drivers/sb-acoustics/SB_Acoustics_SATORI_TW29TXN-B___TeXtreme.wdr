@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/satori-tw29txn-b-textreme/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/01/SATORI-TW29TXN-B.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=650.0
 Qts=0.46
 Qes=0.65

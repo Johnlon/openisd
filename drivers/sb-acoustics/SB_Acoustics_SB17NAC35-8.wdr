@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/6in-sb17nac35-8/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/6in-SB17NAC35-8-OEM-only.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=31.5
 Qts=0.42
 Qes=0.45

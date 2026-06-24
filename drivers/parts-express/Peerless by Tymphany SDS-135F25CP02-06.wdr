@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Peerless-SDS-135F25CP02-06-5-1-4-Paper-Cone-Woofer-6-Ohm-264-1588 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=97.33
 Znom=6
 Fs=57.23

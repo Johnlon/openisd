@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb16frpc25-7/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/6-inch-SB16FRPC25-7.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=44.0
 Qts=0.46
 Qes=0.48

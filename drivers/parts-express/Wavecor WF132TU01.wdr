@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Wavecor-WF132TU01-5-1-4-Paper-Cone-Neodymium-Mid-Woofer-4-Ohm-298-1160 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.43
 Znom=4
 Fs=60

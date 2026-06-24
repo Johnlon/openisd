@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb26stc-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/11/SB26STC-C000-4-OEM-only.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=750.0
 Qts=1.12
 Qes=1.78

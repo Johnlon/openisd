@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb26st-c000-5/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/SB26ST-C000-5.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=870.0
 Qts=1.24
 Qes=1.64

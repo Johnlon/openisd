@@ -6,6 +6,7 @@ ProvidedBy=Parts Express (fetched 2026-06-24)
 Comment=Source: Parts Express (fetched 2026-06-24) — https://www.parts-express.com/Dayton-Audio-RS150P-8-6-Reference-Paper-Woofer-8-Ohm-295-363 | quality=M fetched_sku=295-573 — original SKU 295-363 no longer listed; data from RS150P-8A (295-573), known Dayton revision — Fs 4% lower Qts 6% higher than guide values
 DateAdded=
 DateModified=2026-06-24
+portingle=Y
 Qts=0.34
 Znom=8
 Fs=47.1

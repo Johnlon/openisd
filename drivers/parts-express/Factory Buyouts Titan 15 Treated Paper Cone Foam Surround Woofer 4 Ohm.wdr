@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Titan-15-Treated-Paper-Cone-Foam-Surround-Woofer-4-Ohm-299-1042 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=1.509
 Znom=4
 Fs=32.3

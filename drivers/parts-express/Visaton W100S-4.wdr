@@ -6,6 +6,7 @@ ProvidedBy=Parts Express woofer guide
 Comment=Source: https://www.parts-express.com/Visaton-W100S-4-4-Woofer-with-Treated-Paper-Cone-4-Ohm-292-558 | Re estimated as 0.85×Znom; Sd from baffle cutout; Qes/Qms/Le not in guide
 DateAdded=
 DateModified=
+portingle=Y
 Qts=0.46
 Znom=4
 Fs=65

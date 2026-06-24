@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/sb14st-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/SB14ST-C000-4.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=1300.0
 Qts=8211.0
 Qes=8211.0

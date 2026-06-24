@@ -6,6 +6,7 @@ ProvidedBy=SB Acoustics website (scraped 2026-06-24)
 Comment=Source: https://sbacoustics.com/product/10in-sw26dac-00/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/10in-SW26DAC-00-OEM-only.pdf
 DateAdded=2026-06-24
 DateModified=2026-06-24
+portingle=Y
 Fs=13.0
 Qms=8.8
 Mms=0.4
