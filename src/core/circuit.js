@@ -50,17 +50,26 @@ export function solve(f, drv, box, P) {
   const eg     = P.eg;
   const Sdt    = drv.Sd * n;
 
-  // Voice coil impedance Ze = Re + jωLe
+  // Voice coil impedance — two variants matching WinISD's model split:
+  //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)
+  //   Zcoil:   full Re+Rs+jωLe            — used only for electrical impedance plot
+  // Source: research/winisd/help/aboutequivalentcircuits.html
+  //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Zcoil1 = cAdd(cx(drv.Re, 0), cx(0, w * drv.Le));
-  let Zcoil, Bl;
-  if (wiring === 'series') { Zcoil = cScale(Zcoil1, n);     Bl = drv.Bl * n; }
-  else                     { Zcoil = cScale(Zcoil1, 1 / n); Bl = drv.Bl; }
+  const Rdc1 = drv.Re + (P.Rs || 0);
+  const Zcoil1AC = cx(Rdc1, 0);
+  const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * drv.Le));
+  let ZcoilAC, Zcoil, Bl;
+  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.Bl * n; }
+  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.Bl; }
 
-  // Gyrator transforms electrical domain to acoustical pressure source pg = Bl·eg/(Sd·Ze)
-  // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), Zcoil));
-  const ZaE = cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), Zcoil));
+  // Acoustic pressure source and electrical damping.
+  // WinISD mode: Le excluded from acoustic circuit — constant Rae/Uad (Le only for impedance).
+  //   Source: research/winisd/help/aboutequivalentcircuits.html
+  // Full gyrator: Le included — physically more complete but diverges from WinISD.
+  const ZcoilForAC = (P.circuitModel === 'gyrator') ? Zcoil : ZcoilAC;
+  const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), ZcoilForAC));
+  const ZaE = cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), ZcoilForAC));
 
   // Driver acoustic elements derived from T/S parameters:
   // Cas = Cms·Sd²,  Mas = Mms/Sd²,  Ras = Rms/Sd²
@@ -70,17 +79,20 @@ export function solve(f, drv, box, P) {
   const Ras = drv.Rms / (drv.Sd * drv.Sd) / n;
   const ZaD = cAdd(cAdd(cx(Ras, 0), cx(0, w * Mas)), cInv(cx(0, w * Cas)));
 
-  // Box acoustic compliance Cab = Vb/(ρc²), leakage resistance Ral = Ql/(ω·Cab)
+  // Box acoustic compliance Cab = Vb/(ρc²)
+  // Loss resistances in parallel with compliance: Ral (leakage) and Raa (absorption)
   // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
   const Cab = P.Vb / (RHO * C * C);
   const Zc  = cInv(cx(0, w * Cab));
-  const Ql  = P.Ql || 7;
+  const Ql  = P.Ql || 10;
+  const Qa  = P.Qa || 100;
   const Ral = cx(Ql / (w * Cab), 0);
+  const Raa = cx(Qa / (w * Cab), 0);
 
   let Zbox, UP = cx(0, 0), U0, UD;
 
   if (box === 'sealed') {
-    Zbox = cPar(Zc, Ral);
+    Zbox = cPar(Zc, Ral, Raa);
     UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
     U0 = UD;
 
@@ -89,7 +101,7 @@ export function solve(f, drv, box, P) {
     // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
     const Map = RHO * P.Leff / P.Sp, Rap = portLoss(w, Map, P);
     const Zport = cAdd(cx(Rap, 0), cx(0, w * Map));
-    Zbox = cPar(Zc, Ral, Zport);
+    Zbox = cPar(Zc, Ral, Raa, Zport);
     UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
     UP = cMul(UD, cDiv(Zbox, Zport));
     U0 = cSub(UD, UP);
@@ -97,11 +109,14 @@ export function solve(f, drv, box, P) {
   } else if (box === 'pr') {
     // Passive radiator: mechanical elements referred to acoustical domain
     // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
-    const Map = P.prMmp / (P.prSd * P.prSd);
+    // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr
+    const n_pr = P.prNum || 1;
+    const Map = (P.prMmd + P.prMadd) / (P.prSd * P.prSd);
     const Cap = P.prCms * P.prSd * P.prSd;
     const Rap = (P.prRms || 0) / (P.prSd * P.prSd);
-    const Zpr = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
-    Zbox = cPar(Zc, Ral, Zpr);
+    const Zpr_single = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
+    const Zpr = n_pr > 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
+    Zbox = cPar(Zc, Ral, Raa, Zpr);
     UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
     UP = cMul(UD, cDiv(Zbox, Zpr));
     U0 = cSub(UD, UP);
@@ -109,11 +124,11 @@ export function solve(f, drv, box, P) {
   } else if (box === 'bandpass4') {
     // 4th-order bandpass: rear sealed chamber + front vented chamber
     const Cabr   = P.Vb / (RHO * C * C);
-    const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0));
+    const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));
     const Cabf   = P.Vf / (RHO * C * C);
     const Map    = RHO * P.Leff / P.Sp, Rap = portLoss(w, Map, P);
     const Zportf = cAdd(cx(Rap, 0), cx(0, w * Map));
-    const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), Zportf);
+    const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
     Zbox = cAdd(Zr, Zf);
     UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
     UP = cMul(UD, cDiv(Zf, Zportf));

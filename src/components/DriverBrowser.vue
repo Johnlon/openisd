@@ -6,6 +6,7 @@ import sourcesJson from '../../drivers/sources.json';
 
 const sources = ref(sourcesJson.sources || []);
 const files = ref([]);
+const allFiles = ref([]);
 const srcIdx = ref(0);
 const currentSrc = ref(null);
 const filterQ = ref('');
@@ -16,12 +17,44 @@ const sblCache = ref(null);
 
 const filteredFiles = computed(() => {
   const q = filterQ.value.toLowerCase();
-  return q ? files.value.filter(f => f.name.toLowerCase().includes(q)) : files.value;
+  if (!q) return files.value;
+  const pool = allFiles.value.length ? allFiles.value : files.value;
+  return pool.filter(f => f.name.toLowerCase().includes(q));
 });
+
+function mergeIntoPool(srcName, fileList) {
+  allFiles.value = [
+    ...allFiles.value.filter(f => f.sourceName !== srcName),
+    ...fileList.map(f => ({ ...f, sourceName: srcName })),
+  ];
+}
+
+async function fetchSourceIntoPool(src) {
+  if (src.type === 'speakerboxlite') return;
+  try {
+    const resolved = src.repo ? src : parseRepoInput(src.url);
+    if (!resolved) return;
+    const branch = resolved.branch || await ghDefaultBranch(resolved.repo);
+    const r = await fetch(`https://api.github.com/repos/${resolved.repo}/git/trees/${branch}?recursive=1`);
+    if (!r.ok) return;
+    const tree = (await r.json()).tree || [];
+    const base = (resolved.path || '').replace(/^\/|\/$/g, '');
+    const srcFiles = tree
+      .filter(t => t.type === 'blob' && t.path.toLowerCase().endsWith('.wdr')
+                && (!base || t.path.toLowerCase().startsWith(base.toLowerCase() + '/')))
+      .map(t => ({
+        path: t.path, branch, repo: resolved.repo,
+        name: t.path.split('/').pop().replace(/\.wdr$/i, ''),
+        sourceName: src.name,
+      }));
+    mergeIntoPool(src.name, srcFiles);
+  } catch {}
+}
 
 async function init() {
   if (srcIdx.value !== 0 || files.value.length) return;
   if (sources.value.length) await selectSource(sources.value[0]);
+  for (const src of sources.value.slice(1)) fetchSourceIntoPool(src);
 }
 
 function fromSpeakerboxlite(s) {
@@ -41,7 +74,7 @@ function fromSpeakerboxlite(s) {
   return d;
 }
 
-async function loadSpeakerboxlite() {
+async function loadSpeakerboxlite(srcName) {
   if (sblCache.value) {
     files.value = sblCache.value;
     srcStatus.value = `${files.value.length} drivers`;
@@ -61,9 +94,10 @@ async function loadSpeakerboxlite() {
     const usable = all
       .filter(s => s.fs > 0 && s.sd > 0 && s.re > 0 && (s.vas > 0 || s.qts > 0))
       .sort((a, b) => (a.manufName + a.name).localeCompare(b.manufName + b.name))
-      .map(s => ({ name: s.manufName + ' ' + s.name, sbl: s }));
+      .map(s => ({ name: s.manufName + ' ' + s.name, sbl: s, sourceName: srcName }));
     sblCache.value = usable;
     files.value = usable;
+    mergeIntoPool(srcName, usable);
     srcStatus.value = `${usable.length} drivers`;
   } catch(err) {
     srcErr.value = true; srcStatus.value = 'Error: ' + err.message;
@@ -79,7 +113,8 @@ async function ghDefaultBranch(repo) {
 async function selectSource(src) {
   currentSrc.value = src; files.value = []; srcErr.value = false;
   srcStatus.value = 'Loading…';
-  if (src.type === 'speakerboxlite') { await loadSpeakerboxlite(); return; }
+  const srcName = src.name;
+  if (src.type === 'speakerboxlite') { await loadSpeakerboxlite(srcName); return; }
   try {
     const resolved = src.repo ? src : parseRepoInput(src.url);
     if (!resolved) throw new Error('cannot parse source URL');
@@ -93,7 +128,9 @@ async function selectSource(src) {
     files.value = tree
       .filter(t => t.type === 'blob' && t.path.toLowerCase().endsWith(ext)
                 && (!base || t.path.toLowerCase().startsWith(base.toLowerCase() + '/')))
-      .map(t => ({ path: t.path, branch, repo: src.repo, name: t.path.split('/').pop().replace(/\.wdr$/i, '') }));
+      .map(t => ({ path: t.path, branch, repo: src.repo,
+                   name: t.path.split('/').pop().replace(/\.wdr$/i, ''), sourceName: srcName }));
+    mergeIntoPool(srcName, files.value);
     srcStatus.value = `${files.value.length} drivers`;
   } catch(err) {
     srcErr.value = true; srcStatus.value = 'Error: ' + err.message;
@@ -162,6 +199,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
           <div v-for="f in filteredFiles.slice(0, 500)" :key="f.path || f.name"
                class="ditem" @click="pickFile(f)">
             <b>{{ f.name }}</b>
+            <span v-if="filterQ && f.sourceName" class="stag">{{ f.sourceName }}</span>
           </div>
           <div v-if="!filteredFiles.length && srcStatus && !srcErr" class="status loading">{{ srcStatus }}</div>
           <div v-if="!filteredFiles.length && !srcStatus" class="status">No matching drivers.</div>

@@ -48,11 +48,12 @@ export function parseWdr(text) {
   d.Fs = n('Fs'); d.Qts = n('Qts'); d.Qes = n('Qes'); d.Qms = n('Qms');
   d.Vas = n('Vas'); d.Sd = n('Sd'); d.Re = n('Re'); d.Le = n('Le');
   d.Xmax = n('Xmax'); d.Pe = n('Pe'); d.Z = n('Znom');
-  if (f.Brand)   d.brand   = f.Brand.trim();
-  if (f.Model)   d.model   = f.Model.trim();
+  if (f.Brand)      d.brand      = f.Brand.trim();
+  if (f.Model)      d.model      = f.Model.trim();
   const name = [f.Brand, f.Model].filter(x => x && x.length).join(' ').trim();
   if (name) d.name = name;
-  if (f.Comment) d.comment = f.Comment;
+  if (f.ProvidedBy) d.providedBy = f.ProvidedBy.trim();
+  if (f.Comment)    d.comment    = f.Comment.trim();
   if (!(d.Fs && d.Sd && d.Re && (d.Vas || (d.Qts && d.Qes))))
     throw new Error('missing core T/S parameters');
   for (const k in d) if (d[k] === undefined) delete d[k];
@@ -63,7 +64,7 @@ export function toWdr(raw) {
   const d   = deriveDriver(raw);
   const Sd  = d.Sd, Vd = Sd * (d.Xmax || 0), Dd = 2 * Math.sqrt(Sd / Math.PI);
   const g   = (x, p = 6) => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
-  const brand = raw.brand || '', model = raw.model || raw.name || 'Driver';
+  const brand = raw.brand || '', model = raw.model || '';
   const ParState = 'EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC';
   const L = [
     '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=',

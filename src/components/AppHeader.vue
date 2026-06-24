@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { state, driver, syncedP, curvesData, driverShort } from '../store.js';
 import { toWdr, parseWdr } from '../core/driver.js';
-import { serialize, stateToUrl, saveLocal, loadLocal } from '../utils/persist.js';
+import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
 import { ebp } from '../core/alignments.js';
 
@@ -67,7 +67,6 @@ function showAbout() {
       <small>open loudspeaker enclosure simulator · community-owned · runs anywhere</small>
     </h1>
     <div class="sp"></div>
-    <button class="pri" @click="state.browseOpen = true">Browse drivers</button>
     <button @click="importClick">Import .wdr / project</button>
     <button @click="exportWdr">Export driver .wdr</button>
     <button id="btnShare" @click="shareLink">Share link</button>

@@ -1,6 +1,6 @@
 # Welcome to Resonate 
 
-Resonate is a currently "shitty" vibe coded spike based on the functionality offered by WinIsd.
+Resonate is a currently "shitty" (not my words) vibe coded spike based on the functionality offered by WinIsd.
 
 WinIsd has been abandoned and is closed source so there is no opportunity to move it forward.
 
@@ -31,16 +31,20 @@ But I need your help; that's the whole point!
 
 Resonate is a modern, free, open-source replacement for WinISD — a tool to design
 sealed, vented, bandpass, and passive-radiator enclosures from a driver's
-Thiele/Small parameters. No install, no licence key, runs on a phone. One HTML
-file. Validated against the closed-form physics, with a self-test that proves it
+Thiele/Small parameters. No install, no licence key, runs in any browser.
+Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
 > ## ▶ [**Launch Resonate**](https://johnlon.github.io/resonate/)
-> DOES NOT WORK on phone yet - this was literally 4 hours of hacking.
-> 
-> Runs in your browser — nothing to install.
-> Also works offline: download
-> `index.html` and open it directly. Help build the mobile version.
+>
+> Runs in your browser — nothing to install if you don't want to.
+> Mobile layout is a known gap — contributions welcome.
+>
+> **To install for offline use (PWA):**
+> - **Chrome / Edge / Android:** open the site, click the install icon in the address bar (or the ⋮ menu → "Install Resonate")
+> - **iOS Safari:** tap the Share button → "Add to Home Screen"
+>
+> Once installed the app works without an internet connection.
 
 ---
 
@@ -66,6 +70,36 @@ instead of as another solo project that dies in a year.
 - **Files:** import **and** export WinISD `.wdr` driver files; save/load whole
   projects as JSON
 
+## Resonate vs WinISD
+
+WinISD is the canonical reference tool. Resonate's default mode replicates its
+simulation output. But Resonate goes further in several areas:
+
+| | WinISD 0.7 | Resonate |
+|---|---|---|
+| **Platform** | Windows-only desktop app | Any browser, no install |
+| **Source** | Closed, abandoned 2016 | Open source, MIT licence |
+| **Circuit model** | Simplified acoustic-domain only (Le excluded from SPL/GD) | Both WinISD-compatible **and** full gyrator with Le (switchable) |
+| **Box losses** | Ql + Qa via hidden "Advanced→" popup | Ql + Qa with practical stuffing guide |
+| **Cursor / readout** | Mouse hover only | Hover + right-click snap to peak/trough + lock + Hz input |
+| **Design compare** | Not supported | Pin any design, overlay curves |
+| **State persistence** | Manual project files | Auto-saves to browser storage |
+| **Filter / EQ** | Yes | Yes |
+| **Passive radiator** | WinISD-style inputs | WinISD **and** T/S modes, switchable |
+
+### Why the circuit model switch matters
+
+WinISD computes SPL and group delay using a simplified acoustic-domain model where voice-coil
+inductance (Le) does not affect the simulation — only the impedance plot. Resonate defaults to
+this mode so cross-checks against WinISD are exact.
+
+The **Full gyrator** mode includes Le throughout: the driver's electrical back-impedance becomes
+frequency-dependent, which is physically correct and matters when Le is large (>1 mH) or when
+accuracy above a few hundred Hz is needed. Group delay peak frequency shifts by ~2 Hz in the
+demo driver (Le = 0.7 mH) — a real physical difference, not a bug in either tool.
+
+Switch between modes in the **Signal & drivers** panel → Circuit model.
+
 ## Trust, not vibes
 
 Every model is validated against the exact closed-form solutions:
@@ -81,13 +115,10 @@ public. See [CONTRIBUTING.md](CONTRIBUTING.md) for the model.
 
 ## Run it
 
-It's a single static file. Any of these work:
-
-- **Hosted:** <https://johnlon.github.io/resonate/> — nothing to install, or
-- **Offline:** download `index.html` and open it directly in a browser, or
-- **Local server:** `python -m http.server` then visit `http://localhost:8000`.
-
-No build step, no dependencies, no toolchain.
+- **Hosted:** <https://johnlon.github.io/resonate/> — nothing to install
+- **PWA / offline:** see the install instructions in the callout above
+- **Local dev:** `npm install && npm run dev` — opens at `http://localhost:5173`
+- **Build:** `npm run build` — output goes to `dist/`, serve with any static host
 
 ## Driver library
 
@@ -98,10 +129,9 @@ whole point.
 
 ## Contributing
 
-Newcomers welcome — you do not need to be an acoustician. The engine is plain
-JavaScript in one file with no build step; a new box type or filter is a weekend
-and a pull request. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[roadmap](ROADMAP.md).
+Newcomers welcome — you do not need to be an acoustician. The physics engine lives
+in `src/core/`; a new box type or filter is a weekend and a pull request. Start
+with [CONTRIBUTING.md](CONTRIBUTING.md) and the [roadmap](ROADMAP.md).
 
 ## Free?
 

@@ -41,29 +41,23 @@ The preferred IDP, if and when this is ever needed, is Google.
 
 ---
 
-## AD-2: The shipped app must work from `file://`
+## AD-2: Offline support via PWA, not `file://`
 
-**Decision:** The built output must run when `index.html` is opened directly in
-a browser (no local server, no internet). This is a runtime output constraint,
-not a statement about the development workflow or build tooling.
+**Decision:** Offline use is delivered by the Vite PWA plugin (Workbox service
+worker), which caches the built app in the browser. The `file://` double-click
+constraint from the pre-Vite era no longer applies.
 
 **Rationale:**
-- ES module `import` uses CORS fetch semantics and silently fails on a `file://`
-  origin. The output therefore cannot use bare `import` statements.
-- How we *produce* that output — build step, bundler, hand-written — is a
-  separate concern and not decided here.
+- The Vue 3 + Vite build produces a standard ES-module bundle; ES modules require
+  a server origin and cannot be served from `file://`.
+- A service worker provides the same "works without internet" guarantee with a
+  better user experience (installable, auto-updates).
 
-**Implication:** Whatever the build process produces, the output must load via
-classic `<script src>` or equivalent, not ES module imports. Core modules also
-expose a Node-compatible export for test use:
+**Implication:** The dev workflow requires `npm run dev` (or `npm run build` +
+serve `dist/`). The core (`src/core/*.js`) is still DOM-free and importable
+directly in Node for testing.
 
-```js
-const API = { /* public functions */ };
-if (typeof module !== 'undefined') module.exports = API;          // Node tests
-if (typeof window !== 'undefined') window.R = Object.assign(window.R||{}, API); // browser
-```
-
-**Status:** Adopted.
+**Status:** Adopted (replaced the file:// constraint after the Vue 3 + Vite migration).
 
 ---
 
@@ -84,9 +78,9 @@ UI layer calls the core; the core never calls the UI.
 **Layers:**
 
 ```
-index.html       shell — <script src> includes only
-src/ui/*.js      DOM build, canvas drawing, event wiring
-src/core/*.js    physics, alignments, .wdr I/O, state — pure functions
+src/main.js          Vue app entry point
+src/components/*.vue DOM, canvas drawing, event wiring (Vue SFCs)
+src/core/*.js        physics, alignments, .wdr I/O, state — pure functions, no DOM
 ```
 
 **Status:** Adopted. Extraction is in progress — see [PLAN.md](PLAN.md).

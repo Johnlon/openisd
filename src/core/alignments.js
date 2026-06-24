@@ -87,7 +87,7 @@ export function tuningFromLength(Vb, L, Sp) {
  */
 export function prTuning(P) {
   const Cab  = P.Vb / (RHO * C * C);
-  const Map  = P.prMmp / (P.prSd * P.prSd);
+  const Map  = (P.prMmd + P.prMadd) / (P.prSd * P.prSd);
   const Cap  = P.prCms * P.prSd * P.prSd;
   const Cpar = (Cab * Cap) / (Cab + Cap);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cpar));

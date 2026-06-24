@@ -30,7 +30,7 @@
     {
       "name": "speakerboxlite.com",
       "type": "speakerboxlite",
-      "url": "https://speakerboxlite.com/manufacturers/shared",
+      "url": "https://www.speakerboxlite.com/",
       "description": "~6000 drivers from the speakerboxlite.com community database. Loaded live via their open API.",
       "license": "see speakerboxlite.com"
     }

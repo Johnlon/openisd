@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Getting Started
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Getting Started
+    </h1>
+    <h3>
+      Selecting a Driver and choosing a Box Type:
+    </h3>
+    <p>
+      Start by loading a driver into WinISD as follows: Click on File, then New Project (or, simply
+      click on the New Project icon, which is the second icon from the left on the Tool Bar). The
+      New Project window (below) is presented.
+    </p><img src="images/gettingstarted01.png" width="276" height="290" alt="Image" />
+    <p>
+      Click on the down arrow in the drop down menu box, and you will be able to scroll through and
+      choose a driver from the Program (WinISD) database (see Creating Your Own Driver Database for
+      details on how to Create and Manage your own personal database). Putting a check mark in the
+      'Show driver parameters' box will cause WinISD to show you the <a href=
+      "../articles/thielesmall.html">Thiele/Small</a> parameters of the driver that you have
+      selected. This way you can see whether or not this particular driver is what you're looking
+      for before you load it into WinISD as shown below. Note that you can change between standard
+      and metric measurements simply by clicking on the desired measurement system (mm, in, etc..).
+      You can also change any value the same way.
+    </p><img src="images/gettingstarted02.png" width="276" height="415" alt="Image" />
+    <p>
+      Choose a driver to work with (for demonstration purposes, choose the JL Audio 10W1-4
+      driver...you can either scroll down the menu until you find it, or you can type the beginning
+      letters "JL..." and the window will "scroll to" accordingly. Click NEXT, and the Driver Usage
+      window will appear:
+    </p><img src="images/gettingstarted03.png" width="276" height="290" alt="Image" />
+    <p>
+      Here is where you decide whether you're going to design the driver(s) to be configured as
+      Standard or Isobarik. You can also choose the number of drivers you are going to put into the
+      box. Don't worry, all of these parameters can be changed "on the fly", even after the driver
+      is loaded (plotted on the graph). If you made a mistake and chose the wrong driver on the
+      previous screen, click on PREV to go back to the New Project window. For demonstration
+      purposes, choose 1 driver in a Normal configuration (placement). Click on NEXT to bring up
+      the Box Type window:
+    </p><img src="images/gettingstarted05.png" width="276" height="290" alt="Image" />
+    <p>
+      Here, you can choose whether you are planning to build a Sealed, Vented, or Bandpass box
+      (these are referred to as the box types). Use the vertical Efficiency Bandwidth Product (EBP)
+      bar indicator as a guide to determine which box type is best suited for this particular
+      driver. If the bar is high, then this driver is best suited for installation in a vented box
+      (or a 6th order bandpass). Conversely, if the bar is low, go with a closed type box (or a 4th
+      order bandpass). If the bar is near the center (as it is here), then the driver will likely
+      perform equally well in either a closed or vented type box.
+    </p>
+    <p>
+      The choice you make here is not changeable later on but you can, of course, load this driver
+      simultaneously multiple times in different box types. Choose a box type by clicking on the
+      down arrow next to the drop down menu box, and click on the desired box type. For
+      demonstration purposes, choose Vented. Click FINISH, and you will then be presented with the
+      Plot Window, with the plot of the JL Audio 10W1-4 driver as seen below. The "plot" is the
+      curved (green,in this example) line:
+    </p><img src="images/gettingstarted06.png" width="560" height="361" alt="Image" />
+    <p>
+      Also displayed on your screen will be the Project Window (below). Position the Project Window
+      to a comfortable position, and then click on the Box tab of the Project Window, which will
+      now display the Volume and Tuning Frequency of the box:
+    </p><img src="images/gettingstarted07.png" width="400" height="250" alt="Image" />
+    <p>
+      Clicking on the 'Parameters' button will open a drop down menu which will show you the
+      <a href="../articles/thielesmall.html">Thiele/Small</a> specs of the driver, and will also
+      allow you to make temporary changes to those values and their system of measurement (as
+      outlined in the first paragraph above). The green color bar corresponds to the green plot on
+      the plot window (clicking on the green bar will open a window which will enable you to change
+      the color of the plot, if you so desire).
+    </p>
+    <p>
+      What the information here in the box tab is telling you is that in order for the JL Audio
+      10W1-4 woofer to produce the sound that is indicated by the green plot in the plot window, it
+      must be placed in a 90.30 liters box, and that this box must be "tuned" to 23.81 Hz (vented
+      or bass-reflex boxes are "tuned" by the number of, diameter of, and length of the "ports",
+      which are usually tubes of PVC pipe built into the box and "vented" to the outside air, as
+      demonstrated by the two horizontal lines in the diagram below the words "Box Shape" in the
+      Project Window).
+    </p>
+    <p>
+      The initial green plot shown, as well as the initial Box Volume and Tuning Frequency data (in
+      the Project Window) shown, gives us the smoothest calculated attainable plot for this driver.
+      Notice there are no "peaks" or "dips" in the green plot. The green plot is the ACTUAL
+      REPRESENTATION OF HOW THIS SPEAKER WILL SOUND IN A COMPLETED BOX.
+    </p>
+    <p>
+      WinISD will always default to show you the smoothest (well, at least quite close) attainable
+      plot when you first load a driver (sometimes, if a driver that was designed to be installed
+      into a sealed box is loaded into WinISD in a vented box configuration, the initial plot will
+      look like a roller coaster...however this doesn't necessarily mean that this driver won't
+      work in a vented box, since some drivers are designed to work in both types of boxes). Some
+      drivers have very low Qts values. With them, it might seem that they can't reproduce any bass
+      in default box. However, you can adjust the box as you watch the <a href=
+      "graphs.html#tfmag">transfer function magnitude</a>-plot. Notice that I did not say that the
+      initial plot is the "best" or "ideal" plot, only that it is the smoothest plot. The reason I
+      avoided those words will soon become clear.
+    </p>
+    <p>
+      You can change the plot (which, of course, will change the way the speaker sounds after it's
+      built), by changing the Volume and/or the Tuning Frequency of the box. If you lower the
+      Volume of the box (which makes for a smaller box), you must give back something in exchange,
+      the price here being low frequency response.
+    </p>
+    <p>
+      Notice that the green plot crosses the -3dB horizontal line at 23 Hz (left clicking in the
+      plot window and dragging the mouse will activate the Trace Cross hairs, give it a try) . This
+      purple line is the -3dB (or half-power, or cutoff) point. This line represents the frequency
+      at which the usable bass output of the box "runs out of steam". Any frequencies below the
+      intersection at the -3dB point simply won't be reproduced very well by the box. In our case
+      here, that frequency is 23 Hz. Most low bass speakers are designed so that the -3dB point is
+      somewhere around 35 Hz. Since we are dealing with a particularly well designed (expensive)
+      woofer, we are subsequently being blessed with some room to play with! We are in the enviable
+      situation of having to RAISE the -3dB point of the box! Since this is done by LOWERING the
+      Box Volume, we're in a win/win situation (remember, as I said, this is an expensive, high
+      quality woofer we're dealing with here, so don't expect to run over to Joe's Flea Market and
+      find such a woofer).
+    </p>
+    <p>
+      Now, let's say that we want this box to cutoff around 35 Hz. Double-click on the numbers
+      below the words volume, and change the volume to 1.5. Also change the Tuning freq: to 30 the
+      same way. This, of course, tells WinISD to recalculate the woofer when placed in a 1.5 cubic
+      foot box tuned to 30Hz, and to display the corresponding plot. Note that this is less than
+      HALF the initial given box size...we've traded some low bass response (that we didn't even
+      need in this case...remember we went from a cutoff of 23 Hz to a cutoff of to 32 Hz) and
+      ended up with a much smaller box!
+    </p>
+    <p>
+      By lowering the box volume, we've brought up the cutoff point of the box. That's a nice
+      curve, albeit a challenging box to build due to the small enclosure and LOW tuning frequency
+      (rectangular vents are probably in order).
+    </p>
+    <p>
+      "Ok, that's all nice and fine, but how did you know what numbers to plug into WinISD to
+      achieve this plot?", you ask. Well, here's where you're gonna learn about the true power of
+      WinISD, my friend. Position your mouse cursor over that diagram of the speaker (below the
+      words Box Shape) in the Project Window (under the Box tab, if you've gone astray). Click and
+      hold your left mouse button. Move your mouse. "Draw" the plot that you want. Release the
+      rodent. Observe the new displayed Box Volume and Tuning Frequency data. Now, wasn't that
+      easy? Want a little secret about drawing your plot? Click here.
+    </p>
+    <p>
+      If you like the looks of the plot, then run out to the garage, build your box, and you're
+      done. Congratulations, you've just designed and built your first speaker which in this case,
+      by the way, would be a very awesome speaker. And all this made possible by this kick-ass
+      (sorry, kids) little freeware program called WinISD!
+    </p>
+    <p>
+      All of the features we've covered here so far and more are covered in detail in the <a href=
+      "boxdesign.html">Designing your Box</a> Help section. Go ahead and load some more various
+      drivers and play around with the plots (to change the color of a plot, click on the colored
+      bar at the bottom of the Project Box). You'll soon see what I mean about the quality of the
+      driver we were just working with. There are other manufacturers who specialize in
+      manufacturing drivers as serious as JL Audio's (these drivers are designed mainly for car
+      audio competition), but not many.
+    </p>
+    <p>
+      Many lower-cost drivers perform admirably in their own right, however, and it's not always
+      necessary to spend the big bucks to get a great sounding speaker, especially if you're
+      willing to settle for a larger box! Now that you have the ability to actually "build" the box
+      before you buy the driver, you can actually take different drivers for a "test drive" before
+      you open your wallet. Search around on the net, and just plug the Thiele/Small specs of any
+      drivers that interest you into WinISD and check out the plot vs. box size. Sooner or later,
+      you'll find that "perfect" driver for your application, and all without ever leaving the
+      house or dealing with salesmen!
+    </p>
+    <p>
+      Note that the author of WinISD (nor myself or any others on the WinISD team) are not in any
+      way affiliated with JL Audio, or any other speaker manufacturer. I simply chose to use the
+      10W1-4 for the above help demonstration to illustrate a point.
+    </p>
+    <p>
+      The old adage "Haste makes Waste" applies more to speaker building than perhaps anything else
+      on earth! From the very first speaker building thought in your mind all the way to the end
+      product, haste will most certainly make waste. And alot of waste, at that. Each and every
+      step along the way must be carefully planned/thought out as you go. "Fruition Day" will most
+      certainly underscore your faults more than your achievements. I hate to sound so pessimistic,
+      but you need to approach the speaker design task in the correct frame of mind. Don't cut
+      corners while mentally thinking "ah, it'll be alright, nobody will know". This thinking will
+      at best result in a box that YOU know isn't performing at its best. And that thought will
+      haunt you every time you crank it up. If you're gonna invest the time and energy to do it in
+      the first place, then by all means, take the time to do it right!!!!
+    </p>
+    <hr />
+    <p class="footer">
+      This page originally written by JJ Richard (JJRichard@linearteam.org) and revised by Janne
+      Ahonen (janne@linearteam.org)
+    </p>
+  </body>
+</html>

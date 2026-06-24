@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { state, driver, driverShort } from '../store.js';
 import { ebp } from '../core/alignments.js';
-import { PRESETS } from '../presets.js';
 
 const d = computed(() => state.driverRaw);
 const drv = driver;
@@ -13,11 +12,6 @@ const sug = computed(() => {
   return e < 50 ? 'sealed' : e > 100 ? 'vented' : 'sealed or vented';
 });
 
-function setPreset(name) {
-  if (!name) return;
-  state.driverRaw = { name, ...PRESETS[name] };
-}
-
 function numInput(key, scale, val) {
   const v = parseFloat(val);
   if (!isNaN(v)) state.driverRaw[key] = v / scale;
@@ -27,6 +21,9 @@ function numInput(key, scale, val) {
 <template>
   <fieldset>
     <legend>Driver</legend>
+    <div class="row" style="margin-bottom:6px">
+      <button style="flex:1" @click="state.browseOpen = true">Browse driver library…</button>
+    </div>
     <template v-if="!state.editDriver">
       <div class="drvsum" @click="state.editDriver = true">
         <span class="nm">{{ driverShort(d) }}</span>
@@ -43,15 +40,13 @@ function numInput(key, scale, val) {
         Bl {{ drv.Bl.toFixed(1) }} Tm ·
         Mms {{ (drv.Mms*1000).toFixed(1) }} g
       </div>
+      <div v-if="d.providedBy || d.comment" class="drvsource">
+        <span v-if="d.providedBy">Source: {{ d.providedBy }}</span>
+        <span v-if="d.providedBy && d.comment"> · </span>
+        <span v-if="d.comment">{{ d.comment }}</span>
+      </div>
     </template>
     <template v-else>
-      <div class="row">
-        <label>Preset</label>
-        <select id="preset" @change="e => setPreset(e.target.value)" style="flex:1">
-          <option value="">— load preset —</option>
-          <option v-for="(_, k) in PRESETS" :key="k">{{ k }}</option>
-        </select>
-      </div>
       <div class="row"><label>Fs</label>
         <input type="number" step="any" data-bind="Fs" :value="(+d.Fs).toFixed(1)" @input="e => numInput('Fs',1,e.target.value)">
         <span class="u">Hz</span></div>

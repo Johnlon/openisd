@@ -1,13 +1,13 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import AppHeader from './components/AppHeader.vue';
 import SidePanel from './components/SidePanel.vue';
 import GraphArea from './components/GraphArea.vue';
 import StatBar from './components/StatBar.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import Flash from './components/Flash.vue';
-import { state } from './store.js';
-import { loadFromHash, loadLocal } from './utils/persist.js';
+import { state, driver } from './store.js';
+import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
 
 function handleHashChange() {
@@ -22,6 +22,13 @@ function applyState(o) {
   if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
 }
 
+let saveReady = false;
+watch(
+  () => serialize(state, driver.value, state.compare),
+  (s) => { if (saveReady) saveLocal(s); },
+  { deep: true },
+);
+
 onMounted(() => {
   const fromUrl = loadFromHash();
   if (!fromUrl) {
@@ -30,6 +37,7 @@ onMounted(() => {
   } else {
     applyState(fromUrl);
   }
+  saveReady = true;
   runSelfTest();
   window.addEventListener('hashchange', handleHashChange);
 });

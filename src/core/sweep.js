@@ -72,7 +72,8 @@ export function sweep(drv, box, P) {
     // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
-    excPR.push(box === 'pr' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd) * 1000 : 0);
+    // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
+    excPR.push(box === 'pr' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }

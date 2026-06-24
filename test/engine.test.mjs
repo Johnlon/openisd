@@ -73,7 +73,7 @@ console.log('\nResonate engine validation\n');
 // --- Passive radiator: excursion curve, Fp tuning, mass auto-tune ------------
 {
   const d = deriveDriver(testDrv);
-  const P = { Vb:0.02, Ql:7, eg:2.83, prSd:0.0133, prMmp:0.030, prCms:0.0008,
+  const P = { Vb:0.02, Ql:7, eg:2.83, prSd:0.0133, prMmd:0.010, prMadd:0.020, prCms:0.0008,
               prRms:1.0, prXmax:0.012, fmin:10, fmax:1000, N:300 };
   const sw = sweep(d, 'pr', P);
   check('PR diaphragm excursion curve is produced',
@@ -85,9 +85,25 @@ console.log('\nResonate engine validation\n');
   const fp = prTuning(P);
   check('PR tuning Fp sits between the impedance peaks',
         peaks.length===2 && fp>peaks[0] && fp<peaks[1], `Fp ${fp.toFixed(1)} Hz`);
-  const target=42, m=prMassForFp(P, target), fp2=prTuning({ ...P, prMmp:m });
+  const target=42, totalM=prMassForFp(P, target), madd=totalM-P.prMmd, fp2=prTuning({ ...P, prMadd:madd });
   check('PR mass auto-tune hits the target Fp', Math.abs(fp2-target)<0.5,
-        `target ${target} -> ${(m*1000).toFixed(1)} g -> ${fp2.toFixed(1)} Hz`);
+        `target ${target} -> added ${(madd*1000).toFixed(1)} g -> ${fp2.toFixed(1)} Hz`);
+}
+
+// --- WinISD PR param round-trip (Fs+Qms+Vas ↔ Mms+Cms+Rms) ----------------
+{
+  const Fs = 25, Qms = 7, Vas_L = 18, Sd = 0.0133;
+  // WinISD → T/S
+  const Cms = (Vas_L / 1000) / (Sd * Sd * RHO * C * C);
+  const Mms = 1 / ((2 * Math.PI * Fs) ** 2 * Cms);
+  const Rms = Math.sqrt(Mms / Cms) / Qms;
+  // T/S → WinISD back
+  const Fs_rt  = 1 / (2 * Math.PI * Math.sqrt(Mms * Cms));
+  const Qms_rt = Math.sqrt(Mms / Cms) / Rms;
+  const Vas_rt = Cms * Sd * Sd * RHO * C * C * 1000;
+  check('WinISD PR Fs round-trips',  Math.abs(Fs_rt  - Fs)    < 1e-9, `${Fs} → ${Fs_rt.toFixed(6)}`);
+  check('WinISD PR Qms round-trips', Math.abs(Qms_rt - Qms)   < 1e-9, `${Qms} → ${Qms_rt.toFixed(6)}`);
+  check('WinISD PR Vas round-trips', Math.abs(Vas_rt - Vas_L) < 1e-9, `${Vas_L} → ${Vas_rt.toFixed(6)}`);
 }
 
 // --- WinISD .wdr import + self-consistent round-trip ------------------------

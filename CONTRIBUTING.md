@@ -8,21 +8,22 @@ HTML file and open a pull request, you can contribute.
 Resonate's whole value is that its numbers are trustworthy. So:
 
 ```
-node test/engine.test.mjs
+npm test
 ```
 
-must stay green. It pulls the engine straight out of `index.html` (no duplicate
-copy) and checks it against the closed-form Thiele/Small solutions. Run it before
-you push. If you add a box type or curve, add a check for it.
+must stay green. It runs the engine validation gates against the closed-form
+Thiele/Small solutions. Run it before you push. If you add a box type or curve,
+add a check for it.
 
 ## Project shape
 
-- **`index.html`** — the entire app. Engine + UI + charts, one file, no build step,
-  no dependencies. Open it in a browser and you're running the dev version.
-- **`test/engine.test.mjs`** — the validation gates (Node, no deps).
+- **`src/core/`** — the physics engine, alignments, `.wdr` I/O, state. Pure JS,
+  no DOM. This is the reusable heart of the project.
+- **`src/components/`** — Vue 3 UI components (graphs, panels, controls).
+- **`test/`** — engine unit tests (`engine.test.mjs`) and Playwright browser tests.
 - **`drivers/`** — community `.wdr` driver files.
 
-There is deliberately no toolchain. Edit, refresh, done.
+To run locally: `npm install && npm run dev`
 
 ## How the engine works
 

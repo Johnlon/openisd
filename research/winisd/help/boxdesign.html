@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Designing your Box (a.k.a. Designing your Project)
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Designing your Box (a.k.a. Designing your Project)
+    </h1>
+    <p>
+      This section of the Help File assumes that you've read the <a href=
+      "gettingstarted.html">Getting Started</a> section first.
+    </p>
+    <p>
+      Designing your box (which is also referred to as your project since, hopefully, it will soon
+      be a project in your garage) is accomplished by using the Project Window that is presented
+      once you select a driver and the type of box you plan on putting this driver into from the
+      database. Everything that you need to do to completely design your box (project) is done in
+      the Project Window.
+    </p>
+    <p>
+      You can load as many drivers as you want (even multiple loads of the same driver if you
+      wish), and each driver loaded will have it's own Project Window which "controls" its
+      respective plot on the graph (each plot represents its corresponding Project Window). Each
+      plot will also have its own color, which you can change by clicking on the color bar at the
+      bottom of that plots' Project Window. The "plot", by the way, is the curved, green line
+      (green in this example, you can make it any color you wish as described above) in the picture
+      below. For demonstration purposes, go ahead and load the JL Audio 10W1-4 driver.
+    </p><img src="images/boxdes01.png" width="619" height="359" alt="Image" />
+    <p>
+      Again, everything you need to do to design your box is done in the ubiquitous Project Window!
+      The Project Window has seven tabs (six if using a sealed box, since no Vents tab is necessary
+      in that scenario, also when designing passive radiator system, the passive radiator has tab
+      of its own), and each of these tabs are described below:
+    </p>
+    <hr />
+    <h3>
+      <a name="drivertab" id="drivertab">Driver Tab</a>
+    </h3><img src="images/boxdes02.png" width="400" height="249" alt="Image" />
+    <p>
+      Here you can view or change your driver's specs, as well as change how many drivers that you
+      want to cram into your box, and (if more than one), how you plan to cram them in there...
+    </p>
+    <p>
+      Also, you can specify how much extra mass you place into each driver's cone. This way, you
+      can make driver's resonance frequency into lower value. But nothing comes free. You lose
+      sensitivity, and even worse, your driver Q-values will rise. That might be untolerable.
+      Anyway, option is there in case you want to try it out. If you want to view or change your
+      driver specs, simply click on the "Parameters" box, and a drop down window will appear
+      showing you the specs of the driver:
+    </p><img src="images/boxdes03.png" width="401" height="374" alt="Image" />
+    <p>
+      You can change the values and/or the units in which the values are displayed simply by
+      clicking on them. This feature allows you to play "what if" with your driver (which can be
+      very educational for learning what the different Thiele/Small specs control...try changing
+      some of them and watching what affect it has on the plot), and is also ideal when using
+      Driver Templates. Keep in mind, however, that any changes you make here are temporary, and
+      will be set back to the default values once you quit WinISD. Note that you shouldn't make
+      values ambiguous.
+    </p>
+    <p>
+      You probably have noticed the small driver icon besides of the model number entry field. If
+      you want to do more detailed examination of driver data fields, you can "drag" the driver
+      object into driver editor window icon in the "Editor"-button. You can do this by clicking and
+      holding left mouse button in this icon and then dragging the icon into editor. This will open
+      <a href="newdriver.html">Driver Editor</a>.
+    </p>
+    <p>
+      In the Placement section of this window, you can choose how many drivers that you want to use
+      in the same box, as well as whether they are to be in a "Standard" or "Isobarik Pair"
+      configuration. Remember that the placement options you choose here are calculated using the
+      box type (ie; sealed, vented, bandpass) that you chose when you initially loaded the driver.
+      You cannot change the box type at this point. If you want to compare how the same driver
+      performs in separate box types, then you must load the driver over again in a different box
+      type. After all, you're gonna want to view separate plots for each type anyway, right?
+    </p>
+    <hr />
+    <h3>
+      <a name="BoxTab" id="BoxTab">Box Tab</a>
+    </h3>
+    <p>
+      This is the most powerful part of WinISD! While you can finish what you need to get done here
+      within seconds, you will probably find yourself here tinkering for hours <i>...read this
+      section carefully!</i>
+    </p><img src="images/boxdes04.png" width="400" height="250" alt="Image" />
+    <p>
+      When this Tab is initially opened, the default Volume and Frequency data is displayed.
+      Sometimes, the "default" box volume is too large to be practical, or maybe you are just
+      building an addition to an existing speaker system, and a different plot is desirable. By
+      manually changing the size of the enclosure (and/or port frequency for bass-reflex), changes
+      in the output plot appear. These changes in the plot represent the real world performance of
+      the completed box.
+    </p>
+    <p>
+      For bandpass boxes, there are two chambers, front and rear. Rear chamber is that what is
+      normally in rear of the driver.
+    </p>
+    <p>
+      There are two ways to change the Volume of the Box (from here on out referred to as Vb) and
+      the tuning Frequency of the Box (from here on out referred to as Fb (on vented boxes)). You
+      can either do it manually by double clicking on the numeric values you wish to change, and
+      then typing in new values (the graph changes with each keystroke entry, no need to hit the
+      enter key), or you can do it "on the fly" (dynamically) with your mouse!
+    </p>
+    <p>
+      <b>To change the values with your mouse:</b>
+    </p>
+    <ul>
+      <li>Ensure that you are in the Box Tab section of the Project Window.
+      </li>
+      <li>Position the cursor over the diagram of the speaker box (below the text which says "Box
+      Shape").
+      </li>
+      <li>Click and HOLD the left mouse button while moving the mouse... Left/right movement of the
+      mouse will change the Vb, and up/down movement will change Fb (on vented boxes). Notice that
+      the plot curve changes automatically in unison with your mouse movements!
+      </li>
+      <li>Continue to move the mouse until the desired graph is displayed.
+      </li>
+    </ul>
+    <p>
+      The power of this feature is that no longer do you have to manually type in changes that you
+      hope will produce the desired plot! You simply "drag and plot" your desired curve and viola,
+      the necessary box dimensions are already calculated and displayed for you! You can also "lock
+      in" one parameter (either Box Volume or Tuning frequency) while changing the other. How?
+      Click here.
+    </p>
+    <p>
+      This, coupled with the ability to load and view the plots of multiple drivers at the same
+      time, makes choosing the right driver for your application a breeze!
+    </p>
+    <p>
+      There are other concerns than just the frequency response. One of the most important ones is
+      the mechanical power handling. That means, how much power our design will tolerate without
+      running out of limits of maximum excursion. You can get estimate of this by looking at the
+      <a href="graphs.html#maxpower">"Maximum Power"</a>-plot:
+    </p><img src="images/boxdes12.png" width="619" height="359" alt="Image" />
+    <p>
+      Graph shows us clearly the well known fact about ported boxes, that their power handling is
+      severely weakened below tuning frequency. Best power handling is achieved around tuning
+      frequency, where acoustic resonator represents heavy acoustic load to the driver.
+    </p>
+    <p>
+      Clicking on the Box Shape button activates the Box Shape calculator:
+    </p>
+    <p>
+      Under "advanced-&gt;", you can find controls for box losses. There, you can see what effect
+      the each loss type will have on your box design (Smaller the value, greater the loss). There
+      are three types of losses:
+    </p>
+    <ul>
+      <li>
+        <b>Ql</b>, leakage losses. These are produced by leaks in enclosure or in driver itself.
+        Generally, this is most dominant loss type in vented boxes. Typical value is 5-20. This is
+        quite impossible to predict before building the actual box. For reasonable quality box,
+        WinISD pro uses Ql of 10 by default.
+      </li>
+      <li>
+        <b>Qa</b>, absorption losses. These are produced by losses in enclosure. Any stuffing will
+        increase the absorption loss. With no stuffing inside the box, 100 is typical. Heavily
+        stuffed enclosure has this about 3-5.
+      </li>
+      <li>
+        <b>Qp</b>, port losses. These are produced by port. Port has some resistance (air doesn't
+        actually flow through the port without some friction). Actually, by setting this into very
+        small value, you can turn vented box into closed one!
+      </li>
+    </ul>
+    <p>
+      When you click on the "Advanced-&gt;", a popup menu opens, where you can see what current
+      loss parameters are:
+    </p><img src="images/boxdes05.png" width="400" height="329" alt="Image" />
+    <p>
+      When you choose a particular loss type from this popup-menu, a small window will appear:
+    </p><img src="images/boxdes06.png" width="168" height="62" alt="Image" />
+    <p>
+      In this case, I choose "Ql". Here, you can enter new value for loss or you can use similar
+      drag method, by clicking on the white square beside input box. Again, the graph will update
+      in real time.
+    </p>
+    <hr />
+    <h3>
+      <a name="Ventstab" id="Ventstab">Vents Tab</a>
+    </h3>
+    <p>
+      Clicking on the Vents Tab displays the vent (port) information.
+    </p><img src="images/boxdes07.png" width="401" height="249" alt="Image" />
+    <p>
+      Here, you can decide how many and of what shape you want your vents to be on your box. The
+      ports, of course, serve to "tune" your box to the frequency that you have chosen while you
+      were designing your box in the Plot Window. The size and -3dB (cutoff) frequency of your box
+      determine the size of the ports.
+    </p>
+    <p>
+      <b>1st port resonance</b> shows frequency of first "organ-pipe" resonance. This helps you to
+      estimate where port becomes undesired radiator.
+    </p>
+    <p>
+      Very important here is to make your ports large enough, so that peak air velocity won't
+      exceed 5% of sound velocity in air. That is, about 17 m/s assuming normal environmental
+      conditions. You can check it by using "<a href="graphs.html#airvel">Rear port - Air
+      velocity</a>" graph, by first setting simulation power to anticipated maximum power, see
+      "signal"-tab. In this case, Pe is 125 Watts.
+    </p><img src="images/boxdes08.png" width="619" height="359" alt="Image" />
+    <p>
+      Here, the velocity peaks at 20,8 Hz. Peak air velocity is about 23,3 m/s, which is a bit high
+      value. This might or might not be a problem, depending on your program material; If you don't
+      expect very powerful sounds at vicinity of this frequency, you shouldn't have any problems.
+      However, if you want to play safe, use larger port or several ports.
+    </p>
+    <p>
+      If your port velocity is too high, the only way to lower it is to either increase the number
+      of or the diameter of the ports. Of course, here comes that dreaded "trade-off" word again!
+      If you make your port(s) bigger in diameter, they will be able to pass more air with less
+      effort. However, in doing this, you have lowered the "loading" of the speaker(s) in the box.
+      This, of course, changes the -3dB point of the box. The only way to get back to your desired
+      -3dB point is to "load" the speaker(s) again. How? Well, you gotta make the new, larger
+      port(s) longer! This forces the speaker(s) in the box to work harder to move the air into and
+      out of the box, and brings your -3dB back to where it should be. THE END OF YOUR PORT(S) MUST
+      BE AT LEAST ITS DIAMETER AWAY FROM ANY INTERIOR WALL OF YOUR ENCLOSURE.
+    </p>
+    <p>
+      "Ok, so I make the ports larger, big deal?" you say. Well, if you're building large speakers
+      for the home, then that's probably not going to be much of a problem for you. However, if
+      you're building small, car sized speaker boxes, then the increased length of the ports is
+      indeed a big problem, since you will need more port length than your box has room for!
+    </p>
+    <p>
+      There are currently three ways to combat this problem:
+    </p>
+    <ol>
+      <li>
+        <i>Use flexible tubing.</i> Flexible tubing is designed to be able to twist and turn inside
+        the enclosure, so that if your ports need to be 14" long, and the longest side of your
+        enclosure is 12", you can just bend and twist the tubing in there to get it done. The bad
+        news here is that this approach takes up an awful lot of interior space in your box, which
+        you'd better account for, else your box will sound like crap. Also, that flexible tubing
+        isn't very flexible. It has a turn radius similar to a school bus.
+      </li>
+      <li>
+        <i>Use rectangular ports.</i> Rectangular ports give you "more for your money" as far as
+        length goes. What I mean by this is that using rectangular ports enable you to squeeze more
+        "port power" into a smaller box. The reason for this is that rectangular ports can follow
+        the walls of the enclosure (not unlike a maze) in order to acheive the desired length.The
+        bad news here is that rectangular ports must be built into the box, and therefore require
+        much more skill and equipment to accomplish. As with flex tubing, rectangular ports consume
+        a lot of internal space, and so the entire design must be re-done to allow for the area
+        displaced by the ports.
+      </li>
+      <li>
+        <i>Run "external" ports.</i> Yes, you can run your ports outside of the box (the box
+        doesn't care). This allows for a minimal box size as compared to traditional ports. The bad
+        news here is that your box will resemble a space-age life support system, and people will
+        call you eccentric.
+      </li>
+    </ol>
+    <p>
+      If none of the above options appeal to you, then you must go back to the drawing board and
+      make the sacrifice somewhere else. Remember, a small box tuned to a low frequency will demand
+      a large port design. It's that damned "trade-off" again. Yeah, you can have a small box
+      deliver big sound, but, as you now see, it's requires more thought and more work. But, the
+      good news is, it CAN be done.
+    </p>
+    <p>
+      You shouldn't try to make too long ports, because they must be very much shorter than
+      wavelength of sound to be reproduced by the system. About 1/20-1/10 is safe factor.
+      Otherwise, they start to behave like organ pipe, which is not desirable. If this proves
+      impossible, then viable solution might be using passive radiator instead of the port.
+      However, it has its own peculiarities, which you can see, when you simulate such a system.
+    </p>
+    <hr />
+    <h3>
+      <a name="PlotTab" id="PlotTab">Plot Tab</a>
+    </h3><img src="images/boxdes09.png" width="400" height="249" alt="Image" />
+    <p>
+      Here, you can set values of several environment variables. This is because sound velocity is
+      dependent on environment values. Default values are ok for casual user. If you try changing
+      the temperature, you'll notice that it affects the port length. As you can see, the effect
+      can be quite great! This is one of the difficulties, what most box-building programs won't
+      deal with at all. Calculated sound velocity is shown also. Calculation of sound velocity and
+      air density is derived from Claus Futtrup's excellent documentation of <b>D</b>river
+      <b>P</b>arameter <b>C</b>alculator (DPC).
+    </p>
+    <p>
+      You can also change line color and width.
+    </p>
+    <hr />
+    <h3>
+      <a name="SignalTab" id="SignalTab">Signal Tab</a>
+    </h3><img src="images/boxdes10.png" width="400" height="249" alt="Image" />
+    <p>
+      Signal source has two properties, Power and Series resistance. Term "power" should more
+      correctly be voltage. This term "power" comes from definition by Richard Small, who defined
+      the input power to be P=Eg&#178;/Re (this is to simplify things, because impedance varies greatly
+      depending on the frequency and the box), where Eg is RMS output voltage of your amplifier,
+      and Re is DC resistance of voice coil. Actually, driver's impedance will vary greatly (see
+      impedance graph), depending on the frequency, so this is generally not the power which is
+      taken from the amplifier.
+    </p>
+    <p>
+      Series resistance is source resistance seen by the driver. This includes your amplifier's
+      output impedance, crossover coils, connectors, interconnect wires. Raising this value will
+      effectively rise the Qes. Default value is 0.1 ohms, which is reasonable default. If you
+      experiment, you'll find out a quite large change in system behaviour.
+    </p>
+    <p>
+      Distance is distance from imaginary speaker in half-space, assuming far field on-axis
+      conditions. It is not true on very small distances, although some people have quite
+      succesfully simulated in-car SPL levels using small values.
+    </p>
+    <hr />
+    <h3>
+      <a name="ProjectTab" id="ProjectTab">Project Tab</a>
+    </h3><img src="images/boxdes11.png" width="401" height="250" alt="Image" />
+    <p>
+      The Project tab allows you to save your Project, complete with all of the changes that you
+      made, to disk for later retrieval.
+    </p>
+    <p>
+      Clicking in the Descr: field opens a dialog in which you can type some text to describe the
+      project.
+    </p>
+    <p>
+      Clicking on the Show as text button brings up the Project as Text window:
+    </p>
+    <p>
+      When you're done, you can either save it in the default directory (WinISD), or you can create
+      a new directory (recommended).
+    </p>
+    <p>
+      Next time you want to work with this saved project, you can click on File, then Open Project,
+      and then select your project from the folder that you saved it in.
+    </p>
+    <hr />
+    <h3>
+      <a name="PRTab" id="PRTab">Passive Radiator Tab</a>
+    </h3>
+    <p>
+      This tab is used only with passive radiator systems. For demonstrating the thing, we must
+      create project for passive radiator system.
+    </p>
+    <p>
+      Basically, "PR"-tab shows relevant parameters of your passive radiator unit. Parameters are
+      same than any ordinary driver. You can in fact use normal drive unit instead of passive
+      radiator, just remember to leave it's terminals unconnected. Like active drivers, you can
+      place several passive radiator units in your box design. There is also possibility to add
+      mass to passive radiator cone. If there are several PR units, mass is per unit mass. WinISD
+      shows below unit's new resonance frequency with added mass.
+    </p><img src="images/boxdes13.png" width="401" height="250" alt="Image" />
+    <hr />
+    <h3>
+      <a name="FEQTab" id="FEQTab">Filter/EQ Tab</a>
+    </h3>
+    <p></p><img src="images/boxdes14.png" width="401" height="250" alt="Image" />
+    <hr />
+    <p>
+      This concludes the Designing Your Box Help File section. Be sure to check out all of the
+      articles sections! -JJ
+    </p>
+    <p class="footer">
+      This page originally written by JJ Richard (JJRichard@linearteam.org) and revised by Janne
+      Ahonen (janne@linearteam.org)
+    </p>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+Copyright 1995-2016 Juha Hartikainen <juha@linearteam.org> and Janne Ahonen <janne@linearteam.org>
+
+
+By installing the Software, you acknowledge that you have read the License agreement and disclaimer below and agree to its terms.
+
+Definition of terms: Throughout this agreement, "Software" means both the content and the program that will be installed, as well as any related documentation. The Software and all its separate parts are protected by applicable copyright law. "Author" means Juha Hartikainen.
+
+
+1. GRANT OF LICENSE AND RESTRICTIONS
+
+This license permits you to use one copy of this Software on a single computer without any fee. 
+
+You may not reverse engineer, reverse compile, disassemble or otherwise modify the Software in any way. You may not remove any proprietary notices that are provided with the Software. 
+
+
+2. DISTRIBUTION
+
+Redistribution of the software is only allowed with written permission from author. You may not make copy of the software downloadable from any www-site, you may not include the software in cd-rom, or in any other media, without permission from author. 
+
+Adding www-link to download page at Linearteam www-site is recommended instead.
+
+
+3. OWNERSHIP 
+
+Author retains all right, title, and interest in and to the Software, including Copyright. You agree to use reasonable efforts to protect the Software from unauthorized reproduction or use.
+
+
+4. WARRANTY DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS" AND AUTHOR MAKES NO WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING ANY WARRANTY OF MERCHANTABILITY, FITNESS FOR ANY PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+
+5. LIMITATION OF LIABILITY 
+
+Under no circumstances, including negligence, shall author be liable for any incidental, special, or consequential damages that result from use of this Software. Author makes no representation, warranty or condition, of any kind whether express or implied (either in fact or by operation of law) with respect to the Software. Author expressly disclaims all warranties or conditions of merchantibility, non-infringement or fitness for a particular purpose. Author does not warrant that the Software is error free or that operation of the Software will be secure or uninterrupted and hereby disclaims any and all liability on account thereof. The above limitation shall apply to the extent allowable by applicable law. 
+
+
+6. TERMINATION
+
+You may terminate your License and this Agreement at anytime by destroying the Software with all copies in any form. They will also terminate automatically if you fail to comply with any term or condition of this Agreement, in which event you agree to destroy the Software with all copies in any form, and to provide author upon request with written certification of such destruction. 

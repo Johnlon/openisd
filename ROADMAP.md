@@ -13,10 +13,11 @@ Open an issue to propose, claim, or reshape anything here.
 - Multiple drivers (series / parallel)
 - WinISD `.wdr` import **and** export; JSON project save/load
 - In-browser self-test + CI engine test
+- Published to GitHub Pages with automated CI deploy
+- Vue 3 + Vite + PWA — installable, works offline via service worker
 
 ## Next
 
-- **Publish** to GitHub Pages so there's one shareable URL
 - **Shareable designs** — URL-encode project state so a design is a link you can
   paste into a forum
 - **Open driver database** — grow `drivers/`, plus a simple in-app browser/search

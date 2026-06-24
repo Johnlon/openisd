@@ -36,32 +36,15 @@ to canvas, wiring events. It *calls* the core; the core never calls it.
 
 ---
 
-## 2. The offline constraint dictates the module style
+## 2. Offline support via PWA
 
-The README and manifesto promise: **open `index.html` and it runs, offline, with
-no build step.** That promise decides how we modularise.
+The app is built with Vite and Vue 3, so ES modules and a build step are the
+normal development workflow. Offline use is delivered by the Vite PWA plugin
+(Workbox), which caches all built assets in a service worker — not by a
+downloadable single file.
 
-- **ES modules (`import` / `<script type="module">`) are forbidden** for the
-  shipped app: browsers fetch modules with CORS semantics, and `file://` is an
-  opaque origin, so `import` **silently fails when the file is double-clicked
-  offline.** This would break the core promise invisibly.
-- **Use classic `<script src>` includes** with a dual export so the same file
-  runs in the browser *and* in Node tests:
-
-  ```js
-  // end of src/core/engine.js — no bundler, works on file://, works in Node
-  const API = { solve, sweep, maxCurves, deriveDriver, parseWdr, /* … */ };
-  if (typeof module !== 'undefined') module.exports = API;            // Node tests
-  if (typeof window !== 'undefined') window.R = Object.assign(window.R||{}, API); // browser
-  ```
-
-- No build step, no bundler. `index.html` lists the core and UI scripts in order;
-  Node tests `require()` the core directly. This **replaces** the current hack of
-  string-slicing the engine out of `index.html` and `eval`-ing it.
-
-> "No dependencies / no build" is a promise about the **shipped app** — users
-> still open one page with co-located scripts. Test tooling in `devDependencies`
-> behind `npm test` does not touch that promise.
+The core (`src/core/*.js`) has no DOM and no Vue dependencies, so it can be
+imported directly in Node for testing without stubs or jsdom.
 
 ---
 
@@ -102,31 +85,30 @@ not add Jest / Vitest / Mocha.
 - [ ] New behaviour has unit tests (core) and/or a functional test (UI)
 - [ ] `npm test` (units) and `npx playwright test` (functional) both pass
 - [ ] Physics validation gates still green
-- [ ] `index.html` still opens and runs from `file://` (offline)
-- [ ] No new runtime dependencies; no build step introduced
+- [ ] `npm run build` succeeds and the built app works in a browser
+- [ ] PWA / offline still works (service worker caches all assets)
 
 ---
 
 ## 5. Refactoring discipline (it's a live app)
 
-The split from one-file-spike to three layers is **incremental, not a big bang**:
+Keep changes incremental:
 
-1. Extract one core area at a time into `src/core/*.js` with the dual export.
-2. Keep the existing in-page self-test green at **every** step — it's the safety net.
-3. **Go/no-go after the first extraction**, before continuing: does `index.html`
-   still open and run from `file://`, **and** does `node --test` require the new
-   module? Both pass → proceed. Either fails → stop and fix the approach.
-4. Pure extraction only — identical behaviour, no UI reorg, no new features in the
-   same pass.
+1. One area of `src/core/` at a time — identical behaviour, no UI reorg, no new
+   features in the same pass.
+2. Keep the engine tests green at every step — they are the safety net.
+3. Pure extraction only: if a function needs the DOM, it belongs in a component,
+   not in core.
 
 ---
 
 ## 6. Running things
 
 ```
-npm test                 # unit suite (node:test) — once the core is extracted
-npx playwright test      # functional suite (headless browser)
-node test/engine.test.mjs # current interim engine gate (until migrated)
+npm run dev              # dev server at http://localhost:5173
+npm run build            # production build → dist/
+npm test                 # engine unit tests + Playwright browser tests
+npx playwright test      # browser tests only
 ```
 
 CI runs both suites on every push and pull request.
