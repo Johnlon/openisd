@@ -1,54 +1,92 @@
 # Resonate — Feature List
 
-The full picture of what Resonate is and where it's going. Synthesised from the
-existing tool plus a survey of the field (00 Enclosure Simulator, SoundForm,
-SpeakerDesign.dev, SpeakerBoxLite). This doubles as a backlog: if a ⬜ item
-appeals, claim it in an issue.
+The full picture of what Resonate is and where it's going. Includes notes on
+alternative tools (00 Enclosure Simulator, SpeakerDesign.dev, SpeakerBoxLite,
+SoundForm) for orientation. This doubles as a backlog: if a ⬜ item appeals,
+claim it in an issue.
 
 **Legend:** ✅ done · 🔨 in progress · ⬜ planned · *“seen in X”* = demand already
 proven by another tool.
 
 ---
 
-## Tools surveyed
+## Alternative tools
 
-- **Resonate** *(this project)* — open source, MIT —
-  <https://github.com/Johnlon/resonate>
-- **00 Simulator** by *mbdavis* (00aud.io) — free, no login, closed source —
-  <https://simulator.00aud.io/> · roadmap <https://simulator.00aud.io/roadmap> ·
-  WinISD comparison <https://simulator.00aud.io/compare/winisd-vs-00-simulator>.
-  The most developed of the field: ~65 shipped features, public voted roadmap,
-  amplifier-load graph + interactive schematic view, on-graph parametric EQ +
-  HP/LP + Linkwitz transform + shelves, imports **`.wdr` and `.wpr` and Unibox**
-  and **exports WinISD-compatible files**, and **shares designs by URL**.
-  Notably, it *publicly commits to open-sourcing “if the project ever goes
-  stale.”*
-- **SoundForm** by *u/BusyEntrepreneur9636* — closed beta, access by DM —
-  <https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
-- **SpeakerDesign.dev** — 100% free, no login, closed source —
-  <https://speakerdesign.dev/> — a deep suite: T/S Parameters (+ personal driver
-  DB), a guided **Driver Wizard** (sealed presets; vented QB3/SBB4/EBS; bandpass/
-  PR/ABC “coming”), a **Box Simulator** that nearly matches Resonate (transfer
-  mag, excursion, port velocity, impedance, phase, group delay, max power, max
-  SPL; full Ql/Qa/Qp losses; **1–4 vents, round or slot, selectable end-
-  correction; drag-to-adjust Vb/Fb with locking; frequency presets; listening
-  distance**), a detailed **Box Calculator** (6 assembly cases, driver/port
-  displacement, bracing, lining, component volumes, cutlist), a polished
-  **Cutlist Optimizer** (bin-packing, kerf, rotate, fractional inches, PDF), and
-  an open **knowledge base + tutorial**. Sealed/vented only (no bandpass/PR/`.wdr`
-  yet), but broader than Resonate on vents, construction, and education.
-- **SpeakerBoxLite** — established freemium / PAYG (web + iOS + Android), closed
-  source — <https://speakerboxlite.com/> — the most feature-complete of the
-  field: 5,000+ drivers, transmission line, full crossover suite, 3D builder,
-  STL port export.
+Good tools exist. Use whichever works best for you. These notes are for
+orientation, not criticism — we record them so contributors understand the
+landscape and can spot gaps worth filling.
 
-> A further r/diyaudio thread, *“I built a web-based WinISD”*
-> (<https://www.reddit.com/r/diyaudio/comments/1rjcvfq/feedback_requested_i_built_a_webbased_winisd/>),
-> was also noted; its tool/author isn’t separately confirmed here.
->
-> Feature notes for the closed web tools (SpeakerDesign.dev, SpeakerBoxLite) are
-> from their own sites; notes for 00 Enclosure Simulator and SoundForm are from
-> their authors’ public posts, not independent testing.
+---
+
+### 00 Enclosure Simulator — <https://simulator.00aud.io/>
+*by mbdavis · free, no login, closed source*
+
+The most fully-developed browser-based simulator in the field as of mid-2025.
+Around 65 shipped features including: amplifier-load graph, interactive
+lumped-model schematic view, on-graph parametric EQ + HP/LP + Linkwitz
+transform + shelf filters, URL-encoded shareable designs, imports **`.wdr`,
+`.wpr`, and Unibox** spreadsheets, exports WinISD-compatible files. Has a
+public voted roadmap (<https://simulator.00aud.io/roadmap>) and a WinISD
+feature comparison (<https://simulator.00aud.io/compare/winisd-vs-00-simulator>).
+
+The author has publicly pledged to open-source the code if the project ever
+goes inactive. The pledge is on record; the code is not yet public.
+
+Driver data and any design saves are not explicitly offered as open-access or
+exportable in bulk.
+
+---
+
+### SpeakerDesign.dev — <https://speakerdesign.dev/>
+*free, no login, closed source*
+
+A broad, polished suite: guided Driver Wizard (sealed presets; vented
+QB3/SBB4/EBS), Box Simulator covering the same graph set as Resonate plus
+full Ql/Qa/Qp losses, 1–4 vents (round or slot), selectable end-correction,
+drag-to-adjust Vb/Fb with axis locking, frequency range presets, and
+configurable listening distance. Also includes a detailed Box Calculator (six
+assembly cases, driver/port/bracing/lining displacement, cut list), a
+Cutlist Optimiser (bin-packing, kerf, rotate, fractional inches, PDF output),
+and an open knowledge base with tutorials.
+
+Sealed and vented only as of the survey date (bandpass, PR, and ABC listed as
+coming). No `.wdr` import or export noted. Broader than Resonate on
+construction and education; roughly matched on core simulation.
+
+---
+
+### SpeakerBoxLite — <https://speakerboxlite.com/>
+*freemium / pay-as-you-go, web + iOS + Android, closed source*
+
+The most feature-complete tool in the field: 5,000+ drivers, transmission
+line, full crossover suite, 3D enclosure builder, STL port export. A good,
+well-regarded site that covers the basics of enclosure simulation clearly.
+
+**Graph discrepancy noted:** for the same driver and box parameters, SpeakerBoxLite
+can produce noticeably different curves from Resonate (and from WinISD) on some
+outputs — particularly SPL and excursion. The cause is not known. It may reflect
+a difference in the transfer-function model, loss assumptions, radiation
+convention, or a combination. This is an open question; anyone who diagnoses it
+is encouraged to open an issue or PR with findings.
+
+The driver database (5,000+ entries) is not made available as open-access data.
+Users can export individual designs but there is no bulk export or community
+commons equivalent to `drivers/`.
+
+---
+
+### SoundForm
+*by u/BusyEntrepreneur9636 · closed beta, access by DM*
+<https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
+
+In closed beta as of the survey date. Crossover design and multi-driver
+summation appear to be a focus. No independent testing performed.
+
+---
+
+> Feature notes for closed tools are taken from their own sites and authors’
+> public posts, not independent testing. Treat all claims as ⚠ unverified
+> unless a Resonate contributor has directly compared outputs.
 
 ---
 
