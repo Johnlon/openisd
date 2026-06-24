@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { state } from '../store.js';
 import { parseWdr } from '../core/driver.js';
 import sourcesJson from '../../drivers/sources.json';
+import bundleJson  from '../drivers-bundle.json';
 
 const sources     = sourcesJson.sources || [];
 const allFiles    = ref([]);   // unified pool across all sources
@@ -64,19 +65,50 @@ function parseRepoInput(s) {
   return null;
 }
 
-// ── Initialise: load all bundled GitHub sources in parallel ─────────────────
+// ── Initialise ───────────────────────────────────────────────────────────────
+
+// Index bundled sources by name for O(1) lookup
+const bundledByName = Object.fromEntries(
+  (bundleJson.sources || []).map(s => [s.name, s.files])
+);
 
 async function init() {
   if (initialized.value) return;
   initialized.value = true;
-  statusMsg.value = 'Loading…'; statusErr.value = false;
-  const githubSources = sources.map(src => {
-    const m = src.url?.match(/github\.com\/([^/]+\/[^/]+?)(?:\/tree\/([^/]+)(?:\/(.*?))?)?(?:\.git)?$/i);
-    return m ? { ...src, repo: m[1], branch: m[2] || '', path: m[3] || '' } : src;
-  }).filter(s => s.repo);
-  await Promise.all(githubSources.map(fetchSource));
+  statusErr.value = false;
+
+  // 1. Load bundled sources instantly from the pre-built JSON (no network)
+  for (const src of sources) {
+    const files = bundledByName[src.name];
+    if (!files) continue;
+    const entries = files.map(f => ({
+      name: f.name,
+      content: f.content,        // inline — no fetch needed on pick
+      path: null, repo: null, branch: null,
+      sourceName: src.name,
+      sourceUrl:  src.url || '',
+      sourceDesc: src.description || '',
+    }));
+    allFiles.value = [...allFiles.value, ...entries];
+  }
+
+  statusMsg.value = `${allFiles.value.length} drivers`;
+
+  // 2. Fetch any non-bundled sources from GitHub in the background
+  const liveSources = sources
+    .filter(src => !bundledByName[src.name])
+    .map(src => {
+      const m = src.url?.match(/github\.com\/([^/]+\/[^/]+?)(?:\/tree\/([^/]+)(?:\/(.*?))?)?(?:\.git)?$/i);
+      return m ? { ...src, repo: m[1], branch: m[2] || '', path: m[3] || '' } : src;
+    })
+    .filter(s => s.repo);
+
+  if (liveSources.length) {
+    await Promise.all(liveSources.map(fetchSource));
+  }
+
   statusMsg.value = allFiles.value.length
-    ? `${allFiles.value.length} drivers from ${githubSources.length} sources`
+    ? `${allFiles.value.length} drivers`
     : 'No drivers loaded — check network';
 }
 
@@ -166,6 +198,12 @@ async function pickFile(f) {
     // strip undefined fields so deriveDriver uses its own defaults
     Object.keys(raw).forEach(k => raw[k] === undefined && delete raw[k]);
     state.driverRaw = raw;
+    state.browseOpen = false;
+    return;
+  }
+  // Bundled drivers carry inline content — no network call needed
+  if (f.content) {
+    state.driverRaw = parseWdr(f.content);
     state.browseOpen = false;
     return;
   }

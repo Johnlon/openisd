@@ -6,6 +6,9 @@ test-results/
 drivers/**/_html/
 drivers/**/datasheets/
 
+# Generated at build time by scripts/bundle-drivers.mjs
+src/drivers-bundle.json
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
