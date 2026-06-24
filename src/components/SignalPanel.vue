@@ -3,8 +3,17 @@ import { computed } from 'vue';
 import { state, driver } from '../store.js';
 
 const drv = driver;
-const driveV = computed(() =>
-  state.P.voltRef === 'iec' ? 2.83 : Math.sqrt((state.P.Pin ?? 1) * (drv.value.Re || 8)));
+
+const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value.Re || 8)));
+
+function onVoltageInput(e) {
+  const v = parseFloat(e.target.value);
+  if (isFinite(v) && v > 0) state.P.Pin = (v * v) / (drv.value.Re || 8);
+}
+
+function setIEC() {
+  state.P.Pin = (2.83 * 2.83) / (drv.value.Re || 8);
+}
 </script>
 
 <template>
@@ -17,27 +26,23 @@ const driveV = computed(() =>
         <option value="gyrator">Full gyrator (Le everywhere)</option>
       </select>
     </div>
-    <div class="row" title="Input power used in 1W (WinISD) mode. Drive voltage = √(Pin × Re). Ignored in 2.83V IEC mode.">
+    <div class="row" title="Input power. Changing this updates the drive voltage below.">
       <label>Input power</label>
-      <input type="number" step="any" :value="state.P.Pin" @input="e => state.P.Pin = parseFloat(e.target.value)||1">
+      <input type="number" step="any" min="0" :value="state.P.Pin" @input="e => state.P.Pin = parseFloat(e.target.value)||1">
       <span class="u">W</span>
+    </div>
+    <div class="row" title="Drive voltage = √(Pin × Re). Edit directly to set an exact voltage — input power updates automatically. Use 2.83V for IEC 60268-5 sensitivity reference (1W into 8Ω).">
+      <label>Drive voltage</label>
+      <input class="v-input" type="number" step="0.01" min="0"
+             :value="driveV.toFixed(3)"
+             @change="onVoltageInput">
+      <span class="u">V</span>
+      <button class="iec-btn" @click="setIEC" title="Set to 2.83V — IEC 60268-5 sensitivity standard">2.83V</button>
     </div>
     <div class="row" title="Series resistance (wire, crossover DCR, amplifier output impedance). WinISD default is 0.1 Ω.">
       <label>Series resistance</label>
       <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat(e.target.value)||0">
       <span class="u">Ω</span>
-    </div>
-    <div class="row" title="SPL reference voltage. '1W (WinISD)' uses √(Pin×Re), matching WinISD output. '2.83V IEC' uses the IEC 60268-5 sensitivity standard — SPL curves will read ~2–4 dB higher for low-impedance drivers and match most datasheets.">
-      <label>SPL reference</label>
-      <div class="voltref-btns">
-        <button :class="{ active: state.P.voltRef !== 'iec' }" @click="state.P.voltRef = 'winisd'">1W (WinISD)</button>
-        <button :class="{ active: state.P.voltRef === 'iec' }" @click="state.P.voltRef = 'iec'">2.83V IEC</button>
-      </div>
-    </div>
-    <div class="row" title="Drive voltage applied to the circuit.">
-      <label>Drive voltage</label>
-      <span style="width:96px;text-align:right;color:var(--acc2)">{{ driveV.toFixed(3) }} V</span>
-      <span class="u"></span>
     </div>
     <div class="row">
       <label>No. of drivers</label>
@@ -55,25 +60,21 @@ const driveV = computed(() =>
 </template>
 
 <style scoped>
-.voltref-btns {
-  display: flex;
+.v-input {
   flex: 1;
-  gap: 3px;
+  min-width: 0;
 }
-.voltref-btns button {
-  flex: 1;
+.iec-btn {
   font-size: 11px;
-  padding: 2px 4px;
+  padding: 1px 6px;
+  margin-left: 3px;
   background: none;
   border: 1px solid var(--mut);
   border-radius: 3px;
   color: var(--mut);
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.voltref-btns button.active {
-  border-color: var(--acc);
-  color: var(--acc);
-  background: color-mix(in srgb, var(--acc) 12%, transparent);
-}
-.voltref-btns button:hover:not(.active) { color: var(--fg); border-color: var(--fg); }
+.iec-btn:hover { color: var(--acc); border-color: var(--acc); }
 </style>

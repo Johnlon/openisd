@@ -9,7 +9,7 @@ const DEFAULT_DRIVER = { name: 'Demo 6.5" Driver', Fs:37, Qts:0.38, Qes:0.40, Qm
 
 const P_DEFAULTS = {
   Vb:0.030, Vf:0.015, ventD:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
-  nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1, voltRef:'winisd',
+  nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1,
   prSd:0.0133, prNum:1, prMmd:0.010, prMadd:0, prCms:0.0008, prRms:1.0, prXmax:0.012, prMode:'winisd',
   fmin:10, fmax:1000, N:400,
   circuitModel: 'winisd',
@@ -56,9 +56,9 @@ export const syncedP = computed(() => {
     p.Sp   = Math.PI * (p.ventD / 2) ** 2;
     p.Leff = p.ventL + 0.85 * p.ventD;
   }
-  // voltRef='winisd': eg = sqrt(Pin × Re) — matches WinISD, reference-power convention
-  // voltRef='iec':    eg = 2.83 V fixed — IEC 60268-5 sensitivity standard (1W into 8Ω)
-  p.eg = (p.voltRef === 'iec') ? 2.83 : Math.sqrt((p.Pin ?? 1) * driver.value.Re);
+  // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
+  // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
+  p.eg = Math.sqrt((p.Pin ?? 1) * driver.value.Re);
   return p;
 });
 
