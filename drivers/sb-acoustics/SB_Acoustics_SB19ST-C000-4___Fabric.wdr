@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB19ST-C000-4 / Fabric
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb19st-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB19ST-C000-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=980.0
+Qts=1.22
+Qes=1.5
+Qms=6.45
+Znom=4.0
+Re=3.4
+Le=7e-05
+BL=1.75
+Mms=0.00022
+Sd=0.00038
+Xmax=0.0006
+Pe=30.0
+Vd=2.28e-07
+Dd=0.021996159
+EBP=653.33

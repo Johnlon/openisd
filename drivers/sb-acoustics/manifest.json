@@ -29,6 +29,1131 @@
       "scraped_at": "2026-06-24T20:25:01.031915+00:00",
       "wdr": "8__SB23NACS45-8___Aluminum.wdr",
       "status": "ok"
+    },
+    "https://sbacoustics.com/product/8in-sb23nacs45-4/": {
+      "scraped_at": "2026-06-24T20:49:35.554099+00:00",
+      "wdr": "SB_Acoustics_SB23NACS45-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8in-sb23mfcl45-8/": {
+      "scraped_at": "2026-06-24T20:49:37.022269+00:00",
+      "wdr": "SB_Acoustics_SB23MFCL45-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8in-sb23mfcl45-4/": {
+      "scraped_at": "2026-06-24T20:49:38.423660+00:00",
+      "wdr": "SB_Acoustics_SB23MFCL45-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/": {
+      "scraped_at": "2026-06-24T20:49:39.887765+00:00",
+      "wdr": "SB_Acoustics_SB23MFCL-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8in-sb23cacs45-8/": {
+      "scraped_at": "2026-06-24T20:49:41.355551+00:00",
+      "wdr": "SB_Acoustics_SB23CACS45-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8in-sb23cacs45-4/": {
+      "scraped_at": "2026-06-24T20:49:42.860736+00:00",
+      "wdr": "SB_Acoustics_SB23CACS45-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/raiya-tx/": {
+      "scraped_at": "2026-06-24T20:49:44.387431+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-tw29bn-b-8/": {
+      "scraped_at": "2026-06-24T20:49:45.840004+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BN-B-8___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-twbn-8/": {
+      "scraped_at": "2026-06-24T20:49:47.538690+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BN-8___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-wg29-187/": {
+      "scraped_at": "2026-06-24T20:49:49.082675+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/sb15bac30-8-coax/": {
+      "scraped_at": "2026-06-24T20:49:50.657136+00:00",
+      "wdr": "SB_Acoustics_SB15BAC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-wo34hc-4/": {
+      "scraped_at": "2026-06-24T20:49:52.180314+00:00",
+      "wdr": "SB_Acoustics_13½__SATORI_WO34HC-4___Honeycomb.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-wo34hc-8/": {
+      "scraped_at": "2026-06-24T20:49:53.603144+00:00",
+      "wdr": "SB_Acoustics_13½__SATORI_WO34HC-8___Honeycomb.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/": {
+      "scraped_at": "2026-06-24T20:49:55.150223+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MT19CP-8___paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mr13tx-4-textreme/": {
+      "scraped_at": "2026-06-24T20:49:56.620432+00:00",
+      "wdr": "SB_Acoustics_5__8243__SATORI_MR13TX-4___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/": {
+      "scraped_at": "2026-06-24T20:49:58.049349+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MR16TX-8___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29txnwg-4-textreme/": {
+      "scraped_at": "2026-06-24T20:49:59.576313+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29TXNWG-4___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/tifa-8/": {
+      "scraped_at": "2026-06-24T20:50:01.027041+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/gema/": {
+      "scraped_at": "2026-06-24T20:50:02.444459+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/bromo/": {
+      "scraped_at": "2026-06-24T20:50:03.920310+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/8in-sb20frpc30-8-paper/": {
+      "scraped_at": "2026-06-24T20:50:05.343931+00:00",
+      "wdr": "SB_Acoustics_SB20FRPC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mw13tx-8-textreme/": {
+      "scraped_at": "2026-06-24T20:50:06.747141+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13TX-8___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/": {
+      "scraped_at": "2026-06-24T20:50:08.770082+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13TX-4___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb14st-c000-4/": {
+      "scraped_at": "2026-06-24T20:50:10.251076+00:00",
+      "wdr": "SB_Acoustics_SB14ST-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nbac35-8/": {
+      "scraped_at": "2026-06-24T20:50:11.787473+00:00",
+      "wdr": "SB_Acoustics_SB17NBAC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nbac35-4/": {
+      "scraped_at": "2026-06-24T20:50:13.536955+00:00",
+      "wdr": "SB_Acoustics_SB17NBAC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/micro-c/": {
+      "scraped_at": "2026-06-24T20:50:15.125161+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/micro/": {
+      "scraped_at": "2026-06-24T20:50:16.709676+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/arya/": {
+      "scraped_at": "2026-06-24T20:50:18.203274+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/ara-tx/": {
+      "scraped_at": "2026-06-24T20:50:19.721929+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/ara-be/": {
+      "scraped_at": "2026-06-24T20:50:21.253190+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/ara/": {
+      "scraped_at": "2026-06-24T20:50:22.681793+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/rinjani-tx/": {
+      "scraped_at": "2026-06-24T20:50:24.210545+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/rinjani-be/": {
+      "scraped_at": "2026-06-24T20:50:25.647134+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/rinjani/": {
+      "scraped_at": "2026-06-24T20:50:27.212117+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/sasandu/": {
+      "scraped_at": "2026-06-24T20:50:28.724941+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/sasandu-tx/": {
+      "scraped_at": "2026-06-24T20:50:30.146398+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/sb16frpc25-7/": {
+      "scraped_at": "2026-06-24T20:50:31.608240+00:00",
+      "wdr": "SB_Acoustics_SB16FRPC25-7.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-mw16p-12-paper/": {
+      "scraped_at": "2026-06-24T20:50:33.366874+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16P-12___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/kinnara/": {
+      "scraped_at": "2026-06-24T20:50:34.908929+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/sb20pfcs30-7/": {
+      "scraped_at": "2026-06-24T20:50:36.858936+00:00",
+      "wdr": "SB_Acoustics_SB20PFCS30-7.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb17nrx2l35-8-norex/": {
+      "scraped_at": "2026-06-24T20:50:38.389833+00:00",
+      "wdr": "SB_Acoustics_SB17NRX2L35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb17nrx2l35-4-norex/": {
+      "scraped_at": "2026-06-24T20:50:39.921680+00:00",
+      "wdr": "SB_Acoustics_SB17NRX2L35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sb26sfcl38-8-paper/": {
+      "scraped_at": "2026-06-24T20:50:41.456619+00:00",
+      "wdr": "SB_Acoustics_SB26SFCL38-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sb26sfcl38-4-paper/": {
+      "scraped_at": "2026-06-24T20:50:43.326742+00:00",
+      "wdr": "SB_Acoustics_SB26SFCL38-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29rdac-c000-4/": {
+      "scraped_at": "2026-06-24T20:50:45.114473+00:00",
+      "wdr": "SB_Acoustics_SB29RDAC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pfcr25-8-paper/": {
+      "scraped_at": "2026-06-24T20:50:46.601492+00:00",
+      "wdr": "SB_Acoustics_SB12PFCR25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pfcr25-4-paper/": {
+      "scraped_at": "2026-06-24T20:50:48.117816+00:00",
+      "wdr": "SB_Acoustics_SB12PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5x8in-sb15sfcr39-4/": {
+      "scraped_at": "2026-06-24T20:50:49.658755+00:00",
+      "wdr": "SB_Acoustics_SB15SFCR39-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/95-satori-wo24tx-8-textreme/": {
+      "scraped_at": "2026-06-24T20:50:51.559921+00:00",
+      "wdr": "SB_Acoustics_9½__SATORI_WO24TX-8___Textreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/95-satori-wo24tx-4-textreme/": {
+      "scraped_at": "2026-06-24T20:50:53.397706+00:00",
+      "wdr": "SB_Acoustics_9½__SATORI_WO24TX-4___Textreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29sdnc-c000-4-fabric/": {
+      "scraped_at": "2026-06-24T20:50:55.104855+00:00",
+      "wdr": "SB_Acoustics_SB29SDNC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10″-sw26sfc38-8-paper/": {
+      "scraped_at": "2026-06-24T20:50:56.572733+00:00",
+      "wdr": "SB_Acoustics_10__SW26SFC38-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pacr25-4-coax/": {
+      "scraped_at": "2026-06-24T20:50:58.078063+00:00",
+      "wdr": "SB_Acoustics_SB12PACR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sw26sfc38-4-paper/": {
+      "scraped_at": "2026-06-24T20:50:59.579854+00:00",
+      "wdr": "SB_Acoustics_10__SW26SFC38-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/at60nc-4-kapton/": {
+      "scraped_at": "2026-06-24T20:51:01.110433+00:00",
+      "wdr": "SB_Acoustics_SATORI_AT60NC-4___Kapton.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12-sb34nrx2-00-norex/": {
+      "scraped_at": "2026-06-24T20:51:02.651394+00:00",
+      "wdr": "SB_Acoustics_SB34NRX2-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sb29nrx2-00-norex/": {
+      "scraped_at": "2026-06-24T20:51:04.121738+00:00",
+      "wdr": "SB_Acoustics_SB29NRX2-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½in-satori-mw19pnw-8/": {
+      "scraped_at": "2026-06-24T20:51:05.644895+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19PNW-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½in-satori-mw19pnw-4/": {
+      "scraped_at": "2026-06-24T20:51:07.100483+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19PNW-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dbac-00/": {
+      "scraped_at": "2026-06-24T20:51:08.621341+00:00",
+      "wdr": "SB_Acoustics_10__SW26DBAC-00___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sb29nrx-00-norex/": {
+      "scraped_at": "2026-06-24T20:51:10.118618+00:00",
+      "wdr": "SB_Acoustics_SB29NRX-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12in-sb34nrx-00-norex/": {
+      "scraped_at": "2026-06-24T20:51:11.655236+00:00",
+      "wdr": "SB_Acoustics_SB34NRX-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/dw50/": {
+      "scraped_at": "2026-06-24T20:51:13.159315+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/6in-sb16pfcr-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:14.916469+00:00",
+      "wdr": "SB_Acoustics_SB16PFCR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5x8in-sb15sfcr-00/": {
+      "scraped_at": "2026-06-24T20:51:16.357570+00:00",
+      "wdr": "SB_Acoustics_SB15SFCR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pacr-00-aluminium/": {
+      "scraped_at": "2026-06-24T20:51:17.898620+00:00",
+      "wdr": "SB_Acoustics_SB12PACR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pfcr-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:19.426658+00:00",
+      "wdr": "SB_Acoustics_SB12PFCR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb13pfcr-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:21.099436+00:00",
+      "wdr": "SB_Acoustics_SB13PFCR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb20pfcr-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:22.924902+00:00",
+      "wdr": "SB_Acoustics_SB20PFCR-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/": {
+      "scraped_at": "2026-06-24T20:51:24.485378+00:00",
+      "wdr": "SB_Acoustics_SB12PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb13pfc25-4-coax-paper/": {
+      "scraped_at": "2026-06-24T20:51:26.006353+00:00",
+      "wdr": "SB_Acoustics_SB13PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb16pfc25-4-coax-paper/": {
+      "scraped_at": "2026-06-24T20:51:27.521267+00:00",
+      "wdr": "SB_Acoustics_SB16PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12pac-00-aluminium/": {
+      "scraped_at": "2026-06-24T20:51:29.073358+00:00",
+      "wdr": "SB_Acoustics_SB12PAC-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dac-00/": {
+      "scraped_at": "2026-06-24T20:51:31.548330+00:00",
+      "wdr": "SB_Acoustics_10__SW26DAC-00___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pfc-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:33.229885+00:00",
+      "wdr": "SB_Acoustics_SB12PFC-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb13pfc-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:34.771393+00:00",
+      "wdr": "SB_Acoustics_SB13PFC-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb16pfc-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:36.344170+00:00",
+      "wdr": "SB_Acoustics_SB16PFC-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8-sb20pfc-00-paper/": {
+      "scraped_at": "2026-06-24T20:51:37.764557+00:00",
+      "wdr": "SB_Acoustics_SB20PFC-00.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dac76-4/": {
+      "scraped_at": "2026-06-24T20:51:39.195364+00:00",
+      "wdr": "SB_Acoustics_10__SW26DAC76-4___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dac76-8/": {
+      "scraped_at": "2026-06-24T20:51:40.734982+00:00",
+      "wdr": "SB_Acoustics_10__SW26DAC76-8___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dac76-3-dv/": {
+      "scraped_at": "2026-06-24T20:51:42.184690+00:00",
+      "wdr": "SB_Acoustics_10__SW26DAC76-3-DV___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dbac76-3-dv/": {
+      "scraped_at": "2026-06-24T20:51:43.895333+00:00",
+      "wdr": "SB_Acoustics_10__SW26DBAC76-3-DV___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12in-sb34swpl76-3-dv/": {
+      "scraped_at": "2026-06-24T20:51:45.617378+00:00",
+      "wdr": "SB_Acoustics_SB34SWPL76-3.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8-sb20pfc30-4-paper/": {
+      "scraped_at": "2026-06-24T20:51:47.128180+00:00",
+      "wdr": "SB_Acoustics_SB20PFC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8-sb20pfc30-8-paper/": {
+      "scraped_at": "2026-06-24T20:51:48.624751+00:00",
+      "wdr": "SB_Acoustics_SB20PFC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½″-satori-mw19pf-4-paper-2/": {
+      "scraped_at": "2026-06-24T20:51:52.842324+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19PF-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½″-satori-mw19pf-4-paper/": {
+      "scraped_at": "2026-06-24T20:51:56.794932+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19PF-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½-satori-mw16pf-8-paper/": {
+      "scraped_at": "2026-06-24T20:52:00.696001+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16PF-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/": {
+      "scraped_at": "2026-06-24T20:52:04.707798+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16PF-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb16pfc25-8-paper/": {
+      "scraped_at": "2026-06-24T20:52:06.134938+00:00",
+      "wdr": "SB_Acoustics_SB16PFC25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb16pfc25-4-paper/": {
+      "scraped_at": "2026-06-24T20:52:07.659245+00:00",
+      "wdr": "SB_Acoustics_SB16PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb13pfc25-8-paper/": {
+      "scraped_at": "2026-06-24T20:52:09.110675+00:00",
+      "wdr": "SB_Acoustics_SB13PFC25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb13pfc25-4-paper/": {
+      "scraped_at": "2026-06-24T20:52:10.638114+00:00",
+      "wdr": "SB_Acoustics_SB13PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12pfc25-8-paper/": {
+      "scraped_at": "2026-06-24T20:52:12.168322+00:00",
+      "wdr": "SB_Acoustics_SB12PFC25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12pfc25-4-paper/": {
+      "scraped_at": "2026-06-24T20:52:13.719234+00:00",
+      "wdr": "SB_Acoustics_SB12PFC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nrxc35-8/": {
+      "scraped_at": "2026-06-24T20:52:15.147138+00:00",
+      "wdr": "SB_Acoustics_SB17NRXC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nrxc35-4/": {
+      "scraped_at": "2026-06-24T20:52:17.188319+00:00",
+      "wdr": "SB_Acoustics_SB17NRXC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nrxc30-8/": {
+      "scraped_at": "2026-06-24T20:52:18.745893+00:00",
+      "wdr": "SB_Acoustics_SB15NRXC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nrxc30-4/": {
+      "scraped_at": "2026-06-24T20:52:20.692394+00:00",
+      "wdr": "SB_Acoustics_SB15NRXC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nac35-8/": {
+      "scraped_at": "2026-06-24T20:52:22.477068+00:00",
+      "wdr": "SB_Acoustics_SB17NAC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nac35-4/": {
+      "scraped_at": "2026-06-24T20:52:24.340894+00:00",
+      "wdr": "SB_Acoustics_SB17NAC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nac30-8/": {
+      "scraped_at": "2026-06-24T20:52:25.971470+00:00",
+      "wdr": "SB_Acoustics_SB15NAC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nac30-4/": {
+      "scraped_at": "2026-06-24T20:52:27.970831+00:00",
+      "wdr": "SB_Acoustics_SB15NAC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/": {
+      "scraped_at": "2026-06-24T20:52:29.776276+00:00",
+      "wdr": "SB_Acoustics_SB12MNRX25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29rdc-c000-4-fabric/": {
+      "scraped_at": "2026-06-24T20:52:31.273224+00:00",
+      "wdr": "SB_Acoustics_SB29RDC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26stc-c000-4/": {
+      "scraped_at": "2026-06-24T20:52:32.886921+00:00",
+      "wdr": "SB_Acoustics_SB26STC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/9½in-satori-wo24p-8/": {
+      "scraped_at": "2026-06-24T20:52:38.250674+00:00",
+      "wdr": "SB_Acoustics_9½__SATORI_WO24P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/9½in-satori-wo24p-4/": {
+      "scraped_at": "2026-06-24T20:52:43.396107+00:00",
+      "wdr": "SB_Acoustics_9½__SATORI_WO24P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½-satori-mw19tx-8-textreme/": {
+      "scraped_at": "2026-06-24T20:52:48.415116+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19TX-8___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½-satori-mw19tx-4-textreme/": {
+      "scraped_at": "2026-06-24T20:52:54.755367+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19TX-4___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-5-satori-mw16tx-8-textreme/": {
+      "scraped_at": "2026-06-24T20:52:56.648140+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16TX-8___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-5-satori-mw16tx-4-textreme/": {
+      "scraped_at": "2026-06-24T20:52:58.765158+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16TX-4___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/eka/": {
+      "scraped_at": "2026-06-24T20:53:00.227140+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/4in-sb12nrxf25-8-norex/": {
+      "scraped_at": "2026-06-24T20:53:01.894045+00:00",
+      "wdr": "SB_Acoustics_SB12NRXF25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12nrxf25-4-norex/": {
+      "scraped_at": "2026-06-24T20:53:03.473257+00:00",
+      "wdr": "SB_Acoustics_SB12NRXF25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb16pfcr25-4-coax/": {
+      "scraped_at": "2026-06-24T20:53:05.878331+00:00",
+      "wdr": "SB_Acoustics_SB16PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb13pfcr25-4-coax/": {
+      "scraped_at": "2026-06-24T20:53:07.527409+00:00",
+      "wdr": "SB_Acoustics_SB13PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pfcr25-4-coax/": {
+      "scraped_at": "2026-06-24T20:53:09.306209+00:00",
+      "wdr": "SB_Acoustics_SB12PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dbac76-8/": {
+      "scraped_at": "2026-06-24T20:53:11.173208+00:00",
+      "wdr": "SB_Acoustics_10__SW26DBAC76-8___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sw26dbac76-4/": {
+      "scraped_at": "2026-06-24T20:53:12.809192+00:00",
+      "wdr": "SB_Acoustics_10__SW26DBAC76-4___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/15in-sb42fhcl75-6/": {
+      "scraped_at": "2026-06-24T20:53:14.352561+00:00",
+      "wdr": "SB_Acoustics_SB42FHCL75-6.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12in-sb34swpl76-4/": {
+      "scraped_at": "2026-06-24T20:53:16.103364+00:00",
+      "wdr": "SB_Acoustics_SB34SWPL76-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12in-sb34swnrx-s75-6-norex/": {
+      "scraped_at": "2026-06-24T20:53:17.894462+00:00",
+      "wdr": "SB_Acoustics_12__SB34SWNRX-S75-6___Norex.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10in-sb29swnrx-s75-6-norex/": {
+      "scraped_at": "2026-06-24T20:53:19.720600+00:00",
+      "wdr": "SB_Acoustics_10__SB29SWNRX-S75-6___Norex.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12-sb34nrxl75-8-norex/": {
+      "scraped_at": "2026-06-24T20:53:21.646477+00:00",
+      "wdr": "SB_Acoustics_SB34NRXL75-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12-sb34nrx75-16-norex/": {
+      "scraped_at": "2026-06-24T20:53:23.242494+00:00",
+      "wdr": "SB_Acoustics_SB34NRX75-16.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sb29nrx75-8-norex/": {
+      "scraped_at": "2026-06-24T20:53:25.306653+00:00",
+      "wdr": "SB_Acoustics_SB29NRX75-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/10-sb29nrx75-6-norex/": {
+      "scraped_at": "2026-06-24T20:53:27.186686+00:00",
+      "wdr": "SB_Acoustics_SB29NRX75-6.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/12-sb34nrx75-6-norex/": {
+      "scraped_at": "2026-06-24T20:53:29.140194+00:00",
+      "wdr": "SB_Acoustics_SB34NRX75-6.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8-sb20pfcr30-8-paper/": {
+      "scraped_at": "2026-06-24T20:53:33.561287+00:00",
+      "wdr": "SB_Acoustics_SB20PFCR30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/8-sb20pfcr30-4-paper/": {
+      "scraped_at": "2026-06-24T20:53:38.055384+00:00",
+      "wdr": "SB_Acoustics_SB20PFCR30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5x8in-sb15sfcr39-8/": {
+      "scraped_at": "2026-06-24T20:53:42.760783+00:00",
+      "wdr": "SB_Acoustics_SB15SFCR39-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½in-satori-mw19p-8/": {
+      "scraped_at": "2026-06-24T20:53:47.503730+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mw16pnw-8/": {
+      "scraped_at": "2026-06-24T20:53:51.097059+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16PNW-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mw16pnw-4/": {
+      "scraped_at": "2026-06-24T20:53:55.874896+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16PNW-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mw16p-8/": {
+      "scraped_at": "2026-06-24T20:54:00.231995+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mw16p-4/": {
+      "scraped_at": "2026-06-24T20:54:04.871529+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MW16P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mw13pnw-8/": {
+      "scraped_at": "2026-06-24T20:54:08.794583+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13PNW-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-satori-mw13pnw-4/": {
+      "scraped_at": "2026-06-24T20:54:13.586147+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13PNW-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-satori-mw13p-8/": {
+      "scraped_at": "2026-06-24T20:54:18.213329+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-satori-mw13p-4/": {
+      "scraped_at": "2026-06-24T20:54:23.287520+00:00",
+      "wdr": "SB_Acoustics_5__SATORI_MW13P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb16pfcr25-8-paper/": {
+      "scraped_at": "2026-06-24T20:54:28.471137+00:00",
+      "wdr": "SB_Acoustics_SB16PFCR25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb16pfcr25-4-paper/": {
+      "scraped_at": "2026-06-24T20:54:32.773216+00:00",
+      "wdr": "SB_Acoustics_SB16PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb13pfcr25-8-paper/": {
+      "scraped_at": "2026-06-24T20:54:36.902088+00:00",
+      "wdr": "SB_Acoustics_SB13PFCR25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb13pfcr25-4-paper/": {
+      "scraped_at": "2026-06-24T20:54:41.077207+00:00",
+      "wdr": "SB_Acoustics_SB13PFCR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12pacr25-4-aluminum/": {
+      "scraped_at": "2026-06-24T20:54:44.917632+00:00",
+      "wdr": "SB_Acoustics_SB12PACR25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12pac25-4/": {
+      "scraped_at": "2026-06-24T20:54:49.149241+00:00",
+      "wdr": "SB_Acoustics_SB12PAC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/": {
+      "scraped_at": "2026-06-24T20:54:53.338038+00:00",
+      "wdr": "SB_Acoustics_SB17NRX2C35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17nrx2c35-4-norex/": {
+      "scraped_at": "2026-06-24T20:54:57.553416+00:00",
+      "wdr": "SB_Acoustics_SB17NRX2C35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nrx2c30-8-norex/": {
+      "scraped_at": "2026-06-24T20:55:01.752654+00:00",
+      "wdr": "SB_Acoustics_SB15NRX2C30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nrx2c30-4-norex/": {
+      "scraped_at": "2026-06-24T20:55:05.838011+00:00",
+      "wdr": "SB_Acoustics_SB15NRX2C30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12nrx25-8-norex/": {
+      "scraped_at": "2026-06-24T20:55:10.004953+00:00",
+      "wdr": "SB_Acoustics_SB12NRX25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12nrx25-4-norex/": {
+      "scraped_at": "2026-06-24T20:55:15.660497+00:00",
+      "wdr": "SB_Acoustics_SB12NRX25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nbac30-8/": {
+      "scraped_at": "2026-06-24T20:55:20.703672+00:00",
+      "wdr": "SB_Acoustics_SB15NBAC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15nbac30-4/": {
+      "scraped_at": "2026-06-24T20:55:24.763379+00:00",
+      "wdr": "SB_Acoustics_SB15NBAC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17mfc35-8/": {
+      "scraped_at": "2026-06-24T20:55:28.669629+00:00",
+      "wdr": "SB_Acoustics_SB17MFC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17mfc35-4/": {
+      "scraped_at": "2026-06-24T20:55:33.301789+00:00",
+      "wdr": "SB_Acoustics_SB17MFC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15mfc30-8/": {
+      "scraped_at": "2026-06-24T20:55:37.945241+00:00",
+      "wdr": "SB_Acoustics_SB15MFC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15mfc30-4/": {
+      "scraped_at": "2026-06-24T20:55:43.820505+00:00",
+      "wdr": "SB_Acoustics_SB15MFC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17crc35-8/": {
+      "scraped_at": "2026-06-24T20:55:47.876516+00:00",
+      "wdr": "SB_Acoustics_SB17CRC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17crc35-4/": {
+      "scraped_at": "2026-06-24T20:55:56.894681+00:00",
+      "wdr": "SB_Acoustics_SB17CRC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-sb15crc30-8-carbon/": {
+      "scraped_at": "2026-06-24T20:56:02.036621+00:00",
+      "wdr": "SB_Acoustics_SB15CRC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6-sb15crc30-4-carbon/": {
+      "scraped_at": "2026-06-24T20:56:04.338399+00:00",
+      "wdr": "SB_Acoustics_SB15CRC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17cac35-8/": {
+      "scraped_at": "2026-06-24T20:56:08.639092+00:00",
+      "wdr": "SB_Acoustics_SB17CAC35-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6in-sb17cac35-4/": {
+      "scraped_at": "2026-06-24T20:56:13.388318+00:00",
+      "wdr": "SB_Acoustics_SB17CAC35-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15cac30-8/": {
+      "scraped_at": "2026-06-24T20:56:17.700393+00:00",
+      "wdr": "SB_Acoustics_SB15CAC30-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-sb15cac30-4/": {
+      "scraped_at": "2026-06-24T20:56:22.036312+00:00",
+      "wdr": "SB_Acoustics_SB15CAC30-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12cacs25-8/": {
+      "scraped_at": "2026-06-24T20:56:26.188289+00:00",
+      "wdr": "SB_Acoustics_SB12CACS25-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4in-sb12cacs25-4/": {
+      "scraped_at": "2026-06-24T20:56:30.133861+00:00",
+      "wdr": "SB_Acoustics_SB12CACS25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mr16pnw-8/": {
+      "scraped_at": "2026-06-24T20:56:34.566772+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MR16PNW-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mr16pnw-4/": {
+      "scraped_at": "2026-06-24T20:56:38.799963+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MR16PNW-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mr16p-8/": {
+      "scraped_at": "2026-06-24T20:56:43.207857+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MR16P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/6½in-satori-mr16p-4/": {
+      "scraped_at": "2026-06-24T20:56:47.163047+00:00",
+      "wdr": "SB_Acoustics_6½__SATORI_MR16P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/4-sb12mnrx2-25-4-norex/": {
+      "scraped_at": "2026-06-24T20:56:51.074577+00:00",
+      "wdr": "SB_Acoustics_SB12MNRX2-25.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/2-5in-satori-md60n-6-fabric/": {
+      "scraped_at": "2026-06-24T20:56:55.161095+00:00",
+      "wdr": "SB_Acoustics_2½__SATORI_MD60N-6___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26stac-c000-4/": {
+      "scraped_at": "2026-06-24T20:56:59.029119+00:00",
+      "wdr": "SB_Acoustics_SB26STAC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/7½in-satori-mw19p-4-2/": {
+      "scraped_at": "2026-06-24T20:57:03.557726+00:00",
+      "wdr": "SB_Acoustics_7½__SATORI_MW19P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5in-satori-mr13p-4/": {
+      "scraped_at": "2026-06-24T20:57:07.583251+00:00",
+      "wdr": "SB_Acoustics_5__8243__SATORI_MR13P-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mr13p-8/": {
+      "scraped_at": "2026-06-24T20:57:11.788660+00:00",
+      "wdr": "SB_Acoustics_5__8243__SATORI_MR13P-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mr13pnw-4/": {
+      "scraped_at": "2026-06-24T20:57:15.783754+00:00",
+      "wdr": "SB_Acoustics_5__8243__SATORI_MR13PNW-4___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/5-satori-mr13pnw-8/": {
+      "scraped_at": "2026-06-24T20:57:20.085855+00:00",
+      "wdr": "SB_Acoustics_5__8243__SATORI_MR13PNW-8___Paper.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/1in-sb36wbac21-8/": {
+      "scraped_at": "2026-06-24T20:57:24.074304+00:00",
+      "wdr": "SB_Acoustics_SB36WBAC21-8.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/2-5in-sb65wbac25-4/": {
+      "scraped_at": "2026-06-24T20:57:28.162209+00:00",
+      "wdr": "SB_Acoustics_SB65WBAC25-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/3in-sb10pgc21-4/": {
+      "scraped_at": "2026-06-24T20:57:32.128038+00:00",
+      "wdr": "SB_Acoustics_SB10PGC21-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/1-sb36wbac21-4-aluminum/": {
+      "scraped_at": "2026-06-24T20:57:36.131136+00:00",
+      "wdr": "SB_Acoustics_SB36WBAC21-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29bn-b/": {
+      "scraped_at": "2026-06-24T20:57:40.187550+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BN-B___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29r/": {
+      "scraped_at": "2026-06-24T20:57:42.205375+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29R___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29r-b/": {
+      "scraped_at": "2026-06-24T20:57:45.737414+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29R-B___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29rn/": {
+      "scraped_at": "2026-06-24T20:57:49.671615+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29RN___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29rn-b/": {
+      "scraped_at": "2026-06-24T20:57:53.727270+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29RN-B___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29dn/": {
+      "scraped_at": "2026-06-24T20:57:57.850675+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29DN___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29dn-8/": {
+      "scraped_at": "2026-06-24T20:58:02.136533+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29DN-8___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29dn-b/": {
+      "scraped_at": "2026-06-24T20:58:07.091401+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29DN-B___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29dn-b-8/": {
+      "scraped_at": "2026-06-24T20:58:12.244894+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29DN-B-8___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29txn-b-textreme/": {
+      "scraped_at": "2026-06-24T20:58:17.550813+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29TXN-B___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29rn-8/": {
+      "scraped_at": "2026-06-24T20:58:22.527241+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29RN-8___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29rn-b-8/": {
+      "scraped_at": "2026-06-24T20:58:27.585661+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29RN-B-8___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29d-fabric/": {
+      "scraped_at": "2026-06-24T20:58:32.022771+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29D___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29d-b-fabric/": {
+      "scraped_at": "2026-06-24T20:58:37.246853+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29D-B___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29txn-b-8-textreme/": {
+      "scraped_at": "2026-06-24T20:58:41.439721+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29TXN-B-8___TeXtreme.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29bnwg-4-beryllium/": {
+      "scraped_at": "2026-06-24T20:58:45.513952+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BNWG-4___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29bnwg-8-beryllium/": {
+      "scraped_at": "2026-06-24T20:58:53.369010+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BNWG-8___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb21rdc-c000-4/": {
+      "scraped_at": "2026-06-24T20:58:57.454104+00:00",
+      "wdr": "SB_Acoustics_SB21RDC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29rdnc-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:01.565303+00:00",
+      "wdr": "SB_Acoustics_SB29RDNC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb21rdcn-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:05.550207+00:00",
+      "wdr": "SB_Acoustics_SB21RDCN-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb19st-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:07.945120+00:00",
+      "wdr": "SB_Acoustics_SB19ST-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb21sdc-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:09.856686+00:00",
+      "wdr": "SB_Acoustics_SB21SDC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26st-c000-5/": {
+      "scraped_at": "2026-06-24T20:59:13.847280+00:00",
+      "wdr": "SB_Acoustics_SB26ST-C000-5___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26stcn-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:17.853828+00:00",
+      "wdr": "SB_Acoustics_SB26STCN-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26adc-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:21.754529+00:00",
+      "wdr": "SB_Acoustics_SB26ADC-C000-4___Aluminum.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29sdac-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:25.625454+00:00",
+      "wdr": "SB_Acoustics_SB29SDAC-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26cdc-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:27.584897+00:00",
+      "wdr": "SB_Acoustics_SB26CDC-C000-4___Ceramic.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29bac-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:31.676605+00:00",
+      "wdr": "SB_Acoustics_SB29BAC-C000-4___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb29bnc-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:36.020212+00:00",
+      "wdr": "SB_Acoustics_SB29BNC-C000-4___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb26stwgc-4-fabric/": {
+      "scraped_at": "2026-06-24T20:59:41.249937+00:00",
+      "wdr": "SB_Acoustics_SB26STWGC-4.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/sb21sdcn-c000-4/": {
+      "scraped_at": "2026-06-24T20:59:45.215260+00:00",
+      "wdr": "SB_Acoustics_SB21SDCN-C000-4___Fabric.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-24-magnetic-grille/": {
+      "scraped_at": "2026-06-24T20:59:48.684865+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-tw29bn/": {
+      "scraped_at": "2026-06-24T20:59:53.193334+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29BN___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-tw29b/": {
+      "scraped_at": "2026-06-24T20:59:57.262821+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29B___Beryllium.wdr",
+      "status": "ok"
+    },
+    "https://sbacoustics.com/product/satori-19-magnetic-grille/": {
+      "scraped_at": "2026-06-24T21:00:00.819180+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-16-magnetic-grille/": {
+      "scraped_at": "2026-06-24T21:00:05.045969+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-13-magnetic-grille/": {
+      "scraped_at": "2026-06-24T21:00:08.748727+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-tw29-magnetic-grille/": {
+      "scraped_at": "2026-06-24T21:00:12.304540+00:00",
+      "wdr": null,
+      "status": "skipped"
+    },
+    "https://sbacoustics.com/product/satori-tw29b-b/": {
+      "scraped_at": "2026-06-24T21:00:16.239216+00:00",
+      "wdr": "SB_Acoustics_SATORI_TW29B-B___Beryllium.wdr",
+      "status": "ok"
     }
   }
 }

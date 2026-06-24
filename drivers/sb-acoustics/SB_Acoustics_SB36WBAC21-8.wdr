@@ -1,0 +1,25 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB36WBAC21-8
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/1in-sb36wbac21-8/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/1in-SB36WBAC21-8.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=160.0
+Qts=0.61
+Qes=0.92
+Qms=1.75
+Znom=8.0
+Re=5.8
+Le=0.00013
+BL=2.1
+Mms=0.0007
+Cms=0.00139
+Sd=0.00042
+Vas=3.5e-05
+Xmax=0.00175
+Pe=5.0
+Vd=7.35e-07
+Dd=0.023124892
+EBP=173.91

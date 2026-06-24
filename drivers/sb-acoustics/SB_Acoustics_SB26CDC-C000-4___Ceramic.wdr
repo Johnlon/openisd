@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB26CDC-C000-4 / Ceramic
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb26cdc-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB26CDC-C000-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=690.0
+Qts=1.12
+Qes=2.0
+Qms=2.55
+Znom=4.0
+Re=3.2
+Le=4e-05
+BL=1.6
+Mms=0.00038
+Sd=0.00062
+Xmax=0.0006
+Pe=100.0
+Vd=3.72e-07
+Dd=0.028096415
+EBP=345.0

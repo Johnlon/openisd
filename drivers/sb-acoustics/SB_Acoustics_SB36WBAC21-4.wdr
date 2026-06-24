@@ -1,0 +1,25 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB36WBAC21-4
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/1-sb36wbac21-4-aluminum/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/1in-SB36WBAC21-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=200.0
+Qts=0.41
+Qes=1.05
+Qms=0.68
+Znom=4.0
+Re=3.4
+Le=0.00012
+BL=1.76
+Mms=0.00076
+Cms=0.00083
+Sd=0.00042
+Vas=2.1e-05
+Xmax=0.00175
+Pe=5.0
+Vd=7.35e-07
+Dd=0.023124892
+EBP=190.48

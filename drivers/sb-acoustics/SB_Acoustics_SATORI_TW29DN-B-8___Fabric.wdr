@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SATORI TW29DN-B-8 / Fabric
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/satori-tw29dn-b-8/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29DN-B-8.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=650.0
+Qts=0.46
+Qes=0.65
+Qms=1.61
+Znom=8.0
+Re=6.2
+Le=4e-05
+BL=4.1
+Mms=0.00043
+Sd=0.00096
+Xmax=0.00025
+Pe=80.0
+Vd=2.4e-07
+Dd=0.03496155
+EBP=1000.0

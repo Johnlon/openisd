@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB21SDC-C000-4 / Fabric
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb21sdc-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB21SDC-C000-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=720.0
+Qts=0.95
+Qes=1.55
+Qms=2.41
+Znom=4.0
+Re=3.1
+Le=4e-05
+BL=1.5
+Mms=0.00025
+Sd=0.00049
+Xmax=0.0005
+Pe=40.0
+Vd=2.45e-07
+Dd=0.024977738
+EBP=464.52

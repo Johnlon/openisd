@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB26ST-C000-5 / Fabric
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb26st-c000-5/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/SB26ST-C000-5.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=870.0
+Qts=1.24
+Qes=1.64
+Qms=5.0
+Znom=5.0
+Re=4.4
+Le=7e-05
+BL=2.2
+Mms=0.00033
+Sd=0.00062
+Xmax=0.0006
+Pe=80.0
+Vd=3.72e-07
+Dd=0.028096415
+EBP=530.49

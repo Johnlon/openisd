@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB29BAC-C000-4 / Beryllium
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb29bac-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB29BAC-C000-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=650.0
+Qts=0.84
+Qes=1.22
+Qms=2.71
+Znom=4.0
+Re=3.0
+Le=5e-05
+BL=2.4
+Mms=0.00046
+Sd=0.00096
+Xmax=0.00025
+Pe=80.0
+Vd=2.4e-07
+Dd=0.03496155
+EBP=532.79

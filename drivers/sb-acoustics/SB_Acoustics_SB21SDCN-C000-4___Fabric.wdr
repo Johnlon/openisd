@@ -1,0 +1,23 @@
+[Driver]
+Brand=SB Acoustics
+Model=SB21SDCN-C000-4 / Fabric
+Manufacturer=SB Acoustics
+ProvidedBy=SB Acoustics website (scraped 2026-06-24)
+Comment=Source: https://sbacoustics.com/product/sb21sdcn-c000-4/ | Datasheet: https://sbacoustics.com/wp-content/uploads/2020/04/SB21SDCN-C000-4.pdf
+DateAdded=2026-06-24
+DateModified=2026-06-24
+Fs=850.0
+Qts=1.22
+Qes=2.45
+Qms=2.44
+Znom=4.0
+Re=3.1
+Le=4e-05
+BL=1.3
+Mms=0.00025
+Sd=0.00049
+Xmax=0.00025
+Pe=40.0
+Vd=1.22e-07
+Dd=0.024977738
+EBP=346.94
