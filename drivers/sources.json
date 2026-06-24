@@ -30,7 +30,7 @@
     {
       "name": "Parts Express woofer guide",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/parts-express",
-      "description": "319 drivers from the Parts Express woofer selection guide (https://www.parts-express.com/woofer-selection-guide). Brands: Aurum Cantus, CSS, Dayton Audio, Dynavox, EPIQUE, Eminence, GRS, Goldwood, HiVi, Morel, Peerless, Tang Band, Usher, Visaton, Wavecor and others. 189 files have full T/S data fetched from the Parts Express product API (Re, Qes, Qms, Le, BL, Mms, Cms, Sd); 130 are discontinued products not in the PE catalogue and retain estimated Re (0.85×Znom) and Sd from baffle cutout.",
+      "description": "319 drivers from the Parts Express woofer selection guide (https://www.parts-express.com/woofer-selection-guide). Brands: Aurum Cantus, CSS, Dayton Audio, Dynavox, EPIQUE, Eminence, GRS, Goldwood, HiVi, Morel, Peerless, Tang Band, Usher, Visaton, Wavecor and others. 189 files have full T/S data fetched from the Parts Express product API (Re, Qes, Qms, Le, BL, Mms, Cms, Sd); 130 retain estimated Re (0.85×Znom) and Sd from baffle cutout where API data was not available.",
       "license": "public product data from parts-express.com"
     }
   ]

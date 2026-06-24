@@ -1,0 +1,26 @@
+{
+  "source": "Parts Express woofer selection guide + Parts Express product API",
+  "guide_url": "https://www.parts-express.com/woofer-selection-guide",
+  "api": "https://www.parts-express.com/api/items?q={sku}&fieldset=details (internal NetSuite SCA API, undocumented)",
+  "fetched": "2026-06-24",
+  "quality_levels": {
+    "H": "Full T/S from PE API with exact original SKU match. Re, Qes, Qms, Le, BL, Mms, Cms, Sd are manufacturer-published values.",
+    "M": "T/S from PE API for a related product. Original SKU no longer returns results; data fetched from a successor or same-model-name SKU. Parameters were compared against original guide values — see per-driver notes for discrepancies.",
+    "L": "Estimated only. Original SKU returned no API data. Re = 0.85 × Znom (typical ±5%); Sd from baffle cutout diameter (overestimates piston area by ~20%). Qes, Qms, Le, BL, Mms, Cms are blank."
+  },
+  "quality_default": "Files with populated Qes are quality=H. Files with blank Qes are quality=L unless listed below.",
+  "drivers": [
+    {
+      "file": "Dayton Audio RS150P-8.wdr",
+      "quality": "M",
+      "fetched_sku": "295-573",
+      "note": "Original SKU 295-363 no longer returns API results. Data from RS150P-8A (295-573), a known Dayton Audio design revision of the same driver line. Parameter comparison: Fs 4% lower (49.1→47.1 Hz), Qts 6% higher (0.32→0.34), Xmax identical (4 mm), Vas 3% higher. Differences are within expected revision range."
+    },
+    {
+      "file": "Peerless by Tymphany HDS-P830869.wdr",
+      "quality": "M",
+      "fetched_sku": "264-1007",
+      "note": "Original SKU 264-1098 no longer returns API results. Same model number (HDS-P830869) found at new SKU 264-1007. Parameter comparison shows large discrepancies vs original guide values: Fs +13% (30→34 Hz), Qts +23% (0.31→0.38), Vas −34% (3.09→2.03 ft³), Xmax +36% (5.5→7.5 mm). Source of discrepancy unknown — could be datasheet revision, measurement method difference, or guide data error. Cms omitted: API returned 790 mm/N which is implausible for this driver size."
+    }
+  ]
+}
