@@ -68,6 +68,16 @@ WinISD and other parsers ignore these lines.
 | `boxbench_obsolete` | `true` | Driver is confirmed discontinued. Omit otherwise |
 | `boxbench_reviewedBy` | string | Name or handle of the person who verified the T/S data against the datasheet. `null` until reviewed |
 
+### ⚠ Hard rule — "human verified" language
+
+**No AI agent may write the words "human verified", "human-verified", "verified by human", or any equivalent phrase** in any `boxbench_` field — not in `boxbench_corrections`, `boxbench_detail`, `boxbench_reviewedBy`, or anywhere else — unless the project owner has explicitly granted permission for that specific driver or batch in the current session.
+
+- `boxbench_corrections` is AI-owned. An AI writing "I confirmed X" in that field is not verification — it is the AI's own account of what it did, which may be wrong.
+- `boxbench_reviewedBy` must be `null` or absent until the project owner says "mark as human verified" or equivalent.
+- AI agents MAY ask once if they believe the owner has reviewed the data and forgotten to grant permission. They must not assume or proceed without an explicit yes.
+
+This rule exists because a previous AI agent wrote "confirmed against Dayton Audio PA460-8 datasheet (user-provided)" in `boxbench_corrections` while simultaneously storing the wrong product's PDF URL. The language implied verification that had not occurred.
+
 ### Adding new fields
 
 Use the `boxbench_` prefix and a `snake_case` name. Values must be single-line

@@ -23,6 +23,16 @@
 - **No magic numbers in source code:** Every non-obvious numeric constant in `src/core/` must have a comment explaining its physical meaning and a source reference where applicable. Named constants are preferred over inline literals.
 - **Test framework:** Use `node:test` (`import { describe, it } from 'node:test'`) with `node:assert/strict`. Run with `node --test test/*.test.mjs`.
 
+## Driver data — human-verified flag rules
+
+These rules apply to all `boxbench_` fields in WDR files, and to any commentary or provenance text written into driver data files.
+
+- **NEVER write "human verified", "human-verified", "verified by human", or any equivalent phrase** in any WDR field (`boxbench_corrections`, `boxbench_detail`, `boxbench_reviewedBy`, or any other field) unless the user has **explicitly granted permission in this conversation**.
+- The only valid trigger is the user saying something like "mark as human verified", "you can mark it verified", or equivalent explicit instruction addressed to you in this session.
+- If you believe the user has reviewed the data and may have forgotten to grant this permission, you **may ask once**: *"Would you like me to mark this as human-verified?"* Do not assume permission; wait for an explicit yes.
+- An AI writing that it "confirmed" or "verified" data in `boxbench_corrections` does NOT count as human verification, even if the AI performed checks. `boxbench_corrections` is AI-owned and must never contain verification language implying human sign-off.
+- `boxbench_reviewedBy` must remain `null` or unset until the user explicitly authorises it for a specific driver or batch.
+
 ## External claims — require evidence, label inline
 - Never assert facts about external systems — tools (WinISD, LEAP, REW, etc.), websites, services, APIs, or data sources — without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
 - **The user must not have to verify my claims.** Any external claim that has not been verified in the current session must be flagged inline in the response with "⚠ unverified" before it reaches the user — not corrected after they catch it.
