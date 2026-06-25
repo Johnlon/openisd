@@ -144,6 +144,20 @@ const RULES = [
       return sd && fs && sd*1e4 < 5 && fs < 100 ? `Sd=${(sd*1e4).toFixed(1)} cm² Fs=${fs}` : null;
     }},
 
+  // Fs present but no Q values → scraper captured crossover/range freq as Fs.
+  // Compression drivers (FaitalPRO HF, SICA CD, etc.) and AMT tweeters do not
+  // publish T/S Fs. Scrapers tend to pick up minimum crossover frequency or the
+  // usable range lower bound ("1.300 kHz" → Fs=1300). Detectable when:
+  // Fs > 500 Hz AND neither Qts nor Qes is present in the file.
+  { id: 'Fs_no_Q', desc: 'Fs > 500 Hz but no Qts or Qes — crossover/range freq captured as Fs (compression driver or AMT)',
+    test: f => {
+      const fs = n(f,'Fs');
+      if (!fs || fs <= 500) return null;
+      if (!('Qts' in f) && !('Qes' in f))
+        return `Fs=${fs} Hz with no Qts/Qes — likely minimum crossover freq or range lower bound, not T/S resonance; delete Fs`;
+      return null;
+    }},
+
   // SPL sanity
   { id: 'SPL_high', desc: 'SPL > 120 dB/1W/1m — physically implausible for a passive driver',
     test: f => { const v = n(f,'SPL'); return v && v > 120 ? `SPL=${v}` : null; } },

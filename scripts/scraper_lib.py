@@ -333,6 +333,27 @@ def validate_ts_fields(fields: dict, label: str = "") -> list[str]:
     if sd and sd * 1e4 > 3000:
         warnings.append(f"{tag}Sd={sd*1e4:.0f} cm² > 3000 — larger than any real driver")
 
+    # Fs with no Q values → crossover/range frequency captured as Fs.
+    # Compression drivers (HF, CD horn types) and AMT tweeters don't publish T/S Fs.
+    # The scraper typically captures the minimum crossover frequency or usable range
+    # lower bound ("1.300 kHz" → Fs=1300) into the Fs field instead.
+    if fs is not None and fs > 500:
+        has_q = "Qts" in fields or "Qes" in fields
+        if not has_q:
+            warnings.append(
+                f"{tag}Fs={fs:.0f} Hz but no Qts or Qes — likely crossover/range frequency "
+                f"captured as Fs; compression drivers and AMT tweeters do not publish T/S Fs. "
+                f"Delete Fs and add a boxbench_corrections note explaining the absence."
+            )
+
+    # AMT driver: T/S Fs is undefined for Air Motion Transformer drivers (not pistonic).
+    if label and re.search(r'\bAMT\b', label, re.IGNORECASE):
+        if "Fs" in fields:
+            warnings.append(
+                f"{tag}Model label contains 'AMT' — Air Motion Transformer drivers are not "
+                f"pistonic; T/S Fs is not a defined parameter. Do not write Fs."
+            )
+
     # Vas vs Sd cross-check (ft³-as-liters bug)
     vas = v("Vas")
     if sd and vas and sd * 1e4 > 150 and vas * 1000 < sd * 1e4 / 60:
