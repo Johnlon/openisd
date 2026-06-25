@@ -50,7 +50,7 @@ WinISD and other parsers ignore these lines.
 | `boxbench_datasheet` | URL | Manufacturer PDF datasheet — the document that specifies the T/S parameters | A product web page, a retailer page, a ZIP, an image, or any non-PDF |
 | `boxbench_manu_page` | URL | The manufacturer's own product page — set this when the **scraped site is the manufacturer** (SB Acoustics, Scan-Speak, Wavecor, Dayton Audio direct, etc.) | A retailer page, a brand homepage, a category page |
 | `boxbench_vendor_page` | URL | The vendor/retailer product listing — set this when the **scraped site is a reseller** (Parts Express, SoundImports, etc.) | A brand homepage, a category page |
-| `boxbench_source` | URL | The exact URL from which the T/S parameter values were read. Usually identical to whichever of `boxbench_manu_page` / `boxbench_vendor_page` applies | — |
+| `boxbench_source` | URL | Generic provenance: where the T/S numbers came from. For scraped drivers this is usually the same URL as `boxbench_vendor_page` or `boxbench_manu_page`. It diverges when data comes from a source that is neither a vendor nor a manufacturer — a GitHub repo, a forum post, a community measurement file. Always set; it is the chain of custody for the data. | — |
 | `boxbench_frd` | URL | A file or archive that contains machine-readable **frequency response** data in FRD or tab-separated (freq / dB / phase) format. PEs `_data.zip` files qualify; they contain `.frd` and `.zma` files | A PDF graph, a CAD file, a 3D model, a spec sheet, an image, a general product ZIP that has not been inspected |
 | `boxbench_impedance` | URL | A file or archive that contains machine-readable **impedance vs frequency** data (freq / Ω / °) — **only when this data is in a separate file from `boxbench_frd`** | Anything already covered by `boxbench_frd`; do not duplicate if the same ZIP holds both |
 
@@ -115,9 +115,17 @@ Rules:
 
 ### `boxbench_source`
 
-1. Set to the exact URL from which the T/S parameter values were read.
-2. Usually identical to whichever of the above fields was set.
-3. Never leave empty for scraped files — it is the chain of custody for the data.
+Generic provenance field — always set, regardless of site type.
+
+For scraped drivers this is typically the same URL as `boxbench_vendor_page`
+or `boxbench_manu_page` (whichever applies). It exists as a separate field to
+cover sources that are neither vendor nor manufacturer listings — a GitHub repo
+of community measurements, an AVS Forum post, a raw datasheet. In those cases
+`boxbench_vendor_page` and `boxbench_manu_page` may be unset while
+`boxbench_source` still records where the numbers came from.
+
+**If in doubt:** `boxbench_source` = the URL you would give someone who asked
+"where did you get these T/S numbers?"
 
 ### `boxbench_frd`
 
