@@ -218,6 +218,35 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
 
 ---
 
+## Automated DQ check
+
+Run `node scripts/dq-check.mjs` from the repo root after any bulk import, scrape, or manual edit session. It scans every WDR file and flags physically impossible or highly suspicious T/S values.
+
+```
+node scripts/dq-check.mjs                     # all collections
+node scripts/dq-check.mjs --collection matt   # one collection only
+```
+
+The script flags issues by rule ID and groups them. **Always triage the output before committing new driver data.** Known false-positive patterns:
+
+| Rule | Known false positives |
+|---|---|
+| `Sd_huge` | Legitimate 21-24" subwoofers have Sd 1600-2300 cm² — not a bug |
+| `Re_low` | 1Ω nominal drivers and DVC drivers in parallel can have Re < 1Ω |
+| `Fs_high` | Very small tweeters (< 10mm) can have Fs 3-6 kHz |
+| `Qms_low` | Some compression drivers and waveguide-loaded tweeters have Qms < 0.5 |
+
+Known systematic scraper bugs that this tool catches:
+
+| Rule | Root cause |
+|---|---|
+| `Pe_one` | Comma number parse bug: "1,000 W" parsed as 1 |
+| `Fs_low` | Compression/horn tweeters: Fs stored in kHz instead of Hz |
+| `Xmax_huge` | Xmax stored in mm or μm instead of metres |
+| `Qts_impossible` | Scraper stored Qts value in Qes field, or Qms missing |
+
+**AI + tool together:** The DQ script catches systematic scraper bugs fast and repeatably. Use it first. Then apply AI judgement for borderline cases the script flags as suspicious but cannot auto-classify (e.g. Re_low, Qms_low) — the AI can fetch the manufacturer datasheet and verify.
+
 ## Provenance rules
 
 - Every driver file must have `ProvidedBy=` set to the collection or individual
@@ -443,3 +472,46 @@ holding quality, issue, detail, and datasheet URL. These were merged into the
 `.wdr` file itself as `boxbench_*` fields and the JSON files deleted.
 Benefits: one file per driver, no synchronisation risk, works with any WDR-aware
 tool, and the bundle script only needs to read `.wdr` files.
+
+## Scripts reference
+
+All tooling lives in `scripts/`. Run from the repo root. Every bulk workflow step should use these scripts rather than ad-hoc commands.
+
+| Script | Purpose | When to run |
+|---|---|---|
+| `bundle-drivers.mjs` | Bundles all WDR files → `src/drivers-bundle.json` for the UI | After any WDR add/edit/delete before committing |
+| `dq-check.mjs` | T/S parameter DQ check — flags physically impossible values | After any bulk import or scrape, before committing |
+| `backfill-matt-links.mjs` | Cross-references matt/ WDRs against other collections to add missing `boxbench_` link fields | After adding a new collection with links |
+| `backfill-links.py` | General link backfill (Python) | See script header |
+| `backfill-pe-links.py` | Parts Express link backfill | See script header |
+| `backfill-pe-pedocs.py` | Parts Express pedocs PDF backfill | See script header |
+| `fetch-pe-specs.mjs` | Fetches spec PDFs from Parts Express | See script header |
+| `refresh-pe-catalog.mjs` | Re-scrapes Parts Express catalogue | Periodic refresh |
+| `refresh-si-catalog.mjs` | Re-scrapes SoundImports catalogue | Periodic refresh |
+| `scrape_dayton.py` | Scrapes Dayton Audio direct | On-demand |
+| `scrape_sbacoustics.py` | Scrapes SB Acoustics | On-demand |
+| `scrape_scanspeak.py` | Scrapes Scan-Speak | On-demand |
+| `scrape_soundimports.py` | Scrapes SoundImports | On-demand |
+| `scrape_wavecor.py` | Scrapes Wavecor | On-demand |
+| `scraper_lib.py` | Shared scraper utilities — not run directly | — |
+| `pe-vendor-backfill.py` | PE vendor page backfill | See script header |
+
+### Standard workflow for a new bulk import
+
+```
+# 1. Run scraper
+python scripts/scrape_<source>.py
+
+# 2. DQ check — triage all flagged files before proceeding
+node scripts/dq-check.mjs --collection <collection-name>
+
+# 3. Backfill links from existing collections
+node scripts/backfill-matt-links.mjs   # (or equivalent for the new collection)
+
+# 4. Bundle
+node scripts/bundle-drivers.mjs
+
+# 5. Commit
+git add drivers/<collection>/ src/drivers-bundle.json
+git commit -m "data: import <source> collection"
+```
