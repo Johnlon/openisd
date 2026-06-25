@@ -12,6 +12,21 @@ const sug = computed(() => {
   return e < 50 ? 'sealed' : e > 100 ? 'vented' : 'sealed or vented';
 });
 
+const drvLinks = computed(() => {
+  const r = state.driverRaw;
+  const links = [];
+  if (r.datasheetUrl)  links.push({ href: r.datasheetUrl,  label: 'Datasheet ↗',   title: 'Open manufacturer datasheet PDF' });
+  if (r.manuPageUrl)   links.push({ href: r.manuPageUrl,   label: 'Manufacturer ↗', title: 'Open manufacturer product page' });
+  if (r.vendorpageUrl && r.vendorpageUrl !== r.manuPageUrl)
+    links.push({ href: r.vendorpageUrl, label: 'Vendor ↗', title: 'Open vendor/retailer product listing' });
+  if (r.sourceUrl && r.sourceUrl !== r.vendorpageUrl && r.sourceUrl !== r.manuPageUrl)
+    links.push({ href: r.sourceUrl, label: 'Source ↗', title: 'Source where T/S data was obtained' });
+  if (r.frdUrl)        links.push({ href: r.frdUrl,        label: 'FRD/ZMA ↗',     title: 'Download frequency response & impedance measurement data' });
+  if (r.impedanceUrl && r.impedanceUrl !== r.frdUrl)
+    links.push({ href: r.impedanceUrl, label: 'Impedance ↗', title: 'Download impedance curve data' });
+  return links;
+});
+
 function numInput(key, scale, val) {
   const v = parseFloat(val);
   if (!isNaN(v)) state.driverRaw[key] = v / scale;
@@ -45,24 +60,12 @@ function numInput(key, scale, val) {
         Bl {{ drv.Bl.toFixed(1) }} Tm ·
         Mms {{ (drv.Mms*1000).toFixed(1) }} g
       </div>
-      <div v-if="d.providedBy || d.comment || d.datasheetUrl || d.vendorpageUrl || d.sourceUrl" class="drvsource">
-        <span v-if="d.providedBy">{{ d.providedBy }}</span>
-        <span v-if="d.providedBy && d.comment"> · </span>
-        <span v-if="d.comment">{{ d.comment }}</span>
-        <template v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl">
-          <span v-if="d.providedBy || d.comment"> · </span>
-          <a :href="d.datasheetUrl" target="_blank" rel="noopener"
-             title="Open manufacturer datasheet (PDF) in a new window">Datasheet ↗</a>
-        </template>
-        <template v-if="d.vendorpageUrl">
-          <span v-if="d.providedBy || d.comment || (d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl)"> · </span>
-          <a :href="d.vendorpageUrl" target="_blank" rel="noopener"
-             title="Open manufacturer product page in a new window">Vendor page ↗</a>
-        </template>
-        <template v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl">
-          <span v-if="d.providedBy || d.comment || d.datasheetUrl || d.vendorpageUrl"> · </span>
-          <a :href="d.sourceUrl" target="_blank" rel="noopener"
-             title="Open the source listing where T/S data was obtained">Source ↗</a>
+      <div v-if="d.providedBy || d.comment || drvLinks.length" class="drvsource">
+        <span v-if="d.providedBy || d.comment">{{ [d.providedBy, d.comment].filter(Boolean).join(' · ') }}</span>
+        <template v-for="(lnk, i) in drvLinks" :key="lnk.href">
+          <span v-if="i === 0 && (d.providedBy || d.comment)"> · </span>
+          <span v-else-if="i > 0"> · </span>
+          <a :href="lnk.href" target="_blank" rel="noopener" :title="lnk.title">{{ lnk.label }}</a>
         </template>
       </div>
     </template>
@@ -102,17 +105,11 @@ function numInput(key, scale, val) {
         Derived: Bl={{ drv.Bl.toFixed(2) }} Tm, Mms={{ (drv.Mms*1000).toFixed(1) }} g,
         Cms={{ (drv.Cms*1000).toFixed(3) }} mm/N
       </div>
-      <div v-if="d.datasheetUrl || d.vendorpageUrl || d.sourceUrl" class="drvsource" style="margin-top:4px">
-        <a v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl"
-           :href="d.datasheetUrl" target="_blank" rel="noopener"
-           title="Open manufacturer datasheet (PDF) in a new window">Datasheet ↗</a>
-        <span v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl && d.vendorpageUrl"> · </span>
-        <a v-if="d.vendorpageUrl" :href="d.vendorpageUrl" target="_blank" rel="noopener"
-           title="Open manufacturer product page in a new window">Vendor page ↗</a>
-        <span v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl && (d.datasheetUrl || d.vendorpageUrl)"> · </span>
-        <a v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl"
-           :href="d.sourceUrl" target="_blank" rel="noopener"
-           title="Open the source listing where T/S data was obtained">Source ↗</a>
+      <div v-if="drvLinks.length" class="drvsource" style="margin-top:4px">
+        <template v-for="(lnk, i) in drvLinks" :key="lnk.href">
+          <span v-if="i > 0"> · </span>
+          <a :href="lnk.href" target="_blank" rel="noopener" :title="lnk.title">{{ lnk.label }}</a>
+        </template>
       </div>
       <div class="btns">
         <button @click="state.editDriver = false" title="Collapse the driver parameter editor and return to the summary view">Done editing</button>

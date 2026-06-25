@@ -127,7 +127,10 @@ async function init() {
       content: f.content,
       date: f.date || '',
       datasheet:   f.datasheet   || '',
+      manupage:    f.manupage    || '',
       vendorpage:  f.vendorpage  || '',
+      frd:         f.frd         || '',
+      impedance:   f.impedance   || '',
       path: null, repo: null, branch: null,
       sourceName: src.name,
       sourceUrl:  src.url || '',
@@ -293,12 +296,18 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
             <b>{{ f.name }}</b>
             <span class="dmeta">
               <span v-if="f._nd" :class="['ddate', f._isLatest && 'ddate-latest', f._isOlder && 'ddate-older']">{{ f._nd }}</span>
-              <a v-if="f.datasheet && f.datasheet !== f.vendorpage" class="dpdf"
+              <a v-if="f.datasheet" class="dpdf"
                  :href="f.datasheet" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
-              <a v-if="f.vendorpage" class="dpdf"
+              <a v-if="f.manupage" class="dpdf"
+                 :href="f.manupage" target="_blank" rel="noopener"
+                 title="Open manufacturer product page" @click.stop>Manu ↗</a>
+              <a v-if="f.vendorpage && f.vendorpage !== f.manupage" class="dpdf"
                  :href="f.vendorpage" target="_blank" rel="noopener"
-                 title="Open manufacturer product page" @click.stop>Vendor ↗</a>
+                 title="Open vendor/retailer product listing" @click.stop>Vendor ↗</a>
+              <a v-if="f.frd" class="dpdf"
+                 :href="f.frd" target="_blank" rel="noopener"
+                 title="Download frequency response & impedance data (FRD/ZMA)" @click.stop>FRD ↗</a>
               <a v-if="f.sourceUrl" class="stag"
                  :title="f.sourceUrl + (f.sourceDesc ? ' — ' + f.sourceDesc : '')"
                  @click.stop.prevent="openSourceUrl(f.sourceUrl)">{{ f.sourceName }}</a>
