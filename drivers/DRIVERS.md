@@ -48,8 +48,9 @@ WinISD and other parsers ignore these lines.
 | Field | Type | What it MUST contain | What it must NOT contain |
 |---|---|---|---|
 | `boxbench_datasheet` | URL | Manufacturer PDF datasheet — the document that specifies the T/S parameters | A product web page, a retailer page, a ZIP, an image, or any non-PDF |
-| `boxbench_vendor_page` | URL | The manufacturer's own product page for this **specific** driver model | A brand homepage, a category page, a retailer page |
-| `boxbench_source` | URL | The page or repo where the T/S data was actually obtained (PE listing, SoundImports page, GitHub repo, etc.) | — (may equal `boxbench_vendor_page` for direct vendor scrapes) |
+| `boxbench_manu_page` | URL | The **manufacturer's** own product page for this specific model (e.g. `sbacoustics.com/product/…`, `scan-speak.dk/product/…`) | A retailer page, a brand homepage, a category page |
+| `boxbench_vendor_page` | URL | The **vendor/seller** product page where this driver can be purchased (e.g. Parts Express listing, SoundImports page). For drivers sold direct by the manufacturer, this is the same as `boxbench_manu_page` | A brand homepage, a category page |
+| `boxbench_source` | URL | The specific page or resource where the T/S parameter values were actually read from (often the same as `boxbench_vendor_page` for retailer scrapes, or `boxbench_manu_page` for direct-manufacturer scrapes) | — |
 | `boxbench_frd` | URL | A file or archive that contains machine-readable **frequency response** data in FRD or tab-separated (freq / dB / phase) format. PEs `_data.zip` files qualify; they contain `.frd` and `.zma` files | A PDF graph, a CAD file, a 3D model, a spec sheet, an image, a general product ZIP that has not been inspected |
 | `boxbench_impedance` | URL | A file or archive that contains machine-readable **impedance vs frequency** data (freq / Ω / °) — **only when this data is in a separate file from `boxbench_frd`** | Anything already covered by `boxbench_frd`; do not duplicate if the same ZIP holds both |
 
@@ -91,24 +92,36 @@ them in order. **Do not skip the inspection steps.**
    `<collection>/datasheets/` for local caching. The WDR holds the internet URL;
    the local copy is a cache only.
 4. **If no PDF is found** → leave `boxbench_datasheet` unset. Set
-   `boxbench_vendor_page` instead. Do not use a product page URL as a datasheet
-   substitute.
+   `boxbench_manu_page` so a human reviewer can find the datasheet later.
+
+### `boxbench_manu_page`
+
+1. Set to the manufacturer's own product page for **this specific model** — not a
+   brand homepage, not a category listing.
+2. For direct-manufacturer scrapers (SB Acoustics, Scan-Speak, Wavecor, etc.)
+   the scraped URL is the manufacturer page. Set both `boxbench_manu_page` and
+   `boxbench_vendor_page` to this URL (they are the same when the manufacturer
+   sells direct).
+3. For retailer scrapers (Parts Express, SoundImports) the manufacturer page is
+   often not known at scrape time — leave unset if unknown. Do not use the
+   retailer page here.
 
 ### `boxbench_vendor_page`
 
-1. Must be the manufacturer's own page for **this specific model** — not a brand
-   homepage, not a category listing.
-2. For direct-vendor scrapers (SB Acoustics, Scan-Speak, Wavecor, etc.) the
-   scraped URL is the vendor page.
-3. For retailer scrapers (Parts Express, SoundImports) the scraped URL is
-   `boxbench_source`, not `boxbench_vendor_page`. The vendor page is the
-   manufacturer's site and may not be known — leave empty if unknown.
+1. Set to the **vendor/seller** product page where this driver can be purchased.
+2. For retailer scrapers (Parts Express, SoundImports): set to the retailer
+   product listing URL (the page you scraped).
+3. For direct-manufacturer scrapers: set to the manufacturer's product page —
+   the same URL as `boxbench_manu_page` — because the manufacturer is also the
+   vendor.
+4. Leave unset if no vendor listing is known.
 
 ### `boxbench_source`
 
-1. Set to the URL of the page or resource where the T/S parameters were read.
-2. For direct-vendor scrapers: same as `boxbench_vendor_page`.
-3. For retailer scrapers: the retailer product page (PE, SoundImports, etc.).
+1. Set to the specific page or resource where the T/S parameter values were read.
+2. For retailer scrapers: same as `boxbench_vendor_page` (the PE or SoundImports
+   listing).
+3. For direct-manufacturer scrapers: same as `boxbench_manu_page`.
 4. Never leave empty for scraped files — it is the chain of custody for the data.
 
 ### `boxbench_frd`
@@ -153,7 +166,7 @@ them in order. **Do not skip the inspection steps.**
 
 | Situation | Correct action |
 |---|---|
-| Product page has no PDF link and no separate FRD file | Set `boxbench_vendor_page` and `boxbench_source` only. Leave `boxbench_datasheet` and `boxbench_frd` unset |
+| Product page has no PDF link and no separate FRD file | Set `boxbench_manu_page`, `boxbench_vendor_page`, and `boxbench_source`. Leave `boxbench_datasheet` and `boxbench_frd` unset |
 | ZIP found on vendor site — contents unknown | Download it, list contents (see `boxbench_frd` step 3), then decide. Never set `boxbench_frd` without inspection |
 | ZIP contains CAD files only | Download and cache locally. Set no `boxbench_` field (no mechanical-file field is defined yet). Do not set `boxbench_frd` |
 | FRD data is only available as a PDF graph (not raw data) | Do not set `boxbench_frd`. A rendered graph is not machine-readable data |
