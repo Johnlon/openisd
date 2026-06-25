@@ -49,8 +49,8 @@ WinISD and other parsers ignore these lines.
 |---|---|---|---|
 | `boxbench_datasheet` | URL | Manufacturer PDF datasheet — the document that specifies the T/S parameters | A product web page, a retailer page, a ZIP, an image, or any non-PDF |
 | `boxbench_manu_page` | URL | The **manufacturer's** own product page for this specific model (e.g. `sbacoustics.com/product/…`, `scan-speak.dk/product/…`) | A retailer page, a brand homepage, a category page |
-| `boxbench_vendor_page` | URL | The **vendor/seller** product page where this driver can be purchased (e.g. Parts Express listing, SoundImports page). For drivers sold direct by the manufacturer, this is the same as `boxbench_manu_page` | A brand homepage, a category page |
-| `boxbench_source` | URL | The specific page or resource where the T/S parameter values were actually read from (often the same as `boxbench_vendor_page` for retailer scrapes, or `boxbench_manu_page` for direct-manufacturer scrapes) | — |
+| `boxbench_vendor_page` | URL | The page on **the site where this driver was discovered** — SoundImports, Parts Express, Dayton Audio's own site, etc. When the manufacturer's site was the discovery point, this equals `boxbench_manu_page` | A brand homepage, a category page |
+| `boxbench_source` | URL | The specific page or resource where the T/S parameter values were actually read from. Usually the same as `boxbench_vendor_page` | — |
 | `boxbench_frd` | URL | A file or archive that contains machine-readable **frequency response** data in FRD or tab-separated (freq / dB / phase) format. PEs `_data.zip` files qualify; they contain `.frd` and `.zma` files | A PDF graph, a CAD file, a 3D model, a spec sheet, an image, a general product ZIP that has not been inspected |
 | `boxbench_impedance` | URL | A file or archive that contains machine-readable **impedance vs frequency** data (freq / Ω / °) — **only when this data is in a separate file from `boxbench_frd`** | Anything already covered by `boxbench_frd`; do not duplicate if the same ZIP holds both |
 
@@ -108,13 +108,15 @@ them in order. **Do not skip the inspection steps.**
 
 ### `boxbench_vendor_page`
 
-1. Set to the **vendor/seller** product page where this driver can be purchased.
-2. For retailer scrapers (Parts Express, SoundImports): set to the retailer
-   product listing URL (the page you scraped).
-3. For direct-manufacturer scrapers: set to the manufacturer's product page —
-   the same URL as `boxbench_manu_page` — because the manufacturer is also the
-   vendor.
-4. Leave unset if no vendor listing is known.
+1. Set to the product page on **the site where this driver was discovered** —
+   the Parts Express listing, the SoundImports page, the Dayton Audio product
+   page, etc.
+2. When the discovery site is the manufacturer's own site (SB Acoustics, Scan-
+   Speak, Wavecor, Dayton Audio direct), set this to the same URL as
+   `boxbench_manu_page`.
+3. When discovered via a third-party retailer (PE, SI), this is the retailer
+   page. `boxbench_manu_page` may or may not be separately known.
+4. Leave unset only if neither a vendor page nor a manufacturer page is known.
 
 ### `boxbench_source`
 
