@@ -1,15 +1,20 @@
 /**
  * Data quality check across all WDR files.
  * Flags physically impossible or highly suspicious T/S parameter values.
- * Run: node scripts/dq-check.mjs [--collection <name>]
+ *
+ * Run: node scripts/dq-check.mjs [--collection <name>] [--check-urls]
+ *
+ * --check-urls  HTTP HEAD every boxbench_datasheet / boxbench_manu_page URL
+ *               in flagged files and report status + content-type.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-
 import { fileURLToPath } from 'node:url';
+
 const DRIVERS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'drivers');
 const _ci = process.argv.indexOf('--collection');
 const filterColl = _ci >= 0 ? process.argv[_ci + 1] : null;
+const checkUrls  = process.argv.includes('--check-urls');
 
 function parseFields(text) {
   const f = {};
@@ -79,6 +84,19 @@ const RULES = [
   // Vas
   { id: 'Vas_huge', desc: 'Vas > 2000 L — implausible (would need a room-sized box)',
     test: f => { const v = n(f,'Vas'); return v && v*1000 > 2000 ? `Vas=${(v*1000).toFixed(0)} L` : null; } },
+  // ft³-as-liters scraper bug: scraper encounters a value in ft³ on soundimports.eu,
+  // divides by 1000 assuming liters → value is ~28x too small.
+  // Heuristic: flag when Vas(L) < Sd(cm²) / 60 AND Sd > 150 cm².
+  // Catches WO24P-4 (Sd=255, Vas=2.5L→flag at <4.25L) and SEAS L26 (Sd=507, Vas=6L→flag at <8.45L)
+  // without hitting legitimate stiff PA midranges (Sd=150, threshold=2.5L, real Vas=3L → pass).
+  { id: 'Vas_tiny_for_driver', desc: 'Vas implausibly small for piston area — likely ft³-as-liters scraper bug',
+    test: f => {
+      const vas = n(f,'Vas'), sd = n(f,'Sd');
+      if (!sd || !vas) return null;
+      const sd_cm2 = sd * 1e4, vas_L = vas * 1000;
+      return sd_cm2 > 150 && vas_L < sd_cm2 / 60
+        ? `Sd=${sd_cm2.toFixed(0)} cm² Vas=${vas_L.toFixed(2)} L (min plausible ≈ ${(sd_cm2/60).toFixed(1)} L)` : null;
+    }},
 
   // Sd vs Fs cross-check: a tiny Sd with very low Fs is suspicious
   { id: 'tweeter_fs', desc: 'Sd < 5 cm² but Fs < 100 Hz — tiny piston with woofer-range Fs',
@@ -94,8 +112,25 @@ const RULES = [
     test: f => { const v = n(f,'SPL'); return v && v < 65  ? `SPL=${v}` : null; } },
 ];
 
+// ── URL liveness check ────────────────────────────────────────────────────────
+const URL_FIELDS = ['boxbench_datasheet', 'boxbench_manu_page', 'boxbench_vendor_page'];
+
+async function checkUrl(url) {
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 8000);
+    const res  = await fetch(url, { method: 'HEAD', signal: ctrl.signal, redirect: 'follow' });
+    clearTimeout(tid);
+    const ct = res.headers.get('content-type') ?? 'unknown';
+    const kb = res.headers.get('content-length') ? Math.round(+res.headers.get('content-length')/1024)+'KB' : '';
+    return `${res.status} ${ct.split(';')[0]}${kb ? ' '+kb : ''}`;
+  } catch (e) {
+    return `ERR ${e.message.slice(0,60)}`;
+  }
+}
+
 // ── Scan all collections ──────────────────────────────────────────────────────
-const issues = []; // { collection, fname, ruleId, desc, detail }
+const issues = []; // { collection, fname, ruleId, desc, detail, fields }
 
 for (const coll of fs.readdirSync(DRIVERS_DIR).sort()) {
   if (filterColl && coll !== filterColl) continue;
@@ -107,8 +142,29 @@ for (const coll of fs.readdirSync(DRIVERS_DIR).sort()) {
     const f    = parseFields(text);
     for (const rule of RULES) {
       const hit = rule.test(f);
-      if (hit) issues.push({ collection: coll, fname, ruleId: rule.id, desc: rule.desc, detail: hit });
+      if (hit) issues.push({ collection: coll, fname, ruleId: rule.id, desc: rule.desc, detail: hit, fields: f });
     }
+  }
+}
+
+// ── Collect unique URLs from flagged files for liveness check ─────────────────
+let urlStatus = {};
+if (checkUrls) {
+  const urlSet = new Set();
+  for (const iss of issues) {
+    for (const k of URL_FIELDS) {
+      const v = iss.fields[k];
+      if (v && v.startsWith('http')) urlSet.add(v);
+    }
+  }
+  const urls = [...urlSet];
+  console.log(`\nChecking ${urls.length} URLs (HEAD requests, 8 s timeout)…\n`);
+  // Sequential to avoid hammering servers
+  for (const url of urls) {
+    process.stdout.write(`  ${url}  →  `);
+    const s = await checkUrl(url);
+    urlStatus[url] = s;
+    console.log(s);
   }
 }
 
@@ -124,6 +180,16 @@ for (const [ruleId, { desc, hits }] of Object.entries(byRule).sort()) {
   console.log(`\n── ${ruleId} (${hits.length}) — ${desc}`);
   for (const h of hits) {
     console.log(`   ${h.collection}/${h.fname}  [${h.detail}]`);
+    // Print boxbench link fields so the AI doesn't have to read the file
+    for (const k of URL_FIELDS) {
+      const url = h.fields[k];
+      if (!url) continue;
+      const status = urlStatus[url] ? `  → ${urlStatus[url]}` : '';
+      console.log(`     ${k}: ${url}${status}`);
+    }
+    if (h.fields.boxbench_corrections) {
+      console.log(`     boxbench_corrections: ${h.fields.boxbench_corrections.slice(0,120)}${h.fields.boxbench_corrections.length > 120 ? '…' : ''}`);
+    }
   }
   total += hits.length;
 }
