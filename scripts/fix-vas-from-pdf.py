@@ -55,8 +55,11 @@ VAS_PATTERNS = [
     (re.compile(r'Equivalent volume[,\s]+Vas[\s\S]{1,600}?([\d.,]+)\s+(liters?|litres?)', re.I), "L", 1e-3, True),
     # "Equivalent Air Volume (L) Vas 36.9"  — HiVi / some datasheets
     (re.compile(r'Equivalent Air Volume\s*\(L\)\s*(?:Vas\s+)?([\d.,]+)', re.I), "L", 1e-3, False),
-    # "Eq. Cas Air Load (liters) VAS 70 Lt"  — Morel style
-    (re.compile(r'\bVAS\s+([\d.,]+)\s*(Lt|liters?|litres?|L\b)',          re.I), "L", 1e-3, False),
+    # "Eq. Cas Air Load (liters) VAS 70 Lt" / "VAS 170 Lit" / "Vas 6.32 Litr"  — Morel/Tang Band style
+    (re.compile(r'\bVAS\s+([\d.,]+)\s*(Lit[rs]?\b|Lt\b|liters?|litres?|L\b)',  re.I), "L", 1e-3, False),
+    (re.compile(r'\bVas\s+([\d.,]+)\s+(Litr?s?\b)',                             re.I), "L", 1e-3, False),
+    # "Equivalent Air Volume (Vas)(L) : 211.2"  — HiVi D10 style
+    (re.compile(r'Equivalent Air Volume\s*\(Vas\)\s*\(L\)\s*[:\s]\s*([\d.,]+)', re.I), "L", 1e-3, False),
 ]
 
 # Convert European number format (1.234,5 or 1,234.5) to float
@@ -89,6 +92,9 @@ def extract_vas_from_pdf(pdf_path: pathlib.Path) -> list[tuple[float, str, str]]
     except Exception:
         return []
 
+    # Normalize non-breaking spaces so \s patterns match across all PDF encodings
+    text = text.replace('\xa0', ' ')
+
     results = []
     for pattern, unit, mult, dotall in VAS_PATTERNS:
         flags = re.I | (re.DOTALL if dotall else 0)
@@ -101,9 +107,10 @@ def extract_vas_from_pdf(pdf_path: pathlib.Path) -> list[tuple[float, str, str]]
     # Pattern: "X.X liters" appears some chars before "Vas" label appears.
     # Find all liters values, then check if "Vas" appears within next 500 chars.
     if not results:
-        for m in re.finditer(r'([\d.,]+)\s+(liters?|litres?)\b', text, re.I):
+        for m in re.finditer(r'([\d.,]+)\s+(liters?|litres?)', text, re.I):
             remainder = text[m.end():m.end()+500]
-            if re.search(r'\bVas\b', remainder, re.I):
+            # Use plain "Vas" search — some PDFs concatenate labels without spaces (BLVasXmax)
+            if re.search(r'Vas', remainder, re.I):
                 val = to_float(m.group(1))
                 if val is not None and val > 0:
                     results.append((val * 1e-3, "L", m.group(0).strip() + " [GRS-style]"))
