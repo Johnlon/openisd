@@ -88,10 +88,35 @@ them in order. **Do not skip the inspection steps.**
 2. **Verify it resolves to a PDF.** The URL must end in `.pdf` or return
    `Content-Type: application/pdf`. If the server returns HTML, a ZIP, or a
    redirect to a product page → do not set this field.
-3. Set the field to the internet URL. Also download the PDF to
+3. **Check the PDF filename contains the model number** (or a recognisable
+   abbreviation of it). If the filename contains a clearly different model
+   number, stop — you have the wrong PDF. This is a hard gate; do not skip it.
+   > Real failure: `Dayton Audio PA460-8` had its datasheet set to a
+   > parts-express URL for the `RSS460HO-4` — a different product. The PDF
+   > filename `295-472-dayton-audio-rss460ho-4-specifications.pdf` would have
+   > caught this immediately.
+4. **Check the PDF is product-specific, not a manufacturer catalog.** Reject any
+   URL whose filename matches catalog patterns: `*catalog*`, `*Catalog*`,
+   `*catalogue*`, `*Catalogo*`, `-WEB.pdf`. A catalog covers many products and
+   is not a datasheet. If only a catalog is available, leave `boxbench_datasheet`
+   unset and set `boxbench_manu_page` instead.
+   > Real failure: 14 SICA drivers, 4 HiVi Swan, and 2 PRV Audio drivers had
+   > their datasheet set to full manufacturer catalog PDFs scraped from
+   > SoundImports. None were product-specific.
+5. **If the PDF URL is from a different domain than the scraped source**, apply
+   extra scrutiny. Verify the filename matches the current product's model
+   before using it. A human manually entering a correction is especially prone
+   to copy-pasting a nearby URL that belongs to a different product.
+   > Real failure: the PA460-8 `boxbench_corrections` note said the data was
+   > "confirmed against Dayton Audio PA460-8 datasheet (user-provided)" yet the
+   > URL that was saved was for a different product on a different domain.
+6. **Duplicate URL check:** if the same PDF URL already exists in another WDR
+   for a different model in the same collection, it is almost certainly a
+   catalog or wrong product. Do not reuse it.
+7. Set the field to the internet URL. Also download the PDF to
    `<collection>/datasheets/` for local caching. The WDR holds the internet URL;
    the local copy is a cache only.
-4. **If no PDF is found** → leave `boxbench_datasheet` unset. Set
+8. **If no PDF is found** → leave `boxbench_datasheet` unset. Set
    `boxbench_manu_page` so a human reviewer can find the datasheet later.
 
 ### `boxbench_manu_page` and `boxbench_vendor_page`
