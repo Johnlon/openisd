@@ -8,6 +8,7 @@ DateAdded=2026-06-25
 DateModified=2026-06-25
 portingle=Y
 boxbench_datasheet=https://www.wavecor.com/Driver%20specifications%20PDF/SW178WA01_specifications.pdf
+boxbench_impedance=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW178WA01_impedance_response.txt
 boxbench_vendorpage=http://www.wavecor.com/html/sw178wa01.html
 boxbench_source=http://www.wavecor.com/html/sw178wa01.html
 Fs=38.0

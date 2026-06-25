@@ -100,13 +100,14 @@ def parse_product(html: str, url: str) -> dict | None:
                f"Impedance%20response/{model}_impedance_response.txt")
 
     return {
-        "brand":         "Wavecor",
-        "model":         model,
-        "manufacturer":  "Wavecor",
-        "provided_by":   f"Wavecor website (scraped {__import__('datetime').date.today()})",
-        "fields":        fields,
-        "pdf_url":       pdf_url,
-        "extra_links":   [spl_url, imp_url],
+        "brand":          "Wavecor",
+        "model":          model,
+        "manufacturer":   "Wavecor",
+        "provided_by":    f"Wavecor website (scraped {__import__('datetime').date.today()})",
+        "fields":         fields,
+        "pdf_url":        pdf_url,
+        "frd_url":        spl_url,
+        "impedance_url":  imp_url,
     }
 
 

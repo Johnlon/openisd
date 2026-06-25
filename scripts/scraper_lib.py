@@ -166,7 +166,8 @@ def to_wdr(brand: str, model: str, fields: dict,
            manufacturer: str = "", date_added: str = "",
            date_modified: str = "",
            datasheet_url: str = "", vendor_page_url: str = "",
-           source_url: str = "") -> str:
+           source_url: str = "", frd_url: str = "",
+           impedance_url: str = "") -> str:
     """
     Produce a WDR file string matching the Resonate WDR schema.
     fields must use canonical SI key names: Znom, BL, Le(H), Mms(kg),
@@ -201,6 +202,10 @@ def to_wdr(brand: str, model: str, fields: dict,
     ]
     if datasheet_url:
         lines.append(f"boxbench_datasheet={datasheet_url}")
+    if frd_url:
+        lines.append(f"boxbench_frd={frd_url}")
+    if impedance_url:
+        lines.append(f"boxbench_impedance={impedance_url}")
     if vendor_page_url:
         lines.append(f"boxbench_vendorpage={vendor_page_url}")
     if source_url:
@@ -391,6 +396,8 @@ def run_scraper(vendor_name: str,
             manufacturer=product.get("manufacturer", ""),
             date_added=today, date_modified=today,
             datasheet_url=product.get("pdf_url") or "",
+            frd_url=frd_ok,
+            impedance_url=impedance_ok,
             vendor_page_url=url,
             source_url=url,
         )
@@ -410,6 +417,9 @@ def run_scraper(vendor_name: str,
         )
 
         extras = []
+        frd_ok = ""
+        impedance_ok = ""
+
         if product.get("pdf_url"):
             pdf_name = urllib.parse.unquote(product["pdf_url"].split("/")[-1])
             pdf_path = pdf_dir / pdf_name
@@ -419,6 +429,30 @@ def run_scraper(vendor_name: str,
                     extras.append("+PDF")
                 except Exception as e:
                     extras.append(f"(PDF err: {e})")
+
+        if product.get("frd_url"):
+            fname = urllib.parse.unquote(product["frd_url"].split("/")[-1])
+            fpath = out / fname
+            if not fpath.exists():
+                try:
+                    fpath.write_bytes(fetch_binary(product["frd_url"]))
+                    extras.append(f"+FRD")
+                except Exception as e:
+                    extras.append(f"(FRD err: {e})")
+            if fpath.exists():
+                frd_ok = product["frd_url"]
+
+        if product.get("impedance_url"):
+            fname = urllib.parse.unquote(product["impedance_url"].split("/")[-1])
+            fpath = out / fname
+            if not fpath.exists():
+                try:
+                    fpath.write_bytes(fetch_binary(product["impedance_url"]))
+                    extras.append(f"+IMP")
+                except Exception as e:
+                    extras.append(f"(IMP err: {e})")
+            if fpath.exists():
+                impedance_ok = product["impedance_url"]
 
         for link in product.get("extra_links", []):
             fname = urllib.parse.unquote(link.split("/")[-1])
