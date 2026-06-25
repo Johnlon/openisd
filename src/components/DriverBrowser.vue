@@ -17,6 +17,26 @@ const initialized = ref(false);
 const sblLoaded   = ref(false);
 const sblLoading  = ref(false);
 
+// Source filter
+const selectedSources = ref([]);   // empty = all
+const sourcesOpen     = ref(false);
+
+const availableSources = computed(() => {
+  const counts = {};
+  for (const f of allFiles.value) {
+    if (f.sourceName) counts[f.sourceName] = (counts[f.sourceName] || 0) + 1;
+  }
+  return Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]));
+});
+
+function toggleSource(name) {
+  const idx = selectedSources.value.indexOf(name);
+  if (idx >= 0) selectedSources.value.splice(idx, 1);
+  else selectedSources.value.push(name);
+}
+
+function clearSources() { selectedSources.value = []; }
+
 // Normalise any date string to YYYY-MM-DD for comparison and display.
 // Handles ISO (2026-06-24), DD/MM/YYYY, DD-MM-YYYY, "Jun 24 2026", etc.
 function normaliseDate(raw) {
@@ -35,12 +55,12 @@ function normaliseDate(raw) {
 
 const filteredFiles = computed(() => {
   const tokens = filterQ.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  const filtered = tokens.length
-    ? allFiles.value.filter(f => {
-        const hay = f.name.toLowerCase();
-        return tokens.every(t => hay.includes(t));
-      })
-    : allFiles.value;
+  const srcFilter = selectedSources.value;
+  let filtered = allFiles.value;
+  if (tokens.length)
+    filtered = filtered.filter(f => tokens.every(t => f.name.toLowerCase().includes(t)));
+  if (srcFilter.length)
+    filtered = filtered.filter(f => srcFilter.includes(f.sourceName));
 
   // Pure alphabetical sort
   const sorted = [...filtered].sort((a, b) =>
@@ -281,6 +301,28 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
       </h2>
       <div class="body">
         <input class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
+        <div class="src-row">
+          <div class="src-wrap">
+            <button class="src-btn" @click.stop="sourcesOpen = !sourcesOpen"
+                    :class="{ active: selectedSources.length }"
+                    :title="selectedSources.length ? `Showing ${selectedSources.length} of ${availableSources.length} sources` : 'Filter by source collection'">
+              {{ selectedSources.length ? `Sources (${selectedSources.length}/${availableSources.length})` : 'All sources' }} ▾
+            </button>
+            <div v-if="sourcesOpen" class="src-drop" @click.stop>
+              <label class="src-item" :class="{ checked: !selectedSources.length }">
+                <input type="checkbox" :checked="!selectedSources.length" @change="clearSources()">
+                <span class="src-name">All sources</span>
+              </label>
+              <label v-for="[name, count] in availableSources" :key="name"
+                     class="src-item" :class="{ checked: selectedSources.includes(name) }">
+                <input type="checkbox" :checked="selectedSources.includes(name)" @change="toggleSource(name)">
+                <span class="src-name">{{ name }}</span>
+                <span class="src-count">{{ count }}</span>
+              </label>
+            </div>
+          </div>
+          <div v-if="sourcesOpen" class="src-backdrop" @click="sourcesOpen = false"></div>
+        </div>
         <div class="statusrow">
           <span class="status" :class="{ err: statusErr }">{{ statusMsg }}</span>
           <button v-if="!sblLoaded" class="sblbtn" :disabled="sblLoading"
@@ -361,4 +403,15 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .addrow input { flex:1; padding:4px 8px; font-size:11px; background:var(--bg); border:1px solid var(--mut); border-radius:4px; color:var(--fg); }
 .addrow input:focus { outline:none; border-color:var(--acc); }
 .addrow button { font-size:11px; padding:3px 10px; }
+.src-row { position:relative; }
+.src-wrap { position:relative; display:inline-block; }
+.src-btn { font-size:11px; padding:3px 8px; background:var(--bg); border:1px solid var(--mut); border-radius:4px; color:var(--mut); cursor:pointer; white-space:nowrap; }
+.src-btn:hover, .src-btn.active { border-color:var(--acc); color:var(--acc); }
+.src-drop { position:absolute; top:calc(100% + 3px); left:0; min-width:220px; max-height:260px; overflow-y:auto; background:var(--bg2); border:1px solid var(--mut); border-radius:6px; box-shadow:0 4px 16px #0006; z-index:10; padding:4px 0; }
+.src-item { display:flex; align-items:center; gap:7px; padding:4px 10px; cursor:pointer; font-size:12px; color:var(--fg); }
+.src-item:hover, .src-item.checked { background:var(--bg3); }
+.src-item input[type=checkbox] { accent-color:var(--acc); cursor:pointer; flex-shrink:0; }
+.src-name { flex:1; }
+.src-count { font-size:10px; color:var(--mut); }
+.src-backdrop { position:fixed; inset:0; z-index:9; }
 </style>
