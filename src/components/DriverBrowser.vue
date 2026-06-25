@@ -126,6 +126,7 @@ async function init() {
       name: f.name,
       content: f.content,
       date: f.date || '',
+      datasheet: f.datasheet || '',
       path: null, repo: null, branch: null,
       sourceName: src.name,
       sourceUrl:  src.url || '',
