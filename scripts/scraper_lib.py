@@ -230,38 +230,9 @@ def to_wdr(brand: str, model: str, fields: dict,
     if ebp is not None:
         lines.append(f"EBP={ebp}")
 
-    # Extended WinISD compatibility fields — always present, 0 unless known.
-    # These are required for WinISD compatibility; omitting them causes silent failures.
     lines += [
-        f"fLe=0",
-        f"KLe=0",
-        f"Dia=0",
-        f"no=0",
         f"numVC=1",
-        f"Hc=0",
-        f"Hg=0",
-        f"SPLmax=0",
-        f"SPLmaxLF=0",
-        f"USPL=0",
-        f"alfaVC=0",
-        f"Rt=0",
-        f"Ct=0",
-        f"gamma=0",
-        f"Rme=0",
-        f"Mpow=0",
-        f"Mcost=0",
-        f"Gloss=0",
         f"VCCon=2",
-        f"c=343.68275625794",
-        f"roo=1.20096171470853",
-        f"Thick=0",
-        f"Depth=0",
-        f"MagDepth=0",
-        f"Magnet=0",
-        f"Basket=0",
-        f"Outer=0",
-        f"Vcd=0",
-        f"DVol=0",
         f"ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC",
     ]
 

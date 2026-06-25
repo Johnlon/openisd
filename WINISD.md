@@ -370,7 +370,105 @@ are significant, accepting that results will differ slightly from WinISD.
 
 ---
 
-## 10. Open questions
+## 10. WDR file format — consistency rules and parameter entry
+
+**Source:** Parts Express TechTalk forum, thread "WinISD Pro frustrations, help please."
+https://techtalk.parts-express.com/forum/tech-talk-forum/1318003-winisd-pro-frustrations-help-please
+(retrieved 2026-06-25)
+
+### Consistency check — Qts / Qms / Qes
+
+WinISD internally calculates Qts from Qms and Qes to **3 decimal places** of precision:
+
+```
+Qts = (Qms × Qes) / (Qms + Qes)
+```
+
+> "When you enter Qms and Qes, WinISD will calculate Qts from these 2 parameters to a
+> high level of accuracy (higher than what is shown as the calculated Qts). If you try
+> to enter Qts as a parameter as well as Qms and Qes, it will show the error as the
+> calculated value and your entered value will differ." — thekorvers
+
+**Rule: never store Qts in a WDR file alongside Qms and Qes.** If all three are present,
+WinISD computes Qts from Qms/Qes and compares to the stored value; any rounding difference
+at the 3rd decimal place triggers "consistency check failed: Qts Qms Qes".
+
+Spec sheets commonly round Qts, Qms, Qes to 2 decimal places. Even when arithmetically
+consistent on paper, the 3rd-decimal recompute may differ.
+
+**Resonate fix:** WDR files must not contain Qts when Qms and Qes are both present.
+Either omit Qts entirely, or ensure it is marked 'C' (calculated) in ParState.
+
+### Recommended parameter entry sequence
+
+From `thekorvers` (2,000+ WinISD sessions):
+```
+Qes, Qms, Fs, Vas, Re, Le, Sd, Xmax, Pe, Znom
+```
+WinISD then calculates: Qts, Dd, Cms, Mms, Rms, EBP, SPL, Vd, and all
+box/port parameters.
+
+> "Enter the first parameter and tab to the next. If it's blank, enter it and tab again.
+> If it's filled in by WinISD, tab over it to the next." — Millstonemike
+
+### Precision and rounding
+
+> "WinISD is accurate to three decimal places, but many driver spec sheets round off some
+> of them to two. That can result in WinISD calculating a different, more accurate result
+> than the manufacturer data sheets, triggering an error." — billfitzmaurice
+
+You can round primary measurements (e.g. Fs=30 instead of 29.8) as long as they don't
+conflict with other already-entered specs.
+
+### Pre-loaded driver file integrity
+
+Old WDR files (pre-2006) may red-flag in current WinISD because they were saved at a
+different internal precision than the current version expects. WDR files should be
+regenerated from current datasheet values when this occurs.
+
+### WDR field order and ParState
+
+`ParState` is the last WinISD-native field in a WDR file. Fields after `ParState` are
+ignored by WinISD — this is where Resonate places its `boxbench_*` metadata.
+
+`ParState` is a 50-character string: each position is `E` (user-Entered), `C` (Calculated
+by WinISD from other entered values), or `N` (Not set). The mapping of positions to
+parameter names is internal to WinISD and not publicly documented (closed source).
+
+**Resonate WDR files** hardcode `ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC`
+for all drivers exported via `toWdr()`. This is a known approximation — the actual
+E/C/N state depends on which parameters were user-entered vs computed.
+
+### Fields to include in WDR files
+
+**Driver T/S parameters only** (do not store WinISD-computed/box fields):
+```
+Fs  Qes  Qms  Re  Le  Sd  Vas  Xmax  Pe  Znom  BL  Mms  Cms  Rms  SPL
+```
+Derived T/S (acceptable to store since they carry no extra information):
+```
+Vd  Dd  EBP
+```
+Structural (required by WinISD):
+```
+numVC  VCCon  ParState
+```
+
+**Do NOT store** (WinISD-internal computed/box/environmental fields — corrupt data if zero):
+```
+fLe  KLe  Dia  no  Hc  Hg  SPLmax  SPLmaxLF  USPL  alfaVC
+Rt  Ct  gamma  Rme  Mpow  Mcost  Gloss
+c  roo  Thick  Depth  MagDepth  Magnet  Basket  Outer  Vcd  DVol
+```
+
+These fields were previously injected by Resonate scrapers as zeros and have been removed
+(migration `migrate-strip-winisd-internals.py`, 2026-06-25).
+
+**Do NOT store Qts** when Qms and Qes are both present — see consistency rule above.
+
+---
+
+## 11. Open questions
 
 | # | Question | Priority |
 |---|----------|----------|
