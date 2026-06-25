@@ -31,9 +31,9 @@ driver that carries that label.
 | Planar | `Planar Tweeter` | `tweet` |
 | AMT / air motion transformer | `AMT` | `tweet` |
 | Passive radiator | `Passive Radiator` | `pr` |
-| No type keyword in name, but piston area (Sd) is very small (< 12 cm²) — physically too small to be a woofer | `Tweeter` | `tweet` |
-| No type keyword in name, but free-air resonance (Fs) is below 40 Hz — only subwoofers resonate that low | `Subwoofer` | `sub` + `woofer` + `bass` |
-| No type keyword and no distinctive T/S params — default assumption | `Woofer` | `woofer` + `bass` |
+| *(no type keyword — piston is tweeter-sized, Sd < 12 cm²)* | `Tweeter` | `tweet` |
+| *(no type keyword — resonance below 40 Hz, only subs go that low)* | `Subwoofer` | `sub` + `woofer` + `bass` |
+| *(no type keyword and no distinctive params — default)* | `Woofer` | `woofer` + `bass` |
 
 ## Classification priority
 
