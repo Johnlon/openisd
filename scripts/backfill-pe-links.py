@@ -1,28 +1,61 @@
 #!/usr/bin/env python3
 """
-Backfill boxbench_vendorpage= for Parts Express WDR files.
-Fetches each PE product page and extracts the manufacturer's site link.
-Emits one progress line per file, flushed immediately.
+Backfill boxbench_vendorpage= and boxbench_datasheet= for Parts Express WDR files.
+Pass 1: fetch PE product page → manufacturer homepage (vendorpage) + any PDF
+Pass 2: fetch manufacturer's own site with model query → find PDF (datasheet)
+Runs in parallel; emits one progress line per file.
+Usage: python scripts/backfill-pe-links.py [--workers N] [--pass {1,2,both}]
 """
-import os, re, sys, time, subprocess
-from urllib.parse import urlparse
+import os, re, sys, time, subprocess, threading, argparse, io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse, urlencode, urljoin
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PE_DIR = os.path.join(ROOT, 'drivers', 'parts-express')
 
 SKIP_DOMAINS = {
-    'www.parts-express.com', 'parts-express.com',
+    'parts-express.com', 'partsexpress.com',
     'facebook.com', 'twitter.com', 'instagram.com', 'youtube.com',
     'pinterest.com', 'google.com', 'bing.com', 'trustpilot.com',
-    'paypal.com', 'visa.com', 'mastercard.com', 'amex.com',
-    'cdn.', 'ajax.', 'jquery', 'googleapis', 'gstatic',
-    'cloudflare', 'akamai', 'doubleclick', 'adnxs',
+    'paypal.com', 'visa.com', 'mastercard.com',
+    'cloudflare.com', 'akamai.com', 'doubleclick.net', 'adnxs.com',
+    'vwo.com', 'schema.org', 'dmws.nl', 'webshopapp.com',
 }
 
 MANUFACTURER_KEYWORDS = [
     "manufacturer's site", "manufacturer site", "brand website",
     "visit manufacturer", "maker's site", "official site",
 ]
+
+# Brand → search URL template for finding product PDFs on manufacturer sites
+# %s is replaced with the model number
+BRAND_SEARCH = {
+    'dayton audio':   'https://www.daytonaudio.com/index.php?route=product/search&search=%s',
+    'eminence':       'https://www.eminence.com/speakers/?s=%s',
+    'peerless':       'https://www.tymphany.com/search/?q=%s',
+    'seas':           'https://www.seas.no/index.php?option=com_content&task=search&searchword=%s',
+    'scanspeak':      'https://www.scanspeak.dk/Search?q=%s',
+    'wavecor':        'https://www.wavecor.com/Search.aspx?q=%s',
+    'tang band':      'https://www.tb-speaker.com/search?keyword=%s',
+    'sb acoustics':   'https://sbacoustics.com/?s=%s',
+    'faital pro':     'https://www.faitalpro.com/en/search/?q=%s',
+    'b&c':            'https://www.bcspeakers.com/search?q=%s',
+    'fountek':        'https://www.fountek.net/products/?q=%s',
+    'lavoce':         'https://www.lavoce-usa.com/?s=%s',
+    'ciare':          'https://www.ciare.com/?s=%s',
+    'beyma':          'https://www.beyma.com/search?q=%s',
+    'hivi':           'https://www.hiviusa.com/search?type=product&q=%s',
+    'morel':          'https://www.morelhifi.com/search?q=%s',
+    'celestion':      'https://celestion.com/search/?q=%s',
+    'goldwood':       'https://www.goldwoodsound.com/search?q=%s',
+}
+
+print_lock = threading.Lock()
+
+def pprint(*args):
+    with print_lock:
+        print(*args, flush=True)
 
 def domain(url):
     try: return urlparse(url).netloc.lower().lstrip('www.')
@@ -42,145 +75,159 @@ def set_field(text, key, value):
         return re.sub(pattern, f'{key}={value}', text, flags=re.M)
     insert = f'{key}={value}\n'
     m = re.search(r'^ParState=', text, re.M)
-    if m:
-        return text[:m.start()] + insert + text[m.start():]
-    return text.rstrip('\n') + '\n' + insert
+    return (text[:m.start()] + insert + text[m.start():]) if m else (text.rstrip('\n') + '\n' + insert)
 
 def fetch(url):
     try:
-        result = subprocess.run(
+        r = subprocess.run(
             ['curl', '-sL', '--max-time', '12', '-A',
              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
              url],
-            capture_output=True, text=True, timeout=15
+            capture_output=True, timeout=15
         )
-        return result.stdout
+        return r.stdout.decode('utf-8', errors='replace')
     except:
         return ''
 
 def extract_manufacturer_link(html):
-    """Find the manufacturer's own website link on a PE product page."""
-    # 1. Look for anchor with manufacturer-related text
     for kw in MANUFACTURER_KEYWORDS:
-        m = re.search(
-            r'href=["\']([^"\']+)["\'][^>]*>(?:[^<]*<[^>]+>)*[^<]*' + re.escape(kw),
-            html, re.I
-        )
+        m = re.search(r'href=["\']([^"\']+)["\'][^>]*>(?:[^<]*<[^>]+>)*[^<]*' + re.escape(kw), html, re.I)
         if not m:
-            m = re.search(
-                re.escape(kw) + r'[^<]*<[^>]*href=["\']([^"\']+)["\']',
-                html, re.I
-            )
+            m = re.search(re.escape(kw) + r'[^<]*<[^>]*href=["\']([^"\']+)["\']', html, re.I)
         if m:
             url = m.group(1).strip()
             if url.startswith('http') and not is_skip(url):
                 return url
-
-    # 2. Look for JSON-LD brand url
     for jld in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', html, re.S | re.I):
-        brand_url = re.search(r'"brand"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"', jld)
-        if brand_url:
-            url = brand_url.group(1).strip()
+        bm = re.search(r'"brand"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"', jld)
+        if bm:
+            url = bm.group(1).strip()
             if url.startswith('http') and not is_skip(url):
                 return url
-
-    # 3. Look for rel="nofollow" external links near "manufacturer" text
-    # PE pages often have a table row: Manufacturer | <a href="...">Visit Site</a>
-    m = re.search(
-        r'(?:manufacturer|brand)[^<]{0,200}href=["\']([^"\']+)["\']',
-        html, re.I | re.S
-    )
+    m = re.search(r'(?:manufacturer|brand)[^<]{0,200}href=["\']([^"\']+)["\']', html, re.I | re.S)
     if m:
         url = m.group(1).strip()
         if url.startswith('http') and not is_skip(url):
             return url
-
     return ''
 
-def extract_pdf(html):
-    pdfs = re.findall(r'href=["\']([^"\']*\.pdf(?:\?[^"\']*)?)["\']', html, re.I)
-    pdfs = [p.strip() for p in pdfs
-            if p.strip().startswith('http')
-            and 'font' not in p.lower()
-            and 'icomoon' not in p.lower()]
+def extract_pdf(html, base_url=''):
+    pdfs = []
+    for p in re.findall(r'href=["\']([^"\']*\.pdf(?:\?[^"\']*)?)["\']', html, re.I):
+        p = p.strip()
+        if not p.startswith('http') and base_url:
+            p = urljoin(base_url, p)
+        if p.startswith('http') and 'font' not in p.lower() and 'icomoon' not in p.lower():
+            pdfs.append(p)
     return pdfs[0] if pdfs else ''
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Pass 1: fetch PE product page ─────────────────────────────────────────────
 
-wdr_files = sorted(f for f in os.listdir(PE_DIR) if f.endswith('.wdr'))
-total = len(wdr_files)
-
-updated = 0
-n_vendorpage = 0
-n_datasheet = 0
-n_skip = 0
-n_nomatch = 0
-n_jsfail = 0
-
-print(f'Processing {total} Parts Express WDR files...', flush=True)
-
-for i, fname in enumerate(wdr_files, 1):
+def pass1(i, total, fname):
     fpath = os.path.join(PE_DIR, fname)
     text = open(fpath, encoding='utf-8', errors='ignore').read()
 
-    # Skip if already fully populated
     if get_field(text, 'boxbench_vendorpage'):
-        print(f'[{i}/{total}] SKIP {fname}', flush=True)
-        n_skip += 1
-        continue
+        pprint(f'[{i}/{total}] SKIP  {fname}')
+        return
 
     src = get_field(text, 'boxbench_source')
     if not src:
-        print(f'[{i}/{total}] NO-SRC {fname}', flush=True)
-        continue
+        pprint(f'[{i}/{total}] NO-SRC {fname}')
+        return
 
-    print(f'[{i}/{total}] fetching {fname[:60]} ...', end=' ', flush=True)
-
+    pprint(f'[{i}/{total}] fetch {fname[:70]}')
     html = fetch(src)
 
     if not html or len(html) < 500:
-        print(f'FAIL (empty)', flush=True)
-        n_jsfail += 1
-        time.sleep(0.5)
-        continue
+        pprint(f'[{i}/{total}] FAIL  (empty)')
+        return
 
-    # JS-gated pages return a shell with no product content
-    if 'add to cart' not in html.lower() and 'add-to-cart' not in html.lower() and \
-       'part number' not in html.lower() and 'Fs' not in html:
-        print(f'JS-GATED', flush=True)
-        n_jsfail += 1
-        time.sleep(0.3)
-        continue
+    if ('add to cart' not in html.lower() and 'add-to-cart' not in html.lower()
+            and 'part number' not in html.lower()):
+        pprint(f'[{i}/{total}] JS-GATED')
+        return
 
     vendor = extract_manufacturer_link(html)
-    pdf    = extract_pdf(html)
+    pdf    = extract_pdf(html, src)
 
     orig = text
-    result_parts = []
+    tags = []
     if vendor:
         text = set_field(text, 'boxbench_vendorpage', vendor)
-        result_parts.append(f'vp={vendor[:50]}')
-        n_vendorpage += 1
+        tags.append(f'vp={vendor[:50]}')
     if pdf and not get_field(text, 'boxbench_datasheet'):
         text = set_field(text, 'boxbench_datasheet', pdf)
-        result_parts.append(f'ds=PDF')
-        n_datasheet += 1
-
+        tags.append('ds=PDF')
     if text != orig:
         open(fpath, 'w', encoding='utf-8').write(text)
-        updated += 1
-        print(f'OK  {" | ".join(result_parts)}', flush=True)
+        pprint(f'[{i}/{total}] OK  {" | ".join(tags)}')
     else:
-        print(f'NO-MATCH', flush=True)
-        n_nomatch += 1
+        pprint(f'[{i}/{total}] NOMATCH')
 
-    time.sleep(0.5)
+# ── Pass 2: fetch manufacturer site to find model PDF ────────────────────────
 
-print(f'\n{"="*60}', flush=True)
-print(f'Total processed : {total}', flush=True)
-print(f'Updated         : {updated}', flush=True)
-print(f'  vendorpage set: {n_vendorpage}', flush=True)
-print(f'  datasheet set : {n_datasheet}', flush=True)
-print(f'Skipped (done)  : {n_skip}', flush=True)
-print(f'JS-gated/failed : {n_jsfail}', flush=True)
-print(f'No match found  : {n_nomatch}', flush=True)
+def pass2(i, total, fname):
+    fpath = os.path.join(PE_DIR, fname)
+    text = open(fpath, encoding='utf-8', errors='ignore').read()
+
+    if get_field(text, 'boxbench_datasheet'):
+        pprint(f'[{i}/{total}] SKIP-DS {fname}')
+        return
+
+    vp    = get_field(text, 'boxbench_vendorpage')
+    brand = get_field(text, 'Brand').lower().strip()
+    model = get_field(text, 'Model').strip()
+
+    if not vp or not model:
+        pprint(f'[{i}/{total}] NO-VP/MODEL {fname}')
+        return
+
+    # Find search template for this brand
+    search_url = None
+    for key, tmpl in BRAND_SEARCH.items():
+        if key in brand:
+            search_url = tmpl % model.replace(' ', '+')
+            break
+    if not search_url:
+        # Fallback: try manufacturer's own site search
+        search_url = f'{vp.rstrip("/")}/?s={model.replace(" ", "+")}'
+
+    pprint(f'[{i}/{total}] search {brand} "{model[:30]}"')
+    html = fetch(search_url)
+    if not html:
+        pprint(f'[{i}/{total}] FAIL')
+        return
+
+    pdf = extract_pdf(html, search_url)
+    if pdf:
+        text = set_field(text, 'boxbench_datasheet', pdf)
+        open(fpath, 'w', encoding='utf-8').write(text)
+        pprint(f'[{i}/{total}] OK  ds={pdf[:70]}')
+    else:
+        pprint(f'[{i}/{total}] NO-PDF')
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--workers', type=int, default=20)
+parser.add_argument('--pass', dest='run_pass', choices=['1','2','both'], default='both')
+args = parser.parse_args()
+
+wdr_files = sorted(f for f in os.listdir(PE_DIR) if f.endswith('.wdr'))
+total = len(wdr_files)
+tasks = [(i+1, total, f) for i, f in enumerate(wdr_files)]
+
+def run_pass(fn, label):
+    pprint(f'\n── {label} ({total} files, {args.workers} workers) ──')
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futs = [pool.submit(fn, *t) for t in tasks]
+        for f in as_completed(futs):
+            f.result()
+    pprint(f'── {label} done in {time.time()-t0:.0f}s ──\n')
+
+if args.run_pass in ('1', 'both'):
+    run_pass(pass1, 'Pass 1: PE product pages → vendorpage + PDF')
+if args.run_pass in ('2', 'both'):
+    run_pass(pass2, 'Pass 2: manufacturer sites → model PDF')
