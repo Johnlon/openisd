@@ -1,0 +1,8 @@
+{
+  "file": "Scan-Speak_18M_4631T00.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Scan-Speak website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.scan-speak.dk/datasheet/reviews/18M-4631T00-Voice_Coil_2016-6.pdf",
+  "reviewedBy": null
+}

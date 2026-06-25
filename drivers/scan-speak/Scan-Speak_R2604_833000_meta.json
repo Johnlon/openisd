@@ -1,0 +1,8 @@
+{
+  "file": "Scan-Speak_R2604_833000.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Scan-Speak website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.scan-speak.dk/datasheet/pdf/r2604-833000.pdf",
+  "reviewedBy": null
+}

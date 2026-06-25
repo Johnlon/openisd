@@ -164,7 +164,9 @@ def mark_scraped(url: str, manifest: dict, wdr_filename: str | None,
 def to_wdr(brand: str, model: str, fields: dict,
            provided_by: str = "", comment: str = "",
            manufacturer: str = "", date_added: str = "",
-           date_modified: str = "") -> str:
+           date_modified: str = "",
+           datasheet_url: str = "", vendor_page_url: str = "",
+           source_url: str = "") -> str:
     """
     Produce a WDR file string matching the Resonate WDR schema.
     fields must use canonical SI key names: Znom, BL, Le(H), Mms(kg),
@@ -197,6 +199,12 @@ def to_wdr(brand: str, model: str, fields: dict,
         f"DateModified={date_modified}",
         "portingle=Y",
     ]
+    if datasheet_url:
+        lines.append(f"boxbench_datasheet={datasheet_url}")
+    if vendor_page_url:
+        lines.append(f"boxbench_vendorpage={vendor_page_url}")
+    if source_url:
+        lines.append(f"boxbench_source={source_url}")
 
     # T/S fields — only emit if value was sourced
     _TS_KEYS = ["Fs", "Qts", "Qes", "Qms", "Znom", "Re", "Le", "BL",
@@ -382,6 +390,9 @@ def run_scraper(vendor_name: str,
             comment=" | ".join(comment_parts),
             manufacturer=product.get("manufacturer", ""),
             date_added=today, date_modified=today,
+            datasheet_url=product.get("pdf_url") or "",
+            vendor_page_url=url,
+            source_url=url,
         )
         wdr_name = safe_filename(f"{brand} {model}".strip())
         (out / wdr_name).write_text(wdr_text, encoding="utf-8")

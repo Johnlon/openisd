@@ -1,0 +1,8 @@
+{
+  "file": "Scan-Speak_R3004_662000.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Scan-Speak website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.scan-speak.dk/datasheet/reviews/R3004-662000-VoiceCoil_2009-3.pdf",
+  "reviewedBy": null
+}

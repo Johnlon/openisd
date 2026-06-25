@@ -1,0 +1,8 @@
+{
+  "file": "Wavecor_FR055WA03_04.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Wavecor website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.wavecor.com/Driver%20specifications%20PDF/FR055WA03_04_specifications.pdf",
+  "reviewedBy": null
+}

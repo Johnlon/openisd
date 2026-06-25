@@ -23,23 +23,27 @@ VENDOR      = "Wavecor"
 SITEMAP_URL = "http://www.wavecor.com/sitemap.xml"
 OUT_DIR     = str(Path(__file__).resolve().parent.parent / "drivers" / "wavecor")
 
-# HTML table row label (lowercase) → (wdr_key, SI conversion factor)
-# Labels observed in Wavecor product HTML tables.
+# HTML table label fragments (lowercase) → (wdr_key, SI factor).
+# Verified against actual wavecor.com HTML (2026-06-25).
+# Wavecor uses two table layouts:
+#   - Single-model pages: [label, value, unit]  (3 cols)
+#   - Multi-model pages:  [notes, label, v1_before, v1_after, v2_before, v2_after, unit] (7 cols)
+# The parser detects which format is in use and reads label/value accordingly.
 FIELD_MAP = {
-    "resonance frequency":   ("Fs",   1.0),    # Hz
-    "total q":               ("Qts",  1.0),
-    "electrical q":          ("Qes",  1.0),
-    "mechanical q":          ("Qms",  1.0),
-    "dc resistance":         ("Re",   1.0),    # Ω
-    "voice coil inductance": ("Le",   1e-3),   # mH → H
-    "force factor":          ("BL",   1.0),    # T·m — BL not Bl
-    "moving mass":           ("Mms",  1e-3),   # g → kg
-    "mechanical compliance": ("Cms",  1e-3),   # mm/N → m/N
-    "piston area":           ("Sd",   1e-4),   # cm² → m²
-    "equivalent volume":     ("Vas",  1e-3),   # litres → m³
-    "maximum excursion":     ("Xmax", 0.5e-3), # mm p-p → m one-way
-    "power handling":        ("Pe",   1.0),    # W
-    "nominal impedance":     ("Znom", 1.0),    # Ω — Znom not Z
+    "resonance frequency":    ("Fs",   1.0),    # Hz
+    "total q":                ("Qts",  1.0),
+    "electrical q":           ("Qes",  1.0),
+    "mechanical q":           ("Qms",  1.0),
+    "voice coil resistance":  ("Re",   1.0),    # "Voice coil resistance, RDC"
+    "voice coil inductance":  ("Le",   1e-3),   # mH → H
+    "force factor":           ("BL",   1.0),    # "Force factor, Bxl" — T·m
+    "moving mass":            ("Mms",  1e-3),   # g → kg
+    "suspension compliance":  ("Cms",  1e-3),   # mm/N → m/N  "Suspension compliance, Cms"
+    "effective radiating":    ("Sd",   1e-4),   # cm² → m²  "Effective radiating area, Sd"
+    "equivalent air volume":  ("Vas",  1e-3),   # lit. → m³  "Equivalent air volume, Vas"
+    "linear motor stroke":    ("Xmax", 1e-3),   # mm one-way → m  "+/-X mm"
+    "power handling":         ("Pe",   1.0),    # W (first match = continuous)
+    "nominal impedance":      ("Znom", 1.0),    # Ω
 }
 
 
@@ -57,21 +61,27 @@ def parse_product(html: str, url: str) -> dict | None:
         m = re.search(r"<title>(.*?)</title>", html, re.I | re.S)
     name = re.sub(r"<[^>]+>", "", m.group(1)).strip() if m else _model_from_url(url)
 
-    # T/S params: Wavecor pages use an HTML table with two-column rows
-    # <tr><td>Label</td><td>value unit</td></tr>
-    rows = re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S | re.I)
+    # T/S params: Wavecor uses two table layouts depending on the page.
+    # Single-model: [label, value, unit] (3 cols) — label in cells[0], value in cells[1]
+    # Multi-model:  [notes, label, v1_before, v1_after, v2_before, ...] (>=5 cols)
+    #               — label in cells[1], value in cells[2] (first model, before burn-in)
+    html_rows = re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S | re.I)
     fields: dict[str, float] = {}
-    for row in rows:
+    for row in html_rows:
         cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S | re.I)
         if len(cells) < 2:
             continue
-        label = re.sub(r"<[^>]+>", "", cells[0]).strip().lower()
-        value_text = re.sub(r"<[^>]+>", "", cells[1]).strip()
+        if len(cells) >= 5:
+            label_cell, value_cell = cells[1], cells[2]   # multi-model layout
+        else:
+            label_cell, value_cell = cells[0], cells[1]   # single-model layout
+        label = re.sub(r"<[^>]+>", "", label_cell).strip().lower()
+        value_text = re.sub(r"<[^>]+>", "", value_cell).strip()
         for fragment, (key, factor) in FIELD_MAP.items():
-            if fragment in label:
+            if fragment in label and key not in fields:
                 val = parse_number(value_text)
                 if val is not None:
-                    fields[key] = round(val * factor, 9)
+                    fields[key] = abs(round(val * factor, 9))  # abs() handles "+/-X" Xmax
                 break
 
     if not fields.get("Fs"):

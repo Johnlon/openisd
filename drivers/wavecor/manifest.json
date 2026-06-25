@@ -1,0 +1,742 @@
+{
+  "scraped": {
+    "http://www.wavecor.com/html/navigation_files_upload.html": {
+      "scraped_at": "2026-06-25T04:31:56.459535+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Navigation files UPLOAD"
+    },
+    "http://www.wavecor.com/html/tw013wa01.html": {
+      "scraped_at": "2026-06-25T04:31:56.745912+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW013WA01"
+    },
+    "http://www.wavecor.com/html/tw022wa02.html": {
+      "scraped_at": "2026-06-25T04:31:56.782439+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA02"
+    },
+    "http://www.wavecor.com/html/tw030wa01.html": {
+      "scraped_at": "2026-06-25T04:31:57.699699+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA01"
+    },
+    "http://www.wavecor.com/html/tw022wa06.html": {
+      "scraped_at": "2026-06-25T04:31:57.069896+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA06"
+    },
+    "http://www.wavecor.com/html/tw022wa05.html": {
+      "scraped_at": "2026-06-25T04:31:57.059892+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA05"
+    },
+    "http://www.wavecor.com/html/tw022wa07_08_09_10.html": {
+      "scraped_at": "2026-06-25T04:32:00.499640+00:00",
+      "wdr": "Wavecor_TW022WA07_08_09_10.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw022wa04.html": {
+      "scraped_at": "2026-06-25T04:31:56.832444+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA04"
+    },
+    "http://www.wavecor.com/html/tw030wa02.html": {
+      "scraped_at": "2026-06-25T04:31:58.000885+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA02"
+    },
+    "http://www.wavecor.com/html/old_tw03wa09_10.html": {
+      "scraped_at": "2026-06-25T04:31:57.987884+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/tw030wa05_to_08.html": {
+      "scraped_at": "2026-06-25T04:31:58.131067+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA05 to 08"
+    },
+    "http://www.wavecor.com/html/tw030wa13_14.html": {
+      "scraped_at": "2026-06-25T04:31:58.245621+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA13_14"
+    },
+    "http://www.wavecor.com/html/tw030wa11_12.html": {
+      "scraped_at": "2026-06-25T04:32:03.200106+00:00",
+      "wdr": "Wavecor_TW030WA11_12.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/old_tw030wa13_14.html": {
+      "scraped_at": "2026-06-25T04:31:59.552656+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/tw030wa09_10.html": {
+      "scraped_at": "2026-06-25T04:31:57.946343+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA09_10"
+    },
+    "http://www.wavecor.com/html/tw030wa21_22.html": {
+      "scraped_at": "2026-06-25T04:32:05.603623+00:00",
+      "wdr": "Wavecor_TW030WA21_22.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw030wa23_24_25_26.html": {
+      "scraped_at": "2026-06-25T04:32:10.425898+00:00",
+      "wdr": "Wavecor_TW030WA23_24_25_26.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw045wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:04.196007+00:00",
+      "wdr": "Wavecor_TW045WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr040wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:07.148551+00:00",
+      "wdr": "Wavecor_FR040WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/64_ohm_fullranges.html": {
+      "scraped_at": "2026-06-25T04:32:03.500526+00:00",
+      "wdr": "Wavecor_64_OHM_FULLRANGES.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr4x6wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:09.221899+00:00",
+      "wdr": "Wavecor_FR4X6WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr055wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:12.737327+00:00",
+      "wdr": "Wavecor_FR055WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr055wa03_04.html": {
+      "scraped_at": "2026-06-25T04:32:14.201159+00:00",
+      "wdr": "Wavecor_FR055WA03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr070wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:15.695385+00:00",
+      "wdr": "Wavecor_FR070WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr070wa03_04.html": {
+      "scraped_at": "2026-06-25T04:32:17.024425+00:00",
+      "wdr": "Wavecor_FR070WA03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr070wa05.html": {
+      "scraped_at": "2026-06-25T04:32:17.072445+00:00",
+      "wdr": "Wavecor_FR070WA05.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/midranges.html": {
+      "scraped_at": "2026-06-25T04:32:12.326952+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/4_5_inch1.html": {
+      "scraped_at": "2026-06-25T04:32:13.652584+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/fr084wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:17.619659+00:00",
+      "wdr": "Wavecor_FR084WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr090wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:16.298439+00:00",
+      "wdr": "Wavecor_FR090WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/mr120bd01_02_03_04.html": {
+      "scraped_at": "2026-06-25T04:32:19.177778+00:00",
+      "wdr": "Wavecor_MR120BD01_02_03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf090wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:20.701001+00:00",
+      "wdr": "Wavecor_WF090WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf095wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:19.532250+00:00",
+      "wdr": "Wavecor_WF095WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf118wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:17.498813+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "WF118WA01_02"
+    },
+    "http://www.wavecor.com/html/wf120bd11_12_13_14.html": {
+      "scraped_at": "2026-06-25T04:32:33.598250+00:00",
+      "wdr": "Wavecor_WF120BD11_12_13_14.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf120bd05_06_09_10.html": {
+      "scraped_at": "2026-06-25T04:32:36.470803+00:00",
+      "wdr": "Wavecor_WF120BD05_06_09_10.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf118wa07_08.html": {
+      "scraped_at": "2026-06-25T04:32:40.038419+00:00",
+      "wdr": "Wavecor_WF118WA07_08.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf120bd03_04_07_08.html": {
+      "scraped_at": "2026-06-25T04:32:34.071992+00:00",
+      "wdr": "Wavecor_WF120BD03_04_07_08.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf118wa05_06.html": {
+      "scraped_at": "2026-06-25T04:32:32.841434+00:00",
+      "wdr": "Wavecor_WF118WA05_06.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf146wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:38.674292+00:00",
+      "wdr": "Wavecor_WF146WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf152bd03_04.html": {
+      "scraped_at": "2026-06-25T04:32:43.407016+00:00",
+      "wdr": "Wavecor_WF152BD03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf146wa05_06.html": {
+      "scraped_at": "2026-06-25T04:32:44.753603+00:00",
+      "wdr": "Wavecor_WF146WA05_06.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf182bd03_04_07_08.html": {
+      "scraped_at": "2026-06-25T04:33:20.754323+00:00",
+      "wdr": "Wavecor_WF182BD03_04_07_08.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf152bd05_06_07_08.html": {
+      "scraped_at": "2026-06-25T04:32:46.241400+00:00",
+      "wdr": "Wavecor_WF152BD05_06_07_08.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf168wa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:55.705662+00:00",
+      "wdr": "Wavecor_WF168WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf182bd13_14_15_16.html": {
+      "scraped_at": "2026-06-25T04:32:59.145730+00:00",
+      "wdr": "Wavecor_WF182BD13_14_15_16.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf152bd09_10_11_12.html": {
+      "scraped_at": "2026-06-25T04:32:53.173788+00:00",
+      "wdr": "Wavecor_WF152BD09_10_11_12.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf152bd13_14_15_16.html": {
+      "scraped_at": "2026-06-25T04:32:42.080272+00:00",
+      "wdr": "Wavecor_WF152BD13_14_15_16.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf168wa05_06.html": {
+      "scraped_at": "2026-06-25T04:32:55.424967+00:00",
+      "wdr": "Wavecor_WF168WA05_06.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf182bd09_10_11_12.html": {
+      "scraped_at": "2026-06-25T04:32:58.473820+00:00",
+      "wdr": "Wavecor_WF182BD09_10_11_12.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf182bd17_18_19_20.html": {
+      "scraped_at": "2026-06-25T04:32:56.054862+00:00",
+      "wdr": "Wavecor_WF182BD17_18_19_20.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf211pa01_02.html": {
+      "scraped_at": "2026-06-25T04:32:59.691813+00:00",
+      "wdr": "Wavecor_WF211PA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw118wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:21.103921+00:00",
+      "wdr": "Wavecor_SW118WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw070wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:19.816465+00:00",
+      "wdr": "Wavecor_SW070WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf259pa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:06.790841+00:00",
+      "wdr": "Wavecor_WF259PA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf275bd01_02.html": {
+      "scraped_at": "2026-06-25T04:33:18.462047+00:00",
+      "wdr": "Wavecor_WF275BD01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf223bd01_02.html": {
+      "scraped_at": "2026-06-25T04:33:02.684727+00:00",
+      "wdr": "Wavecor_WF223BD01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw146wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:21.357618+00:00",
+      "wdr": "Wavecor_SW146WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw168wa01.html": {
+      "scraped_at": "2026-06-25T04:33:20.467788+00:00",
+      "wdr": "Wavecor_SW168WA01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw178wa01.html": {
+      "scraped_at": "2026-06-25T04:33:27.625028+00:00",
+      "wdr": "Wavecor_SW178WA01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw215wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:22.347084+00:00",
+      "wdr": "Wavecor_SW215WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw223bd02_03.html": {
+      "scraped_at": "2026-06-25T04:33:26.799543+00:00",
+      "wdr": "Wavecor_SW223BD02_03.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw270wa01.html": {
+      "scraped_at": "2026-06-25T04:33:40.539551+00:00",
+      "wdr": "Wavecor_SW270WA01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw259wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:26.966830+00:00",
+      "wdr": "Wavecor_SW259WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw182bd03_04.html": {
+      "scraped_at": "2026-06-25T04:33:40.539551+00:00",
+      "wdr": "Wavecor_SW182BD03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw275bd01_02.html": {
+      "scraped_at": "2026-06-25T04:33:28.206527+00:00",
+      "wdr": "Wavecor_SW275BD01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw280wa01_02.html": {
+      "scraped_at": "2026-06-25T04:33:40.240176+00:00",
+      "wdr": "Wavecor_SW280WA01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/sw280wa03_04.html": {
+      "scraped_at": "2026-06-25T04:33:40.126563+00:00",
+      "wdr": "Wavecor_SW280WA03_04.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr178wa01.html": {
+      "scraped_at": "2026-06-25T04:33:28.440337+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "PR178WA01"
+    },
+    "http://www.wavecor.com/html/sw312wa03_04_05_06.html": {
+      "scraped_at": "2026-06-25T04:33:44.567800+00:00",
+      "wdr": "Wavecor_SW312WA03_04_05_06.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr259wa01.html": {
+      "scraped_at": "2026-06-25T04:33:43.691076+00:00",
+      "wdr": "Wavecor_PR259WA01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr223bd02.html": {
+      "scraped_at": "2026-06-25T04:33:44.010683+00:00",
+      "wdr": "Wavecor_PR223BD02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr182bd02.html": {
+      "scraped_at": "2026-06-25T04:33:45.104757+00:00",
+      "wdr": "Wavecor_PR182BD02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr270wa01.html": {
+      "scraped_at": "2026-06-25T04:33:45.573587+00:00",
+      "wdr": "Wavecor_PR270WA01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr275bd01.html": {
+      "scraped_at": "2026-06-25T04:33:47.821953+00:00",
+      "wdr": "Wavecor_PR275BD01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/pr312wa02_03.html": {
+      "scraped_at": "2026-06-25T04:33:47.441062+00:00",
+      "wdr": "Wavecor_PR312WA02_03.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/30mm_tweeter_set.html": {
+      "scraped_at": "2026-06-25T04:33:45.222373+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "30mm tweeter set"
+    },
+    "http://www.wavecor.com/html/wf132tu02old.html": {
+      "scraped_at": "2026-06-25T04:33:46.782202+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/tw030_car_mounting_accessories.html": {
+      "scraped_at": "2026-06-25T04:33:45.484820+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030 car mounting accessories"
+    },
+    "http://www.wavecor.com/html/wf132tu02.html": {
+      "scraped_at": "2026-06-25T04:33:55.418206+00:00",
+      "wdr": "Wavecor_WF132TU02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf166tu01.html": {
+      "scraped_at": "2026-06-25T04:33:47.157412+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "WF166TU01"
+    },
+    "http://www.wavecor.com/html/12inch_subwoofers_2015.html": {
+      "scraped_at": "2026-06-25T04:34:04.785702+00:00",
+      "wdr": null,
+      "status": "error: timed out"
+    },
+    "http://www.wavecor.com/html/10inch_subwoofers_2017.html": {
+      "scraped_at": "2026-06-25T04:33:49.366107+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "10inch_subwoofers_2017"
+    },
+    "http://www.wavecor.com/html/wf166tu02.html": {
+      "scraped_at": "2026-06-25T04:34:03.848053+00:00",
+      "wdr": "Wavecor_WF166TU02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw022tu01.html": {
+      "scraped_at": "2026-06-25T04:33:43.159086+00:00",
+      "wdr": "Wavecor_TW022TU01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf165tu01.html": {
+      "scraped_at": "2026-06-25T04:33:48.781519+00:00",
+      "wdr": "Wavecor_WF165TU01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw022wa03.html": {
+      "scraped_at": "2026-06-25T04:34:06.067873+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA03"
+    },
+    "http://www.wavecor.com/html/tw030wa04.html": {
+      "scraped_at": "2026-06-25T04:34:03.660370+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA04"
+    },
+    "http://www.wavecor.com/html/fr055om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:09.239667+00:00",
+      "wdr": "Wavecor_FR055OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/fr070om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:11.769210+00:00",
+      "wdr": "Wavecor_FR070OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/bd_line.html": {
+      "scraped_at": "2026-06-25T04:33:52.051209+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "BD Line"
+    },
+    "http://www.wavecor.com/html/tw030tu03.html": {
+      "scraped_at": "2026-06-25T04:33:45.048205+00:00",
+      "wdr": "Wavecor_TW030TU03.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf132tu01.html": {
+      "scraped_at": "2026-06-25T04:33:47.241968+00:00",
+      "wdr": "Wavecor_WF132TU01.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/tw022wa01.html": {
+      "scraped_at": "2026-06-25T04:33:52.471518+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW022WA01"
+    },
+    "http://www.wavecor.com/html/soundtuning_line.html": {
+      "scraped_at": "2026-06-25T04:33:53.266076+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "SoundTuning Line"
+    },
+    "http://www.wavecor.com/html/tw030wa03.html": {
+      "scraped_at": "2026-06-25T04:33:53.836477+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "TW030WA03"
+    },
+    "http://www.wavecor.com/html/fr084om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:10.032179+00:00",
+      "wdr": "Wavecor_FR084OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/heat_sink.html": {
+      "scraped_at": "2026-06-25T04:34:09.759311+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Heat sink"
+    },
+    "http://www.wavecor.com/html/application_info.html": {
+      "scraped_at": "2026-06-25T04:34:11.400400+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Application info"
+    },
+    "http://www.wavecor.com/html/wf168om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:10.584110+00:00",
+      "wdr": "Wavecor_WF168OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/technical_info.html": {
+      "scraped_at": "2026-06-25T04:34:07.819661+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Technical info"
+    },
+    "http://www.wavecor.com/html/wf146om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:11.682644+00:00",
+      "wdr": "Wavecor_WF146OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/zobel_networks.html": {
+      "scraped_at": "2026-06-25T04:34:11.600091+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Zobel networks"
+    },
+    "http://www.wavecor.com/html/sw084om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:11.392401+00:00",
+      "wdr": "Wavecor_SW084OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/wf118om01_02.html": {
+      "scraped_at": "2026-06-25T04:34:10.425995+00:00",
+      "wdr": "Wavecor_WF118OM01_02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/database.html": {
+      "scraped_at": "2026-06-25T04:34:11.914799+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Database"
+    },
+    "http://www.wavecor.com/html/leap_ltd_instructions.html": {
+      "scraped_at": "2026-06-25T04:34:11.867793+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "LEAP LTD instructions"
+    },
+    "http://www.wavecor.com/html/management.html": {
+      "scraped_at": "2026-06-25T04:34:13.472434+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Management"
+    },
+    "http://www.wavecor.com/html/lsplab3_instructions.html": {
+      "scraped_at": "2026-06-25T04:34:11.914799+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "LspLAB3 instructions"
+    },
+    "http://www.wavecor.com/html/news.html": {
+      "scraped_at": "2026-06-25T04:34:13.525980+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "News"
+    },
+    "http://www.wavecor.com/html/company.html": {
+      "scraped_at": "2026-06-25T04:34:13.306330+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Company"
+    },
+    "http://www.wavecor.com/html/subscribed.html": {
+      "scraped_at": "2026-06-25T04:34:12.717825+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Subscribed"
+    },
+    "http://www.wavecor.com/html/unsubscribed.html": {
+      "scraped_at": "2026-06-25T04:34:12.745849+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Unsubscribed"
+    },
+    "http://www.wavecor.com/html/thank_you.html": {
+      "scraped_at": "2026-06-25T04:34:13.129258+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Thank you"
+    },
+    "http://www.wavecor.com/html/newsletter_archive.html": {
+      "scraped_at": "2026-06-25T04:34:14.461133+00:00",
+      "wdr": null,
+      "status": "error: HTTP Error 404: Not Found"
+    },
+    "http://www.wavecor.com/html/news_archive.html": {
+      "scraped_at": "2026-06-25T04:34:20.139611+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "News archive"
+    },
+    "http://www.wavecor.com/html/january_2016.html": {
+      "scraped_at": "2026-06-25T04:34:14.031400+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "January 2016"
+    },
+    "http://www.wavecor.com/html/how_to_buy.html": {
+      "scraped_at": "2026-06-25T04:34:17.280306+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "How to buy"
+    },
+    "http://www.wavecor.com/html/sw312tu02.html": {
+      "scraped_at": "2026-06-25T04:33:50.478332+00:00",
+      "wdr": "Wavecor_SW312TU02.wdr",
+      "status": "ok"
+    },
+    "http://www.wavecor.com/html/november_2020.html": {
+      "scraped_at": "2026-06-25T04:34:14.276468+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "November 2020"
+    },
+    "http://www.wavecor.com/html/kevlar_carbon.html": {
+      "scraped_at": "2026-06-25T04:34:16.959391+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Kevlar_Carbon"
+    },
+    "http://www.wavecor.com/html/newsletter_jul_2023.html": {
+      "scraped_at": "2026-06-25T04:34:17.642048+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Newsletter_Jul_2023"
+    },
+    "http://www.wavecor.com/html/dealers_distributors.html": {
+      "scraped_at": "2026-06-25T04:34:20.649993+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Dealers & Distributors"
+    },
+    "http://www.wavecor.com/html/reviews_-_tests.html": {
+      "scraped_at": "2026-06-25T04:34:18.372800+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Reviews & tests"
+    },
+    "http://www.wavecor.com/html/virgo_v_review.html": {
+      "scraped_at": "2026-06-25T04:34:18.368800+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Virgo V review"
+    },
+    "http://www.wavecor.com/html/norge_75_review.html": {
+      "scraped_at": "2026-06-25T04:34:20.380764+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Norge 75 review"
+    },
+    "http://www.wavecor.com/html/virgo_v_review_2.html": {
+      "scraped_at": "2026-06-25T04:34:20.750551+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Virgo V review 2"
+    },
+    "http://www.wavecor.com/html/norge_75_ii.html": {
+      "scraped_at": "2026-06-25T04:34:37.099386+00:00",
+      "wdr": null,
+      "status": "error: timed out"
+    },
+    "http://www.wavecor.com/html/yara_ii_superior_stereoplay.html": {
+      "scraped_at": "2026-06-25T04:34:20.930721+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Yara_II_Superior_Stereoplay"
+    },
+    "http://www.wavecor.com/html/sitara_2-09.html": {
+      "scraped_at": "2026-06-25T04:34:36.353741+00:00",
+      "wdr": null,
+      "status": "error: timed out"
+    },
+    "http://www.wavecor.com/html/audio_physic_cardeas_dec09.html": {
+      "scraped_at": "2026-06-25T04:34:23.072116+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Audio Physic Cardeas Dec09"
+    },
+    "http://www.wavecor.com/html/wf182bd02_klang-ton.html": {
+      "scraped_at": "2026-06-25T04:34:36.520857+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "http://www.wavecor.com/html/wf152bd_in_hobby_hifi.html": {
+      "scraped_at": "2026-06-25T04:34:36.215603+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "http://www.wavecor.com/html/sw182bd01_in_vc_mag_.html": {
+      "scraped_at": "2026-06-25T04:34:38.345607+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "SW182BD01 in VC Mag."
+    },
+    "http://www.wavecor.com/html/fr070wa_in_vc_mag_.html": {
+      "scraped_at": "2026-06-25T04:34:41.124239+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "FR070WA in VC Mag."
+    },
+    "http://www.wavecor.com/html/wf120bd04_in_vc_mag_.html": {
+      "scraped_at": "2026-06-25T04:34:25.493345+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "WF120BD04 in VC Mag."
+    },
+    "http://www.wavecor.com/html/audio_physic_tempo_25.html": {
+      "scraped_at": "2026-06-25T04:34:29.141793+00:00",
+      "wdr": null,
+      "status": "skipped",
+      "title": "Audio Physic Tempo 25"
+    }
+  }
+}

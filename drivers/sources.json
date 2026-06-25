@@ -34,6 +34,18 @@
       "license": "public product data from sbacoustics.com"
     },
     {
+      "name": "Scan-Speak",
+      "url": "https://github.com/Johnlon/resonate/tree/main/drivers/scan-speak",
+      "description": "114 drivers scraped from scan-speak.dk — woofers, midrange, tweeters, and Revelator/Ellipticor lines. PDF datasheets and ZIP measurement files (SPL + impedance) downloaded locally. Quality=M (scraped, not human-verified). Refresh with: python scripts/scrape_scanspeak.py --refresh",
+      "license": "public product data from scan-speak.dk"
+    },
+    {
+      "name": "Wavecor",
+      "url": "https://github.com/Johnlon/resonate/tree/main/drivers/wavecor",
+      "description": "73 drivers scraped from wavecor.com — woofers, subwoofers, and full-range drivers (WF/SW/FR series). PDF datasheets and SPL/impedance TXT measurement files downloaded locally. Quality=M (scraped, not human-verified). Refresh with: python scripts/scrape_wavecor.py --refresh",
+      "license": "public product data from wavecor.com"
+    },
+    {
       "name": "Parts Express woofer guide",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/parts-express",
       "description": "1673 drivers fetched from the Parts Express product API (https://www.parts-express.com/api/items?q={sku}&fieldset=details). Covers woofers, subwoofers, tweeters, midrange/full-range, passive radiators, planar/ribbon, car audio, and pro audio drivers. Brands: Aurum Cantus, B&C Speakers, Beyma, Celestion, Ciare, CSS, Dayton Audio, EPIQUE, Eminence Speaker, FaitalPRO, Goldwood, GRS, HiVi, JBL Professional, Lavoce, Morel, Peerless by Tymphany, PRV Audio, Selenium, Tang Band, Tectonic, Timpano Audio, Visaton, Wavecor and others. Files with populated Qes have full T/S (quality=H); files with blank Qes have estimated Re and Sd only (quality=L). See meta.json for quality=M cases. Refresh with: node scripts/refresh-pe-catalog.mjs",

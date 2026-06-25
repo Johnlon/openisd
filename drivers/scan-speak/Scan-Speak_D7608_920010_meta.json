@@ -1,0 +1,8 @@
+{
+  "file": "Scan-Speak_D7608_920010.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Scan-Speak website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.scan-speak.dk/datasheet/pdf/d7608-920010.pdf",
+  "reviewedBy": null
+}

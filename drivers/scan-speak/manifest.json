@@ -1,0 +1,609 @@
+{
+  "scraped": {
+    "https://www.scan-speak.dk/product/10f-4424g00/": {
+      "scraped_at": "2026-06-25T04:32:36.216083+00:00",
+      "wdr": "Scan-Speak_10F_4424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/10f-8424g00/": {
+      "scraped_at": "2026-06-25T04:32:34.726178+00:00",
+      "wdr": "Scan-Speak_10F_8424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/5f-8422t01/": {
+      "scraped_at": "2026-06-25T04:32:36.212088+00:00",
+      "wdr": "Scan-Speak_5F_8422T01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-8878t01/": {
+      "scraped_at": "2026-06-25T04:32:39.310265+00:00",
+      "wdr": "Scan-Speak_32W_8878T01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/h2606-920000/": {
+      "scraped_at": "2026-06-25T04:32:32.917983+00:00",
+      "wdr": "Scan-Speak_H2606_920000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18m-4631t00/": {
+      "scraped_at": "2026-06-25T04:32:36.672951+00:00",
+      "wdr": "Scan-Speak_18M_4631T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/30w-4558t06/": {
+      "scraped_at": "2026-06-25T04:32:37.115749+00:00",
+      "wdr": "Scan-Speak_30W_4558T06.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/16w-4531g06/": {
+      "scraped_at": "2026-06-25T04:32:39.242712+00:00",
+      "wdr": "Scan-Speak_16W_4531G06.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/12w-4524g00/": {
+      "scraped_at": "2026-06-25T04:32:57.535322+00:00",
+      "wdr": "Scan-Speak_12W_4524G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/10m-4614g06/": {
+      "scraped_at": "2026-06-25T04:32:52.037324+00:00",
+      "wdr": "Scan-Speak_10M_4614G06.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15m-4624g00/": {
+      "scraped_at": "2026-06-25T04:33:01.017882+00:00",
+      "wdr": "Scan-Speak_15M_4624G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/12mu-4731t00/": {
+      "scraped_at": "2026-06-25T04:32:57.942040+00:00",
+      "wdr": "Scan-Speak_12MU_4731T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15m-4531k00/": {
+      "scraped_at": "2026-06-25T04:33:04.802501+00:00",
+      "wdr": "Scan-Speak_15M_4531K00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/12m-4631g00/": {
+      "scraped_at": "2026-06-25T04:32:54.638557+00:00",
+      "wdr": "Scan-Speak_12M_4631G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/12w-8524g00/": {
+      "scraped_at": "2026-06-25T04:32:58.192157+00:00",
+      "wdr": "Scan-Speak_12W_8524G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/10f-8414g10/": {
+      "scraped_at": "2026-06-25T04:32:38.686290+00:00",
+      "wdr": "Scan-Speak_10F_8414G10.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/12mu-8731t00/": {
+      "scraped_at": "2026-06-25T04:32:57.273173+00:00",
+      "wdr": "Scan-Speak_12MU_8731T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-4434g00/": {
+      "scraped_at": "2026-06-25T04:33:17.197510+00:00",
+      "wdr": "Scan-Speak_15W_4434G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-4424g00/": {
+      "scraped_at": "2026-06-25T04:33:04.803504+00:00",
+      "wdr": "Scan-Speak_15W_4424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8424g00/": {
+      "scraped_at": "2026-06-25T04:33:22.253522+00:00",
+      "wdr": "Scan-Speak_15W_8424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-4531g00/": {
+      "scraped_at": "2026-06-25T04:33:27.777459+00:00",
+      "wdr": "Scan-Speak_15W_4531G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8434g00/": {
+      "scraped_at": "2026-06-25T04:33:25.161487+00:00",
+      "wdr": "Scan-Speak_15W_8434G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r3004-602005/": {
+      "scraped_at": "2026-06-25T04:33:25.754095+00:00",
+      "wdr": "Scan-Speak_R3004_602005.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/11m-4631g05/": {
+      "scraped_at": "2026-06-25T04:33:30.605455+00:00",
+      "wdr": "Scan-Speak_11M_4631G05.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8530k00/": {
+      "scraped_at": "2026-06-25T04:33:25.872562+00:00",
+      "wdr": "Scan-Speak_15W_8530K00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8531k00/": {
+      "scraped_at": "2026-06-25T04:33:41.318156+00:00",
+      "wdr": "Scan-Speak_15W_8531K00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-4878t05/": {
+      "scraped_at": "2026-06-25T04:33:40.067026+00:00",
+      "wdr": "Scan-Speak_32W_4878T05.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8530k01/": {
+      "scraped_at": "2026-06-25T04:33:27.133163+00:00",
+      "wdr": "Scan-Speak_15W_8530K01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/16w-4434g00/": {
+      "scraped_at": "2026-06-25T04:33:41.878982+00:00",
+      "wdr": "Scan-Speak_16W_4434G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15wu-4741t00/": {
+      "scraped_at": "2026-06-25T04:33:47.575626+00:00",
+      "wdr": "Scan-Speak_15WU_4741T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15wu-8741t00/": {
+      "scraped_at": "2026-06-25T04:33:43.830319+00:00",
+      "wdr": "Scan-Speak_15WU_8741T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/16w-4538g05/": {
+      "scraped_at": "2026-06-25T04:33:28.686339+00:00",
+      "wdr": "Scan-Speak_16W_4538G05.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-4424g00/": {
+      "scraped_at": "2026-06-25T04:33:45.418128+00:00",
+      "wdr": "Scan-Speak_18W_4424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-4434g00/": {
+      "scraped_at": "2026-06-25T04:33:49.570147+00:00",
+      "wdr": "Scan-Speak_18W_4434G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-4531g00/": {
+      "scraped_at": "2026-06-25T04:33:52.839517+00:00",
+      "wdr": "Scan-Speak_18W_4531G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8424g00/": {
+      "scraped_at": "2026-06-25T04:34:01.299499+00:00",
+      "wdr": "Scan-Speak_18W_8424G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-4531g01/": {
+      "scraped_at": "2026-06-25T04:33:47.548628+00:00",
+      "wdr": "Scan-Speak_18W_4531G01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8434g00/": {
+      "scraped_at": "2026-06-25T04:34:02.764521+00:00",
+      "wdr": "Scan-Speak_18W_8434G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8535-01/": {
+      "scraped_at": "2026-06-25T04:34:10.777304+00:00",
+      "wdr": "Scan-Speak_18W_8535-01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8531g00/": {
+      "scraped_at": "2026-06-25T04:34:02.729164+00:00",
+      "wdr": "Scan-Speak_18W_8531G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8545k00/": {
+      "scraped_at": "2026-06-25T04:34:09.021582+00:00",
+      "wdr": "Scan-Speak_18W_8545K00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18wu-4741t00/": {
+      "scraped_at": "2026-06-25T04:34:08.703951+00:00",
+      "wdr": "Scan-Speak_18WU_4741T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18wu-4747t00/": {
+      "scraped_at": "2026-06-25T04:34:08.965585+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "https://www.scan-speak.dk/product/18wu-8741t00/": {
+      "scraped_at": "2026-06-25T04:34:18.409802+00:00",
+      "wdr": "Scan-Speak_18WU_8741T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8545-01/": {
+      "scraped_at": "2026-06-25T04:34:12.508657+00:00",
+      "wdr": "Scan-Speak_18W_8545-01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/820013/": {
+      "scraped_at": "2026-06-25T04:34:09.348765+00:00",
+      "wdr": "Scan-Speak_820013.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18wu-8747t00/": {
+      "scraped_at": "2026-06-25T04:34:10.859860+00:00",
+      "wdr": "Scan-Speak_18WU_8747T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/22w-4534g00/": {
+      "scraped_at": "2026-06-25T04:34:25.497341+00:00",
+      "wdr": "Scan-Speak_22W_4534G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/21w-8555-10/": {
+      "scraped_at": "2026-06-25T04:34:18.353264+00:00",
+      "wdr": "Scan-Speak_21W_8555-10.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/22w-4851t00/": {
+      "scraped_at": "2026-06-25T04:34:28.793896+00:00",
+      "wdr": "Scan-Speak_22W_4851T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/22w-8857t00/": {
+      "scraped_at": "2026-06-25T04:34:44.505557+00:00",
+      "wdr": "Scan-Speak_22W_8857T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/22w-8851t00/": {
+      "scraped_at": "2026-06-25T04:34:46.248203+00:00",
+      "wdr": "Scan-Speak_22W_8851T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/22w-8534g00/": {
+      "scraped_at": "2026-06-25T04:34:41.351660+00:00",
+      "wdr": "Scan-Speak_22W_8534G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/25w-8565-00/": {
+      "scraped_at": "2026-06-25T04:34:48.405313+00:00",
+      "wdr": "Scan-Speak_25W_8565-00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/26w-0-00-00/": {
+      "scraped_at": "2026-06-25T04:34:38.303205+00:00",
+      "wdr": null,
+      "status": "error: The read operation timed out"
+    },
+    "https://www.scan-speak.dk/product/26w-8861t00/": {
+      "scraped_at": "2026-06-25T04:34:50.216744+00:00",
+      "wdr": "Scan-Speak_26W_8861T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/26w-4558t00/": {
+      "scraped_at": "2026-06-25T04:34:41.638163+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "https://www.scan-speak.dk/product/26w-8534g00/": {
+      "scraped_at": "2026-06-25T04:34:48.028086+00:00",
+      "wdr": "Scan-Speak_26W_8534G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/26w-4558t06/": {
+      "scraped_at": "2026-06-25T04:34:51.759379+00:00",
+      "wdr": "Scan-Speak_26W_4558T06.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/26w-4534g00/": {
+      "scraped_at": "2026-06-25T04:34:35.266825+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "https://www.scan-speak.dk/product/26w-4867t00/": {
+      "scraped_at": "2026-06-25T04:34:54.776670+00:00",
+      "wdr": "Scan-Speak_26W_4867T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-4878t01/": {
+      "scraped_at": "2026-06-25T04:35:28.605783+00:00",
+      "wdr": "Scan-Speak_32W_4878T01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/30w-0-00-00/": {
+      "scraped_at": "2026-06-25T04:34:57.734837+00:00",
+      "wdr": "Scan-Speak_30W_0-00-00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18m-8631t00/": {
+      "scraped_at": "2026-06-25T04:35:25.705751+00:00",
+      "wdr": "Scan-Speak_18M_8631T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/26w-8867t00/": {
+      "scraped_at": "2026-06-25T04:34:50.480847+00:00",
+      "wdr": "Scan-Speak_26W_8867T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18we-4542t00/": {
+      "scraped_at": "2026-06-25T04:35:29.352194+00:00",
+      "wdr": "Scan-Speak_18WE_4542T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/30w-4558t00/": {
+      "scraped_at": "2026-06-25T04:35:00.753812+00:00",
+      "wdr": "Scan-Speak_30W_4558T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-4878t00/": {
+      "scraped_at": "2026-06-25T04:35:27.420925+00:00",
+      "wdr": "Scan-Speak_32W_4878T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/28w-4878t00/": {
+      "scraped_at": "2026-06-25T04:35:28.741446+00:00",
+      "wdr": "Scan-Speak_28W_4878T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/28w-4878t01/": {
+      "scraped_at": "2026-06-25T04:35:31.404288+00:00",
+      "wdr": "Scan-Speak_28W_4878T01.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18we-8542t00/": {
+      "scraped_at": "2026-06-25T04:35:17.017218+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "https://www.scan-speak.dk/product/21we-8542t00/": {
+      "scraped_at": "2026-06-25T04:35:31.795609+00:00",
+      "wdr": "Scan-Speak_21WE_8542T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2606-920000/": {
+      "scraped_at": "2026-06-25T04:35:43.526709+00:00",
+      "wdr": "Scan-Speak_D2606_920000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/21we-4542t00/": {
+      "scraped_at": "2026-06-25T04:35:38.726354+00:00",
+      "wdr": "Scan-Speak_21WE_4542T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2604-833000/": {
+      "scraped_at": "2026-06-25T04:35:43.992397+00:00",
+      "wdr": "Scan-Speak_D2604_833000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2604-830000/": {
+      "scraped_at": "2026-06-25T04:35:30.907729+00:00",
+      "wdr": "Scan-Speak_D2604_830000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/28w-8878t01/": {
+      "scraped_at": "2026-06-25T04:35:15.010788+00:00",
+      "wdr": null,
+      "status": "error: <urlopen error timed out>"
+    },
+    "https://www.scan-speak.dk/product/d2606-922000/": {
+      "scraped_at": "2026-06-25T04:35:50.271759+00:00",
+      "wdr": "Scan-Speak_D2606_922000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2608-913000/": {
+      "scraped_at": "2026-06-25T04:35:48.413387+00:00",
+      "wdr": "Scan-Speak_D2608_913000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2904-980000/": {
+      "scraped_at": "2026-06-25T04:35:52.227588+00:00",
+      "wdr": "Scan-Speak_D2904_980000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2904-710002/": {
+      "scraped_at": "2026-06-25T04:35:53.064256+00:00",
+      "wdr": "Scan-Speak_D2904_710002.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2904-710003/": {
+      "scraped_at": "2026-06-25T04:35:53.084264+00:00",
+      "wdr": "Scan-Speak_D2904_710003.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2905-950000/": {
+      "scraped_at": "2026-06-25T04:35:53.201234+00:00",
+      "wdr": "Scan-Speak_D2905_950000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2905-990000/": {
+      "scraped_at": "2026-06-25T04:35:58.194502+00:00",
+      "wdr": "Scan-Speak_D2905_990000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-602006/": {
+      "scraped_at": "2026-06-25T04:36:12.382246+00:00",
+      "wdr": "Scan-Speak_D3004_602006.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-660000/": {
+      "scraped_at": "2026-06-25T04:36:11.681364+00:00",
+      "wdr": "Scan-Speak_D3004_660000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-662000/": {
+      "scraped_at": "2026-06-25T04:36:10.314948+00:00",
+      "wdr": "Scan-Speak_D3004_662000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2905-970000/": {
+      "scraped_at": "2026-06-25T04:35:53.727227+00:00",
+      "wdr": "Scan-Speak_D2905_970000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2904-950000/": {
+      "scraped_at": "2026-06-25T04:36:04.267314+00:00",
+      "wdr": "Scan-Speak_D2904_950000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d7608-920000/": {
+      "scraped_at": "2026-06-25T04:36:04.649870+00:00",
+      "wdr": "Scan-Speak_D7608_920000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r1904-613001/": {
+      "scraped_at": "2026-06-25T04:36:14.598614+00:00",
+      "wdr": "Scan-Speak_R1904_613001.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d7608-920010/": {
+      "scraped_at": "2026-06-25T04:36:07.687706+00:00",
+      "wdr": "Scan-Speak_D7608_920010.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2905-930000/": {
+      "scraped_at": "2026-06-25T04:35:53.748944+00:00",
+      "wdr": "Scan-Speak_D2905_930000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2604-833000/": {
+      "scraped_at": "2026-06-25T04:36:24.374502+00:00",
+      "wdr": "Scan-Speak_R2604_833000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2904-700000/": {
+      "scraped_at": "2026-06-25T04:36:24.266914+00:00",
+      "wdr": "Scan-Speak_R2904_700000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2904-700009/": {
+      "scraped_at": "2026-06-25T04:36:25.251254+00:00",
+      "wdr": "Scan-Speak_R2904_700009.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r3004-602006/": {
+      "scraped_at": "2026-06-25T04:36:26.554017+00:00",
+      "wdr": "Scan-Speak_R3004_602006.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2604-832000/": {
+      "scraped_at": "2026-06-25T04:36:17.367987+00:00",
+      "wdr": "Scan-Speak_R2604_832000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3404-552000/": {
+      "scraped_at": "2026-06-25T04:36:26.449473+00:00",
+      "wdr": "Scan-Speak_D3404_552000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r3004-662000/": {
+      "scraped_at": "2026-06-25T04:36:26.611238+00:00",
+      "wdr": "Scan-Speak_R3004_662000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2904-700005/": {
+      "scraped_at": "2026-06-25T04:36:25.194201+00:00",
+      "wdr": "Scan-Speak_R2904_700005.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-4878t11/": {
+      "scraped_at": "2026-06-25T04:36:50.402117+00:00",
+      "wdr": "Scan-Speak_32W_4878T11.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15m-8631g00/": {
+      "scraped_at": "2026-06-25T04:36:28.789190+00:00",
+      "wdr": "Scan-Speak_15M_8631G00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/18w-8542-10/": {
+      "scraped_at": "2026-06-25T04:36:48.299289+00:00",
+      "wdr": "Scan-Speak_18W_8542-10.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/38we-8582t00/": {
+      "scraped_at": "2026-06-25T04:36:55.545320+00:00",
+      "wdr": "Scan-Speak_38WE_8582T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2404-552000/": {
+      "scraped_at": "2026-06-25T04:36:50.918594+00:00",
+      "wdr": "Scan-Speak_D2404_552000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/15w-8534t00/": {
+      "scraped_at": "2026-06-25T04:37:26.154763+00:00",
+      "wdr": "Scan-Speak_15W_8534T00.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2104-712000/": {
+      "scraped_at": "2026-06-25T04:36:56.497439+00:00",
+      "wdr": "Scan-Speak_D2104_712000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/32w-8878t11/": {
+      "scraped_at": "2026-06-25T04:36:53.335584+00:00",
+      "wdr": "Scan-Speak_32W_8878T11.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2008-852100/": {
+      "scraped_at": "2026-06-25T04:36:49.607639+00:00",
+      "wdr": null,
+      "status": "error: The read operation timed out"
+    },
+    "https://www.scan-speak.dk/product/d2010-852100/": {
+      "scraped_at": "2026-06-25T04:36:55.311233+00:00",
+      "wdr": "Scan-Speak_D2010_852100.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d8404-552000/": {
+      "scraped_at": "2026-06-25T04:36:58.918080+00:00",
+      "wdr": "Scan-Speak_D8404_552000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-606200/": {
+      "scraped_at": "2026-06-25T04:37:00.437188+00:00",
+      "wdr": "Scan-Speak_D3004_606200.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r3004-602200/": {
+      "scraped_at": "2026-06-25T04:36:56.153128+00:00",
+      "wdr": "Scan-Speak_R3004_602200.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2908-716000/": {
+      "scraped_at": "2026-06-25T04:37:00.175301+00:00",
+      "wdr": "Scan-Speak_D2908_716000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-602200/": {
+      "scraped_at": "2026-06-25T04:36:55.981593+00:00",
+      "wdr": "Scan-Speak_D3004_602200.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/r2004-602200/": {
+      "scraped_at": "2026-06-25T04:37:01.685913+00:00",
+      "wdr": "Scan-Speak_R2004_602200.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-666000/": {
+      "scraped_at": "2026-06-25T04:37:01.528581+00:00",
+      "wdr": "Scan-Speak_D3004_666000.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2004-602200/": {
+      "scraped_at": "2026-06-25T04:37:01.489097+00:00",
+      "wdr": "Scan-Speak_D2004_602200.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d3004-606005/": {
+      "scraped_at": "2026-06-25T04:37:02.257384+00:00",
+      "wdr": "Scan-Speak_D3004_606005.wdr",
+      "status": "ok"
+    },
+    "https://www.scan-speak.dk/product/d2906-972000/": {
+      "scraped_at": "2026-06-25T04:37:01.946396+00:00",
+      "wdr": "Scan-Speak_D2906_972000.wdr",
+      "status": "ok"
+    }
+  }
+}

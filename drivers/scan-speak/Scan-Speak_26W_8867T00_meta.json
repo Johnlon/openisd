@@ -1,0 +1,8 @@
+{
+  "file": "Scan-Speak_26W_8867T00.wdr",
+  "quality": "M",
+  "issue": "scraped_not_human_verified",
+  "detail": "Automatically scraped from Scan-Speak website (scraped 2026-06-25). T/S parameters have not been verified by a human against the datasheet.",
+  "datasheet": "https://www.scan-speak.dk/datasheet/pdf/26w-8867t00.pdf",
+  "reviewedBy": null
+}
