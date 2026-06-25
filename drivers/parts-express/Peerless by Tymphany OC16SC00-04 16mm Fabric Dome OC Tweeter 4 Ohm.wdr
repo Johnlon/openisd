@@ -28,4 +28,5 @@ numVC=1
 VCCon=2
 boxbench_dq_issue=Qts=1294.83: Physically impossible — no real driver has Qts near this value. Likely a data entry error. Correct value unknown; datasheet lookup required before use.
 boxbench_source=https://www.parts-express.com/Peerless-OC16SC00-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1522
+boxbench_vendorpage=https://www.tymphany.com/
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

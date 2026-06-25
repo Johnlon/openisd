@@ -55,41 +55,41 @@ def process_sb_acoustics():
     updated = 0
     fields_added = {'boxbench_vendorpage': 0, 'boxbench_source': 0}
 
-    for fname in os.listdir(wdr_dir):
-        if not fname.endswith('.wdr'):
-            continue
+    wdr_files = sorted(f for f in os.listdir(wdr_dir) if f.endswith('.wdr'))
+    total = len(wdr_files)
+    for i, fname in enumerate(wdr_files, 1):
         fpath = os.path.join(wdr_dir, fname)
         text = open(fpath, encoding='utf-8', errors='ignore').read()
 
-        # Already done?
         if get_field(text, 'boxbench_vendorpage'):
+            print(f'[{i}/{total}] SKIP {fname}', flush=True)
             continue
 
         ds = get_field(text, 'boxbench_datasheet')
         if not ds or not is_pdf(ds):
+            print(f'[{i}/{total}] NO-PDF {fname}', flush=True)
             continue
 
-        canonical = pdf_to_canonical.get(ds)
+        canonical = pdf_to_canonical.get(ds) or pdf_to_canonical.get(ds.split('?')[0])
         if not canonical:
-            # Try without query string
-            ds_base = ds.split('?')[0]
-            canonical = pdf_to_canonical.get(ds_base)
-        if not canonical:
+            print(f'[{i}/{total}] NO-MATCH {fname}', flush=True)
             continue
 
         orig = text
         text = set_field(text, 'boxbench_vendorpage', canonical)
         fields_added['boxbench_vendorpage'] += 1
-        # Source = same as vendor page (T/S data from SB Acoustics directly)
+        set_src = False
         if not get_field(text, 'boxbench_source'):
             text = set_field(text, 'boxbench_source', canonical)
             fields_added['boxbench_source'] += 1
+            set_src = True
 
         if text != orig:
             open(fpath, 'w', encoding='utf-8').write(text)
             updated += 1
+            print(f'[{i}/{total}] OK {fname}  vendorpage={canonical[:60]}{"  source=set" if set_src else ""}', flush=True)
 
-    print(f'SB Acoustics: {updated} files updated, {fields_added}')
+    print(f'\nSB Acoustics: {updated}/{total} files updated  {fields_added}')
     return updated
 
 # ── SoundImports ─────────────────────────────────────────────────────────────
@@ -126,9 +126,9 @@ def process_soundimports():
     fields_added = {'boxbench_source': 0, 'boxbench_vendorpage': 0,
                     'boxbench_datasheet_set': 0, 'boxbench_datasheet_cleared': 0}
 
-    for fname in sorted(os.listdir(wdr_dir)):
-        if not fname.endswith('.wdr'):
-            continue
+    wdr_files = sorted(f for f in os.listdir(wdr_dir) if f.endswith('.wdr'))
+    total = len(wdr_files)
+    for i, fname in enumerate(wdr_files, 1):
         fpath = os.path.join(wdr_dir, fname)
         text = open(fpath, encoding='utf-8', errors='ignore').read()
 
@@ -187,11 +187,18 @@ def process_soundimports():
             text = clear_field(text, 'boxbench_datasheet')
             fields_added['boxbench_datasheet_cleared'] += 1
 
+        added = []
         if text != orig:
             open(fpath, 'w', encoding='utf-8').write(text)
             updated += 1
+            if get_field(text, 'boxbench_source'):    added.append('src')
+            if get_field(text, 'boxbench_vendorpage'): added.append('vp')
+            if get_field(text, 'boxbench_datasheet'):  added.append('ds')
+            print(f'[{i}/{total}] OK  {fname}  +{",".join(added)}', flush=True)
+        else:
+            print(f'[{i}/{total}] --  {fname}', flush=True)
 
-    print(f'SoundImports: {updated} files updated, {fields_added}')
+    print(f'\nSoundImports: {updated}/{total} files updated  {fields_added}')
     return updated
 
 # ── Main ─────────────────────────────────────────────────────────────────────

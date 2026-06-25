@@ -30,4 +30,5 @@ boxbench_quality=M
 boxbench_fetched_sku=295-573
 boxbench_note=Original SKU 295-363 no longer returns API results. Data from RS150P-8A (295-573), a known Dayton Audio design revision of the same driver line. Parameter comparison: Fs 4% lower (49.1→47.1 Hz), Qts 6% higher (0.32→0.34), Xmax identical (4 mm), Vas 3% higher. Differences are within expected revision range.
 boxbench_source=https://www.parts-express.com/Dayton-Audio-RS150P-8-6-Reference-Paper-Woofer-8-Ohm-295-363
+boxbench_vendorpage=https://www.daytonaudio.com/
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

@@ -27,4 +27,5 @@ Dd=0.0451352
 numVC=1
 VCCon=2
 boxbench_source=https://www.parts-express.com/Visaton-SC4.7-ND-Full-Range-Driver-8-Ohm-292-592
+boxbench_vendorpage=https://www.visaton.de/
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC
