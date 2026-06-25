@@ -218,86 +218,47 @@ transformations log, not in per-file `_meta.json` scores.
 | Inch mark `"` in `Model=` or `Brand=` (e.g. `8"`)                                                             | Use the manufacturer's code verbatim — CHECK THE MANU WEBSITE. Do not substitute `in` for `"` or vice versa. Filenames only: replace `"` with `in` (OS constraint)                                                     |
 | Filename separator mismatch (`_`, `-`, `/`)                                                                   | Use the manufacturer's own separator from their datasheet or website — CHECK THE MANU WEBSITE. `/` becomes `_` in filenames only (OS constraint). If the correct separator cannot be confirmed: add quality **M**      |
 | `Brand=` empty or `00`, no name recoverable from fields                                                       | Attempt to derive the canonical manufacturer name from the filename. If derivable: set `Brand=` and `Model=` correctly, add quality **M** for human verification. If manufacturer cannot be derived: add quality **L** |
-| Any source (datasheet, manufacturer page, aggregator) was consulted to verify or correct data                 | Add a `"datasheet"` field to the `_meta.json` with the URL. Prefer the manufacturer's own website over aggregators like speakerboxlite                                                                                 |
-| `Model=` is a size/type description rather than a part number (e.g. `18in pro`)                               | Search the manufacturer's site or a reliable aggregator to identify the part number by matching T/S parameters. If confirmed: update `Model=` and add `"datasheet"`. If unconfirmed: add quality **M** with detail     |
-| Filename contains a year or version marker (e.g. `v2015`, `(2017)`)                                           | Add a `_meta.json` with quality **H** and a `"community"` field explaining the marker, e.g. `"v2015 in filename = 2015 revision"`                                                                                      |
+| Any source (datasheet, manufacturer page, aggregator) was consulted to verify or correct data                 | Set `boxbench_datasheet=<url>` in the WDR file. Prefer the manufacturer's own website over aggregators like speakerboxlite                                                                                             |
+| `Model=` is a size/type description rather than a part number (e.g. `18in pro`)                               | Search the manufacturer's site or a reliable aggregator to identify the part number by matching T/S parameters. If confirmed: update `Model=` and set `boxbench_datasheet`. If unconfirmed: add `boxbench_quality=M` with `boxbench_detail` |
+| Filename contains a year or version marker (e.g. `v2015`, `(2017)`)                                           | Set `boxbench_quality=H` and add `boxbench_community` explaining the marker, e.g. `"v2015 in filename = 2015 revision"`                                                                                               |
 | Filename contains extra description beyond the model number (series name, size, `-subwoofer` suffix, etc.)    | Not an issue — filenames are source identifiers only, not used in the UI. No meta needed unless there is a separate data problem                                                                                       |
 
 ---
 
-## Quality review and meta files
+## Quality review and provenance
 
-Every `.wdr` file **must** have a matching `<filename>_meta.json` file alongside it. This is not optional — the meta
-file is how a human reviewer knows whether to trust the data, where to check it, and whether it has been signed off.
+Quality metadata and all link references are stored **directly in the `.wdr` file** as `boxbench_` extension fields.
+There are no separate `_meta.json` files — everything lives in one place.
 
-**Why the datasheet link is critical:** The T/S parameters in a `.wdr` file are only as trustworthy as the source they
-came from. Without the datasheet URL a reviewer has no way to sanity-check the values, catch a unit-conversion error,
-or confirm the model number. The datasheet link is the chain of custody for the data. Always record it — even if you
-believe the data is correct.
+**Why the datasheet link is critical:** Without the datasheet URL a reviewer has no way to sanity-check values, catch a
+unit-conversion error, or confirm the model number. The datasheet link is the chain of custody for the data.
 
-### When to create a meta file
+See [`DRIVERS.md`](DRIVERS.md) for the complete `boxbench_` field schema, link-field population rules, data-quality
+checks, and exceptional paths.
 
-- **Always** — for every scraped or generated `.wdr` file, create a meta file at the same time. Do not wait.
-- **Always** — when a datasheet or manufacturer page was discovered or consulted, record the URL even if the data is correct and there
-  is no other issue. We MUST have the datasheet link for every file so that we can check manually and/or automate verification later and/or show it on the website.
-- **Always** — when human judgment is needed: wrong model number, ambiguous naming, missing T/S parameters.
+### Minimum scraper obligation
+
+Every scraper **must** write at minimum these fields into every `.wdr` it creates:
+
+```
+boxbench_datasheet=<manufacturer PDF URL — omit the line if not found>
+boxbench_vendor_page=<manufacturer product page URL>
+boxbench_source=<URL where T/S data was read from>
+boxbench_quality=M
+boxbench_issue=scraped_not_human_verified
+boxbench_detail=Automatically scraped from <vendor> on <date>. Not human-verified.
+```
+
+For measurement data links (`boxbench_frd`, `boxbench_impedance`) — follow the
+inspection workflow in `DRIVERS.md` before setting them. Never set `boxbench_frd`
+to a URL without verifying the content is frequency-response data.
 
 ### Quality scores
 
 | Score | Meaning |
 |-------|---------|
-| **H** | Filename or naming convention difference only — data is believed correct |
-| **M** | Naming inconsistency, scraper-generated (not human-verified), or other uncertainty |
-| **L** | Data integrity issue — values are suspected wrong, incomplete, or internally inconsistent |
+| **H** | Manufacturer-sourced, human-verified |
+| **M** | Scraped or otherwise unverified — default for all automated imports |
+| **L** | Known data problem — values suspected wrong, incomplete, or internally inconsistent |
 
-**Scraped files are always quality M until a human reviews them.** Automated extraction cannot confirm that the page
-correctly reflected the datasheet, that units were converted correctly, or that the model number matches the data.
-
-### Meta file schema
-
-```json
-{
-  "file": "<filename>.wdr",
-  "quality": "H | M | L",
-  "issue": "<short_snake_case_tag>",
-  "detail": "Human-readable description of the issue or provenance.",
-  "datasheet": "<url to manufacturer PDF or product page>",
-  "community": "Optional: notes about version markers or community provenance.",
-  "obsolete": true,
-  "reviewedBy": null
-}
-```
-
-Field notes:
-
-- `file` — basename of the `.wdr` file this meta describes; must match exactly.
-- `quality` — always set; use **M** for scraped/unverified, **H** for cosmetic-only issues, **L** for data problems.
-- `issue` — short snake_case tag identifying the issue type, e.g. `scraped_not_human_verified`, `model_name_uncertain`,
-  `missing_ts_params`. Omit if quality is H and there is no issue beyond the naming convention.
-- `detail` — free-text explanation a human reviewer can act on. For scrapers, include the source URL and what was
-  extracted. For manual edits, explain what was changed and why.
-- `datasheet` — **primary field**. URL of the manufacturer's datasheet PDF or product page. Prefer the manufacturer's
-  own website over aggregators (speakerboxlite, parts-express, etc.). Include this field whenever you have a source —
-  omit only if no source was found at all.
-- `community` — add when the data comes from community measurement, a forum post, or a file with a version/date marker.
-- `obsolete` — set to `true` when the driver is confirmed discontinued. Omit otherwise.
-- `reviewedBy` — set to the reviewer's name or handle when the data has been manually verified. `null` until then.
-
-### Scraper obligation
-
-Every scraper script **must** write a `_meta.json` alongside every `.wdr` it creates, containing at minimum:
-
-```json
-{
-  "file": "Brand Model.wdr",
-  "quality": "M",
-  "issue": "scraped_not_human_verified",
-  "detail": "Automatically scraped from <vendor> website on <date>. Parameters not verified by a human.",
-  "datasheet": "<pdf url if found>",
-  "reviewedBy": null
-}
-```
-
-The `datasheet` field must be set to the PDF URL whenever the scraper finds one — this is the primary purpose of
-downloading the PDF link. The PDF itself can be downloaded to `datasheets/` for local reference, but the URL in the
-meta file is what matters for reviewers.
+Scraped files are always **M** until a human verifies the T/S values against the datasheet.
