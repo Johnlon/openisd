@@ -35,6 +35,7 @@ export const state = reactive({
   pinnedF:     null,
   cursorLocked: false,
   browseOpen:  false,
+  browseMode:  'select',   // 'select' = load into project on click | 'browse' = show summary only
 });
 
 let _saveTimer = null;

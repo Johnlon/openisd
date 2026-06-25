@@ -37,6 +37,9 @@ function toggleLock() {
 
 <template>
   <div class="gtoolbar">
+    <button @click="state.browseMode = 'browse'; state.browseOpen = true"
+            title="Browse the driver library — view specs and datasheets without changing the current design">Browse drivers</button>
+    <span class="sep"></span>
     <span class="lab">Graphs:</span>
     <span v-for="t in TABS" :key="t.id"
           class="gchip" :class="{ on: state.graphs.includes(t.id) }"

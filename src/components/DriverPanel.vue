@@ -37,7 +37,7 @@ function numInput(key, scale, val) {
   <fieldset>
     <legend>Driver</legend>
     <div class="row" style="margin-bottom:6px">
-      <button style="flex:1" @click="state.browseOpen = true" title="Open the driver library to search and load a driver from the community database">Browse driver library…</button>
+      <button style="flex:1" @click="state.browseMode = 'select'; state.browseOpen = true" title="Open the driver library and select a driver to load into the current design">Select driver…</button>
     </div>
     <template v-if="!state.editDriver">
       <div class="drvsum" @click="state.editDriver = true" title="Click to edit driver Thiele/Small parameters — opens the full T/S parameter editor">

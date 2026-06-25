@@ -242,52 +242,123 @@ async function loadCustom() {
   customUrl.value = '';
 }
 
-// ── Pick a driver ────────────────────────────────────────────────────────────
+// ── Pick / preview a driver ──────────────────────────────────────────────────
 
-async function pickFile(f) {
-  // SpeakerBoxLite drivers carry T/S data inline; convert to WDR format
+const previewFile = ref(null);
+
+// Lightweight WDR parser — returns whatever it finds, never throws
+function parseWdrLoose(content) {
+  const raw = {};
+  for (const line of (content || '').split(/\r?\n/)) {
+    const i = line.indexOf('=');
+    if (i < 0 || line.startsWith('[')) continue;
+    raw[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+  return raw;
+}
+
+const previewData = computed(() => {
+  const f = previewFile.value;
+  if (!f) return null;
+
+  const links = [];
+  if (f.datasheet) links.push({ href: f.datasheet, label: 'Datasheet (PDF)' });
+  if (f.manupage)  links.push({ href: f.manupage,  label: 'Manufacturer page' });
+  if (f.vendorpage && f.vendorpage !== f.manupage) links.push({ href: f.vendorpage, label: 'Vendor page' });
+  if (f.frd)       links.push({ href: f.frd,        label: 'FRD / ZMA data' });
+
+  if (f.sblData) {
+    const d = f.sblData;
+    const n = v => (v != null && isFinite(v) && v !== 0) ? v : null;
+    const Fs = n(d.fs), Qes = n(d.qes);
+    return {
+      name: f.name, source: f.sourceName, providedBy: '', links,
+      specs: [
+        { label: 'Fs',   value: Fs?.toFixed(1),                    unit: 'Hz'   },
+        { label: 'Qts',  value: n(d.qts)?.toFixed(3) },
+        { label: 'Qes',  value: Qes?.toFixed(3) },
+        { label: 'Qms',  value: n(d.qms)?.toFixed(3) },
+        { label: 'Re',   value: n(d.re)?.toFixed(2),               unit: 'Ω'    },
+        { label: 'BL',   value: n(d.bl)?.toFixed(2),               unit: 'T·m'  },
+        { label: 'Vas',  value: n(d.vas_l)?.toFixed(2),            unit: 'L'    },
+        { label: 'Sd',   value: n(d.sd_cm2)?.toFixed(1),           unit: 'cm²'  },
+        { label: 'Xmax', value: n(d.xmax_mm)?.toFixed(1),          unit: 'mm'   },
+        { label: 'Pe',   value: n(d.pe)?.toFixed(0),               unit: 'W'    },
+        { label: 'EBP',  value: (Fs && Qes) ? (Fs/Qes).toFixed(0) : null       },
+      ].filter(s => s.value != null),
+    };
+  }
+
+  const raw = parseWdrLoose(f.content);
+  const n = k => { const v = parseFloat(raw[k]); return isFinite(v) && v !== 0 ? v : null; };
+  const Fs = n('Fs'), Qes = n('Qes'), Le = n('Le'), Vas = n('Vas'), Sd = n('Sd'), Xmax = n('Xmax');
+  return {
+    name: f.name,
+    source: f.sourceName,
+    providedBy: raw.ProvidedBy || '',
+    links,
+    specs: [
+      { label: 'Fs',   value: Fs?.toFixed(1),                     unit: 'Hz'   },
+      { label: 'Qts',  value: n('Qts')?.toFixed(3) },
+      { label: 'Qes',  value: Qes?.toFixed(3) },
+      { label: 'Qms',  value: n('Qms')?.toFixed(3) },
+      { label: 'Re',   value: n('Re')?.toFixed(2),                unit: 'Ω'    },
+      { label: 'Znom', value: n('Znom')?.toFixed(0),              unit: 'Ω'    },
+      { label: 'Le',   value: Le ? (Le*1000).toFixed(3) : null,   unit: 'mH'   },
+      { label: 'BL',   value: n('BL')?.toFixed(2),                unit: 'T·m'  },
+      { label: 'Vas',  value: Vas ? (Vas*1000).toFixed(2) : null, unit: 'L'    },
+      { label: 'Sd',   value: Sd ? (Sd*1e4).toFixed(1) : null,   unit: 'cm²'  },
+      { label: 'Xmax', value: Xmax ? (Xmax*1000).toFixed(1):null, unit: 'mm'   },
+      { label: 'Pe',   value: n('Pe')?.toFixed(0),                unit: 'W'    },
+      { label: 'SPL',  value: n('SPL')?.toFixed(1),               unit: 'dB'   },
+      { label: 'EBP',  value: (Fs && Qes) ? (Fs/Qes).toFixed(0) : null        },
+    ].filter(s => s.value != null),
+  };
+});
+
+async function loadDriver(f) {
   if (f.sblData) {
     const d = f.sblData;
     const raw = {
-      name:  f.name,
-      brand: d.brand || '', model: d.model || '',
+      name:  f.name, brand: d.brand || '', model: d.model || '',
       Fs: d.fs, Qts: d.qts, Qes: d.qes, Qms: d.qms,
-      Vas: d.vas_l != null ? d.vas_l / 1000 : undefined,  // L → m³
-      Sd: d.sd_cm2 != null ? d.sd_cm2 / 1e4 : undefined,  // cm² → m²
-      Re: d.re, Le: d.le_mh != null ? d.le_mh / 1000 : undefined, // mH → H
-      Bl: d.bl,
-      Xmax: d.xmax_mm != null ? d.xmax_mm / 1000 : undefined, // mm → m
-      Mms: d.mms_g  != null ? d.mms_g  / 1000 : undefined, // g → kg
-      Cms: d.cms_mm_n != null ? 1 / (d.cms_mm_n * 1000) : undefined, // mm/N → m/N
-      Rms: d.rms,
-      Pe:  d.pe,
+      Vas:  d.vas_l   != null ? d.vas_l   / 1000   : undefined,
+      Sd:   d.sd_cm2  != null ? d.sd_cm2  / 1e4    : undefined,
+      Re:   d.re,
+      Le:   d.le_mh   != null ? d.le_mh   / 1000   : undefined,
+      Bl:   d.bl,
+      Xmax: d.xmax_mm != null ? d.xmax_mm / 1000   : undefined,
+      Mms:  d.mms_g   != null ? d.mms_g   / 1000   : undefined,
+      Cms:  d.cms_mm_n!= null ? 1 / (d.cms_mm_n * 1000) : undefined,
+      Rms:  d.rms, Pe: d.pe,
     };
-    // strip undefined fields so deriveDriver uses its own defaults
     Object.keys(raw).forEach(k => raw[k] === undefined && delete raw[k]);
     state.driverRaw = raw;
-    state.browseOpen = false;
-    return;
+    state.browseOpen = false; previewFile.value = null; return;
   }
-  // Bundled drivers carry inline content — no network call needed
   if (f.content) {
     state.driverRaw = parseWdr(f.content);
-    state.browseOpen = false;
-    return;
+    state.browseOpen = false; previewFile.value = null; return;
   }
   statusErr.value = false; statusMsg.value = 'Loading ' + f.name + '…';
   try {
     const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path.split('/').map(encodeURIComponent).join('/')}`;
     const r = await fetch(url); if (!r.ok) throw new Error('fetch failed (' + r.status + ')');
     state.driverRaw = parseWdr(await r.text());
-    state.browseOpen = false;
+    state.browseOpen = false; previewFile.value = null;
   } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + err.message; }
+}
+
+function pickFile(f) {
+  if (state.browseMode === 'select') { loadDriver(f); return; }
+  previewFile.value = f;
 }
 
 function openSourceUrl(url) {
   if (url) window.open(url, '_blank', 'noopener');
 }
 
-watch(() => state.browseOpen, val => { if (val) init(); });
+watch(() => state.browseOpen, val => { if (val) init(); else previewFile.value = null; });
 function close() { state.browseOpen = false; }
 function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
 </script>
@@ -296,10 +367,11 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
   <div class="overlay" :class="{ on: state.browseOpen }" @click="onBackdrop">
     <div class="modal" v-if="state.browseOpen">
       <h2>
-        Browse driver library
+        {{ state.browseMode === 'select' ? 'Select driver' : (previewFile ? previewData.name : 'Browse driver library') }}
         <span class="x" @click="close" title="Close the driver library browser">&times;</span>
       </h2>
       <div class="body">
+        <template v-if="!previewFile">
         <input class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
         <div class="src-row">
           <div class="src-wrap">
@@ -331,7 +403,33 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
             {{ sblLoading ? 'Loading…' : '+ SpeakerBoxLite' }}
           </button>
         </div>
-        <div class="dlist">
+        </template><!-- end !previewFile controls -->
+        <!-- ── Driver summary (browse mode) ── -->
+        <div v-if="previewFile && previewData" class="preview">
+          <div class="prev-nav">
+            <button @click="previewFile = null" title="Back to driver list">← Back</button>
+            <button class="use-btn" @click="loadDriver(previewFile)"
+                    title="Load this driver into the current design">Use this driver</button>
+          </div>
+          <div class="prev-body">
+            <div class="prev-specs">
+              <div v-for="s in previewData.specs" :key="s.label" class="spec-row">
+                <span class="spec-lbl">{{ s.label }}</span>
+                <span class="spec-val"><b>{{ s.value }}</b><span v-if="s.unit" class="spec-unit"> {{ s.unit }}</span></span>
+              </div>
+            </div>
+            <div v-if="previewData.links.length" class="prev-links">
+              <a v-for="lnk in previewData.links" :key="lnk.href"
+                 :href="lnk.href" target="_blank" rel="noopener"
+                 class="prev-link">{{ lnk.label }} ↗</a>
+            </div>
+            <div v-if="previewData.providedBy" class="prev-source">{{ previewData.providedBy }}</div>
+            <div v-else-if="previewData.source" class="prev-source">{{ previewData.source }}</div>
+          </div>
+        </div>
+
+        <!-- ── Driver list ── -->
+        <div v-else class="dlist">
           <div v-for="f in filteredFiles.slice(0, 500)" :key="(f.sourceName || '') + (f.path || '') + f.name"
                :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
                @click="pickFile(f)">
@@ -359,7 +457,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
           <div v-if="!filteredFiles.length && !statusErr" class="status loading">
             {{ filterQ ? 'No matching drivers.' : 'Loading…' }}
           </div>
-        </div>
+        </div><!-- end dlist -->
         <div class="addrow">
           <input v-model="customUrl" placeholder="Add GitHub source: owner/repo or full URL"
                  @keydown.enter="loadCustom"
@@ -414,4 +512,18 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .src-name { flex:1; }
 .src-count { font-size:10px; color:var(--mut); }
 .src-backdrop { position:fixed; inset:0; z-index:9; }
+.preview { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.prev-nav { display:flex; justify-content:space-between; align-items:center; gap:8px; padding-bottom:6px; }
+.use-btn { font-size:11px; padding:3px 10px; background:var(--acc); color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600; }
+.use-btn:hover { opacity:0.85; }
+.prev-body { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+.prev-specs { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:4px 12px; }
+.spec-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 6px; background:var(--bg); border-radius:3px; font-size:12px; }
+.spec-lbl { color:var(--mut); }
+.spec-val { font-variant-numeric:tabular-nums; }
+.spec-unit { color:var(--mut); font-size:10px; }
+.prev-links { display:flex; flex-direction:column; gap:5px; }
+.prev-link { font-size:12px; color:var(--acc); text-decoration:none; padding:5px 8px; border:1px solid var(--acc); border-radius:4px; }
+.prev-link:hover { background:var(--acc); color:var(--bg); }
+.prev-source { font-size:11px; color:var(--mut); }
 </style>
