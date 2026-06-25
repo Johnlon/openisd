@@ -52,4 +52,6 @@ boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SB Acoustics website (scraped 2026-06-24). T/S parameters have not been verified by a human against the datasheet.
 boxbench_corrections=Re-scraped to fix HTML entity bug: &#8211; was not decoded before parse_number, causing 8211 to be parsed as field values (Qts=Qes=Qms=8211 or Cms=Vas=8.211). Fix applied 2026-06-25.
+boxbench_vendorpage=https://sbacoustics.com/product/sb14st-c000-4
+boxbench_source=https://sbacoustics.com/product/sb14st-c000-4
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

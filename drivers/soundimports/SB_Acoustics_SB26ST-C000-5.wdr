@@ -49,4 +49,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/SB%20Acoustics/SB26ST-
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/sb-acoustics-sb26st-c000-5.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

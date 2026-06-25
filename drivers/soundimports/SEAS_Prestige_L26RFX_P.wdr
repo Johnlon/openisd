@@ -53,4 +53,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/Seas/L26RFXP/pdf_Seas_
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/seas-l26rfx-p.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

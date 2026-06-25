@@ -56,14 +56,17 @@ for (const src of sources) {
     const dm = content.match(/^DateModified=(.+)$/m);
     const da = content.match(/^DateAdded=(.+)$/m);
     const date = (dm?.[1] || da?.[1] || '').trim();
-    // Extract datasheet URL from boxbench_datasheet= field in WDR content
-    const ds = content.match(/^boxbench_datasheet=(.+)$/m);
-    const datasheet = ds ? ds[1].trim() : '';
+    // Extract link fields from WDR boxbench_ fields
+    const ds  = content.match(/^boxbench_datasheet=(.+)$/m);
+    const vp  = content.match(/^boxbench_vendorpage=(.+)$/m);
+    const datasheet  = ds ? ds[1].trim() : '';
+    const vendorpage = vp ? vp[1].trim() : '';
     return {
       name: p.split(/[\\/]/).pop().replace(/\.wdr$/i, ''),
       date,
       content,
-      ...(datasheet ? { datasheet } : {}),
+      ...(datasheet  ? { datasheet }  : {}),
+      ...(vendorpage ? { vendorpage } : {}),
     };
   });
 

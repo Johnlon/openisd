@@ -49,4 +49,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/Morel/TSCT1044/Morel-T
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/morel-tsct1044.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

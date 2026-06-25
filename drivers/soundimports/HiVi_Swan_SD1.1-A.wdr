@@ -43,4 +43,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/HiVi/SD1.1-A/pdf_HiVi_
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/hivi-sd11-a.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

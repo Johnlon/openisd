@@ -56,4 +56,6 @@ boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SB Acoustics website (scraped 2026-06-24). T/S parameters have not been verified by a human against the datasheet.
 boxbench_corrections=Corrected parser bug: HTML entity &#8211; (en-dash) was not decoded before parse_number, causing "8211" to be matched instead of actual Q values (Qts/Qes/Qms were all 8211, Le was 8.211H). Fix: html.unescape() applied to li text before parsing. Values now confirmed against SB26STWGC-4 datasheet PDF
+boxbench_vendorpage=https://sbacoustics.com/product/sb26stwgc-4-fabric
+boxbench_source=https://sbacoustics.com/product/sb26stwgc-4-fabric
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

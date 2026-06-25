@@ -17,3 +17,5 @@ boxbench_datasheet=https://sbacoustics.com/wp-content/uploads/2022/03/SATORI-AT6
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SB Acoustics website (scraped 2026-06-24). T/S parameters have not been verified by a human against the datasheet.
+boxbench_vendorpage=https://sbacoustics.com/product/at60nc-4-kapton
+boxbench_source=https://sbacoustics.com/product/at60nc-4-kapton

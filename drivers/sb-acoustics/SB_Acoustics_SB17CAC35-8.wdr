@@ -28,3 +28,5 @@ boxbench_datasheet=https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17CA
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SB Acoustics website (scraped 2026-06-24). T/S parameters have not been verified by a human against the datasheet.
+boxbench_vendorpage=https://sbacoustics.com/product/6in-sb17cac35-8
+boxbench_source=https://sbacoustics.com/product/6in-sb17cac35-8

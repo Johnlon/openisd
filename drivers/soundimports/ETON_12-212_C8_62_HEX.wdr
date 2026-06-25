@@ -58,4 +58,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/ETON/12-212-C8-62/12-2
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

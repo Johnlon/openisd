@@ -57,4 +57,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/Scan-Speak/26W-4558T06
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/scan-speak-26w4558t06.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

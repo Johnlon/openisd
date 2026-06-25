@@ -45,8 +45,9 @@ WinISD and other parsers ignore these lines.
 
 | Field | Type | Description |
 |---|---|---|
-| `boxbench_datasheet` | URL | Direct link to the manufacturer datasheet (PDF or product page). Shown as a clickable link in the driver panel. |
-| `boxbench_source` | URL | Product or listing page from which T/S data was fetched. |
+| `boxbench_datasheet` | URL | Direct link to the manufacturer datasheet — **must be a PDF or downloadable document**. Shown as **Datasheet ↗** only when present *and* different from `boxbench_vendorpage`. Do not set this to a product page URL; use `boxbench_vendorpage` for that. |
+| `boxbench_vendorpage` | URL | The manufacturer's own product page for this driver (e.g. `https://sbacoustics.com/product/sb17mfc35-4/`). Shown as **Vendor page ↗** whenever present. |
+| `boxbench_source` | URL | The retailer or community page where the T/S data was obtained (e.g. a Parts Express listing, a SoundImports product page, a GitHub repo). Shown as **Source ↗** only when present *and* different from `boxbench_vendorpage`. |
 | `boxbench_quality` | `H` / `M` / `L` | Data confidence level: **H** = full T/S from manufacturer with exact SKU match; **M** = fetched from a related/successor SKU or cross-checked; **L** = estimated (Re = 0.85 × Znom, Sd from baffle cutout, secondary parameters blank). |
 | `boxbench_issue` | string | Short code for a known data issue (e.g. `scraped_not_human_verified`, `model_corrected`, `filename_convention`). |
 | `boxbench_detail` | string | Human-readable explanation of the issue or quality note. |

@@ -45,16 +45,25 @@ function numInput(key, scale, val) {
         Bl {{ drv.Bl.toFixed(1) }} Tm ·
         Mms {{ (drv.Mms*1000).toFixed(1) }} g
       </div>
-      <div v-if="d.providedBy || d.comment || d.datasheetUrl || d.sourceUrl" class="drvsource">
+      <div v-if="d.providedBy || d.comment || d.datasheetUrl || d.vendorpageUrl || d.sourceUrl" class="drvsource">
         <span v-if="d.providedBy">{{ d.providedBy }}</span>
         <span v-if="d.providedBy && d.comment"> · </span>
         <span v-if="d.comment">{{ d.comment }}</span>
-        <span v-if="(d.providedBy || d.comment) && (d.datasheetUrl || d.sourceUrl)"> · </span>
-        <a v-if="d.datasheetUrl" :href="d.datasheetUrl" target="_blank" rel="noopener"
-           title="Open manufacturer datasheet (PDF) in a new window">Datasheet ↗</a>
-        <span v-if="d.datasheetUrl && d.sourceUrl"> · </span>
-        <a v-if="d.sourceUrl" :href="d.sourceUrl" target="_blank" rel="noopener"
-           :title="'Open product page: ' + d.sourceUrl">Source ↗</a>
+        <template v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl">
+          <span v-if="d.providedBy || d.comment"> · </span>
+          <a :href="d.datasheetUrl" target="_blank" rel="noopener"
+             title="Open manufacturer datasheet (PDF) in a new window">Datasheet ↗</a>
+        </template>
+        <template v-if="d.vendorpageUrl">
+          <span v-if="d.providedBy || d.comment || (d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl)"> · </span>
+          <a :href="d.vendorpageUrl" target="_blank" rel="noopener"
+             title="Open manufacturer product page in a new window">Vendor page ↗</a>
+        </template>
+        <template v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl">
+          <span v-if="d.providedBy || d.comment || d.datasheetUrl || d.vendorpageUrl"> · </span>
+          <a :href="d.sourceUrl" target="_blank" rel="noopener"
+             title="Open the source listing where T/S data was obtained">Source ↗</a>
+        </template>
       </div>
     </template>
     <template v-else>
@@ -93,11 +102,17 @@ function numInput(key, scale, val) {
         Derived: Bl={{ drv.Bl.toFixed(2) }} Tm, Mms={{ (drv.Mms*1000).toFixed(1) }} g,
         Cms={{ (drv.Cms*1000).toFixed(3) }} mm/N
       </div>
-      <div v-if="d.datasheetUrl || d.sourceUrl" class="drvsource" style="margin-top:4px">
-        <a v-if="d.datasheetUrl" :href="d.datasheetUrl" target="_blank" rel="noopener"
+      <div v-if="d.datasheetUrl || d.vendorpageUrl || d.sourceUrl" class="drvsource" style="margin-top:4px">
+        <a v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl"
+           :href="d.datasheetUrl" target="_blank" rel="noopener"
            title="Open manufacturer datasheet (PDF) in a new window">Datasheet ↗</a>
-        <a v-if="d.sourceUrl" :href="d.sourceUrl" target="_blank" rel="noopener"
-           :title="'Open product page: ' + d.sourceUrl">Source ↗</a>
+        <span v-if="d.datasheetUrl && d.datasheetUrl !== d.vendorpageUrl && d.vendorpageUrl"> · </span>
+        <a v-if="d.vendorpageUrl" :href="d.vendorpageUrl" target="_blank" rel="noopener"
+           title="Open manufacturer product page in a new window">Vendor page ↗</a>
+        <span v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl && (d.datasheetUrl || d.vendorpageUrl)"> · </span>
+        <a v-if="d.sourceUrl && d.sourceUrl !== d.vendorpageUrl"
+           :href="d.sourceUrl" target="_blank" rel="noopener"
+           title="Open the source listing where T/S data was obtained">Source ↗</a>
       </div>
       <div class="btns">
         <button @click="state.editDriver = false" title="Collapse the driver parameter editor and return to the summary view">Done editing</button>

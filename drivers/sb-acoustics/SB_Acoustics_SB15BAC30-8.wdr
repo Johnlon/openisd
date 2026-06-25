@@ -28,3 +28,5 @@ boxbench_datasheet=https://sbacoustics.com/wp-content/uploads/2026/03/5-inch-SB1
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SB Acoustics website (scraped 2026-06-24). T/S parameters have not been verified by a human against the datasheet.
+boxbench_vendorpage=https://sbacoustics.com/product/sb15bac30-8-coax
+boxbench_source=https://sbacoustics.com/product/sb15bac30-8-coax

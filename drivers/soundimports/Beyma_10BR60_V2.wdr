@@ -59,4 +59,5 @@ boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
 boxbench_corrections=Mms corrected 4.4e-5->0.044 kg (SI published in kg, scraper applied g->kg factor twice); Sd corrected 3.8e-6->0.038 m2 (SI published in m2, scraper applied cm2->m2 factor); Cms corrected 0.693->0.000693 m/N (SI published in um/N, scraper applied mm/N factor); confirmed against Beyma 10BR60V2 datasheet PDF
+boxbench_source=https://www.soundimports.eu/en/beyma-10br60v2.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

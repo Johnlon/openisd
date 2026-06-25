@@ -57,4 +57,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/Tang%20Band/W3-315E/pd
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/tang-band-w3-315e.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

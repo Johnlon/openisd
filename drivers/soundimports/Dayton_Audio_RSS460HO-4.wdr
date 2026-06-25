@@ -58,4 +58,5 @@ boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
 boxbench_corrections=Sd corrected 0.0001164->0.1164 m2 (parse_number comma bug: "1,164.0 cm2" parsed as 1.164); all other values confirmed against Dayton RSS460HO-4 datasheet PDF
+boxbench_source=https://www.soundimports.eu/en/dayton-audio-rss460ho-4.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

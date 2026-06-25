@@ -58,4 +58,5 @@ boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
 boxbench_corrections=Pe corrected 1.0W->500W (parse_number comma bug: "1,000 watts"->1.0); Sd corrected 0.0001241->0.12411 m2 ("1,241.1 cm2" parsed as 1.241); both confirmed against Dayton Audio PA460-8 datasheet (user-provided)
+boxbench_source=https://www.soundimports.eu/en/dayton-audio-pa460-8.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

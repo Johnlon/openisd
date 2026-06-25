@@ -126,7 +126,8 @@ async function init() {
       name: f.name,
       content: f.content,
       date: f.date || '',
-      datasheet: f.datasheet || '',
+      datasheet:   f.datasheet   || '',
+      vendorpage:  f.vendorpage  || '',
       path: null, repo: null, branch: null,
       sourceName: src.name,
       sourceUrl:  src.url || '',
@@ -292,8 +293,12 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
             <b>{{ f.name }}</b>
             <span class="dmeta">
               <span v-if="f._nd" :class="['ddate', f._isLatest && 'ddate-latest', f._isOlder && 'ddate-older']">{{ f._nd }}</span>
-              <a v-if="f.datasheet" class="dpdf" :href="f.datasheet" target="_blank" rel="noopener"
-                 :title="f.datasheet" @click.stop>{{ f.datasheet.match(/\.pdf(\?|$)/i) ? 'PDF' : '↗' }}</a>
+              <a v-if="f.datasheet && f.datasheet !== f.vendorpage" class="dpdf"
+                 :href="f.datasheet" target="_blank" rel="noopener"
+                 title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
+              <a v-if="f.vendorpage" class="dpdf"
+                 :href="f.vendorpage" target="_blank" rel="noopener"
+                 title="Open manufacturer product page" @click.stop>Vendor ↗</a>
               <a v-if="f.sourceUrl" class="stag"
                  :title="f.sourceUrl + (f.sourceDesc ? ' — ' + f.sourceDesc : '')"
                  @click.stop.prevent="openSourceUrl(f.sourceUrl)">{{ f.sourceName }}</a>

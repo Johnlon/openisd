@@ -56,4 +56,5 @@ boxbench_datasheet=https://doc.soundimports.nl/pdf/brands/purifi/PTT6.5M08-NFA-0
 boxbench_quality=M
 boxbench_issue=scraped_not_human_verified
 boxbench_detail=Automatically scraped from SoundImports (scraped via soundimports.eu). T/S parameters have not been verified by a human against the datasheet.
+boxbench_source=https://www.soundimports.eu/en/purifi-ptt65m08-nfa-01.html
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC
