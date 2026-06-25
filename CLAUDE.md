@@ -33,6 +33,12 @@ These rules apply to all `boxbench_` fields in WDR files, and to any commentary 
 - An AI writing that it "confirmed" or "verified" data in `boxbench_corrections` does NOT count as human verification, even if the AI performed checks. `boxbench_corrections` is AI-owned and must never contain verification language implying human sign-off.
 - `boxbench_reviewedBy` must remain `null` or unset until the user explicitly authorises it for a specific driver or batch.
 
+## Driver data — batch fix SOP
+- **Datasheet first, always.** Before applying any automated DQ fix to a WDR field, read the cached datasheet from `drivers/<collection>/datasheets/` and confirm the correct value is there. Never apply a batch fix on pattern alone.
+- **Be suspicious of repetition.** If multiple drivers in a family produce identical values, verify each PDF independently — the match may be a regex hitting boilerplate rather than real per-driver data.
+- **If the field doesn't exist in the datasheet, don't invent it.** Omit the field and add a `boxbench_corrections` note explaining why — e.g. AMT tweeters have no T/S Fs; compression drivers rarely publish Fs. A missing field is more honest than a plausible-sounding placeholder.
+- **Record datasheet evidence in `boxbench_corrections`.** State what the datasheet says and which file it came from. This lets a future reviewer verify the fix without re-fetching the PDF.
+
 ## External claims — require evidence, label inline
 - Never assert facts about external systems — tools (WinISD, LEAP, REW, etc.), websites, services, APIs, or data sources — without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
 - **The user must not have to verify my claims.** Any external claim that has not been verified in the current session must be flagged inline in the response with "⚠ unverified" before it reaches the user — not corrected after they catch it.
