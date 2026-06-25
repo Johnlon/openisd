@@ -77,7 +77,7 @@ function classifyTypes(Fs, Sd, nameStr) {
   if (SUB_PAT.test(nm))      { types.add('sub'); types.add('woofer'); types.add('bass'); }
   if (MIDBASS_PAT.test(nm))  { types.add('woofer'); types.add('mid'); types.add('bass'); }
   if (WOOFER_PAT.test(nm) && !MIDBASS_PAT.test(nm)) { types.add('woofer'); types.add('bass'); }
-  if (MIDRANGE_PAT.test(nm)) types.add('mid');
+  if (MIDRANGE_PAT.test(nm)) { types.add('mid'); types.add('woofer'); }  // cone driver, not bass, not tweet
   if (FULLRANGE_PAT.test(nm)){ types.add('woofer'); types.add('mid'); types.add('tweet'); types.add('bass'); types.add('fullrange'); }
   if (BMR_PAT.test(nm))      { types.add('mid'); types.add('tweet'); }  // NOT bass
 

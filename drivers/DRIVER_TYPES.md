@@ -22,7 +22,7 @@ driver that carries that label.
 | Subwoofer | `sub` + `woofer` + `bass` |
 | Woofer | `woofer` + `bass` |
 | Mid-bass / mid-woofer / midbass | `woofer` + `mid` + `bass` |
-| Midrange / mid-range | `mid` |
+| Midrange / mid-range | `woofer` + `mid` (cone driver like a woofer, but no bass, no tweet) |
 | Full-range / fullrange | `woofer` + `mid` + `tweet` + `bass` + `fullrange` |
 | BMR / balanced mode radiator | `mid` + `tweet` (**not** bass — needs a separate woofer for LF) |
 | Tweeter / dome / ribbon / planar / AMT / air motion | `tweet` |
@@ -36,7 +36,7 @@ driver that carries that label.
    - Subwoofer/sub → `sub` + `woofer` + `bass`
    - Mid-bass/mid-woofer/midbass → `woofer` + `mid` + `bass`
    - Woofer (without mid-bass qualifier) → `woofer` + `bass`
-   - Midrange/mid-range → `mid`
+   - Midrange/mid-range → `woofer` + `mid` (cone driver; not bass, not tweet)
    - Full-range/fullrange → `woofer` + `mid` + `tweet` + `bass` + `fullrange`
    - BMR/balanced mode → `mid` + `tweet`
 3. **T/S parameter fallbacks** (for drivers with non-descriptive model numbers):
@@ -66,7 +66,7 @@ PR       ◯ orthogonal — no frequency range
 **Key relationships (verified 2026-06-25):**
 - Sub IS-A woofer (a woofer optimised for very low frequencies only)
 - Mid-bass IS-A woofer AND IS-A mid (sits in both ranges)
-- Midrange is NOT a woofer (dedicated mid driver, no bass extension)
+- Midrange IS a woofer (same cone construction) but NOT bass (no LF extension) and NOT tweet
 - Full-range covers woofer + mid + tweet
 - BMR = mid + tweet only — Tectonic (BMR inventor) sells separate woofers for bass
 - AMT = a type of tweeter (Air Motion Transformer, can cross as low as 650 Hz)
