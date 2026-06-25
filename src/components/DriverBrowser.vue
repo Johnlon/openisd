@@ -292,7 +292,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
             <span class="dmeta">
               <span v-if="f._nd" :class="['ddate', f._isLatest && 'ddate-latest', f._isOlder && 'ddate-older']">{{ f._nd }}</span>
               <a v-if="f.datasheet" class="dpdf" :href="f.datasheet" target="_blank" rel="noopener"
-                 title="Open datasheet PDF" @click.stop>PDF</a>
+                 :title="f.datasheet" @click.stop>{{ f.datasheet.match(/\.pdf(\?|$)/i) ? 'PDF' : '↗' }}</a>
               <a v-if="f.sourceUrl" class="stag"
                  :title="f.sourceUrl + (f.sourceDesc ? ' — ' + f.sourceDesc : '')"
                  @click.stop.prevent="openSourceUrl(f.sourceUrl)">{{ f.sourceName }}</a>
