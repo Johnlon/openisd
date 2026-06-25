@@ -33,6 +33,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dq_check import check_fields
+
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; resonate-scraper/1.0)"}
 DEFAULT_DELAY_S = 1.0
 
@@ -280,91 +282,6 @@ def safe_filename(name: str) -> str:
     return re.sub(r"[^\w\-.]", "_", name).strip("_") + ".wdr"
 
 
-def validate_ts_fields(fields: dict, label: str = "") -> list[str]:
-    """
-    Check T/S field values for physically impossible or highly suspicious values.
-    Returns a list of human-readable warning strings (empty = all OK).
-    Mirrors the rules in scripts/dq-check.mjs — keep both in sync.
-    Called by the scraper before writing a WDR so bad values are caught at
-    source, not discovered later by the DQ check.
-    """
-    warnings = []
-    tag = f"[{label}] " if label else ""
-
-    def v(key):
-        val = fields.get(key)
-        try:
-            return float(val) if val is not None else None
-        except (TypeError, ValueError):
-            return None
-
-    # Zero fields — scraper artifact
-    for key in ("Fs","Qts","Qes","Qms","Re","BL","Mms","Sd","Vas","Xmax","Pe"):
-        if key in fields and v(key) == 0:
-            warnings.append(f"{tag}{key}=0 — scraper artifact (blank cell → 0); field will be omitted")
-
-    # Fs
-    fs = v("Fs")
-    if fs is not None:
-        if 0 < fs < 5:
-            warnings.append(f"{tag}Fs={fs} < 5 Hz — dot-thousands scraper bug? e.g. '1.600 Hz' → 1.6; should be {fs*1000:.0f} Hz")
-        if fs > 5000:
-            warnings.append(f"{tag}Fs={fs} > 5000 Hz — implausible for a cone driver")
-
-    # Pe
-    pe = v("Pe")
-    if pe == 1:
-        warnings.append(f"{tag}Pe=1 W — dot/comma-thousands scraper bug; e.g. '1.000 W' → 1")
-
-    # Qts vs Qes
-    qts, qes = v("Qts"), v("Qes")
-    if qts and qes and qts >= qes:
-        warnings.append(f"{tag}Qts={qts} >= Qes={qes} — thermodynamically impossible")
-
-    # Xmax
-    xmax = v("Xmax")
-    if xmax and xmax * 1000 > 100:
-        warnings.append(f"{tag}Xmax={xmax*1000:.0f} mm — mm stored as m? divide by 1000")
-
-    # Sd
-    sd = v("Sd")
-    if sd and sd * 1e4 < 0.5:
-        warnings.append(f"{tag}Sd={sd*1e4:.3f} cm² — near-zero scraper artifact")
-    if sd and sd * 1e4 > 3000:
-        warnings.append(f"{tag}Sd={sd*1e4:.0f} cm² > 3000 — larger than any real driver")
-
-    # Fs with no Q values → crossover/range frequency captured as Fs.
-    # Compression drivers (HF, CD horn types) and AMT tweeters don't publish T/S Fs.
-    # The scraper typically captures the minimum crossover frequency or usable range
-    # lower bound ("1.300 kHz" → Fs=1300) into the Fs field instead.
-    if fs is not None and fs > 500:
-        has_q = "Qts" in fields or "Qes" in fields
-        if not has_q:
-            warnings.append(
-                f"{tag}Fs={fs:.0f} Hz but no Qts or Qes — likely crossover/range frequency "
-                f"captured as Fs; compression drivers and AMT tweeters do not publish T/S Fs. "
-                f"Delete Fs and add a boxbench_corrections note explaining the absence."
-            )
-
-    # AMT driver: T/S Fs is undefined for Air Motion Transformer drivers (not pistonic).
-    if label and re.search(r'\bAMT\b', label, re.IGNORECASE):
-        if "Fs" in fields:
-            warnings.append(
-                f"{tag}Model label contains 'AMT' — Air Motion Transformer drivers are not "
-                f"pistonic; T/S Fs is not a defined parameter. Do not write Fs."
-            )
-
-    # Vas vs Sd cross-check (ft³-as-liters bug)
-    vas = v("Vas")
-    if sd and vas and sd * 1e4 > 150 and vas * 1000 < sd * 1e4 / 60:
-        warnings.append(
-            f"{tag}Vas={vas*1000:.2f} L implausibly small for Sd={sd*1e4:.0f} cm² — "
-            f"ft³-as-liters scraper bug? (SI page may show ft³; divide raw value by 28.317, not 1000)"
-        )
-
-    return warnings
-
-
 def parse_number(text: str) -> float | None:
     """Extract first number from a string, handling mixed US/European notation.
 
@@ -487,10 +404,9 @@ def run_scraper(vendor_name: str,
         model = product.get("model", "")
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-        # Validate fields before writing — warn on suspicious values so the
-        # DQ check doesn't need to catch what the scraper could have caught.
-        for warning in validate_ts_fields(product["fields"], f"{brand} {model}"):
-            print(f"  [{i}/{total}] {slug} DQ WARNING: {warning}", flush=True)
+        # Validate fields before writing — same rules as dq_check.py.
+        for rule_id, desc, detail in check_fields(product["fields"]):
+            print(f"  [{i}/{total}] {slug} DQ {rule_id}: {detail} — {desc}", flush=True)
 
         # Download FRD/impedance files first so the WDR can reference them.
         extras = []
