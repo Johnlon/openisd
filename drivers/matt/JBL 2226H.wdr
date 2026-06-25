@@ -54,7 +54,6 @@ Basket=0
 Outer=0
 Vcd=0
 DVol=0
-boxbench_datasheet=https://jblpro.com/en-US/site_elements/2226h-j-specification-sheet
 boxbench_quality=H
 boxbench_issue=model_corrected
 boxbench_detail=Model corrected from 2226J to 2226H. Near-perfect T/S match: Fs=40Hz, Qts=0.31, Qms=5.0, Vas=175L, Xmax=7.6mm, Pe=600W, Sd=0.088m2 all confirmed.

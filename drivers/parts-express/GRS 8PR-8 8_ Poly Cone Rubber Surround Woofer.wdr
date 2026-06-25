@@ -26,6 +26,7 @@ Vd=0.00006294
 Dd=0.16344
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-8PR-8-8-Poly-Cone-Rubber-Surround-Woofer-292-428
 boxbench_source=https://www.parts-express.com/GRS-8PR-8-8-Poly-Cone-Rubber-Surround-Woofer-292-428
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/292-428--grs-8pr-8-spec-sheet.pdf
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

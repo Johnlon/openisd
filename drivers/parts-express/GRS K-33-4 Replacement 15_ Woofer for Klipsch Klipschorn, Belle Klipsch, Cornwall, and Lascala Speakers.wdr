@@ -26,6 +26,7 @@ Vd=0.000705622
 Dd=0.33
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-K-33-4-Replacement-15-Woofer-for-Klipsch-Speakers-292-830
 boxbench_source=https://www.parts-express.com/GRS-K-33-4-Replacement-15-Woofer-for-Klipsch-Speakers-292-830
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-830--grs-k-33-4-spec-sheet.pdf
 boxbench_frd=https://www.parts-express.com/pedocs/tech-docs/292-830--GRS-K-33-4_data.zip

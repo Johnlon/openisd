@@ -26,6 +26,7 @@ Vd=0.000068
 Dd=0.13159
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-6-1-2-Woofer-Surface-Mount-Poly-Cone-8-Ohm-6SMP-8-292-864
 boxbench_source=https://www.parts-express.com/GRS-6-1-2-Woofer-Surface-Mount-Poly-Cone-8-Ohm-6SMP-8-292-864
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-864--grs-6smp-8-spec-sheet.pdf
 boxbench_frd=https://www.parts-express.com/pedocs/tech-docs/6SMP-8_data.zip

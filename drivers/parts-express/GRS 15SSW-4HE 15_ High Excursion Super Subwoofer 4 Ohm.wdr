@@ -26,6 +26,7 @@ Vd=0.00100786
 Dd=0.323
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-15SSW-4HE-15-Paper-Cone-Rubber-Surround-High-Excursion-Super-Subwoofer-4-Ohm-292-822
 boxbench_source=https://www.parts-express.com/GRS-15SSW-4HE-15-Paper-Cone-Rubber-Surround-High-Excursion-Super-Subwoofer-4-Ohm-292-822
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/Spec%20Sheets/292-822--grs-15ssw-4he-spec-sheet.pdf
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

@@ -27,6 +27,6 @@ Dd=0.0280964
 numVC=1
 VCCon=2
 boxbench_source=https://www.parts-express.com/Visaton-BF37-8-1.5-Full-Range-Driver-8-Ohm-292-7823
-boxbench_vendor_page=https://www.visaton.de/
+boxbench_vendor_page=https://www.parts-express.com/Visaton-BF37-8-1.5-Full-Range-Driver-8-Ohm-292-7823
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-7823--visaton-bf378-spec-sheet.pdf
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

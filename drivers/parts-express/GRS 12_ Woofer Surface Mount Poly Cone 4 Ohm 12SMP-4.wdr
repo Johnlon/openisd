@@ -26,6 +26,7 @@ Vd=0.0002838
 Dd=0.256318
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-12-Woofer-Surface-Mount-Poly-Cone-4-Ohm-12SMP-4-292-874
 boxbench_source=https://www.parts-express.com/GRS-12-Woofer-Surface-Mount-Poly-Cone-4-Ohm-12SMP-4-292-874
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-874--grs-12smp-4-spec-sheet.pdf
 boxbench_frd=https://www.parts-express.com/pedocs/tech-docs/12SMP-4_data.zip

@@ -26,6 +26,7 @@ Vd=0.000564128
 Dd=0.325005
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-15PT-8-15-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-808
 boxbench_source=https://www.parts-express.com/GRS-15PT-8-15-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-808
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-808--grs-15pt-8-spec-sheet.pdf
 boxbench_frd=https://www.parts-express.com/pedocs/tech-docs/292-808--grs-15PT-8_data.zip

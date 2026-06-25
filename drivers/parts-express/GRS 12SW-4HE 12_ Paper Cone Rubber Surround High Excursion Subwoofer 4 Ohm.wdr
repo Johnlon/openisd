@@ -26,6 +26,7 @@ Vd=0.000634125
 Dd=0.254148
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-12PR-4-12-Paper-Cone-Rubber-Surround-Subwoofer-4-Ohm-292-820
 boxbench_source=https://www.parts-express.com/GRS-12PR-4-12-Paper-Cone-Rubber-Surround-Subwoofer-4-Ohm-292-820
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/Spec%20Sheets/292-820--grs-12sw-4he-spec-sheet.pdf
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC

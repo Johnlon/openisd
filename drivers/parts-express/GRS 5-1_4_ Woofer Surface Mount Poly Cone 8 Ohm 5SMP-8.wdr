@@ -26,6 +26,7 @@ Vd=0.000016
 Dd=0.100925
 numVC=1
 VCCon=2
+boxbench_vendor_page=https://www.parts-express.com/GRS-5-1-4-Woofer-Surface-Mount-Poly-Cone-8-Ohm-5SMP-8-292-860
 boxbench_source=https://www.parts-express.com/GRS-5-1-4-Woofer-Surface-Mount-Poly-Cone-8-Ohm-5SMP-8-292-860
 boxbench_datasheet=https://www.parts-express.com/pedocs/specs/292-860--grs-5smp-8-spec-sheet.pdf
 boxbench_frd=https://www.parts-express.com/pedocs/tech-docs/5SMP-8_data.zip

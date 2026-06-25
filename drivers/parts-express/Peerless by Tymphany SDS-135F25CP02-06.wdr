@@ -28,5 +28,5 @@ numVC=1
 VCCon=2
 boxbench_dq_issue=Qts=97.33: Physically impossible — no real driver has Qts near this value. Likely a decimal-point data entry error. Correct value unknown; datasheet lookup required before use.
 boxbench_source=https://www.parts-express.com/Peerless-SDS-135F25CP02-06-5-1-4-Paper-Cone-Woofer-6-Ohm-264-1588
-boxbench_vendor_page=https://www.tymphany.com/
+boxbench_vendor_page=https://www.parts-express.com/Peerless-SDS-135F25CP02-06-5-1-4-Paper-Cone-Woofer-6-Ohm-264-1588
 ParState=EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC
