@@ -21,7 +21,8 @@ Qes=2.64182519169222
 Rms=5.8790173282396
 Mms=0.01762
 Sd=0.03501
-Vas=0.001738716876855
+Vas=0.0017
+Xmax=0.0015
 Dia=0
 Vd=0
 no=0.0348869369260881
@@ -52,7 +53,8 @@ Basket=0
 Outer=0
 Vcd=0
 DVol=0
-boxbench_corrections=Pe=0 deleted (scraper artifact); Xmax=0 deleted (scraper artifact)
+boxbench_datasheet=https://www.lautsprechershop.de/pdf/eminence/eminence_beta_10cbmra.pdf
+boxbench_corrections=Pe=0 deleted (scraper artifact); Xmax=0 deleted (scraper artifact); Vas corrected 0.001739->0.0017 m³ (1.70L) per Eminence datasheet; Xmax added 1.50mm per datasheet; Sd=350.10cm² per datasheet. Vas_tiny_for_driver DQ flag is a legitimate false positive — non-vented core, sealed basket pro midrange (CBMRA = Closed Back Midrange Application) with intentionally stiff suspension.
 ParState=CCNCEENNENNEECCCEENCNCCENNNNCNNNCCCCNNNNNNNNNNNCC
 
 boxbench_source=https://www.avsforum.com/posts/55004700/
