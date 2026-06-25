@@ -1,5 +1,9 @@
 # Driver type classification rules
 
+> **In-app:** The `?` button in the driver browser chip row shows a popup that
+> mirrors the mapping table below. **Keep both in sync** — the popup is in
+> `src/components/DriverBrowser.vue` inside the `<!-- Help popup -->` comment block.
+
 ## Categories (filter chips)
 
 A driver carries **multiple labels** simultaneously — selecting any chip shows every

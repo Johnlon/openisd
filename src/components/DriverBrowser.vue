@@ -22,6 +22,7 @@ const selectedSources = ref([]);   // empty = all
 const sourcesOpen     = ref(false);
 
 // Type + param filters
+const typeHelpOpen  = ref(false);
 const selectedTypes = ref([]);
 const fsMin = ref('');
 const fsMax = ref('');
@@ -501,6 +502,37 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
           <button v-if="selectedTypes.length || fsMin || fsMax || sdMin || sdMax || selZ.length"
                   class="type-chip type-clear" title="Clear all type and parameter filters"
                   @click="clearParamFilters">✕ clear</button>
+          <!-- Help popup — keep content in sync with drivers/DRIVER_TYPES.md -->
+          <div class="help-wrap">
+            <button class="help-btn" :class="{ active: typeHelpOpen }"
+                    title="How are driver types classified?"
+                    @click.stop="typeHelpOpen = !typeHelpOpen">?</button>
+            <div v-if="typeHelpOpen" class="help-drop" @click.stop>
+              <div class="help-title">Driver type classification
+                <span class="help-ref">· see <code>drivers/DRIVER_TYPES.md</code></span>
+              </div>
+              <table class="help-table">
+                <thead><tr><th>Vendor calls it</th><th>Badge</th><th>Chips</th></tr></thead>
+                <tbody>
+                  <tr><td>Subwoofer</td><td>Subwoofer</td><td>Sub · Woofer · Bass</td></tr>
+                  <tr><td>Woofer</td><td>Woofer</td><td>Woofer · Bass</td></tr>
+                  <tr><td>Mid-bass / mid-woofer</td><td>Mid-bass</td><td>Woofer · Mid · Bass</td></tr>
+                  <tr><td>Midrange / mid-range</td><td>Midrange</td><td>Woofer · Mid</td></tr>
+                  <tr><td>Full-range</td><td>Full-range</td><td>Woofer · Mid · Tweet · Bass · Full-range</td></tr>
+                  <tr><td>BMR / balanced mode</td><td>BMR</td><td>Mid · Tweet <em>(not bass)</em></td></tr>
+                  <tr><td>Tweeter / dome</td><td>Tweeter</td><td>Tweet</td></tr>
+                  <tr><td>Ribbon tweeter</td><td>Ribbon Tweeter</td><td>Tweet</td></tr>
+                  <tr><td>Planar</td><td>Planar Tweeter</td><td>Tweet</td></tr>
+                  <tr><td>AMT / air motion</td><td>AMT</td><td>Tweet</td></tr>
+                  <tr><td>Passive radiator</td><td>Passive Radiator</td><td>PR</td></tr>
+                  <tr class="help-fallback"><td><em>Tiny piston (Sd &lt; 12 cm²)</em></td><td>Tweeter</td><td>Tweet</td></tr>
+                  <tr class="help-fallback"><td><em>Very low Fs (&lt; 40 Hz)</em></td><td>Subwoofer</td><td>Sub · Woofer · Bass</td></tr>
+                  <tr class="help-unclass"><td><em>No signal either way</em></td><td>⚠ Unclassified</td><td><em>shows in all queries</em></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="typeHelpOpen" class="src-backdrop" @click="typeHelpOpen = false"></div>
+          </div>
         </div>
         <div class="param-row">
           <span class="plabel">Fs</span>
@@ -625,7 +657,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
 <style scoped>
 .overlay { display:none; position:fixed; inset:0; background:#0008; z-index:1000; align-items:center; justify-content:center; }
 .overlay.on { display:flex; }
-.modal { background:var(--bg2); border:1px solid var(--mut); border-radius:8px; width:620px; max-width:95vw; max-height:80vh; display:flex; flex-direction:column; }
+.modal { background:var(--panel2); border:1px solid var(--mut); border-radius:8px; width:620px; max-width:95vw; max-height:80vh; display:flex; flex-direction:column; backdrop-filter:none; isolation:isolate; }
 h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--mut); }
 .x { cursor:pointer; font-size:18px; line-height:1; color:var(--mut); }
 .x:hover { color:var(--fg); }
@@ -660,14 +692,26 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .src-wrap { position:relative; display:inline-block; }
 .src-btn { font-size:11px; padding:3px 8px; background:var(--bg); border:1px solid var(--mut); border-radius:4px; color:var(--mut); cursor:pointer; white-space:nowrap; }
 .src-btn:hover, .src-btn.active { border-color:var(--acc); color:var(--acc); }
-.src-drop { position:absolute; top:calc(100% + 3px); left:0; min-width:220px; max-height:260px; overflow-y:auto; background:var(--bg2); border:1px solid var(--mut); border-radius:6px; box-shadow:0 4px 16px #0006; z-index:10; padding:4px 0; }
+.src-drop { position:absolute; top:calc(100% + 3px); left:0; min-width:220px; max-height:260px; overflow-y:auto; background:var(--panel2); border:1px solid var(--mut); border-radius:6px; box-shadow:0 4px 16px #0006; z-index:10; padding:4px 0; }
 .src-item { display:flex; align-items:center; gap:7px; padding:4px 10px; cursor:pointer; font-size:12px; color:var(--fg); }
 .src-item:hover, .src-item.checked { background:var(--bg3); }
 .src-item input[type=checkbox] { accent-color:var(--acc); cursor:pointer; flex-shrink:0; }
 .src-name { flex:1; }
 .src-count { font-size:10px; color:var(--mut); }
 .src-backdrop { position:fixed; inset:0; z-index:9; }
-.type-row { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+.type-row { display:flex; gap:4px; flex-wrap:wrap; align-items:center; position:relative; }
+.help-wrap { position:relative; margin-left:auto; }
+.help-btn { font-size:11px; width:18px; height:18px; border-radius:50%; border:1px solid var(--mut); background:none; color:var(--mut); cursor:pointer; padding:0; line-height:1; }
+.help-btn:hover, .help-btn.active { border-color:var(--acc); color:var(--acc); }
+.help-drop { position:absolute; top:calc(100% + 4px); right:0; width:520px; max-width:90vw; background:var(--panel2); border:1px solid var(--mut); border-radius:6px; box-shadow:0 4px 20px #0008; z-index:20; padding:10px 12px; }
+.help-title { font-size:11px; font-weight:600; margin-bottom:8px; color:var(--fg); }
+.help-ref { font-size:10px; font-weight:400; color:var(--mut); }
+.help-table { width:100%; border-collapse:collapse; font-size:11px; }
+.help-table th { text-align:left; color:var(--mut); font-weight:600; border-bottom:1px solid var(--mut); padding:2px 6px; }
+.help-table td { padding:2px 6px; border-bottom:1px solid color-mix(in srgb, var(--mut) 20%, transparent); color:var(--fg); }
+.help-table tr:last-child td { border-bottom:none; }
+.help-fallback td { color:var(--mut); font-style:italic; }
+.help-unclass td { color:#c07000; }
 .type-chip { font-size:11px; padding:2px 9px; border:1px solid var(--mut); border-radius:12px; background:none; color:var(--mut); cursor:pointer; white-space:nowrap; }
 .type-chip:hover { border-color:var(--fg); color:var(--fg); }
 .type-chip.active { border-color:var(--acc); color:var(--acc); background:color-mix(in srgb, var(--acc) 12%, transparent); }

@@ -78,7 +78,7 @@ function toggleLock() {
   width: 62px;
   font-size: 11px;
   padding: 1px 4px;
-  background: var(--bg2);
+  background: var(--panel2);
   border: 1px solid var(--mut);
   border-radius: 3px;
   color: var(--fg);
