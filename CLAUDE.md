@@ -42,9 +42,9 @@ These rules apply to all `boxbench_` fields in WDR files, and to any commentary 
 ## Driver data — PDF sourcing and debugging
 
 - **Cached PDFs are the primary source.** Always try `drivers/<collection>/datasheets/<filename>` first. Filenames are derived from the `boxbench_datasheet` URL.
-- **If pypdf extracts no text (image-only or encoding failure):** Use web search to find an alternative PDF, e.g. search `"pdf HiVi F8"` or `"HiVi F8 datasheet filetype:pdf"`. Prefer manufacturer PDFs, then major vendors (Parts Express, Mouser, Digikey). Avoid random or unknown sites.
-- **PDF link priority:** manufacturer datasheet PDF > major retailer spec PDF (Parts Express, Mouser, etc.) > any other source. Do not use unknown third-party sites.
-- **Fallback to human review.** If no extractable PDF can be found, use `scripts/verify-vas-tiny.py` — it opens the cached PDF in the local viewer and prompts for the field value. This is the correct fallback when automated extraction fails.
+- **If no cached PDF, or if pypdf extracts no text:** Search for the PDF using web search with query `pdf <Brand> <Model>` — e.g. `pdf HiVi F8`. Scan the results for a direct PDF link, preferring the manufacturer's own site. If no manufacturer PDF is found, accept a major vendor (Parts Express, Mouser, Digikey). Do not use random or unknown third-party sites.
+- **PDF link priority (strict):** manufacturer site PDF > Parts Express / Mouser / Digikey PDF > skip and fall back to human review. Never use an unknown site.
+- **Fallback to human review.** If no extractable PDF can be found after web search, use `scripts/verify-vas-tiny.py` — it opens the cached PDF in the local viewer and prompts for the field value.
 - **Add DQ post-check.** After writing any fix to a WDR, re-run `check_fields()` and confirm the flag is cleared. If the flag remains, the fix value is wrong or the rule threshold needs review.
 
 ## External claims — require evidence, label inline
