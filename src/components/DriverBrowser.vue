@@ -29,10 +29,16 @@ const sdMin = ref('');   // cm²
 const sdMax = ref('');   // cm²
 const selZ  = ref([]);   // '4', '8', '16'
 
+// Multi-label type chips — a driver can match several simultaneously.
+// Selecting a chip shows all drivers that carry that label.
 const DRIVER_TYPES = [
-  { id: 'tweet', label: 'Tweet', title: 'Tweeter — high-frequency driver (dome, ribbon, planar)' },
-  { id: 'mid',   label: 'Mid',   title: 'Mid / Woofer — bass and midrange cone drivers' },
-  { id: 'sub',   label: 'Sub',   title: 'Subwoofer — dedicated very-low-frequency driver (Fs < 40 Hz)' },
+  { id: 'bass',      label: 'Bass',       title: 'Handles bass/low frequencies — sub, woofer, mid-bass, full-range' },
+  { id: 'sub',       label: 'Sub',        title: 'Subwoofer — dedicated very-low-frequency driver' },
+  { id: 'woofer',    label: 'Woofer',     title: 'Woofer — low to mid-bass cone driver' },
+  { id: 'mid',       label: 'Mid',        title: 'Midrange / mid-bass — between woofer and tweeter' },
+  { id: 'tweet',     label: 'Tweet',      title: 'Tweeter — high-frequency driver (dome, ribbon, planar, AMT)' },
+  { id: 'fullrange', label: 'Full-range', title: 'Full-range — single driver covering bass through treble (not BMR)' },
+  { id: 'pr',        label: 'PR',         title: 'Passive radiator — no voice coil, passive acoustic resonator' },
 ];
 
 function quickParse(content) {
@@ -40,24 +46,49 @@ function quickParse(content) {
   return { Fs: m('Fs'), Sd: m('Sd'), Re: m('Re'), Znom: m('Znom'), Pe: m('Pe') };
 }
 
-// 3-category classification: tweet / sub / mid (catch-all)
-// Priority: name beats params (resolves bad-Sd data in a few hundred WDRs)
-//   1. name contains tweet keywords → tweet
-//   2. name contains sub keywords   → sub
-//   3. Sd < 12 cm²                  → tweet  (catches unnamed tweeters with good Sd)
-//   4. Fs < 40 Hz                   → sub    (catches subs without "sub" in name)
-//   5. everything else              → mid    (safe: all 2312 WDRs have Fs)
-const TWEET_PAT = /tweet|tweeter|tw\d/i;
-const SUB_PAT   = /subwoof|sub[- _]|\bsub\b|\bsubwoofer\b/i;
+// Multi-label classification. Name-based matching takes priority over T/S params.
+// Returns an array of type IDs — a driver can carry several labels.
+//
+// Relationships verified against PE/SI/Cambridge Audio/Tectonic sources (2026-06-25):
+//   sub      ⊂ woofer ⊂ bass
+//   mid-bass ⊂ woofer + mid, both ⊂ bass
+//   full-range = woofer + mid + tweet + bass
+//   BMR        = mid + tweet  (Tectonic sells separate woofers for bass; not a bass driver)
+//   PR         = orthogonal  (no motor, no frequency range)
 
-function classifyType(Fs, Sd, nameStr) {
+const TWEET_PAT    = /\btweet(er)?\b|dome.tweeter|ribbon.tweeter|\bplanar\b|\bAMT\b|air.motion/i;
+const SUB_PAT      = /\bsub(woofer)?\b|sub[-_ ]/i;
+const WOOFER_PAT   = /\bwoofer\b/i;
+const MIDBASS_PAT  = /\bmid[-_ ]?(bass|woof(er)?)\b|\bmidbass\b/i;
+const MIDRANGE_PAT = /\bmid[-_ ]?range\b|\bmidrange\b/i;
+const FULLRANGE_PAT= /\bfull[-_ ]?range\b|\bfullrange\b/i;
+const BMR_PAT      = /\bBMR\b|balanced.mode/i;
+const PR_PAT       = /\bpassive.radiator\b|\bP\.?R\.?\b/i;
+
+function classifyTypes(Fs, Sd, nameStr) {
   const nm = nameStr || '';
-  if (TWEET_PAT.test(nm)) return 'tweet';
-  if (SUB_PAT.test(nm))   return 'sub';
+  const types = new Set();
+
+  // PR is orthogonal — check first and return immediately
+  if (PR_PAT.test(nm)) return ['pr'];
+
+  // Name-based detection (most reliable — manufacturer's own label)
+  if (TWEET_PAT.test(nm))    types.add('tweet');
+  if (SUB_PAT.test(nm))      { types.add('sub'); types.add('woofer'); types.add('bass'); }
+  if (MIDBASS_PAT.test(nm))  { types.add('woofer'); types.add('mid'); types.add('bass'); }
+  if (WOOFER_PAT.test(nm) && !MIDBASS_PAT.test(nm)) { types.add('woofer'); types.add('bass'); }
+  if (MIDRANGE_PAT.test(nm)) types.add('mid');
+  if (FULLRANGE_PAT.test(nm)){ types.add('woofer'); types.add('mid'); types.add('tweet'); types.add('bass'); types.add('fullrange'); }
+  if (BMR_PAT.test(nm))      { types.add('mid'); types.add('tweet'); }  // NOT bass
+
+  // If name gave us something, return it
+  if (types.size > 0) return [...types];
+
+  // Parameter fallbacks (for drivers with non-descriptive model numbers)
   const SdCm2 = Sd != null ? Sd * 1e4 : null;
-  if (SdCm2 != null && SdCm2 < 12) return 'tweet';
-  if (Fs != null && Fs < 40)        return 'sub';
-  return 'mid';
+  if (SdCm2 != null && SdCm2 < 12) return ['tweet'];
+  if (Fs != null && Fs < 40)        return ['sub', 'woofer', 'bass'];
+  return ['woofer', 'bass'];   // safe default — most unknown drivers are woofers
 }
 
 function toggleType(id) {
@@ -114,7 +145,7 @@ const filteredFiles = computed(() => {
   if (srcFilter.length)
     filtered = filtered.filter(f => srcFilter.includes(f.sourceName));
   if (selectedTypes.value.length)
-    filtered = filtered.filter(f => selectedTypes.value.includes(f._type));
+    filtered = filtered.filter(f => selectedTypes.value.some(t => (f._types || []).includes(t)));
   const fsMinV = parseFloat(fsMin.value), fsMaxV = parseFloat(fsMax.value);
   const sdMinV = parseFloat(sdMin.value), sdMaxV = parseFloat(sdMax.value);
   if (isFinite(fsMinV)) filtered = filtered.filter(f => f._Fs != null && f._Fs >= fsMinV);
@@ -173,7 +204,7 @@ async function fetchSource(src) {
           sourceUrl:  src.url || '',
           sourceDesc: src.description || '',
           _Fs: null, _Sd: null, _Re: null, _Znom: null, _Pe: null,
-          _type: classifyType(null, null, nm),  // name-only until content loads
+          _types: classifyTypes(null, null, nm),  // name-only until content loads
         };
       });
     allFiles.value = [
@@ -228,7 +259,7 @@ async function init() {
         sourceUrl:  src.url || '',
         sourceDesc: src.description || '',
         _Fs: qp.Fs, _Sd: qp.Sd, _Re: qp.Re, _Znom: qp.Znom, _Pe: qp.Pe,
-        _type: classifyType(qp.Fs, qp.Sd, nameStr),
+        _types: classifyTypes(qp.Fs, qp.Sd, nameStr),
       };
     });
     allFiles.value = [...allFiles.value, ...entries];
@@ -297,7 +328,7 @@ async function loadSpeakerBoxLite() {
           sourceDesc: 'speakerboxlite.com community database',
           sblData: d,
           _Fs: d.fs || null, _Sd: SblSd, _Re: d.re || null, _Znom: null, _Pe: d.pe || null,
-          _type: classifyType(d.fs, SblSd, sblName),
+          _types: classifyTypes(d.fs, SblSd, sblName),
         });
       }
     }
