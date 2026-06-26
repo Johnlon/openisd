@@ -22,7 +22,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## Shipped ✓
 
-- [x] [x] Validated engine: sealed, vented, 4th-order bandpass, passive radiator `[unit,ui]`
+- [x] [x] Validated engine: sealed, vented, 4th-order bandpass, passive radiator `[unit]`
 - [x] [x] Curves: SPL, driver + PR excursion, port velocity, group delay, impedance (mag + phase), transfer phase, max SPL, max power `[unit]`
 - [x] [x] EBP gauge, Qtc / QB3-B4 alignment helpers, vent ↔ tuning solver `[unit]`
 - [x] [x] Passive-radiator Fp tuning + mass auto-tune `[unit]`
@@ -104,7 +104,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 
 ## Driver data & T/S
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
-- [x] [ ] **P1** In-app driver database search / filter (by size, brand, parameters)
+- [x] [x] **P1** In-app driver database search / filter (by size, brand, parameters) `[ui]`
 - [ ] **P1** "Duplicate / copy from" an existing driver to speed manual entry
 - [ ] **P2** WinISD `.wpr` project import — format is decoded (INI sections:
       ProjectInfo, Driver, Box, Vent*, PassiveRadiator, SignalSource, Filters)
