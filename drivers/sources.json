@@ -50,6 +50,12 @@
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/parts-express",
       "description": "1673 drivers fetched from the Parts Express product API (https://www.parts-express.com/api/items?q={sku}&fieldset=details). Covers woofers, subwoofers, tweeters, midrange/full-range, passive radiators, planar/ribbon, car audio, and pro audio drivers. Brands: Aurum Cantus, B&C Speakers, Beyma, Celestion, Ciare, CSS, Dayton Audio, EPIQUE, Eminence Speaker, FaitalPRO, Goldwood, GRS, HiVi, JBL Professional, Lavoce, Morel, Peerless by Tymphany, PRV Audio, Selenium, Tang Band, Tectonic, Timpano Audio, Visaton, Wavecor and others. Files with populated Qes have full T/S (quality=H); files with blank Qes have estimated Re and Sd only (quality=L). See meta.json for quality=M cases. Refresh with: node scripts/refresh-pe-catalog.mjs",
       "license": "public product data from parts-express.com"
+    },
+    {
+      "name": "WinISD",
+      "url": "https://github.com/Johnlon/resonate/tree/main/drivers/winisd",
+      "description": "1121 driver files from WinISD (circa 2006 or earlier). Archived from the latest WinISD exe distribution. Quality=L (obsolete, unchecked). Most drivers are likely subsumed by more recent sources.",
+      "license": "see WinISD project"
     }
   ]
 }
