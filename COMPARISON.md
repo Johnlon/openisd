@@ -141,7 +141,7 @@ extend), with notes on other tools where relevant.
 ## Planned but not yet implemented (Resonate todo)
 
 Items not in the table above, roughly in priority order.
-See [ROADMAP.md](ROADMAP.md) to claim one or discuss prioritisation.
+See [BACKLOG.md](BACKLOG.md) to claim one or discuss prioritisation.
 
 | Feature | Notes |
 |---|---|

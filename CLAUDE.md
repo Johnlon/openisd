@@ -14,7 +14,14 @@ Every script that processes more than a handful of files or runs for more than a
 These rules apply equally to inline scripts run via `python -c`, subagent scripts, and standalone `.py` / `.mjs` files. **No exceptions.** A script that violates these rules must be fixed before its output is trusted.
 
 ## Reading context
-- Read all `README.md` files in the repository before starting any task — they contain agent instructions and context for each directory.
+- Read all `README.md` files in the repository (excluding `node_modules/`) before starting any task — they contain agent instructions and context for each directory.
+- **Always also read** (not READMEs but essential context):
+  - `BACKLOG.md` — prioritised feature backlog (P0–P3) and list of what is already shipped. P0 gates all feature work.
+  - `PLAN.md` — re-architecture phases, gates, and scope guards. Read before touching `src/core/` or any structural change.
+  - `ARCHITECTURE.md` — hard, hard-to-reverse decisions.
+  - `DEVELOPMENT.md` — coding practices and testing contract.
+- **Read for driver-data tasks:** `drivers/DRIVER_TYPES.md`, `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md`
+- **Read for WinISD-related tasks:** `WINISD.md`
 
 ## UI rules
 - Every `<button>` and every nav-like interactive element (toggles, chips, icon-only controls) **must** have a `title` attribute with a plain-English description of what it does. No exceptions.

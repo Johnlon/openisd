@@ -1,8 +1,8 @@
 # Resonate — re-architecture plan ("make it not shitty")
 
 Addresses [issue #1](https://github.com/Johnlon/resonate/issues/1). Companion to
-[DEVELOPMENT.md](DEVELOPMENT.md) (practices) and [REFERENCES.md](REFERENCES.md)
-(prior art + test oracles).
+[BACKLOG.md](BACKLOG.md) (full feature backlog and priorities) · [DEVELOPMENT.md](DEVELOPMENT.md)
+(practices) · [references.md](references.md) (prior art + test oracles).
 
 ## The one principle: **extract, do not rewrite**
 

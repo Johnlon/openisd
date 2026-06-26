@@ -1,5 +1,12 @@
 # Driver library & federation
 
+Related docs (AI agents must read these for driver-related tasks):
+[`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules and chip labels ·
+[`WDR_FILE_MODEL_AND_WORKFLOWS.md`](WDR_FILE_MODEL_AND_WORKFLOWS.md) — full field schema and data-quality rules ·
+[`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research for scrapers
+
+---
+
 Resonate's driver data is meant to be an open commons — but a commons doesn't
 have to live in one place. Two ways drivers reach the tool:
 

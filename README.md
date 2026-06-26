@@ -131,7 +131,7 @@ whole point.
 
 Newcomers welcome — you do not need to be an acoustician. The physics engine lives
 in `src/core/`; a new box type or filter is a weekend and a pull request. Start
-with [CONTRIBUTING.md](CONTRIBUTING.md) and the [roadmap](ROADMAP.md).
+with [CONTRIBUTING.md](CONTRIBUTING.md) and the [backlog](BACKLOG.md).
 
 ## Free?
 

@@ -1,12 +1,34 @@
-# Resonate — feature backlog
+# Resonate — backlog
 
 Working list of capabilities that make Resonate a complete, professional
 enclosure-design tool. Items are described on their own terms; each notes how it
 fits the existing engine so it can become a GitHub issue. Priorities are a guide,
 not a contract — pick what interests you and open a PR.
 
+Companion documents: [PLAN.md](PLAN.md) (re-architecture phases and gates) ·
+[DEVELOPMENT.md](DEVELOPMENT.md) (coding practices) · [ARCHITECTURE.md](ARCHITECTURE.md)
+(hard decisions).
+
 **P0** = foundation, gates everything below · **P1** = high value, tractable on
 today's engine · **P2** = larger but well-defined · **P3** = big rocks (design first).
+
+---
+
+## Shipped ✓
+
+- Validated engine: sealed, vented, 4th-order bandpass, passive radiator
+- Curves: SPL, driver + PR excursion, port velocity, group delay, impedance (mag + phase), transfer phase, max SPL, max power
+- EBP gauge, Qtc / QB3-B4 alignment helpers, vent ↔ tuning solver
+- Passive-radiator Fp tuning + mass auto-tune
+- Multiple drivers (series / parallel)
+- WinISD `.wdr` import **and** export; JSON project save/load
+- In-browser self-test + CI engine test
+- Published to GitHub Pages with automated CI deploy
+- Vue 3 + Vite + PWA — installable, works offline via service worker
+- Persist design across reloads (Ctrl-R keeps the driver) — localStorage
+- Power input convention: primary input is **power (W)**, voltage derived
+- URL-encoded designs — full design lives in a shareable link; no server needed
+- Export / import the complete design as a JSON file
 
 ---
 
@@ -15,9 +37,9 @@ today's engine · **P2** = larger but well-defined · **P3** = big rocks (design
 Resonate is a spike: logic is one inline script in `index.html`, "verified" by a
 self-test that string-slices the engine out and `eval`s it, with no real UI tests.
 The aim: a decoupled, fully-tested core library that any UI (web, mobile,
-third-party) can build on. **Full plan: [docs/PLAN.md](docs/PLAN.md)** ·
-practices: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · oracles:
-[docs/REFERENCES.md](docs/REFERENCES.md). **Feature work is gated on this.**
+third-party) can build on. **Full plan: [PLAN.md](PLAN.md)** ·
+practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
+[references.md](references.md). **Feature work is gated on this.**
 
 - [ ] **P0 · Phase 0** Golden-master fixtures: freeze current sweep outputs for
       every box type, assert equality — the net that proves extraction preserves
