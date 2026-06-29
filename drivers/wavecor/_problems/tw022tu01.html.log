@@ -1,0 +1,14 @@
+[03:59:49] PROBLEM field=html_pdf_mismatch item=TW022TU01 url=http://www.wavecor.com/html/tw022tu01.html offset=0
+         raw_value='Vas: HTML=7.6e-06 PDF=0.0075 (98584% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:49] PROBLEM field=schema_fail item=TW022TU01 url=http://www.wavecor.com/html/tw022tu01.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0075 differs from calculated=7.54815e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.000143)"
+         reason=File failed strict schema validation
+[03:59:49] SCHEMA_FAIL errors=1
+[04:02:41] DONE problems=0
+[04:12:20] DONE problems=0
+[04:35:38] DONE problems=0
+[04:38:05] DONE problems=0
+[04:43:59] DONE problems=0
+[04:46:47] DONE problems=0
+[04:47:24] DONE problems=0

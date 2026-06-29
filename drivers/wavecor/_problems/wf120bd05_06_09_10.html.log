@@ -1,0 +1,74 @@
+[03:59:32] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:33] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:33] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:33] DONE problems=3
+[04:02:24] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:24] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:24] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:24] DONE problems=3
+[04:12:04] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:04] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:04] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:04] DONE problems=3
+[04:34:43] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:43] DONE problems=1
+[04:37:50] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:50] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:50] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:50] DONE problems=3
+[04:43:45] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:45] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:45] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:45] DONE problems=3
+[04:46:34] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:34] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:34] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:34] DONE problems=3
+[04:47:08] PROBLEM field=html_pdf_mismatch item=WF120BD05_06_09_10 url=http://www.wavecor.com/html/wf120bd05_06_09_10.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:08] PROBLEM field=FRD_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:08] PROBLEM field=IMP_fetch item=WF120BD05_06_09_10 url=https://www.wavecor.com/WF120BD05_06_09_10_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:08] DONE problems=3

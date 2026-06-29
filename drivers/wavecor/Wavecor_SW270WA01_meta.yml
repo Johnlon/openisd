@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW270WA01_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW270WA01_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw270wa01.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw270wa01.html
@@ -14,4 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.088
+      html: 0.088
+    winner: html
+  Znom:
+    sources:
+      pdf: 4.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.2
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0312
+      html: 0.0312
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00037
+      html: 0.00037
+    winner: html
+  Fs:
+    sources:
+      pdf: 28.0
+      html: 28.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.011
+      html: 0.011
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.49
+      html: 0.49
+    winner: html
+  Rms:
+    sources:
+      pdf: 1.9
+      html: 1.9
+    winner: html
+  BL:
+    sources:
+      html: 9.7
+    winner: html
+  Pe:
+    sources:
+      html: 150.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 8.1
+      html: 8.1
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.051
+      html: 0.051
+    winner: html
+  Le:
+    sources:
+      html: 0.0014
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.53
+      html: 0.53
+    winner: html
+freq_low_hz: null
+freq_high_hz: 400.0

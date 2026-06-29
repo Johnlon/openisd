@@ -1,0 +1,74 @@
+[03:59:46] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:46] PROBLEM field=FRD_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:46] PROBLEM field=IMP_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:46] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[03:59:46] SCHEMA_FAIL errors=1
+[04:02:38] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:38] PROBLEM field=FRD_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:38] PROBLEM field=IMP_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:38] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:02:38] SCHEMA_FAIL errors=1
+[04:12:17] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:17] PROBLEM field=FRD_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:17] PROBLEM field=IMP_fetch item=SW280WA03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:17] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:12:17] SCHEMA_FAIL errors=1
+[04:35:25] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:26] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:35:26] SCHEMA_FAIL errors=1
+[04:38:02] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:38:02] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:38:02] SCHEMA_FAIL errors=1
+[04:43:56] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:56] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:43:56] SCHEMA_FAIL errors=1
+[04:46:44] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:44] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:46:44] SCHEMA_FAIL errors=1
+[04:47:21] PROBLEM field=html_pdf_mismatch item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:21] PROBLEM field=schema_fail item=SW280WA03_04 url=http://www.wavecor.com/html/sw280wa03_04.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0297 differs from calculated=0.0292338 (deps: roo=1.20095, c=343.684, Sd=0.0321, Cms=0.0002)"
+         reason=File failed strict schema validation
+[04:47:21] SCHEMA_FAIL errors=1

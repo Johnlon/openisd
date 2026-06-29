@@ -1073,3 +1073,18 @@
 [07:03:19] PROBLEM  file=Wavecor_WF275BD02_10-3_4__Paper_Cone_Woofer_8_Ohm_meta.yml
          reason=PE HTML: no Frequency Response row in specs table
 [07:03:19] DONE  collection=parts-express total=1347 extracted=1325 updated=1266 no_data=2 errors=0
+[03:43:14] RUN 2026-06-29T03:43:14.049001 scraper=scrape_pe collection=parts-express
+[03:43:14] DONE problems=0 items_processed=0
+
+[03:43:24] RUN 2026-06-29T03:43:24.340005 scraper=scrape_pe collection=parts-express
+[03:43:25] PROBLEM field=missing_Sd item=276-402 url=https://www.parts-express.com/Aurum-Cantus-G2-Ribbon-Tweeter-276-402 offset=0
+         raw_value='Sd absent'
+         reason=Sd absent, zero, or invalid — scraper artifact
+[03:43:25] PROBLEM field=schema item=296-454 url=https://www.parts-express.com/Aurum-Cantus-AC250-75C2C-10-Woofer-296-454 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.28 differs from calculated=0.27489 (deps: Qms=1.95, Qes=0.32)
+[03:43:25] PROBLEM field=schema item=296-454 url=https://www.parts-express.com/Aurum-Cantus-AC250-75C2C-10-Woofer-296-454 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.193121 differs from calculated=0.186805 (deps: roo=1.20095, c=343.684, Sd=0.0346, Cms=0.0011)
+[03:43:25] DONE problems=3 items_processed=5
+

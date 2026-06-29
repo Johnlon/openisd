@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/WF118WA07_08_specifications.pdf
+driver_type: woofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF118WA07_08_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/wf118wa07_08.html
 vendor_page: null
 source: http://www.wavecor.com/html/wf118wa07_08.html
@@ -14,4 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.0069
+      html: 0.0069
+    winner: html
+  Znom:
+    sources:
+      pdf: 8.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.2
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0054
+      html: 0.0054
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00118
+      html: 0.00118
+    winner: html
+  Fs:
+    sources:
+      pdf: 56.0
+      html: 56.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.004
+      html: 0.004
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.36
+      html: 0.36
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.31
+      html: 0.31
+    winner: html
+  BL:
+    sources:
+      html: 4.5
+    winner: html
+  Pe:
+    sources:
+      html: 100.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 7.8
+      html: 7.8
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.0049
+      html: 0.0049
+    winner: html
+  Le:
+    sources:
+      html: 0.00022
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.38
+      html: 0.38
+    winner: html
+freq_low_hz: null
+freq_high_hz: 3000.0

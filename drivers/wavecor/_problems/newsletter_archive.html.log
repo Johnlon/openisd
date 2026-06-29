@@ -1,0 +1,24 @@
+[03:59:54] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:02:46] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:12:24] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:36:01] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:38:08] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:44:02] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:46:50] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:47:27] PROBLEM field=html_fetch item=newsletter_archive.html url=http://www.wavecor.com/html/newsletter_archive.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found

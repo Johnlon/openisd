@@ -1,16 +1,80 @@
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
-  parameters have not been verified by a human against the datasheet.
+  parameters not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
+driver_type: null
+nominal_size_cm: null
 datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: null
 vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-sls-p830667.html
 source: https://www.soundimports.eu/en/peerless-by-tymphany-sls-p830667.html
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Sd:
+    sources:
+      html: 0.0201
+    winner: html
+  BL:
+    sources:
+      html: 8.33
+    winner: html
+  Pe:
+    sources:
+      html: 90.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.0111
+    winner: html
+  Mms:
+    sources:
+      html: 0.0364
+    winner: html
+  Le:
+    sources:
+      html: 0.000829
+    winner: html
+  Re:
+    sources:
+      html: 5.6
+    winner: html
+  Qts:
+    sources:
+      html: 0.75
+    winner: html
+  Cms:
+    sources:
+      html: 0.00033
+    winner: html
+  Vas:
+    sources:
+      html: 0.019
+    winner: html
+  Qes:
+    sources:
+      html: 0.836
+    winner: html
+  Fs:
+    sources:
+      html: 46.0
+    winner: html
+  Znom:
+    sources:
+      html: 8.0
+    winner: html
+  Qms:
+    sources:
+      html: 7.21
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

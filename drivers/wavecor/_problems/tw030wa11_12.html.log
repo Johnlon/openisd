@@ -1,0 +1,83 @@
+[03:59:23] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:23] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:23] PROBLEM field=FRD_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA11_12_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:23] PROBLEM field=IMP_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA11_12_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:23] PROBLEM field=schema_fail item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value="WDR: 'Vas' stored=0.066 differs from calculated=6.56611e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00035)"
+         reason=File failed strict schema validation
+[03:59:23] SCHEMA_FAIL errors=1
+[04:02:14] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:14] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:15] PROBLEM field=FRD_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA11_12_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:15] PROBLEM field=IMP_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA11_12_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:15] PROBLEM field=schema_fail item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value="WDR: 'Vas' stored=0.066 differs from calculated=6.56611e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00035)"
+         reason=File failed strict schema validation
+[04:02:15] SCHEMA_FAIL errors=1
+[04:11:55] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:55] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:55] PROBLEM field=FRD_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA11_12_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:55] PROBLEM field=IMP_fetch item=TW030WA11_12 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA11_12_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:55] PROBLEM field=schema_fail item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value="WDR: 'Vas' stored=0.066 differs from calculated=6.56611e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00035)"
+         reason=File failed strict schema validation
+[04:11:55] SCHEMA_FAIL errors=1
+[04:34:12] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:12] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:12] DONE problems=2
+[04:37:42] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:42] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:42] DONE problems=2
+[04:43:38] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:38] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:38] DONE problems=2
+[04:46:27] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:27] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:27] DONE problems=2
+[04:47:00] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:00] PROBLEM field=html_pdf_mismatch item=TW030WA11_12 url=http://www.wavecor.com/html/tw030wa11_12.html offset=0
+         raw_value='Vas: HTML=6.6e-05 PDF=0.066 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:00] DONE problems=2

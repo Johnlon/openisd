@@ -145,7 +145,7 @@ _WDR_FIELD_SPEC: dict[str, dict[str, Any]] = {
     # ── T/S parameters (positions 8–25) ──────────────────────────────────────
     # Optional: scrapers only write fields they successfully extracted.
     "Qts":  {"kind": "float", "lo": 0.01,   "hi": 5.0,     "unit": "—",       "desc": "Total Q"},
-    "Znom": {"kind": "float", "lo": 1.0,    "hi": 32.0,    "unit": "Ω",       "desc": "Nominal impedance (descriptive only; not used in simulation)"},
+    "Znom": {"kind": "float", "lo": 1.0,    "hi": 64.0,    "unit": "Ω",       "desc": "Nominal impedance (descriptive only; not used in simulation)"},
     "Fs":   {"kind": "float", "lo": 1.0,    "hi": 5000.0,  "unit": "Hz",      "desc": "Free-air resonance frequency"},
     "Pe":   {"kind": "float", "lo": 1.0,    "hi": 20000.0, "unit": "W",       "desc": "Thermal power limit"},
     "SPL":  {"kind": "float", "lo": 50.0,   "hi": 150.0,   "unit": "dB/W/m"},

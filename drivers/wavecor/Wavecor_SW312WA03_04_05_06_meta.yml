@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW312WA03_04_05_06_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW312WA03_04_05_06_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw312wa03_04_05_06.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw312wa03_04_05_06.html
@@ -14,4 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.185
+      html: 0.185
+    winner: html
+  Znom:
+    sources:
+      pdf: 8.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.2
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0488
+      html: 0.0488
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00018
+      html: 0.00018
+    winner: html
+  Fs:
+    sources:
+      pdf: 28.0
+      html: 28.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.0115
+      html: 0.0115
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.48
+      html: 0.48
+    winner: html
+  Rms:
+    sources:
+      pdf: 2.8
+      html: 2.8
+    winner: html
+  BL:
+    sources:
+      html: 14.5
+    winner: html
+  Pe:
+    sources:
+      html: 250.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 11.5
+      html: 11.5
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.061
+      html: 0.061
+    winner: html
+  Le:
+    sources:
+      html: 0.00155
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.5
+      html: 0.5
+    winner: html
+freq_low_hz: null
+freq_high_hz: 300.0

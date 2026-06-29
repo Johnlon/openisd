@@ -1,19 +1,95 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW084OM01_02_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW084OM01_02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw084om01_02.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw084om01_02.html
-frd: null
-impedance: null
+frd: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW084OM02_SPL_response.txt
+impedance: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW084OM02_impedance_response.txt
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
-freq_low_hz: 200.0
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.00435
+      html: 0.00435
+    winner: html
+  Znom:
+    sources:
+      pdf: 8.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 2.9
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.00335
+      html: 0.00335
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00107
+      html: 0.00107
+    winner: html
+  Fs:
+    sources:
+      pdf: 74.0
+      html: 74.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.0045
+      html: 0.0045
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.44
+      html: 0.44
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.22
+      html: 0.22
+    winner: html
+  BL:
+    sources:
+      html: 3.56
+    winner: html
+  Pe:
+    sources:
+      html: 40.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 9.2
+      html: 9.2
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.0017
+      html: 0.0017
+    winner: html
+  Le:
+    sources:
+      html: 0.0004
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.46
+      html: 0.46
+    winner: html
+freq_low_hz: null
 freq_high_hz: 2000.0

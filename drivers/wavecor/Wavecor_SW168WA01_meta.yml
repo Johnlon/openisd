@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW168WA01_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW168WA01_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw168wa01.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw168wa01.html
@@ -14,4 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.0325
+      html: 0.0325
+    winner: html
+  Znom:
+    sources:
+      pdf: 4.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.0
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0127
+      html: 0.0127
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00042
+      html: 0.00042
+    winner: html
+  Fs:
+    sources:
+      pdf: 43.0
+      html: 43.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.007
+      html: 0.007
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.45
+      html: 0.45
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.86
+      html: 0.86
+    winner: html
+  BL:
+    sources:
+      html: 7.5
+    winner: html
+  Pe:
+    sources:
+      html: 100.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 10.2
+      html: 10.2
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.0096
+      html: 0.0096
+    winner: html
+  Le:
+    sources:
+      html: 0.0013
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.47
+      html: 0.47
+    winner: html
+freq_low_hz: null
+freq_high_hz: 500.0

@@ -1,0 +1,74 @@
+[03:59:40] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:40] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:40] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:40] DONE problems=3
+[04:02:32] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:32] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:32] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:32] DONE problems=3
+[04:12:11] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:11] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:11] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:11] DONE problems=3
+[04:35:07] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:07] DONE problems=1
+[04:37:56] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:57] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:57] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:57] DONE problems=3
+[04:43:50] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:50] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:51] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:51] DONE problems=3
+[04:46:39] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:40] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:40] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:40] DONE problems=3
+[04:47:15] PROBLEM field=html_pdf_mismatch item=WF223BD01_02 url=http://www.wavecor.com/html/wf223bd01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:15] PROBLEM field=FRD_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:15] PROBLEM field=IMP_fetch item=WF223BD01_02 url=https://www.wavecor.com/WF223BD01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:15] DONE problems=3

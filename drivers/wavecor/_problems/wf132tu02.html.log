@@ -1,0 +1,56 @@
+[03:59:50] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[03:59:50] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[03:59:50] SCHEMA_FAIL errors=2
+[04:02:42] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:02:42] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:02:42] SCHEMA_FAIL errors=2
+[04:12:20] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:12:20] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:12:20] SCHEMA_FAIL errors=2
+[04:35:42] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:35:42] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:35:42] SCHEMA_FAIL errors=2
+[04:38:05] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:38:05] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:38:05] SCHEMA_FAIL errors=2
+[04:43:59] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:43:59] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:43:59] SCHEMA_FAIL errors=2
+[04:46:48] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:46:48] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:46:48] SCHEMA_FAIL errors=2
+[04:47:24] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:47:24] PROBLEM field=schema_fail item=WF132TU02 url=http://www.wavecor.com/html/wf132tu02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.009 differs from calculated=0.00844959 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.00066)"
+         reason=File failed strict schema validation
+[04:47:24] SCHEMA_FAIL errors=2

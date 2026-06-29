@@ -1,16 +1,80 @@
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
-  parameters have not been verified by a human against the datasheet.
+  parameters not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
+driver_type: null
+nominal_size_cm: null
 datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: null
 vendor_page: https://www.soundimports.eu/en/tang-band-w5-1138smf.html
 source: https://www.soundimports.eu/en/tang-band-w5-1138smf.html
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Sd:
+    sources:
+      html: 0.0094
+    winner: html
+  BL:
+    sources:
+      html: 7.17
+    winner: html
+  Pe:
+    sources:
+      html: 40.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.00925
+    winner: html
+  Mms:
+    sources:
+      html: 0.02881
+    winner: html
+  Le:
+    sources:
+      html: 0.00034
+    winner: html
+  Re:
+    sources:
+      html: 3.4
+    winner: html
+  Qts:
+    sources:
+      html: 0.49
+    winner: html
+  Cms:
+    sources:
+      html: 0.00037
+    winner: html
+  Vas:
+    sources:
+      html: 0.004813856
+    winner: html
+  Qes:
+    sources:
+      html: 0.57
+    winner: html
+  Fs:
+    sources:
+      html: 45.0
+    winner: html
+  Znom:
+    sources:
+      html: 4.0
+    winner: html
+  Qms:
+    sources:
+      html: 3.56
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

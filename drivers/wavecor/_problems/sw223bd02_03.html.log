@@ -1,0 +1,122 @@
+[03:59:44] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:44] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:44] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:44] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[03:59:44] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[03:59:44] SCHEMA_FAIL errors=2
+[04:02:36] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:36] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:36] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:36] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:02:36] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:02:36] SCHEMA_FAIL errors=2
+[04:12:14] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:15] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:15] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:15] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:12:15] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:12:15] SCHEMA_FAIL errors=2
+[04:35:20] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:20] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:35:20] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:35:20] SCHEMA_FAIL errors=2
+[04:38:01] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:38:01] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:01] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:01] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:38:01] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:38:01] SCHEMA_FAIL errors=2
+[04:43:54] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:54] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:55] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:55] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:43:55] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:43:55] SCHEMA_FAIL errors=2
+[04:46:43] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:43] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:43] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:43] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:46:43] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:46:43] SCHEMA_FAIL errors=2
+[04:47:19] PROBLEM field=html_pdf_mismatch item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:20] PROBLEM field=FRD_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:20] PROBLEM field=IMP_fetch item=SW223BD02_03 url=https://www.wavecor.com/SW223BD02_03_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:20] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Qts' stored=0.4 differs from calculated=0.404137 (deps: Qms=10.7, Qes=0.42)"
+         reason=File failed strict schema validation
+[04:47:20] PROBLEM field=schema_fail item=SW223BD02_03 url=http://www.wavecor.com/html/sw223bd02_03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.028 differs from calculated=0.0282929 (deps: roo=1.20095, c=343.684, Sd=0.0206, Cms=0.00047)"
+         reason=File failed strict schema validation
+[04:47:20] SCHEMA_FAIL errors=2

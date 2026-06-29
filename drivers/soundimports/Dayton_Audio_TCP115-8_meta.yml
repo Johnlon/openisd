@@ -1,16 +1,80 @@
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
-  parameters have not been verified by a human against the datasheet.
+  parameters not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
+driver_type: null
+nominal_size_cm: null
 datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: null
 vendor_page: https://www.soundimports.eu/en/dayton-audio-tcp115-8.html
 source: https://www.soundimports.eu/en/dayton-audio-tcp115-8.html
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Sd:
+    sources:
+      html: 0.005
+    winner: html
+  BL:
+    sources:
+      html: 7.4
+    winner: html
+  Pe:
+    sources:
+      html: 40.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.004
+    winner: html
+  Mms:
+    sources:
+      html: 0.01016
+    winner: html
+  Le:
+    sources:
+      html: 0.0019
+    winner: html
+  Re:
+    sources:
+      html: 7.8
+    winner: html
+  Qts:
+    sources:
+      html: 0.43
+    winner: html
+  Cms:
+    sources:
+      html: 0.00071
+    winner: html
+  Vas:
+    sources:
+      html: 0.002548512
+    winner: html
+  Qes:
+    sources:
+      html: 0.54
+    winner: html
+  Fs:
+    sources:
+      html: 59.2
+    winner: html
+  Znom:
+    sources:
+      html: 8.0
+    winner: html
+  Qms:
+    sources:
+      html: 2.3
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

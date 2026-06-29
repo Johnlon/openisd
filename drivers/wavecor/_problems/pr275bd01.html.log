@@ -1,0 +1,50 @@
+[03:59:49] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:49] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:49] DONE problems=2
+[04:02:41] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:41] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:41] DONE problems=2
+[04:12:19] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:20] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:20] DONE problems=2
+[04:35:34] DONE problems=0
+[04:38:04] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:04] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:04] DONE problems=2
+[04:43:58] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:58] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:58] DONE problems=2
+[04:46:47] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:47] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:47] DONE problems=2
+[04:47:23] PROBLEM field=FRD_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:23] PROBLEM field=IMP_fetch item=PR275BD01 url=https://www.wavecor.com/PR275BD01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:24] DONE problems=2

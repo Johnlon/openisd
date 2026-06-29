@@ -1,0 +1,74 @@
+[03:59:53] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:53] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:53] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:53] DONE problems=3
+[04:02:45] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:46] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:46] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:46] DONE problems=3
+[04:12:23] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:24] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:24] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:24] DONE problems=3
+[04:35:56] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:56] DONE problems=1
+[04:38:07] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:38:07] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:08] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:08] DONE problems=3
+[04:44:02] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:44:02] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:44:02] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:44:02] DONE problems=3
+[04:46:50] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:50] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:50] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:50] DONE problems=3
+[04:47:26] PROBLEM field=html_pdf_mismatch item=WF168OM01_02 url=http://www.wavecor.com/html/wf168om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:27] PROBLEM field=FRD_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:27] PROBLEM field=IMP_fetch item=WF168OM01_02 url=https://www.wavecor.com/WF168OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:27] DONE problems=3

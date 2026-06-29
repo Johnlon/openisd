@@ -1,0 +1,24 @@
+[03:59:30] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:02:21] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:12:01] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:34:35] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:37:47] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:43:42] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:46:31] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:47:06] PROBLEM field=html_fetch item=4_5_inch1.html url=http://www.wavecor.com/html/4_5_inch1.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found

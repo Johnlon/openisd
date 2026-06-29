@@ -1,0 +1,53 @@
+[03:59:22] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:22] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[03:59:22] SCHEMA_FAIL errors=1
+[04:02:14] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:14] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:02:14] SCHEMA_FAIL errors=1
+[04:11:54] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:54] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:11:54] SCHEMA_FAIL errors=1
+[04:34:08] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:34:08] SCHEMA_FAIL errors=1
+[04:37:41] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:41] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:37:41] SCHEMA_FAIL errors=1
+[04:43:38] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:38] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:43:38] SCHEMA_FAIL errors=1
+[04:46:27] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:27] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:46:27] SCHEMA_FAIL errors=1
+[04:47:00] PROBLEM field=FRD_fetch item=TW022WA06 url=https://www.wavecor.com/TW022WA06_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:00] PROBLEM field=schema_fail item=TW022WA06 url=http://www.wavecor.com/html/tw022wa06.html offset=0
+         raw_value="WDR: 'Vas' stored=7.3e-06 differs from calculated=7.38979e-06 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.00014)"
+         reason=File failed strict schema validation
+[04:47:00] SCHEMA_FAIL errors=1

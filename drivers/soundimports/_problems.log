@@ -1,637 +1,80 @@
-
-[07:05:33] RUN 2026-06-28T07:03:10 scraper=enrich_drivers collection=soundimports dry_run=False
-[07:05:34] PROBLEM  file=Accuton_C158-8-085_meta.yml
-         reason=PDF: no frequency range pattern found in Accuton-C158-8-085-woofer.pdf
-[07:05:34] META_UPDATE file=Accuton_C168-6-990_meta.yml driver_type=midrange
-[07:05:34] META_UPDATE file=Accuton_C173-6-096_meta.yml driver_type=mid-bass
-[07:05:34] PROBLEM  file=Accuton_C220-11-221_meta.yml
-         reason=PDF: no frequency range pattern found in c220_11_221-datasheet.pdf
-[07:05:34] PROBLEM  file=Accuton_C220-6-221_meta.yml
-         reason=PDF: no frequency range pattern found in C220-6-221.pdf
-[07:05:35] PROBLEM  file=Accuton_C220-6-222_meta.yml
-         reason=PDF: no frequency range pattern found in Datasheet C220-6-222.pdf
-[07:05:35] PROBLEM  file=Accuton_C25-4-158_meta.yml
-         reason=PDF: no extractable text in Datasheet C25-6-158.pdf
-[07:05:35] META_UPDATE file=Accuton_C25-4-158_meta.yml driver_type=tweeter
-[07:05:35] META_UPDATE file=Accuton_C25-6-158_meta.yml driver_type=tweeter
-[07:05:35] PROBLEM  file=Accuton_C30-4-358_meta.yml
-         reason=PDF: no extractable text in Datasheet C30-6-358.pdf
-[07:05:35] META_UPDATE file=Accuton_C30-4-358_meta.yml driver_type=tweeter
-[07:05:35] PROBLEM  file=Accuton_C30-6-358_meta.yml
-         reason=PDF: no extractable text in data-C30-6-358.pdf
-[07:05:35] META_UPDATE file=Accuton_C30-6-358_meta.yml driver_type=tweeter
-[07:05:35] META_UPDATE file=Accuton_C51-6-286_meta.yml driver_type=tweeter
-[07:05:35] META_UPDATE file=Accuton_C90-6-078_meta.yml driver_type=midrange
-[07:05:35] PROBLEM  file=AuraSound_AST-2B-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Bass shakers'
-[07:05:35] PROBLEM  file=AuraSound_AST-2B-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Aura Sound_AST-2B-4_1.pdf
-[07:05:35] META_UPDATE file=Beyma_10CMV2_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_10CX300_Fe_meta.yml driver_type=woofer
-[07:05:35] META_UPDATE file=Beyma_10G40_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_10MC700Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_10MCS500_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_10WRS300_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12CXA400Fe_meta.yml driver_type=woofer
-[07:05:35] META_UPDATE file=Beyma_12G40_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12LX60V2_meta.yml driver_type=subwoofer
-[07:05:35] META_UPDATE file=Beyma_12MC500_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12MC700Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12MI100_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12P80Nd_V2_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_12WR400_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_14MC700Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_14MLEX1000Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_15CMV2_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_15CXA400Nd_meta.yml driver_type=coaxial
-[07:05:35] META_UPDATE file=Beyma_15LEX1000Fe_meta.yml driver_type=subwoofer
-[07:05:35] PROBLEM  file=Beyma_15LEX1000Nd_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:35] PROBLEM  file=Beyma_15LEX1200Nd_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:35] META_UPDATE file=Beyma_15LX60V2_meta.yml driver_type=subwoofer
-[07:05:35] META_UPDATE file=Beyma_15MC500_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_15MCS500_meta.yml driver_type=mid-bass
-[07:05:35] PROBLEM  file=Beyma_15MLEX1000Nd_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:35] META_UPDATE file=Beyma_15P1000Fe_V2_meta.yml driver_type=subwoofer
-[07:05:35] PROBLEM  file=Beyma_18P1000FeV2_S_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:35] PROBLEM  file=Beyma_5G40Nd_N_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:35] META_UPDATE file=Beyma_5MP60_N_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_5P200Fe_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_5P200Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_6B30_P_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_6CMV2_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_6G40Nd_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_6NMFW_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_6P200Fe_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_8CFX260Nd_meta.yml driver_type=woofer
-[07:05:35] META_UPDATE file=Beyma_8CX300Fe_meta.yml driver_type=woofer
-[07:05:35] META_UPDATE file=Beyma_8CX300Nd_N_meta.yml driver_type=coaxial
-[07:05:35] META_UPDATE file=Beyma_8MI100_meta.yml driver_type=mid-bass
-[07:05:35] META_UPDATE file=Beyma_8WRS300_meta.yml driver_type=mid-bass
-[07:05:35] PROBLEM  file=Beyma_SK-07_T_meta.yml
-         reason=SI HTML: unrecognised category: 'Bass shakers'
-[07:05:35] META_UPDATE file=Beyma_T-25S_meta.yml driver_type=tweeter
-[07:05:35] META_UPDATE file=BlieSMa_M142A-6_meta.yml driver_type=midrange
-[07:05:35] META_UPDATE file=BlieSMa_M142P-6_meta.yml driver_type=midrange
-[07:05:35] META_UPDATE file=BlieSMa_M74A-6_meta.yml driver_type=midrange
-[07:05:35] META_UPDATE file=BlieSMa_M74B-6_meta.yml driver_type=midrange
-[07:05:35] META_UPDATE file=BlieSMa_M74P-6_meta.yml driver_type=midrange
-[07:05:35] META_UPDATE file=BlieSMa_M74S-6_meta.yml driver_type=midrange
-[07:05:36] PROBLEM  file=BlieSMa_T25A-6_meta.yml
-         reason=PDF: no frequency range pattern found in datasheet-t25a-6.pdf
-[07:05:36] META_UPDATE file=BlieSMa_T25A-6_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=BlieSMa_T25B-6_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=BlieSMa_T25S-6_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=BlieSMa_T34A-4_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=BlieSMa_T34B-4_meta.yml driver_type=tweeter
-[07:05:36] PROBLEM  file=Css_Criton-1TD-X-Kit-SUP_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] PROBLEM  file=Css_Criton-2TD-X-MTM-Kit-SUP_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] PROBLEM  file=Css_Criton-2TD-X-Tower-Kit-SUP_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] PROBLEM  file=Css_Criton-3TD-X-Tower-Kit-SUP_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] PROBLEM  file=Css_Criton-3TD-XC-Center-Kit_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] PROBLEM  file=Css_Criton_3td_X_Kit_Amber_Criton-3TD-X-Tower-Kit-AMBER_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] META_UPDATE file=CSS_LD22_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=CSS_LD25X-WG_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=CSS_LD25X_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=CSS_LDW6_meta.yml driver_type=mid-bass
-[07:05:36] META_UPDATE file=CSS_T22-04_meta.yml driver_type=tweeter
-[07:05:36] PROBLEM  file=Css_Torii-MTM-Kit_meta.yml
-         reason=SI HTML: unrecognised category: 'DIY speaker kit'
-[07:05:36] META_UPDATE file=Dayton_Audio_AMT2-4_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=Dayton_Audio_AMT3-4_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=Dayton_Audio_AMTPRO-4_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=Dayton_Audio_AN25F-4_meta.yml driver_type=tweeter
-[07:05:36] META_UPDATE file=Dayton_Audio_AN25Ti-4_meta.yml driver_type=tweeter
-[07:05:36] PROBLEM  file=Dayton_Audio_BCE-1_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:36] PROBLEM  file=Dayton_Audio_BCE-1_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:36] PROBLEM  file=Dayton_Audio_BCT-3_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:36] PROBLEM  file=Dayton_Audio_CE140-30S-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:36] PROBLEM  file=Dayton_Audio_CE20MB-16_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:36] PROBLEM  file=Dayton_Audio_CE20Z-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] META_UPDATE file=Dayton_Audio_CE28N-4_meta.yml driver_type=tweeter
-[07:05:37] PROBLEM  file=Dayton_Audio_CE30MB-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE30P-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE32A-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE32A-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] META_UPDATE file=Dayton_Audio_CE35-4_meta.yml driver_type=tweeter
-[07:05:37] PROBLEM  file=Dayton_Audio_CE38M-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE38MB-32_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE40-20F-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE40-28P-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE40P-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] META_UPDATE file=Dayton_Audio_CE4876-16_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE4876-8_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE4895-8_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE52N-4_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE54N-4_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE58N-10_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE65W-8_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE67PR-4_meta.yml driver_type=fullrange
-[07:05:37] PROBLEM  file=Dayton_Audio_CE70-30P-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] META_UPDATE file=Dayton_Audio_CE70PR-4_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE78PF-4_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE81PF-8_meta.yml driver_type=fullrange
-[07:05:37] META_UPDATE file=Dayton_Audio_CE_Series_CE10Z-16_meta.yml driver_type=woofer
-[07:05:37] META_UPDATE file=Dayton_Audio_CE_Series_CE15Z-8_meta.yml driver_type=woofer
-[07:05:37] META_UPDATE file=Dayton_Audio_CE_Series_CE28MB-16_meta.yml driver_type=woofer
-[07:05:37] META_UPDATE file=Dayton_Audio_CE_Series_CE32M-4_meta.yml driver_type=woofer
-[07:05:37] PROBLEM  file=Dayton_Audio_CE_Series_CE3525MP-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE_Series_CE36MB-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE_Series_CE4028MP-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE_Series_CE45MP-16_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] PROBLEM  file=Dayton_Audio_CE_Series_CE50MP-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:37] META_UPDATE file=Dayton_Audio_CF120-4_meta.yml driver_type=mid-bass
-[07:05:37] META_UPDATE file=Dayton_Audio_CX120-8_meta.yml driver_type=coaxial
-[07:05:37] META_UPDATE file=Dayton_Audio_DA115-8_meta.yml driver_type=mid-bass
-[07:05:37] META_UPDATE file=Dayton_Audio_DA135-8_meta.yml driver_type=mid-bass
-[07:05:37] PROBLEM  file=Dayton_Audio_DAEX-13-4SM_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:37] PROBLEM  file=Dayton_Audio_DAEX-13-4SM_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:38] PROBLEM  file=Dayton_Audio_DAEX-9-4SM_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:38] PROBLEM  file=Dayton_Audio_DAEX-9-4SM_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:39] PROBLEM  file=Dayton_Audio_DAEX13CT-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:39] PROBLEM  file=Dayton_Audio_DAEX13CT-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:40] PROBLEM  file=Dayton_Audio_DAEX13CT-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:40] PROBLEM  file=Dayton_Audio_DAEX13CT-8_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:41] PROBLEM  file=Dayton_Audio_DAEX19CT-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:41] PROBLEM  file=Dayton_Audio_DAEX19CT-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:41] PROBLEM  file=Dayton_Audio_DAEX19QLP-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:41] PROBLEM  file=Dayton_Audio_DAEX19SL-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:41] PROBLEM  file=Dayton_Audio_DAEX19SL-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:42] PROBLEM  file=Dayton_Audio_DAEX25_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:42] PROBLEM  file=Dayton_Audio_DAEX25_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:43] PROBLEM  file=Dayton_Audio_DAEX25CT-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:43] PROBLEM  file=Dayton_Audio_DAEX25CT-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:44] PROBLEM  file=Dayton_Audio_DAEX25FHE-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:44] PROBLEM  file=Dayton_Audio_DAEX25FHE-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:44] PROBLEM  file=Dayton_Audio_DAEX25Q-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:44] PROBLEM  file=Dayton_Audio_DAEX25Q-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:45] PROBLEM  file=Dayton_Audio_DAEX25TP-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:45] PROBLEM  file=Dayton_Audio_DAEX25TP-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:46] PROBLEM  file=Dayton_Audio_DAEX25VT-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:46] PROBLEM  file=Dayton_Audio_DAEX25VT-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:47] PROBLEM  file=Dayton_Audio_DAEX25W-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:47] PROBLEM  file=Dayton_Audio_DAEX25W-8_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:48] PROBLEM  file=Dayton_Audio_DAEX25X4-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:48] PROBLEM  file=Dayton_Audio_DAEX25X4-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:48] PROBLEM  file=Dayton_Audio_DAEX30HESF-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:48] PROBLEM  file=Dayton_Audio_DAEX30HESF-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:49] PROBLEM  file=Dayton_Audio_DAEX32EP-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:49] PROBLEM  file=Dayton_Audio_DAEX32EP-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:50] PROBLEM  file=Dayton_Audio_DAEX32Q-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:50] PROBLEM  file=Dayton_Audio_DAEX32Q-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:51] PROBLEM  file=Dayton_Audio_DAEX32Q-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:51] PROBLEM  file=Dayton_Audio_DAEX32Q-8_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:52] PROBLEM  file=Dayton_Audio_DAEX32QMB-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:52] PROBLEM  file=Dayton_Audio_DAEX32QMB-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:52] PROBLEM  file=Dayton_Audio_DAEX32SQ-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:52] PROBLEM  file=Dayton_Audio_DAEX32U-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:52] PROBLEM  file=Dayton_Audio_DAEX32U-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:53] PROBLEM  file=Dayton_Audio_DAEX58FP_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:53] PROBLEM  file=Dayton_Audio_DAEX58FP_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:54] PROBLEM  file=Dayton_Audio_DAEX9CT-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_DAEX9CT-4_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130A-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130AS-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130B-4_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130B-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130BS-4_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC130BS-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DC25T-8_meta.yml driver_type=tweeter
-[07:05:54] META_UPDATE file=Dayton_Audio_DC28F-8_meta.yml driver_type=tweeter
-[07:05:54] META_UPDATE file=Dayton_Audio_DC28FS-8_meta.yml driver_type=tweeter
-[07:05:54] META_UPDATE file=Dayton_Audio_DC28FT-8_meta.yml driver_type=tweeter
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA105-4_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA105-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA58-4_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA58-8_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA70-4_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA70-8_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA80-4_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DMA80-8_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DS115-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DS135-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DS90-8_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_DSA115-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DSA135-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_DSA90-8_meta.yml driver_type=fullrange
-[07:05:54] META_UPDATE file=Dayton_Audio_Epique_Ceramic_EC30-4_meta.yml driver_type=tweeter
-[07:05:54] META_UPDATE file=Dayton_Audio_Epique_E150HE-44_meta.yml driver_type=subwoofer
-[07:05:54] PROBLEM  file=Dayton_Audio_Epique_E150MR-4_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX25CT2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX25FHE2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX25PCDS-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX25VCS-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX25VT2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX30HESF2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32EP2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32HRDS-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32HRTS-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32Q2-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32U2-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] PROBLEM  file=Dayton_Audio_EX32VBDS-4_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:54] META_UPDATE file=Dayton_Audio_GF180-4_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_GF180-8_meta.yml driver_type=mid-bass
-[07:05:54] META_UPDATE file=Dayton_Audio_HARB252-8_meta.yml driver_type=fullrange
-[07:05:55] PROBLEM  file=Dayton_Audio_HDN-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:55] PROBLEM  file=Dayton_Audio_HDN-8_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Dayton Audio_BCE-1_2.pdf
-[07:05:55] PROBLEM  file=Dayton_Audio_HDN-8B_meta.yml
-         reason=SI HTML: unrecognised category: 'Dayton Audio exciters'
-[07:05:55] META_UPDATE file=Dayton_Audio_LW150-4_meta.yml driver_type=subwoofer
-[07:05:55] META_UPDATE file=Dayton_Audio_MB1025-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_MB620-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_MB820-8_meta.yml driver_type=mid-bass
-[07:05:55] PROBLEM  file=Dayton_Audio_MX5-22_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:55] PROBLEM  file=Dayton_Audio_MX6-22_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:55] META_UPDATE file=Dayton_Audio_ND105-4_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND105-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND13FA-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND140-4_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND140-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND16FA-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND16FA-6_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND20FA-6_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND20FB-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND25FA-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND25FN-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND25FW-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND25TA-4_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND28F-6_meta.yml driver_type=tweeter
-[07:05:55] META_UPDATE file=Dayton_Audio_ND64-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_ND65-4_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND65-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_ND90-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_ND90-8_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_ND91-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_ND91-8_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_Odeum_Apollo_10MB250N-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_Odeum_Apollo_15MB500N-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_Odeum_Apollo_6MB200N-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_Odeum_Apollo_8MB200N-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_PA130-8_meta.yml driver_type=midrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PA165-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_PA200-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_PA255-8_meta.yml driver_type=mid-bass
-[07:05:55] META_UPDATE file=Dayton_Audio_PC105-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PC105-8_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PC68-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PC68-8_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PC83-4_meta.yml driver_type=fullrange
-[07:05:55] META_UPDATE file=Dayton_Audio_PC83-8_meta.yml driver_type=fullrange
-[07:05:55] PROBLEM  file=Dayton_Audio_PCS115-4_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:55] PROBLEM  file=Dayton_Audio_PCS115-8_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:56] PROBLEM  file=Dayton_Audio_PCS175-4_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:56] PROBLEM  file=Dayton_Audio_PCS175-8_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:56] META_UPDATE file=Dayton_Audio_PS180-8_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_PS220-8_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_PS95-8_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_PT2C-8_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=Dayton_Audio_PTMini-6_meta.yml driver_type=tweeter
-[07:05:56] PROBLEM  file=Dayton_Audio_RC180-55_meta.yml
-         reason=SI HTML: unrecognised category: 'Speaker module'
-[07:05:56] META_UPDATE file=Dayton_Audio_Reference_RS100-4_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_Reference_RS100P-8_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_Reference_RST28A-4_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=Dayton_Audio_Reference_RST28F-4_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=Dayton_Audio_RS100-8_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_RS100P-4_meta.yml driver_type=fullrange
-[07:05:56] META_UPDATE file=Dayton_Audio_RS125-4_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS125-8_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS125P-4_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS125P-8_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS150-4_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS150-8_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS150P-4A_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS150P-8A_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS150T-8_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS180P-8_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dayton_Audio_RS52AN-8_meta.yml driver_type=midrange
-[07:05:56] META_UPDATE file=Dayton_Audio_RS52FN-8_meta.yml driver_type=midrange
-[07:05:56] META_UPDATE file=Dayton_Audio_SIG120-4_meta.yml driver_type=midrange
-[07:05:56] META_UPDATE file=Dayton_Audio_SIG150-4_meta.yml driver_type=midrange
-[07:05:56] META_UPDATE file=Dayton_Audio_SIG180-4_meta.yml driver_type=midrange
-[07:05:56] PROBLEM  file=Dayton_Audio_SS8-22_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:56] META_UPDATE file=Dayton_Audio_TCP115-4_meta.yml driver_type=subwoofer
-[07:05:56] META_UPDATE file=Dayton_Audio_TCP115-8_meta.yml driver_type=subwoofer
-[07:05:56] META_UPDATE file=Dayton_Audio_TD20F-4_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=Dayton_Audio_TD25F-4_meta.yml driver_type=tweeter
-[07:05:56] PROBLEM  file=Dayton_Audio_TT20-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Bass shakers'
-[07:05:56] META_UPDATE file=Dayton_Audio_UMII8-22_meta.yml driver_type=subwoofer
-[07:05:56] META_UPDATE file=Dynavox_204204_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dynavox_204205_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dynavox_206158_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=Dynavox_206159_meta.yml driver_type=midrange
-[07:05:56] META_UPDATE file=Dynavox_206160_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_25_SD_4_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=ETON_26_HD_3_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=ETON_28_SD_1_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=ETON_29_HD_2_meta.yml driver_type=tweeter
-[07:05:56] META_UPDATE file=ETON_3-212_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_3-312_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-208_ARCOSIA_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-212_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-218_ARCOSIA_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-312_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-512_C8_25_RP_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_4-612_C8_25_RP_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_5-212_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:56] META_UPDATE file=ETON_5-312_C8_25_HEX_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=ETON_5-512_C8_25_RP_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=ETON_5-612_C8_25_RP_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_10FE200-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_10FE200-8F_meta.yml driver_type=mid-bass
-[07:05:57] PROBLEM  file=FaitalPRO_10FE330-8F_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] PROBLEM  file=FaitalPRO_10FE400-4F_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] PROBLEM  file=FaitalPRO_10FE400-8F_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] PROBLEM  file=FaitalPRO_10FH500-8P_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] PROBLEM  file=FaitalPRO_10HX240-8P_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] META_UPDATE file=FaitalPRO_10PR300-4P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_10PR300-8P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_10PR320-8P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_10PR410-8F_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_10RS350-4P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_10RS350-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12FH510-4P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12FH510-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12FH520-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12FX600-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12HP1060-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12PR300-4P_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_12PR300-8P_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_12PR320-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_12RS1066-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_15HP1010-8P_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=FaitalPRO_15HX500-8P_meta.yml driver_type=coaxial
-[07:05:57] PROBLEM  file=FaitalPRO_21XL3000-8P_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] META_UPDATE file=FaitalPRO_2FE22-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_2FE24-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_2FE24-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE22-16F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE22-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE22-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE25-16F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE25-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE25-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_3FE26-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE32-16F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE32-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE32-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE35-16F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE35-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE35-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE42-4F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE42-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_4FE44-8F_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=FaitalPRO_5FE100-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5FE100-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5FE105-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5FE120-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5FE120-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5FE125-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_5HX140-8F_meta.yml driver_type=mid-bass
-[07:05:57] PROBLEM  file=FaitalPRO_5HX220-8P_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] META_UPDATE file=FaitalPRO_5PR120-8F_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_5PR160-8F_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_6FE100-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6FE200-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6FE200-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6FE300-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6FE400-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6HX150-8P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6PR122-8F_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_6PR130-8P_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_6RS140-16P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_6RS140-8P_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8FE200-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8FE200-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8FE300-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8FE400-4F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8FE400-8F_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=FaitalPRO_8HX230-8P_meta.yml driver_type=coaxial
-[07:05:57] META_UPDATE file=FaitalPRO_8PR150-8P_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_8PR200-8P_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=FaitalPRO_8PR210-16F_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=Fountek_FR58EX_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=Fountek_FW100B_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=Fountek_FW168K_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=Goldwood_GT-302_S_meta.yml driver_type=tweeter
-[07:05:57] META_UPDATE file=Goldwood_GT-525_meta.yml driver_type=tweeter
-[07:05:57] META_UPDATE file=GRS_10PF-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_10PT-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_10S-8_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=GRS_10SW-4_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=GRS_1TD1-8_meta.yml driver_type=tweeter
-[07:05:57] META_UPDATE file=GRS_1TD2-8_meta.yml driver_type=tweeter
-[07:05:57] META_UPDATE file=GRS_1TM-4_meta.yml driver_type=tweeter
-[07:05:57] META_UPDATE file=GRS_3AS-4_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_3FR-4_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=GRS_4AS-4_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_4FR-8_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=GRS_4PF-8_meta.yml driver_type=mid-bass
-[07:05:57] PROBLEM  file=GRS_4SMP-4_meta.yml
-         reason=SI HTML: unrecognised category: 'New products'
-[07:05:57] META_UPDATE file=GRS_4SMP-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_5PF-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_5SBM-8_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=GRS_5SBM1-8_meta.yml driver_type=midrange
-[07:05:57] META_UPDATE file=GRS_5SMP-4_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_5SMP-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6AS-4_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6LPSW-4_meta.yml driver_type=subwoofer
-[07:05:57] META_UPDATE file=GRS_6PF-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6PR-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6PT-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6SMP-4_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_6SMP-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_8FR-8_meta.yml driver_type=fullrange
-[07:05:57] META_UPDATE file=GRS_8PF-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_8PR-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_8PT-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_8SMP-8_meta.yml driver_type=mid-bass
-[07:05:57] META_UPDATE file=GRS_8SW-4_meta.yml driver_type=subwoofer
-[07:05:58] META_UPDATE file=GRS_A25-2T_meta.yml driver_type=tweeter
-[07:05:58] META_UPDATE file=GRS_BT3-8_meta.yml driver_type=tweeter
-[07:05:59] PROBLEM  file=GRS_NRT25-8_meta.yml
-         reason=SI HTML: unrecognised category: 'Micro speaker'
-[07:05:59] META_UPDATE file=GRS_PRT-8_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=GRS_RSB901-1_meta.yml driver_type=fullrange
-[07:05:59] META_UPDATE file=HiVi_Swan_B1S_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_B2S_meta.yml driver_type=fullrange
-[07:05:59] META_UPDATE file=HiVi_Swan_B3N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_B3S_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_B4N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_DM-7500_meta.yml driver_type=midrange
-[07:05:59] META_UPDATE file=HiVi_Swan_DMA-A_meta.yml driver_type=midrange
-[07:05:59] META_UPDATE file=HiVi_Swan_DMB-A_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_DMN-A_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_F5_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_F6_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_K1_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_L6-4R_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M3N-B_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M3N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M4N-B_meta.yml driver_type=fullrange
-[07:05:59] META_UPDATE file=HiVi_Swan_M4N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M5N-B_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M5N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M6N-B_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_M6N_meta.yml driver_type=mid-bass
-[07:05:59] META_UPDATE file=HiVi_Swan_Q2R_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_Q3B_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_Q4B_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_SD1.1-A_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_SS1II_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_T20-8_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_TN25_meta.yml driver_type=tweeter
-[07:05:59] META_UPDATE file=HiVi_Swan_TN28-B_meta.yml driver_type=tweeter
-[07:05:59] PROBLEM  file=Markaudio_CHN-110_meta.yml
-         reason=PDF: no frequency range pattern found in CHN110.pdf
-[07:05:59] PROBLEM  file=Monacor_AR-50_meta.yml
-         reason=PDF: no frequency range pattern found in AR30_AR50.pdf
-[07:06:00] PROBLEM  file=Morel_CAW938_meta.yml
-         reason=PDF: no frequency range pattern found in 297-086--morel-caw-938-spec-sheet.pdf
-[07:06:00] PROBLEM  file=Morel_Em_1308_EM1308_meta.yml
-         reason=PDF: no frequency range pattern found in pdf_Morel_EM 1308_1.pdf
-[07:06:01] PROBLEM  file=Morel_Integra_524_meta.yml
-         reason=PDF: no frequency range pattern found in 297-026--morel-integra-524-hybrid-series-specifications.pdf
-[07:06:01] PROBLEM  file=Morel_MW1058_meta.yml
-         reason=PDF: no frequency range pattern found in morel_uw_1058.pdf
-[07:06:01] PROBLEM  file=Morel_MW144_meta.yml
-         reason=PDF: no frequency range pattern found in 297-002--morel-msw-144-specifications.pdf
-[07:06:02] PROBLEM  file=Morel_TSCT1108_meta.yml
-         reason=PDF: no frequency range pattern found in 277-100--morel-tsct1104-spec-sheet.pdf
-[07:06:02] PROBLEM  file=Morel_Ultimate_UW1058_meta.yml
-         reason=PDF: no frequency range pattern found in 297-130--morel-uw-1058-spec-sheet.pdf
-[07:06:03] PROBLEM  file=Morel_UW958_meta.yml
-         reason=PDF: no frequency range pattern found in 297-128--morel-uw958-spec-sheet.pdf
-[07:06:03] PROBLEM  file=PURIFI_PTT6.5PR-NF2-02_meta.yml
-         reason=PDF: no frequency range pattern found in PTT6.5PR-NF2-02-Datasheet.pdf
-[07:06:04] PROBLEM  file=SB_Acoustics_Satori_MT19CP-8_meta.yml
-         reason=PDF: no frequency range pattern found in I-MT19CP-8-data-sheet.pdf
-[07:06:05] PROBLEM  file=SB_Acoustics_Satori_TW29BNWG-4_meta.yml
-         reason=PDF: no frequency range pattern found in SB_Acoustics_Satori_TW29BNWG-4_tweeter.pdf
-[07:06:05] PROBLEM  file=SB_Acoustics_SB17MFC35-4_meta.yml
-         reason=PDF: no frequency range pattern found in SB17MFC35-4.pdf
-[07:06:05] PROBLEM  file=SB_Acoustics_SB36WBAC21-8_meta.yml
-         reason=PDF: no frequency range pattern found in SB-Acoustics SB36WBAC21-8.pdf
-[07:06:05] PROBLEM  file=Scan-Speak_Illuminator_R3004_602200_meta.yml
-         reason=PDF: no frequency range pattern found in R3004-602200-datasheet.pdf
-[07:06:07] PROBLEM  file=Scan-Speak_Scan-Speak_Discovery_26W_4534G00_meta.yml
-         reason=PDF: no frequency range pattern found in 26W-4534G00.pdf
-[07:06:07] META_UPDATE file=SEAS_27TFC_T_meta.yml driver_type=tweeter
-[07:06:08] PROBLEM  file=SEAS_Extreme_L26ROY3_meta.yml
-         reason=PDF: no frequency range pattern found in L26ROY3_XM007-04_datasheet.pdf
-[07:06:08] PROBLEM  file=SEAS_Prestige_27TDFC_meta.yml
-         reason=PDF: no frequency range pattern found in mimir_0.pdf
-[07:06:09] PROBLEM  file=Tang_Band_50-1426SE_meta.yml
-         reason=PDF: no frequency range pattern found in 264-855--tang-band-50-1426se-spec-sheet.pdf
-[07:06:10] PROBLEM  file=Tang_Band_75-1558SH_meta.yml
-         reason=PDF: no frequency range pattern found in 264-856--tang-band-75-1558sh-spec-sheet.pdf
-[07:06:10] META_UPDATE file=Visaton_BG_17_meta.yml driver_type=fullrange
-[07:06:10] DONE  collection=soundimports total=1659 extracted=580 updated=352 no_data=1079 errors=0
+# Run 2026-06-29T03:13:59.072953 scraper=SoundImports
+[03:05:21] PROBLEM field=schema_fail item=E150HE-44 url=https://www.soundimports.eu/en/dayton-audio-e150he-44.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00027 differs from calculated=0.00768145 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.0006)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] DONE problems=0
+[03:05:22] PROBLEM field=Vas_tiny_for_driver item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value='Sd=515 cm² Vas=1.61 L (min plausible ≈ 8.6 L)'
+         reason=Vas implausibly small for piston area — likely ft³-as-liters scraper bug
+[03:05:22] PROBLEM field=schema_fail item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00161 differs from calculated=0.0450956 (deps: roo=1.20095, c=343.684, Sd=0.05147, Cms=0.00012)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=1
+[03:13:58] PROBLEM field=schema_fail item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value="WDR: 'Vas' stored=0.04559 differs from calculated=0.0450956 (deps: roo=1.20095, c=343.684, Sd=0.05147, Cms=0.00012)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1
+[03:05:21] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Qts' stored=0.43 differs from calculated=0.437324 (deps: Qms=2.3, Qes=0.54)"
+         reason=File failed strict schema validation
+[03:05:21] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Vas' stored=9e-05 differs from calculated=0.00251793 (deps: roo=1.20095, c=343.684, Sd=0.005, Cms=0.00071)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Qts' stored=0.43 differs from calculated=0.437324 (deps: Qms=2.3, Qes=0.54)"
+         reason=File failed strict schema validation
+[03:13:58] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00254851 differs from calculated=0.00251793 (deps: roo=1.20095, c=343.684, Sd=0.005, Cms=0.00071)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=2
+[03:05:21] PROBLEM field=Vas_tiny_for_driver item=12SW-4HE url=https://www.soundimports.eu/en/grs-12sw-4he.html offset=0
+         raw_value='Sd=507 cm² Vas=2.84 L (min plausible ≈ 8.5 L)'
+         reason=Vas implausibly small for piston area — likely ft³-as-liters scraper bug
+[03:05:21] PROBLEM field=schema_fail item=12SW-4HE url=https://www.soundimports.eu/en/grs-12sw-4he.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00284 differs from calculated=0.0803151 (deps: roo=1.20095, c=343.684, Sd=0.05073, Cms=0.00022)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] DONE problems=0
+[03:05:23] PROBLEM field=schema_fail item=W3-1876S url=https://www.soundimports.eu/en/tang-band-w3-1876s.html offset=0
+         raw_value="WDR: 'Vas' stored=3e-05 differs from calculated=0.000765251 (deps: roo=1.20095, c=343.684, Sd=0.0027, Cms=0.00074)"
+         reason=File failed strict schema validation
+[03:05:23] SCHEMA_FAIL errors=1
+[03:13:58] PROBLEM field=schema_fail item=W3-1876S url=https://www.soundimports.eu/en/tang-band-w3-1876s.html offset=0
+         raw_value="WDR: 'Vas' stored=0.000849504 differs from calculated=0.000765251 (deps: roo=1.20095, c=343.684, Sd=0.0027, Cms=0.00074)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1
+[03:05:22] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Cms' = 1.104 above maximum 0.1 m/N"
+         reason=File failed strict schema validation
+[03:05:22] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Qts' stored=0.33 differs from calculated=0.323936 (deps: Qms=4.35, Qes=0.35)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Qts' stored=0.33 differs from calculated=0.323936 (deps: Qms=4.35, Qes=0.35)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1
+[03:05:21] PROBLEM field=schema_fail item=W5-1138SMF url=https://www.soundimports.eu/en/tang-band-w5-1138smf.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00017 differs from calculated=0.00463769 (deps: roo=1.20095, c=343.684, Sd=0.0094, Cms=0.00037)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] PROBLEM field=schema_fail item=W5-1138SMF url=https://www.soundimports.eu/en/tang-band-w5-1138smf.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00481386 differs from calculated=0.00463769 (deps: roo=1.20095, c=343.684, Sd=0.0094, Cms=0.00037)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1
+[03:05:22] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Qts' stored=0.27 differs from calculated=0.266087 (deps: Qms=1.02, Qes=0.36)"
+         reason=File failed strict schema validation
+[03:05:22] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00334 differs from calculated=0.000157416 (deps: roo=1.20095, c=343.684, Sd=0.0009, Cms=0.00137)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Qts' stored=0.27 differs from calculated=0.266087 (deps: Qms=1.02, Qes=0.36)"
+         reason=File failed strict schema validation
+[03:13:58] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0945781 differs from calculated=0.000157416 (deps: roo=1.20095, c=343.684, Sd=0.0009, Cms=0.00137)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=2

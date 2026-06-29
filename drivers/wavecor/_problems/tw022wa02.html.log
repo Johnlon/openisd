@@ -1,0 +1,93 @@
+[03:20:50] DONE problems=0
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Vas: HTML=3.6e-06 PDF=0.0036 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=Fs_low item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs=1.15'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[03:42:35] DONE problems=3
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Vas: HTML=3.6e-06 PDF=0.0036 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=Fs_low item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs=1.15'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[03:59:21] DONE problems=3
+[04:02:13] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:13] PROBLEM field=Fs_low item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs=1.15'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[04:02:13] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:02:13] SCHEMA_FAIL errors=1
+[04:11:31] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:31] PROBLEM field=Fs_low item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs=1.15'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[04:11:31] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:11:31] SCHEMA_FAIL errors=1
+[04:11:53] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:53] PROBLEM field=Fs_low item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs=1.15'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[04:11:53] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:11:53] SCHEMA_FAIL errors=1
+[04:18:16] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:18:16] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:18:16] SCHEMA_FAIL errors=1
+[04:34:04] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:04] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:34:04] SCHEMA_FAIL errors=1
+[04:37:40] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:40] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:37:40] SCHEMA_FAIL errors=1
+[04:43:37] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:37] PROBLEM field=schema_fail item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value="WDR: 'Vas' stored=3.6e-06 differs from calculated=0.00358933 (deps: roo=1.20095, c=343.684, Sd=0.00061, Cms=0.068)"
+         reason=File failed strict schema validation
+[04:43:37] SCHEMA_FAIL errors=1
+[04:46:26] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:26] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Cms: HTML=6.8e-05 PDF=0.068 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:26] DONE problems=2
+[04:46:59] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Fs: HTML=1150 PDF=1.15 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:59] PROBLEM field=html_pdf_mismatch item=TW022WA02 url=http://www.wavecor.com/html/tw022wa02.html offset=0
+         raw_value='Cms: HTML=6.8e-05 PDF=0.068 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:59] DONE problems=2

@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW215WA01_02_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.wavecor.com/SW215WA01_02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw215wa01_02.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw215wa01_02.html
@@ -14,4 +19,66 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Znom:
+    sources:
+      html: 4.0
+    winner: html
+  Mms:
+    sources:
+      html: 0.053
+    winner: html
+  Re:
+    sources:
+      html: 3.3
+    winner: html
+  Sd:
+    sources:
+      html: 0.0206
+    winner: html
+  Cms:
+    sources:
+      html: 0.00043
+    winner: html
+  Fs:
+    sources:
+      html: 33.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.01
+    winner: html
+  Qts:
+    sources:
+      html: 0.49
+    winner: html
+  Rms:
+    sources:
+      html: 1.0
+    winner: html
+  BL:
+    sources:
+      html: 8.45
+    winner: html
+  Pe:
+    sources:
+      html: 1500.0
+    winner: html
+  Qms:
+    sources:
+      html: 11.0
+    winner: html
+  Vas:
+    sources:
+      html: 0.026
+    winner: html
+  Le:
+    sources:
+      html: 0.0012
+    winner: html
+  Qes:
+    sources:
+      html: 0.51
+    winner: html
+freq_low_hz: null
+freq_high_hz: 500.0

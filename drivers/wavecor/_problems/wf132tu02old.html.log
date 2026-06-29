@@ -1,0 +1,24 @@
+[03:59:50] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:02:42] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:12:20] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:35:41] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:38:05] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:43:59] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:46:48] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found
+[04:47:24] PROBLEM field=html_fetch item=wf132tu02old.html url=http://www.wavecor.com/html/wf132tu02old.html offset=0
+         raw_value=None
+         reason=HTTP error: HTTP Error 404: Not Found

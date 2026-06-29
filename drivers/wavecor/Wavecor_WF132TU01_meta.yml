@@ -1,17 +1,72 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/WF132TU01_specifications.pdf
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.wavecor.com/WF132TU01_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/wf132tu01.html
 vendor_page: null
 source: http://www.wavecor.com/html/wf132tu01.html
-frd: https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF132TU01_SPL_response.txt
-impedance: https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF132TU01_impedance_response.txt
+frd: https://www.wavecor.com/WF132TU01_SPL_response.txt
+impedance: https://www.wavecor.com/WF132TU01_impedance_response.txt
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Znom:
+    sources:
+      html: 4.0
+    winner: html
+  Mms:
+    sources:
+      html: 0.01
+    winner: html
+  Re:
+    sources:
+      html: 3.2
+    winner: html
+  Sd:
+    sources:
+      html: 0.0095
+    winner: html
+  Fs:
+    sources:
+      html: 60.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.003
+    winner: html
+  Qts:
+    sources:
+      html: 0.43
+    winner: html
+  BL:
+    sources:
+      html: 5.2
+    winner: html
+  Pe:
+    sources:
+      html: 55.0
+    winner: html
+  Qms:
+    sources:
+      html: 12.0
+    winner: html
+  Vas:
+    sources:
+      html: 0.0085
+    winner: html
+  Qes:
+    sources:
+      html: 0.45
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

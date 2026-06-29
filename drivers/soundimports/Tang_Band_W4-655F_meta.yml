@@ -1,16 +1,72 @@
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
-  parameters have not been verified by a human against the datasheet.
+  parameters not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
+driver_type: null
+nominal_size_cm: null
 datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: null
 vendor_page: https://www.soundimports.eu/en/tang-band-w4-655f.html
 source: https://www.soundimports.eu/en/tang-band-w4-655f.html
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+field_provenance:
+  Sd:
+    sources:
+      html: 0.0057
+    winner: html
+  BL:
+    sources:
+      html: 5.73
+    winner: html
+  Pe:
+    sources:
+      html: 25.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.003
+    winner: html
+  Le:
+    sources:
+      html: 0.00043
+    winner: html
+  Re:
+    sources:
+      html: 6.0
+    winner: html
+  Qts:
+    sources:
+      html: 0.33
+    winner: html
+  Cms:
+    sources:
+      html: 0.001104
+    winner: html
+  Qes:
+    sources:
+      html: 0.35
+    winner: html
+  Fs:
+    sources:
+      html: 70.0
+    winner: html
+  Znom:
+    sources:
+      html: 8.0
+    winner: html
+  Qms:
+    sources:
+      html: 4.35
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

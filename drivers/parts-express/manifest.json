@@ -1,23 +1,23 @@
 {
   "scraped": {
     "276-402": {
-      "file": "Aurum_Cantus_G2_Ribbon_Tweeter.wdr",
+      "file": "Aurum_Cantus_G2.wdr",
       "status": "ok"
     },
     "296-412": {
-      "file": "Aurum_Cantus_AC-180F1_7__Woofer.wdr",
+      "file": "Aurum_Cantus_AC-180F1.wdr",
       "status": "ok"
     },
     "296-458": {
-      "file": "Aurum_Cantus_AC300_75C2C_12__Woofer.wdr",
+      "file": "Aurum_Cantus_AC500_75C2C.wdr",
       "status": "ok"
     },
     "296-454": {
-      "file": "Aurum_Cantus_AC250_75C2C_10__Woofer.wdr",
-      "status": "ok"
+      "file": "Aurum_Cantus_AC250_75C2C.wdr",
+      "status": "schema_fail"
     },
     "296-414": {
-      "file": "Aurum_Cantus_AC-180F1D_7__DVC_Woofer.wdr",
+      "file": "Aurum_Cantus_AC-180F1D.wdr",
       "status": "ok"
     },
     "296-440": {

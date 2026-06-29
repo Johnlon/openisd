@@ -1,0 +1,26 @@
+[03:59:50] PROBLEM field=FRD_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF165TU01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:50] PROBLEM field=IMP_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF165TU01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:50] DONE problems=2
+[04:02:42] PROBLEM field=FRD_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF165TU01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:42] PROBLEM field=IMP_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF165TU01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:42] DONE problems=2
+[04:12:21] PROBLEM field=FRD_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF165TU01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:21] PROBLEM field=IMP_fetch item=WF165TU01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF165TU01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:21] DONE problems=2
+[04:35:43] DONE problems=0
+[04:38:05] DONE problems=0
+[04:43:59] DONE problems=0
+[04:46:48] DONE problems=0
+[04:47:24] DONE problems=0

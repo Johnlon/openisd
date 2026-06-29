@@ -1,0 +1,50 @@
+[03:59:42] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:42] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:42] DONE problems=2
+[04:02:34] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:34] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:34] DONE problems=2
+[04:12:13] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:13] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:13] DONE problems=2
+[04:35:14] DONE problems=0
+[04:37:59] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:59] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:59] DONE problems=2
+[04:43:53] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:53] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:53] DONE problems=2
+[04:46:42] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:42] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:42] DONE problems=2
+[04:47:17] PROBLEM field=FRD_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:17] PROBLEM field=IMP_fetch item=SW168WA01 url=https://www.wavecor.com/SW168WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:17] DONE problems=2

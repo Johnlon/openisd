@@ -1,19 +1,89 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/TW030TU03_specifications.pdf
+driver_type: tweeter
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW030TU03_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/tw030tu03.html
 vendor_page: null
 source: http://www.wavecor.com/html/tw030tu03.html
-frd: https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030TU03_SPL_response.txt
-impedance: https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030TU03_impedance_response.txt
+frd: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030TU03_SPL_response.txt
+impedance: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030TU03_impedance_response.txt
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
-freq_low_hz: 5.0
-freq_high_hz: 20000.0
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.00043
+      html: 0.00043
+    winner: html
+  Znom:
+    sources:
+      pdf: 4.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.4
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.00115
+      html: 0.00115
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00011
+    winner: pdf
+  Fs:
+    sources:
+      pdf: 725.0
+      html: 725.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.0006
+      html: 0.0006
+    winner: html
+  Qts:
+    sources:
+      pdf: 1.03
+      html: 1.03
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.72
+    winner: pdf
+  BL:
+    sources:
+      html: 2.0
+    winner: html
+  Pe:
+    sources:
+      html: 80.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 2.7
+      html: 2.7
+    winner: html
+  Vas:
+    sources:
+      pdf: 2.1e-05
+      html: 2.1e-05
+    winner: html
+  Qes:
+    sources:
+      pdf: 1.67
+      html: 1.67
+    winner: html
+freq_low_hz: 2.0
+freq_high_hz: 30.0

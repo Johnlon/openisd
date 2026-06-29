@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/TW022WA05_specifications.pdf
+driver_type: tweeter
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW022WA05_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/tw022wa05.html
 vendor_page: null
 source: http://www.wavecor.com/html/tw022wa05.html
@@ -14,6 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
-freq_low_hz: 2.5
-freq_high_hz: 20000.0
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.00029
+      html: 0.00029
+    winner: html
+  Znom:
+    sources:
+      pdf: 4.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.7
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.00061
+      html: 0.00061
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00014
+      html: 0.00014
+    winner: html
+  Fs:
+    sources:
+      pdf: 790.0
+      html: 790.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.00035
+      html: 0.00035
+    winner: html
+  Qts:
+    sources:
+      pdf: 1.09
+      html: 1.09
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.32
+      html: 0.32
+    winner: html
+  BL:
+    sources:
+      html: 1.9
+    winner: html
+  Pe:
+    sources:
+      html: 80.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 4.5
+      html: 4.5
+    winner: html
+  Vas:
+    sources:
+      pdf: 7.4e-06
+      html: 7.4e-06
+    winner: html
+  Le:
+    sources:
+      html: 0.036
+    winner: html
+  Qes:
+    sources:
+      pdf: 1.44
+      html: 1.44
+    winner: html
+freq_low_hz: 2500.0
+freq_high_hz: 25000.0

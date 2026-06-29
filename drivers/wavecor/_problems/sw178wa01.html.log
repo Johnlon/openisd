@@ -1,0 +1,29 @@
+[03:59:42] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:42] DONE problems=1
+[04:02:35] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:35] DONE problems=1
+[04:12:13] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:13] DONE problems=1
+[04:35:15] DONE problems=0
+[04:38:00] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:00] DONE problems=1
+[04:43:53] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:53] DONE problems=1
+[04:46:42] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:42] DONE problems=1
+[04:47:17] PROBLEM field=FRD_fetch item=SW178WA01 url=https://www.wavecor.com/SW178WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:17] DONE problems=1

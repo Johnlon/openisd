@@ -457,7 +457,7 @@ def _pat(before: str, after_unit: str = "") -> re.Pattern:
     )
 
 
-_HZ  = r"(kHz|Hz)?"
+_HZ  = r"(\[?(?:kHz|Hz)\]?)?"   # bare or bracket-wrapped: kHz, [kHz], Hz, [Hz]
 _OHM = r"(?:Ω|ohm)?"   # non-capturing — units here are implicit/constant
 _W   = r"(kW|W)?"
 _DB  = r"(?:dB)?"
@@ -511,9 +511,14 @@ _SPECS: list[tuple[str, float, dict[str, float], list[re.Pattern]]] = [
     ]),
 
     # ── Cms — mechanical compliance: mm/N default; μm/N or m/N if specified ──
-    ("Cms", 0.001, {"um/n": 1e-6, "um/": 1e-6, "mm/n": 0.001, "m/n": 1.0}, [
-        _pat(r"(?<![A-Za-z])Cms\b\s*(?:[=:,]\s*)?", r"([μu]m/N|mm/N|m/N)?"),
-        _pat(r"(?:mechanical\s+)?compliance\s*(?:\w+\s*)?", r"([μu]m/N|mm/N|m/N)?"),
+    # MN^-1 = MN⁻¹ = mega-newton-inverse = 10⁻⁶ m/N = µm/N.
+    # Seen in SoundImports HTML ("1104 Mn-1") and datasheets ("1104 MN^-1").
+    # (?:[A-Za-z_]\w*\s*)? skips an optional word between the label and value
+    # (e.g. "Cms:" or "compliance Cms 0.71"); starts with [A-Za-z_] so it
+    # never consumes leading digits of the numeric value.
+    ("Cms", 0.001, {"um/n": 1e-6, "um/": 1e-6, "mm/n": 0.001, "m/n": 1.0, "mn": 1e-6}, [
+        _pat(r"(?<![A-Za-z])Cms\b\s*(?:[=:,]\s*)?", r"([μu]m/N|mm/N|m/N|MN\^?-?1)?"),
+        _pat(r"(?:mechanical\s+)?compliance\s*(?:[A-Za-z_]\w*\s*)?", r"([μu]m/N|mm/N|m/N|MN\^?-?1)?"),
     ]),
 
     # ── Rms — mechanical resistance: N·s/m = kg/s ────────────────────────────
@@ -530,10 +535,16 @@ _SPECS: list[tuple[str, float, dict[str, float], list[re.Pattern]]] = [
              r"(m²|m2|cm²|cm2)?"),
     ]),
 
-    # ── Vas — equivalent volume: L→m³ default; m³ if unit says so ─────────────
-    ("Vas", 0.001, {"m3": 1.0, "m³": 1.0, "l": 0.001, "ft": 0.02832}, [
-        _pat(r"(?<![A-Za-z])Vas\b\s*(?:[=:,]\s*)?", r"(m³|m3|ft³|ft3|L|l|litres?)?"),
-        _pat(r"equivalent\s+(?:air\s+)?volume\s*", r"(m³|m3|ft³|ft3|L|l|litres?)?"),
+    # ── Vas — equivalent volume: L→m³ default; m³ or mL if unit says so ────────
+    # ml/mlit must come before l in the map — "l" is a substring of "[ml]" and
+    # would match first if ordered before "ml", giving the wrong 0.001 factor.
+    # Wavecor tweeter pages publish Vas in mL ("0.84 [ml]", "7.6 [mlit.]").
+    ("Vas", 0.001, {"m3": 1.0, "m³": 1.0, "ml": 1e-6, "mlit": 1e-6,
+                    "l": 0.001, "ft": 0.02832}, [
+        _pat(r"(?<![A-Za-z])Vas\b\s*(?:[=:,]\s*)?",
+             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|L|l|litres?)\]?)?"),
+        _pat(r"equivalent\s+(?:air\s+)?volume\s*",
+             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|L|l|litres?)\]?)?"),
     ]),
 
     # ── Le — voice coil inductance: mH default ────────────────────────────────
@@ -605,7 +616,7 @@ def find_ts_fields(text: str,
     # (field, lo, hi) — SI units; None means no bound on that side.
     _GATES: dict[str, tuple[Optional[float], Optional[float], str]] = {
         "Re":   (0.1,  64.0,  "0.1–64 Ω"),
-        "Znom": (1.0,  32.0,  "1–32 Ω"),
+        "Znom": (1.0,  64.0,  "1–64 Ω"),
         "Vas":  (None, 1.0,   "≤ 1000 L (1.0 m³)"),
         "Qts":  (None, 5.0,   "< 5"),
         "Qes":  (None, 5.0,   "< 5"),

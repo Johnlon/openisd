@@ -1,0 +1,74 @@
+[03:59:25] PROBLEM field=pdf_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20specifications%20PDF/64_OHM_FULLRANGES_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[03:59:25] PROBLEM field=FRD_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/64_OHM_FULLRANGES_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:25] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:25] PROBLEM field=schema_fail item=64_OHM_FULLRANGES url=http://www.wavecor.com/html/64_ohm_fullranges.html offset=0
+         raw_value="WDR: 'Znom' = 64.0 above maximum 32.0 Ω"
+         reason=File failed strict schema validation
+[03:59:25] SCHEMA_FAIL errors=1
+[04:02:16] PROBLEM field=pdf_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20specifications%20PDF/64_OHM_FULLRANGES_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:02:16] PROBLEM field=FRD_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/64_OHM_FULLRANGES_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:17] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:17] PROBLEM field=schema_fail item=64_OHM_FULLRANGES url=http://www.wavecor.com/html/64_ohm_fullranges.html offset=0
+         raw_value="WDR: 'Znom' = 64.0 above maximum 32.0 Ω"
+         reason=File failed strict schema validation
+[04:02:17] SCHEMA_FAIL errors=1
+[04:11:56] PROBLEM field=pdf_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20specifications%20PDF/64_OHM_FULLRANGES_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:11:56] PROBLEM field=FRD_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/64_OHM_FULLRANGES_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:57] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:57] PROBLEM field=schema_fail item=64_OHM_FULLRANGES url=http://www.wavecor.com/html/64_ohm_fullranges.html offset=0
+         raw_value="WDR: 'Znom' = 64.0 above maximum 32.0 Ω"
+         reason=File failed strict schema validation
+[04:11:57] SCHEMA_FAIL errors=1
+[04:34:18] PROBLEM field=pdf_range_Znom item=64_OHM_FULLRANGES url=http://www.wavecor.com/Driver%20specifications%20PDF/64_ohm_fullranges_specifications.pdf offset=0
+         raw_value="extracted=Znom=64 raw='64' range=1–32 Ω pos=2106 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\64_ohm_fullranges_specifications.pdf context=…-in↵Nominal size↵2↵3¼↵[inch.]↵Nominal impedance↵64↵64↵[ohm]↵Recommended max. upper frequency l…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:34:18] PROBLEM field=pdf_range_Znom item=64_OHM_FULLRANGES url=http://www.wavecor.com/Driver%20specifications%20PDF/64_ohm_fullranges_specifications.pdf offset=0
+         raw_value="extracted=Znom=64 raw='64' range=1–32 Ω pos=1817 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\64_ohm_fullranges_specifications.pdf context=…-in↵Nominal size 2 3¼ [inch.]↵Nominal impedance 64 64 [ohm]↵Recommended max. upper frequency l…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:34:18] PROBLEM field=schema_fail item=64_OHM_FULLRANGES url=http://www.wavecor.com/html/64_ohm_fullranges.html offset=0
+         raw_value="WDR: 'Znom' = 64.0 above maximum 32.0 Ω"
+         reason=File failed strict schema validation
+[04:34:18] SCHEMA_FAIL errors=1
+[04:37:43] PROBLEM field=pdf_range_Znom item=64_OHM_FULLRANGES url=http://www.wavecor.com/Driver%20specifications%20PDF/64_ohm_fullranges_specifications.pdf offset=0
+         raw_value="extracted=Znom=64 raw='64' range=1–32 Ω pos=2106 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\64_ohm_fullranges_specifications.pdf context=…-in↵Nominal size↵2↵3¼↵[inch.]↵Nominal impedance↵64↵64↵[ohm]↵Recommended max. upper frequency l…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:37:43] PROBLEM field=pdf_range_Znom item=64_OHM_FULLRANGES url=http://www.wavecor.com/Driver%20specifications%20PDF/64_ohm_fullranges_specifications.pdf offset=0
+         raw_value="extracted=Znom=64 raw='64' range=1–32 Ω pos=1817 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\64_ohm_fullranges_specifications.pdf context=…-in↵Nominal size 2 3¼ [inch.]↵Nominal impedance 64 64 [ohm]↵Recommended max. upper frequency l…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:37:43] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:43] PROBLEM field=schema_fail item=64_OHM_FULLRANGES url=http://www.wavecor.com/html/64_ohm_fullranges.html offset=0
+         raw_value="WDR: 'Znom' = 64.0 above maximum 32.0 Ω"
+         reason=File failed strict schema validation
+[04:37:43] SCHEMA_FAIL errors=1
+[04:43:39] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:39] DONE problems=1
+[04:46:28] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:28] DONE problems=1
+[04:47:03] PROBLEM field=IMP_fetch item=64_OHM_FULLRANGES url=https://www.wavecor.com/64_OHM_FULLRANGES_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:03] DONE problems=1

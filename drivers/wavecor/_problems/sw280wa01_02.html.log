@@ -1,0 +1,62 @@
+[03:59:46] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:46] PROBLEM field=FRD_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:46] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:46] DONE problems=3
+[04:02:38] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:38] PROBLEM field=FRD_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:38] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:38] DONE problems=3
+[04:12:16] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:16] PROBLEM field=FRD_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:17] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:17] DONE problems=3
+[04:35:23] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:24] DONE problems=1
+[04:38:02] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:38:02] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:02] DONE problems=2
+[04:43:55] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:55] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:55] DONE problems=2
+[04:46:44] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:44] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:44] DONE problems=2
+[04:47:21] PROBLEM field=html_pdf_mismatch item=SW280WA01_02 url=http://www.wavecor.com/html/sw280wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:21] PROBLEM field=IMP_fetch item=SW280WA01_02 url=https://www.wavecor.com/SW280WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:21] DONE problems=2

@@ -1,0 +1,107 @@
+[03:59:24] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:24] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:24] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:24] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:24] PROBLEM field=schema_fail item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value="WDR: 'Vas' stored=0.02 differs from calculated=1.98859e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.000106)"
+         reason=File failed strict schema validation
+[03:59:24] SCHEMA_FAIL errors=1
+[04:02:16] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:16] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:16] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:16] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:16] PROBLEM field=schema_fail item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value="WDR: 'Vas' stored=0.02 differs from calculated=1.98859e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.000106)"
+         reason=File failed strict schema validation
+[04:02:16] SCHEMA_FAIL errors=1
+[04:11:56] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:56] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:56] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:56] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:56] PROBLEM field=schema_fail item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value="WDR: 'Vas' stored=0.02 differs from calculated=1.98859e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.000106)"
+         reason=File failed strict schema validation
+[04:11:56] SCHEMA_FAIL errors=1
+[04:34:15] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:15] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:15] DONE problems=2
+[04:37:42] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:42] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:43] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:43] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:43] DONE problems=4
+[04:43:38] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:38] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:38] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:39] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:39] DONE problems=4
+[04:46:28] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:28] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:28] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:28] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:28] DONE problems=4
+[04:47:01] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:01] PROBLEM field=html_pdf_mismatch item=TW030WA23_24_25_26 url=http://www.wavecor.com/html/tw030wa23_24_25_26.html offset=0
+         raw_value='Vas: HTML=2e-05 PDF=0.02 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:01] PROBLEM field=FRD_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:01] PROBLEM field=IMP_fetch item=TW030WA23_24_25_26 url=https://www.wavecor.com/TW030WA23_24_25_26_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:01] DONE problems=4

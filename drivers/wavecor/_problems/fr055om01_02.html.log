@@ -1,0 +1,74 @@
+[03:59:51] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:51] PROBLEM field=FRD_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:51] PROBLEM field=IMP_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:51] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[03:59:51] SCHEMA_FAIL errors=1
+[04:02:43] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:43] PROBLEM field=FRD_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:43] PROBLEM field=IMP_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:43] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:02:43] SCHEMA_FAIL errors=1
+[04:12:21] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:21] PROBLEM field=FRD_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055OM01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:22] PROBLEM field=IMP_fetch item=FR055OM01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055OM01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:22] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:12:22] SCHEMA_FAIL errors=1
+[04:35:48] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:35:48] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:35:48] SCHEMA_FAIL errors=1
+[04:38:06] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:38:06] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:38:06] SCHEMA_FAIL errors=1
+[04:44:00] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:44:00] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:44:00] SCHEMA_FAIL errors=1
+[04:46:48] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:48] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:46:48] SCHEMA_FAIL errors=1
+[04:47:25] PROBLEM field=html_pdf_mismatch item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:25] PROBLEM field=schema_fail item=FR055OM01_02 url=http://www.wavecor.com/html/fr055om01_02.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00035 differs from calculated=0.000345218 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.001)"
+         reason=File failed strict schema validation
+[04:47:25] SCHEMA_FAIL errors=1

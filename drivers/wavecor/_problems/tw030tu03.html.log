@@ -1,0 +1,35 @@
+[03:59:49] PROBLEM field=html_pdf_mismatch item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value='Vas: HTML=2.1e-05 PDF=0.021 (99900% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:49] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=0.021 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[03:59:49] SCHEMA_FAIL errors=1
+[04:02:42] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:02:42] SCHEMA_FAIL errors=1
+[04:12:20] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:12:20] SCHEMA_FAIL errors=1
+[04:35:39] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:35:39] SCHEMA_FAIL errors=1
+[04:38:05] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:38:05] SCHEMA_FAIL errors=1
+[04:43:59] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:43:59] SCHEMA_FAIL errors=1
+[04:46:47] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:46:47] SCHEMA_FAIL errors=1
+[04:47:24] PROBLEM field=schema_fail item=TW030TU03 url=http://www.wavecor.com/html/tw030tu03.html offset=0
+         raw_value="WDR: 'Vas' stored=2.1e-05 differs from calculated=2.06364e-05 (deps: roo=1.20095, c=343.684, Sd=0.00115, Cms=0.00011)"
+         reason=File failed strict schema validation
+[04:47:24] SCHEMA_FAIL errors=1

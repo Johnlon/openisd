@@ -1,16 +1,84 @@
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
-  parameters have not been verified by a human against the datasheet.
+  parameters not human-verified. PDF extraction returned no matches; using HTML only.
 corrections: null
 reviewed_by: null
+driver_type: null
+nominal_size_cm: null
 datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: null
 vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb20frpc30-8.html
 source: https://www.soundimports.eu/en/sb-acoustics-sb20frpc30-8.html
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Sd:
+    sources:
+      html: 0.0216
+    winner: html
+  BL:
+    sources:
+      html: 7.15
+    winner: html
+  Pe:
+    sources:
+      html: 40.0
+    winner: html
+  Xmax:
+    sources:
+      html: 0.005
+    winner: html
+  Mms:
+    sources:
+      html: 0.0163
+    winner: html
+  Le:
+    sources:
+      html: 0.00022
+    winner: html
+  Re:
+    sources:
+      html: 6.0
+    winner: html
+  Qts:
+    sources:
+      html: 0.45
+    winner: html
+  Cms:
+    sources:
+      html: 0.001
+    winner: html
+  Vas:
+    sources:
+      html: 0.0663
+    winner: html
+  Qes:
+    sources:
+      html: 0.47
+    winner: html
+  Fs:
+    sources:
+      html: 39.4
+    winner: html
+  Znom:
+    sources:
+      html: 8.0
+    winner: html
+  Rms:
+    sources:
+      html: 1.1
+    winner: html
+  Qms:
+    sources:
+      html: 10.1
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

@@ -1,0 +1,228 @@
+[03:20:49] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:20:50] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:20:50] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00084 differs from calculated=8.44534e-07 (deps: roo=1.20095, c=343.684, Sd=0.00021, Cms=0.000135)"
+         reason=File failed strict schema validation
+[03:20:50] SCHEMA_FAIL errors=1
+[03:42:34] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[03:42:34] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Fs: HTML=1300 PDF=1.3 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Vas: HTML=8.4e-07 PDF=0.00081 (96329% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:42:34] PROBLEM field=Fs_low item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Fs=1.3'
+         reason=Fs < 5 Hz — impossible; dot-thousands bug ("1.600 Hz" → 1.6); fix: ×1000
+[03:42:34] PROBLEM field=tweeter_fs item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Sd=2.1 cm² Fs=1.3'
+         reason=Sd < 5 cm² but Fs < 100 Hz — tiny piston with woofer-range Fs
+[03:42:34] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:42:34] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:42:34] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Qts' stored=1.29 differs from calculated=1.1102 (deps: Qms=1.7, Qes=3.2)"
+         reason=File failed strict schema validation
+[03:42:34] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00081 differs from calculated=8.13255e-07 (deps: roo=1.20095, c=343.684, Sd=0.00021, Cms=0.00013)"
+         reason=File failed strict schema validation
+[03:42:34] SCHEMA_FAIL errors=2
+[03:59:21] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[03:59:21] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Vas: HTML=8.4e-07 PDF=0.00081 (96329% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:21] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:21] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:21] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Qts' stored=1.29 differs from calculated=1.1102 (deps: Qms=1.7, Qes=3.2)"
+         reason=File failed strict schema validation
+[03:59:21] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00081 differs from calculated=8.13255e-07 (deps: roo=1.20095, c=343.684, Sd=0.00021, Cms=0.00013)"
+         reason=File failed strict schema validation
+[03:59:21] SCHEMA_FAIL errors=2
+[04:02:12] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:02:12] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:02:12] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:12] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:12] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:12] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:13] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:13] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:13] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.1e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:02:13] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Qts' stored=1.29 differs from calculated=1.1102 (deps: Qms=1.7, Qes=3.2)"
+         reason=File failed strict schema validation
+[04:02:13] SCHEMA_FAIL errors=2
+[04:11:31] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:11:31] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:11:31] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:31] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:31] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:31] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:31] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:31] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:31] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.1e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:11:31] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Qts' stored=1.29 differs from calculated=1.1102 (deps: Qms=1.7, Qes=3.2)"
+         reason=File failed strict schema validation
+[04:11:31] SCHEMA_FAIL errors=2
+[04:11:52] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:11:52] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:11:52] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:52] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:52] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:52] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:53] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:53] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:53] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.1e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:11:53] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Qts' stored=1.29 differs from calculated=1.1102 (deps: Qms=1.7, Qes=3.2)"
+         reason=File failed strict schema validation
+[04:11:53] SCHEMA_FAIL errors=2
+[04:18:16] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2541 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7↵[-]↵3, 4, 6↵Electrical Q, Qes↵5.3↵[-]↵3, 4, 6↵Total Q, Qts↵1.29↵[-]↵4↵Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:18:16] PROBLEM field=pdf_range_Qes item=TW013WA01 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW013WA01_specifications.pdf offset=0
+         raw_value="extracted=Qes=5.3 raw='5.3' range=< 5 pos=2235 local=C:\\Users\\johnl\\work\\resonate\\drivers\\wavecor\\datasheets\\TW013WA01_specifications.pdf context=…1.7 [-]↵3, 4, 6 Electrical Q, Qes 5.3 [-]↵3, 4, 6 Total Q, Qts 1.29 [-]↵4 Voic…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:18:16] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Mms: HTML=0.115 PDF=0.00012 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:18:16] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Rms: HTML=0.71 PDF=0.57 (20% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:18:16] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qms: HTML=1.3 PDF=1.7 (31% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:18:16] PROBLEM field=html_pdf_mismatch item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value='Qts: HTML=0.93 PDF=1.29 (39% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:18:16] PROBLEM field=FRD_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW013WA01_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:18:16] PROBLEM field=IMP_fetch item=TW013WA01 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW013WA01_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:18:16] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:18:16] SCHEMA_FAIL errors=1
+[04:34:04] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:34:04] SCHEMA_FAIL errors=1
+[04:37:40] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:37:40] SCHEMA_FAIL errors=1
+[04:43:37] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:43:37] SCHEMA_FAIL errors=1
+[04:46:26] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:46:26] SCHEMA_FAIL errors=1
+[04:46:59] PROBLEM field=schema_fail item=TW013WA01 url=http://www.wavecor.com/html/tw013wa01.html offset=0
+         raw_value="WDR: 'Vas' = 8.4e-07 below minimum 1e-06 m³"
+         reason=File failed strict schema validation
+[04:46:59] SCHEMA_FAIL errors=1

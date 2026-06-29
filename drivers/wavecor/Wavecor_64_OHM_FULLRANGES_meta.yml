@@ -1,17 +1,95 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/64_OHM_FULLRANGES_specifications.pdf
+driver_type: null
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/64_ohm_fullranges_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/64_ohm_fullranges.html
 vendor_page: null
 source: http://www.wavecor.com/html/64_ohm_fullranges.html
-frd: null
+frd: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR084WA03_SPL_response.txt
 impedance: null
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.00145
+      html: 0.00145
+    winner: html
+  Znom:
+    sources:
+      pdf: 64.0
+      html: 64.0
+    winner: html
+  Re:
+    sources:
+      html: 53.5
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.00156
+      html: 0.00156
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.000785
+      html: 0.000785
+    winner: html
+  Fs:
+    sources:
+      pdf: 149.0
+      html: 149.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.00135
+      html: 0.00135
+    winner: html
+  Qts:
+    sources:
+      pdf: 1.85
+      html: 1.85
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.16
+      html: 0.16
+    winner: html
+  BL:
+    sources:
+      html: 5.5
+    winner: html
+  Pe:
+    sources:
+      html: 40.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 8.5
+      html: 8.5
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.00027
+      html: 0.00027
+    winner: html
+  Le:
+    sources:
+      html: 0.00064
+    winner: html
+  Qes:
+    sources:
+      pdf: 2.37
+      html: 2.37
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

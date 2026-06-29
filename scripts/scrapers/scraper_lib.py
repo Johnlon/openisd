@@ -68,7 +68,8 @@ check_fields        = _dqlib.check_fields       # noqa: F401
 
 # Schema validation — imported at module level (lightweight; no fitz/tesseract dependency).
 _schema_mod = _load_module("_wdr_meta_schema", _PARENT_SCRIPTS / "wdr_meta_schema.py")
-_validate_driver = _schema_mod.validate_driver
+_validate_driver  = _schema_mod.validate_driver
+validate_driver   = _schema_mod.validate_driver   # noqa: F401 — re-exported for vendor scrapers
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -432,6 +433,12 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
         else:
             _prob("pdf_fetch", item_id, pdf_url, None, "Could not download or cache PDF")
 
+    # parse_product() may supply HTML-sourced freq range; prefer it over PDF when present.
+    if product.get("freq_low_hz") is not None:
+        freq_low_hz = product["freq_low_hz"]
+    if product.get("freq_high_hz") is not None:
+        freq_high_hz = product["freq_high_hz"]
+
     # ── Advanced parameters PDF (secondary source) ───────────────────────────
     adv_pdf_fields: dict = {}
     if adv_pdf_url and not cfg.no_pdf and adv_pdf_url != pdf_url:
@@ -546,6 +553,25 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
             frd_ok = link
         if zma_file:
             impedance_ok = link
+
+    # Direct frd_url / impedance_url keys bypass content classification.
+    # Use when the vendor explicitly names the file type (e.g. Wavecor "_SPL_response.txt").
+    def _fetch_measurement(murl: str | None, label: str) -> str:
+        if not murl:
+            return ""
+        mname = urllib.parse.unquote(murl.rstrip("/").split("/")[-1])
+        mpath = cfg.out / mname
+        if not mpath.exists():
+            try:
+                mpath.write_bytes(_plib.fetch_binary(murl))
+                extras_log.append(f"+{label}")
+            except Exception as e:
+                _prob(f"{label}_fetch", item_id, murl, None, str(e))
+                return ""
+        return murl if mpath.exists() else ""
+
+    frd_ok      = frd_ok      or _fetch_measurement(product.get("frd_url"),       "FRD")
+    impedance_ok = impedance_ok or _fetch_measurement(product.get("impedance_url"), "IMP")
 
     # ── Write WDR ─────────────────────────────────────────────────────────────
     today = datetime.now(timezone.utc).strftime("%Y%m%d")

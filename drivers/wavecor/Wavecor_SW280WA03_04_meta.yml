@@ -1,17 +1,91 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/sw280wa03_04.html
 vendor_page: null
 source: http://www.wavecor.com/html/sw280wa03_04.html
-frd: null
-impedance: null
+frd: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA04_SPL_response.txt
+impedance: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA04_impedance_response.txt
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.105
+      html: 0.105
+    winner: html
+  Znom:
+    sources:
+      pdf: 8.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.3
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0321
+      html: 0.0321
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.0002
+      html: 0.0002
+    winner: html
+  Fs:
+    sources:
+      pdf: 34.5
+      html: 34.5
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.006
+      html: 0.006
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.46
+      html: 0.46
+    winner: html
+  Rms:
+    sources:
+      pdf: 2.2
+      html: 2.2
+    winner: html
+  BL:
+    sources:
+      html: 12.5
+    winner: html
+  Pe:
+    sources:
+      html: 2000.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 10.3
+      html: 10.3
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.0297
+      html: 0.0297
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.48
+      html: 0.48
+    winner: html
+freq_low_hz: null
+freq_high_hz: 300.0

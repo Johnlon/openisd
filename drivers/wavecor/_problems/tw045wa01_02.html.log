@@ -1,0 +1,17 @@
+[03:59:25] PROBLEM field=pdf_fetch item=TW045WA01_02 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW045WA01_02_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[03:59:25] DONE problems=1
+[04:02:16] PROBLEM field=pdf_fetch item=TW045WA01_02 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW045WA01_02_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:02:16] DONE problems=1
+[04:11:56] PROBLEM field=pdf_fetch item=TW045WA01_02 url=https://www.wavecor.com/Driver%20specifications%20PDF/TW045WA01_02_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:11:56] DONE problems=1
+[04:34:16] DONE problems=0
+[04:37:43] DONE problems=0
+[04:43:39] DONE problems=0
+[04:46:28] DONE problems=0
+[04:47:01] DONE problems=0

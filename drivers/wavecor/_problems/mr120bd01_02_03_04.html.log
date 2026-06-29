@@ -1,0 +1,98 @@
+[03:59:30] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:30] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:30] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:30] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.436384 (deps: Qms=8.5, Qes=0.46)"
+         reason=File failed strict schema validation
+[03:59:30] SCHEMA_FAIL errors=1
+[04:02:21] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:22] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:22] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:22] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.436384 (deps: Qms=8.5, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:02:22] SCHEMA_FAIL errors=1
+[04:12:01] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:12:01] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:01] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:01] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.436384 (deps: Qms=8.5, Qes=0.46)"
+         reason=File failed strict schema validation
+[04:12:01] SCHEMA_FAIL errors=1
+[04:34:35] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:35] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.445373 (deps: Qms=8.5, Qes=0.47)"
+         reason=File failed strict schema validation
+[04:34:35] SCHEMA_FAIL errors=1
+[04:37:47] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:47] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:48] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:48] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.445373 (deps: Qms=8.5, Qes=0.47)"
+         reason=File failed strict schema validation
+[04:37:48] SCHEMA_FAIL errors=1
+[04:43:42] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:42] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:43] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:43] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.445373 (deps: Qms=8.5, Qes=0.47)"
+         reason=File failed strict schema validation
+[04:43:43] SCHEMA_FAIL errors=1
+[04:46:32] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:32] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:32] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:32] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.445373 (deps: Qms=8.5, Qes=0.47)"
+         reason=File failed strict schema validation
+[04:46:32] SCHEMA_FAIL errors=1
+[04:47:06] PROBLEM field=html_pdf_mismatch item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:06] PROBLEM field=FRD_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:06] PROBLEM field=IMP_fetch item=MR120BD01_02_03_04 url=https://www.wavecor.com/MR120BD01_02_03_04_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:06] PROBLEM field=schema_fail item=MR120BD01_02_03_04 url=http://www.wavecor.com/html/mr120bd01_02_03_04.html offset=0
+         raw_value="WDR: 'Qts' stored=0.45 differs from calculated=0.445373 (deps: Qms=8.5, Qes=0.47)"
+         reason=File failed strict schema validation
+[04:47:06] SCHEMA_FAIL errors=1

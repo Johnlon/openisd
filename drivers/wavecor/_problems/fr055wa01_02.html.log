@@ -1,0 +1,50 @@
+[03:59:26] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[03:59:27] PROBLEM field=FRD_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:27] PROBLEM field=IMP_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:27] DONE problems=3
+[04:02:18] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:02:18] PROBLEM field=FRD_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:19] PROBLEM field=IMP_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:19] DONE problems=3
+[04:11:58] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:11:58] PROBLEM field=FRD_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR055WA01_02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:58] PROBLEM field=IMP_fetch item=FR055WA01_02 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR055WA01_02_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:58] DONE problems=3
+[04:34:23] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:23] DONE problems=1
+[04:37:44] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:44] DONE problems=1
+[04:43:39] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:39] DONE problems=1
+[04:46:29] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:29] DONE problems=1
+[04:47:03] PROBLEM field=html_pdf_mismatch item=FR055WA01_02 url=http://www.wavecor.com/html/fr055wa01_02.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:03] DONE problems=1

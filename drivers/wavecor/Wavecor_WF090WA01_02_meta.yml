@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Fs,Mms,Qes,Qms,Qts,Rms,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/WF090WA01_02_specifications.pdf
+driver_type: woofer
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF090WA01_02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/wf090wa01_02.html
 vendor_page: null
 source: http://www.wavecor.com/html/wf090wa01_02.html
@@ -14,6 +19,77 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
-freq_low_hz: 400.0
-freq_high_hz: 6000.0
+field_provenance:
+  Mms:
+    sources:
+      pdf: 0.00345
+      html: 0.00345
+    winner: html
+  Znom:
+    sources:
+      pdf: 8.0
+      html: 4.0
+    winner: html
+  Re:
+    sources:
+      html: 3.1
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0036
+      html: 0.0036
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00055
+      html: 0.00055
+    winner: html
+  Fs:
+    sources:
+      pdf: 115.0
+      html: 115.0
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.00275
+      html: 0.00275
+    winner: html
+  Qts:
+    sources:
+      pdf: 0.81
+      html: 0.81
+    winner: html
+  Rms:
+    sources:
+      pdf: 0.39
+      html: 0.39
+    winner: html
+  BL:
+    sources:
+      html: 2.9
+    winner: html
+  Pe:
+    sources:
+      html: 30.0
+    winner: html
+  Qms:
+    sources:
+      pdf: 6.4
+      html: 6.4
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.00102
+      html: 0.00102
+    winner: html
+  Le:
+    sources:
+      html: 0.00014
+    winner: html
+  Qes:
+    sources:
+      pdf: 0.92
+      html: 0.92
+    winner: html
+freq_low_hz: null
+freq_high_hz: 5000.0

@@ -1,18 +1,26 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website. T/S parameters cross-checked against
-  cached PDF WF259PA01_02_specifications.pdf.
-corrections: Split from combined WF259PA01_02 page. PA01 = 8 ohm variant. Before-burn-in
-  values used throughout. Rms=1.32 Ns/m taken from datasheet. DISCONTINUED.
+detail: 'Automatically scraped from Wavecor website (scraped 20260629). Split from
+  combined page: 8 ohm variant. T/S parameters have not been verified by a human against
+  the datasheet.'
+corrections: Split from combined WF259PA01_02 page (col_idx=1). PA01 = 8 ohm. Before-burn-in
+  values used throughout. Rms=1.32 Ns/m from datasheet. DISCONTINUED.
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/WF259PA01_02_specifications.pdf
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.wavecor.com/WF259PA01_02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/wf259pa01_02.html
 vendor_page: null
 source: http://www.wavecor.com/html/wf259pa01_02.html
 frd: null
 impedance: null
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-discontinued: true
-driver_type: null
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: 2000.0

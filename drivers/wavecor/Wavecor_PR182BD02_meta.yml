@@ -1,10 +1,15 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website (scraped 2026-06-27). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
+  not human-verified. T/S extracted from PDF (pdf_spatial): Cms,Sd,Vas,Xmax.'
 corrections: null
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/PR182BD02_specifications.pdf
+driver_type: passive_radiator
+nominal_size_cm: null
+datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/PR182BD02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/pr182bd02.html
 vendor_page: null
 source: http://www.wavecor.com/html/pr182bd02.html
@@ -14,4 +19,38 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+field_provenance:
+  Mms:
+    sources:
+      html: 0.037
+    winner: html
+  Sd:
+    sources:
+      pdf: 0.0131
+      html: 0.0131
+    winner: html
+  Cms:
+    sources:
+      pdf: 0.00052
+      html: 0.00052
+    winner: html
+  Fs:
+    sources:
+      html: 36.2
+    winner: html
+  Xmax:
+    sources:
+      pdf: 0.015
+      html: 0.015
+    winner: html
+  Qms:
+    sources:
+      html: 32.5
+    winner: html
+  Vas:
+    sources:
+      pdf: 0.0127
+      html: 0.0127
+    winner: html
+freq_low_hz: null
+freq_high_hz: null

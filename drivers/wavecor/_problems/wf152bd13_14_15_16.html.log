@@ -1,0 +1,50 @@
+[03:59:36] PROBLEM field=pdf_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20specifications%20PDF/WF152BD13_14_15_16_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[03:59:36] PROBLEM field=FRD_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF152BD13_14_15_16_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:36] PROBLEM field=IMP_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF152BD13_14_15_16_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:36] DONE problems=3
+[04:02:28] PROBLEM field=pdf_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20specifications%20PDF/WF152BD13_14_15_16_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:02:28] PROBLEM field=FRD_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF152BD13_14_15_16_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:28] PROBLEM field=IMP_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF152BD13_14_15_16_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:28] DONE problems=3
+[04:12:07] PROBLEM field=pdf_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20specifications%20PDF/WF152BD13_14_15_16_specifications.pdf offset=0
+         raw_value=None
+         reason=Could not download or cache PDF
+[04:12:07] PROBLEM field=FRD_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF152BD13_14_15_16_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:07] PROBLEM field=IMP_fetch item=WF152BD13_14_15_16 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF152BD13_14_15_16_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:07] DONE problems=3
+[04:34:54] PROBLEM field=html_pdf_mismatch item=WF152BD13_14_15_16 url=http://www.wavecor.com/html/wf152bd13_14_15_16.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:34:54] DONE problems=1
+[04:37:53] PROBLEM field=html_pdf_mismatch item=WF152BD13_14_15_16 url=http://www.wavecor.com/html/wf152bd13_14_15_16.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:37:53] DONE problems=1
+[04:43:48] PROBLEM field=html_pdf_mismatch item=WF152BD13_14_15_16 url=http://www.wavecor.com/html/wf152bd13_14_15_16.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:43:48] DONE problems=1
+[04:46:37] PROBLEM field=html_pdf_mismatch item=WF152BD13_14_15_16 url=http://www.wavecor.com/html/wf152bd13_14_15_16.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:46:37] DONE problems=1
+[04:47:12] PROBLEM field=html_pdf_mismatch item=WF152BD13_14_15_16 url=http://www.wavecor.com/html/wf152bd13_14_15_16.html offset=0
+         raw_value='Znom: HTML=4 PDF=8 (100% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:47:12] DONE problems=1

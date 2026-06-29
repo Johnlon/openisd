@@ -1,0 +1,78 @@
+[03:20:50] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:20:50] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:20:50] DONE problems=2
+[03:42:35] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:42:35] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:42:35] DONE problems=2
+[03:59:22] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:22] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:22] DONE problems=2
+[04:02:13] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:14] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:14] DONE problems=2
+[04:11:31] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:32] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:32] DONE problems=2
+[04:11:53] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:54] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:54] DONE problems=2
+[04:18:17] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:18:17] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:18:17] DONE problems=2
+[04:34:06] DONE problems=0
+[04:37:41] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:41] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:37:41] DONE problems=2
+[04:43:37] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:37] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:43:37] DONE problems=2
+[04:46:27] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:27] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:27] DONE problems=2
+[04:47:00] PROBLEM field=FRD_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:00] PROBLEM field=IMP_fetch item=TW022WA05 url=https://www.wavecor.com/TW022WA05_impedance_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:00] DONE problems=2

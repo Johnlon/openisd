@@ -1,21 +1,29 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Wavecor website. T/S parameters cross-checked against
-  cached PDF WF259PA01_02_specifications.pdf.
-corrections: Split from combined WF259PA01_02 page. PA02 = 4 ohm variant. Before-burn-in
-  values used. Rms=1.32 Ns/m taken from datasheet. Qts=0.29 and Qes=0.29 both published
-  at 2 d.p. by Wavecor; computed Qts = 0.29*14/(14.29) = 0.284. 2 d.p. rounding makes
-  Qts appear equal to Qes — this is a datasheet precision limitation, not a scraper
-  artifact. DISCONTINUED.
+detail: 'Automatically scraped from Wavecor website (scraped 20260629). Split from
+  combined page: 4 ohm variant. T/S parameters have not been verified by a human against
+  the datasheet.'
+corrections: Split from combined WF259PA01_02 page (col_idx=0). PA02 = 4 ohm. Before-burn-in
+  values used throughout. Rms=1.32 Ns/m from datasheet. Qts=0.29 and Qes=0.29 both
+  published at 2 d.p. by Wavecor; computed Qts = 0.29×14.0/(0.29+14.0) = 0.284. Rounding
+  makes Qts appear equal to Qes — datasheet precision limitation, not a scraper artifact.
+  DISCONTINUED.
 reviewed_by: null
-datasheet: https://www.wavecor.com/Driver%20specifications%20PDF/WF259PA01_02_specifications.pdf
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.wavecor.com/WF259PA01_02_specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
 manu_page: http://www.wavecor.com/html/wf259pa01_02.html
 vendor_page: null
 source: http://www.wavecor.com/html/wf259pa01_02.html
 frd: null
 impedance: null
-dq_issue: Qts_impossible (datasheet precision — Wavecor rounds both to 0.29)
+obsolete: true
+dq_issue: 'Qts_impossible: Wavecor publishes both at 2 d.p.; true Qts ≈ 0.284'
 community: null
 fetched_sku: null
-discontinued: true
-driver_type: null
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: 2000.0

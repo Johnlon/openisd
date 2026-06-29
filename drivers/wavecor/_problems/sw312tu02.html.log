@@ -1,0 +1,53 @@
+[03:59:51] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[03:59:51] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[03:59:51] SCHEMA_FAIL errors=1
+[04:02:43] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:02:43] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:02:43] SCHEMA_FAIL errors=1
+[04:12:21] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:12:21] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:12:21] SCHEMA_FAIL errors=1
+[04:35:46] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:35:46] SCHEMA_FAIL errors=1
+[04:38:06] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:38:06] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:38:06] SCHEMA_FAIL errors=1
+[04:44:00] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:44:00] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:44:00] SCHEMA_FAIL errors=1
+[04:46:48] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:46:48] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:46:48] SCHEMA_FAIL errors=1
+[04:47:25] PROBLEM field=FRD_fetch item=SW312TU02 url=https://www.wavecor.com/SW312TU02_SPL_response.txt offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:47:25] PROBLEM field=schema_fail item=SW312TU02 url=http://www.wavecor.com/html/sw312tu02.html offset=0
+         raw_value="WDR: 'Qts' stored=0.5 differs from calculated=0.50665 (deps: Qms=11.5, Qes=0.53)"
+         reason=File failed strict schema validation
+[04:47:25] SCHEMA_FAIL errors=1
