@@ -1,0 +1,144 @@
+GENERAL SPECIFICATIONS
+
+wn
+[a
+wT)
+-
+ey)
+=
+<=
+<
+oO.
+—
+—
+<
+=
+a
+W
+—_
+=
+—
+=
+
+EXTRA INFO
+
+SMR600X
+
+Professional Mid Range Driver
+
+- 300 Watts continuous power handling
+
+- 98 dB Sensitivity
+
+- 85 - 8,500 Hz of frequency response
+
+Nominal Diameter 8” (203 mm)
+Nominal impedance 8 Ohms
+Rated Power Handling 300 Watts
+Program Power 600 Watts
+Sensitivity 2.83 V at 1m 98 dB
+Recommended Hi Pass Crossover* 160 Hz*
+
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response at -10dB 85 - 8,500 Hz
+Voice Coil Diameter 2.0” (51mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 14.5 mm
+Former Material Polyimide
+Magnetic Gap Depth 8.0 mm
+
+Frame Material
+
+Die cast aluminum
+
+Overal Diameter
+
+Equivalent Volume Vas 19.99 l
+Excursion Xmax 5.25 mm
+Free Air Resonance Fs 76.90 Hz
+Mechanical Factor Qms 7.07
+Electrical Factor Qes 0.43
+
+Total Factor Qts 0.40
+
+Cone Area Sd 241 cm?
+Mechanical Mass Mms 17.318
+
+Bl Factor Bl 10.54 Tm
+
+Dc Resistance Re 5.7 Ohms
+Inductance Le 0.49 mH at 1 kHz
+Mechanical Mass Without Air Mmd 15.19 g
+Mechanical Compliance Cms 0.247 mm/N
+
+8.21” (208.5 mm)
+
+Front Mount Baffle Cutout
+
+7.29” (185.3 mm)
+
+Mounting Depth
+
+3.75” (95.5 mm)
+
+Overall Depth
+
+4.03” (102.5 mm)
+
+Net Weight
+
+7.04 Lbs (3.20 kg)
+
+Shipping Weight
+
+Carton Dimensions Wx LxH
+
+11.90 Lbs (3.45 kg)
+
+8.85” x 8.85” x 4.92”
+(225 x 225 x 125 mm)
+
+***Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 08/18
+
+an
+
+dBSPL
+
+Frequency Response Measured at 2.83 V/1m
+0
+
+B RA Zt L
+
+3.75" (95.5mm)
+4.03" (102.5mm)
+
++ 551"(140mm) >
+
+7.29" (185.3mm)
+
+100
+
+90
+
+80
+
+70
+
+60
+20
+
+PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+FORT LAUDERDALE, FL
+support@prvaudio.com
+
+50 100 200 500 1k 2k Hz 5k 10k
+
+SAO LEOPOLDO, RS
+vendas@)pvaudio.com.br
+
+www.prvaudio.com www.pvaudio.com.br
+
+CLI

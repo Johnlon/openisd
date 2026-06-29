@@ -1,0 +1,85 @@
+MW 266 -8” BASS MIDRANGE
+
+Composite Paper Cone,Double Magnet Vented Motor
+
+°ge °
+Specifications
+Overall Dimensions 220mm(8 7”")x69mm(2.7")
+Nominal Power Handl ng (DN) p 150 W
+Transient power 10ms 1000 W
+Nominal Impedance z 8 Ohms
+Sensitivity 1W/1M 89 dB
+Frequency Response 22 - 2200 Hz
+Resonant Frequency FS 30 Hz
+Voice coil
+Voice Coil Diameter DIA 75mm (3”)
+Voice Coil Height 14.5mm (0 57")
+Voice Coil Former Aluminum
+Voice Coil Wre Hexatech Aluminum
+Number of Layers 2
+FEATURES: OC Resistance RE 6.30 Ohms
+-Large Hexatech aluminum voice coil Voice Coil Inductance @ 1KHz LBM | 054 mH
+-Double magnet system Magnet System
+High power handling Magnet System Type Duoble Ferrite Vented
+-Flat profile composite paper cone HE - Magnetic Gap He ght HE 6mm (0.24”)
+B Flux Dens ty B 0.65 T
+BL Product BXL | 6.25N.A
+Max. Linear Excursion Xx +-4.25mm (0.167")
+
+Seasitivity fag - 45 SfLvwatt (8 ohn load) (8.18 oct)
+
+wanes
+
+Operational Parameters
+
+Suspension Compliance CMS | 1189 uM/N
+Mechanical Q Factor QMS | 2.45
+
+Electrical Q Factor QES | 0.73
+
+Total Q Factor Q/T | 0.56
+
+Mechanical Resistance RMS | 1.850 Kg.
+
+Moving Mass MMS | 24.9 gm
+
+Eq. Cas Air Load (liters) VAS | 8000L
+
+Cone / Dome Material Composite Paper
+Effective Piston Area SD | 219 cm
+
+Net Weight Kg. 1.35 Kg.
+
+73.35 4B, S031 Me (05), 6.090 mscc (8)
+
+22.0
+20.0
+18.0
+6.0
+0
+
+42.04"
+20.0 foot
+
+auto
+
+seers
+
+morel|} HIGH FIDELITY
+
+Inpulse Response ~ volts
+
+‘Time - asec
+
+voars
+
+0.0 4em
+49.045
+~re.0 44 |
+
+timed
+
+stere
+
+morel) www.morelhifi.com
+

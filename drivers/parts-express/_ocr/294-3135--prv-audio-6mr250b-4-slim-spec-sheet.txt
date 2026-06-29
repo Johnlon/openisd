@@ -1,0 +1,137 @@
+GENERAL SPECIFICATIONS
+
+wn
+[a
+uJ
+-
+ey)
+=
+<=
+<
+oO.
+—
+—
+<
+=
+a
+W
+—_
+=
+—-
+=
+
+EXTRA INFO
+
+6MR250B-4 SLIM
+
+Professional Mid Range Driver
+
+- 125 Watts continuous power handling
+
+- 93.5 dB Sensitivity
+
+- 145 - 8,000 Hz of frequency response
+
+Nominal Diameter 6" (152 mm)
+Nominal impedance 4 Ohms
+
+Rated Power Handling 125 Watts
+Program Power 250 Watts
+Sensitivity 2.00 V at 1m 93.5 dB
+Recommended Hi Pass Crossover* 145 Hz*
+
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response at -10dB 145 - 8,000 Hz
+Voice Coil Diameter 1.5" (38 mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 9.5mm
+Former Material Kapton
+Magnetic Gap Depth 6.0 mm
+
+Frame Material
+
+Stamped Steel
+
+Equivalent Volume Vas 4.01
+Excursion Xmax 3.25mm
+Free Air Resonance Fs 142.9 Hz
+Mechanical Factor Qms 28.73
+Electrical Factor Qes 0.85
+
+Total Factor Qts 0.82
+
+Cone Area Sd 143 cm?
+Mechanical Mass Mms 8.89 g
+
+Bl Factor Bl 5.82 Tm
+
+Dc Resistance Re 3.6 Ohms
+Inductance Le 0.135mH at 1 kHz
+Mechanical Mass Without Air Mmd 7.92¢8
+Mechanical Compliance Cms 0.139 mm/N
+
+Overal Diameter
+
+6.50" (165 mm)
+
+Front Mount Baffle Cutout
+
+5.67" (144 mm)
+
+Mounting Depth
+
+2.14" (54.5 mm)
+
+Overall Depth
+
+2.38 (60.5 mm)
+
+Net Weight
+
+Shipping Weight
+
+Carton Dimensions Wx LxH
+
+3.53 Lbs (1.6 kg)
+3.96 Lbs (1.8 kg)
+
+6.89" x 6.89" x 2.95".
+(175 x 175 x 75 mm)
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4
+
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 03/20
+
+B RA ZtIL
+
+2.14" (54.5mm)
+2.38" (60.5mm)
+
+4.33" (110mm)
+
+5.67" (144mm)
+
+Frequency Response Measured at 2.00 V/1m
+0
+
+" Ci
+
+dBSPL
+
+100
+
+90
+
+80
+
+70
+
+60
+20 50 100 200 500 1k 2k Hz 5k 10k 20k
+PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+POMPANO BEACH, FL SAO LEOPOLDO, RS
+support@prvaudio.com vendas@)pvaudio.com.br
+www.prvaudio.com www.pvaudio.com.br
+

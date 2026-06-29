@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0841009 differs from calculated=0.0864332 (deps: roo=1.20095,
+  c=343.684, Sd=0.05147, Cms=0.00023)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-464-dayton-audio-rss315hf-4-specifications-46174.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-RSS315HF-4-12-Reference-Series-HF-Subwoofer-4-Ohm-295-464
+source: https://www.parts-express.com/Dayton-Audio-RSS315HF-4-12-Reference-Series-HF-Subwoofer-4-Ohm-295-464
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-464
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

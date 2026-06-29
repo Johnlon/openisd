@@ -47,6 +47,18 @@ The scraping pipeline must be able to regenerate everything in `drivers/` from s
 
 **The test:** before touching any WDR or sidecar file, ask "is this fix encoded in the scraper?" If not, fix the scraper first. Only touch data files when the human explicitly says to, and record the authorisation.
 
+## No normalisation or fix-it scripts — hard rule
+
+**Never write a standalone script whose purpose is to normalise, patch, or fix data files in `drivers/`.** This includes:
+
+- Scripts that walk `drivers/` and rewrite field values to fix a known bad pattern
+- Scripts that "normalise" units, casing, or formatting across WDR or `_meta.yml` files
+- One-shot migration scripts that apply a correction to many files at once
+
+**The only correct fix is to find the bug in the scraper and rerun the scraper.** A patch script applied to generated files will be silently wiped on the next scraper run — it fixes nothing permanently and creates a false sense of correctness.
+
+**If the scraper cannot yet regenerate the correct value**, the right response is to fix the scraper until it can, not to write a patch script as a shortcut. If a human explicitly authorises a one-time direct file edit (recorded in the conversation), that is the narrow exception — and even then, no script; the edit is manual and deliberate.
+
 ## Protected collections — DO NOT MODIFY
 
 **`drivers/matt/` is human-curated. Never write to, rename, delete, or modify any file in this collection without explicit human instruction in the current conversation.** Scripts, batch fixes, scrapers, and normalisation tools must all exclude `matt/` by default. If a script would touch `matt/`, it must stop and log a warning instead. This collection represents manual human work that cannot be recovered from a scraper.

@@ -1,0 +1,11 @@
+[03:05:22] PROBLEM field=Vas_tiny_for_driver item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value='Sd=515 cm² Vas=1.61 L (min plausible ≈ 8.6 L)'
+         reason=Vas implausibly small for piston area — likely ft³-as-liters scraper bug
+[03:05:22] PROBLEM field=schema_fail item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00161 differs from calculated=0.0450956 (deps: roo=1.20095, c=343.684, Sd=0.05147, Cms=0.00012)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=1
+[03:13:58] PROBLEM field=schema_fail item=MX12-22 url=https://www.soundimports.eu/en/dayton-audio-mx12-22.html offset=0
+         raw_value="WDR: 'Vas' stored=0.04559 differs from calculated=0.0450956 (deps: roo=1.20095, c=343.684, Sd=0.05147, Cms=0.00012)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1

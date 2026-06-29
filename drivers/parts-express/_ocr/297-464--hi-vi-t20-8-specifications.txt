@@ -1,0 +1,22 @@
+Specifications
+
+Nominal Power Handling =
+
+Max Power Handling (Pmax)(W) 30
+Sensitivity (2.83v/1m)(dB) 92
+eight (M)(Kg) 0.09
+
+4
+ae
+
+Nominal Impedance (Z)(Q)
+
+DC (Re)(Q)
+ee
+we. Enea Une)
+CCAW
+‘C Frame Alumium
+Magnet System Shielded
+Magnet Former Neodymium
+
+Resonance Frequency (Fs)(Hz)

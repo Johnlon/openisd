@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.35 differs from calculated=0.355826 (deps: Qms=1.86,
+  Qes=0.44); ''Vas'' stored=0.0130257 differs from calculated=0.0133362 (deps: roo=1.20095,
+  c=343.684, Sd=0.00933, Cms=0.00108)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-302-dayton-audio-dc130bs-4-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-DC130BS-4-5-1-4-Classic-Shielded-Woofer-4-Ohm-295-302
+source: https://www.parts-express.com/Dayton-Audio-DC130BS-4-5-1-4-Classic-Shielded-Woofer-4-Ohm-295-302
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-302
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

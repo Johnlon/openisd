@@ -1,0 +1,60 @@
+GMRGOOX-NDY-4 Js-IEVWZ
+
+Professional Mid Range Driver c1wseie
+
+BRA ZHtHIL
+
+- 2.0” Voice coil
+- 300 Watts nominal power handling
+
+- 97.5 cB Sensitivity
+- 90 - 13,000 Hz
+Nominal Diameter 6” (152 mm)
+Nominal impedance 4 0hm
++, _ Nominal Power Handling 300 Watts
+= Continuous Program Power (RMS) 600 Watts
+=i) Max Peak Power 1200 Watts
+© Sensitivity 2.00V at Im 97.5 dB
+—) Recommended Hi Pass Crossover* 160 Hz*
+is *For Full Power Handling *12db Per Octave Crossover
++, _ Frequency Response 90 - 13,000 Hz
+=) Voice Coil Diameter 2” (560 mm)
+Py) Voice Coil Wire CCAW
+a Voice Coil Winding Depth 11.0 mm
+jG) ) Former Material Kapton
+Magnetic Gap Depth 8.0 mm
+Frame Material Die cast Aluminum
+Equivalent Volume Vas 5.171
+my) Excursion (mathematical)*** Xmax 3.50 mm
+= Free Air Resonance Fs 95.2 Hz
+= Mechanical Factor Qms 12.54
+=e Electrical Factor Oes 0.20
+& Total Factor QOts 0.19
+= Cone Area Sd 143 cm?
+=.) Mechanical Mass Mms 15.45 g
+= Bl Factor Bl 12.66 Tm
+WH «Dc Resistance Re 3.4 Ohm
+m7) Inductance Le 0.005 mHat1kHz —r i) |
+= Mechanical Mass Without Air Mmd 14.49 g on _
+Mechanical Compliance Cms 0.180 mm/N E : we / : E
+& / >
+Overall Diameter 6.48" (164.5 mm) 3 a
+ma Front Mount Baffle Cutout 5.63" (143 mm) ° | y
+-4~ Mounting Depth 3.09”(78.5 mm) ;
+=J) Overall Depth 3.43”(87 mm) 8894 (100mm)
+= Net Weight 4.63 Lbs (2.1 kg) 5.63" (143mm)
+® Shipping Weight 5.07 Lbs (2.3 kg) a |
+Carton Dimensions W x L x H 7.0”x 7.0” x 4.33”
+(178 x 178 x 110mm)
+Impedance Curve - Free Air Frequency Response Measured at 2.00V/1m
+
+0 60
+5 10 20 50 100 200 Hz 500 1k 2k 5k 10k 20k 20 50 100 200 500 1k 2k Hz 5k 10k 20k
+
+PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+
+POMPANO BEACH, FL SAO LEOPOLDO, RS
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 support@prvaudio.com vendas@pvaudio.com.br
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 01/23

@@ -58,10 +58,10 @@ const EXACT = 1e-9;
 const FREQ_TOLERANCE_HZ = 0.01;
 
 // 0.001 L: volume precision.  Real enclosures are built to ±1 L at best.
-const VOL_TOLERANCE_LITRES = 0.001;
+const _VOL_TOLERANCE_LITRES = 0.001;
 
 // 1 mm: vent-length precision.  Ports are cut to ±2 mm in practice.
-const VENT_LENGTH_TOLERANCE_MM = 1;
+const _VENT_LENGTH_TOLERANCE_MM = 1;
 
 
 // ===========================================================================

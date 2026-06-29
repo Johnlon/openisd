@@ -41,25 +41,47 @@ def parse_product(html: str, url: str) -> dict | None:
     m = re.search(r"<h1[^>]*>([^<]+)</h1>", html, re.I)
     name = m.group(1).strip() if m else url.rstrip("/").split("/")[-1]
 
+    # Detect coaxial driver from URL
+    slug = url.rstrip("/").split("/")[-1]
+    is_coaxial = bool(re.search(r'-coax[-_]', slug, re.I))
+
     # T/S params in <li> items: "Label text, Symbol value unit"
+    # For coaxial: extract woofer and tweeter specs separately
     li_items = re.findall(r"<li>(.*?)</li>", html, re.S | re.I)
-    fields: dict[str, float] = {}
+    woofer_fields: dict[str, float] = {}
+    tweeter_fields: dict[str, float] = {}
+    in_tweeter_section = False
+
     for li_raw in li_items:
         text = html_module.unescape(re.sub(r"<[^>]+>", "", li_raw)).strip()
+
+        # Detect tweeter section start: second "Nominal Impedance" (after woofer)
+        if is_coaxial and text.lower().startswith("nominal impedance") and woofer_fields:
+            in_tweeter_section = True
+
         for fragment, (key, factor) in FIELD_MAP.items():
             if fragment in text.lower():
                 val = parse_number(text)
                 if val is not None:
-                    fields[key] = round(val * factor, 9)
+                    val_si = round(val * factor, 9)
+                    if in_tweeter_section:
+                        tweeter_fields[key] = val_si
+                    else:
+                        # For coaxial: keep first occurrence (prevent tweeter overwriting woofer)
+                        if not (is_coaxial and key in woofer_fields):
+                            woofer_fields[key] = val_si
                 break
 
-    if not fields.get("Fs"):
+    if not woofer_fields.get("Fs"):
         return None
 
     # Extract model from URL slug (reliable): 8in-sb23nrxs45-8-norex → SB23NRXS45-8
-    slug = url.rstrip("/").split("/")[-1]
     model_m = re.search(r'(sb\d+[a-z0-9]+-\d+)', slug, re.I)
     model = model_m.group(1).upper() if model_m else name
+
+    # Append -COAX suffix to model name for coaxial drivers
+    if is_coaxial:
+        model = model + "-COAX"
 
     # PDF: last .pdf in wp-content/uploads (avoids favicon/image matches)
     pdf_matches = re.findall(
@@ -71,15 +93,26 @@ def parse_product(html: str, url: str) -> dict | None:
         r'"(https://sbacoustics\.com/wp-content/uploads/[^"]+\.(zip|frd|zma|txt))"',
         html, re.I)
 
-    return {
+    result = {
         "brand":         "SB Acoustics",
         "model":         model,
         "manufacturer":  "SB Acoustics",
         "provided_by":   f"SB Acoustics website (scraped {__import__('datetime').date.today()})",
-        "fields":        fields,
+        "fields":        woofer_fields,
         "pdf_url":       pdf_url,
         "extra_links":   [l[0] for l in extra],
     }
+
+    # For coaxial drivers: add driver_type and tweeter specs to sidecar metadata
+    if is_coaxial:
+        result["driver_type"] = "coaxial"
+        if tweeter_fields:
+            result["specs"] = {
+                "woofer": {k: v for k, v in woofer_fields.items()},
+                "tweeter": tweeter_fields,
+            }
+
+    return result
 
 
 def url_filter(url: str) -> bool:

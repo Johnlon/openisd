@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.28 differs from calculated=0.285246 (deps: Qms=5.8,
+  Qes=0.3)'
+reviewed_by: null
+driver_type: fullrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/294-578--bc-15cxn76-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
+source: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-578
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

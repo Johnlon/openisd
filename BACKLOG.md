@@ -170,6 +170,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
+- [ ] **P2** Unify DQ and schema validation — single WDR parser, range bounds defined once; see `PLAN_SCRAPING.md`
 
 ---
 

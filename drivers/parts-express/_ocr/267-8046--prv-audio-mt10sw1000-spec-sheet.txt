@@ -1,0 +1,96 @@
+B RA ZHI L
+
+MT1O0SW1000 D4
+
+Subwoofer
+
+- 2.0” Voice coil
+- 1000 Watts continuous program power
+- 86 GB Sensitivity
+
+EXTRA INFO
+
+Frame Material
+
+Nominal Diameter 10" (254 mm)
+=4) Nominal impedance 4+4Q0hm
+=) Nominal Power Handling 500 Watts
+< Continuous Program Power (RMS) 1000 Watts
+T= Max Peak Power 2000 Watts
+=) Sensitivity 1.41V at Im 86 dB (Parallel VC)
++, Voice Coil Diameter 2.0" (50 mm)
+2 Voice Coil Wire Copper
+tq Voice Coil Winding Depth 33.0 mm
+Fa Former Material Black Aluminum
+© Magnetic Gap Depth 10 mm
+
+Die cast Aluminum
+
+Mechanical Compliance
+
+Overall Diameter
+
+Cms 0.137 mm/N
+
+10.38" (263.7 mm)
+
+Front Mount Baffle Cutout
+
+9.37" (238 mm)
+
+Mounting Depth
+
+4.55" (115.5 mm)
+
+Overall Depth
+
+5.53" (140.5 mm)
+
+Net Weight
+
+12.01 Lbs (5.45 kg)
+
+Shipping Weight
+
+14.13 Lbs (6.5 kg)
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test
+
+Equivalent Volume Vas 29.91
+7) Excursion (mathematical)*** Xmax 14.00 mm
+Ta Free Air Resonance Fs 36.2 Hz
+ff) Mechanical Factor Qms 7.01
+= Electrical Factor Qes 0.55
+& Total Factor Qts 0.51 3
+%
+5 Cone Area Sd 391 cm? &
+= Mechanical Mass Mms 140.9 g XC
+— Bl Factor Bl 9.91 Tm Boe
+th Dc Resistance (Parallel VC) Re 1.70hm
+7 _ Inductance Le 1.17 mH at 1kHz
+= Mechanical Mass Without Air Mmd 136.4 ¢
+
+10.38" (263.7mm)
+
+PRV AUDIO USA (USA and Export)
+POMPANO BEACH, FL
+support@)prvaudio.com
+www.prvaudio.com
+
+) ~ E
+Carton Dimensions W x Lx H 11.6" x 11.6" x 7.1" E 5
+(295 x 295 x 180 mm) 8 53
+= a
+ip 9
+Te) rs)
+. 4 wt
+a a Type Volume Port Size Port Tunning _Y
+Z & Compact Sealed 0.9 ft? None None
+2 in Enclosure . 6.10" (155mm)
+C t Ported 3” Diameter >
+So * Ehclosure . 1ft? by 7” Length a“ 9.37" (238mm)
+wr) )=Recommended 3” Diameter
+a Enclosure 1.25 ft? by 9” Length 37 He
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 05/24

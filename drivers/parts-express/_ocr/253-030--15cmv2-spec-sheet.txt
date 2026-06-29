@@ -1,0 +1,124 @@
+beyma J)
+
+PROFESSIONAL LOUDSPEAKERS
+www.beyma.com
+
+KEY FEATURES
+
+e High power handling: 700 W program power
+e 3” copper wire voice coil
+
+e High sensitivity: 97 dB (1W / 1m)
+
+e Extremely linear response and low distortion
+
+e Treated double roll cloth surround
+
+TECHNICAL SPECIFICATIONS
+
+Nominal diameter 380 mm 15 in
+Rated impedance 80
+Minimum impedance 7,50
+Power capacity” 350 Wages
+Program power 700 W
+Sensitivity 97dB 1W/im@Zn
+Frequency range 50 - 4.000 Hz
+Recom. enclosure V,= 751
+
+(Bass-reflex design) F, = 50 Hz
+Voice coil diameter 76,2 mm 3 in
+BI factor 18,8 N/A
+Moving mass 0,106 kg
+Voice coil length 17,5mm
+Air gap height 7mm
+Xdamage (peak to peak) 35 mm
+
+Notes:
+
+15CMV2
+
+LOW & MID FREQUENCY TRANSDUCER
+
+e Optimized pressed steel frame
+
+e Ferrite magnet
+
+e Designed for bass and midbass applications in small
+
+vented cabinets
+
+THIELE-SMALL PARAMETERS**
+
+Resonant frequency, f,
+
+D.C. Voice coil resistance, Re
+Mechanical Quality Factor, Qms
+Electrical Quality Factor, Qe,
+Total Quality Factor, Qt,
+Equivalent Air Volume to Cys; Vas
+Mechanical Compliance, Cys
+Mechanical Resistance, Rms
+Efficiency, no
+
+Effective Surface Area, Sq
+Maximum Displacement, Xmax ***
+Displacement Volume, Vg
+
+Voice Coil Inductance, Lg @ 1 kHz
+
+* The power capaticty is determined according to AES2-1984 (r2003) standard. Program power is defined as the transducer’s ability to handle normal music program material.
+
+49 Hz
+60
+
+4,1
+
+0,55
+0,49
+104 |
+
+95 um /N
+8,1kg/s
+2,3 %
+0,088 m2
+7mm
+616 cm?
+1,2 mH
+
+** T-S parameters are measured after an exercise period using a preconditioning power test. The measurements are carried out with a velocity-current laser transducer and will reflect the long term parameters (once the loudspeaker has been
+
+working for a short period of time).
+
+“ The Xmay is calculated as (Ly, - Hag)/2 + (Hag/3:5), where L\,, is the voice coil length and Hag is the air gap height.
+
+Acustica Beyma SL - P.I. Moncada Il, C/ Pont Sec, 1C - 46113 Moncada, Valencia (Spain) - Tel. +34 96 130 13 75 - beyma@beyma.com
+120 5 , 120
+
+100 - - 100
+80 - - 80
+a
+S 60 60
+40 4 - 40
+20 - - 20
+100 1k 10k
+[Hz]
+Note: Frequency response measured with loudspeaker standing “ummm Frequency response on axis
+on infinite baffle in anechoic chamber, 1W @ 1m =a Frequency response 45° off axis
+
+[0]
+
+Overall diameter 385 mm 15,1 in
+
+Bolt circle diameter 367 mm 14,4 in
+
+Baffle cutout diameter: 1 |
+
+- Front mount 353 mm 13,9 in ki -| «
+Depth 165 mm 6,5 in 8 4 8
+Net weight 6 kg 13,2 Ib
+
+Shipping weight 7 kg 15,4 Ib
+
+165
+
+02/18

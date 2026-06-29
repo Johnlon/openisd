@@ -1,0 +1,11 @@
+[03:05:22] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Cms' = 1.104 above maximum 0.1 m/N"
+         reason=File failed strict schema validation
+[03:05:22] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Qts' stored=0.33 differs from calculated=0.323936 (deps: Qms=4.35, Qes=0.35)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=W4-655F url=https://www.soundimports.eu/en/tang-band-w4-655f.html offset=0
+         raw_value="WDR: 'Qts' stored=0.33 differs from calculated=0.323936 (deps: Qms=4.35, Qes=0.35)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1

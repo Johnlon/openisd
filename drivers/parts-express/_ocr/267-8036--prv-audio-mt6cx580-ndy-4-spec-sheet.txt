@@ -1,0 +1,58 @@
+MT6CX580-NDY-4 s7ILVZ
+
+Professional Coaxial Driver aI1tissD ico
+
+BRAZHtI.L
+
+- 2.0” / 1/4" Voice coil
+- 600 / 80 Watts continuous program power
+- 95 / 106 dB Sensitivity
+
+Low Freq. High Freq.
+
+Nominal and Throat Diameter 6.5"(152mm)_ 1"(25.4mm)
+7 Nominal impedance 4 Ohm 8 Ohm
+= Nominal Power Handling 300 Watt 40 Watt
+E Continuous Program Power (RMS) 500 Watt 80 Watt
+‘S) Max Peak Power 1200 Watt 160 Watt
+= Sensitivity 2.00V at Im 95 dB 106 dB
+—w) Recommended Hi Pass Crossover* 105 Hz* 1800 Hz*
+IT) *For Full Power Handling *12db/oct Crossover —*12db/oct Crossover
+2 Frequency Response 100-10kHz = 1.3-20kHz
+oe Voice Coil Diameter 2”(51 mm) 1.75"(44mm)
+= Voice Coil Wire CCAW CCAW
+© Voice Coil Winding Depth 11.0 mm N/A
+Former Material Kapton Kapton
+Magnetic Gap Depth 8.0 mm N/A
+Frame and Diaphragm Material = Aluminum — Titanium
+Equivalent Volume Vas 5.771
+¥) \ Excursion (mathematical)*** Xmax 3.50 mm
+a Free Air Resonance Fs 105.9 Hz
+Z Mechanical Factor Qms 8.54
+Electrical Factor Qes 0.43 a - ~
+a Total Factor Ots 0.41 O48" (14-Smm)
+= Cone Area Sd 143 cm?
+z Mechanical Mass Mms 11.19 g
+= BlFactor Bl 7.16 Tm
+uy Dc Resistance Re 3.0 0hm
+7 Inductance Le 0.178 mH at 1 kHz _
+== Mechanical Mass Without Air Mmd 10.33 g e gE €
+= Mechanical Compliance Cms 0.202 mm/N 3 eS
+Overall Diameter 6.48" (164.5 mm) y
+a Front Mount Baffle Cutout 5.62" (143 mm) u y
+™4~ Mounting Depth 3.93" (100 mm) , _
+=) Overall Depth 4.37" (111mm) 4.02" (102mm)
+= Net Weight 4.18 Lbs (1.9 kg) ~ 56P (damm) >
+“y Shipping Weight 4.62 Lbs (2.1kg)
+Carton Dimensions W x L x H 7.6"x 7.0" x 5.12"
+(193 x 178 x 130mm)
+Impedance Curve - Free Air ; sop Erequency Response Measured at 2.00V/Im Z
+Ohm dBSPL
+Low Freq. —— . .
+High Freq.——
+weet Fe Pee «0
+, ne NN sos “ . . PRV AUDIO Usa (USA and Export) . m ™
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 cupport@prvaudio com
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 09/23

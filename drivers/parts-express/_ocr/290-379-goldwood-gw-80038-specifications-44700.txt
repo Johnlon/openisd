@@ -1,0 +1,47 @@
+Test : HLS ANALYEIS Date: 01-03-04
+About: O degree and 30 degree off axis Time: 10:41:03
+
+| |
+20 100
+File: 290-3790 Heference: NOHWE
+ELECTRICAL & ACOUSTICAL TESTS —- WERSION 4.50 —- COPYRIGHT ¢C) 1991-99 AUDIOMATICA
+
+ge
+
++t ——
+ee he
+ee i
+a
+
+|
+a a
+a ee eee
+es
+
+ail
+
+200 Bo 20K
+
+IMPEDANCE RESPONSE & PARAMETERS Date: 01-03-04
+
+Time: 10°24:41
+
+1
+
+, il
+
+Li
+10 Hz
+
+Oo 100 200 500
+
+5 KE 10k
+MANUFACTURER : Gol diwood MODEL : GH-8003.6
+
+O: 162.00 C mm J Gms 2 3.60 Mme : 25.09 € gd] Bl: 6.52 C HrA J
+Re: 7.20 C i J Ges: 1.17 Cme i: 01.59 C time J Lik : 1.16 C mH J
+Fs : 35.11 OC Hz] Qts : O86 Was : 34.9F 02 1 ] LiIOK : O42 C mH J
+
+File: 290-3792
+
+C LI OO —- _ ELECTRICAL % ACOUSTICAL TESTS - WERSION 4.50 - COPYRIGHT (Co 1991-99 AUDIONATICA

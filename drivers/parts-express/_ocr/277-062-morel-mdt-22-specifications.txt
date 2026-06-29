@@ -1,0 +1,81 @@
+MDT 22 - SOFT DOME TWEETER
+
+Neodymium Magnet Vented Motor
+
+MDT 22
+
+Specifications
+
+Overall Dimensions
+
+46mm(173")x58mm(2.28")
+
++
+
+FACE PLATE : 54.0mm (2.13")
+
+54.0mm (2.13")
+
+R=5.5mm
+(0.217")
+FACE VIEW
+
+HOLE CENTRES : @-43.5mm (1.71")
+@3.5mm(0.13")
+ne
+
+REAR VIEW
+
+FACE PLATE : 54.0mm (2.13")
+
+6.0
+
+Knpedance Magnitude - ohms (ey) .
+i | 1
+
+tiilj i i
+i
+
+Nominal Power Handl ng (DN) p 80 W
+Transient power 10ms | 500 W
+Nominal Impedance | z 8 Ohms
+Sensitivity 1W/1M 89 dB
+Frequency Response | 1800-25000 Hz
+Resonant Frequency FS 650 Hz
+Voice coil
+Voice Coil Diameter DIA | 28mm (1.125”)
+Voice Coil Height 2.5mm (0 098”)
+Voice Coil Former | Aluminum
+Voice Coil Wre | Copper
+FEATURES Number of Layers | 2
+-Large diameter voice coil DC Resistance L_RE 5.2 Ohms
+-Powerful Neodymium magnet system Voice Coil Inductance @ 1KHz LBM | 0.05 mH
+-Magnetically shielded for A/V systems
+Rear chamber loading Magnet System
+tia ever karchig Magnet System Type | Neodymium Vented
+-Sturdy gold-plated nput tags HE - Magnetic Gap He ght | HE 2.5mm (0.098”)
+B Flux Dens ty B 147
+BL Product | BxXL | 28NA
+Max. Linear Excursion x
+oe... Jf | | Operational Parameters
+H Suspension Compliance CMS
+| Mechanical Q Factor QMs
+Electrical Q Factor QES
+Total Q Factor | a/t
+Mechanical Resistance | RMS
+Moving Mass | MMs 0.47 gm.
+Eq. Cas Air Load (liters) [ VAS
+Dome Mater al Selected Soft Fabric
+Effective Piston Area sD 6.0 cm?
+Net Weight | Kg. 0.09 Kg,
+
+peers
+
+morel| HIGH FIDELITY
+
+»>
+
+morel
+
+www.morelhifi.com
+

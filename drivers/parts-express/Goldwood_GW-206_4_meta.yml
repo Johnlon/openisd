@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0133089 differs from calculated=0.0134501 (deps: roo=1.20095,
+  c=343.684, Sd=0.013635, Cms=0.00051)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/290-300-goldwood-gw-2064-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-206-4-6-1-2-OEM-Woofer-4-Ohm-290-300
+source: https://www.parts-express.com/Goldwood-GW-206-4-6-1-2-OEM-Woofer-4-Ohm-290-300
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-300
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=5.9e-05 differs from calculated=5.8157e-05 (deps: roo=1.20095,
+  c=343.684, Sd=0.00115, Cms=0.00031)'
+reviewed_by: null
+driver_type: tweeter
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/298-1108-1110-1112-1114--wavecor-tw030wa05-06-07-08-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Wavecor-TW030WA06-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-with-Ferrofluid-4-Ohm-298-1110
+source: https://www.parts-express.com/Wavecor-TW030WA06-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-with-Ferrofluid-4-Ohm-298-1110
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 298-1110
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

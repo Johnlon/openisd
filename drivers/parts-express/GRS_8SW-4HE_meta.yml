@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.45 differs from calculated=0.457241 (deps: Qms=4.42,
+  Qes=0.51); ''Vas'' stored=0.0317148 differs from calculated=0.0321624 (deps: roo=1.20095,
+  c=343.684, Sd=0.0227, Cms=0.00044)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/GRS-8SW-4HE-8-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-816
+source: https://www.parts-express.com/GRS-8SW-4HE-8-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-816
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 292-816
+field_provenance: null
+freq_low_hz: 30.0
+freq_high_hz: 700.0

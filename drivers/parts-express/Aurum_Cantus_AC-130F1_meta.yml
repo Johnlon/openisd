@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.27 differs from calculated=0.273529 (deps: Qms=3.1,
+  Qes=0.3); ''Vas'' stored=0.0359623 differs from calculated=0.0363589 (deps: roo=1.20095,
+  c=343.684, Sd=0.0095, Cms=0.00284)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-130F1-5-1-4-Woofer-296-400
+source: https://www.parts-express.com/Aurum-Cantus-AC-130F1-5-1-4-Woofer-296-400
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 296-400
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

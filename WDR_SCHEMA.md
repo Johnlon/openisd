@@ -448,10 +448,20 @@ Each WDR file has a companion `<stem>_meta.yml` in the same directory. The sidec
 provenance, quality, and data-quality metadata. WDR files contain no provenance data — they
 end at `ParState=` and are schema-identical to a native WinISD export.
 
+**Metadata-complete design:** The _meta.yml is the canonical complete record of all extracted
+datasheet data. The WDR file is a **subset** of _meta.yml — it contains only the T/S parameters
+needed for WinISD simulation (and thus is WinISD-importable). For composite drivers like coaxials,
+the _meta.yml captures the complete multi-component spec set while the WDR contains only the
+primary component (e.g., woofer T/S for a coaxial).
+
+**Example:** A coaxial driver SB12PFC25-4-COAX has two acoustic components:
+- **WDR file** (`SB12PFC25-4-COAX.wdr`): Woofer T/S only (Fs=58 Hz, Qts=0.33, Vas=4.8L, etc.) — for WinISD enclosure design
+- **_meta.yml** (`SB12PFC25-4-COAX_meta.yml`): Complete metadata including both woofer and tweeter T/S under `specs.woofer` and `specs.tweeter` keys — the human-readable record
+
 **Schema and field definitions:** `scripts/wdr_meta_schema.py` — `MetaModel` (Pydantic v2).
 That file is the single source of truth. Reading it IS reading the `_meta.yml` schema.
 
-**Example** (`drivers/new_ss_tool/Scan-Speak_18WE_4542T00_meta.yml`):
+**Example 1 — single-component driver** (`drivers/new_ss_tool/Scan-Speak_18WE_4542T00_meta.yml`):
 
 ```yaml
 quality: M
@@ -489,7 +499,45 @@ field_provenance:
     winner: pdf
 freq_low_hz: null
 freq_high_hz: null
+specs: null
 ```
+
+**Example 2 — coaxial driver with separate woofer/tweeter specs** (`drivers/sb-acoustics/SB_Acoustics_SB12PFC25-4-COAX_meta.yml`):
+
+```yaml
+quality: M
+issue: scraped_not_human_verified
+detail: Coaxial driver. WDR contains woofer T/S only. Tweeter specs captured in specs.tweeter.
+driver_type: coaxial
+nominal_size_cm: 10.0
+datasheet: https://sbacoustics.com/wp-content/uploads/2020/11/4in-SB12PFC25-4-COAX-OEM-only.pdf
+manu_page: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
+source: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
+specs:
+  woofer:
+    Fs: 58              # Informational comment: Hz
+    Qts: 0.33           # Informational comment: dimensionless
+    Qms: 4.07
+    Qes: 0.36
+    Mms: 0.0045         # Informational comment: kg (4.5 g)
+    Cms: 0.00166        # Informational comment: m/N (1.66 mm/N)
+    Sd: 0.0045          # Informational comment: m² (45 cm²)
+    Vas: 0.0048         # Informational comment: m³ (4.8 liters)
+    BL: 3.8             # Informational comment: T·m
+    Re: 3.1             # Informational comment: Ω
+    Le: 0.00026         # Informational comment: H (0.26 mH)
+    Pe: 30              # Informational comment: W
+    sensitivity_dB: 87  # Informational comment: dB @ 2.83V/1m
+  tweeter:
+    Fs: 1300            # Informational comment: Hz
+    Pe: 10              # Informational comment: W
+    sensitivity_dB: 89  # Informational comment: dB @ 2.83V/1m
+    Re: 3.0             # Informational comment: Ω
+```
+
+**Units convention:** All values in `specs:` use SI units (Hz, Ω, H, T·m, kg, m², m³, m/N, W, dB), same as WDR fields (see §3 and §6). Inline YAML comments are **informational only** — they show the unit and (optionally) the equivalent in datasheet units for human readability. The comments are not part of the data model.
+
+The WDR file (`SB12PFC25-4-COAX.wdr`) contains only woofer T/S parameters for WinISD compatibility. The complete datasheet specs (both components) live in the sidecar's `specs:` block.
 
 ## 10. WinISD simulation model — key facts
 

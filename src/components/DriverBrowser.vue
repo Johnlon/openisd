@@ -23,7 +23,7 @@ const sourcesOpen     = ref(false);
 
 // Type + param filters
 const typeHelpOpen  = ref(false);
-const selectedTypes = ref([]);
+const typeStates = ref({});   // id → 'include' | 'exclude'
 const fsMin = ref('');
 const fsMax = ref('');
 const sdMin = ref('');   // cm²
@@ -39,12 +39,21 @@ const DRIVER_TYPES = [
   { id: 'mid',       label: 'Mid',        title: 'Midrange / mid-bass — between woofer and tweeter' },
   { id: 'tweet',     label: 'Tweet',      title: 'Tweeter — high-frequency driver (dome, ribbon, planar, AMT)' },
   { id: 'fullrange', label: 'Full-range', title: 'Full-range — single driver covering bass through treble (not BMR)' },
-  { id: 'pr',        label: 'PR',         title: 'Passive radiator — no voice coil, passive acoustic resonator' },
+  { id: 'pr',           label: 'PR',           title: 'Passive radiator — no voice coil, passive acoustic resonator' },
+  { id: 'coax',         label: 'Coaxial',      title: 'Coaxial — woofer and tweeter sharing the same axis' },
+  { id: 'unclassified', label: 'Unclassified', title: 'Drivers that did not match any type pattern' },
 ];
 
 function quickParse(content) {
   const m = k => { const r = (content || '').match(new RegExp('^' + k + '=(.+)$', 'm')); return r ? parseFloat(r[1]) : null; };
   return { Fs: m('Fs'), Sd: m('Sd'), Re: m('Re'), Znom: m('Znom'), Pe: m('Pe') };
+}
+
+function fmtHz(hz) {
+  if (hz == null) return null;
+  const v = parseFloat(hz);
+  if (!isFinite(v)) return null;
+  return v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'kHz' : Math.round(v) + 'Hz';
 }
 
 // Multi-label classification. Name-based matching takes priority over T/S params.
@@ -65,35 +74,42 @@ const MIDRANGE_PAT = /\bmid[-_ ]?range\b|\bmidrange\b/i;
 const FULLRANGE_PAT= /\bfull[-_ ]?range\b|\bfullrange\b/i;
 const BMR_PAT      = /\bBMR\b|balanced.mode/i;
 const PR_PAT       = /\bpassive.radiator\b|\bP\.?R\.?\b/i;
+const COAX_PAT     = /\bcoax(ial)?\b|coaxial/i;
 
 // Returns { types: string[], canonical: string }
 // types  = functional chip IDs for filtering
 // canonical = the normalised product-type name for display (e.g. "Subwoofer", "Midrange")
-function classifyTypes(Fs, Sd, nameStr) {
+// driverType = scraper-derived type written to _meta.yml (e.g. 'coaxial', 'subwoofer')
+function classifyTypes(Fs, Sd, nameStr, driverType) {
   const nm = nameStr || '';
+  const dt = (driverType || '').toLowerCase();
   const types = new Set();
   const canonical = [];
 
-  if (PR_PAT.test(nm)) return { types: ['pr'], canonical: 'Passive Radiator' };
+  if (PR_PAT.test(nm) || dt === 'pr' || dt === 'passive radiator')
+    return { types: ['pr'], canonical: 'Passive Radiator' };
+  if (COAX_PAT.test(nm) || dt === 'coaxial' || dt === 'coax')
+    return { types: ['coax', 'woofer', 'bass', 'mid', 'tweet'], canonical: 'Coaxial' };
 
-  if (TWEET_PAT.test(nm))    { types.add('tweet');
+  if (TWEET_PAT.test(nm) || dt === 'tweeter') {
+    types.add('tweet');
     if (/\bAMT\b|air.motion/i.test(nm))          canonical.push('AMT');
     else if (/\bribbon\b/i.test(nm))              canonical.push('Ribbon Tweeter');
     else if (/\bplanar\b/i.test(nm))              canonical.push('Planar Tweeter');
     else                                          canonical.push('Tweeter');
   }
-  if (SUB_PAT.test(nm))      { types.add('sub'); types.add('woofer'); types.add('bass');
-                               canonical.push('Subwoofer'); }
-  if (MIDBASS_PAT.test(nm))  { types.add('woofer'); types.add('mid'); types.add('bass');
-                               canonical.push('Mid-bass'); }
-  if (WOOFER_PAT.test(nm) && !MIDBASS_PAT.test(nm)) { types.add('woofer'); types.add('bass');
-                               canonical.push('Woofer'); }
-  if (MIDRANGE_PAT.test(nm)) { types.add('mid'); types.add('woofer');
-                               canonical.push('Midrange'); }
-  if (FULLRANGE_PAT.test(nm)){ types.add('woofer'); types.add('mid'); types.add('tweet'); types.add('bass'); types.add('fullrange');
-                               canonical.push('Full-range'); }
-  if (BMR_PAT.test(nm))      { types.add('mid'); types.add('tweet');
-                               canonical.push('BMR'); }
+  if (SUB_PAT.test(nm) || dt === 'subwoofer' || dt === 'sub')
+    { types.add('sub'); types.add('woofer'); types.add('bass'); canonical.push('Subwoofer'); }
+  if (MIDBASS_PAT.test(nm) || dt === 'mid-bass' || dt === 'midbass')
+    { types.add('woofer'); types.add('mid'); types.add('bass'); canonical.push('Mid-bass'); }
+  if ((WOOFER_PAT.test(nm) || dt === 'woofer') && !MIDBASS_PAT.test(nm))
+    { types.add('woofer'); types.add('bass'); canonical.push('Woofer'); }
+  if (MIDRANGE_PAT.test(nm) || dt === 'midrange')
+    { types.add('mid'); types.add('woofer'); canonical.push('Midrange'); }
+  if (FULLRANGE_PAT.test(nm) || dt === 'fullrange' || dt === 'full-range')
+    { types.add('woofer'); types.add('mid'); types.add('tweet'); types.add('bass'); types.add('fullrange'); canonical.push('Full-range'); }
+  if (BMR_PAT.test(nm) || dt === 'bmr')
+    { types.add('mid'); types.add('tweet'); canonical.push('BMR'); }
 
   if (types.size > 0) return { types: [...types], canonical: canonical.join(' / ') };
 
@@ -104,15 +120,17 @@ function classifyTypes(Fs, Sd, nameStr) {
 }
 
 function toggleType(id) {
-  const idx = selectedTypes.value.indexOf(id);
-  if (idx >= 0) selectedTypes.value.splice(idx, 1); else selectedTypes.value.push(id);
+  const cur = typeStates.value[id];
+  if (!cur)            typeStates.value = { ...typeStates.value, [id]: 'include' };
+  else if (cur === 'include') typeStates.value = { ...typeStates.value, [id]: 'exclude' };
+  else                 { const s = { ...typeStates.value }; delete s[id]; typeStates.value = s; }
 }
 function toggleZ(z) {
   const idx = selZ.value.indexOf(z);
   if (idx >= 0) selZ.value.splice(idx, 1); else selZ.value.push(z);
 }
 function clearParamFilters() {
-  selectedTypes.value = []; fsMin.value = ''; fsMax.value = '';
+  typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
   sdMin.value = ''; sdMax.value = ''; selZ.value = [];
 }
 
@@ -156,8 +174,16 @@ const filteredFiles = computed(() => {
     filtered = filtered.filter(f => tokens.every(t => f.name.toLowerCase().includes(t)));
   if (srcFilter.length)
     filtered = filtered.filter(f => srcFilter.includes(f.sourceName));
-  if (selectedTypes.value.length)
-    filtered = filtered.filter(f => !f._types?.length || selectedTypes.value.some(t => f._types.includes(t)));
+  const included = Object.keys(typeStates.value).filter(k => typeStates.value[k] === 'include');
+  const excluded = Object.keys(typeStates.value).filter(k => typeStates.value[k] === 'exclude');
+  const isUnclassified = f => !f._types?.length;
+  if (included.length)
+    filtered = filtered.filter(f => (included.includes('unclassified') && isUnclassified(f)) || included.filter(t => t !== 'unclassified').some(t => f._types?.includes(t)));
+  if (excluded.length) {
+    if (excluded.includes('unclassified')) filtered = filtered.filter(f => !isUnclassified(f));
+    const excTypes = excluded.filter(t => t !== 'unclassified');
+    if (excTypes.length) filtered = filtered.filter(f => !excTypes.some(t => f._types?.includes(t)));
+  }
   const fsMinV = parseFloat(fsMin.value), fsMaxV = parseFloat(fsMax.value);
   const sdMinV = parseFloat(sdMin.value), sdMaxV = parseFloat(sdMax.value);
   if (isFinite(fsMinV)) filtered = filtered.filter(f => f._Fs != null && f._Fs >= fsMinV);
@@ -271,7 +297,8 @@ async function init() {
         sourceUrl:  src.url || '',
         sourceDesc: src.description || '',
         _Fs: qp.Fs, _Sd: qp.Sd, _Re: qp.Re, _Znom: qp.Znom, _Pe: qp.Pe,
-        ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(qp.Fs, qp.Sd, nameStr)),
+        _freqRange: (() => { const lo = parseFloat(f.freq_low_hz), hi = parseFloat(f.freq_high_hz); return (isFinite(lo) && isFinite(hi)) ? { lo, hi } : null; })(),
+        ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(qp.Fs, qp.Sd, nameStr, f.driver_type)),
       };
     });
     allFiles.value = [...allFiles.value, ...entries];
@@ -309,7 +336,7 @@ async function loadSpeakerBoxLite() {
   // This is a server-side CORS misconfiguration — the browser blocks the GET response.
   let countResp;
   try { countResp = await fetch(base + '/count'); }
-  catch (err) {
+  catch {
     statusErr.value = true;
     statusMsg.value = 'speakerboxlite.com CORS error — their API returns Access-Control-Allow-Origin '
       + 'on HEAD requests but not GET requests, so browsers block it. '
@@ -340,7 +367,7 @@ async function loadSpeakerBoxLite() {
           sourceDesc: 'speakerboxlite.com community database',
           sblData: d,
           _Fs: d.fs || null, _Sd: SblSd, _Re: d.re || null, _Znom: null, _Pe: d.pe || null,
-          ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(d.fs, SblSd, sblName)),
+          ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(d.fs, SblSd, sblName, d.driver_type)),
         });
       }
     }
@@ -407,6 +434,7 @@ const previewData = computed(() => {
         { label: 'Xmax', value: n(d.xmax_mm)?.toFixed(1),          unit: 'mm'   },
         { label: 'Pe',   value: n(d.pe)?.toFixed(0),               unit: 'W'    },
         { label: 'EBP',  value: (Fs && Qes) ? (Fs/Qes).toFixed(0) : null       },
+        { label: 'Freq', value: f._freqRange ? fmtHz(f._freqRange.lo) + '–' + fmtHz(f._freqRange.hi) : null },
       ].filter(s => s.value != null),
     };
   }
@@ -433,6 +461,7 @@ const previewData = computed(() => {
       { label: 'Xmax', value: Xmax ? (Xmax*1000).toFixed(1):null, unit: 'mm'   },
       { label: 'Pe',   value: n('Pe')?.toFixed(0),                unit: 'W'    },
       { label: 'SPL',  value: n('SPL')?.toFixed(1),               unit: 'dB'   },
+      { label: 'Freq', value: f._freqRange ? fmtHz(f._freqRange.lo) + '–' + fmtHz(f._freqRange.hi) : null },
       { label: 'EBP',  value: (Fs && Qes) ? (Fs/Qes).toFixed(0) : null        },
     ].filter(s => s.value != null),
   };
@@ -497,9 +526,11 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
         <input class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
         <div class="type-row">
           <button v-for="t in DRIVER_TYPES" :key="t.id"
-                  class="type-chip" :class="{ active: selectedTypes.includes(t.id) }"
-                  :title="t.title" @click="toggleType(t.id)">{{ t.label }}</button>
-          <button v-if="selectedTypes.length || fsMin || fsMax || sdMin || sdMax || selZ.length"
+                  class="type-chip"
+                  :class="{ include: typeStates[t.id] === 'include', exclude: typeStates[t.id] === 'exclude' }"
+                  :title="typeStates[t.id] === 'include' ? 'Including ' + t.label + ', click again to exclude ' + t.label : typeStates[t.id] === 'exclude' ? 'Excluding ' + t.label + ', click again to clear' : 'Click to include/exclude ' + t.label"
+                  @click="toggleType(t.id)">{{ t.label }}</button>
+          <button v-if="Object.keys(typeStates).length || fsMin || fsMax || sdMin || sdMax || selZ.length"
                   class="type-chip type-clear" title="Clear all type and parameter filters"
                   @click="clearParamFilters">✕ clear</button>
           <!-- Help popup — keep content in sync with drivers/DRIVER_TYPES.md -->
@@ -614,7 +645,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
 
         <!-- ── Driver list ── -->
         <div v-else class="dlist">
-          <div v-for="f in filteredFiles.slice(0, 500)" :key="(f.sourceName || '') + (f.path || '') + f.name"
+          <div v-for="f in filteredFiles.slice(0, 5000)" :key="(f.sourceName || '') + (f.path || '') + f.name"
                :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
                @click="pickFile(f)">
             <b>{{ f.name }}</b>
@@ -714,7 +745,8 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .help-unclass td { color:#c07000; }
 .type-chip { font-size:11px; padding:2px 9px; border:1px solid var(--mut); border-radius:12px; background:none; color:var(--mut); cursor:pointer; white-space:nowrap; }
 .type-chip:hover { border-color:var(--fg); color:var(--fg); }
-.type-chip.active { border-color:var(--acc); color:var(--acc); background:color-mix(in srgb, var(--acc) 12%, transparent); }
+.type-chip.include { border-color:#3a3; color:#3a3; background:color-mix(in srgb, #3a3 12%, transparent); }
+.type-chip.exclude { border-color:#b90; color:#b90; background:color-mix(in srgb, #b90 12%, transparent); }
 .type-clear { border-color:transparent; }
 .param-row { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
 .plabel { font-size:10px; color:var(--mut); white-space:nowrap; padding:0 1px; }

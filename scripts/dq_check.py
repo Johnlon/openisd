@@ -117,8 +117,9 @@ def _Sd_tiny(f):
     return f"Sd={v*1e4:.3f} cm²" if (v and 0 < v * 1e4 < 0.5) else None
 
 def _Re_low(f):
+    # 0.5 Ω floor: confirmed valid for low-impedance pro drivers (e.g. Celestion AN2075, Re=0.84 Ω)
     v = _n(f, "Re")
-    return f"Re={v}" if (v and v < 1) else None
+    return f"Re={v}" if (v and v < 0.5) else None
 
 def _Re_high(f):
     v = _n(f, "Re")
@@ -143,10 +144,6 @@ def _Qes_zero(f):
 def _Qms_low(f):
     v = _n(f, "Qms")
     return f"Qms={v}" if (v and v < 0.5) else None
-
-def _Pe_one(f):
-    v = _n(f, "Pe")
-    return "Pe=1 (scraper artifact)" if v == 1 else None
 
 def _Pe_zero(f):
     v = _n(f, "Pe")
@@ -205,7 +202,7 @@ RULES = [
     ("Sd_huge",   "Sd > 3000 cm² — larger than any real driver",                           _Sd_huge),
     ("Sd_tiny",   "Sd < 0.5 cm² — scraper artifact (near-zero)",                           _Sd_tiny),
     # ── Re ───────────────────────────────────────────────────────────────────
-    ("Re_low",    "Re < 1 Ω — below DC resistance of any voice coil",                      _Re_low),
+    ("Re_low",    "Re < 0.5 Ω — below physical minimum for any voice coil",                 _Re_low),
     ("Re_high",   "Re > 64 Ω — implausibly high voice coil resistance",                    _Re_high),
     # ── Q values ─────────────────────────────────────────────────────────────
     ("Qts_impossible",  "Qts ≥ Qes — thermodynamically impossible (Qts must be < Qes)",   _Qts_impossible),
@@ -214,7 +211,7 @@ RULES = [
     ("Qes_zero",        "Qes ≤ 0 — impossible (zero electrical Q = infinite motor damping)", _Qes_zero),
     ("Qms_low",         "Qms < 0.5 — extremely lossy suspension, very unusual",            _Qms_low),
     # ── Pe ───────────────────────────────────────────────────────────────────
-    ("Pe_one",    'Pe = 1 W — dot/comma-thousands scraper bug ("1.000 W" → 1)',            _Pe_one),
+    # Pe=1 W is removed: valid for micro-drivers (e.g. HiVi B1S 1" tweeter, confirmed 1W rated)
     ("Pe_zero",   "Pe = 0 — scraper artifact; no datasheet publishes Pe=0",                _Pe_zero),
     # ── Xmax ─────────────────────────────────────────────────────────────────
     ("Xmax_zero", "Xmax = 0 — scraper artifact; no datasheet publishes Xmax=0",           _Xmax_zero),

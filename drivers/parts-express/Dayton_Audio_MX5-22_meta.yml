@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0049 differs from calculated=0.00485032 (deps: roo=1.20095,
+  c=343.684, Sd=0.00844, Cms=0.00048)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-742--dayton-audio-mx5-22-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-MX5-22-5-1-4-Max-X-High-Excursion-DVC-Subwoofer-Driver-2-Ohms-Per-Coil-295-742
+source: https://www.parts-express.com/Dayton-Audio-MX5-22-5-1-4-Max-X-High-Excursion-DVC-Subwoofer-Driver-2-Ohms-Per-Coil-295-742
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-742
+field_provenance: null
+freq_low_hz: 30.0
+freq_high_hz: 1000.0

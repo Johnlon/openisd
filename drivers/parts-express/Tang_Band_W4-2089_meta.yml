@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.33 differs from calculated=0.33408 (deps: Qms=4.64,
+  Qes=0.36)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/264-952--tang-band-w4-2089-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Tang-Band-W4-2089-4.5-RBM-Mini-Subwoofer-264-952
+source: https://www.parts-express.com/Tang-Band-W4-2089-4.5-RBM-Mini-Subwoofer-264-952
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Sd_tiny; tweeter_fs
+community: null
+fetched_sku: 264-952
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

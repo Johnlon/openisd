@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.42 differs from calculated=0.425595 (deps: Qms=2.86,
+  Qes=0.5)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/297-472--hi-vi-d5.4-ii-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/HiVi-D5.4-II-5-Poly-Cone-Neodymium-Woofer-4-Ohms-297-472
+source: https://www.parts-express.com/HiVi-D5.4-II-5-Poly-Cone-Neodymium-Woofer-4-Ohms-297-472
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 297-472
+field_provenance: null
+freq_low_hz: 60.0
+freq_high_hz: 5200.0

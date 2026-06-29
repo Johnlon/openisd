@@ -1,0 +1,75 @@
+tata) 1D ProressionaL LoupspeaKers Mace in Maly
+
+6FE200
+
+- 130 W - 95 dB
+
+NOMINAL SPECIFICATIONS
+Nominal Diameter
+
+Overall Diameter
+
+Bolt Circle Diameter
+
+Baffle Cutout Diameter
+
+160 mm (6 in)
+167.4 mm (6.59 in)
+154 mm (6.06 in)
+144 mm (5.67 in)
+
+)
+
+Depth 77 mm (3.03 in
+Flange and gasket Thickness 8 mm (0.31 in)
+Net Weight 2 kg (4.41 Ib)
+Shipping Box 190 x 185 x 103 mm
+(Single Carton Box) (7.48 x 7.28 x 4.06 in)
+Shipping Weight 2.2 kg (4.85 Ib)
+TECHNICAL PARAMETERS
+ominal Impedance 4Q
+Minimum Impedance 3.60
+AES Power Handling (1) 130W
+Maximum Power Handling (4) 260 W
+Sensitivity (1W/1m) 95 dB
+Frequency Range 85+6000 Hz
+Voice Coil Diameter 37 mm (1.46 in)
+Winding Material Al I
+Former Material Kapton |
+Winding Depth 11.9 mm (0.47 in) [ 00
+Magnetic Gap Depth 8 mm (0.31 in) S
+Flux Density 1T N ~
+Magnet Ferrite Ring Rs
+Basket Material Steel ~ | Z
+Demodulation No I 9115.5 =
+Cone Surround (5) M-Roll \_. 9142 |
+ET Air Volume filled by Loudspeaker 0.45 dm3 (0.016 ft3)
+Spider Profile 1x constant height waves
+THIELE & SMALL PARAMETERS
+Fs 120 Hz " FE
+Re 30 110 s
+Qes 0.8 . LAL CATT 3
+Qms 6.23 *° an mame, z
+Qts 0.71 80 >=
+Vas 3.6 dm? (0.13 ft) 70 BZ ly 5
+Sd 118 cm2 (18.29 in?) 60 £
+Xmax (2) 4.62 mm 50
+Xdamage (3) 10.4 mm 40
+Mms 9.79 30
+Bl 7N/A 20
+Le 0.2 mH 20 Hz 50 100 200 500 1K 2K 5K 10K 20K
+Mmd 8.97 g 90
+Cms 0.18 mm/N on
+Rms 1.17 kg/s
+Lo (Eta Zero) 0.75 % 6
+EBP 150 Hz 45 |
+NOTE: 30
+(1) 2 Hours Test According to AES 2-1984 Rev. 2003 4
+(2) Xmax = [(Winding Depth - magnetic gap depth)/2] + (magnetic gap depth / 3) 15 easel
+(3) Maximum excursion before permanent damage Lb ae
+(4) Maximum power is defined as 3dB greater than nominal power 0
+(5) Treated Polycotton 10Hz 20 50 100 ~—-200 500 1K 2k 5K 10K_—-20K
+
+——— Frequency response 45 degree
+
+Impedance

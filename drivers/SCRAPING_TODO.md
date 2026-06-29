@@ -272,33 +272,6 @@ regardless of HTML content.
 
 ---
 
-### [ ] 21. Fix SB Acoustics scraper — coaxial product pages overwrite standalone WDRs
-
-**Collections:** sb-acoustics
-**Priority:** critical (wrong T/S data on disk right now)
-
-**Root cause:** `scrape_sbacoustics.py` lines 61–62 extract the same model string
-from both standalone and coaxial product pages. Coaxial page (`/sb12pfc25-4-coax-paper/`)
-and standalone page (`/4in-sb12pfc25-4-paper/`) both produce model `SB12PFC25-4`,
-so the later scrape silently overwrites the earlier WDR.
-
-Verified from PDFs: standalone woofer Fs=58 Hz; coaxial tweeter element Fs=1300 Hz.
-Current WDRs contain the coaxial tweeter T/S. This is wrong.
-
-**Fix:** in `scripts/scrape_sbacoustics.py`, after line 62, add:
-
-```python
-if model_m and re.search(r'-coax[-_]', slug, re.I):
-    model = model + "-COAX"
-```
-
-After fix: standalone → `SB12PFC25-4.wdr` (Fs=58 Hz); coaxial → `SB12PFC25-4-COAX.wdr`.
-Re-scrape required to restore correct woofer T/S values.
-
-Full implementation detail in `SCRAPING_REMEDIATION_PLAN.md` § ITEM C-NEW.
-
----
-
 ### [ ] 22. Capture all datasheet fields — non-T/S data into `specs:` block in `_meta.yml`
 
 **Collections:** all

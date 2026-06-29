@@ -1,0 +1,123 @@
+tata) 1D PROFESSIONAL
+Lie
+
+6HX150
+
+LoupspeaKers Vace in Maly
+
+LF 6" - 150 W - 93 cB
+
+HF 15W - 104 dB
+NOMINAL SPECIFICATIONS
+
+Nominal Diameter 160 mm (6 in)
+Overall Diameter 186.5/162 mm (7.34/6.37 in)
+Bolt Circle Diameter 172 mm (6.77 in)
+Baffle Cutout Diameter 147 mm (5.79 in)
+Depth 95 mm (3.74 in)
+Flange and gasket Thickness 9.3 mm (0.37 in)
+Net Weight 1.3 kg (2.87 Ib)
+Shipping Box 202 x 202 x 134 mm
+
+(Single Carton Box)
+
+(7.95 x 7.95 x 5.28 in)
+
+Shipping Weight 2.8 kg (6.17 Ib)
+TECHNICAL PARAMETERS [LF] [HF]
+Nominal Impedance 80 80
+Minimum Impedance 60 6.30
+AES Power Handling (1) 150 W 15W
+Maximum Power Handling (4) 300 W 30W
+Sensitivity (1W/1m) (7) 93 dB 104 dB
+Frequency Range 90+5000 Hz 1500+18000 Hz
+Voice Coil Diameter 52 mm (2 in) 25 mm (1 in)
+Winding Material Cu Al
+Former Material Glass Fiber Kapton
+Winding Depth 10.7 mm (0.42 in) 1.7 mm (0.07 in)
+Magnetic Gap Depth 6 mm (0.24 in) 2 mm (0.08 in)
+Flux Density 1.35T 1.37
+Minimum Crossover Frequency (6) 1700 Hz
+Dispersion Angle 90°
+
+Diaphragm Material
+
+- Ketone Polymer
+
+Diaphragm Shape - Dome
+Magnet Neodymium Ring -
+Basket Material Aluminum
+Demodulation Aluminum Ring
+Cone Surround (5) Half Roll
+NET Air Volume filled by Loudspeaker 0.6 dm (0.021 ft?)
+Spider Profile 1x constant height waves
+120 oo
+dB ee
+110 ~ oo
+100 De NI S 2
+> .
+°0 = ae nae HN MeV \ g Fa
+° TTT rai en EE
+LT I x
+70 wi
+60
+20
+20 Hz 50 100 200 500 1K 2K 5K 10K 20K
+LF impedance HF impedance
+150 30
+Ohm Ohm
+100 20
+50 ' In 10
+LU 4 Ss
+| ty] MN | | ery
+0 I 0
+10 Hz 20 50 100 200 500 1K 2K 5K 10K _—.20K
+
+THIELE & SMALL PARAMETERS [LF]
+
+Fs 88 Hz
+Re [LF] 5.50
+Re [HF] 60
+Qes 0.35
+Qms 8.3
+Qts 0.33
+Vas 5.60 dm3 (0.20 ft3)
+Sd 130 cm? (20.15 in2)
+Xmax (2) 435mm
+Xdamage (3) 10 mm
+Mms 14g
+Bl 12 N/A
+Le 0.64 mH
+Mmd 13.39
+Cms 0.2 mm/N
+Rms 1 kg/s
+"Lo (Eta Zero) 1.22 %
+EBP 251 Hz
+NOTE:
+
+(1) 2 Hours Test According to AES 2-1984 Rev. 2003
+
+(2) Xmax = [(Winding Depth - magnetic gap depth)/2] + (magnetic gap depth / 3)
+
+(3) Maximum excursion before permanent damage
+
+(4) Maximum power is defined as 3dB greater than nominal power
+(5) Treated Polycotton
+
+(6) 12 dB/oct or higher slope high-pass filter
+(7) HF Sensitivity averaged within the frequency range
+
+95
+9.3
+
+Beamwidth
+
+2 kHz
+
+5S kHz
+
+POLARITY +
+
+10 kHz
+
+20 kHz

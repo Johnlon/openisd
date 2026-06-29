@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.21 differs from calculated=0.204971 (deps: Qms=8.56,
+  Qes=0.21); ''Vas'' stored=0.0719247 differs from calculated=0.0730482 (deps: roo=1.20095,
+  c=343.684, Sd=0.0552, Cms=0.000169)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403
+source: https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+community: null
+fetched_sku: 294-3403
+field_provenance: null
+freq_low_hz: 70.0
+freq_high_hz: 6500.0

@@ -1,0 +1,40 @@
+BESTON RTOO 1 A Ribbon Tweeter
+
+Features:
+
+Ribbon Tweeter
+3K to 40K Hz Response
+
+88cB Sensitivity
+
+Linear Impedance
+
+Laminated Aluminum Diaphragm
+Ultra-thin Diaphragm
+
+Specifications:
+
+Nominal Impedance 6 Ohm
+
+Frequency Response 3K Hz ~ 40K Hz
+Sensitivity 88 dB @ 1W/im
+Recommended Crossover More than 3.5 K Hz
+Power Handling
+
+15 W Continuous / 3 Crossover, QS0.707
+
+Diaphragm Laminated Aluminum
+Nd-Fe-B Neodymium
+
+41 grams
+Sensitivity Mag ~ dB SPL/uatt (6 ohm load) (@.18 oct) _
+
+Dpowur=z
+
+0.0 10000.0
+
+log Frequency — Hz
+
+BESTON Technology Corporation
+
+940706

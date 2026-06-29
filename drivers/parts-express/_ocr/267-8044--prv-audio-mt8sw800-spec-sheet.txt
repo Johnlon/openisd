@@ -1,0 +1,60 @@
+MT8SW800 D4 ad F492
+
+Subwoofer ro | Ol wll
+
+B RA Zt L
+
+* 2.0” Voice coil
+- 800 Watts continuous program power
+- 81dB Sensitivity
+
+Nominal Diameter 8" (203 mm)
+=4) Nominal impedance 4+4Q0hm
+=) Nominal Power Handling 400 Watts
+< Continuous Program Power (RMS) 800 Watts
+T= Max Peak Power 1600 Watts
+Sensitivity 1.41V at Im 81 dB (Parallel VC)
++, Voice Coil Diameter 2.0" (50 mm)
+2 Voice Coil Wire Copper
+tq Voice Coil Winding Depth 33.0 mm
+Fa Former Material Black Aluminum
+© Magnetic Gap Depth 10mm
+Frame Material Die cast Aluminum
+Equivalent Volume Vas 8.441
+7 \ Excursion (mathematical)*** Xmax 14.00 mm
+fs Free Air Resonance Fs 45.15 Hz
+™)) Mechanical Factor Qms 10.35
+= Electrical Factor Qes 1.00
+& Total Factor Qts 0.92
+= Cone Area Sd 213 crn?
+= Mechanical Mass Mms 96.23 g
+— Bl Factor Bl 6.78 Tm
+th Dc Resistance (Parallel VC) Re 1.70hm
+7 Inductance Le 1.18 MH at 1 kHz
+==) Mechanical Mass Without Air Mmd 94.43 ¢
+= = Mechanical Compliance Cms 0.129 mm/N
+8.31" (211mm) -
+Overall Diameter 8.31" (211 mm)
+$2 Front Mount Baffle Cutout 7.48" (190 mm)
+=< Mounting Depth 4.01" (102 mm)
+= Overall Depth 5.00" (127 mm)
+= Net Weight 8.71 Lbs (3.95 kg) _
+J Shipping Weight 9.92 Lbs (4.5 kg)
+Carton Dimensions W x Lx H 9.84" x 9.84" x 6.3" = E
+(250 x 250 x 160 mm) = S
+S =
+5 lo
+a ww Type Volume Port Size Port Tunning ~‘ y
+o
+é = Cormpact Sealed 0.9 ft? None None ;
+So —_ 5.27" (134mm)
+==) Compact Ported 13 3” Diameter 47 Hz
+(@) Ss Enclosure by 6” Length ~~ 7.48" (190mm) a
+MLN Recommended 3 3” Diameter 39H
+co Enclosure 1.25 ft by 9” Length 2
+PRV AUDIO USA (USA and Export)
+POMPANO BEACH, FL
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 support@prvaudio.com
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 04/24

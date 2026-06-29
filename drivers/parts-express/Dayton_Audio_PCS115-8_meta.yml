@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.00177 differs from calculated=0.00180593 (deps: roo=1.20095,
+  c=343.684, Sd=0.00515, Cms=0.00048)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-662--dayton-audio-pcs115-8-specification-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
+source: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-662
+field_provenance: null
+freq_low_hz: 60.0
+freq_high_hz: 6000.0

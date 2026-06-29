@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.39 differs from calculated=0.384453 (deps: Qms=6.17,
+  Qes=0.41)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
+source: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Vas_huge
+community: null
+fetched_sku: 293-106
+field_provenance: null
+freq_low_hz: 70.0
+freq_high_hz: 20000.0

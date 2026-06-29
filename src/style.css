@@ -9,7 +9,7 @@ h1 small { color:var(--mut); font-weight:400; font-size:11px }
 header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }
 header .sp { flex:1 }
 .layout { display:flex; height:calc(100vh - 41px) }
-.side { width:330px; min-width:330px; overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:10px }
+.side { width:429px; min-width:429px; overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:10px }
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden }
 canvas { display:block; width:100%; height:100% }
 .gtoolbar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 10px; background:var(--panel); border-bottom:1px solid var(--line) }

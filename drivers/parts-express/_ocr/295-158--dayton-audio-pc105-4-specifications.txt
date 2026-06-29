@@ -1,0 +1,63 @@
+Black = 0°
+ 
+Red = 15°
+ 
+Green = 30°
+ 
+Blue = 45°
+ 
+FEATURES
+1" vented aluminum voice coil former and vented pole piece for
+high power handling
+Smooth response with true full-range reproduction for simple
+speaker designs
+Copper cap keeps inductance under control and extends high
+frequency response
+Poly damped woven glass fiber cone controls cone break-up and
+provides a smooth roll-off
+Great for MTM bookshelves, car audio, or line arrays
+4 ohms
+3.3 ohms
+0.32 mH
+81.4 Hz
+2.17
+0.67
+0.51
+4.2g
+0.92 mm/N
+52.8 cm²
+10.6 cm³
+N/A
+0.13ft.³
+2.0 mm
+1"
+90.3 dB @ 2.83V/1m
+40 watts
+80 - 15,000 Hz
+PARAMETERS
+Impedance
+Re
+Le
+Fs
+Qms
+Qes
+Qts
+Mms
+Cms
+Sd
+Vd
+BL
+Vas
+Xmax
+VC Diameter
+SPL
+RMS Power Handling
+Usable Frequency Range (Hz)
+IMPEDANCE/PHASE
+ 
+PC105-4 4" Full-Range Poly Cone Driver
+PC105-4
+FREQUENCY RESPONSE
+ 
+Note: 1/24th octave smoothing - nearfield response included in graph below 450 Hz.
+

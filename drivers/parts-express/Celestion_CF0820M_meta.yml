@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.00212 differs from calculated=0.00219251 (deps: roo=1.20095,
+  c=343.684, Sd=0.022698, Cms=3e-05)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/294-1968--cf0820m-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Celestion-CF0820M-8-Professional-Midrange-Driver-8-Ohm-294-1968
+source: https://www.parts-express.com/Celestion-CF0820M-8-Professional-Midrange-Driver-8-Ohm-294-1968
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Vas_tiny_for_driver
+community: null
+fetched_sku: 294-1968
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

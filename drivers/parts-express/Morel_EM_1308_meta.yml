@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.47 differs from calculated=0.475916 (deps: Qms=0.9,
+  Qes=1.01)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/287-030--morel-em-1308-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
+source: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 287-030
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

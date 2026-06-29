@@ -1,0 +1,153 @@
+GENERAL SPECIFICATIONS
+
+wn
+[a
+uJ
+-
+ey)
+=
+<=
+<
+oO.
+—
+—
+<
+=
+a
+W
+—_
+=
+—-
+=
+
+EXTRA INFO
+
+SMR400B-4 SLIM
+
+Professional Mid Range Driver
+
+- 200 Watts continuous power handling
+
+- 93.5 dB Sensitivity
+
+- 95 - 7,500 Hz of frequency response
+
+Nominal Diameter 8" (203 mm)
+Nominal impedance 4 Ohms
+Rated Power Handling 200 Watts
+Program Power 400 Watts
+Sensitivity 2.00 V at 1m 93.5 dB
+Recommended Hi Pass Crossover* 125 Hz*
+
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response at -10dB 95 - 7,500 Hz
+Voice Coil Diameter 1.5" (38 mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 9.5mm
+Former Material Kapton
+Magnetic Gap Depth 6.0 mm
+
+Frame Material
+
+Stamped Steel
+
+Equivalent Volume Vas 15.7 |
+Excursion Xmax 3.25mm
+Free Air Resonance Fs 92.9 Hz
+Mechanical Factor Qms 25.53
+Electrical Factor Qes 0.76
+
+Total Factor Qts 0.74
+
+Cone Area Sd 230 cm?
+Mechanical Mass Mms 13.78 g
+
+Bl Factor Bl 6.34 Tm
+
+Dc Resistance Re 3.8 Ohms
+Inductance Le 0.167MH at 1 kHz
+Mechanical Mass Without Air Mmd 11.81g
+Mechanical Compliance Cms 0.213 mm/N
+
+Overal Diameter
+
+8.23" (209 mm)
+
+Front Mount Baffle Cutout
+
+7.13" (181 mm)
+
+Mounting Depth
+
+2.68" (68 mm)
+
+Overall Depth
+
+2.95 (75 mm)
+
+Net Weight
+
+Shipping Weight
+
+Carton Dimensions Wx LxH
+
+5.1 Lbs (2.3 kg)
+5.5 Lbs (2.5 kg)
+
+8.66" x 8.66" x 3.62”
+(220 x 220 x 92 mm)
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4
+
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 03/20
+
+1
+
+dBSPL
+
+B RA ZtIL
+
+2.68" (68mm)
+
+et
+
+4.72" (120mm)
+
+2.95" (75mm)
+
+7.
+
+Frequency Response Measured at 2.00 V/1m
+0
+
+3" (181mm) ~
+
+CLI
+
+100
+
+90
+
+80
+
+70
+
+60
+20
+
+50 100 200
+
+500 1k 2k Hz 5k 10k
+
+PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+
+POMPANO BEACH, FL
+support@prvaudio.com
+www.prvaudio.com
+
+SAO LEOPOLDO, RS
+vendas@)pvaudio.com.br
+www.pvaudio.com.br
+

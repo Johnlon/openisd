@@ -1,16 +1,18 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from SB Acoustics website (scraped 2026-06-27). T/S
+detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
+driver_type: null
 datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29B-B.pdf
 manu_page: https://sbacoustics.com/product/satori-tw29b-b/
 vendor_page: null
 source: https://sbacoustics.com/product/satori-tw29b-b/
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+specs: null

@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.274107 differs from calculated=0.277072 (deps: roo=1.20095,
+  c=343.684, Sd=0.08553, Cms=0.000267)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/GRS-K-33-4-Replacement-15-Woofer-for-Klipsch-Speakers-292-830
+source: https://www.parts-express.com/GRS-K-33-4-Replacement-15-Woofer-for-Klipsch-Speakers-292-830
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 292-830
+field_provenance: null
+freq_low_hz: 33.0
+freq_high_hz: 5000.0

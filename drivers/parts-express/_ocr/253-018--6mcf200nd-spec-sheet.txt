@@ -1,0 +1,90 @@
+beyma J) G6MCF200Nd
+
+www.beyma.com
+
+KEY FEATURES
+
+e Very high effciency mid-range driver e High efficiency and sensitivity
+e Carbon fiber cone for optimum loading behaviour and e Shorting cap for extended response
+low distortion e FEA optimized neodymium magnet structure
+e Extremely linear frequency response e Sealed cast aluminium frame
+e 2” aluminium voice coil e Designed for high performance mid-frequency line array
+
+e 400 W Program Power
+
+TECHNICAL SPECIFICATIONS THIELE-SMALL PARAMETERS *
+
+Nominal diameter 165 mm 6,5 in Resonant frequency, f, 406 Hz
+Rated impedance 80 D.C. Voice coil resistance, Re 6,2 O
+Minimum impedance 70 Mechanical Quality Factor, Qms 10,3
+Power capacity ' 200 Wages Electrical Quality Factor, Qe, 0,77
+Program power? 400 W Total Quality Factor, Qi, 0,72
+Sensitivity 97dB 1W/im@Zn Equivalent Air Volume to Cys; Vas 0,27 |
+Frequency range 400 - 12.000 Hz Mechanical Compliance, Cys 10 um/N
+Voice coil diameter 50,8 mm 2 in Mechanical Resistance, Rms 3,9 kg/s
+BI factor 18,1 N/A Efficiency, no 2,3 %
+Moving mass 0,015 kg Effective Surface Area, Sq 0,014 m?
+Voice coil length 9,2 mm Maximum Displacement, Xmax * 2,5 mm
+Air gap height 9mm Displacement Volume, Vg 35 cm?
+
+Voice Coil Inductance, Lg @ 1 kHz 0,1 mH
+
+Notes:
+
+‘ The power capaticty is determined according to AES2-1984 (r2003) standard.
+? Program power is defined as power capacity + 3 dB.
+
+3 T-S parameters are measured after an exercise period using a preconditioning power test. The measurements are carried out with a velocity-current laser transducer and will reflect the long term parameters (once the loudspeaker has been
+working for a short period of time).
+
+4The Xmax is calculated as (Lye - Hag)/2 + (Hag/3:5), where lve is the voice coil length and Hag is the air gap height.
+
+Acustica Beyma SL - P.I. Moncada Il, C/ Pont Sec, 1C - 46113 Moncada, Valencia (Spain) - Tel. +34 96 130 13 75 - beyma@beyma.com
+120 1
+
+[dB]
+
+100
+
+[Hz]
+
+Note: Frequency response measured with loudspeaker standing
+
+on infinite baffle in anechoic chamber, 1W @ 1m
+
+Overall diameter 174 mm
+Bolt circle diameter 158 mm
+Baffle cutout diameter:
+
+- Front mount 146 mm
+Depth 75 mm
+Net weight 2,3 kg
+Shipping weight 2,7 kg
+
+6,8 in
+6,2 in
+
+5,7 in
+2,9 in
+5,1 Ib
+5,9 lb
+
+ik
+
+174
+
+10k
+
+mum Frequency response on axis
+=-a-s-s-s Frequency response 45° off axis
+
+D120
+D146
+
+66
+
+r 120
+
+Ko)
+
+05/18

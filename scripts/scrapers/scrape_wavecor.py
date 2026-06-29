@@ -422,10 +422,23 @@ def _process_splits(out_dir: Path) -> None:
             for rule_id, desc, detail in check_fields(fields):
                 print(f"[{_ts()}] SPLIT {model} DQ {rule_id}: {detail}", flush=True)
 
-            errors = validate_driver(wdr_path, meta_path)
-            if errors:
-                print(f"[{_ts()}] SPLIT {model}: SCHEMA FAIL ({len(errors)} errors)", flush=True)
-                for e in errors:
+            all_issues  = validate_driver(wdr_path, meta_path)
+            hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
+            infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
+            if infos:
+                import yaml as _yaml
+                meta_path2 = wdr_path.with_suffix("").with_name(
+                    wdr_path.stem + "_meta.yml")
+                if meta_path2.exists():
+                    _m = _yaml.safe_load(meta_path2.read_text(encoding="utf-8")) or {}
+                    _m["corrections"] = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
+                    meta_path2.write_text(
+                        _yaml.dump(_m, allow_unicode=True, sort_keys=False),
+                        encoding="utf-8")
+            if hard_errors:
+                print(f"[{_ts()}] SPLIT {model}: SCHEMA FAIL ({len(hard_errors)} errors)",
+                      flush=True)
+                for e in hard_errors:
                     print(f"  {e}", flush=True)
             else:
                 print(

@@ -1,0 +1,69 @@
+6CX380-4 SLIM ed FAP
+
+Professional Coaxial Driver ctsssio
+
+B RA Zi!
+
+- 1.5” / 1" Voice Coils
+
+- 380 Watts Continuous Program Power
+- 96 dB Sensitivity
+
+- 100 - 20,000 Hz
+
+Low Freq. _ High Freq.
+
+Nominal and Throat Diameter 6.5”(152mm)_ 1"(25.4mm)
+7) Nominal impedance 4 0hm
+= Nominal Power Handling 190 Watts
+E Continuous Program Power (RMS) 380 Watts
+‘Max Peak Power 760 Watts
+= Sensitivity 2.00V at Im 96 dB
+=~) Recommended Hi Pass Crossover* 120 Hz
+IT) *For Full Power Handling T2db/oct Crossover
+=| Frequency Response — 100-20,000Hz2
+oe Voice Coil Diameter 1.5"(38 mm) 1.0"(25mm)
+Fa) Voice Coil Wire Copper CCAW
+SF Voice Coil Winding Depth 8.0 mm N/A
+Former Material Kapton Kapton
+Magnetic Gap Depth 5.0 mm N/A
+
+Frame and Diaphragm Material _—S. Steel Mylar
+
+6.50" (165mm)
+
+Equivalent Volume Vas 6.611 esi TL AT k TNTG
+Excursion (mathematical)*** Xmax 2.75 mm —C—~—~—CS—sY 5
+Ss Free Air Resonance Fs 111.7 Hz A K)\ C_) fF) =
+Mechanical Factor Oms 8.6 E \_____y e
+= Electrical Factor Qes 0.84 = 3
+= Total Factor Ots 0.77 ai 3
+= Cone Area Sd 143 cm?
+= Mechanical Mass Mms 8.77¢ ASD (1mm)
+
+s Bl Factor Bl 5.11 Tm lng - >
+uy Dc Resistance Re  3.60hm 9.670 (144mm)
+Inductance Le 0.113 mH at 1kHz
+
+==) Mechanical Mass Without Air Mmd 7.80 g
+
+= © Mechanical Compliance Cms 0.231 mm/N
+
+Overall Diameter 6.50” (165 mm) E
+m2) Front Mount Baffle Cutout 5.67" (144 mm) =
+=~) Mounting Depth 2.76"(70 mm) NS
+=) Overall Depth (with grill) 3.86"(98 mm) °
+LS Net Weight 3.85 Lbs (1.75 kg)
+
+“3 Shipping Weight 4.30 Lbs (1.95 kg)
+Carton Dimensions W x L x H 7.28”X 7.48” x 4.92”
+(185 x 190 x 125mm)
+Impedance Curve - Free Air Frequency Response Measured at 2.00V/1m
+50 CLI 110
+5 10 20 50 100 200 Hz 500 1k 2k 5k 10k 20k eo 50 100 200 500 1k 2k Hz 5k 10k 20k
+PRV AUDIO USA (USA and Export)
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 suppor tajprvauclo com
+**« T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 03/23

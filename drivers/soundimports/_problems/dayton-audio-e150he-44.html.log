@@ -1,0 +1,5 @@
+[03:05:21] PROBLEM field=schema_fail item=E150HE-44 url=https://www.soundimports.eu/en/dayton-audio-e150he-44.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00027 differs from calculated=0.00768145 (deps: roo=1.20095, c=343.684, Sd=0.0095, Cms=0.0006)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] DONE problems=0

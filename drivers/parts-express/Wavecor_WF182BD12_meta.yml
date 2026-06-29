@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.35 differs from calculated=0.357853 (deps: Qms=10.9,
+  Qes=0.37)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/298-1204-1206-1208-1210--wavecor-wf182bd09-10-11-12-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
+source: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 298-1210
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

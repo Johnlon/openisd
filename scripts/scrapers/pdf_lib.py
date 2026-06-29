@@ -516,9 +516,17 @@ _SPECS: list[tuple[str, float, dict[str, float], list[re.Pattern]]] = [
     # (?:[A-Za-z_]\w*\s*)? skips an optional word between the label and value
     # (e.g. "Cms:" or "compliance Cms 0.71"); starts with [A-Za-z_] so it
     # never consumes leading digits of the numeric value.
-    ("Cms", 0.001, {"um/n": 1e-6, "um/": 1e-6, "mm/n": 0.001, "m/n": 1.0, "mn": 1e-6}, [
-        _pat(r"(?<![A-Za-z])Cms\b\s*(?:[=:,]\s*)?", r"([μu]m/N|mm/N|m/N|MN\^?-?1)?"),
-        _pat(r"(?:mechanical\s+)?compliance\s*(?:[A-Za-z_]\w*\s*)?", r"([μu]m/N|mm/N|m/N|MN\^?-?1)?"),
+    # Cms unit variants seen in PE datasheets (OCR of μm/N):
+    #   "uMN"  = μm/N with slash dropped by OCR (Tang Band PDFs: "848.98 uMN")
+    #   "uM/N" = μm/N with slash preserved   (HiVi PDFs: "1057uM/N")
+    #   "MN"   = μm/N with μ dropped by OCR  (Tang Band W3-1364SA: "1296 MN")
+    # "mn" key covers bare "MN" via _resolve_unit lowercasing; "umn" covers "uMN".
+    ("Cms", 0.001, {"um/n": 1e-6, "um/": 1e-6, "umn": 1e-6,
+                    "mm/n": 0.001, "m/n": 1.0, "mn": 1e-6}, [
+        _pat(r"(?<![A-Za-z])Cms\b\s*(?:[=:,]\s*)?",
+             r"([μu]m/?N|mm/N|m/N|MN(?:\^?-?1)?)?"),
+        _pat(r"(?:mechanical\s+)?compliance\s*(?:[A-Za-z_]\w*\s*)?",
+             r"([μu]m/?N|mm/N|m/N|MN(?:\^?-?1)?)?"),
     ]),
 
     # ── Rms — mechanical resistance: N·s/m = kg/s ────────────────────────────
@@ -528,23 +536,27 @@ _SPECS: list[tuple[str, float, dict[str, float], list[re.Pattern]]] = [
     ]),
 
     # ── Sd — piston area: cm² default; m² if bracket/post says so ────────────
+    # Ribbon datasheets use "Moving area of ribbon: 595 square millimeter" (mm²).
     ("Sd", 1e-4, {"m2": 1.0, "m²": 1.0}, [
         # cm² is the default; m² only when unit explicitly says "m2" (not "cm2")
         _pat(r"(?<![A-Za-z])Sd\b\s*(?:[=:,]\s*)?", r"(m²|m2|cm²|cm2)?"),
         _pat(r"(?:effective\s+)?(?:cone|piston|radiating)\s+(?:\w+\s+)?area\s*",
              r"(m²|m2|cm²|cm2)?"),
+        _pat(r"[Mm]oving\s+area\s+of\s+(?:voice\s+coil|ribbon)\s*[:\-]?\s*",
+             r"(square\s+millim[a-z]*|mm[²2]|cm[²2])?"),
     ]),
 
     # ── Vas — equivalent volume: L→m³ default; m³ or mL if unit says so ────────
     # ml/mlit must come before l in the map — "l" is a substring of "[ml]" and
     # would match first if ordered before "ml", giving the wrong 0.001 factor.
     # Wavecor tweeter pages publish Vas in mL ("0.84 [ml]", "7.6 [mlit.]").
+    # Vas units: "Litr" seen in Tang Band PDFs ("1.23 Litr"); "L" in HiVi ("0.04L")
     ("Vas", 0.001, {"m3": 1.0, "m³": 1.0, "ml": 1e-6, "mlit": 1e-6,
-                    "l": 0.001, "ft": 0.02832}, [
+                    "l": 0.001, "litr": 0.001, "ft": 0.02832}, [
         _pat(r"(?<![A-Za-z])Vas\b\s*(?:[=:,]\s*)?",
-             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|L|l|litres?)\]?)?"),
+             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|[Ll]itr[a-z]*|L|l)\]?)?"),
         _pat(r"equivalent\s+(?:air\s+)?volume\s*",
-             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|L|l|litres?)\]?)?"),
+             r"(\[?(?:m³|m3|ft³|ft3|mlit\.?|ml|[Ll]itr[a-z]*|L|l)\]?)?"),
     ]),
 
     # ── Le — voice coil inductance: mH default ────────────────────────────────
@@ -647,10 +659,15 @@ def find_ts_fields(text: str,
 
             unit = _resolve_unit(bracket, post)
 
-            # Sd special case: default is cm² (1e-4); override to m² when unit explicit
+            # Sd special case: default is cm² (1e-4); override for m² or mm²
             if wdr_key == "Sd":
-                factor = 1.0 if (unit and unit.replace("²","2").replace(" ","").endswith("m2")
-                                  and not unit.startswith("c")) else 1e-4
+                unit_norm = (unit or "").replace("²", "2").replace(" ", "").lower()
+                if unit_norm.endswith("m2") and not unit_norm.startswith("c"):
+                    factor = 1.0      # explicit m²
+                elif "mm2" in unit_norm or unit_norm.startswith("squaremilli"):
+                    factor = 1e-6     # mm² → m² (ribbon datasheets)
+                else:
+                    factor = 1e-4     # default cm²
             elif wdr_key == "Xmax":
                 # Use brand-adjusted factor when unit is mm (or absent)
                 factor = xfactor if (not unit or unit == "mm") else (

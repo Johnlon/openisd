@@ -1,0 +1,131 @@
+1. 2 hours test made with continuous pink noise signal (6 dB crest factor) within the range Fs-10Fs. Power calculated on
+rated minimum impedance. Loudspeaker in free air.
+2. Power on Continuous Program is defined as 3 dB greater than the Nominal rating.
+3. Applied RMS Voltage is set to 2.83 V for 8 ohms Nominal Impedance.
+4. Thiele-Small parameters are measured after a high level 20 Hz sine wave preconditioning test.
+14NDL88
+LF Drivers - 14.0 Inches
+1400 W continuous program power capacity
+88 mm (3.5 in) aluminium voice coil
+45 - 3000 Hz response
+99 dB sensitivity
+Very light yet powerful motor assembly
+Aluminium demodulating ring allows a very low distortion figure
+Specifications
+Nominal diameter
+359 mm (14.0 in)
+Nominal impedance
+8 Ω
+Minimum impedance
+6.5 Ω
+Nominal power handling1
+700 W
+Continuous power
+handling2
+1400 W
+Sensitivity (1W/1m)3
+99.0 dB
+Frequency range
+45 - 3000 Hz
+Voice coil diameter
+88 mm (3.5 in)
+Winding material
+Aluminium
+Former material
+Glass Fibre
+Winding depth
+21 mm (0.85 in)
+Magnetic gap depth
+10 mm (0.4 in)
+Flux density
+1.15 T
+Design
+Surround shape
+Triple Roll
+Cone shape
+Exponential
+Magnet material
+Neodymium Inside
+Slug
+Design
+Spider
+Double Silicone
+Pole design
+T-Pole
+Woofer cone treatment
+WP Waterproof Front
+Side
+Recommended
+enclosure
+75.0 dm3 (2.65 ft3)
+Recommended tuning
+53 Hz
+Parameters4
+Fs
+45 Hz
+Re
+5.0 Ω
+Qes
+0.31
+Qms
+7.8
+Qts
+0.3
+Vas
+102.0 dm3 (3.6 ft3)
+Sd
+707.0 cm2 (109.6 in2)
+η₀
+2.9 %
+Xmax
+8.0 mm
+Xvar
+9.5 mm
+Mms
+86 g
+Bl
+19.9 Txm
+Parameters
+Le
+1.2 mH
+EBP
+145 Hz
+Mounting And Shipping Info
+Overall diameter
+359 mm (14.1 in)
+Bolt circle diameter
+343 mm (13.5 in)
+Baffle cutout
+diameter
+323.0 mm (12.72 in)
+Depth
+168 mm (6.61 in)
+Flange and gasket
+thickness
+14 mm (0.57 in)
+Air volume
+occupied by driver
+3.5 dm3 (0.12 ft3)
+Net weight
+4.7 kg (10.36 lb)
+Shipping units
+1
+Shipping weight
+6.2 kg (13.67 lb)
+Shipping box
+425x425x225 mm
+(16.73x16.73x8.86 in)
+Service Kit
+RCK14NDL88
+Frequency Response (1W,/'Im)
+
+73
+‘M2 M0 SE Su Sh bu Sm 90 93 Se Se BN at aha? 90D Sead a PL PS bk be  Uep13 rb hh Hm 900 0 ha 2b Sa a So SO Oe
+
+Me
+‘Endouate Type: (Bau Ralls = Conligeraton One Drier
+eternal Met Voskere [Lives]: 75 ob
+‘Tenieng Pregpeteicy [Mal aa Pow Area fem: 222.3
+Frequency (2 dB (Hel sab Post Length fem: 17,0
+
+Frequency (10d) [Hab 1,6

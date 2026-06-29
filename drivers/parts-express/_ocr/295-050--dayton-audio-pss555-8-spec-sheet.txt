@@ -1,0 +1,77 @@
+DAYTONAUDIO PSS555-8 21" Pro Subwoofer with 4.5" Voice Coil 8 Ohm
+
+PARAMETERS
+
+Impedance
+
+Xmax
+
+VC Diameter
+
+SPL
+
+RMS Power Handling (AES 426B)
+Usable Frequency Range (Hz)
+
+* at 70% BI (Klippel verified)
+
+IMPEDANCE/PHASE
+
+8 ohms
+
+5.4 ohms
+
+1.8 mH
+
+27.6 Hz
+10.70
+
+0.34
+
+0.33
+
+316.0g
+
+0.11 mm/N
+1735 cm?
+1909 cm?
+29.7 Tm
+444.0 liters
+11 mm*
+
+4.5"
+
+96.3 dB @ 2.83V/1m
+1,000 watts
+27 - 2,500 Hz
+
+9115
+
+9178.59
+
+@240
+@254
+
+9509.72
+
+FEATURES
+
+Exceptional power handling of 1000W RMS
+
+Inner and outer wound huge 4.5" voice coil
+11mm of X-max for tremendous bass output
+High energy ferrite 200 oz. magnet
+
+Large copper cap for inductance control
+
+FREQUENCY RESPONSE/PHASE
+
+20 50 100 200 500 1kHz 2k 5k 10k 20k
+
+OMNIMIC
+
+Frequency Response — frequency [Hz]
+OmniMic
+
+Note: 1/24" octave smoothing - nearfield response included in graph below 450 Hz.
+

@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0954276 differs from calculated=0.097342 (deps: roo=1.20095,
+  c=343.684, Sd=0.0573, Cms=0.000209)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-12MB1000FT-4-12-Forte-Series-Speaker-4-Ohm-294-3416
+source: https://www.parts-express.com/PRV-Audio-12MB1000FT-4-12-Forte-Series-Speaker-4-Ohm-294-3416
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-3416
+field_provenance: null
+freq_low_hz: 70.0
+freq_high_hz: 3200.0

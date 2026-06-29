@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.24 differs from calculated=0.234375 (deps: Qms=10,
+  Qes=0.24)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/294-5970--bc-speakers-18ds100-4-spec-sheet.PDF
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/B-C-18DS100-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-5970
+source: https://www.parts-express.com/B-C-18DS100-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-5970
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+community: null
+fetched_sku: 294-5970
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

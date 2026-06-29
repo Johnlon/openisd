@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/285-135-dayton-audio-ce30mb-16b-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-CE30MB-16B-1-1-4-Mini-Speaker-Black-16-Ohm-285-135
+source: https://www.parts-express.com/Dayton-Audio-CE30MB-16B-1-1-4-Mini-Speaker-Black-16-Ohm-285-135
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 285-135
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

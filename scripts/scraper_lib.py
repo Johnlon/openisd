@@ -35,6 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from dq_check import check_fields
+from wdr_meta_schema import validate_driver
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; resonate-scraper/1.0)"}
 DEFAULT_DELAY_S = 1.0
@@ -303,7 +304,7 @@ def to_wdr(brand: str, model: str, fields: dict,
         "[Driver]",
         f"Brand={brand}",
         f"Model={model}",
-        f"Manufacturer=",
+        f"Manufacturer={manufacturer}",
         f"ProvidedBy={provided_by}",
         f"Comment={comment}",
         f"DateAdded={date_added}",
@@ -518,9 +519,18 @@ def run_scraper(vendor_name: str,
         model = product.get("model", "")
         today = datetime.now(timezone.utc).strftime("%Y%m%d")
 
-        # Validate fields before writing — same rules as dq_check.py.
+        # DQ check — log every issue; always write the driver (data with DQ flags
+        # is better than no data; UI can highlight suspect values via dq_issue field).
+        # TODO: Resonate UI should show suspect values in a different colour.
+        dq_issues: list[str] = []
         for rule_id, desc, detail in check_fields(product["fields"]):
-            print(f"[{ts()}]   [{i}/{total}] {slug} DQ {rule_id}: {detail} — {desc}", flush=True)
+            print(f"[{ts()}]   [{i}/{total}] {slug} DQ {rule_id}: {detail}", flush=True)
+            dq_issues.append(rule_id)
+            if rule_id in ("Qts_impossible", "Qts_impossible2"):
+                for fld in ("Qts", "Qes", "Qms"):
+                    tag = f"suspect:{fld}"
+                    if tag not in dq_issues:
+                        dq_issues.append(tag)
 
         # Download FRD/impedance files first so the WDR can reference them.
         extras = []
@@ -590,6 +600,7 @@ def run_scraper(vendor_name: str,
                        "T/S parameters have not been verified by a human against the datasheet."),
             "corrections": None,
             "reviewed_by": None,
+            "driver_type": product.get("driver_type") or None,
             "datasheet": product.get("pdf_url") or None,
             "manu_page": url if is_manufacturer_site else None,
             "vendor_page": None if is_manufacturer_site else url,
@@ -597,18 +608,42 @@ def run_scraper(vendor_name: str,
             "frd": frd_ok or None,
             "impedance": impedance_ok or None,
             "obsolete": None,
-            "dq_issue": None,
+            "dq_issue": "; ".join(dq_issues) if dq_issues else None,
             "community": None,
             "fetched_sku": None,
+            "specs": product.get("specs") or None,
         }
         (out / wdr_name.replace(".wdr", "_meta.yml")).write_text(
             yaml.dump(meta, allow_unicode=True, sort_keys=False), encoding="utf-8"
         )
 
+        # Cross-check field consistency (Qts from Qes+Qms, Vas from Sd+Cms, etc.).
+        # INFO: level items go into corrections; hard errors are logged but driver is
+        # still written — some data is always better than none.
+        wdr_path  = out / wdr_name
+        meta_path = out / wdr_name.replace(".wdr", "_meta.yml")
+        all_issues = validate_driver(wdr_path, meta_path)
+        hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
+        infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
+        if infos or hard_errors:
+            # Re-read and update meta with corrections/schema issues
+            import yaml as _yaml
+            _m = _yaml.safe_load(meta_path.read_text(encoding="utf-8")) or {}
+            if infos:
+                _m["corrections"] = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
+            if hard_errors:
+                existing_dq = _m.get("dq_issue") or ""
+                schema_tags = [f"schema:{e[:60]}" for e in hard_errors]
+                _m["dq_issue"] = (existing_dq + "; " if existing_dq else "") + "; ".join(schema_tags)
+            meta_path.write_text(_yaml.dump(_m, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
         suffix = " ".join(extras)
-        print(f"[{ts()}]   [{i}/{total}] {slug} OK {suffix}".rstrip(), flush=True)
+        if hard_errors:
+            print(f"[{ts()}]   [{i}/{total}] {slug} SCHEMA FAIL ({len(hard_errors)}) {suffix}".rstrip(), flush=True)
+        else:
+            print(f"[{ts()}]   [{i}/{total}] {slug} OK {suffix}".rstrip(), flush=True)
         with counters_lock:
-            mark_scraped(url, manifest, wdr_name, status="ok")
+            mark_scraped(url, manifest, wdr_name, status="ok" if not hard_errors else "schema_fail")
             ok += 1
             done = ok + skipped + failed
             if done % 50 == 0:

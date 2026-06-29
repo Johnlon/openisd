@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0212376 differs from calculated=0.0216501 (deps: roo=1.20095,
+  c=343.684, Sd=0.02059, Cms=0.00036)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/290-312-goldwood-gw-8pc-30-4-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-8PC-30-4-8-Heavy-Duty-Woofer-4-Ohm-290-312
+source: https://www.parts-express.com/Goldwood-GW-8PC-30-4-8-Heavy-Duty-Woofer-4-Ohm-290-312
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-312
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

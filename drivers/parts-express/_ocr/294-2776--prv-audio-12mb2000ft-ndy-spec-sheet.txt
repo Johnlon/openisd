@@ -1,0 +1,70 @@
+GENERAL SPECIFICATIONS
+
+T2MB2000F T-NDY
+
+Professional Mid Bass Driver
+
+- 3,5" Voice coil
+
+- 2000 Watts continuous program power
+
+- 99.5 cB Sensitivity
+
+* 72 - 5,200 Hz
+
+Nominal Diameter ]2" (304 mm)
+Nominal impedance 8 Ohm
+Nominal Power Handling 1000 Watts
+Continuous Program Power (RMS) 2000 Watts
+Max Peak Power 4000 Watts
+Sensitivity 2.83V at 1m 99.5 dB
+Recommended Hi Pass Crossover* 85 Hz*
+
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response 72 - 5,200 Hz
+Voice Coil Diameter 3.5" (86 mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 17.0 mm
+Former Material Glass Fiber
+Magnetic Gap Depth 10.0 mm
+
+Frame Material
+
+Die cast Aluminum
+
+BRA ZHtHIL
+
+Equivalent Volume Vas 71.51
+%)\ Excursion (mathematical)*** Xmax 6.00 mm
+i Free Air Resonance Fs 55.1 Hz
+ff) Mechanical Factor Qms 10.30
+= Electrical Factor Qes 0.31
+& Total Factor Qts 0.30
+= Cone Area Sd 585 cm?
+zr Mechanical Mass Mms 55.69 g
+=) BlFactor Bl 17.74 Tm
+uy Dc Resistance Re  5.110hm
+vr _Inductance Le 0.813MH at 1 kHz —— or 1 —
+==) Mechanical Mass Without Air Mmd 47.6782 = << -o =
+= = Mechanical Compliance Cms 0.149 mm/N E 5
+
+Overall Diameter 12.40" (315 mm) g Siti é
+a) Front Mount Baffle Cutout 11.18" (284 mm) °
+™4~ Mounting Depth 5.49" ( 139.5mm)
+=) Overall Depth 6.04" (153.5 mm) 5 12" (130mm)
+=) Net Weight 13.60 Lb (6.15 kg) . |
+“3 Shipping Weight 15.20 Lb (6.85 kg) 11.18" (284mm)
+
+Carton Dimensions W x L x H 15.95" x 15.95" x 9.64"
+
+(405 x 405 x 245 mm)
+Impedance Curve - Free Air Frequency Response Measured at 2.83V/1m
+
+PRV AUDIO USA (USA and Export)
+Fort Lauderdale, FL
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 support@)]prvaudio.com
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 06/24

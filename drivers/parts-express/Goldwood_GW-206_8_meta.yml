@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0110436 differs from calculated=0.0113403 (deps: roo=1.20095,
+  c=343.684, Sd=0.013635, Cms=0.00043)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305
+source: https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+community: null
+fetched_sku: 290-305
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

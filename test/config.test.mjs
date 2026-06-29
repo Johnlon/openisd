@@ -50,7 +50,7 @@ describe('.gitignore', () => {
     assert.ok(
       gitignore.includes('_html'),
       '.gitignore must exclude drivers/**/_html/ — raw HTML cache is ' +
-      'for local scraper re-use only; datasheet URLs are stored in boxbench_datasheet= fields in each .wdr file.'
+      'for local scraper re-use only; datasheet URLs are stored in _meta.yml sidecar files.'
     );
   });
 
@@ -58,7 +58,7 @@ describe('.gitignore', () => {
     assert.ok(
       gitignore.includes('datasheets'),
       '.gitignore must exclude drivers/**/datasheets/ — PDF files are ' +
-      'large; the datasheet URL is stored in boxbench_datasheet= in each .wdr file.'
+      'large; the datasheet URL is stored in the _meta.yml sidecar.'
     );
   });
 });

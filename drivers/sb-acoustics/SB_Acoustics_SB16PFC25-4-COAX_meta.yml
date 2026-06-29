@@ -1,0 +1,38 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
+  parameters have not been verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: coaxial
+datasheet: https://sbacoustics.com/wp-content/uploads/2020/11/6in-SB16PFC25-4-COAX-OEM-only.pdf
+manu_page: https://sbacoustics.com/product/6in-sb16pfc25-4-coax-paper/
+vendor_page: null
+source: https://sbacoustics.com/product/6in-sb16pfc25-4-coax-paper/
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: null
+specs:
+  woofer:
+    Znom: 4.0
+    Re: 3.2
+    Le: 0.00031
+    Sd: 0.0119
+    Xmax: 0.00465
+    Fs: 36.0
+    Qms: 2.6
+    Qes: 0.35
+    Qts: 0.31
+    Mms: 0.0125
+    BL: 5.1
+    Vas: 0.0313
+    Cms: 0.00156
+    Pe: 40.0
+  tweeter:
+    Znom: 4.0
+    Re: 3.0
+    Fs: 1300.0
+    Pe: 10.0

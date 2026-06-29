@@ -1,0 +1,89 @@
+12W750A ed FA
+
+Professional Low Frequency Driver c1seie
+
+B RA Zt L
+
+CTTYyT i @ 73737  . . £§© gf
+
+GENERAL SPECIFICATIONS
+
+EXTRA INFO
+
+- 2.5” Voice coil
+- 375 Watts continuous power handling
+
+- 97 CB Sensitivity
+
+- 60 - 5,500 Hz
+Nominal Diameter 12” (305 mm)
+Nominal impedance 8 ohms
+Rated Power Handling 375 Watts
+Program Power 750 Watts
+Sensitivity 2.83V at Im 97 dB
+
+Recommended Hi Pass Crossover* 200 Hz*
+
+*For Full Power Handling
+
+*12db Per Octave Crossover
+
+Frequency Response at -10dB 60 - 5,500 Hz
+Voice Coil Diameter 2.5” (65.5 mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 11.5 mm
+Former Material Kapton”
+Magnetic Gap Depth 8.5mm
+
+Frame Material
+
+Stamped Steel
+
+Overal Diameter
+
+Front Mount Baffle Cutout
+Mounting Depth
+
+Overall Depth
+
+Net Weight
+
+12.20” (310 mm)
+
+11.06” (281 mm)
+5.12” (130 mm)
+
+5.47” (139 mm)
+
+10.85 Lbs (4.92 kg)
+
+Equivalent Volume Vas 81.00 L
+“4 Excursion (mathematical)*** Xmax 3.62 mm
+Ee Free Air Resonance Fs 59.87 Hz ay° the
+= Mechanical Factor Qms 17.45 E X \  ( / Vj 5
+=) Electrical Factor Qes 0.44 = T ann i ~
+=o _Total Factor Qts 0.43 * | 3
+= Cone Area Sd 585 cm? 6.30" (460mm)
+=.) Mechanical Mass Mms 41.722 . >
+“A _Bl Factor BL 14.29 Tm << 11.06" (28mm)
+Ww Dc Resistance Re 5.8 Ohms Frequency Response Measured at 2.83v/1m
+7m Inductance Le  O.71mHat1kHz " Cr
+==) Mechanical Mass Without Air Mmd 33.71g “ese
+@ Mechanical Compliance Cms 0.169 mm/N m
+
+90
+
+80 i
+
+70
+
+60
+
+Shipping Weight 11.94 Lbs (5.41 kg) 20 50 100 200 500 1k 2k Hz 5k 10k 20k
+Carton Dimensions Wx LxH 73.19” x 13.19” x 6.69” PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+FORT LAUDERDALE, FL SAO LEOPOLDO, RS
+(335 x 335x170 mm) support@prvaudio.com vendas@)pvaudio.com.br
+***Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4 www.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 01/18

@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.39 differs from calculated=0.395392 (deps: Qms=3.9,
+  Qes=0.44); ''Vas'' stored=0.0733405 differs from calculated=0.0742867 (deps: roo=1.20095,
+  c=343.684, Sd=0.048789, Cms=0.00022)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-12PC-4-12-Heavy-Duty-Woofer-4-Ohm-290-332
+source: https://www.parts-express.com/Goldwood-GW-12PC-4-12-Heavy-Duty-Woofer-4-Ohm-290-332
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-332
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

@@ -1,0 +1,109 @@
+beyma J)
+
+PROFESSIONAL LOUDSPEAKERS
+www.beyma.com
+
+KEY FEATURES
+
+e High power handling: 500 W program power
+
+e 1.5” copper wire voice coil
+
+e High sensitivity: 95 dB (1W/ 1m)
+
+e Very linear extended response and low distortion
+
+e Treated double roll cloth surround
+
+10CMV2
+
+LOW & MID FREQUENCY TRANSDUCER
+
+e Optimized pressed steel frame
+e Ferrite magnet
+e Designed for bass and midbass applications in small
+
+vented cabinets
+
+TECHNICAL SPECIFICATIONS
+
+Nominal diameter 250 mm 10 in
+Rated impedance 80
+Minimum impedance 7,20
+Power capacity” 250 Wages
+Program power 500 W
+Sensitivity 95dB 1W/im@Zjn
+Frequency range 60 - 5.000 Hz
+Recom. enclosure V, = 301
+
+(Bass-reflex design) F. = 54 Hz
+Voice coil diameter 38,1 mm 1,5 in
+BI factor 13,4 N/A
+Moving mass 0,042 kg
+Voice coil length 16 mm
+
+Air gap height 7mm
+Xdamage (peak to peak) 30 mm
+
+Notes:
+
+THIELE-SMALL PARAMETERS**
+
+Resonant frequency, f, 52 Hz
+D.C. Voice coil resistance, Re 5,90
+Mechanical Quality Factor, Qms
+
+Electrical Quality Factor, Qe, 0,47
+Total Quality Factor, Qi, 0,42
+Equivalent Air Volume to Cys; Vas 44 |
+Mechanical Compliance, Cys 216 um/N
+Mechanical Resistance, Rms 3,7 kg/s
+Efficiency, no 1,3 %
+Effective Surface Area, Sg 0,038 m2
+Maximum Displacement, Xmax *** 6,5 mm
+Displacement Volume, Vg 247 cms
+Voice Coil Inductance, Lg @ 1 kHz 0,8 mH
+
+* The power capaticty is determined according to AES2-1984 (r2003) standard. Program power is defined as the transducer’s ability to handle normal music program material.
+
+** T-S parameters are measured after an exercise period using a preconditioning power test. The measurements are carried out with a velocity-current laser transducer and will reflect the long term parameters (once the loudspeaker has been
+working for a short period of time).
+
+“ The Xmay is calculated as (Ly, - Hag)/2 + (Hag/3.5), where L\,, is the voice coil length and Hag is the air gap height.
+
+Acustica Beyma SL - P.I. Moncada Il, C/ Pont Sec, 1C - 46113 Moncada, Valencia (Spain) - Tel. +34 96 130 13 75 - beyma@beyma.com
+[dB]
+
+Bolt circle diameter 241 mm 9,5 in
+
+Baffle cutout diameter:
+
+- Front mount 230 mm 9,1 in ; ae
+Depth 115mm 4,5 in 7 °
+Net weight 3,1 kg 6,8 Ib
+Shipping weight 3,5 kg 7,7 |b
+
+120 5 ~ 4100
+
+- 90
+100 ;
+
+80 5
+
+[O]
+
+60
+
+40 -
+
+0-4 pe id | | bibs | | tio -~ 0
+100 ik 10k
+[Hz]
+Note: Frequency response measured with loudspeaker standing “uum Frequency response on axis
+on infinite baffle in anechoic chamber, 1W @ 1m =-s-s-s-s Frequency response 45° off axis
+
+Overall diameter 258 mm 10,2 in
+
+118
+
+02/18

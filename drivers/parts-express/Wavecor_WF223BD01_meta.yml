@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Wavecor-WF223BD01-8-3-4-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-4-Ohm-298-1212
+source: https://www.parts-express.com/Wavecor-WF223BD01-8-3-4-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-4-Ohm-298-1212
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 298-1212
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

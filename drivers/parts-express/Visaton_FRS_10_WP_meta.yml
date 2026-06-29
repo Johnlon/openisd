@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/292-7817--visaton-frs10wp-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Visaton-FRS10WP-4-4-Full-Range-Saltwater-Resistant-Driver-4-Ohm-White-262-7817
+source: https://www.parts-express.com/Visaton-FRS10WP-4-4-Full-Range-Saltwater-Resistant-Driver-4-Ohm-White-262-7817
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 292-7817
+field_provenance: null
+freq_low_hz: 90.0
+freq_high_hz: 19000.0

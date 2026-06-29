@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.107604 differs from calculated=0.108938 (deps: roo=1.20095,
+  c=343.684, Sd=0.03464, Cms=0.00064)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-486-dayton-audio-sd270a-88-specifications-47085.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
+source: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-486
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

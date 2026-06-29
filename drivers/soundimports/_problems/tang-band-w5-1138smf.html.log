@@ -1,0 +1,8 @@
+[03:05:21] PROBLEM field=schema_fail item=W5-1138SMF url=https://www.soundimports.eu/en/tang-band-w5-1138smf.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00017 differs from calculated=0.00463769 (deps: roo=1.20095, c=343.684, Sd=0.0094, Cms=0.00037)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] PROBLEM field=schema_fail item=W5-1138SMF url=https://www.soundimports.eu/en/tang-band-w5-1138smf.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00481386 differs from calculated=0.00463769 (deps: roo=1.20095, c=343.684, Sd=0.0094, Cms=0.00037)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=1

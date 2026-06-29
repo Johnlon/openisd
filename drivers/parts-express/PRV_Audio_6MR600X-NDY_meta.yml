@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.22 differs from calculated=0.216948 (deps: Qms=15.64,
+  Qes=0.22); ''Vas'' stored=0.00555009 differs from calculated=0.00565655 (deps: roo=1.20095,
+  c=343.684, Sd=0.0143, Cms=0.000195)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502
+source: https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+community: null
+fetched_sku: 294-3502
+field_provenance: null
+freq_low_hz: 90.0
+freq_high_hz: 13000.0

@@ -36,7 +36,41 @@ export function deriveDriver(d) {
   return r;
 }
 
-export function parseWdr(text) {
+/**
+ * Minimal YAML sidecar parser — supports key:value, null/empty (→ absent),
+ * single-quoted strings with '' escape, and block scalars (|).
+ * Private — only called from parseWdr.
+ */
+function _parseSimpleYaml(text) {
+  const r = {};
+  const lines = text.split(/\r?\n/);
+  let blockKey = null;
+  const blockLines = [];
+
+  for (const line of lines) {
+    if (blockKey !== null && line.length > 0 && (line[0] === ' ' || line[0] === '\t')) {
+      blockLines.push(line.trimStart());
+      continue;
+    }
+    if (blockKey !== null) {
+      r[blockKey] = blockLines.join('\n');
+      blockKey = null;
+      blockLines.length = 0;
+    }
+    const i = line.indexOf(':');
+    if (i < 0) continue;
+    const k = line.slice(0, i).trim();
+    let v = line.slice(i + 1).trim();
+    if (v === '|') { blockKey = k; continue; }
+    if (!v || v === 'null') { r[k] = null; continue; }
+    if (v.startsWith("'") && v.endsWith("'")) v = v.slice(1, -1).replace(/''/g, "'");
+    r[k] = v;
+  }
+  if (blockKey !== null) r[blockKey] = blockLines.join('\n');
+  return r;
+}
+
+export function parseWdr(text, sidecarText) {
   const f = {};
   for (const line of text.split(/\r?\n/)) {
     const i = line.indexOf('=');
@@ -54,14 +88,16 @@ export function parseWdr(text) {
   if (name) d.name = name;
   if (f.ProvidedBy)              d.providedBy    = f.ProvidedBy.trim();
   if (f.Comment)                 d.comment       = f.Comment.trim();
-  if (f.boxbench_datasheet)      d.datasheetUrl  = f.boxbench_datasheet.trim();
-  if (f.boxbench_manu_page)      d.manuPageUrl   = f.boxbench_manu_page.trim();
-  if (f.boxbench_vendor_page)    d.vendorpageUrl = f.boxbench_vendor_page.trim();
-  if (f.boxbench_source)         d.sourceUrl     = f.boxbench_source.trim();
-  if (f.boxbench_frd)            d.frdUrl        = f.boxbench_frd.trim();
-  if (f.boxbench_impedance)      d.impedanceUrl  = f.boxbench_impedance.trim();
   if (!(d.Fs && d.Sd && d.Re && (d.Vas || (d.Qts && d.Qes))))
     throw new Error('missing core T/S parameters');
+  if (sidecarText) {
+    const s = _parseSimpleYaml(sidecarText);
+    if (s.datasheet)   d.datasheetUrl  = s.datasheet;
+    if (s.vendor_page) d.vendorpageUrl = s.vendor_page;
+    if (s.source)      d.sourceUrl     = s.source;
+    if (s.frd)         d.frdUrl        = s.frd;
+    if (s.impedance)   d.impedanceUrl  = s.impedance;
+  }
   for (const k in d) if (d[k] === undefined) delete d[k];
   return d;
 }

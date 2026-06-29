@@ -1,8 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { state, driver, syncedP, curvesData, driverShort, pinCompare } from '../store.js';
+import { state, pinCompare } from '../store.js';
 import { TABS } from '../utils/series.js';
-import { DPAL } from '../presets.js';
 
 function toggleGraph(id) {
   const i = state.graphs.indexOf(id);

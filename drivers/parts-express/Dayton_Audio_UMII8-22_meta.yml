@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-708--dayton-audio-UMII8-22-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
+source: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-708
+field_provenance: null
+freq_low_hz: 30.0
+freq_high_hz: 600.0

@@ -1,0 +1,58 @@
+IOMBIOOOFT
+
+Professional Mid Bass Driver
+
+IVES
+
+cI ico
+
+B RA ZtIL
+
+- 3” Voice Coil
+- 500 Watts continuous power handling
+- 97.5 dB Sensitivity
+- 75 - 7,000 Hz
+Nominal Diameter 10” (254 mm)
+Nominal impedance 8 ohms
+Rated Power Handling 500 Watts
+é Program Power 1000 Watts
+= Sensitivity 2.83V at Im 97.5 dB
+J) Recommended Hi Pass Crossover* 120 Hz*
+U. *For Full Power Handling *12db Per Octave Crossover
+tT | Frequency Response at -10dB 75 - 7,000 Hz
+t=) Voice Coil Diameter 3” (75 mm)
+=. Voice Coil Wire CCAW
+tw Voice Coil Winding Depth 16.5 mm
+Former Material Fiber Glass
+se’ Magnetic Gap Depth 9.5mm
+
+Frame Material Die cast aluminum
+
+32.31 a ae
+
+Equivalent Volume Vas 10.25" (260.5mm)
+Excursion (mathematical)*** Xmax 5.87 mm a =
+i Free Air Resonance Fs 75.0 Hz E TOW i Wt i UF E
+ff Mechanical Factor Qms 12.41 ~ \ Xt | | Wy &
+= Electrical Factor Qes 0.33 = = so lh =
+=) Total Factor Ots 0.32 < — — <
+= Cone Area Sd 380 cm? ;
+=) Mechanical Mass Mms  28.10g 748 190m)
+=) Bl Factor BL = 14.49 Tm ~ 9.01" (229mm) _y
+uy Dc Resistance Re 5.3 Ohms frequency Response Measured at 2.83V/1m
+vr _Inductance Le 0.26 mH at 1 kHz _ CHO
+==) Mechanical Mass Without Air Mmd 23.30 g
+= © Mechanical Compliance Cms 0.160 mm/N .
+Overal Diameter 10.25” (260.5 mm)
+4) Front Mount Baffle Cutout 9.01” (229 mm) 20
+=) Mounting Depth 4.40” (111.5 mm)
+my Overall Depth 4.96” (126 mm) 0
+=) Net Weight 15.0 Lbs (6.8 kg)
+ey) Shipping Weight 16.6 Lbs (7.54 kg) ol
+Carton Dimensions W x L x H 15.55" x 15.55" x 6.30" PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+(295 xX 295 x 160mm) POMPANO BEACH, FL SAO LEOPOLDO, RS
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4 support@prvaudio.com vendas@)pvaudio.com.br
+*** T-G parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test www.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 05/21

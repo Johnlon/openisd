@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.33 differs from calculated=0.339111 (deps: Qms=10.9,
+  Qes=0.35); ''Vas'' stored=0.218889 differs from calculated=0.223425 (deps: roo=1.20095,
+  c=343.684, Sd=0.1255, Cms=0.0001)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Beyma-18LEX1200Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-050
+source: https://www.parts-express.com/Beyma-18LEX1200Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-050
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 253-050
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

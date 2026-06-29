@@ -19,7 +19,7 @@ import {
   RHO, C,
   highPass, lowPass, linkwitz, peakingEQ, evalFilter, applyFilters,
   unwrap, portLoss,
-  cx, cAbs,
+  cAbs,
 } from '../src/core/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.47 differs from calculated=0.477788 (deps: Qms=4.85,
+  Qes=0.53); ''Vas'' stored=0.0311485 differs from calculated=0.0320616 (deps: roo=1.20095,
+  c=343.684, Sd=0.03449, Cms=0.00019)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-10PC-8-10-Heavy-Duty-Woofer-8-Ohm-290-324
+source: https://www.parts-express.com/Goldwood-GW-10PC-8-10-Heavy-Duty-Woofer-8-Ohm-290-324
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-324
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.56 differs from calculated=0.554348 (deps: Qms=3, Qes=0.68)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/292-876--grs-12smp-8-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/GRS-12-Woofer-Surface-Mount-Poly-Cone-8-Ohm-12SMP-8-292-876
+source: https://www.parts-express.com/GRS-12-Woofer-Surface-Mount-Poly-Cone-8-Ohm-12SMP-8-292-876
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 292-876
+field_provenance: null
+freq_low_hz: 20.0
+freq_high_hz: 1500.0

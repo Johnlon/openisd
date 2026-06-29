@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.68 differs from calculated=0.672095 (deps: Qms=25.9,
+  Qes=0.69)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/294-2743--prv-audio-15w1000v2-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
+source: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-2743
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

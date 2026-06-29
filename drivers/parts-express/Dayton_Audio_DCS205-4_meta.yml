@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.37 differs from calculated=0.376048 (deps: Qms=6.28,
+  Qes=0.4); ''Vas'' stored=0.026901 differs from calculated=0.0272339 (deps: roo=1.20095,
+  c=343.684, Sd=0.02138, Cms=0.00042)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-200-dayton-audio-dcs205-4-specifications-46584.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
+source: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-200
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

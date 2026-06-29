@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.00204 differs from calculated=0.00207568 (deps: roo=1.20095,
+  c=343.684, Sd=0.00564, Cms=0.00046)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-248--dayton-audio-rc180-55-specification-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-RC180-55-2-x-7-Res-Core-Neodymium-Woofer-4-Ohm-295-248
+source: https://www.parts-express.com/Dayton-Audio-RC180-55-2-x-7-Res-Core-Neodymium-Woofer-4-Ohm-295-248
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-248
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

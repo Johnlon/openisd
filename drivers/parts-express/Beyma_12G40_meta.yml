@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.3 differs from calculated=0.292437 (deps: Qms=11.6,
+  Qes=0.3)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/253-005--12g40-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005
+source: https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005
+frd: null
+impedance: null
+obsolete: null
+dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+community: null
+fetched_sku: 253-005
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

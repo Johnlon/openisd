@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-648--dayton-audio-odeum-apollo-15lf-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
+source: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-648
+field_provenance: null
+freq_low_hz: 25.0
+freq_high_hz: 1200.0

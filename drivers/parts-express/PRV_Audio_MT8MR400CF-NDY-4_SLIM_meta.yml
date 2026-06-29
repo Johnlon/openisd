@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.00934454 differs from calculated=0.00957564 (deps:
+  roo=1.20095, c=343.684, Sd=0.0227, Cms=0.000131)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
+source: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 267-8032
+field_provenance: null
+freq_low_hz: 110.0
+freq_high_hz: 13500.0

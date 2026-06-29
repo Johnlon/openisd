@@ -1,0 +1,70 @@
+a
+S Hi-Vi RESEARCH®
+
+it could be your solution for perfect low frequency reproduction
+
+F10 Woofer Features:
+
+— Light and extremely rigid cone made from
+Kevlar®/paper composite
+
+— Specially made high-loss rubber surround
+
+— High power handling Kapton® former voice coil
+
+— Vented pole piece
+
+— Long-throw motor system with extended linear excur
+
+— aN sion capability
+= | @) — High-density aluminum die-cast basket |
+= Accurate and uncompressed reproduction of very low
+. bass at realistic levels represents the ideology imple-
+Hi-end Woofer mented in this driver. The design of the F10 has been
+optimized for balanced and dynamic low bass reproduc-
+tion in compact or medium vented systems and sub-
+woofers.
+The F10 utilizes a newly developed matrix of Keviar®
+and paper fibers. As a result, the cone weighs less, is
+more rigid, and has an improved dampening factor over
+conventional Keviar® materials. The back of the cone is
+hand coated with a special dampening compound to fur-
+ther maximize performance stability and control of struc-
+| tural resonances. This allows distortion to be kept very
+low through a wide frequency and power range.
+The massive aluminum die-cast basket with multiple
+point mounting has been developed to minimize para-
+sitic structural resonance.
+The driver has a vented pole piece to avoid air compres-
+sion and ensure maximum power handling. Together
+with the long-throw design, this feature provides clean
+and articulated bass performance at high volume levels.
+
+236
+
+100" - es* ,se| The massive aluminum die-cast basket has been devel-
+| + oped to minimize parasitic structural resonances.
+“| Lea Ts 7 mT F10 SPECIFICATIONS
+a } **| | Nominal Impedance (Q) 2 8
+ve TT : ; a5 Resonance Frequency (Hz) | Fs_ | 30 |
+a On axis and 20 off-axis | ||°\! | «| | Nominal Power Handling (W) Pnom | 100
+| | wh Sensitivity (2.83v/1m) (dB) E 89
+“ Hit 1 Ala I Weight (Kg) mM | 45
+- | tt r } em + 7 * 1} -28| "Voice Coil Diameter (mm) ; : | @ 50
+a H lit Ts] DC Resistance (Q) | Re | 65
+| Be : P | Voice Coil Length (mm) ~ | H 22
+ae ieee “ieee cont eet eer nee ="! Voice Coil Former r Kapton®
+: __ . 7 7 Force Factor (TM) : ; BL 15.7
+joe aa = 48 [Gap Height (mm) He | 10
+| ia) ia | | oo vas, | Linear Excursion (mm) ___ Xmax | 6.0
+| seal | Ti | | | Suspension Compliance (uM/N) Cms | 385.3
+E— = = —T4 + 4{ **| | Mechanical Q | Qms | 1.79
+SPE t ai * Electrical Q - - Qes | 0.35 |
+AN ear | Tota | __Qts_| 029°
+| Z mae [. ath aa —{| | | Moving Mass (g) _ | _Mms | 70.3 |
+INU] ib Py iy | Equivalent Air Volume (L) | _Vas 72.1
+—— eee —— oe oS Set | Cabinet Type Vented Box
+| Fo=re EA —t i Recommended Box Volume (L) | Vb | 60 ||
+: = ELE | ‘7 | | Tuning Frequency (Hz) ; Fb 31 |
+oe tee oe eae poe ewe ae | | -3dB Cut-Off Frequency (Hz) | F3 30
+

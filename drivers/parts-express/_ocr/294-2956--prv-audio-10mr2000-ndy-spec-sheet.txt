@@ -1,0 +1,48 @@
+IOMR2000-NDY s-IE€VZ
+
+Professional Mid Range Driver sha Dk
+
+A cvs a Ve
+
+- Large 4" Voice Coil
+- 1000 Watts continuous power handling
+
+- 99 cB Sensitivity
+- 90 - 6,500 Hz
+- Lightweight Neodymium magnet
+Nominal Diameter 10” (254 mm)
+Nominal impedance 8 Ohms
+1 Rated Power Handling 1000 Watts
+=) Program Power 2000 Watts
+< Sensitivity 2.83V at Im 99 dB
+m= | Recommended Hi Pass Crossover* 160 Hz*
+Oo *For Full Power Handling *12db Per Octave Crossover
+~y Frequency Response 90 - 6,500 Hz
+5 Voice Coil Diameter 4” (101 mm)
+=< Voice Coil Wire Copper
+a Voice Coil Winding Depth 18.8 mm
+Ww Former Material Glass Fiber
+Magnetic Gap Depth 9.0 mm
+Frame Material Die cast aluminum
+Equivalent Volume Vas 27.98 |
+%) Excursion (mathematical)*** Xmax 7.15 mm ~ =
+= Free Air Resonance Fs 54.48 Hz E &
+ff) Mechanical Factor Qms 1.54 = 8
+= Electrical Factor Qes 0.21 & i. 4 &
+& Total Factor Ots 0.21 0 | 6
+= Cone Area Sd 373 cm? 5.06" (128.5mm)
+= Mechanical Mass Mms 59.33 g 9.33" (237mm)
+=) Bl Factor Bl 21.73 Tm ~= >
+or Dc Resistance Re 5.0 Ohms Frequency Response Measured at 2.83V/1m
+mI) Inductance Le 0.50mHatikHz om
+==) Mechanical Mass Without Air Mmd 35.96 g
+= © Mechanical Compliance Cms 0.143 mm/N .
+Overal Diameter 10.43” (265 mm)
+=) Front Mount Baffle Cutout 9.33” (237 mm) eo
+= Mounting Depth 5.08” (129 mm)
+= Overall Depth 5.49” (139.5 mm) 10
+=) Net Weight 12.78 Lbs (5.8 kg)
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4 support@prvaudio.com vendas@)pvaudio.com.br
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test Wwww.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 01/20

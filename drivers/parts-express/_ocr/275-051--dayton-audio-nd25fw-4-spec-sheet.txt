@@ -1,0 +1,63 @@
+ND25FW-4 1" Soft Dome Neodymium Tweeter with Waveguide
+DAYTONAUDIO 4 Ohm
+
+PARAMETERS
+
+Impedance 4 ohms
+3.2 ohms
+
+0.04 mH
+
+1,350 Hz
+
+N/A
+
+N/A
+
+N/A
+
+N/A
+
+N/A
+
+N/A
+
+N/A
+
+N/A
+
+Vas N/A
+Xmax N/A
+VC Diameter 1"
+SPL 91 dB @1W/im
+RMS Power Handling 20 watts
+Usable Frequency Range (Hz) 2,500 - 20,000 Hz
+
+IMPEDANCE/PHASE
+
+90°
+
+FEATURES ase
+
+Waveguide-loaded 1" treated silk dome ft
+
+Waveguide provides controlled directivity and higher
+efficiency
+
+High-strength neodymium motor with heatsink and ferrofluid -90°
+cooling
+Low Fs of 1,350 Hz can accommodate crossover points as “198°
+low as 2,500 Hz JR “eo
+Standard 104 mm tweeter cutout for easy integration into
+many existing systems 50. 100 200 500 ikHz 2k 5k 10k 20k
+
+45°
+
+FREQUENCY RESPONSE
+OMNIMIC
+
+E7
+Frequency Response — tequency [Hz]
+
+Note: 1/24" octave smoothing - nearfield response included in graph below 450 Hz.
+

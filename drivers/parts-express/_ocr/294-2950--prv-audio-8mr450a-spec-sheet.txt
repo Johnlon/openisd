@@ -1,0 +1,49 @@
+SMR450A ed FA
+
+Professional Mid Range Driver co1stio
+
+B RA ZtIL
+
+- 1.5" Voice Coil
+- 225 Watts continuous power handling
+- 96 cB Sensitivity
+
+- 80 - 9,500 Hz
+
+Nominal Diameter 8” (203 mm)
+Nominal impedance 8 ohms
+1 Rated Power Handling 225 Watts
+=) Program Power 450 Watts
+= Sensitivity 2.83V at Im 96 dB
+m= Recommended Hi Pass Crossover* 140 Hz*
+Oo *For Full Power Handling *12db Per Octave Crossover
+~y Frequency Response 80 - 9,500 Hz
+5 Voice Coil Diameter 1.5” (38 mm)
+=< Voice Coil Wire CCAW
+a Voice Coil Winding Depth 11.0 mm
+ey Former Material Kapton
+Magnetic Gap Depth 6.0 mm
+Frame Material Stamped Steel
+Equivalent Volume Vas 34.861
+%) Excursion (mathematical)*** Xmax 4.00 mm _
+= Free Air Resonance Fs 65.26 Hz 7 E
+Mechanical Factor Qms 15.19 < g
+= Electrical Factor Qes 0.57 = i}
+e Total Factor Ots 0.55 SS od
+= Cone Area Sd 241 cm? 4.64" (118 mm)
+= Mechanical Mass Mms 13.78 g » 7.26" (184.5 mm) 5
+=) Bl Factor Bl 7.58 Tm
+uy Dc Resistance Re 5.8 Ohms Frequency Response Measured at 2.83V/1m
+7 _Inductance Le 0.257 mH at 1 ecm
+==) Mechanical Mass Without Air Mmd 11.67 g
+= © Mechanical Compliance Cms 0.432 mm/N °
+Overal Diameter 8.22” (209 mm)
+f=) _ Front Mount Baffle Cutout 7.26” (184.5 mm) 80
+= Mounting Depth 3.21” (81.5 mm)
+= Overall Depth 3.50” (89 mm) 70
+=) Net Weight 4.63 Lbs (2.1 kg)
+fm Shipping Weight 5.07 Lbs (2.3 kg) cob TUE Un TEER TERE RET OTT
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4 support@prvaudio.com vendas@)pvaudio.com.br
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test Wwww.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 01/20

@@ -1,0 +1,59 @@
+RS225P-4A 8" Reference Paper Woofer 4 Ohm
+
+DAYTONAUDIO
+
+RS225P-4A
+
+FEATURES
+
+Three-part paper composite diaphragm featuring paper,
+Kevlar, and glass fibers
+
+Low-distortion motor, 6-hole cast frame, rubber surround, and
+
+solid aluminum phase plug
+
+Perfect for use as a woofer, midwoofer, or dedicated
+midrange driver
+
+92.9 dB sensitivity and 6 mm of excursion
+
+PARAMETERS
+
+Impedance 4 ohms
+Re 3.3 ohms
+Le 0.51 mH @ 1 kHz
+Fs 37.7 Hz
+Qms 1.85
+Qes 0.48
+Qts 0.38
+Mms 25.0g
+Cms 0.71 mm/N
+Sd 213.8 cm?
+Vd 128.2 cm?
+BL 6.4 Tm
+Vas 45.8 liters
+Xmax 6 mm
+VC Diameter 38.5 mm
+SPL 92.9 dB @ 2.83V/1m
+RMS Power Handling 80 watts
+Usable Frequency Range (Hz) 35 - 5,500 Hz
+
+IMPEDANCE/PHASE
+
+100 8200 500 1kHz 2k 5k 10k =20k
+
+FREQUENCY RESPONSE
+
+OMNIWIGC
+
+200
+
+500
+
+1k 2k
+
+Frequency Response -- frequency [Hz]
+
+Note: 1/24'" octave smoothing - nearfield response included in graph below 450 Hz.
+

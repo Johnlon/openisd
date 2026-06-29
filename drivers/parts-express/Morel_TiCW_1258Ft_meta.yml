@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.27 differs from calculated=0.266896 (deps: Qms=3.35,
+  Qes=0.29); ''Vas'' stored=0.191 differs from calculated=0.188119 (deps: roo=1.20095,
+  c=343.684, Sd=0.0415, Cms=0.00077)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
+source: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 297-110
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

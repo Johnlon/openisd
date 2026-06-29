@@ -1,0 +1,33 @@
+FEATURES
+
+= Extremely low distortion XBL“2 motor
+provides flat and extended BL curve
+
+= Triple shorting rings to further reduce
+Le variance and distortion over
+excursion range
+
+= 2 Ohm DVC for multiple wiring
+options
+
+= 2 layer, 3” copper voice coil for high
+power handling (1000 W RMS)
+
+= High excursion spider with woven
+leads
+
+« Aerodynamic basket and motor
+design for reduced noise
+
+SPECIFICATIONS
+
+z
+:
+:
+Qes 0.41
+a
+s
+
+FRELUENEY RESPONSE — 4° FAUM OUST CAP. OPEN BAFFLE
+
+Frequency Response -freq [Hz]

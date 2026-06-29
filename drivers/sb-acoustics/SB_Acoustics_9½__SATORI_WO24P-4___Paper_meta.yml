@@ -1,16 +1,18 @@
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from SB Acoustics website (scraped 2026-06-27). T/S
+detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
+driver_type: null
 datasheet: https://sbacoustics.com/wp-content/uploads/2024/04/9.5in-SATORI-WO24P-4.pdf
 manu_page: https://sbacoustics.com/product/9½in-satori-wo24p-4/
 vendor_page: null
 source: https://sbacoustics.com/product/9½in-satori-wo24p-4/
 frd: null
 impedance: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+specs: null

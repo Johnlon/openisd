@@ -1,0 +1,86 @@
+12MR2000X-NDY Js-I<VZ
+
+Professional Mid Range Driver r= 1 Sl apiia.
+
+B RA ZtL
+
+SST —“‘“‘“<C
+
+- 4” Voice coil
+- 2000 Watts continuous program power
+
+- 100 dB Sensitivity
+* 100 - 5,200 Hz
+
+Nominal Diameter 12" (305 mm)
+
+Nominal impedance 8 Ohm
+Nominal Power Handling 1000 Watts
+Continuous Program Power (RMS) 2000 Watts
+Max Peak Power 4000 Watts
+Sensitivity 2.83V at Im 100 dB
+
+Recommended High Pass Crossover* 160 Hz ~*
+*For Full Power Handling *12db Per Octave Crossover
+
+Frequency Response 100 - 5,200 Hz
+Voice Coil Diameter 4" (100 mm)
+
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 18.20 mm
+Former Material Glass Fiber
+
+Magnetic Gap Depth 12.0 mm
+Frame Material Die cast aluminum
+
+GENERAL SPECIFICATIONS
+
+Equivalent Volume Vas 35.91
+ya Excursion (mathematical)*** Xmax 6.10 mm
+- Free Air Resonance Fs 67.2 Hz
+iw Mechanical Factor Oms 16.7
+= Electrical Factor Oes 0.32
+o Total Factor Ots 0.31
+> Cone Area Sd 573 cm?
+Z Mechanical Mass Mms 71.5¢g
+- ©6Bl Factor Bl 22.7 Tm
+uy _ Dc Resistance Re 5.4 Ohm
+rri_!nductance Le 0.40 mH at 1 kHz
+say Mechanical Mass Without Air Mmd 63.7 ¢
+ww Mechanical Compliance Cms  0.078mm/N é E
+
+Overall Diameter 12.28" (312 mm) = io
+sam_Front Mount Baffle Cutout 11.14" (283 mm) < +
+-4 Mounting Depth 4.47" (113.7 mm)
+r: Overall Depth 4.95" (125.7 mm) 630° (160mm)
+7 Net Weig t 13.45 Lbs (7.0 kg) ~ TAF 283mm)
+OS Shipping Weight 17.60 Lbs (8.0 kg)
+
+Carton Dimensions W x L x H 16.14" x 16.02" x 8.46"
+
+(410 x 407 x 215 mm)
+Impedance Curve - Free Air op requeNCY Response Measured at 2.83V/1m
+
+Ohm
+
+dBSPL
+
+100
+
+240
+
+160
+
+70
+
+ee
+
+5 10 20 50 100 200 Hz 500 1k 2k 5k 10k 20k 20 500 1k 2k Hz
+
+PRV AUDIO USA (USA and Export)
+POMPANO BEACH, FL
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4 support@prvaudio.com
+www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 04/25

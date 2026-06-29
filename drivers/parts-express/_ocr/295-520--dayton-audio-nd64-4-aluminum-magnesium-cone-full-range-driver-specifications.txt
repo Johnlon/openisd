@@ -1,0 +1,106 @@
+ND64-4 2-1/2" Aluminum Magnesium Cone Full-Range Driver 4
+
+Ohm
+
+DAYTONAUDIO
+
+FEATURES
+
+Rubber-edged aluminum magnesium alloy cone
+Dual neodymium motor structure
+
+4-layer voice coil with polyimide former
+
+Copper sleeve to minimize distortion
+
+High power handling
+
+4-@4.2P.C.D66
+
+FREQUENCY RESPONSE
+
+PARAMETERS
+
+4 ohms
+
+3.7 ohms
+
+0.37 mH
+
+103.0 Hz
+
+4.36
+
+0.36
+
+0.33
+
+2.569
+
+0.93 mm/N
+15.6 cm?
+
+29.64 cm?
+
+4.13 Tm
+
+0.42 liters
+1.9mm
+
+19mm
+
+85.2 dB @ 2.83V/1m
+15 watts
+
+100 - 20,000 Hz
+
+Impedance
+
+Re
+
+Le
+
+Fs
+
+Qms
+
+Qes
+
+Qts
+
+Mms
+
+Cms
+
+Sd
+
+Vd
+
+BL
+
+Vas
+
+Xmax
+
+VC Diameter
+
+SPL
+
+RMS Power Handling
+Usable Frequency Range (Hz)
+
+IMPEDANCE/PHASE
+
+OMNIMIC
+
+400
+
+30. ~~50
+
+200
+
+Note: 1/24" octave smoothi ng - nearfield response included in graph below 450 Hz.
+
+Frequency Response -freq [Hz]
+
+500 1k 3K Bk 10K 20k

@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.23 differs from calculated=0.234875 (deps: Qms=11,
+  Qes=0.24); ''Vas'' stored=0.0218039 differs from calculated=0.0221482 (deps: roo=1.20095,
+  c=343.684, Sd=0.0227, Cms=0.000303)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
+source: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-3145
+field_provenance: null
+freq_low_hz: 95.0
+freq_high_hz: 10000.0

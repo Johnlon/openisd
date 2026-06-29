@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/253-053--21lex1600nd-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
+source: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 253-053
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

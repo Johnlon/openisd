@@ -1,0 +1,14 @@
+[03:05:22] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Qts' stored=0.27 differs from calculated=0.266087 (deps: Qms=1.02, Qes=0.36)"
+         reason=File failed strict schema validation
+[03:05:22] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00334 differs from calculated=0.000157416 (deps: roo=1.20095, c=343.684, Sd=0.0009, Cms=0.00137)"
+         reason=File failed strict schema validation
+[03:05:22] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Qts' stored=0.27 differs from calculated=0.266087 (deps: Qms=1.02, Qes=0.36)"
+         reason=File failed strict schema validation
+[03:13:58] PROBLEM field=schema_fail item=W8-1772 url=https://www.soundimports.eu/en/tang-band-w8-1772.html offset=0
+         raw_value="WDR: 'Vas' stored=0.0945781 differs from calculated=0.000157416 (deps: roo=1.20095, c=343.684, Sd=0.0009, Cms=0.00137)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=2

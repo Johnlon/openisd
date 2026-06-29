@@ -1,0 +1,147 @@
+GENERAL SPECIFICATIONS
+
+wn
+oO
+Ww
+Ee
+WwW
+=
+<=
+<
+a
+H
+|
+<
+=
+"
+WwW
+a |
+w
+—
+E
+
+EXTRA INFO
+
+TOMR1200X
+
+Professional Mid Range Driver
+
+* 3” Voice coil
+
+* 1200 Watts continuous program power
+
+* 101 cB Sensitivity
+
+- 80 - 7,000 Hz
+Nominal Diameter 10" (254 mm)
+Nominal impedance 8 Ohm
+Nominal Power Handling 600 Watts
+Continuous Program Power (RMS) 1200 Watts
+Max Peak Power 2400 Watts
+Sensitivity 2.83V at Im 101 dB
+Recommended Hi Pass Crossover* 150 Hz*
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response 80 - 7,000 Hz
+Voice Coil Diameter 3" (75 mm)
+Voice Coil Wire CCAW
+Voice Coil Winding Depth 10.0 mm
+Former Material Glass fiber
+Magnetic Gap Depth 10.0 mm
+
+Frame Material
+
+Die Cast Aluminum
+
+Overall Diameter
+
+Equivalent Volume Vas 21.81
+Excursion (mathematical)*** Xmax 2.50 mm
+Free Air Resonance Fs 86.9 Hz
+Mechanical Factor Oms 6.97
+Electrical Factor Oes 0.30
+
+Total Factor Ots 0.29
+
+Cone Area Sd 394 cm?
+Mechanical Mass Mms 33.30 g
+
+Bl Factor BL 17.50 Tm
+
+Dc Resistance Re 5.10hm
+Inductance Le 0.52 mH at 1kHz
+Mechanical Mass Without Air Mmd 28.84 g
+Mechanical Compliance Cms 0.100 mm/N
+
+10.31” (262 mm)
+
+Front Mount Baffle Cutout
+
+8.78” (223 mm)
+
+Mounting Depth
+
+(
+4.45” (113 mm)
+
+Impedance Curve - Free Air
+150
+
+Ohm
+
+Overall Depth 5.04” (128 mm)
+
+Net Weight 19.18 Lbs (8.70 kg)
+
+Shipping Weight 20.17 Lbs (9.15 kg)
+
+Carton Dimensions W x L x H 11.22" x 11.22" x 5.91”
+(285 x 285 x 150 mm)
+
+120
+
+—
+-—
+
+REEHEEEEHE
+
+[=]
+=
+=
+=
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4
+*** T-S parameters measured after 2 hours at 1/2 Rated power, pink noise preconditioning test
+
+4.45” (113mm)
+
+ctiseico
+
+B RA ZtL
+
+UW 7
+
+7.87” (200mm)
+
+8.78" (223mm)
+
+Frequency Response Measured at 2.83V/1m
+
+110
+
+{4
+
+70
+
+a es ee ee ee) ee ee eee
+a ee ee ee ee ee
+
+100 200 500 1k
+
+PRV AUDIO USA (USA and Export)
+POMPANO BEACH, FL
+support@jprvaudio.com
+www.prvaudio.com
+
+2k Hz 5k 10k
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 12/24

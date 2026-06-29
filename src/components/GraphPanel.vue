@@ -102,16 +102,6 @@ function onContextMenu(e) {
 
 function closeMenu() { ctxMenu.value.visible = false; }
 
-function localExtrema(s) {
-  const out = [];
-  for (let i = 1; i < s.ys.length - 1; i++) {
-    if (!isFinite(s.ys[i])) continue;
-    if ((s.ys[i] > s.ys[i-1] && s.ys[i] > s.ys[i+1]) ||
-        (s.ys[i] < s.ys[i-1] && s.ys[i] < s.ys[i+1])) out.push(i);
-  }
-  return out;
-}
-
 function snapAction(dir, type) {
   const s = plotData.value?.series?.find(s => !s.dash);
   if (!s) return closeMenu();
@@ -148,7 +138,7 @@ function lockHere() {
   closeMenu();
 }
 
-function onDocClick(e) {
+function onDocClick(_e) {
   if (ctxMenu.value.visible) closeMenu();
 }
 

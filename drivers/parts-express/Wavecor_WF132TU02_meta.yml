@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.44 differs from calculated=0.434988 (deps: Qms=8, Qes=0.46)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/298-1162--wavecor-wf132tu02-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Wavecor-WF132TU02-5-1-4-Paper-Cone-Mid-Woofer-4-Ohm-298-1162
+source: https://www.parts-express.com/Wavecor-WF132TU02-5-1-4-Paper-Cone-Mid-Woofer-4-Ohm-298-1162
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 298-1162
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

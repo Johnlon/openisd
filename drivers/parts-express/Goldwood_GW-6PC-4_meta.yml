@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.88 differs from calculated=0.864518 (deps: Qms=7.95,
+  Qes=0.97)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-6PC-4-6-1-2-Heavy-Duty-Woofer-4-Ohm-290-307
+source: https://www.parts-express.com/Goldwood-GW-6PC-4-6-1-2-Heavy-Duty-Woofer-4-Ohm-290-307
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-307
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

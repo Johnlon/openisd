@@ -1,0 +1,29 @@
+SPL [dB]
+
+100
+90
+a0)
+al
+60
+OC
+
+—|mp
+
+Yisaton Wf 1305-4 0hm
+
+Frequenzgang und Impedanz
+
+4
+
+2 [Ohrn]
+
+50
+40
+a0)
+2)
+10
+
+20 BO 100 200 BOO 1000 2000 FOO 10000 20000
+— Amplitude bei 1vath, Tr
+
+edanz [Ohm]

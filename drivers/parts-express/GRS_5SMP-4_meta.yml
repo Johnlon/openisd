@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/292-858--grs-5smp-4-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/GRS-5-1-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-5SMP-4-292-858
+source: https://www.parts-express.com/GRS-5-1-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-5SMP-4-292-858
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 292-858
+field_provenance: null
+freq_low_hz: 50.0
+freq_high_hz: 2500.0

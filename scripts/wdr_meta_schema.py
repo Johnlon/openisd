@@ -96,7 +96,7 @@ class MetaModel(BaseModel):
     obsolete: Optional[bool] = Field(None,
         description="true if the driver is discontinued. null when unknown.")
     dq_issue: Optional[str] = Field(None,
-        description="Data quality flag written by dq-check.mjs — field name of the failing check, or null if clean")
+        description="Data quality flag written by dq_check.py — field name of the failing check, or null if clean")
     community: Optional[str] = Field(None,
         description="Notes on community-sourced data: measurement source, contributor, version marker in filename")
     fetched_sku: Optional[str] = Field(None,
@@ -114,6 +114,14 @@ class MetaModel(BaseModel):
         description="Lower frequency limit published by manufacturer (Hz) — informational, not a simulation parameter")
     freq_high_hz: Optional[float] = Field(None,
         description="Upper frequency limit published by manufacturer (Hz) — informational, not a simulation parameter")
+
+    # ── complete datasheet specs (for composite drivers like coaxials) ────────
+    specs: Optional[dict] = Field(None,
+        description="Complete non-T/S datasheet specifications. For composite drivers (e.g. coaxials), "
+                    "contains sub-dicts keyed by component (e.g. 'woofer', 'tweeter'). "
+                    "All T/S values in SI units: Hz, Ω, H, T·m, kg, m², m³, m/N, kg/s, W, dB. "
+                    "See WDR_SCHEMA.md §3 and §6 for unit reference. "
+                    "YAML may include inline unit comments for clarity (# Hz, # m³, etc.) — comments are informational only.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -228,7 +236,17 @@ import math as _math
 # must match the formula within tolerance. Discrepancy → DQ warning (not a hard error).
 # Tolerance is relative: abs(stored - expected) / expected > tol → alert.
 _WDR_CALCULATABLE: dict[str, dict] = {
-    "Qts":   {"deps": ("Qms", "Qes"),   "tol": 0.01,
+    # tol_info: discrepancy above this but below tol → INFO note written to meta corrections
+    #           (not a schema fail — recorded for transparency only).
+    #
+    # Qts tolerance rationale — SETTLED, do not re-litigate:
+    #   Formula: Qts = Qes·Qms / (Qes + Qms).  Stored Qts is the manufacturer's rounded
+    #   published value; our calculated Qts uses rounded Qes and Qms (typically 2 d.p.).
+    #   Error propagation: δQts/Qts ≈ [Qms/(Qms+Qes)]·(δQes/Qes) + [Qes/(Qms+Qes)]·(δQms/Qms).
+    #   For Qes=0.25, Qms=3.99 (typical): dominant term ≈ 0.94 × 0.02 ≈ 1.9%.
+    #   Rounding of stored Qts adds another ~0.5%, giving ~2.4% total from rounding alone.
+    #   3% fail threshold covers all legitimate rounding; >3% indicates a data entry error.
+    "Qts":   {"deps": ("Qms", "Qes"),   "tol": 0.03, "tol_info": 0.01,
                "fn": lambda f: f["Qms"] * f["Qes"] / (f["Qms"] + f["Qes"])},
     "Vd":    {"deps": ("Sd", "Xmax"),   "tol": 0.01,
                "fn": lambda f: f["Sd"] * f["Xmax"]},
@@ -242,7 +260,17 @@ _WDR_CALCULATABLE: dict[str, dict] = {
                "fn": lambda f: f["BL"] / _math.sqrt(f["Re"])},
     "gamma": {"deps": ("BL", "Mms"),           "tol": 0.01,
                "fn": lambda f: f["BL"] / f["Mms"]},
-    "Vas":   {"deps": ("roo", "c", "Sd", "Cms"),       "tol": 0.01,
+    # Vas tolerance rationale — SETTLED, do not re-litigate:
+    #   Formula: Vas = ρ·c²·Sd²·Cms.  Two independent sources of discrepancy:
+    #   (1) Rounding: Sd appears squared, so a 0.5% Sd rounding error gives 1% Vas error.
+    #       Cms rounded to 2 sig figs (e.g. 1.1 mm/N instead of 1.13) gives up to 2.7% error.
+    #       Combined: ~3.5% from rounding alone is reachable.
+    #   (2) Measurement method: vendors often publish Vas from a direct box or delta-mass
+    #       measurement, while our cross-check recomputes it from Sd×Cms.  These two methods
+    #       can legitimately disagree by 3–5% even with perfect inputs (Sd is hard to measure).
+    #   4% fail threshold is mathematically justified by rounding alone; >4% suggests a
+    #   unit conversion error or a fundamentally wrong field value.
+    "Vas":   {"deps": ("roo", "c", "Sd", "Cms"),       "tol": 0.04, "tol_info": 0.01,
                "fn": lambda f: f["roo"] * f["c"] ** 2 * f["Sd"] ** 2 * f["Cms"]},
     # η₀ = (4π² / (roo × c³)) × (Fs³ × Mms / (Qes × BL²))  [fraction, not %]
     "no":       {"deps": ("roo", "c", "Fs", "Mms", "Qes", "BL"), "tol": 0.02,
@@ -329,6 +357,10 @@ def validate_wdr(wdr_path: Path) -> list[str]:
 
     # DQ: calculatable field consistency check.
     # Parse all numeric fields once for the dependency lookups.
+    # Also track fields that failed their own range check — if a dependency is
+    # already out of range, skipping the cross-check avoids cascade false positives
+    # (e.g., a bad Sd value produces an absurd calculated Vas).
+    range_fail_fields: set[str] = set()
     numeric = {}
     for f, spec in _WDR_FIELD_SPEC.items():
         if spec["kind"] == "float" and f in items:
@@ -336,6 +368,9 @@ def validate_wdr(wdr_path: Path) -> list[str]:
                 v = float(items[f])
                 if v != 0.0:
                     numeric[f] = v
+                    lo, hi = spec.get("lo"), spec.get("hi")
+                    if (lo is not None and v < lo) or (hi is not None and v > hi):
+                        range_fail_fields.add(f)
             except ValueError:
                 pass
 
@@ -346,12 +381,16 @@ def validate_wdr(wdr_path: Path) -> list[str]:
         deps = rule["deps"]
         if not all(d in numeric for d in deps):
             continue  # dependencies absent — cannot compute expected
+        if range_fail_fields.intersection(deps):
+            continue  # a dependency is already out of range — cross-check would be meaningless
         expected = rule["fn"](numeric)
-        if abs(stored - expected) / abs(expected) > rule["tol"]:
-            errors.append(
-                f"{field!r} stored={stored:.6g} differs from calculated={expected:.6g} "
-                f"(deps: {', '.join(f'{d}={numeric[d]:.6g}' for d in deps)})"
-            )
+        rel = abs(stored - expected) / abs(expected)
+        msg = (f"{field!r} stored={stored:.6g} differs from calculated={expected:.6g} "
+               f"(deps: {', '.join(f'{d}={numeric[d]:.6g}' for d in deps)})")
+        if rel > rule["tol"]:
+            errors.append(msg)
+        elif rel > rule.get("tol_info", rule["tol"]):
+            errors.append(f"INFO: {msg}")
 
     return errors
 

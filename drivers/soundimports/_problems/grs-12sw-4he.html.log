@@ -1,0 +1,8 @@
+[03:05:21] PROBLEM field=Vas_tiny_for_driver item=12SW-4HE url=https://www.soundimports.eu/en/grs-12sw-4he.html offset=0
+         raw_value='Sd=507 cm² Vas=2.84 L (min plausible ≈ 8.5 L)'
+         reason=Vas implausibly small for piston area — likely ft³-as-liters scraper bug
+[03:05:21] PROBLEM field=schema_fail item=12SW-4HE url=https://www.soundimports.eu/en/grs-12sw-4he.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00284 differs from calculated=0.0803151 (deps: roo=1.20095, c=343.684, Sd=0.05073, Cms=0.00022)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=1
+[03:13:58] DONE problems=0

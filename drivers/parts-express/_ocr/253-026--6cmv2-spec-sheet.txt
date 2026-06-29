@@ -1,0 +1,111 @@
+beyma J) 6CMV2
+
+PROFESSIONAL LOUDSPEAKERS LOW & MID FREQUENCY TRANSDUCER
+
+www.beyma.com
+
+KEY FEATURES
+
+e High power handling: 440 W program power e Pressed steel frame
+
+e 1.5” copper wire voice coil e Ferrite magnet
+
+e High sensitivity: 94 dB (1W/ 1m) e Designed for bass and midbass applications in compact
+e Very linear extended response and low distortion vented cabinets
+
+e Treated double roll cloth surround
+
+“ ~
+— y 7 um
+’ i
+
+TECHNICAL SPECIFICATIONS THIELE-SMALL PARAMETERS ?
+
+Nominal diameter 165 mm 6,5 in Resonant frequency, f, 90 Hz
+Rated impedance 8O D.C. Voice coil resistance, Re 5,30
+Minimum impedance 6,70 Mechanical Quality Factor, Qms 1,4
+Power capacity ' 220 Waes Electrical Quality Factor, Qe, 0,45
+Program power? 440 W Total Quality Factor, Qi, 0,34
+Sensitivity 94dB 1W/im@Zn Equivalent Air Volume to Cys; Vas 6,5 |
+Frequency range 95 - 8.000 Hz Mechanical Compliance, Cms 235 um/N
+Recom. enclosure V,=91 Mechanical Resistance, Rms 5,5kg/s
+(Bass-reflex design) F. = 87 Hz Efficiency, no 1%
+Voice coil diameter 38,1 mm 1,5 in Effective Surface Area, Sg 0,014 m2
+BI factor 9,4 N/A Maximum Displacement, Xmax 4 5,7 mm
+Moving mass 0,013 kg Displacement Volume, Vg 80 cms
+Voice coil length 14 mm Voice Coil Inductance, Lg @ 1 kHz 0,5 mH
+Air gap height 6mm
+Xdamage (peak to peak) 30 mm
+
+Notes:
+
+1 The power capaticty is determined according to AES2-1984 (r2003) standard.
+2 Program power is defined as power capacity + 3 dB.
+
+3 T-S parameters are measured after an exercise period using a preconditioning power test. The measurements are carried out with a velocity-current laser transducer and will reflect the long term parameters (once the loudspeaker has been working
+for a short period of time).
+
+* The Xmax is calculated as (Ly, - Hag)/2 + (Hag/3.5), where L\, is the voice coil length and Hag is the air gap height.
+
+Acustica Beyma SL - P.I. Moncada Il, C/ Pont Sec, 1C - 46113 Moncada, Valencia (Spain) - Tel. +34 96 130 13 75 - beyma@beyma.com
+120 5 - 60
+| |
+100 | | 50
+| |
+80 : + 40
+| Hana
+jue
+as
+i
+ay tt Lan 3
+> 60 - 30 2
+40 | + 20
+20 5 + 10
+0 + |_| Lit | 1 Lg
+
+100
+
+[Hz]
+
+Note: Frequency response measured with loudspeaker standing
+
+on infinite baffle in anechoic chamber, 1W @ 1m
+
+Overall diameter
+
+Bolt circle diameter
+Baffle cutout diameter:
+- Front mount
+
+Depth
+
+Net weight
+
+Shipping weight
+
+167 mm
+156 mm
+
+141 mm
+80 mm
+2,2 kg
+2,3 kg
+
+6,6 in
+6,1 in
+
+5,6 in
+3,1 in
+4,8 lb
+5,1 Ib
+
+D 167
+
+10k
+
+“ummm Frequency response on axis
+=-s-s-s-s Frequency response 45° off axis
+
+0141
+
+02/18

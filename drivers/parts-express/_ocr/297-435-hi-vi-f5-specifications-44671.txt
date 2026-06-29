@@ -1,0 +1,84 @@
+Hi-Vi RESEARCH®
+
+=
+PS
+Bass-Midrange
+
+F5 Bass-Midrange Features:
+
+— Light and extremely rigid cone made from
+Keviar®/paper composite
+
+— Specially made high-loss rubber surround
+
+— Shielded double magnet motor structure
+
+— High power handling Kapton® former voice coil
+
+— Central phase plug
+
+— High density aluminum die-cast basket
+
+The design of the F5 has been optimized for an extend-
+
+ed and dynamic bass reproduction in small vented sys-
+
+tems. Midrange clarity and accuracy is remarkable.
+
+The F5 utilizes a newly developed matrix of Keviar® and
+
+paper fibers. As a result, the cone weighs less, is more
+
+rigid, and has an improved dampening factor over con-
+
+4B spl
+188
+
+ventional Keviar® materials. The back of the cone is
+hand coated with a special dampening compound to fur-
+ther maximize performance stability and control of struc-
+tural resonances. The driver utilizes a central phase
+plug to avoid air compression and internal air volume
+resonance. The plug improves frequency response and
+dispersion as well. The Kapton® former voice coil and
+air transparent spider contribute to the linear operation
+of the transducer at high power levels.
+
+The massive aluminum die-cast basket has been devel-
+oped to minimize parasitic structural resonances.
+
+A shielded magnet structure allows the F5 to be easily
+incorporated into audio/video applications. The driver
+may be used in a small closed box as a bass-midrange
+unit when a subwoofer is employed.
+
+Recommended crossover frequency region for a two-
+
+it could be your solution for perfect low frequency reproduction
+
+H |} "| way system design is 2-4 kHz.
+se 433 — ——e
+Cre a F5 SPECIFICATIONS
+“ ani T i **| |Nominallmpedance(Q) | Z | 8
+7° H as| | Resonance Frequency (Hz) Fs 52
+| col On axis and 30° e| | Nominal Power Handling (W) Pnom 35
+| Sensitivity (2.83v/1m) (dB) | E | 86
+“ *| | Weight (Kg) M 1.6
+- +H Hi | | Voice Coil Diameter (mm) @ | 2%
+sa | 4 ..| | DC Resistance (Q) Re | 65
+U hn oe | Voice Coil Length (mm) H 10
+alia tinea oe ae") | Voice Coil Former | Kapton®
+Force Factor (TM) BL 6.9
+coo : 5 .44| GapHeight(mm) “He | 50
+tA Hy ve] [Linear Excursion (mm) __i|_ Xmax_| 2.5
+A Suspension Compliance (uM/N) Cms 908
+oan) RE “T-} "| | Mechanical Q Qms | 4.94
+AWN an YEE «| | Electrical Q Qes | 045
+peat «| | Total a __ ats | 0.41
+Fit " ww— 4 - Moving Mass (g) Mms 10.2
+Geos ee f l tT Equivalent Air Volume (L) Vas 8.9
+ae 2 +i **| [Cabinet Type | Vented Box
+I | TT -2a5| | Recommended Box Volume (L) | Vb 5
+we LITT | UL 201 thes Tuning Frequency (Hz) Fb 55
+-3dB Cut-Off Frequency (Hz) F3 62
+

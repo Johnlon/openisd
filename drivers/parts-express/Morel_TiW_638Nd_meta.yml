@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0155 differs from calculated=0.0156687 (deps: roo=1.20095,
+  c=343.684, Sd=0.0119, Cms=0.00078)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/297-103--morel-tiw-638nd-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
+source: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 297-103
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

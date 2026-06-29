@@ -1,0 +1,108 @@
+GOMR500CF-NDY-4 J-IEVAZ
+
+Professional Mid Range Driver css
+
+B RA Zt L
+
+- 500 Watts Continuos Program Power
+- Water resistant Carbon Fiber cone
+
+- 96 cB Sensitivity
+
+- Lightweight Neodymium magnet
+
+Nominal Diameter 6"x 9" (152 x 228 mm)
+Nominal impedance 4 0hm
+
+,, _ Nominal Power Handling 250 Watts
+
+= Continuous Program Power (RMS) 500 Watts
+
+=) Max Peak Power 1000 Watts
+
+©) Sensitivity 2.00V at Im 96 dB
+
+—) Recommended Hi Pass Crossover* 110 Hz*
+
+Ma *For Full Power Handling *12db Per Octave Crossover A
+
++, Frequency Response 100 - 13,000 Hz
+
+= Voice Coil Diameter 2" (50.8 mm) €
+
+m4) Voice Coil Wire CCAW 5
+
+2 Voice Coil Winding Depth 10.0 mm 2
+
+Gy Former Material Kapton y
+Magnetic Gap Depth 7.0mm ©
+Frame Material Stamped Steel y
+Equivalent Volume Vas 8.95 | =
+Excursion Xmax 3.25 mm E 5
+Free Air Resonance Fs 91.0 Hz o =,
+Mechanical Factor Qms 15.81 B 3
+
+Electrical Factor Oes 0.36
+Ots 0.35
+
+Total Factor 4.40" (112mm)
+
+Cone Area Sd = cm? i 8.62" (219mm) a“
+Mechanical Mass _ Mms 34¢ a - ee
+Bl Factor Bl 10.92 Tm 929 @8emm)
+
+Dc Resistance : Re 3.4 Ohm
+
+wn
+[a
+WwW
+-
+W
+=
+<=
+<
+[a
+—
+a
+<
+=
+Wh
+W
+=
+Se
+—
+-
+
+Inductance Le G.05mH at 1 kHz A A
+Mechanical Mass Without Air Mmd 20.54¢
+Mechanical Compliance Cms 0.136 mm/N
+Overall Diameter 6.44"x9.29"(163.5x236 mm)
+2 Front Mount Baffle Cutout 5.87"x8.62"(149x219 mm)
+=< Mounting Depth 3.39" (86 mm) Y
+= Overall Depth 3.74" (95 mm) Y
+= Net Weight 3.86 Lb (1.75 kg)
+“)) Shipping Weight (pair) 9.70 Lb (4.4 kg)
+Carton Dimensions W x L x H 15.3" x 10.8" x 5.31"
+(390 x 275 x 135 mm)
+Impedance Curve - Free Air Frequency Response Measured at 2.00V/1m
+180 CLIO] 110 TLIO]
+
+144 100
+
+108 90
+
+72 80
+
+36 70
+
+0 60
+5 10 20 50 100 200 Hz 500 1k 2k 5k 10k 20k 20 50 100 200 500 1k 2k Hz 5k 10k 20k
+
+PRV AUDIO USA (USA and Export)
+POMPANO BEACH, FL
+support@)prvaudio.com
+www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 03/23
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Magnetic Gap Depth/4

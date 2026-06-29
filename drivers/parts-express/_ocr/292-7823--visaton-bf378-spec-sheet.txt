@@ -1,0 +1,119 @@
+GERMANY
+
+VISATZN
+
+BF 37
+Art. No. 2260 - 4 0
+Art. No. 2261 - 8 0
+
+Technische Daten / Technical Data
+
+Nennbelastbarkeit
+
+Rated power 5W
+Impedanz
+
+Impedance 40/80
+Ubertragungsbereich (-10 dB)
+
+Frequency response (-10dB) 100-20000 Hz
+
+Mittlerer Schalldruckpegel
+
+Mean sound pressure level 74 dB (1 W/1 m)
+
+Grenzauslenkung x,
+
+Excursion limit x,_., +3,4mm
+Resonanzfrequenz
+
+Resonant frequency 170 Hz
+Anschluss Létésen
+Terminal Solder lugs
+Gewicht netto
+
+Net weight 33,19
+
+*) |P-Schutzklasse fir Frontseite bei Einbau in ein abgedichtetes
+Gehause (ggf. ist eine Verklebung des Lautsprechers und eine
+Frontabdeckung (Gitter) notwendig)
+
+*) IP protection class for front side when built into a sealed enclo-
+sure (gluing of the loudspeaker and a front cover (grille) might
+be necessary)
+
+© VISATON GmbH & Co. KG « Ohligser StraBe 29-31 *« D-42781 Haan « Tel.: 021 29/552-0 * Fax: 021 29/552-10 « e-mail: visaton@visaton.com
+
+3,7 cm (1,5“) Breitbandlautsprecher mit breitem, ausgewogenem Frequenzgang und sehr
+guter Tieftonwiedergabe. Mit kraftiaem Neodym-Anirieb und groBem Hub, optimiert fiir kleine
+Bassreflexgehause/Gehause mit Passivmembranen. Geeignet flir Anwendungen, die zugieich
+aeringe Abmessungen und gute Musik- und Sprachwiedergabe fordern.
+
+Anwendungsméglichkeiten:
+
+* Flachbildschirme (TV und PC)
+« Infoterminals
+
+* andere kompakte Gerate und Automaten zur Sprach- und Musikwiedergabe
+
+3.7 cm (1.5%) fullrange speaker with a wide and balanced frequency response and very good
+low range reproduction. With powerful Neodymium driver and high membrane excursion limit,
+optimized for small vented enclosures/enclosures with passive radiator. Suitable for applications
+where slim construction and good music and speech reproduction are requested.
+
+Typical applications:
+
+« Flat TVs
+
+« Info terminals
+
+* other compact devices speech and music reproduction
+
+tT
+na
+eo
+!
+BF 37 0,6
+05.10.2018 Tr
+
+Frequency Response 1 Wt m
+Impedance
+
+VISATON BF 37 -4 Ohm
+SPL [WB]
+
+100
+
+a0
+
+1
+Mw
+es 8 8 3
+2
+
+60
+
+70
+
+g
+
+PUTT Eee eee eee
+
+50.
+20 50 100 200 500 1000 2000 S000 40000 20000
+Frequency [Hz]
+
+VISATON BF 37 -8 Ohm
+Frequency Response (1 Wl m) and Impedance
+SPL [dB] 1
+
+80
+
+70
+
+eo -
+
+50 -
+40
+
+2023

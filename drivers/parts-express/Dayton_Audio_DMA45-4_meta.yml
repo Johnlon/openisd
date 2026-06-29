@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.56 differs from calculated=0.554291 (deps: Qms=5.23,
+  Qes=0.62); ''Vas'' stored=8.49504e-05 differs from calculated=8.70802e-05 (deps:
+  roo=1.20095, c=343.684, Sd=0.00086, Cms=0.00083)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-580--dayton-audio-dma45-4-specification-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-DMA45-4-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-580
+source: https://www.parts-express.com/Dayton-Audio-DMA45-4-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-580
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-580
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

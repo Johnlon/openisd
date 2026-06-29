@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0495544 differs from calculated=0.0506356 (deps: roo=1.20095,
+  c=343.684, Sd=0.05454, Cms=0.00012)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/290-4300--eminence-12-2kw-8-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
+source: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-4300
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

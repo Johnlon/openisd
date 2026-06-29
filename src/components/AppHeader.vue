@@ -1,10 +1,9 @@
 <script setup>
 import { ref } from 'vue';
-import { state, driver, syncedP, curvesData, driverShort } from '../store.js';
+import { state, driver } from '../store.js';
 import { toWdr, parseWdr } from '../core/driver.js';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
-import { ebp } from '../core/alignments.js';
 
 function shareLink() {
   const url = stateToUrl(serialize(state, driver.value, state.compare));
@@ -56,7 +55,6 @@ function dlFile(name, text, mime) {
 }
 
 function showAbout() {
-  const d = driver.value;
   alert(`Resonate — open loudspeaker enclosure simulator\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
 }
 </script>

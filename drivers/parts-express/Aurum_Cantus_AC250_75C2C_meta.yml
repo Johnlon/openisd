@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.28 differs from calculated=0.27489 (deps: Qms=1.95,
+  Qes=0.32); ''Vas'' stored=0.193121 differs from calculated=0.186805 (deps: roo=1.20095,
+  c=343.684, Sd=0.0346, Cms=0.0011)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Aurum-Cantus-AC250-75C2C-10-Woofer-296-454
+source: https://www.parts-express.com/Aurum-Cantus-AC250-75C2C-10-Woofer-296-454
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 296-454
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

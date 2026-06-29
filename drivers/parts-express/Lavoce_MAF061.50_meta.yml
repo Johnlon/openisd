@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.49 differs from calculated=0.498153 (deps: Qms=3.2,
+  Qes=0.59); ''Vas'' stored=0.00254851 differs from calculated=0.00261071 (deps: roo=1.20095,
+  c=343.684, Sd=0.0143, Cms=9e-05)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/293-746--lavoce-maf061-50-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/LaVoce-MAF061.50-6-1-2-Professional-Midrange-Driver-8-Ohm-293-746
+source: https://www.parts-express.com/LaVoce-MAF061.50-6-1-2-Professional-Midrange-Driver-8-Ohm-293-746
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 293-746
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

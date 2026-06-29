@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.4 differs from calculated=0.406915 (deps: Qms=4.25,
+  Qes=0.45); ''Vas'' stored=0.0325643 differs from calculated=0.033749 (deps: roo=1.20095,
+  c=343.684, Sd=0.03449, Cms=0.0002)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/290-322-goldwood-gw-10pc-4-specifications.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Goldwood-GW-10PC-4-10-Heavy-Duty-Woofer-4-Ohm-290-322
+source: https://www.parts-express.com/Goldwood-GW-10PC-4-10-Heavy-Duty-Woofer-4-Ohm-290-322
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 290-322
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

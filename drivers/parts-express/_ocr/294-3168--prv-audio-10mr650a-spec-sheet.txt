@@ -1,0 +1,147 @@
+GENERAL SPECIFICATIONS
+
+uw
+[a
+WwW
+—
+W
+=
+<=
+at
+o.
+J
+J
+<
+=
+a
+W
+—J
+=
+—
+-—
+
+EXTRA INFO
+
+TOMR650A
+
+Professional Mid Range Driver
+
+Frame Material
+
+- 2.5” Voice coil
+
+- 325 Watts continuous power handling
+
+- 97,5 dB Sensitivity
+
+- 80 - 6,500 Hz
+Nominal Diameter 10” (254 mm)
+Nominal impedance 8 ohms
+Rated Power Handling 325 Watts
+Program Power 650 Watts
+Sensitivity 2.83V at 1m 97.5 dB
+Recommended Hi Pass Crossover* 150 Hz*
+*For Full Power Handling *12db Per Octave Crossover
+Frequency Response at -10dB 80 - 6,500 Hz
+Voice Coil Diameter 2.5” (68 mm)
+Voice Coil Wire CCAW
+Voice Coil Winding Depth 16.2 mm
+Former Material Polyimide
+Magnetic Gap Depth 9.5mm
+
+Stapped Steel
+
+Equivalent Volume Vas 41.91
+Excursion (mathematical)*** Xmax 5.72mm
+Free Air Resonance Fs 64.7 Hz
+Mechanical Factor Qms 14.19
+Electrical Factor Qes 0.48
+
+Total Factor Ots 0.47
+
+Cone Area Sd 398 cm?
+Mechanical Mass Mms 31.86 g
+
+Bl Factor Bl 12.25 Tm
+
+Dc Resistance Re 5.6 Ohms
+Inductance Le 0.44 mH at 1 kHz
+Mechanical Mass Without Air Mmd 27.378
+Mechanical Compliance Cms 0.190 mm/N
+
+Overal Diameter
+
+Front Mount Baffle Cutout
+Mounting Depth
+
+Overall Depth
+
+Net Weight
+
+10.10” (256.5 mm)
+
+9.20” (233.5 mm)
+3.90” (99 mm)
+
+4.23” (107.5 mm)
+
+10.4 Lbs (4.7 kg)
+
+Shipping Weight
+
+12.8 Lbs (5.8 kg)
+
+Carton Dimensions W x LxH
+
+12.9 x 12.9” x 6.9”
+(328 x 328 x 175mm)
+
+**Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4
+
+~—a Pe
+10.10" (256.5mm)
+( | J
+,_8.14" (156mm) ,
+<____9.20" (233.5mm) |
+
+Frequency Re
+110
+
+dBSPL
+
+sponse Measured at 2.83V/1m
+
+4.23" (107.5mm)
+
+CLIO
+
+100
+
+90
+
+80
+
+70
+
+60
+
+20 50 100 200 500 1k
+
+2k Hz 5k
+
+10k
+
+20k
+
+PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+
+POMPANO BEACH, FL
+support@prvaudio.com
+www.prvaudio.com
+
+SAO LEOPOLDO, RS
+
+vendas@)pvaudio.com.br
+www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 05/21

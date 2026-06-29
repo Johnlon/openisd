@@ -12,6 +12,9 @@
     "preview": "vite preview",
     "test": "node --test test/config.test.mjs test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs && node test/golden.test.mjs && npx playwright test",
     "test:unit": "node --test test/config.test.mjs test/complex.test.mjs test/alignments.test.mjs test/engine.test.mjs",
+    "test:crosscheck": "npx playwright test test/micka-crosscheck.browser.spec.js --timeout=60000",
+    "test:visual": "npx playwright test test/visual.browser.spec.js",
+    "gen-scenarios": "node test/gen-scenarios.mjs",
     "gen-golden": "node test/gen-golden.mjs"
   },
   "keywords": [

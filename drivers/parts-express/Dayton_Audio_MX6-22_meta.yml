@@ -1,0 +1,24 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: null
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-744--dayton-audio-mx6-22-spec-sheet(2).pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-MX6-22-6-1-2-Max-X-High-Excursion-DVC-Subwoofer-Driver-2-Ohms-Per-Coil-295-744
+source: https://www.parts-express.com/Dayton-Audio-MX6-22-6-1-2-Max-X-High-Excursion-DVC-Subwoofer-Driver-2-Ohms-Per-Coil-295-744
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-744
+field_provenance: null
+freq_low_hz: 25.0
+freq_high_hz: 1000.0

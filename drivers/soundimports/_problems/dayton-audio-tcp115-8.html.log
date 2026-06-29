@@ -1,0 +1,14 @@
+[03:05:21] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Qts' stored=0.43 differs from calculated=0.437324 (deps: Qms=2.3, Qes=0.54)"
+         reason=File failed strict schema validation
+[03:05:21] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Vas' stored=9e-05 differs from calculated=0.00251793 (deps: roo=1.20095, c=343.684, Sd=0.005, Cms=0.00071)"
+         reason=File failed strict schema validation
+[03:05:21] SCHEMA_FAIL errors=2
+[03:13:58] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Qts' stored=0.43 differs from calculated=0.437324 (deps: Qms=2.3, Qes=0.54)"
+         reason=File failed strict schema validation
+[03:13:58] PROBLEM field=schema_fail item=TCP115-8 url=https://www.soundimports.eu/en/dayton-audio-tcp115-8.html offset=0
+         raw_value="WDR: 'Vas' stored=0.00254851 differs from calculated=0.00251793 (deps: roo=1.20095, c=343.684, Sd=0.005, Cms=0.00071)"
+         reason=File failed strict schema validation
+[03:13:58] SCHEMA_FAIL errors=2

@@ -1,0 +1,87 @@
+B RA ZtIL
+
+yy i@}]}2}§=§»>=%Sh eee—ste
+
+- 2.5” Voice coil
+- 325 Watts continuous power handling
+
+1OW650A
+
+Professional Low Frequency Driver
+
+- 97 cB Sensitivity
+
+- 75- 5,500 Hz
+Nominal Diameter 10” (254 mm)
+Nominal impedance 8 ohms
+Rated Power Handling 325 Watts
+Program Power 650 Watts
+Sensitivity 2.83V at Im 97 dB
+
+Recommended Hi Pass Crossover* 150 Hz*
+
+*For Full Power Handling *12db Per Octave Crossover
+
+GENERAL SPECIFICATIONS
+
+Frequency Response at -10dB 75- 5,500 Hz
+Voice Coil Diameter 2.5” (65.5 mm)
+Voice Coil Wire CCAW
+
+Voice Coil Winding Depth 13.0 mm
+Former Material Kapton
+Magnetic Gap Depth 8.0 mm
+
+Frame Material Stamped Steel
+
+Equivalent Volume Vas 34.041
+“4 Excursion (mathematical)*** Xmax 4.50 mm _
+i Free Air Resonance FS 72.31 Hz E E
+= Mechanical Factor Qms 16.34 Q =
+S Electrical Factor Qes 0.47 N %
+= Total Factor Ots 0.46 + oo v
+M™ Cone Area Sd = 415m? 6.26" (159mm)
+z Mechanical Mass Mms 34.04 g 9.25" (235mm)
+-A_Bl Factor BL 14.09 Tm
+Ww Dc Resistance Re 6.1 Ohms Frequency Response Measured at 2.83v/1m
+7m Inductance Le 0.79mHat1kHz m CUT
+sa) Mechanical Mass Without Air = Mmd 29.24¢ “ee
+@ Mechanical Compliance Cms 0.142 mm/N “
+
+90
+
+10.10” (257 mm)
+
+9.25” (235 mm) *
+4.3” (110 mm)
+4.72” (120 mm)
+10.49 Lbs (4.75 kg)
+
+11.25 Lbs (5.10 kg) “0 50 100200 500 1k
+
+11.02” x 11.02” x 5.98” PRV AUDIO USA (USA and Export) PRV AUDIO BRAZIL (Brazilian Sales Only)
+
+Overal Diameter
+
+Front Mount Baffle Cutout
+Mounting Depth
+
+Overall Depth
+
+Net Weight
+
+Shipping Weight
+
+Carton Dimensions W x L x H
+
+70
+
+EXTRA INFO
+
+2k Hz 5k 10k 20k
+
+(280 x 280 x 152 mm) FORT LAUDERDALE, FL SAO LEOPOLDO, RS
+support@prvaudio.com vendas@)pvaudio.com.br
+***Xmax=(Voice coil winding depth-Magnetic Gap depth)/2+ Mgnetic Gap Depth/4 www.prvaudio.com www.pvaudio.com.br
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 01/18

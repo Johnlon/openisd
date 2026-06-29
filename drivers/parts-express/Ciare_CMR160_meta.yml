@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.32 differs from calculated=0.324789 (deps: Qms=7.26,
+  Qes=0.34); ''Vas'' stored=0.0177 differs from calculated=0.0180972 (deps: roo=1.20095,
+  c=343.684, Sd=0.0135, Cms=0.0007)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/293-108--ciare-cmr160-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
+source: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 293-108
+field_provenance: null
+freq_low_hz: 70.0
+freq_high_hz: 7000.0

@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.39 differs from calculated=0.385479 (deps: Qms=4.69,
+  Qes=0.42)'
+reviewed_by: null
+driver_type: midrange
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/HiVi-M6N-6-Aluminum-Magnesium-Midbass-297-441
+source: https://www.parts-express.com/HiVi-M6N-6-Aluminum-Magnesium-Midbass-297-441
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 297-441
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

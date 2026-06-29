@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.3 differs from calculated=0.303988 (deps: Qms=2.87,
+  Qes=0.34); ''Vas'' stored=0.391338 differs from calculated=0.385452 (deps: roo=1.20095,
+  c=343.684, Sd=0.08347, Cms=0.00039)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-325-dayton-audio-dc380-8-specifications-46152.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
+source: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-325
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

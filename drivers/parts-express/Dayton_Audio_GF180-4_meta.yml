@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0165 differs from calculated=0.0168331 (deps: roo=1.20095,
+  c=343.684, Sd=0.01302, Cms=0.0007)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-417--dayton-audio-gf180-4-spec-sheet.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-GF180-4-6-1-2-Glass-Fiber-Cone-Woofer-4-Ohm-295-417
+source: https://www.parts-express.com/Dayton-Audio-GF180-4-6-1-2-Glass-Fiber-Cone-Woofer-4-Ohm-295-417
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-417
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

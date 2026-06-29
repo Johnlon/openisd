@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.27 differs from calculated=0.276839 (deps: Qms=6.1,
+  Qes=0.29)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
+source: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-675
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

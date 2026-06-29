@@ -1,0 +1,26 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Qts'' stored=0.45 differs from calculated=0.444079 (deps: Qms=2.5,
+  Qes=0.54); ''Vas'' stored=0.0971266 differs from calculated=0.0983355 (deps: roo=1.20095,
+  c=343.684, Sd=0.05067, Cms=0.00027)'
+reviewed_by: null
+driver_type: subwoofer
+nominal_size_cm: null
+datasheet: https://www.parts-express.com/pedocs/specs/295-445-dayton-audio-rss315hfa-8-specifications-47083.pdf
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/Dayton-Audio-RSS315HFA-8-12-Reference-Series-HF-Subwoofer-8-Ohm-295-445
+source: https://www.parts-express.com/Dayton-Audio-RSS315HFA-8-12-Reference-Series-HF-Subwoofer-8-Ohm-295-445
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 295-445
+field_provenance: null
+freq_low_hz: null
+freq_high_hz: null

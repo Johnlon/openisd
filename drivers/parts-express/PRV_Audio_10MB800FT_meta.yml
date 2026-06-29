@@ -1,0 +1,25 @@
+quality: M
+issue: scraped_not_human_verified
+detail: Automatically scraped from Parts Express API. T/S parameters have not been
+  verified by a human against the datasheet.
+corrections: '''Vas'' stored=0.0365287 differs from calculated=0.0372806 (deps: roo=1.20095,
+  c=343.684, Sd=0.038, Cms=0.000182)'
+reviewed_by: null
+driver_type: woofer
+nominal_size_cm: null
+datasheet: null
+adv_datasheet: null
+drawing: null
+cad: null
+manu_page: null
+vendor_page: https://www.parts-express.com/PRV-Audio-10MB800FT-10-Professional-Midbass-Driver-8-Ohm-294-2988
+source: https://www.parts-express.com/PRV-Audio-10MB800FT-10-Professional-Midbass-Driver-8-Ohm-294-2988
+frd: null
+impedance: null
+obsolete: null
+dq_issue: null
+community: null
+fetched_sku: 294-2988
+field_provenance: null
+freq_low_hz: 65.0
+freq_high_hz: 6500.0

@@ -1,0 +1,65 @@
+F8 Bass-Midrange Features:
+
+— Light and extremely rigid cone made from
+
+Kevlar®/paper composite
+— Specially made high-loss rubber surround
+EO — Shielded double magnet motor structure
+r o — High power handling Kapton® former voice coil
+= — Flat linear spider
+
+° — High-density aluminum die-cast basket
+Bass-Midrange An accurate and uncompressed sound performance at
+realistic loudness levels represents the ideology imple-
+mented in this driver. The design of the F8 has been |
+optimized for balanced and dynamic low bass reproduc-
+
+2
+0
+=
+ese
+So - tion in compact or medium vented systems. Midrange
+clarity and tonal balance is remarkable.
+a The F8 utilizes a newly developed matrix of Keviar® and |
+® paper fibers. As a result the cone weighs less, is more
+| tow rigid, and has an improved dampening factor over con-
+See ventional Keviar® materials. The back of the cone is
+hand-coated with a special dampening compound to fur-
+s | ther maximize performance stability and control of struc-
+(o) tural resonances. The driver utilizes a vented Kapton®
+vows voice coil former and air transparent spider to avoid air
+hed compression and ensure maximum power handling.
+[e) | The massive aluminum die-cast basket has been devel-
+rot) oped to minimize parasitic structural resonances.
+ace ~ A shielded magnet structure allows the F8 to be easily
+tc ss x incorporated into audio/video applications.
+® po 1ee| Recommended crossover frequency for two-way system
+o. | design is 1.8-2.2 kHz.
+ery Hi 1 13s = :
+= 4 - F8 SPECIFICATIONS
+fe) be Tt °* | Nominal Impedance () Zz 8
+bez if «| | Resonance Frequency (Hz) Fs 36
+Cc j« ,On axis and 30 .| | Nominal Power Handling (W) _ Pnom | 60
+6) i [| Sensitivity (2.83v/1m) (dB) E 87
+a ne ie 1 1 | “Weight (Kg) | Mi 29 |
+= o t ~**| Voice Coil Diameter (mm) _ | @ | 35 |
+ped aa|— | Pisa -1a5| | DC Resistance (Q) : Re | 65 |
+fe) LE | | Voice Coil Length (mm) H 175
+20s Trew se (ioe aoa eee |, |
+—” | Voice Coil Former Kapton® ||
+a _ (Force Factor (TM) _ BL 10.1 ||
+sa] Gap Height (mm) He _ | 7.5
+| fe) inear Excursion (mm) Xmax | 5.0
+| a adhe al =
+| ~ | pension Compliance (uM/N) Cms_ | 567
+o Mechanical Q Qms_ | 1.73
+2 | | Electrical Q Qes | 0.51
+TotalQ- Qts 0.39
+no} | Moving Mass (g) | Mms —§ 35.3 |
+seccact Paar F =o aa aaa ee
+| Equivalent Air Volume (L) Vas 36.9 ||
+re) CabinetType : Vented Box {|
+oO Recommended Box Volume (L) - Vb 19 |}
+Tuning Frequency (Hz) Fb 40 |
+ae -3dB Cut-Off Frequency (Hz) F3 47
+
