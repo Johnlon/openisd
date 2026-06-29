@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
+driver_type: midrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Qes:  # electrical Q factor
-    value: 1.18
-    winner: vendor_page
-    sources:
-      vendor_page: 1.18
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
-  BL:  # force factor (T·m)
-    value: 4.26
-    winner: vendor_page
-    sources:
-      vendor_page: 4.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 341.0
-    winner: vendor_page
-    sources:
-      vendor_page: 341.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -60,22 +27,62 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 3.16
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 3.16
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.00264
     winner: vendor_page
     sources:
       vendor_page: 0.00264
+  Fs:  # free air resonance (Hz)
+    value: 341.0
+    winner: vendor_page
+    sources:
+      vendor_page: 341.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Qms:  # mechanical Q factor
+    value: 3.16
+    winner: vendor_page
+    sources:
+      vendor_page: 3.16
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-  Cms:  # mechanical compliance (m/N)
+  Qes:  # electrical Q factor
+    value: 1.18
+    winner: vendor_page
+    sources:
+      vendor_page: 1.18
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 4.26
+    winner: vendor_page
+    sources:
+      vendor_page: 4.26
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
+  Vas:  # equivalent acoustic volume (m³)
     value: 0.00013
     winner: vendor_page
     sources:
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 52.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rs52an-8.html
-frd_url: null
-zma_url: null

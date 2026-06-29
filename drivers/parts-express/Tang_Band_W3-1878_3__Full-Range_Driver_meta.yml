@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-902--tang-band-w3-1878-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-902--tang-band-w3-1878-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003114848
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003114848
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 4.3
-    winner: vendor_page
-    sources:
-      vendor_page: 4.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Fs:  # free air resonance (Hz)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5643579617227173
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5643579617227173
   Xmax:  # one-way linear excursion (m)
     value: 0.004200000000000001
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 1.67
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 1.67
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0032
     winner: vendor_page
     sources:
       vendor_page: 0.0032
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 75.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 75.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5643579617227173
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5643579617227173
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 1.67
+    winner: vendor_page
+    sources:
+      vendor_page: 1.67
   Cms:  # mechanical compliance (m/N)
     value: 0.00212
     winner: vendor_page
     sources:
       vendor_page: 0.00212
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-902--tang-band-w3-1878-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-902--tang-band-w3-1878-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  BL:  # force factor (T·m)
+    value: 4.3
+    winner: vendor_page
+    sources:
+      vendor_page: 4.3
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003114848
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003114848

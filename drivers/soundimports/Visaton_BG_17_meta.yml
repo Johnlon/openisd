@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0082
-  Qes:  # electrical Q factor
-    value: 0.98
-    winner: vendor_page
-    sources:
-      vendor_page: 0.98
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0065
-  BL:  # force factor (T·m)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.74
-  Qms:  # mechanical Q factor
-    value: 2.94
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.94
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 120.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 120.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0065
+  Qms:  # mechanical Q factor
+    value: 2.94
+    winner: vendor_page
+    sources:
+      vendor_page: 2.94
   Cms:  # mechanical compliance (m/N)
     value: 0.000283
     winner: vendor_page
     sources:
       vendor_page: 0.000283
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.98
+    winner: vendor_page
+    sources:
+      vendor_page: 0.98
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.7
+    winner: vendor_page
+    sources:
+      vendor_page: 5.7
+  Le:  # voice coil inductance (H)
+    value: 0.0007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0082
   power_peak_W:  # peak power handling (W)
     value: 60.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/bg-17-full-range-woofer.html
-frd_url: null
-zma_url: null

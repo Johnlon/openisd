@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-c158-8-085.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c158-8-085.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C158-8-085/Accuton-C158-8-085-woofer.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c158-8-085.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C158-8-085/Accuton-C158-8-085-woofer.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-c158-8-085.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00054
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00054
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0273
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0273
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0121
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0121
-  BL:  # force factor (T·m)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 8.1
-    winner: vendor_page
-    sources:
-      vendor_page: 8.1
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.58
-    winner: vendor_page
-    sources:
-      vendor_page: 0.58
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -65,21 +28,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 4.91
+  Re:  # DC voice coil resistance (Ω)
+    value: 8.1
     winner: vendor_page
     sources:
-      vendor_page: 4.91
+      vendor_page: 8.1
   Sd:  # effective piston area (m²)
     value: 0.0113
     winner: vendor_page
     sources:
       vendor_page: 0.0113
+  Fs:  # free air resonance (Hz)
+    value: 37.0
+    winner: vendor_page
+    sources:
+      vendor_page: 37.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.58
+    winner: vendor_page
+    sources:
+      vendor_page: 0.58
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0121
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0121
+  Qms:  # mechanical Q factor
+    value: 4.91
+    winner: vendor_page
+    sources:
+      vendor_page: 4.91
   Cms:  # mechanical compliance (m/N)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
+  Le:  # voice coil inductance (H)
+    value: 0.00054
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00054
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0273
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0273
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.5
     winner: vendor_page
@@ -90,11 +98,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 25.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C158-8-085/Accuton-C158-8-085-woofer.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-c158-8-085.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C158-8-085/Accuton-C158-8-085-woofer.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c158-8-085.html
-frd_url: null
-zma_url: null

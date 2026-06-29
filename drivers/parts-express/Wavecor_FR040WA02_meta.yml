@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 298-2002
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 5.66336e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.66336e-05
-  Qes:  # electrical Q factor
-    value: 1.42
-    winner: vendor_page
-    sources:
-      vendor_page: 1.42
-  BL:  # force factor (T·m)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 239.0
-    winner: vendor_page
-    sources:
-      vendor_page: 239.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -57,33 +32,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.23
-  Qms:  # mechanical Q factor
-    value: 9.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 9.4
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.00078
     winner: vendor_page
     sources:
       vendor_page: 0.00078
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 239.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 239.0
+  Qms:  # mechanical Q factor
+    value: 9.4
+    winner: vendor_page
+    sources:
+      vendor_page: 9.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00074
     winner: vendor_page
     sources:
       vendor_page: 0.00074
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-FR040WA02-1-1-2-Neodymium-Aluminum-Cone-Full-Range-8-Ohm-298-2002
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.42
+    winner: vendor_page
+    sources:
+      vendor_page: 1.42
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Le:  # voice coil inductance (H)
+    value: 8.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 5.66336e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.66336e-05

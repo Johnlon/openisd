@@ -1,36 +1,24 @@
+source: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
+datasheet_url: https://www.parts-express.com/pedocs/specs/morel-msw-shallow-classic-series-drivers-overview.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/morel-msw-shallow-classic-series-drivers-overview.pdf
+  vendor_page: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.012176224
-    winner: vendor_page
-    sources:
-      vendor_page: 0.012176224
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01368
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01368
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -41,16 +29,28 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
+  Fs:  # free air resonance (Hz)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01368
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01368
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/morel-msw-shallow-classic-series-drivers-overview.pdf
-  vendor_page: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
-datasheet_url: https://www.parts-express.com/pedocs/specs/morel-msw-shallow-classic-series-drivers-overview.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MSW-144-Shallow-Classic-Series-5-DPC-Cone-Woofer-8-Ohms-297-004
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.012176224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.012176224

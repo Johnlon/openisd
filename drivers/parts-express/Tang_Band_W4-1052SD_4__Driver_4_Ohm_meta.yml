@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-828--tang-band-w4-1052sd-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
+driver_type: mid-bass
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-828--tang-band-w4-1052sd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0076455360000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0076455360000000005
-  Qes:  # electrical Q factor
-    value: 0.49
-    winner: vendor_page
-    sources:
-      vendor_page: 0.49
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00385
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00385
-  BL:  # force factor (T·m)
-    value: 3.44
-    winner: vendor_page
-    sources:
-      vendor_page: 3.44
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3746279735143581
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3746279735143581
   Xmax:  # one-way linear excursion (m)
     value: 0.0034
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 4.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 4.52
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.0057
     winner: vendor_page
     sources:
       vendor_page: 0.0057
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3746279735143581
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3746279735143581
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00385
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00385
+  Qms:  # mechanical Q factor
+    value: 4.52
+    winner: vendor_page
+    sources:
+      vendor_page: 4.52
   Cms:  # mechanical compliance (m/N)
     value: 0.00164
     winner: vendor_page
     sources:
       vendor_page: 0.00164
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-828--tang-band-w4-1052sd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-828--tang-band-w4-1052sd-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.49
+    winner: vendor_page
+    sources:
+      vendor_page: 0.49
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.44
+    winner: vendor_page
+    sources:
+      vendor_page: 3.44
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0076455360000000005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0076455360000000005

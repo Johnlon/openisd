@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-782--lavoce-wan153.01-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,14 @@ corrections: '''Qts'' stored=0.29 differs from calculated=0.284694 (deps: Qms=5.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-782
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-782--lavoce-wan153.01-specifications.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1132672
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1144
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1144
-  BL:  # force factor (T·m)
-    value: 23.9
-    winner: vendor_page
-    sources:
-      vendor_page: 23.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 46.3
-    winner: vendor_page
-    sources:
-      vendor_page: 46.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.964206681047357
-    winner: vendor_page
-    sources:
-      vendor_page: 5.964206681047357
   Xmax:  # one-way linear excursion (m)
     value: 0.0066
     winner: vendor_page
@@ -69,34 +35,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 5.58
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 5.58
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.08814
     winner: vendor_page
     sources:
       vendor_page: 0.08814
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 46.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 46.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.964206681047357
+    winner: vendor_page
+    sources:
+      vendor_page: 5.964206681047357
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1144
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1144
+  Qms:  # mechanical Q factor
+    value: 5.58
+    winner: vendor_page
+    sources:
+      vendor_page: 5.58
   Cms:  # mechanical compliance (m/N)
     value: 0.0001
     winner: vendor_page
     sources:
       vendor_page: 0.0001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-782--lavoce-wan153.01-specifications.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-782--lavoce-wan153.01-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-WAN153.01-15-Professional-Neodymium-Woofer-8-Ohm-293-782
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 23.9
+    winner: vendor_page
+    sources:
+      vendor_page: 23.9
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1132672

@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/16w-4538g05/
+manu_page_url: https://www.scan-speak.dk/product/16w-4538g05/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/16w-4538g05.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/16w-4538g05.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/16w-4538g05.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/16w-4538g05.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,56 +15,47 @@ corrections: null
 reviewed_by: null
 driver_type: midwoofer, automotive
 nominal_size_cm: 16.0
-source: https://www.scan-speak.dk/product/16w-4538g05/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/16w-4538g05.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/16w-4538g05.pdf
+  manu_page: https://www.scan-speak.dk/product/16w-4538g05/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.024
-    winner: manu_page
-    sources:
-      manu_page: 0.024
-  BL:  # force factor (T·m)
-    value: 5.5
-    winner: manu_page
-    sources:
-      manu_page: 5.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: manu_page
-    sources:
-      manu_page: 3.1
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: manu_page
-    sources:
-      manu_page: 36.0
   Qts:  # total Q factor
     value: 0.35
     winner: manu_page
     sources:
       manu_page: 0.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
+    winner: manu_page
+    sources:
+      manu_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0123
     winner: manu_page
     sources:
       manu_page: 0.0123
+  Fs:  # free air resonance (Hz)
+    value: 36.0
+    winner: manu_page
+    sources:
+      manu_page: 36.0
+  BL:  # force factor (T·m)
+    value: 5.5
+    winner: manu_page
+    sources:
+      manu_page: 5.5
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 90.0
     winner: manu_page
     sources:
       manu_page: 90.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/16w-4538g05.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/16w-4538g05.pdf
-  manu_page: https://www.scan-speak.dk/product/16w-4538g05/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/16w-4538g05.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/16w-4538g05.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/16w-4538g05.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/16w-4538g05.ZIP
-manu_page_url: https://www.scan-speak.dk/product/16w-4538g05/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.024
+    winner: manu_page
+    sources:
+      manu_page: 0.024

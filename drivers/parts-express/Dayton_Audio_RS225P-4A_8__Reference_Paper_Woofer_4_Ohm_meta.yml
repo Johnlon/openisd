@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-567--dayton-audio-rs225p-4a-reference-series-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-567--dayton-audio-rs225p-4a-reference-series-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00051
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.045590048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.045590048
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.025
-  BL:  # force factor (T·m)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 37.7
-    winner: vendor_page
-    sources:
-      vendor_page: 37.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.20102819027933
-    winner: vendor_page
-    sources:
-      vendor_page: 3.20102819027933
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 1.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 1.85
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.02138
     winner: vendor_page
     sources:
       vendor_page: 0.02138
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 37.7
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 37.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.20102819027933
+    winner: vendor_page
+    sources:
+      vendor_page: 3.20102819027933
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.025
+  Qms:  # mechanical Q factor
+    value: 1.85
+    winner: vendor_page
+    sources:
+      vendor_page: 1.85
   Cms:  # mechanical compliance (m/N)
     value: 0.0007099999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0007099999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-567--dayton-audio-rs225p-4a-reference-series-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-567--dayton-audio-rs225p-4a-reference-series-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS225P-4A-8-Reference-Paper-Woofer-4-Ohm-295-567
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Le:  # voice coil inductance (H)
+    value: 0.00051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00051
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.045590048
+    winner: vendor_page
+    sources:
+      vendor_page: 0.045590048

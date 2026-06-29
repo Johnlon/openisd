@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-107
+_sources:
+  vendor_page: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00038
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003681184
-  Qes:  # electrical Q factor
-    value: 0.86
-    winner: vendor_page
-    sources:
-      vendor_page: 0.86
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00615
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00615
-  BL:  # force factor (T·m)
-    value: 6.85
-    winner: vendor_page
-    sources:
-      vendor_page: 6.85
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.26
-    winner: vendor_page
-    sources:
-      vendor_page: 5.26
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 198.0
-    winner: vendor_page
-    sources:
-      vendor_page: 198.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5614356629699147
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5614356629699147
   Xmax:  # one-way linear excursion (m)
     value: 0.00275
     winner: vendor_page
@@ -67,38 +32,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.73
-  Qms:  # mechanical Q factor
-    value: 4.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.26
     winner: vendor_page
     sources:
-      vendor_page: 4.9
+      vendor_page: 5.26
   Sd:  # effective piston area (m²)
     value: 0.0051530000000000005
     winner: vendor_page
     sources:
       vendor_page: 0.0051530000000000005
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 198.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 198.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5614356629699147
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5614356629699147
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00615
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00615
+  Qms:  # mechanical Q factor
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.86
+    winner: vendor_page
+    sources:
+      vendor_page: 0.86
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 6.85
+    winner: vendor_page
+    sources:
+      vendor_page: 6.85
+  Le:  # voice coil inductance (H)
+    value: 0.00038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00038
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003681184
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.2
     winner: vendor_page
     sources:
       vendor_page: 89.2
-_sources:
-  vendor_page: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-PCXPA-4-4-Neodymium-Coaxial-Driver-293-107
-frd_url: null
-zma_url: null

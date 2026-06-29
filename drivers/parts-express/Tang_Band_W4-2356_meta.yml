@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-982--tangband-w4-2356-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
 obsolete: null
 dq_issue: Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-982
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-982--tangband-w4-2356-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00397
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00397
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.099
-  BL:  # force factor (T·m)
-    value: 4.94
-    winner: vendor_page
-    sources:
-      vendor_page: 4.94
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.199298703714661
-    winner: vendor_page
-    sources:
-      vendor_page: 1.199298703714661
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 1.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 1.83
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 5.0e-07
     winner: vendor_page
     sources:
       vendor_page: 5.0e-07
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.199298703714661
+    winner: vendor_page
+    sources:
+      vendor_page: 1.199298703714661
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.099
+  Qms:  # mechanical Q factor
+    value: 1.83
+    winner: vendor_page
+    sources:
+      vendor_page: 1.83
   Cms:  # mechanical compliance (m/N)
     value: 0.001118
     winner: vendor_page
     sources:
       vendor_page: 0.001118
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-982--tangband-w4-2356-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-982--tangband-w4-2356-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 4.94
+    winner: vendor_page
+    sources:
+      vendor_page: 4.94
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00397
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00397

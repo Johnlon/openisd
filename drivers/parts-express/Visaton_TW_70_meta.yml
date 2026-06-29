@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7841--visaton-tw70-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,37 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7841
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7841--visaton-tw70-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Qes:  # electrical Q factor
-    value: 4.21
-    winner: vendor_page
-    sources:
-      vendor_page: 4.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 1500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1500.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -47,21 +33,46 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.97
-  Qms:  # mechanical Q factor
-    value: 1.26
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 1.26
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.002
     winner: vendor_page
     sources:
       vendor_page: 0.002
+  Fs:  # free air resonance (Hz)
+    value: 1500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1500.0
+  Qms:  # mechanical Q factor
+    value: 1.26
+    winner: vendor_page
+    sources:
+      vendor_page: 1.26
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 4.21
+    winner: vendor_page
+    sources:
+      vendor_page: 4.21
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 95.0
     winner: vendor_page
@@ -72,14 +83,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 22000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7841--visaton-tw70-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7841--visaton-tw70-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-TW70-8-2.5-Cone-Tweeter-8-Ohm-292-7841
-frd_url: null
-zma_url: null

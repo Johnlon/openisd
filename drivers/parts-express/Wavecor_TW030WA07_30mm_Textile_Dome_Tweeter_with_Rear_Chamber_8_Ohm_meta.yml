@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1108-1110-1112-1114--wavecor-tw030wa05-06-07-08-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1108-1110-1112-1114--wavecor-tw030wa05-06-07-08-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.028
-  Qes:  # electrical Q factor
-    value: 1.19
-    winner: vendor_page
-    sources:
-      vendor_page: 1.19
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 470.0
-    winner: vendor_page
-    sources:
-      vendor_page: 470.0
   Qts:  # total Q factor
     value: 0.68
     winner: vendor_page
     sources:
       vendor_page: 0.68
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3
+  Fs:  # free air resonance (Hz)
+    value: 470.0
+    winner: vendor_page
+    sources:
+      vendor_page: 470.0
   Qms:  # mechanical Q factor
     value: 1.6
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1108-1110-1112-1114--wavecor-tw030wa05-06-07-08-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1108-1110-1112-1114--wavecor-tw030wa05-06-07-08-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA07-30mm-Textile-Dome-Tweeter-with-Rear-Chamber-8-Ohm-298-1112
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.19
+    winner: vendor_page
+    sources:
+      vendor_page: 1.19
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 0.028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.028

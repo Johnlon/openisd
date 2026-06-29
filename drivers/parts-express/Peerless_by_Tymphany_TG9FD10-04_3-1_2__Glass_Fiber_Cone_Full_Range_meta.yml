@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 1.14
-    winner: vendor_page
-    sources:
-      vendor_page: 1.14
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00283
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00283
-  BL:  # force factor (T·m)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 113.0
-    winner: vendor_page
-    sources:
-      vendor_page: 113.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.66976660979432
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66976660979432
   Xmax:  # one-way linear excursion (m)
     value: 0.0026
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 3.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 3.0
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0036299999999999995
     winner: vendor_page
     sources:
       vendor_page: 0.0036299999999999995
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 113.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 113.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.66976660979432
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66976660979432
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00283
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00283
+  Qms:  # mechanical Q factor
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
   Cms:  # mechanical compliance (m/N)
     value: 0.0007
     winner: vendor_page
     sources:
       vendor_page: 0.0007
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.14
+    winner: vendor_page
+    sources:
+      vendor_page: 1.14
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Le:  # voice coil inductance (H)
+    value: 7.000000000000001e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.000000000000001e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584

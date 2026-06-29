@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2897
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.010194047999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.010194047999999999
-  Qes:  # electrical Q factor
-    value: 0.74
-    winner: vendor_page
-    sources:
-      vendor_page: 0.74
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015099999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015099999999999999
-  BL:  # force factor (T·m)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 81.1
-    winner: vendor_page
-    sources:
-      vendor_page: 81.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5035635837058372
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5035635837058372
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -67,26 +32,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.7
-  Qms:  # mechanical Q factor
-    value: 15.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 15.28
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.02
     winner: vendor_page
     sources:
       vendor_page: 0.02
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 81.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 81.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5035635837058372
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5035635837058372
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015099999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015099999999999999
+  Qms:  # mechanical Q factor
+    value: 15.28
+    winner: vendor_page
+    sources:
+      vendor_page: 15.28
   Cms:  # mechanical compliance (m/N)
     value: 0.00017999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00017999999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.74
+    winner: vendor_page
+    sources:
+      vendor_page: 0.74
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 6.1
+    winner: vendor_page
+    sources:
+      vendor_page: 6.1
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.010194047999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.010194047999999999
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 85.0
     winner: vendor_page
@@ -97,13 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-69FR250-4-6x-9-Full-Range-Speaker-4-Ohm-294-2897
-frd_url: null
-zma_url: null

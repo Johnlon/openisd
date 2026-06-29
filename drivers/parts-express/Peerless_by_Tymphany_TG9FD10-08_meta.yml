@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1632--peerless-tg9fd10-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1632
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1632--peerless-tg9fd10-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000991088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000991088
-  Qes:  # electrical Q factor
-    value: 1.23
-    winner: vendor_page
-    sources:
-      vendor_page: 1.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025
-  BL:  # force factor (T·m)
-    value: 3.32
-    winner: vendor_page
-    sources:
-      vendor_page: 3.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.11
-    winner: vendor_page
-    sources:
-      vendor_page: 6.11
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 105.0
-    winner: vendor_page
-    sources:
-      vendor_page: 105.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.942477796076938
-    winner: vendor_page
-    sources:
-      vendor_page: 0.942477796076938
   Xmax:  # one-way linear excursion (m)
     value: 0.0026
     winner: vendor_page
@@ -67,29 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.72
-  Qms:  # mechanical Q factor
-    value: 1.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.11
     winner: vendor_page
     sources:
-      vendor_page: 1.75
+      vendor_page: 6.11
   Sd:  # effective piston area (m²)
     value: 0.0036299999999999995
     winner: vendor_page
     sources:
       vendor_page: 0.0036299999999999995
+  Fs:  # free air resonance (Hz)
+    value: 105.0
+    winner: vendor_page
+    sources:
+      vendor_page: 105.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.942477796076938
+    winner: vendor_page
+    sources:
+      vendor_page: 0.942477796076938
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025
+  Qms:  # mechanical Q factor
+    value: 1.75
+    winner: vendor_page
+    sources:
+      vendor_page: 1.75
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1632--peerless-tg9fd10-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1632--peerless-tg9fd10-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.23
+    winner: vendor_page
+    sources:
+      vendor_page: 1.23
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 3.32
+    winner: vendor_page
+    sources:
+      vendor_page: 3.32
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000991088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000991088

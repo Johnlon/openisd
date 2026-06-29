@@ -1,21 +1,24 @@
+source: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-710--visaton-sl87xa-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-710--visaton-sl87xa-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
 specs:
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
   Fs:  # free air resonance (Hz)
     value: 550.0
     winner: vendor_page
@@ -26,6 +29,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 350.0
     winner: vendor_page
@@ -36,11 +44,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5800.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-710--visaton-sl87xa-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-710--visaton-sl87xa-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SL87XA-8-3-1-4-Waterproof-Poly-Cone-Full-Range-Driver-8-Ohm-292-740
-frd_url: null
-zma_url: null

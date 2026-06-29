@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-488--hivi-m6n-b-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-488--hivi-m6n-b-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.021803936
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021803936
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: vendor_page
-    sources:
-      vendor_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0136
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0136
-  BL:  # force factor (T·m)
-    value: 7.8
-    winner: vendor_page
-    sources:
-      vendor_page: 7.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Fs:  # free air resonance (Hz)
-    value: 46.0
-    winner: vendor_page
-    sources:
-      vendor_page: 46.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8381152938532086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8381152938532086
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -61,31 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 4.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 4.69
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: vendor_page
     sources:
       vendor_page: 0.0133
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 46.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 46.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8381152938532086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8381152938532086
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0136
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0136
+  Qms:  # mechanical Q factor
+    value: 4.69
+    winner: vendor_page
+    sources:
+      vendor_page: 4.69
   Cms:  # mechanical compliance (m/N)
     value: 0.000871
     winner: vendor_page
     sources:
       vendor_page: 0.000871
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-488--hivi-m6n-b-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-488--hivi-m6n-b-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-M6N-B-6-Damped-Aluminum-Magnesium-Cone-Woofer-297-488
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: vendor_page
+    sources:
+      vendor_page: 0.42
+  Pe:  # rated power input (W)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  BL:  # force factor (T·m)
+    value: 7.8
+    winner: vendor_page
+    sources:
+      vendor_page: 7.8
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.021803936
+    winner: vendor_page
+    sources:
+      vendor_page: 0.021803936

@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/hivi-f10.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-f10.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-f10.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-f10.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00278
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00278
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0726
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0726
-  BL:  # force factor (T·m)
-    value: 16.2
-    winner: vendor_page
-    sources:
-      vendor_page: 16.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 28.0
-    winner: vendor_page
-    sources:
-      vendor_page: 28.0
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -55,26 +27,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 5.12
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.12
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0363
     winner: vendor_page
     sources:
       vendor_page: 0.0363
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 28.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 28.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0726
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0726
+  Qms:  # mechanical Q factor
+    value: 5.12
+    winner: vendor_page
+    sources:
+      vendor_page: 5.12
   Cms:  # mechanical compliance (m/N)
     value: 0.00042
     winner: vendor_page
     sources:
       vendor_page: 0.00042
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 16.2
+    winner: vendor_page
+    sources:
+      vendor_page: 16.2
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00278
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00278
   power_peak_W:  # peak power handling (W)
     value: 200.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 3.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-f10.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-f10.html
-frd_url: null
-zma_url: null

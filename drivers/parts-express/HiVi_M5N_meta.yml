@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-436
+_sources:
+  vendor_page: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01132672
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0107
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0107
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.516360082848092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.516360082848092
   Xmax:  # one-way linear excursion (m)
     value: 0.0027
     winner: vendor_page
@@ -57,33 +32,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 6.51
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 6.51
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0087
     winner: vendor_page
     sources:
       vendor_page: 0.0087
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.516360082848092
+    winner: vendor_page
+    sources:
+      vendor_page: 0.516360082848092
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0107
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0107
+  Qms:  # mechanical Q factor
+    value: 6.51
+    winner: vendor_page
+    sources:
+      vendor_page: 6.51
   Cms:  # mechanical compliance (m/N)
     value: 0.0011
     winner: vendor_page
     sources:
       vendor_page: 0.0011
-_sources:
-  vendor_page: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-M5N-5-Aluminum-Magnesium-Midbass-297-436
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01132672

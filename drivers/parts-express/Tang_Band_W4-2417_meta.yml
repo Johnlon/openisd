@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-817--tang-band-w4-2417-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
 obsolete: null
 dq_issue: missing_Re; Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-817
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-817--tang-band-w4-2417-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.2e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00456
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00456
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: vendor_page
-    sources:
-      vendor_page: 0.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.056
-  BL:  # force factor (T·m)
-    value: 5.36
-    winner: vendor_page
-    sources:
-      vendor_page: 5.36
-  Pe:  # rated power input (W)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7911997108065164
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7911997108065164
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -62,26 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.87
-    winner: vendor_page
-    sources:
-      vendor_page: 2.87
   Sd:  # effective piston area (m²)
     value: 5.7e-07
     winner: vendor_page
     sources:
       vendor_page: 5.7e-07
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7911997108065164
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7911997108065164
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.056
+    winner: vendor_page
+    sources:
+      vendor_page: 0.056
+  Qms:  # mechanical Q factor
+    value: 2.87
+    winner: vendor_page
+    sources:
+      vendor_page: 2.87
   Cms:  # mechanical compliance (m/N)
     value: 0.000988
     winner: vendor_page
     sources:
       vendor_page: 0.000988
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: vendor_page
+    sources:
+      vendor_page: 0.52
+  Pe:  # rated power input (W)
+    value: 52.0
+    winner: vendor_page
+    sources:
+      vendor_page: 52.0
+  BL:  # force factor (T·m)
+    value: 5.36
+    winner: vendor_page
+    sources:
+      vendor_page: 5.36
+  Le:  # voice coil inductance (H)
+    value: 3.2e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00456
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00456
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 65.0
     winner: vendor_page
@@ -92,14 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 40.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-817--tang-band-w4-2417-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-817--tang-band-w4-2417-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W4-2417-F-Series-4-Full-Range-with-Dust-Cap-8-Ohm-264-817
-frd_url: null
-zma_url: null

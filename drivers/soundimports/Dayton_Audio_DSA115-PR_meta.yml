@@ -1,54 +1,54 @@
+source: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
+driver_type: pr
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: pr
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0117
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0117
-  Fs:  # free air resonance (Hz)
-    value: 30.9
-    winner: vendor_page
-    sources:
-      vendor_page: 30.9
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
     sources:
       vendor_page: 0.006
-  Qms:  # mechanical Q factor
-    value: 3.48
-    winner: vendor_page
-    sources:
-      vendor_page: 3.48
   Sd:  # effective piston area (m²)
     value: 0.00541
     winner: vendor_page
     sources:
       vendor_page: 0.00541
+  Fs:  # free air resonance (Hz)
+    value: 30.9
+    winner: vendor_page
+    sources:
+      vendor_page: 30.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0117
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0117
+  Qms:  # mechanical Q factor
+    value: 3.48
+    winner: vendor_page
+    sources:
+      vendor_page: 3.48
   Cms:  # mechanical compliance (m/N)
     value: 0.00227
     winner: vendor_page
     sources:
       vendor_page: 0.00227
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dsa115-pr.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033

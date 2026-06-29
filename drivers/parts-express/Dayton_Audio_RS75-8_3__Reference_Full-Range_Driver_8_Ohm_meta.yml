@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-337--dayton-audio-rs75-8-specification-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/RS75-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-337--dayton-audio-rs75-8-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0002265344
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002265344
-  Qes:  # electrical Q factor
-    value: 1.33
-    winner: vendor_page
-    sources:
-      vendor_page: 1.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00122
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00122
-  BL:  # force factor (T·m)
-    value: 2.56
-    winner: vendor_page
-    sources:
-      vendor_page: 2.56
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 184.0
-    winner: vendor_page
-    sources:
-      vendor_page: 184.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.286095220640096
-    winner: vendor_page
-    sources:
-      vendor_page: 0.286095220640096
   Xmax:  # one-way linear excursion (m)
     value: 0.0013
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.05
-  Qms:  # mechanical Q factor
-    value: 4.93
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 4.93
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.00158
     winner: vendor_page
     sources:
       vendor_page: 0.00158
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 184.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 184.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.286095220640096
+    winner: vendor_page
+    sources:
+      vendor_page: 0.286095220640096
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00122
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00122
+  Qms:  # mechanical Q factor
+    value: 4.93
+    winner: vendor_page
+    sources:
+      vendor_page: 4.93
   Cms:  # mechanical compliance (m/N)
     value: 0.00061
     winner: vendor_page
     sources:
       vendor_page: 0.00061
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-337--dayton-audio-rs75-8-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-337--dayton-audio-rs75-8-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS75-8-3-Reference-Full-Range-Driver-8-Ohm-295-337
-frd_url: https://www.parts-express.com/pedocs/tech-docs/RS75-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.33
+    winner: vendor_page
+    sources:
+      vendor_page: 1.33
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.56
+    winner: vendor_page
+    sources:
+      vendor_page: 2.56
+  Le:  # voice coil inductance (H)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0002265344
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002265344

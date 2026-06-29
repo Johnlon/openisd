@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-536--visaton-frs5-8-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-536--visaton-frs5-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00015998991999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015998991999999999
-  Qes:  # electrical Q factor
-    value: 1.81
-    winner: vendor_page
-    sources:
-      vendor_page: 1.81
-  BL:  # force factor (T·m)
-    value: 1.6
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 270.0
-    winner: vendor_page
-    sources:
-      vendor_page: 270.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0006
     winner: vendor_page
@@ -56,26 +29,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.15
-  Qms:  # mechanical Q factor
-    value: 3.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 3.19
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
+  Fs:  # free air resonance (Hz)
+    value: 270.0
+    winner: vendor_page
+    sources:
+      vendor_page: 270.0
+  Qms:  # mechanical Q factor
+    value: 3.19
+    winner: vendor_page
+    sources:
+      vendor_page: 3.19
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-536--visaton-frs5-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-536--visaton-frs5-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FRS5-8-2-Full-Range-Speaker-8-Ohm-292-536
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.81
+    winner: vendor_page
+    sources:
+      vendor_page: 1.81
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.6
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00015998991999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015998991999999999

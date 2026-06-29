@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00037
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  BL:  # force factor (T·m)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 108.3
-    winner: vendor_page
-    sources:
-      vendor_page: 108.3
   Xmax:  # one-way linear excursion (m)
     value: 0.0024
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.63
-  Qms:  # mechanical Q factor
-    value: 3.15
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 3.15
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.00442
     winner: vendor_page
     sources:
       vendor_page: 0.00442
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 108.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 108.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 3.15
+    winner: vendor_page
+    sources:
+      vendor_page: 3.15
   Cms:  # mechanical compliance (m/N)
     value: 0.000432
     winner: vendor_page
     sources:
       vendor_page: 0.000432
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sica-4-l-1-sl-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 5.1
+    winner: vendor_page
+    sources:
+      vendor_page: 5.1
+  Le:  # voice coil inductance (H)
+    value: 0.00037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00037
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012

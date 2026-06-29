@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,13 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.344498 (deps: Qms=8,
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 298-1232
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.011609887999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011609887999999999
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0128
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0128
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 46.0
-    winner: vendor_page
-    sources:
-      vendor_page: 46.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.46244243860841755
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46244243860841755
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -52,17 +32,27 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Sd:  # effective piston area (m²)
     value: 0.0093
     winner: vendor_page
     sources:
       vendor_page: 0.0093
-  Znom:  # nominal impedance (Ω)
+  Fs:  # free air resonance (Hz)
+    value: 46.0
+    winner: vendor_page
+    sources:
+      vendor_page: 46.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.46244243860841755
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46244243860841755
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0128
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0128
+  Qms:  # mechanical Q factor
     value: 8.0
     winner: vendor_page
     sources:
@@ -72,13 +62,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.00094
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF152BD14-6-Black-Coated-Paper-Glass-Fiber-Cone-Midwoofer-8-Ohm-298-1232
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.011609887999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011609887999999999

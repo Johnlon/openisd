@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-184--ciare-pwa10.64-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-184--ciare-pwa10.64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00085
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022936608
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022936608
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.034
-  BL:  # force factor (T·m)
-    value: 14.4
-    winner: vendor_page
-    sources:
-      vendor_page: 14.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 73.0
-    winner: vendor_page
-    sources:
-      vendor_page: 73.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8455462641916844
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8455462641916844
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 8.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 8.45
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
+  Fs:  # free air resonance (Hz)
+    value: 73.0
+    winner: vendor_page
+    sources:
+      vendor_page: 73.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8455462641916844
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8455462641916844
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.034
+    winner: vendor_page
+    sources:
+      vendor_page: 0.034
+  Qms:  # mechanical Q factor
+    value: 8.45
+    winner: vendor_page
+    sources:
+      vendor_page: 8.45
   Znom:  # nominal impedance (Ω)
     value: 6.6
     winner: vendor_page
     sources:
       vendor_page: 6.6
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-184--ciare-pwa10.64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-184--ciare-pwa10.64-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-PWA10.64-10-Woofer-8-Ohm-293-184
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 14.4
+    winner: vendor_page
+    sources:
+      vendor_page: 14.4
+  Le:  # voice coil inductance (H)
+    value: 0.00085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00085
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022936608
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022936608

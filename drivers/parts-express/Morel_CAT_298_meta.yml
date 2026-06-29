@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-080-morel-cat-298-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,44 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
 obsolete: null
 dq_issue: Fs_no_Q
 community: null
 fetched_sku: 277-080
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-080-morel-cat-298-specifications.pdf
+  vendor_page: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
 specs:
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
   Re:  # DC voice coil resistance (Ω)
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 900.0
-    winner: vendor_page
-    sources:
-      vendor_page: 900.0
   Sd:  # effective piston area (m²)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
+  Fs:  # free air resonance (Hz)
+    value: 900.0
+    winner: vendor_page
+    sources:
+      vendor_page: 900.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 277.0
     winner: vendor_page
@@ -52,14 +63,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-080-morel-cat-298-specifications.pdf
-  vendor_page: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-080-morel-cat-298-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-CAT-298-1-1-8-Soft-Dome-Tweeter-277-080
-frd_url: null
-zma_url: null

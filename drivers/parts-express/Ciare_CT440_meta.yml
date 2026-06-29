@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-104--ciare-ct440-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,19 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 293-104
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-104--ciare-ct440-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 4.5
     winner: vendor_page
     sources:
       vendor_page: 4.5
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
   Fs:  # free air resonance (Hz)
     value: 1400.0
     winner: vendor_page
@@ -32,6 +38,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 110.0
     winner: vendor_page
@@ -47,14 +58,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-104--ciare-ct440-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-104--ciare-ct440-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CT440-1.25-Neodymium-Horn-Tweeter-293-104
-frd_url: null
-zma_url: null

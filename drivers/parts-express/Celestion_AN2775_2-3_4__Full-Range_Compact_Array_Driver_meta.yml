@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003681184
-  Qes:  # electrical Q factor
-    value: 1.17
-    winner: vendor_page
-    sources:
-      vendor_page: 1.17
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00268
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00268
-  BL:  # force factor (T·m)
-    value: 3.06
-    winner: vendor_page
-    sources:
-      vendor_page: 3.06
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.26
-    winner: vendor_page
-    sources:
-      vendor_page: 5.26
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 123.3
-    winner: vendor_page
-    sources:
-      vendor_page: 123.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3837783522450372
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3837783522450372
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -61,26 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.96
-  Qms:  # mechanical Q factor
-    value: 5.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.26
     winner: vendor_page
     sources:
-      vendor_page: 5.41
+      vendor_page: 5.26
   Sd:  # effective piston area (m²)
     value: 0.002822
     winner: vendor_page
     sources:
       vendor_page: 0.002822
+  Fs:  # free air resonance (Hz)
+    value: 123.3
+    winner: vendor_page
+    sources:
+      vendor_page: 123.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3837783522450372
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3837783522450372
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00268
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00268
+  Qms:  # mechanical Q factor
+    value: 5.41
+    winner: vendor_page
+    sources:
+      vendor_page: 5.41
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.17
+    winner: vendor_page
+    sources:
+      vendor_page: 1.17
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.06
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003681184

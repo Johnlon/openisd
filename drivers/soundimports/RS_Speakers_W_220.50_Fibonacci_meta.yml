@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00065
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0556
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0556
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0265
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0265
-  BL:  # force factor (T·m)
-    value: 8.6
-    winner: vendor_page
-    sources:
-      vendor_page: 8.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 33.4
-    winner: vendor_page
-    sources:
-      vendor_page: 33.4
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 5.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 5.81
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.02138
     winner: vendor_page
     sources:
       vendor_page: 0.02138
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 33.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 33.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0265
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0265
+  Qms:  # mechanical Q factor
+    value: 5.81
+    winner: vendor_page
+    sources:
+      vendor_page: 5.81
   Cms:  # mechanical compliance (m/N)
     value: 0.000857
     winner: vendor_page
     sources:
       vendor_page: 0.000857
-_sources:
-  vendor_page: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/rs-speakers-w-22050-fibonacci.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 8.6
+    winner: vendor_page
+    sources:
+      vendor_page: 8.6
+  Le:  # voice coil inductance (H)
+    value: 0.00065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00065
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0556
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0556

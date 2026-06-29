@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-917-tang-band-w5-1138smf-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
 obsolete: null
 dq_issue: Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-917
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-917-tang-band-w5-1138smf-specifications.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00485
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00485
-  Qes:  # electrical Q factor
-    value: 0.57
-    winner: vendor_page
-    sources:
-      vendor_page: 0.57
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.081
-    winner: vendor_page
-    sources:
-      vendor_page: 0.081
-  BL:  # force factor (T·m)
-    value: 7.17
-    winner: vendor_page
-    sources:
-      vendor_page: 7.17
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2881560650261163
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2881560650261163
   Xmax:  # one-way linear excursion (m)
     value: 0.00925
     winner: vendor_page
@@ -67,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 3.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.56
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 9.4e-07
     winner: vendor_page
     sources:
       vendor_page: 9.4e-07
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2881560650261163
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2881560650261163
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.081
+    winner: vendor_page
+    sources:
+      vendor_page: 0.081
+  Qms:  # mechanical Q factor
+    value: 3.56
+    winner: vendor_page
+    sources:
+      vendor_page: 3.56
   Cms:  # mechanical compliance (m/N)
     value: 0.00036872
     winner: vendor_page
     sources:
       vendor_page: 0.00036872
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.57
+    winner: vendor_page
+    sources:
+      vendor_page: 0.57
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.17
+    winner: vendor_page
+    sources:
+      vendor_page: 7.17
+  Le:  # voice coil inductance (H)
+    value: 0.00034
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00034
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00485
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00485
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 45.0
     winner: vendor_page
@@ -97,14 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-917-tang-band-w5-1138smf-specifications.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-917-tang-band-w5-1138smf-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917
-frd_url: null
-zma_url: null

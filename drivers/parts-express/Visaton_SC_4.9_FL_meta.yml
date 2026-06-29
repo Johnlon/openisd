@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7839--visaton-sc4.9fl8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7839
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7839--visaton-sc4.9fl8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013000000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013000000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000424752
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000424752
-  Qes:  # electrical Q factor
-    value: 2.29
-    winner: vendor_page
-    sources:
-      vendor_page: 2.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  BL:  # force factor (T·m)
-    value: 1.98
-    winner: vendor_page
-    sources:
-      vendor_page: 1.98
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.9
-    winner: vendor_page
-    sources:
-      vendor_page: 6.9
-  Pe:  # rated power input (W)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Fs:  # free air resonance (Hz)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4065590492880909
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4065590492880909
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -67,21 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.31
-  Qms:  # mechanical Q factor
-    value: 3.06
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.9
     winner: vendor_page
     sources:
-      vendor_page: 3.06
+      vendor_page: 6.9
   Sd:  # effective piston area (m²)
     value: 0.00235
     winner: vendor_page
     sources:
       vendor_page: 0.00235
+  Fs:  # free air resonance (Hz)
+    value: 220.0
+    winner: vendor_page
+    sources:
+      vendor_page: 220.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4065590492880909
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4065590492880909
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Qms:  # mechanical Q factor
+    value: 3.06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.06
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.29
+    winner: vendor_page
+    sources:
+      vendor_page: 2.29
+  Pe:  # rated power input (W)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  BL:  # force factor (T·m)
+    value: 1.98
+    winner: vendor_page
+    sources:
+      vendor_page: 1.98
+  Le:  # voice coil inductance (H)
+    value: 0.00013000000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013000000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000424752
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000424752
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 120.0
     winner: vendor_page
@@ -92,14 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7839--visaton-sc4.9fl8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7839--visaton-sc4.9fl8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SC4.9FL8-1.6-x-3.5-Full-Range-Speaker-8-Ohm-292-7839
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015099999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015099999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004105935999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004105935999999999
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01119
-  BL:  # force factor (T·m)
-    value: 6.32
-    winner: vendor_page
-    sources:
-      vendor_page: 6.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 131.1
-    winner: vendor_page
-    sources:
-      vendor_page: 131.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.34639193514844857
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34639193514844857
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.76
-  Qms:  # mechanical Q factor
-    value: 26.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 26.61
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.015
     winner: vendor_page
     sources:
       vendor_page: 0.015
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 131.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 131.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.34639193514844857
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34639193514844857
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01119
+  Qms:  # mechanical Q factor
+    value: 26.61
+    winner: vendor_page
+    sources:
+      vendor_page: 26.61
   Cms:  # mechanical compliance (m/N)
     value: 0.000132
     winner: vendor_page
     sources:
       vendor_page: 0.000132
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 6.32
+    winner: vendor_page
+    sources:
+      vendor_page: 6.32
+  Le:  # voice coil inductance (H)
+    value: 0.00015099999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015099999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004105935999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004105935999999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 2.83
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-039--10mi100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-039--10mi100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.054085087999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054085087999999996
-  Qes:  # electrical Q factor
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 3.8e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8e-05
-  BL:  # force factor (T·m)
-    value: 18.7
-    winner: vendor_page
-    sources:
-      vendor_page: 18.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.001808795770248669
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001808795770248669
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Qms:  # mechanical Q factor
-    value: 6.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 6.6
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 3.8e-06
     winner: vendor_page
     sources:
       vendor_page: 3.8e-06
+  Fs:  # free air resonance (Hz)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.001808795770248669
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001808795770248669
+  Mms:  # moving mass incl. air load (kg)
+    value: 3.8e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8e-05
+  Qms:  # mechanical Q factor
+    value: 6.6
+    winner: vendor_page
+    sources:
+      vendor_page: 6.6
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 18.7
+    winner: vendor_page
+    sources:
+      vendor_page: 18.7
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.054085087999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.054085087999999996
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 98.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-039--10mi100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-039--10mi100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039
-frd_url: null
-zma_url: null

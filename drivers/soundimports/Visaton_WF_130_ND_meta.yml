@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-wf-130-nd.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-wf-130-nd.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-wf-130-nd.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-wf-130-nd.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00076
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00076
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0106
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0106
-  Qes:  # electrical Q factor
-    value: 0.89
-    winner: vendor_page
-    sources:
-      vendor_page: 0.89
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0117
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0117
-  BL:  # force factor (T·m)
-    value: 5.39
-    winner: vendor_page
-    sources:
-      vendor_page: 5.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 46.0
-    winner: vendor_page
-    sources:
-      vendor_page: 46.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0081
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.69
-  Qms:  # mechanical Q factor
-    value: 2.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
     winner: vendor_page
     sources:
-      vendor_page: 2.97
+      vendor_page: 6.7
   Sd:  # effective piston area (m²)
     value: 0.0094
     winner: vendor_page
     sources:
       vendor_page: 0.0094
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 46.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 46.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0117
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0117
+  Qms:  # mechanical Q factor
+    value: 2.97
+    winner: vendor_page
+    sources:
+      vendor_page: 2.97
   Cms:  # mechanical compliance (m/N)
     value: 0.000846
     winner: vendor_page
     sources:
       vendor_page: 0.000846
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-wf-130-nd.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-wf-130-nd.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.89
+    winner: vendor_page
+    sources:
+      vendor_page: 0.89
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.39
+    winner: vendor_page
+    sources:
+      vendor_page: 5.39
+  Le:  # voice coil inductance (H)
+    value: 0.00076
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00076
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0106
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0106

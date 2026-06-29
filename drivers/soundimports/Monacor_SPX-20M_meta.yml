@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-spx-20m.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-spx-20m.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-spx-20m.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-spx-20m.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  BL:  # force factor (T·m)
-    value: 4.5
-    winner: vendor_page
-    sources:
-      vendor_page: 4.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.9
-    winner: vendor_page
-    sources:
-      vendor_page: 6.9
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 157.0
-    winner: vendor_page
-    sources:
-      vendor_page: 157.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 4.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.9
     winner: vendor_page
     sources:
-      vendor_page: 4.52
+      vendor_page: 6.9
   Sd:  # effective piston area (m²)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 157.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 157.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Qms:  # mechanical Q factor
+    value: 4.52
+    winner: vendor_page
+    sources:
+      vendor_page: 4.52
   Cms:  # mechanical compliance (m/N)
     value: 0.00076
     winner: vendor_page
     sources:
       vendor_page: 0.00076
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-spx-20m.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-spx-20m.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 4.5
+    winner: vendor_page
+    sources:
+      vendor_page: 4.5
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002

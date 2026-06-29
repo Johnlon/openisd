@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-472-dayton-audio-rss460ho-4-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-472--Dayton-Audio-RSS460HO-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-472-dayton-audio-rss460ho-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0022400000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0022400000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.27212444799999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27212444799999996
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.499
-    winner: vendor_page
-    sources:
-      vendor_page: 0.499
-  BL:  # force factor (T·m)
-    value: 23.4
-    winner: vendor_page
-    sources:
-      vendor_page: 23.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 900.0
-    winner: vendor_page
-    sources:
-      vendor_page: 900.0
-  Fs:  # free air resonance (Hz)
-    value: 18.8
-    winner: vendor_page
-    sources:
-      vendor_page: 18.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 14.554029136719294
-    winner: vendor_page
-    sources:
-      vendor_page: 14.554029136719294
   Xmax:  # one-way linear excursion (m)
     value: 0.01275
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 4.05
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 4.05
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.1164
     winner: vendor_page
     sources:
       vendor_page: 0.1164
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 18.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 18.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 14.554029136719294
+    winner: vendor_page
+    sources:
+      vendor_page: 14.554029136719294
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.499
+    winner: vendor_page
+    sources:
+      vendor_page: 0.499
+  Qms:  # mechanical Q factor
+    value: 4.05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.05
   Cms:  # mechanical compliance (m/N)
     value: 0.00014000000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.00014000000000000001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-472-dayton-audio-rss460ho-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-472-dayton-audio-rss460ho-4-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS460HO-4-18-Reference-Series-HO-Subwoofer-4-ohm-295-472
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-472--Dayton-Audio-RSS460HO-4_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 900.0
+    winner: vendor_page
+    sources:
+      vendor_page: 900.0
+  BL:  # force factor (T·m)
+    value: 23.4
+    winner: vendor_page
+    sources:
+      vendor_page: 23.4
+  Le:  # voice coil inductance (H)
+    value: 0.0022400000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0022400000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.27212444799999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27212444799999996

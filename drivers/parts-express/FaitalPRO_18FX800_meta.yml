@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1089--faitalpro-18fx800-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,14 @@ corrections: '''Qts'' stored=0.4 differs from calculated=0.404426 (deps: Qms=6.8
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1089
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1089--faitalpro-18fx800-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.247
-    winner: vendor_page
-    sources:
-      vendor_page: 0.247
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1823
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1823
-  BL:  # force factor (T·m)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
   Xmax:  # one-way linear excursion (m)
     value: 0.013800000000000002
     winner: vendor_page
@@ -69,39 +35,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 6.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 6.8
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.1213
     winner: vendor_page
     sources:
       vendor_page: 0.1213
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 34.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 96.0
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 96.0
+      vendor_page: 5.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1823
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1823
+  Qms:  # mechanical Q factor
+    value: 6.8
+    winner: vendor_page
+    sources:
+      vendor_page: 6.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00012
     winner: vendor_page
     sources:
       vendor_page: 0.00012
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1089--faitalpro-18fx800-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1089--faitalpro-18fx800-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-18FX800-18-Subwoofer-8-Ohm-294-1089
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 24.0
+    winner: vendor_page
+    sources:
+      vendor_page: 24.0
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 96.0
+    winner: vendor_page
+    sources:
+      vendor_page: 96.0
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.247
+    winner: vendor_page
+    sources:
+      vendor_page: 0.247

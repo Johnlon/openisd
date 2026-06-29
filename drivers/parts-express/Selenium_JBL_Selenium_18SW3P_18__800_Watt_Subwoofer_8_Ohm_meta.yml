@@ -1,31 +1,23 @@
+source: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
 specs:
-  Qes:  # electrical Q factor
-    value: 0.425
-    winner: vendor_page
-    sources:
-      vendor_page: 0.425
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00675
     winner: vendor_page
@@ -36,21 +28,36 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 11.51
-    winner: vendor_page
-    sources:
-      vendor_page: 11.51
   Sd:  # effective piston area (m²)
     value: 0.1194
     winner: vendor_page
     sources:
       vendor_page: 0.1194
+  Fs:  # free air resonance (Hz)
+    value: 37.0
+    winner: vendor_page
+    sources:
+      vendor_page: 37.0
+  Qms:  # mechanical Q factor
+    value: 11.51
+    winner: vendor_page
+    sources:
+      vendor_page: 11.51
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.425
+    winner: vendor_page
+    sources:
+      vendor_page: 0.425
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 8.0
     winner: vendor_page
@@ -61,10 +68,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 18.0
-_sources:
-  vendor_page: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-18SW3P-18-800-Watt-Subwoofer-8-Ohm-264-475
-frd_url: null
-zma_url: null

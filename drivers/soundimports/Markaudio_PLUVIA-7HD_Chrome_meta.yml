@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001652
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001652
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0044227
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0044227
-  Qes:  # electrical Q factor
-    value: 0.7173
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7173
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.003839
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003839
-  BL:  # force factor (T·m)
-    value: 3.6297
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6297
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 72.5
-    winner: vendor_page
-    sources:
-      vendor_page: 72.5
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.584
-  Qms:  # mechanical Q factor
-    value: 3.1446
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 3.1446
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.005
     winner: vendor_page
     sources:
       vendor_page: 0.005
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 72.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 72.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.003839
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003839
+  Qms:  # mechanical Q factor
+    value: 3.1446
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1446
   Cms:  # mechanical compliance (m/N)
     value: 0.0012536
     winner: vendor_page
     sources:
       vendor_page: 0.0012536
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-pluvia-7-hd-chrome.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.7173
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7173
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.6297
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6297
+  Le:  # voice coil inductance (H)
+    value: 0.0001652
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001652
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0044227
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0044227

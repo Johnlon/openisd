@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-188--ciare-pwa12.75-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.3 differs from calculated=0.296833 (deps: Qms=4.1
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-188
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-188--ciare-pwa12.75-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00106
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00106
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.052
-    winner: vendor_page
-    sources:
-      vendor_page: 0.052
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.07
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07
-  BL:  # force factor (T·m)
-    value: 19.6
-    winner: vendor_page
-    sources:
-      vendor_page: 19.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 450.0
-    winner: vendor_page
-    sources:
-      vendor_page: 450.0
-  Fs:  # free air resonance (Hz)
-    value: 53.0
-    winner: vendor_page
-    sources:
-      vendor_page: 53.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.6855164608868956
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6855164608868956
   Xmax:  # one-way linear excursion (m)
     value: 0.0058
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 4.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.1
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0531
     winner: vendor_page
     sources:
       vendor_page: 0.0531
+  Fs:  # free air resonance (Hz)
+    value: 53.0
+    winner: vendor_page
+    sources:
+      vendor_page: 53.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.6855164608868956
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6855164608868956
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.07
+    winner: vendor_page
+    sources:
+      vendor_page: 0.07
+  Qms:  # mechanical Q factor
+    value: 4.1
+    winner: vendor_page
+    sources:
+      vendor_page: 4.1
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 450.0
+    winner: vendor_page
+    sources:
+      vendor_page: 450.0
+  BL:  # force factor (T·m)
+    value: 19.6
+    winner: vendor_page
+    sources:
+      vendor_page: 19.6
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.5
     winner: vendor_page
     sources:
       vendor_page: 97.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-188--ciare-pwa12.75-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-188--ciare-pwa12.75-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-PWA12.75-12-Woofer-8-Ohm-293-188
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.00106
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00106
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.052
+    winner: vendor_page
+    sources:
+      vendor_page: 0.052

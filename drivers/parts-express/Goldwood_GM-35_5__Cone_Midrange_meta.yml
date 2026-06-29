@@ -1,21 +1,23 @@
+source: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
 specs:
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
   Fs:  # free air resonance (Hz)
     value: 800.0
     winner: vendor_page
@@ -26,10 +28,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GM-35-5-Cone-Midrange-280-012
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0

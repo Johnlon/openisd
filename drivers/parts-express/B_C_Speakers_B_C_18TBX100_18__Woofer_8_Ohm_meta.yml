@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-676--bc-18tbx100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-676--bc-18tbx100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.212376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.212376
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.209
-    winner: vendor_page
-    sources:
-      vendor_page: 0.209
-  BL:  # force factor (T·m)
-    value: 25.5
-    winner: vendor_page
-    sources:
-      vendor_page: 25.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 2400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2400.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.2011548323358525
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2011548323358525
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 7.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 7.2
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: vendor_page
+    sources:
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.2011548323358525
+    winner: vendor_page
+    sources:
+      vendor_page: 6.2011548323358525
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.209
+    winner: vendor_page
+    sources:
+      vendor_page: 0.209
+  Qms:  # mechanical Q factor
+    value: 7.2
+    winner: vendor_page
+    sources:
+      vendor_page: 7.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-676--bc-18tbx100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-676--bc-18tbx100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18TBX100-18-Woofer-294-676
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 2400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2400.0
+  BL:  # force factor (T·m)
+    value: 25.5
+    winner: vendor_page
+    sources:
+      vendor_page: 25.5
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.212376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.212376

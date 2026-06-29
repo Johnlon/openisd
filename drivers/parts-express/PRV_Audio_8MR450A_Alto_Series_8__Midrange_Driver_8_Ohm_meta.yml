@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000257
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000257
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.034829663999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.034829663999999996
-  Qes:  # electrical Q factor
-    value: 0.57
-    winner: vendor_page
-    sources:
-      vendor_page: 0.57
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013779999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013779999999999999
-  BL:  # force factor (T·m)
-    value: 7.58
-    winner: vendor_page
-    sources:
-      vendor_page: 7.58
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 225.0
-    winner: vendor_page
-    sources:
-      vendor_page: 225.0
-  Fs:  # free air resonance (Hz)
-    value: 65.26
-    winner: vendor_page
-    sources:
-      vendor_page: 65.26
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3719789648426148
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3719789648426148
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 15.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 15.19
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.0241
     winner: vendor_page
     sources:
       vendor_page: 0.0241
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.26
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.26
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3719789648426148
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3719789648426148
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013779999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013779999999999999
+  Qms:  # mechanical Q factor
+    value: 15.19
+    winner: vendor_page
+    sources:
+      vendor_page: 15.19
   Cms:  # mechanical compliance (m/N)
     value: 0.000432
     winner: vendor_page
     sources:
       vendor_page: 0.000432
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.57
+    winner: vendor_page
+    sources:
+      vendor_page: 0.57
+  Pe:  # rated power input (W)
+    value: 225.0
+    winner: vendor_page
+    sources:
+      vendor_page: 225.0
+  BL:  # force factor (T·m)
+    value: 7.58
+    winner: vendor_page
+    sources:
+      vendor_page: 7.58
+  Le:  # voice coil inductance (H)
+    value: 0.000257
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000257
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.034829663999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.034829663999999996
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 8.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 9.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR450A-8-Alto-Series-Professional-Midrange-Speaker-294-2950
-frd_url: null
-zma_url: null

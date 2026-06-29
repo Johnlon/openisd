@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2736--prv-audio-12m750a-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2736--prv-audio-12m750a-specifications.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0007099999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007099999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08098604799999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08098604799999999
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.04172
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04172
-  BL:  # force factor (T·m)
-    value: 14.29
-    winner: vendor_page
-    sources:
-      vendor_page: 14.29
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 375.0
-    winner: vendor_page
-    sources:
-      vendor_page: 375.0
-  Fs:  # free air resonance (Hz)
-    value: 59.87
-    winner: vendor_page
-    sources:
-      vendor_page: 59.87
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8993691677421157
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8993691677421157
   Xmax:  # one-way linear excursion (m)
     value: 0.00362
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 17.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 17.45
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.0585
     winner: vendor_page
     sources:
       vendor_page: 0.0585
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 59.87
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 59.87
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8993691677421157
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8993691677421157
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.04172
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04172
+  Qms:  # mechanical Q factor
+    value: 17.45
+    winner: vendor_page
+    sources:
+      vendor_page: 17.45
   Cms:  # mechanical compliance (m/N)
     value: 0.00016900000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.00016900000000000002
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 375.0
+    winner: vendor_page
+    sources:
+      vendor_page: 375.0
+  BL:  # force factor (T·m)
+    value: 14.29
+    winner: vendor_page
+    sources:
+      vendor_page: 14.29
+  Le:  # voice coil inductance (H)
+    value: 0.0007099999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007099999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.08098604799999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08098604799999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2736--prv-audio-12m750a-specifications.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2736--prv-audio-12m750a-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12W750A-12-Alto-Series-Professional-Woofer-8-Ohm-294-2736
-frd_url: null
-zma_url: null

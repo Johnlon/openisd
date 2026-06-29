@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
+manu_page_url: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/8in-SB20PFCR-00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/8in-SB20PFCR-00.pdf
+  manu_page: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.055
-    winner: manu_page
-    sources:
-      manu_page: 0.055
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0767
-    winner: manu_page
-    sources:
-      manu_page: 0.0767
-  Fs:  # free air resonance (Hz)
-    value: 20.0
-    winner: manu_page
-    sources:
-      manu_page: 20.0
-  Qms:  # mechanical Q factor
-    value: 6.8
-    winner: manu_page
-    sources:
-      manu_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0216
     winner: manu_page
     sources:
       manu_page: 0.0216
+  Fs:  # free air resonance (Hz)
+    value: 20.0
+    winner: manu_page
+    sources:
+      manu_page: 20.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0767
+    winner: manu_page
+    sources:
+      manu_page: 0.0767
+  Qms:  # mechanical Q factor
+    value: 6.8
+    winner: manu_page
+    sources:
+      manu_page: 6.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00083
     winner: manu_page
     sources:
       manu_page: 0.00083
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/8in-SB20PFCR-00.pdf
-  manu_page: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/8in-SB20PFCR-00.pdf
-manu_page_url: https://sbacoustics.com/product/6-sb20pfcr-00-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.055
+    winner: manu_page
+    sources:
+      manu_page: 0.055

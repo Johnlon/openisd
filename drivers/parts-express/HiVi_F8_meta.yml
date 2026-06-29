@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Vas'' stored=0.0369 differs from calculated=0.0383287 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-445
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
+  vendor_page: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0369
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0369
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0305
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0305
-  BL:  # force factor (T·m)
-    value: 10.1
-    winner: vendor_page
-    sources:
-      vendor_page: 10.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: vendor_page
-    sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5054298554463192
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5054298554463192
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -63,26 +34,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 4.71
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 4.71
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0214
     winner: vendor_page
     sources:
       vendor_page: 0.0214
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 36.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 36.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5054298554463192
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5054298554463192
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0305
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0305
+  Qms:  # mechanical Q factor
+    value: 4.71
+    winner: vendor_page
+    sources:
+      vendor_page: 4.71
   Cms:  # mechanical compliance (m/N)
     value: 0.0005899999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0005899999999999999
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 10.1
+    winner: vendor_page
+    sources:
+      vendor_page: 10.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0369
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0369
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 1.7
     winner: vendor_page
@@ -93,14 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 70.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
-  vendor_page: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
-frd_url: null
-zma_url: null

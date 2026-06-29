@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.354802 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-415
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009699999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009699999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003114848
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003114848
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0099
-  BL:  # force factor (T·m)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 53.8
-    winner: vendor_page
-    sources:
-      vendor_page: 53.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0657803051942647
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0657803051942647
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -69,33 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.14
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 3.14
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.00503
     winner: vendor_page
     sources:
       vendor_page: 0.00503
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 53.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 53.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0657803051942647
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0657803051942647
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0099
+  Qms:  # mechanical Q factor
+    value: 3.14
+    winner: vendor_page
+    sources:
+      vendor_page: 3.14
   Cms:  # mechanical compliance (m/N)
     value: 0.00088
     winner: vendor_page
     sources:
       vendor_page: 0.00088
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Le:  # voice coil inductance (H)
+    value: 0.0009699999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009699999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003114848
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003114848

@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00047999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047999999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.015007904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015007904
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  BL:  # force factor (T·m)
-    value: 11.49
-    winner: vendor_page
-    sources:
-      vendor_page: 11.49
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.56
-    winner: vendor_page
-    sources:
-      vendor_page: 5.56
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 73.9
-    winner: vendor_page
-    sources:
-      vendor_page: 73.9
   Xmax:  # one-way linear excursion (m)
     value: 0.0022
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.03
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.56
     winner: vendor_page
     sources:
-      vendor_page: 3.03
+      vendor_page: 5.56
   Sd:  # effective piston area (m²)
     value: 0.021769999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.021769999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 73.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 73.9
+  Qms:  # mechanical Q factor
+    value: 3.03
+    winner: vendor_page
+    sources:
+      vendor_page: 3.03
   Cms:  # mechanical compliance (m/N)
     value: 0.000229
     winner: vendor_page
     sources:
       vendor_page: 0.000229
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.49
+    winner: vendor_page
+    sources:
+      vendor_page: 11.49
+  Le:  # voice coil inductance (H)
+    value: 0.00047999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047999999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.015007904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015007904

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.28 differs from calculated=0.285975 (deps: Qms=3.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
 obsolete: null
 dq_issue: Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-854
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008399999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008399999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02003
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026
-  BL:  # force factor (T·m)
-    value: 13.66
-    winner: vendor_page
-    sources:
-      vendor_page: 13.66
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.815065423209332
-    winner: vendor_page
-    sources:
-      vendor_page: 4.815065423209332
   Xmax:  # one-way linear excursion (m)
     value: 0.0121
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 3.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 3.69
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 2.2e-06
     winner: vendor_page
     sources:
       vendor_page: 2.2e-06
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.815065423209332
+    winner: vendor_page
+    sources:
+      vendor_page: 4.815065423209332
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026
+  Qms:  # mechanical Q factor
+    value: 3.69
+    winner: vendor_page
+    sources:
+      vendor_page: 3.69
   Cms:  # mechanical compliance (m/N)
     value: 0.000291402
     winner: vendor_page
     sources:
       vendor_page: 0.000291402
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 13.66
+    winner: vendor_page
+    sources:
+      vendor_page: 13.66
+  Le:  # voice coil inductance (H)
+    value: 0.0008399999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008399999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02003

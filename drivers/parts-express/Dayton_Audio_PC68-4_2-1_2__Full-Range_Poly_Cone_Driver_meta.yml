@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-150--dayton-audio-pc68-4-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-150--dayton-audio-pc68-4-data-file.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-150--dayton-audio-pc68-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000566336
-  Qes:  # electrical Q factor
-    value: 0.87
-    winner: vendor_page
-    sources:
-      vendor_page: 0.87
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
-  BL:  # force factor (T·m)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 117.1
-    winner: vendor_page
-    sources:
-      vendor_page: 117.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.502326786787245
-    winner: vendor_page
-    sources:
-      vendor_page: 0.502326786787245
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 2.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 2.49
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.00212
     winner: vendor_page
     sources:
       vendor_page: 0.00212
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 117.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 117.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.502326786787245
+    winner: vendor_page
+    sources:
+      vendor_page: 0.502326786787245
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Qms:  # mechanical Q factor
+    value: 2.49
+    winner: vendor_page
+    sources:
+      vendor_page: 2.49
   Cms:  # mechanical compliance (m/N)
     value: 0.00107
     winner: vendor_page
     sources:
       vendor_page: 0.00107
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-150--dayton-audio-pc68-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-150--dayton-audio-pc68-4-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-150--dayton-audio-pc68-4-data-file.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.87
+    winner: vendor_page
+    sources:
+      vendor_page: 0.87
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000566336

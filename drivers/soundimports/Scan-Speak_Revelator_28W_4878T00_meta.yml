@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00449
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00449
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1145
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1145
-  BL:  # force factor (T·m)
-    value: 11.2
-    winner: vendor_page
-    sources:
-      vendor_page: 11.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 18.0
-    winner: vendor_page
-    sources:
-      vendor_page: 18.0
   Xmax:  # one-way linear excursion (m)
     value: 0.014
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 5.6
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0363
     winner: vendor_page
     sources:
       vendor_page: 0.0363
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 18.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 18.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1145
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1145
+  Qms:  # mechanical Q factor
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
   Cms:  # mechanical compliance (m/N)
     value: 0.00068
     winner: vendor_page
     sources:
       vendor_page: 0.00068
-_sources:
-  vendor_page: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/scan-speak-28w-4878t00.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 11.2
+    winner: vendor_page
+    sources:
+      vendor_page: 11.2
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00449
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00449

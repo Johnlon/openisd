@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-581--dayton-audio-dma45-8-specification-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-581
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-581--dayton-audio-dma45-8-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 5.66336e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.66336e-05
-  Qes:  # electrical Q factor
-    value: 0.68
-    winner: vendor_page
-    sources:
-      vendor_page: 0.68
-  BL:  # force factor (T·m)
-    value: 4.26
-    winner: vendor_page
-    sources:
-      vendor_page: 4.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 150.7
-    winner: vendor_page
-    sources:
-      vendor_page: 150.7
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -57,34 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.59
-  Qms:  # mechanical Q factor
-    value: 4.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 4.59
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.00086
     winner: vendor_page
     sources:
       vendor_page: 0.00086
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 150.7
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 150.7
+  Qms:  # mechanical Q factor
+    value: 4.59
+    winner: vendor_page
+    sources:
+      vendor_page: 4.59
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-581--dayton-audio-dma45-8-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-581--dayton-audio-dma45-8-specification-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA45-8-1-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-581
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.68
+    winner: vendor_page
+    sources:
+      vendor_page: 0.68
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 4.26
+    winner: vendor_page
+    sources:
+      vendor_page: 4.26
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 5.66336e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.66336e-05

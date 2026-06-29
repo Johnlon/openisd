@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.355649 (deps: Qms=5.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-140
+_sources:
+  vendor_page: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00175
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00175
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.088065248
-    winner: vendor_page
-    sources:
-      vendor_page: 0.088065248
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05077
-  BL:  # force factor (T·m)
-    value: 13.02
-    winner: vendor_page
-    sources:
-      vendor_page: 13.02
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.724309827273014
-    winner: vendor_page
-    sources:
-      vendor_page: 1.724309827273014
   Xmax:  # one-way linear excursion (m)
     value: 0.0057
     winner: vendor_page
@@ -68,28 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 5.55
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.55
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0346
     winner: vendor_page
     sources:
       vendor_page: 0.0346
+  Fs:  # free air resonance (Hz)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.724309827273014
+    winner: vendor_page
+    sources:
+      vendor_page: 1.724309827273014
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05077
+  Qms:  # mechanical Q factor
+    value: 5.55
+    winner: vendor_page
+    sources:
+      vendor_page: 5.55
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-HW251N-10-Woofer-8-Ohm-293-140
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 13.02
+    winner: vendor_page
+    sources:
+      vendor_page: 13.02
+  Le:  # voice coil inductance (H)
+    value: 0.00175
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00175
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.088065248
+    winner: vendor_page
+    sources:
+      vendor_page: 0.088065248

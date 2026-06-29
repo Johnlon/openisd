@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.0591821 differs from calculated=0.0604316 (deps: 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1338
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00078
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00078
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.059182111999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.059182111999999995
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.069
-    winner: vendor_page
-    sources:
-      vendor_page: 0.069
-  BL:  # force factor (T·m)
-    value: 18.0
-    winner: vendor_page
-    sources:
-      vendor_page: 18.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3873273158252526
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3873273158252526
   Xmax:  # one-way linear excursion (m)
     value: 0.01357
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 10.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 10.0
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0344
     winner: vendor_page
     sources:
       vendor_page: 0.0344
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 32.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3873273158252526
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3873273158252526
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.069
+    winner: vendor_page
+    sources:
+      vendor_page: 0.069
+  Qms:  # mechanical Q factor
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00035999999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00035999999999999997
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-10RS430-10-Professional-Woofer-8-Ohm-294-1338
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 18.0
+    winner: vendor_page
+    sources:
+      vendor_page: 18.0
+  Le:  # voice coil inductance (H)
+    value: 0.00078
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00078
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.059182111999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.059182111999999995

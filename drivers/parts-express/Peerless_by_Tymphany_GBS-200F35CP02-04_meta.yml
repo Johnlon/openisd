@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1490--gbs-200f35cp02-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1490
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1490--gbs-200f35cp02-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00233
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00233
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0139
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0139
-  Qes:  # electrical Q factor
-    value: 0.478
-    winner: vendor_page
-    sources:
-      vendor_page: 0.478
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0716
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0716
-  BL:  # force factor (T·m)
-    value: 11.7
-    winner: vendor_page
-    sources:
-      vendor_page: 11.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.7892357110408486
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7892357110408486
   Xmax:  # one-way linear excursion (m)
     value: 0.00777
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 5.09
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 5.09
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0222
     winner: vendor_page
     sources:
       vendor_page: 0.0222
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 42.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.7892357110408486
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7892357110408486
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0716
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0716
+  Qms:  # mechanical Q factor
+    value: 5.09
+    winner: vendor_page
+    sources:
+      vendor_page: 5.09
   Cms:  # mechanical compliance (m/N)
     value: 0.0002
     winner: vendor_page
     sources:
       vendor_page: 0.0002
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1490--gbs-200f35cp02-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1490--gbs-200f35cp02-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-GBS-200F35CP02-04-8-Paper-Cone-Woofer-4-Ohm-264-1490
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.478
+    winner: vendor_page
+    sources:
+      vendor_page: 0.478
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.7
+    winner: vendor_page
+    sources:
+      vendor_page: 11.7
+  Le:  # voice coil inductance (H)
+    value: 0.00233
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00233
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0139
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0139

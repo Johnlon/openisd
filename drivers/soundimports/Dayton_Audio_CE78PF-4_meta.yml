@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00114
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00114
-  Qes:  # electrical Q factor
-    value: 1.34
-    winner: vendor_page
-    sources:
-      vendor_page: 1.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  BL:  # force factor (T·m)
-    value: 2.22
-    winner: vendor_page
-    sources:
-      vendor_page: 2.22
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0014
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.99
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.00302
     winner: vendor_page
     sources:
       vendor_page: 0.00302
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 100.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Cms:  # mechanical compliance (m/N)
     value: 0.000887
     winner: vendor_page
     sources:
       vendor_page: 0.000887
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.34
+    winner: vendor_page
+    sources:
+      vendor_page: 1.34
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.22
+    winner: vendor_page
+    sources:
+      vendor_page: 2.22
+  Le:  # voice coil inductance (H)
+    value: 0.00017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00114
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00114
   power_peak_W:  # peak power handling (W)
     value: 20.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce78pf-4.html
-frd_url: null
-zma_url: null

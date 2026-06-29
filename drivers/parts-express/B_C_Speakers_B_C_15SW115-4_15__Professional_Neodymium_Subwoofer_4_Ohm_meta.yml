@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5990--bc-15SW115-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5990--bc-15SW115-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00127
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00127
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10477216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10477216
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.212
-  BL:  # force factor (T·m)
-    value: 25.5
-    winner: vendor_page
-    sources:
-      vendor_page: 25.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 3400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3400.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.808482705888011
-    winner: vendor_page
-    sources:
-      vendor_page: 7.808482705888011
   Xmax:  # one-way linear excursion (m)
     value: 0.0135
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 5.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 5.8
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: vendor_page
+    sources:
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.808482705888011
+    winner: vendor_page
+    sources:
+      vendor_page: 7.808482705888011
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.212
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5990--bc-15SW115-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5990--bc-15SW115-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 3400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3400.0
+  BL:  # force factor (T·m)
+    value: 25.5
+    winner: vendor_page
+    sources:
+      vendor_page: 25.5
+  Le:  # voice coil inductance (H)
+    value: 0.00127
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00127
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10477216
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10477216

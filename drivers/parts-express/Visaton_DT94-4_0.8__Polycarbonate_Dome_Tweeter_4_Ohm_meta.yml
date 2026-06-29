@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-554--visaton-dt94-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-554--visaton-dt94-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.999999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.999999999999999e-05
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 1900.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1900.0
   Qts:  # total Q factor
     value: 0.5
     winner: vendor_page
     sources:
       vendor_page: 0.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Fs:  # free air resonance (Hz)
+    value: 1900.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1900.0
   Qms:  # mechanical Q factor
     value: 3.0
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-554--visaton-dt94-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-554--visaton-dt94-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-DT94-4-0.8-Polycarbonate-Tweeter-4-Ohm-292-554
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 8.999999999999999e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.999999999999999e-05

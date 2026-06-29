@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1973--celestion-ftr12-4080dl-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1973--celestion-ftr12-4080dl-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00207
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00207
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06852665599999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06852665599999999
-  Qes:  # electrical Q factor
-    value: 0.345
-    winner: vendor_page
-    sources:
-      vendor_page: 0.345
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.17607
-    winner: vendor_page
-    sources:
-      vendor_page: 0.17607
-  BL:  # force factor (T·m)
-    value: 24.05
-    winner: vendor_page
-    sources:
-      vendor_page: 24.05
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.24
-    winner: vendor_page
-    sources:
-      vendor_page: 6.24
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 28.9
-    winner: vendor_page
-    sources:
-      vendor_page: 28.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 12.964924829811302
-    winner: vendor_page
-    sources:
-      vendor_page: 12.964924829811302
   Xmax:  # one-way linear excursion (m)
     value: 0.0136
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.303
-  Qms:  # mechanical Q factor
-    value: 2.466
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.24
     winner: vendor_page
     sources:
-      vendor_page: 2.466
+      vendor_page: 6.24
   Sd:  # effective piston area (m²)
     value: 0.053092999999999994
     winner: vendor_page
     sources:
       vendor_page: 0.053092999999999994
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 28.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 28.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 12.964924829811302
+    winner: vendor_page
+    sources:
+      vendor_page: 12.964924829811302
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.17607
+    winner: vendor_page
+    sources:
+      vendor_page: 0.17607
+  Qms:  # mechanical Q factor
+    value: 2.466
+    winner: vendor_page
+    sources:
+      vendor_page: 2.466
   Cms:  # mechanical compliance (m/N)
     value: 0.00017
     winner: vendor_page
     sources:
       vendor_page: 0.00017
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.345
+    winner: vendor_page
+    sources:
+      vendor_page: 0.345
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 24.05
+    winner: vendor_page
+    sources:
+      vendor_page: 24.05
+  Le:  # voice coil inductance (H)
+    value: 0.00207
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00207
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06852665599999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06852665599999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1973--celestion-ftr12-4080dl-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1973--celestion-ftr12-4080dl-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTR12-4080DL-12-Subwoofer-4-Ohm-294-1973
-frd_url: null
-zma_url: null

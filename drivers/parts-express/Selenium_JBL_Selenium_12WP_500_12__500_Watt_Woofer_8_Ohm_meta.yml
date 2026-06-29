@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-472--jbl-selenium-12wp500-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-472--jbl-selenium-12wp500-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00218
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00218
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.042758368
-    winner: vendor_page
-    sources:
-      vendor_page: 0.042758368
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.08223
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08223
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.45
-    winner: vendor_page
-    sources:
-      vendor_page: 6.45
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 53.6
-    winner: vendor_page
-    sources:
-      vendor_page: 53.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.775212510934784
-    winner: vendor_page
-    sources:
-      vendor_page: 1.775212510934784
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -61,21 +29,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 15.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.45
     winner: vendor_page
     sources:
-      vendor_page: 15.6
+      vendor_page: 6.45
   Sd:  # effective piston area (m²)
     value: 0.053
     winner: vendor_page
     sources:
       vendor_page: 0.053
+  Fs:  # free air resonance (Hz)
+    value: 53.6
+    winner: vendor_page
+    sources:
+      vendor_page: 53.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.775212510934784
+    winner: vendor_page
+    sources:
+      vendor_page: 1.775212510934784
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.08223
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08223
+  Qms:  # mechanical Q factor
+    value: 15.6
+    winner: vendor_page
+    sources:
+      vendor_page: 15.6
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  Le:  # voice coil inductance (H)
+    value: 0.00218
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00218
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.042758368
+    winner: vendor_page
+    sources:
+      vendor_page: 0.042758368
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 8.0
     winner: vendor_page
@@ -86,11 +94,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-472--jbl-selenium-12wp500-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-472--jbl-selenium-12wp500-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-12WP-500-12-500-Watt-Woofer-8-Ohm-264-472
-frd_url: null
-zma_url: null

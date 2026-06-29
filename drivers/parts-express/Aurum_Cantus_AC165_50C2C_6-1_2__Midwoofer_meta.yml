@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
+datasheet_url: https://www.parts-express.com/pedocs/specs/296-446-aurum-cantus-ac16550c2c-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/296-446-aurum-cantus-ac16550c2c-specifications.pdf
+  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00067
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03199798399999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03199798399999999
-  Qes:  # electrical Q factor
-    value: 0.2
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0143
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0143
-  BL:  # force factor (T·m)
-    value: 10.8
-    winner: vendor_page
-    sources:
-      vendor_page: 10.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7877804137508815
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7877804137508815
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.19
-  Qms:  # mechanical Q factor
-    value: 4.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 4.22
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: vendor_page
     sources:
       vendor_page: 0.0133
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 37.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 37.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7877804137508815
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7877804137508815
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0143
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0143
+  Qms:  # mechanical Q factor
+    value: 4.22
+    winner: vendor_page
+    sources:
+      vendor_page: 4.22
   Cms:  # mechanical compliance (m/N)
     value: 0.0012900000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0012900000000000001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/296-446-aurum-cantus-ac16550c2c-specifications.pdf
-  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
-datasheet_url: https://www.parts-express.com/pedocs/specs/296-446-aurum-cantus-ac16550c2c-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC165-50C2C-6-1-2-Midwoofer-296-446
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.2
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 10.8
+    winner: vendor_page
+    sources:
+      vendor_page: 10.8
+  Le:  # voice coil inductance (H)
+    value: 0.00067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00067
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03199798399999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03199798399999999

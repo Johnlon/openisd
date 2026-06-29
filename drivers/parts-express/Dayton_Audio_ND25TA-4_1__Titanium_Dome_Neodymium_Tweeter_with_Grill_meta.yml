@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-057--dayton-audio-nd25ta-4-1-inch-titanium-dome-neodymium-tweeter-4-ohm-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/275-057--Dayton-Audio-ND25TA-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-057--dayton-audio-nd25ta-4-1-inch-titanium-dome-neodymium-tweeter-4-ohm-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00047999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047999999999999996
-  Qes:  # electrical Q factor
-    value: 2.63
-    winner: vendor_page
-    sources:
-      vendor_page: 2.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 1470.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1470.0
   Qts:  # total Q factor
     value: 1.45
     winner: vendor_page
     sources:
       vendor_page: 1.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Fs:  # free air resonance (Hz)
+    value: 1470.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1470.0
   Qms:  # mechanical Q factor
     value: 3.24
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-057--dayton-audio-nd25ta-4-1-inch-titanium-dome-neodymium-tweeter-4-ohm-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-057--dayton-audio-nd25ta-4-1-inch-titanium-dome-neodymium-tweeter-4-ohm-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND25TA-4-1-Titanium-Dome-Neodymium-Tweeter-275-057
-frd_url: https://www.parts-express.com/pedocs/tech-docs/275-057--Dayton-Audio-ND25TA-4_data.zip
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.63
+    winner: vendor_page
+    sources:
+      vendor_page: 2.63
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 0.00047999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047999999999999996

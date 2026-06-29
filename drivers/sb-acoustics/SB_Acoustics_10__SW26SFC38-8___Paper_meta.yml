@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
+manu_page_url: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2023/06/10in-SW26SFC38-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2023/06/10in-SW26SFC38-8.pdf
+  manu_page: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00138
-    winner: manu_page
-    sources:
-      manu_page: 0.00138
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08
-    winner: manu_page
-    sources:
-      manu_page: 0.08
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: manu_page
-    sources:
-      manu_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0637
-    winner: manu_page
-    sources:
-      manu_page: 0.0637
-  BL:  # force factor (T·m)
-    value: 13.5
-    winner: manu_page
-    sources:
-      manu_page: 13.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: manu_page
-    sources:
-      manu_page: 6.0
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: manu_page
-    sources:
-      manu_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 28.5
-    winner: manu_page
-    sources:
-      manu_page: 28.5
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 5.18
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: manu_page
     sources:
-      manu_page: 5.18
+      manu_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.034
     winner: manu_page
     sources:
       manu_page: 0.034
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 28.5
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 28.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0637
+    winner: manu_page
+    sources:
+      manu_page: 0.0637
+  Qms:  # mechanical Q factor
+    value: 5.18
+    winner: manu_page
+    sources:
+      manu_page: 5.18
   Cms:  # mechanical compliance (m/N)
     value: 0.00049
     winner: manu_page
     sources:
       manu_page: 0.00049
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: manu_page
+    sources:
+      manu_page: 0.38
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: manu_page
+    sources:
+      manu_page: 80.0
+  BL:  # force factor (T·m)
+    value: 13.5
+    winner: manu_page
+    sources:
+      manu_page: 13.5
+  Le:  # voice coil inductance (H)
+    value: 0.00138
+    winner: manu_page
+    sources:
+      manu_page: 0.00138
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.08
+    winner: manu_page
+    sources:
+      manu_page: 0.08
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 38.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2023/06/10in-SW26SFC38-8.pdf
-  manu_page: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2023/06/10in-SW26SFC38-8.pdf
-manu_page_url: https://sbacoustics.com/product/10″-sw26sfc38-8-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

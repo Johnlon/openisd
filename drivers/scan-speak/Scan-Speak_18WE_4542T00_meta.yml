@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/18we-4542t00/
+manu_page_url: https://www.scan-speak.dk/product/18we-4542t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/reviews/D3404-552000_18WE-4542T00-VoiceCoil_2018-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/18we-4542t00/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/reviews/D3404-552000_18WE-4542T00-VoiceCoil_2018-4.pdf
+  manu_page: https://www.scan-speak.dk/product/18we-4542t00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0172
-    winner: manu_page
-    sources:
-      manu_page: 0.0172
-  BL:  # force factor (T·m)
-    value: 8.1
-    winner: manu_page
-    sources:
-      manu_page: 8.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: manu_page
-    sources:
-      manu_page: 3.4
-  Fs:  # free air resonance (Hz)
-    value: 46.0
-    winner: manu_page
-    sources:
-      manu_page: 46.0
   Qts:  # total Q factor
     value: 0.25
     winner: manu_page
     sources:
       manu_page: 0.25
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
+    winner: manu_page
+    sources:
+      manu_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: manu_page
     sources:
       manu_page: 0.0133
+  Fs:  # free air resonance (Hz)
+    value: 46.0
+    winner: manu_page
+    sources:
+      manu_page: 46.0
+  BL:  # force factor (T·m)
+    value: 8.1
+    winner: manu_page
+    sources:
+      manu_page: 8.1
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.5
     winner: manu_page
     sources:
       manu_page: 92.5
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/reviews/D3404-552000_18WE-4542T00-VoiceCoil_2018-4.pdf
-  manu_page: https://www.scan-speak.dk/product/18we-4542t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/reviews/D3404-552000_18WE-4542T00-VoiceCoil_2018-4.pdf
-manu_page_url: https://www.scan-speak.dk/product/18we-4542t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0172
+    winner: manu_page
+    sources:
+      manu_page: 0.0172

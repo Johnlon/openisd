@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.238
-    winner: vendor_page
-    sources:
-      vendor_page: 0.238
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.127
-    winner: vendor_page
-    sources:
-      vendor_page: 0.127
-  BL:  # force factor (T·m)
-    value: 19.0
-    winner: vendor_page
-    sources:
-      vendor_page: 19.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 20.2
-    winner: vendor_page
-    sources:
-      vendor_page: 20.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0166
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 5.37
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 5.37
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0585
     winner: vendor_page
     sources:
       vendor_page: 0.0585
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 20.2
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 20.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.127
+    winner: vendor_page
+    sources:
+      vendor_page: 0.127
+  Qms:  # mechanical Q factor
+    value: 5.37
+    winner: vendor_page
+    sources:
+      vendor_page: 5.37
   Cms:  # mechanical compliance (m/N)
     value: 0.00049
     winner: vendor_page
     sources:
       vendor_page: 0.00049
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-satori-wo34hc-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 19.0
+    winner: vendor_page
+    sources:
+      vendor_page: 19.0
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.238
+    winner: vendor_page
+    sources:
+      vendor_page: 0.238

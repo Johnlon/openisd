@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1061--faitalpro-15fh500-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1061--faitalpro-15fh500-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.217189856
-    winner: vendor_page
-    sources:
-      vendor_page: 0.217189856
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09540000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09540000000000001
-  BL:  # force factor (T·m)
-    value: 23.8
-    winner: vendor_page
-    sources:
-      vendor_page: 23.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 12.7
-    winner: vendor_page
-    sources:
-      vendor_page: 12.7
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.589360283384291
-    winner: vendor_page
-    sources:
-      vendor_page: 1.589360283384291
   Xmax:  # one-way linear excursion (m)
     value: 0.00925
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 13.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 12.7
     winner: vendor_page
     sources:
-      vendor_page: 13.2
+      vendor_page: 12.7
   Sd:  # effective piston area (m²)
     value: 0.0847
     winner: vendor_page
     sources:
       vendor_page: 0.0847
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 16.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.589360283384291
+    winner: vendor_page
+    sources:
+      vendor_page: 1.589360283384291
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09540000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09540000000000001
+  Qms:  # mechanical Q factor
+    value: 13.2
+    winner: vendor_page
+    sources:
+      vendor_page: 13.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1061--faitalpro-15fh500-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1061--faitalpro-15fh500-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-15FH500-15-Neodymium-Professional-Subwoofer-16-Ohm-294-1061
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 23.8
+    winner: vendor_page
+    sources:
+      vendor_page: 23.8
+  Le:  # voice coil inductance (H)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.217189856
+    winner: vendor_page
+    sources:
+      vendor_page: 0.217189856

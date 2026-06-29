@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1073--faitalpro-w8n8-150-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1073--faitalpro-w8n8-150-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.014441568
-    winner: vendor_page
-    sources:
-      vendor_page: 0.014441568
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0209
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0209
-  BL:  # force factor (T·m)
-    value: 9.9
-    winner: vendor_page
-    sources:
-      vendor_page: 9.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 76.0
-    winner: vendor_page
-    sources:
-      vendor_page: 76.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.1234492642391603
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1234492642391603
   Xmax:  # one-way linear excursion (m)
     value: 0.00552
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.52
-  Qms:  # mechanical Q factor
-    value: 4.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 4.7
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.0222
     winner: vendor_page
     sources:
       vendor_page: 0.0222
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 76.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 76.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.1234492642391603
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1234492642391603
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0209
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0209
+  Qms:  # mechanical Q factor
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00020999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00020999999999999998
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1073--faitalpro-w8n8-150-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1073--faitalpro-w8n8-150-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-W8N8-150-8-Neodymium-Professional-Woofer-8-Ohm-294-1073
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 9.9
+    winner: vendor_page
+    sources:
+      vendor_page: 9.9
+  Le:  # voice coil inductance (H)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.014441568
+    winner: vendor_page
+    sources:
+      vendor_page: 0.014441568

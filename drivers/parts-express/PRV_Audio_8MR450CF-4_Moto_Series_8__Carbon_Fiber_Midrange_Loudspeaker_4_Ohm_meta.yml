@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3533--8mr450cd-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3533--8mr450cd-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.017556416
-    winner: vendor_page
-    sources:
-      vendor_page: 0.017556416
-  Qes:  # electrical Q factor
-    value: 0.73
-    winner: vendor_page
-    sources:
-      vendor_page: 0.73
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01516
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01516
-  BL:  # force factor (T·m)
-    value: 6.06
-    winner: vendor_page
-    sources:
-      vendor_page: 6.06
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 450.0
-    winner: vendor_page
-    sources:
-      vendor_page: 450.0
-  Fs:  # free air resonance (Hz)
-    value: 82.8
-    winner: vendor_page
-    sources:
-      vendor_page: 82.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3398085217779647
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3398085217779647
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.71
-  Qms:  # mechanical Q factor
-    value: 23.21
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 23.21
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0227
     winner: vendor_page
     sources:
       vendor_page: 0.0227
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 82.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 82.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3398085217779647
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3398085217779647
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01516
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01516
+  Qms:  # mechanical Q factor
+    value: 23.21
+    winner: vendor_page
+    sources:
+      vendor_page: 23.21
   Cms:  # mechanical compliance (m/N)
     value: 0.000244
     winner: vendor_page
     sources:
       vendor_page: 0.000244
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.73
+    winner: vendor_page
+    sources:
+      vendor_page: 0.73
+  Pe:  # rated power input (W)
+    value: 450.0
+    winner: vendor_page
+    sources:
+      vendor_page: 450.0
+  BL:  # force factor (T·m)
+    value: 6.06
+    winner: vendor_page
+    sources:
+      vendor_page: 6.06
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.017556416
+    winner: vendor_page
+    sources:
+      vendor_page: 0.017556416
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 2.83
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 10.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3533--8mr450cd-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3533--8mr450cd-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533
-frd_url: null
-zma_url: null

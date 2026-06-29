@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-138--ciare-hw210-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0576 differs from calculated=0.0587259 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-138
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-138--ciare-hw210-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0576
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0576
-  Qes:  # electrical Q factor
-    value: 1.04
-    winner: vendor_page
-    sources:
-      vendor_page: 1.04
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01809
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01809
-  BL:  # force factor (T·m)
-    value: 5.18
-    winner: vendor_page
-    sources:
-      vendor_page: 5.18
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0591308432913695
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0591308432913695
   Xmax:  # one-way linear excursion (m)
     value: 0.0053
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.84
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 4.4
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0222
     winner: vendor_page
     sources:
       vendor_page: 0.0222
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 41.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 90.0
+      vendor_page: 41.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0591308432913695
     winner: vendor_page
     sources:
-      vendor_page: 90.0
+      vendor_page: 1.0591308432913695
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01809
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01809
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00084
     winner: vendor_page
     sources:
       vendor_page: 0.00084
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-138--ciare-hw210-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-138--ciare-hw210-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-HW210-8-Woofer-8-Ohm-293-138
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.04
+    winner: vendor_page
+    sources:
+      vendor_page: 1.04
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 5.18
+    winner: vendor_page
+    sources:
+      vendor_page: 5.18
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  Le:  # voice coil inductance (H)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0576
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0576

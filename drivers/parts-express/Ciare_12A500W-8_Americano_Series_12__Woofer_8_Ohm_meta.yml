@@ -1,56 +1,39 @@
+source: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-211--ciare-americano-10a500w-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-211--ciare-americano-10a500w-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00066
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00066
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.07503952
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07503952
-  Qes:  # electrical Q factor
-    value: 0.66
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66
-  BL:  # force factor (T·m)
-    value: 10.9
-    winner: vendor_page
-    sources:
-      vendor_page: 10.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 51.43
-    winner: vendor_page
-    sources:
-      vendor_page: 51.43
   Qts:  # total Q factor
     value: 0.62
     winner: vendor_page
     sources:
       vendor_page: 0.62
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Fs:  # free air resonance (Hz)
+    value: 51.43
+    winner: vendor_page
+    sources:
+      vendor_page: 51.43
   Qms:  # mechanical Q factor
     value: 10.27
     winner: vendor_page
@@ -61,16 +44,33 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 10.9
+    winner: vendor_page
+    sources:
+      vendor_page: 10.9
+  Le:  # voice coil inductance (H)
+    value: 0.00066
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00066
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.07503952
+    winner: vendor_page
+    sources:
+      vendor_page: 0.07503952
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 120.0
     winner: vendor_page
     sources:
       vendor_page: 120.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-211--ciare-americano-10a500w-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-211--ciare-americano-10a500w-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-12A500W-8-Americano-Series-12-Wooer-8-Ohm-293-211
-frd_url: null
-zma_url: null

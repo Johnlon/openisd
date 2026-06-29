@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-148
+_sources:
+  vendor_page: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.054934592
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054934592
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.201
-    winner: vendor_page
-    sources:
-      vendor_page: 0.201
-  BL:  # force factor (T·m)
-    value: 19.5
-    winner: vendor_page
-    sources:
-      vendor_page: 19.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 15.923777024152095
-    winner: vendor_page
-    sources:
-      vendor_page: 15.923777024152095
   Xmax:  # one-way linear excursion (m)
     value: 0.0135
     winner: vendor_page
@@ -67,28 +32,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 2.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 2.3
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0523
     winner: vendor_page
     sources:
       vendor_page: 0.0523
+  Fs:  # free air resonance (Hz)
+    value: 29.0
+    winner: vendor_page
+    sources:
+      vendor_page: 29.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 15.923777024152095
+    winner: vendor_page
+    sources:
+      vendor_page: 15.923777024152095
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.201
+    winner: vendor_page
+    sources:
+      vendor_page: 0.201
+  Qms:  # mechanical Q factor
+    value: 2.3
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-12.00SW-4-12-High-Power-Subwoofer-293-148
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 19.5
+    winner: vendor_page
+    sources:
+      vendor_page: 19.5
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.054934592
+    winner: vendor_page
+    sources:
+      vendor_page: 0.054934592

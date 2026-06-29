@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.24 differs from calculated=0.235955 (deps: Qms=4.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-042
+_sources:
+  vendor_page: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043041536
-    winner: vendor_page
-    sources:
-      vendor_page: 0.043041536
-  Qes:  # electrical Q factor
-    value: 0.25
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000125
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000125
-  BL:  # force factor (T·m)
-    value: 26.4
-    winner: vendor_page
-    sources:
-      vendor_page: 26.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1300.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.008414980322115517
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008414980322115517
   Xmax:  # one-way linear excursion (m)
     value: 0.011
     winner: vendor_page
@@ -68,28 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.24
-  Qms:  # mechanical Q factor
-    value: 4.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 4.2
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
+  Fs:  # free air resonance (Hz)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.008414980322115517
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008414980322115517
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000125
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000125
+  Qms:  # mechanical Q factor
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.25
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25
+  Pe:  # rated power input (W)
+    value: 1300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1300.0
+  BL:  # force factor (T·m)
+    value: 26.4
+    winner: vendor_page
+    sources:
+      vendor_page: 26.4
+  Le:  # voice coil inductance (H)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043041536
+    winner: vendor_page
+    sources:
+      vendor_page: 0.043041536

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-130--morel-uw-1058-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-130--morel-uw-1058-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00133
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00133
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.040776191999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.040776191999999996
-  Qes:  # electrical Q factor
-    value: 0.58
-    winner: vendor_page
-    sources:
-      vendor_page: 0.58
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0993
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0993
-  BL:  # force factor (T·m)
-    value: 15.3
-    winner: vendor_page
-    sources:
-      vendor_page: 15.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 26.0
-    winner: vendor_page
-    sources:
-      vendor_page: 26.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 9.431353387253639
-    winner: vendor_page
-    sources:
-      vendor_page: 9.431353387253639
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 1.72
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 1.72
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0346
     winner: vendor_page
     sources:
       vendor_page: 0.0346
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 26.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 26.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 9.431353387253639
+    winner: vendor_page
+    sources:
+      vendor_page: 9.431353387253639
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0993
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0993
+  Qms:  # mechanical Q factor
+    value: 1.72
+    winner: vendor_page
+    sources:
+      vendor_page: 1.72
   Cms:  # mechanical compliance (m/N)
     value: 0.00023999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00023999999999999998
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-130--morel-uw-1058-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-130--morel-uw-1058-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-Ultimate-UW-1058-10-Subwoofer-297-130
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.58
+    winner: vendor_page
+    sources:
+      vendor_page: 0.58
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 15.3
+    winner: vendor_page
+    sources:
+      vendor_page: 15.3
+  Le:  # voice coil inductance (H)
+    value: 0.00133
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00133
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.040776191999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.040776191999999996

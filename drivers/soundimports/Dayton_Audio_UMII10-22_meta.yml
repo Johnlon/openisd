@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00074
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0212
-  Qes:  # electrical Q factor
-    value: 0.73
-    winner: vendor_page
-    sources:
-      vendor_page: 0.73
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.134
-    winner: vendor_page
-    sources:
-      vendor_page: 0.134
-  BL:  # force factor (T·m)
-    value: 13.4
-    winner: vendor_page
-    sources:
-      vendor_page: 13.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
   Xmax:  # one-way linear excursion (m)
     value: 0.02
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.57
-  Qms:  # mechanical Q factor
-    value: 2.67
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.0
     winner: vendor_page
     sources:
-      vendor_page: 2.67
+      vendor_page: 4.0
   Sd:  # effective piston area (m²)
     value: 0.0345
     winner: vendor_page
     sources:
       vendor_page: 0.0345
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 39.0
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 39.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.134
+    winner: vendor_page
+    sources:
+      vendor_page: 0.134
+  Qms:  # mechanical Q factor
+    value: 2.67
+    winner: vendor_page
+    sources:
+      vendor_page: 2.67
   Cms:  # mechanical compliance (m/N)
     value: 0.000126
     winner: vendor_page
     sources:
       vendor_page: 0.000126
+  Znom:  # nominal impedance (Ω)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Qes:  # electrical Q factor
+    value: 0.73
+    winner: vendor_page
+    sources:
+      vendor_page: 0.73
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 13.4
+    winner: vendor_page
+    sources:
+      vendor_page: 13.4
+  Le:  # voice coil inductance (H)
+    value: 0.00074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00074
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0212
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.2
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 63.5
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-umii10-22.html
-frd_url: null
-zma_url: null

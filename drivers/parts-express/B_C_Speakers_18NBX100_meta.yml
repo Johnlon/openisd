@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.38 differs from calculated=0.373333 (deps: Qms=5.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-6000
+_sources:
+  vendor_page: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00185
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00185
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1982176
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.217
-    winner: vendor_page
-    sources:
-      vendor_page: 0.217
-  BL:  # force factor (T·m)
-    value: 24.8
-    winner: vendor_page
-    sources:
-      vendor_page: 24.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 2400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2400.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.521570072862314
-    winner: vendor_page
-    sources:
-      vendor_page: 8.521570072862314
   Xmax:  # one-way linear excursion (m)
     value: 0.01
     winner: vendor_page
@@ -68,28 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 5.6
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 8.521570072862314
+    winner: vendor_page
+    sources:
+      vendor_page: 8.521570072862314
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.217
+    winner: vendor_page
+    sources:
+      vendor_page: 0.217
+  Qms:  # mechanical Q factor
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18NBX100-18-Professional-Neodymium-Subwoofer-8-Ohm-294-6000
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 2400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2400.0
+  BL:  # force factor (T·m)
+    value: 24.8
+    winner: vendor_page
+    sources:
+      vendor_page: 24.8
+  Le:  # voice coil inductance (H)
+    value: 0.00185
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00185
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1982176

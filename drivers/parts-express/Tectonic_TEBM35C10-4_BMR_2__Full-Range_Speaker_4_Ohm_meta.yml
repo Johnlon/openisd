@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-216--tectonic-tebm35c10-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-216--tectonic-tebm35c10-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00017839584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017839584
-  Qes:  # electrical Q factor
-    value: 1.06
-    winner: vendor_page
-    sources:
-      vendor_page: 1.06
-  BL:  # force factor (T·m)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 145.0
-    winner: vendor_page
-    sources:
-      vendor_page: 145.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 3.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.2
     winner: vendor_page
     sources:
-      vendor_page: 3.84
+      vendor_page: 4.2
   Sd:  # effective piston area (m²)
     value: 0.001104
     winner: vendor_page
     sources:
       vendor_page: 0.001104
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 145.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 145.0
+  Qms:  # mechanical Q factor
+    value: 3.84
+    winner: vendor_page
+    sources:
+      vendor_page: 3.84
   Cms:  # mechanical compliance (m/N)
     value: 0.001085
     winner: vendor_page
     sources:
       vendor_page: 0.001085
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-216--tectonic-tebm35c10-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-216--tectonic-tebm35c10-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tectonic-TEBM35C10-4-BMR-2-Full-Range-Speaker-4-Ohm-297-216
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.06
+    winner: vendor_page
+    sources:
+      vendor_page: 1.06
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00017839584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017839584

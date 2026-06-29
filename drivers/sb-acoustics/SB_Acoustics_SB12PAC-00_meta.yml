@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
+manu_page_url: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PAC-00-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PAC-00-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0043
-    winner: manu_page
-    sources:
-      manu_page: 0.0043
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0192
-    winner: manu_page
-    sources:
-      manu_page: 0.0192
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: manu_page
-    sources:
-      manu_page: 33.0
-  Qms:  # mechanical Q factor
-    value: 12.4
-    winner: manu_page
-    sources:
-      manu_page: 12.4
   Sd:  # effective piston area (m²)
     value: 0.005
     winner: manu_page
     sources:
       manu_page: 0.005
+  Fs:  # free air resonance (Hz)
+    value: 33.0
+    winner: manu_page
+    sources:
+      manu_page: 33.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0192
+    winner: manu_page
+    sources:
+      manu_page: 0.0192
+  Qms:  # mechanical Q factor
+    value: 12.4
+    winner: manu_page
+    sources:
+      manu_page: 12.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00121
     winner: manu_page
     sources:
       manu_page: 0.00121
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PAC-00-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PAC-00-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/4in-sb12pac-00-aluminium/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0043
+    winner: manu_page
+    sources:
+      manu_page: 0.0043

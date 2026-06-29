@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 292-484
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06909299199999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06909299199999999
-  Qes:  # electrical Q factor
-    value: 1.02
-    winner: vendor_page
-    sources:
-      vendor_page: 1.02
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.12459999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.12459999999999999
-  BL:  # force factor (T·m)
-    value: 9.5
-    winner: vendor_page
-    sources:
-      vendor_page: 9.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.247460463039014
-    winner: vendor_page
-    sources:
-      vendor_page: 6.247460463039014
   Xmax:  # one-way linear excursion (m)
     value: 0.0085
     winner: vendor_page
@@ -67,28 +32,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.82
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.247460463039014
+    winner: vendor_page
+    sources:
+      vendor_page: 6.247460463039014
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.12459999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.12459999999999999
   Qms:  # mechanical Q factor
     value: 4.01
     winner: vendor_page
     sources:
       vendor_page: 4.01
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.0002
     winner: vendor_page
     sources:
       vendor_page: 0.0002
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-12SW-4-12-Poly-Cone-Subwoofer-4-Ohm-292-484
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.02
+    winner: vendor_page
+    sources:
+      vendor_page: 1.02
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 9.5
+    winner: vendor_page
+    sources:
+      vendor_page: 9.5
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06909299199999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06909299199999999

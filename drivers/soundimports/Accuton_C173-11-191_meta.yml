@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/accuton-c173-11-191.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c173-11-191.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c173-11-191.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/accuton-c173-11-191.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00072
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0216
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0198
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0198
-  BL:  # force factor (T·m)
-    value: 8.8
-    winner: vendor_page
-    sources:
-      vendor_page: 8.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 38.6
-    winner: vendor_page
-    sources:
-      vendor_page: 38.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.91
-    winner: vendor_page
-    sources:
-      vendor_page: 0.91
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 5.27
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 5.27
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: vendor_page
     sources:
       vendor_page: 0.0133
-  Znom:  # nominal impedance (Ω)
-    value: 11.0
+  Fs:  # free air resonance (Hz)
+    value: 38.6
     winner: vendor_page
     sources:
-      vendor_page: 11.0
+      vendor_page: 38.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.91
+    winner: vendor_page
+    sources:
+      vendor_page: 0.91
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0198
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0198
+  Qms:  # mechanical Q factor
+    value: 5.27
+    winner: vendor_page
+    sources:
+      vendor_page: 5.27
   Cms:  # mechanical compliance (m/N)
     value: 0.00086
     winner: vendor_page
     sources:
       vendor_page: 0.00086
+  Znom:  # nominal impedance (Ω)
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 8.8
+    winner: vendor_page
+    sources:
+      vendor_page: 8.8
+  Le:  # voice coil inductance (H)
+    value: 0.00072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00072
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0216
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0216
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 38.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/accuton-c173-11-191.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c173-11-191.html
-frd_url: null
-zma_url: null

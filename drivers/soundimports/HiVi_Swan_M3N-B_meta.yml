@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/hivi-m3n-b.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-m3n-b.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-m3n-b.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-m3n-b.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Qes:  # electrical Q factor
-    value: 1.03
-    winner: vendor_page
-    sources:
-      vendor_page: 1.03
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
-  BL:  # force factor (T·m)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 91.0
-    winner: vendor_page
-    sources:
-      vendor_page: 91.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -55,6 +27,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Fs:  # free air resonance (Hz)
+    value: 91.0
+    winner: vendor_page
+    sources:
+      vendor_page: 91.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
   Qms:  # mechanical Q factor
     value: 3.57
     winner: vendor_page
@@ -65,6 +52,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.03
+    winner: vendor_page
+    sources:
+      vendor_page: 1.03
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 82.0
     winner: vendor_page
@@ -75,10 +82,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-m3n-b.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-m3n-b.html
-frd_url: null
-zma_url: null

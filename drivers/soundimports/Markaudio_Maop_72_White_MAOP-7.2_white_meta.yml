@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/markaudio-maop-72-white.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-72-white.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-maop-72-white.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-maop-72-white.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00396
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00396
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00388
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00388
-  BL:  # force factor (T·m)
-    value: 4.09
-    winner: vendor_page
-    sources:
-      vendor_page: 4.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 76.5
-    winner: vendor_page
-    sources:
-      vendor_page: 76.5
   Xmax:  # one-way linear excursion (m)
     value: 0.00225
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.465
-  Qms:  # mechanical Q factor
-    value: 1.98
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 1.98
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.00502
     winner: vendor_page
     sources:
       vendor_page: 0.00502
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 76.5
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 76.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00388
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00388
+  Qms:  # mechanical Q factor
+    value: 1.98
+    winner: vendor_page
+    sources:
+      vendor_page: 1.98
   Cms:  # mechanical compliance (m/N)
     value: 0.0011
     winner: vendor_page
     sources:
       vendor_page: 0.0011
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-maop-72-white.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-72-white.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 4.09
+    winner: vendor_page
+    sources:
+      vendor_page: 4.09
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00396
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00396

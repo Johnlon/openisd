@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-057--21qlex1600fe-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-057
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-057--21qlex1600fe-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
 specs:
-  Le:  # voice coil inductance (H)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.308936288
-    winner: vendor_page
-    sources:
-      vendor_page: 0.308936288
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000388
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000388
-  BL:  # force factor (T·m)
-    value: 36.4
-    winner: vendor_page
-    sources:
-      vendor_page: 36.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.016252505994571193
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016252505994571193
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 4.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.5
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.1734
     winner: vendor_page
     sources:
       vendor_page: 0.1734
-  Znom:  # nominal impedance (Ω)
+  Fs:  # free air resonance (Hz)
     value: 30.0
     winner: vendor_page
     sources:
       vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.016252505994571193
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016252505994571193
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000388
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000388
+  Qms:  # mechanical Q factor
+    value: 4.5
+    winner: vendor_page
+    sources:
+      vendor_page: 4.5
   Cms:  # mechanical compliance (m/N)
     value: 0.072
     winner: vendor_page
     sources:
       vendor_page: 0.072
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-057--21qlex1600fe-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-057--21qlex1600fe-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 1600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1600.0
+  BL:  # force factor (T·m)
+    value: 36.4
+    winner: vendor_page
+    sources:
+      vendor_page: 36.4
+  Le:  # voice coil inductance (H)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.308936288
+    winner: vendor_page
+    sources:
+      vendor_page: 0.308936288

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.24 differs from calculated=0.235918 (deps: Qms=13
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
 obsolete: null
 dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
 community: null
 fetched_sku: 267-8034
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004247519999999999
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01694
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01694
-  BL:  # force factor (T·m)
-    value: 9.95
-    winner: vendor_page
-    sources:
-      vendor_page: 9.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.3
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 98.8
-    winner: vendor_page
-    sources:
-      vendor_page: 98.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7581825032038841
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7581825032038841
   Xmax:  # one-way linear excursion (m)
     value: 0.00325
     winner: vendor_page
@@ -68,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.24
-  Qms:  # mechanical Q factor
-    value: 13.87
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.3
     winner: vendor_page
     sources:
-      vendor_page: 13.87
+      vendor_page: 2.3
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 98.8
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 98.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7581825032038841
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7581825032038841
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01694
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01694
+  Qms:  # mechanical Q factor
+    value: 13.87
+    winner: vendor_page
+    sources:
+      vendor_page: 13.87
   Cms:  # mechanical compliance (m/N)
     value: 0.000153
     winner: vendor_page
     sources:
       vendor_page: 0.000153
+  Znom:  # nominal impedance (Ω)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 9.95
+    winner: vendor_page
+    sources:
+      vendor_page: 9.95
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004247519999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004247519999999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 300.0
     winner: vendor_page
@@ -103,13 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-MT6MR600CF-NDY-2-Moto-Series-6.5-Neodymium-Midrange-Loudspeaker-2-Ohm-267-8034
-frd_url: null
-zma_url: null

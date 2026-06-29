@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1642--tymphany-xt25sc40-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 264-1642
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1642--tymphany-xt25sc40-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Qes:  # electrical Q factor
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.22
-    winner: vendor_page
-    sources:
-      vendor_page: 3.22
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 1018.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1018.0
   Qts:  # total Q factor
     value: 0.63
     winner: vendor_page
     sources:
       vendor_page: 0.63
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.22
+    winner: vendor_page
+    sources:
+      vendor_page: 3.22
+  Fs:  # free air resonance (Hz)
+    value: 1018.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1018.0
   Qms:  # mechanical Q factor
     value: 2.53
     winner: vendor_page
@@ -52,14 +48,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1642--tymphany-xt25sc40-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1642--tymphany-xt25sc40-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-XT25SC40-04-1-Ring-Radiator-XT-Tweeter-4-Ohm-264-1642
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.83
+    winner: vendor_page
+    sources:
+      vendor_page: 0.83
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05

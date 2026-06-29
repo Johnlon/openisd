@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008129999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008129999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.071358336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.071358336
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.055689999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.055689999999999996
-  BL:  # force factor (T·m)
-    value: 17.74
-    winner: vendor_page
-    sources:
-      vendor_page: 17.74
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 55.1
-    winner: vendor_page
-    sources:
-      vendor_page: 55.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8718517956894558
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8718517956894558
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 10.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 10.3
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0585
     winner: vendor_page
     sources:
       vendor_page: 0.0585
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 55.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 55.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8718517956894558
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8718517956894558
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.055689999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.055689999999999996
+  Qms:  # mechanical Q factor
+    value: 10.3
+    winner: vendor_page
+    sources:
+      vendor_page: 10.3
   Cms:  # mechanical compliance (m/N)
     value: 0.000149
     winner: vendor_page
     sources:
       vendor_page: 0.000149
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 17.74
+    winner: vendor_page
+    sources:
+      vendor_page: 17.74
+  Le:  # voice coil inductance (H)
+    value: 0.0008129999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008129999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.071358336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.071358336
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 12.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12MB2000FT-NDY-Forte-Series-12-Neodymium-Midbass-Speaker-8-Ohm-294-2776
-frd_url: null
-zma_url: null

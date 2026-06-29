@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-372-dayton-audio-rs150-4-spec-sheet-revised.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0163954 differs from calculated=0.0166034 (deps: 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-372
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-372-dayton-audio-rs150-4-spec-sheet-revised.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0163954272
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0163954272
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0077
-  BL:  # force factor (T·m)
-    value: 4.1
-    winner: vendor_page
-    sources:
-      vendor_page: 4.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 45.1
-    winner: vendor_page
-    sources:
-      vendor_page: 45.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1132457967470688
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1132457967470688
   Xmax:  # one-way linear excursion (m)
     value: 0.0044
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 1.96
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 1.96
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0085
     winner: vendor_page
     sources:
       vendor_page: 0.0085
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 45.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 45.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1132457967470688
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1132457967470688
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0077
+  Qms:  # mechanical Q factor
+    value: 1.96
+    winner: vendor_page
+    sources:
+      vendor_page: 1.96
   Cms:  # mechanical compliance (m/N)
     value: 0.0016200000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0016200000000000001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-372-dayton-audio-rs150-4-spec-sheet-revised.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-372-dayton-audio-rs150-4-spec-sheet-revised.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS150-4-6-Reference-Woofer-4-Ohm-295-372
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 4.1
+    winner: vendor_page
+    sources:
+      vendor_page: 4.1
+  Le:  # voice coil inductance (H)
+    value: 0.004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0163954272
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0163954272

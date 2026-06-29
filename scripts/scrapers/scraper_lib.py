@@ -70,6 +70,7 @@ check_fields        = _dqlib.check_fields       # noqa: F401
 _schema_mod = _load_module("_wdr_meta_schema", _PARENT_SCRIPTS / "wdr_meta_schema.py")
 _validate_driver  = _schema_mod.validate_driver
 validate_driver   = _schema_mod.validate_driver   # noqa: F401 — re-exported for vendor scrapers
+_reorder_meta_for_save = _schema_mod.reorder_meta_for_save
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -703,31 +704,36 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
     _sources_index[_html_src] = url
 
     meta = {
+        # ── Source/URLs ──────────────────────────────────────────────────────
+        "source":              url,
+        "manu_page_url":       url if cfg.is_manufacturer_site else None,
+        "vendor_page_url":     None if cfg.is_manufacturer_site else url,
+        "datasheet_url":       datasheet_url or None,
+        "adv_datasheet_url":   adv_datasheet_url or None,
+        "drawing_url":         drawing_url or None,
+        "cad_url":             cad_url or None,
+        "frd_url":             frd_url or None,
+        "zma_url":             zma_url or None,
+        # ── Quality / curation ───────────────────────────────────────────────
         "quality":         "M",
         "issue":           "scraped_not_human_verified",
         "detail":          " ".join(detail_parts),
         "corrections":     None,
         "reviewed_by":     None,
+        # ── Classification ───────────────────────────────────────────────────
         "driver_type":     product.get("driver_type") or None,
         "nominal_size_cm": product.get("nominal_size_cm"),
-        "source":              url,
-        "datasheet_url":       datasheet_url or None,
-        "adv_datasheet_url":   adv_datasheet_url or None,
-        "drawing_url":         drawing_url or None,
-        "cad_url":             cad_url or None,
-        "manu_page_url":       url if cfg.is_manufacturer_site else None,
-        "vendor_page_url":     None if cfg.is_manufacturer_site else url,
-        "frd_url":             frd_url or None,
-        "zma_url":             zma_url or None,
+        # ── Status flags ─────────────────────────────────────────────────────
         "obsolete":        None,
         "dq_issue":        None,
         "community":       None,
         "fetched_sku":     None,
+        # ── Structured provenance ────────────────────────────────────────────
         "_sources":        _sources_index,
         "specs":           _specs or None,
     }
     meta_path = cfg.out / wdr_name.replace(".wdr", "_meta.yml")
-    _meta_yaml = yaml.dump(meta, allow_unicode=True, sort_keys=False)
+    _meta_yaml = yaml.dump(_reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False)
     meta_path.write_text(annotate_specs_yaml(_meta_yaml), encoding="utf-8")
 
     # ── Strict schema validation ───────────────────────────────────────────────

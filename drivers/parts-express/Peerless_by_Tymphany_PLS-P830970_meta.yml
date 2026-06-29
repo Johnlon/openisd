@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1044--tymphany-pls-p830970-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1044
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1044--tymphany-pls-p830970-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 0.67
-    winner: vendor_page
-    sources:
-      vendor_page: 0.67
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  BL:  # force factor (T·m)
-    value: 2.8
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 147.5
-    winner: vendor_page
-    sources:
-      vendor_page: 147.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.45429893765146523
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45429893765146523
   Xmax:  # one-way linear excursion (m)
     value: 0.0018
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.57
-  Qms:  # mechanical Q factor
-    value: 3.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 3.85
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 147.5
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 147.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.45429893765146523
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45429893765146523
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Qms:  # mechanical Q factor
+    value: 3.85
+    winner: vendor_page
+    sources:
+      vendor_page: 3.85
   Cms:  # mechanical compliance (m/N)
     value: 0.00076
     winner: vendor_page
     sources:
       vendor_page: 0.00076
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1044--tymphany-pls-p830970-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1044--tymphany-pls-p830970-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.67
+    winner: vendor_page
+    sources:
+      vendor_page: 0.67
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168

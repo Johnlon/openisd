@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-462-dayton-audio-rss265ho-4-specifications-46173.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.35551 (deps: Qms=4.0
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-462
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-462-dayton-audio-rss265ho-4-specifications-46173.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00174
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00174
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.029449472
-    winner: vendor_page
-    sources:
-      vendor_page: 0.029449472
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.201
-    winner: vendor_page
-    sources:
-      vendor_page: 0.201
-  BL:  # force factor (T·m)
-    value: 17.6
-    winner: vendor_page
-    sources:
-      vendor_page: 17.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 26.9
-    winner: vendor_page
-    sources:
-      vendor_page: 26.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.450884238156545
-    winner: vendor_page
-    sources:
-      vendor_page: 8.450884238156545
   Xmax:  # one-way linear excursion (m)
     value: 0.0123
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 4.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 4.02
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.03497
     winner: vendor_page
     sources:
       vendor_page: 0.03497
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 26.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 26.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 8.450884238156545
+    winner: vendor_page
+    sources:
+      vendor_page: 8.450884238156545
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.201
+    winner: vendor_page
+    sources:
+      vendor_page: 0.201
+  Qms:  # mechanical Q factor
+    value: 4.02
+    winner: vendor_page
+    sources:
+      vendor_page: 4.02
   Cms:  # mechanical compliance (m/N)
     value: 0.00017
     winner: vendor_page
     sources:
       vendor_page: 0.00017
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-462-dayton-audio-rss265ho-4-specifications-46173.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-462-dayton-audio-rss265ho-4-specifications-46173.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HO-4-10-Reference-Series-HO-Subwoofer-4-Ohm-295-462
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 17.6
+    winner: vendor_page
+    sources:
+      vendor_page: 17.6
+  Le:  # voice coil inductance (H)
+    value: 0.00174
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00174
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.029449472
+    winner: vendor_page
+    sources:
+      vendor_page: 0.029449472

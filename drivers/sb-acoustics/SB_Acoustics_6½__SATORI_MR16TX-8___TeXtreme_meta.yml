@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
+manu_page_url: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2024/05/6½in-SATORI-MR16TX-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2024/05/6½in-SATORI-MR16TX-8.pdf
+  manu_page: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: manu_page
-    sources:
-      manu_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0389
-    winner: manu_page
-    sources:
-      manu_page: 0.0389
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: manu_page
-    sources:
-      manu_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0103
-    winner: manu_page
-    sources:
-      manu_page: 0.0103
-  BL:  # force factor (T·m)
-    value: 6.6
-    winner: manu_page
-    sources:
-      manu_page: 6.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: manu_page
-    sources:
-      manu_page: 6.2
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: manu_page
-    sources:
-      manu_page: 35.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00285
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 6.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: manu_page
     sources:
-      manu_page: 6.47
+      manu_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0117
     winner: manu_page
     sources:
       manu_page: 0.0117
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 35.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0103
+    winner: manu_page
+    sources:
+      manu_page: 0.0103
+  Qms:  # mechanical Q factor
+    value: 6.47
+    winner: manu_page
+    sources:
+      manu_page: 6.47
   Cms:  # mechanical compliance (m/N)
     value: 0.002
     winner: manu_page
     sources:
       manu_page: 0.002
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: manu_page
+    sources:
+      manu_page: 0.32
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 6.6
+    winner: manu_page
+    sources:
+      manu_page: 6.6
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: manu_page
+    sources:
+      manu_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0389
+    winner: manu_page
+    sources:
+      manu_page: 0.0389
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 35.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2024/05/6½in-SATORI-MR16TX-8.pdf
-  manu_page: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2024/05/6½in-SATORI-MR16TX-8.pdf
-manu_page_url: https://sbacoustics.com/product/6½-satori-mr16tx-8-textreme/
-vendor_page_url: null
-frd_url: null
-zma_url: null

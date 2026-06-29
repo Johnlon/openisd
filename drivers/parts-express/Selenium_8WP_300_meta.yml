@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-470--jbl-selenium-8wp300-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.5 differs from calculated=0.494515 (deps: Qms=10.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-470
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-470--jbl-selenium-8wp300-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00091
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00091
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.010477216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.010477216
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: vendor_page
-    sources:
-      vendor_page: 0.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02498
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02498
-  BL:  # force factor (T·m)
-    value: 12.32
-    winner: vendor_page
-    sources:
-      vendor_page: 12.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.83
-    winner: vendor_page
-    sources:
-      vendor_page: 5.83
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 86.4
-    winner: vendor_page
-    sources:
-      vendor_page: 86.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.343986414201893
-    winner: vendor_page
-    sources:
-      vendor_page: 1.343986414201893
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 10.09
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.83
     winner: vendor_page
     sources:
-      vendor_page: 10.09
+      vendor_page: 5.83
   Sd:  # effective piston area (m²)
     value: 0.023235
     winner: vendor_page
     sources:
       vendor_page: 0.023235
+  Fs:  # free air resonance (Hz)
+    value: 86.4
+    winner: vendor_page
+    sources:
+      vendor_page: 86.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.343986414201893
+    winner: vendor_page
+    sources:
+      vendor_page: 1.343986414201893
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02498
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02498
+  Qms:  # mechanical Q factor
+    value: 10.09
+    winner: vendor_page
+    sources:
+      vendor_page: 10.09
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-470--jbl-selenium-8wp300-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-470--jbl-selenium-8wp300-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-8WP-300-8-300-Watt-Woofer-8-Ohm-264-470
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: vendor_page
+    sources:
+      vendor_page: 0.52
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 12.32
+    winner: vendor_page
+    sources:
+      vendor_page: 12.32
+  Le:  # voice coil inductance (H)
+    value: 0.00091
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00091
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.010477216
+    winner: vendor_page
+    sources:
+      vendor_page: 0.010477216

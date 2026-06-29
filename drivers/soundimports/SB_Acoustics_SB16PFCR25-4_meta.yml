@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00056
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0327
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0327
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0138
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0138
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 2.76
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 2.76
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0124
     winner: vendor_page
     sources:
       vendor_page: 0.0124
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 35.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0138
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0138
+  Qms:  # mechanical Q factor
+    value: 2.76
+    winner: vendor_page
+    sources:
+      vendor_page: 2.76
   Cms:  # mechanical compliance (m/N)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb16pfcr25-4.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00056
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00056
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0327
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0327

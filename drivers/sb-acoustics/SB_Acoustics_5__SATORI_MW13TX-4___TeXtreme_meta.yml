@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
+manu_page_url: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/5-inch-SATORI-MW13TX-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/5-inch-SATORI-MW13TX-4.pdf
+  manu_page: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: manu_page
-    sources:
-      manu_page: 0.00016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016
-    winner: manu_page
-    sources:
-      manu_page: 0.016
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: manu_page
-    sources:
-      manu_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0074
-    winner: manu_page
-    sources:
-      manu_page: 0.0074
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: manu_page
-    sources:
-      manu_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: manu_page
-    sources:
-      manu_page: 3.8
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: manu_page
-    sources:
-      manu_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: manu_page
-    sources:
-      manu_page: 38.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 5.08
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: manu_page
     sources:
-      manu_page: 5.08
+      manu_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.007
     winner: manu_page
     sources:
       manu_page: 0.007
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 38.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 38.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0074
+    winner: manu_page
+    sources:
+      manu_page: 0.0074
+  Qms:  # mechanical Q factor
+    value: 5.08
+    winner: manu_page
+    sources:
+      manu_page: 5.08
   Cms:  # mechanical compliance (m/N)
     value: 0.00238
     winner: manu_page
     sources:
       manu_page: 0.00238
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: manu_page
+    sources:
+      manu_page: 0.27
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: manu_page
+    sources:
+      manu_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: manu_page
+    sources:
+      manu_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: manu_page
+    sources:
+      manu_page: 0.00016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016
+    winner: manu_page
+    sources:
+      manu_page: 0.016
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 30.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/5-inch-SATORI-MW13TX-4.pdf
-  manu_page: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/5-inch-SATORI-MW13TX-4.pdf
-manu_page_url: https://sbacoustics.com/product/5-satori-mw13tx-4-textreme/
-vendor_page_url: null
-frd_url: null
-zma_url: null

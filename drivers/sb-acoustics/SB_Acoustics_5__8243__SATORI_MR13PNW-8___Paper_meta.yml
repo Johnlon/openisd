@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/5-satori-mr13pnw-8/
+manu_page_url: https://sbacoustics.com/product/5-satori-mr13pnw-8/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MR13PNW-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/5-satori-mr13pnw-8/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MR13PNW-8.pdf
+  manu_page: https://sbacoustics.com/product/5-satori-mr13pnw-8/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: manu_page
-    sources:
-      manu_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0129
-    winner: manu_page
-    sources:
-      manu_page: 0.0129
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: manu_page
-    sources:
-      manu_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0062
-    winner: manu_page
-    sources:
-      manu_page: 0.0062
-  BL:  # force factor (T·m)
-    value: 6.2
-    winner: manu_page
-    sources:
-      manu_page: 6.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: manu_page
-    sources:
-      manu_page: 6.8
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 47.0
-    winner: manu_page
-    sources:
-      manu_page: 47.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 4.58
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: manu_page
     sources:
-      manu_page: 4.58
+      manu_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.007
     winner: manu_page
     sources:
       manu_page: 0.007
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 47.0
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 47.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0062
+    winner: manu_page
+    sources:
+      manu_page: 0.0062
+  Qms:  # mechanical Q factor
+    value: 4.58
+    winner: manu_page
+    sources:
+      manu_page: 4.58
   Cms:  # mechanical compliance (m/N)
     value: 0.00185
     winner: manu_page
     sources:
       manu_page: 0.00185
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: manu_page
+    sources:
+      manu_page: 0.32
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 6.2
+    winner: manu_page
+    sources:
+      manu_page: 6.2
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: manu_page
+    sources:
+      manu_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0129
+    winner: manu_page
+    sources:
+      manu_page: 0.0129
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 30.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 88.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MR13PNW-8.pdf
-  manu_page: https://sbacoustics.com/product/5-satori-mr13pnw-8/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/01/5in-SATORI-MR13PNW-8.pdf
-manu_page_url: https://sbacoustics.com/product/5-satori-mr13pnw-8/
-vendor_page_url: null
-frd_url: null
-zma_url: null

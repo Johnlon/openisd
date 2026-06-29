@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-101-dayton-audio-ce32a-8-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-101-dayton-audio-ce32a-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 4.247519999999999e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 4.247519999999999e-06
-  Qes:  # electrical Q factor
-    value: 1.25
-    winner: vendor_page
-    sources:
-      vendor_page: 1.25
-  BL:  # force factor (T·m)
-    value: 2.2
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.18
-    winner: vendor_page
-    sources:
-      vendor_page: 7.18
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 274.0
-    winner: vendor_page
-    sources:
-      vendor_page: 274.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0007
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.87
-  Qms:  # mechanical Q factor
-    value: 2.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.18
     winner: vendor_page
     sources:
-      vendor_page: 2.84
+      vendor_page: 7.18
   Sd:  # effective piston area (m²)
     value: 0.000392
     winner: vendor_page
     sources:
       vendor_page: 0.000392
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 274.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 274.0
+  Qms:  # mechanical Q factor
+    value: 2.84
+    winner: vendor_page
+    sources:
+      vendor_page: 2.84
   Cms:  # mechanical compliance (m/N)
     value: 0.00069
     winner: vendor_page
     sources:
       vendor_page: 0.00069
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-101-dayton-audio-ce32a-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-101-dayton-audio-ce32a-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE32A-8-1-1-4-Mini-Speaker-8-Ohm-285-101
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.25
+    winner: vendor_page
+    sources:
+      vendor_page: 1.25
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 2.2
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 4.247519999999999e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 4.247519999999999e-06

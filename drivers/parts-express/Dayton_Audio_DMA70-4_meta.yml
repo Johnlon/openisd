@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-584
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000566336
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  BL:  # force factor (T·m)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.98
-    winner: vendor_page
-    sources:
-      vendor_page: 3.98
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 113.0
-    winner: vendor_page
-    sources:
-      vendor_page: 113.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9745097211723632
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9745097211723632
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.04
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.98
     winner: vendor_page
     sources:
-      vendor_page: 2.04
+      vendor_page: 3.98
   Sd:  # effective piston area (m²)
     value: 0.00229
     winner: vendor_page
     sources:
       vendor_page: 0.00229
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 113.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 113.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9745097211723632
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9745097211723632
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Qms:  # mechanical Q factor
+    value: 2.04
+    winner: vendor_page
+    sources:
+      vendor_page: 2.04
   Cms:  # mechanical compliance (m/N)
     value: 0.0007099999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0007099999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000566336

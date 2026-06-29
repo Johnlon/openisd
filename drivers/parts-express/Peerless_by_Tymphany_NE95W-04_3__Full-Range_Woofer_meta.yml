@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1058--tymphany-ne95w-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1058--tymphany-ne95w-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00249
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00249
-  BL:  # force factor (T·m)
-    value: 2.76
-    winner: vendor_page
-    sources:
-      vendor_page: 2.76
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 103.0
-    winner: vendor_page
-    sources:
-      vendor_page: 103.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.16277257936690387
-    winner: vendor_page
-    sources:
-      vendor_page: 0.16277257936690387
   Xmax:  # one-way linear excursion (m)
     value: 0.00175
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.72
-  Qms:  # mechanical Q factor
-    value: 9.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 9.9
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.00286
     winner: vendor_page
     sources:
       vendor_page: 0.00286
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 103.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 103.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.16277257936690387
+    winner: vendor_page
+    sources:
+      vendor_page: 0.16277257936690387
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00249
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00249
+  Qms:  # mechanical Q factor
+    value: 9.9
+    winner: vendor_page
+    sources:
+      vendor_page: 9.9
   Cms:  # mechanical compliance (m/N)
     value: 0.0009599999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0009599999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1058--tymphany-ne95w-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1058--tymphany-ne95w-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-NE95W-04-3-Full-Range-Woofer-264-1058
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.76
+    winner: vendor_page
+    sources:
+      vendor_page: 2.76
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

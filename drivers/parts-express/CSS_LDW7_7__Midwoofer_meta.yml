@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-3002--Creative-Sound-Solutions-LDW7-Specification-Sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-3002--Creative-Sound-Solutions-LDW7-Specification-Sheet.pdf
+  vendor_page: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.030865312000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.030865312000000002
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0219
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0219
-  BL:  # force factor (T·m)
-    value: 8.2
-    winner: vendor_page
-    sources:
-      vendor_page: 8.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4586725274241098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4586725274241098
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 9.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 9.0
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0131
     winner: vendor_page
     sources:
       vendor_page: 0.0131
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4586725274241098
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4586725274241098
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0219
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0219
+  Qms:  # mechanical Q factor
+    value: 9.0
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0
   Cms:  # mechanical compliance (m/N)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-3002--Creative-Sound-Solutions-LDW7-Specification-Sheet.pdf
-  vendor_page: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-3002--Creative-Sound-Solutions-LDW7-Specification-Sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/CSS-LDW7-7-Midwoofer-290-3002
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 8.2
+    winner: vendor_page
+    sources:
+      vendor_page: 8.2
+  Le:  # voice coil inductance (H)
+    value: 0.00017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.030865312000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.030865312000000002

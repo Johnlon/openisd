@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5951--bc-12fw76-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5951--bc-12fw76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0014
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.04530688
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04530688
-  Qes:  # electrical Q factor
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.075
-  BL:  # force factor (T·m)
-    value: 26.4
-    winner: vendor_page
-    sources:
-      vendor_page: 26.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 54.0
-    winner: vendor_page
-    sources:
-      vendor_page: 54.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.696552761599296
-    winner: vendor_page
-    sources:
-      vendor_page: 6.696552761599296
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.18
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0522
     winner: vendor_page
     sources:
       vendor_page: 0.0522
+  Fs:  # free air resonance (Hz)
+    value: 54.0
+    winner: vendor_page
+    sources:
+      vendor_page: 54.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.696552761599296
+    winner: vendor_page
+    sources:
+      vendor_page: 6.696552761599296
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.075
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5951--bc-12fw76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5951--bc-12fw76-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12FW76-12-Professional-Woofer-8-Ohm-294-5951
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.18
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 26.4
+    winner: vendor_page
+    sources:
+      vendor_page: 26.4
+  Le:  # voice coil inductance (H)
+    value: 0.0014
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0014
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.04530688
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04530688

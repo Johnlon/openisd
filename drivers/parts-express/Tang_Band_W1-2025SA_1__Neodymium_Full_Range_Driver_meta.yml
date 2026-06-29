@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-925--tang-band-w1-2025sa-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-925--tang-band-w1-2025sa-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 5.66336e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.66336e-05
-  Qes:  # electrical Q factor
-    value: 0.57
-    winner: vendor_page
-    sources:
-      vendor_page: 0.57
-  BL:  # force factor (T·m)
-    value: 2.14
-    winner: vendor_page
-    sources:
-      vendor_page: 2.14
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Fs:  # free air resonance (Hz)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00075
     winner: vendor_page
@@ -56,26 +29,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 2.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 2.39
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 200.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 200.0
+  Qms:  # mechanical Q factor
+    value: 2.39
+    winner: vendor_page
+    sources:
+      vendor_page: 2.39
   Cms:  # mechanical compliance (m/N)
     value: 0.00101
     winner: vendor_page
     sources:
       vendor_page: 0.00101
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.57
+    winner: vendor_page
+    sources:
+      vendor_page: 0.57
+  Pe:  # rated power input (W)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  BL:  # force factor (T·m)
+    value: 2.14
+    winner: vendor_page
+    sources:
+      vendor_page: 2.14
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 5.66336e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.66336e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 20.0
     winner: vendor_page
@@ -86,11 +94,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-925--tang-band-w1-2025sa-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-925--tang-band-w1-2025sa-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925
-frd_url: null
-zma_url: null

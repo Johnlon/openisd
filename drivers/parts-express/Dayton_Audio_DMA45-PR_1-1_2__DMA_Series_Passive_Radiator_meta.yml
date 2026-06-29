@@ -1,51 +1,51 @@
+source: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-592--dayton-audio-dma45-pr-specification-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-592--dayton-audio-dma45-pr-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00026051456
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00026051456
-  Fs:  # free air resonance (Hz)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
     sources:
       vendor_page: 0.005
-  Qms:  # mechanical Q factor
-    value: 2.75
-    winner: vendor_page
-    sources:
-      vendor_page: 2.75
   Sd:  # effective piston area (m²)
     value: 0.00086
     winner: vendor_page
     sources:
       vendor_page: 0.00086
+  Fs:  # free air resonance (Hz)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Qms:  # mechanical Q factor
+    value: 2.75
+    winner: vendor_page
+    sources:
+      vendor_page: 2.75
   Cms:  # mechanical compliance (m/N)
     value: 0.00212
     winner: vendor_page
     sources:
       vendor_page: 0.00212
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-592--dayton-audio-dma45-pr-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-592--dayton-audio-dma45-pr-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA45-PR-1-1-2-DMA-Series-Passive-Radiator-295-592
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00026051456
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00026051456

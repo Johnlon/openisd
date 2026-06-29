@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-002--morel-msw-424d-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-002--morel-msw-424d-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004530688
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004530688
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0065
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1953376925853847
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1953376925853847
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -61,26 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Fs:  # free air resonance (Hz)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1953376925853847
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1953376925853847
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0065
   Qms:  # mechanical Q factor
     value: 2.05
     winner: vendor_page
     sources:
       vendor_page: 2.05
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.001056
     winner: vendor_page
     sources:
       vendor_page: 0.001056
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-002--morel-msw-424d-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-002--morel-msw-424d-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MSW-114-Shallow-Classic-Series-4-DPC-Cone-Woofer-Midrange-4-Ohms-297-002
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  Le:  # voice coil inductance (H)
+    value: 0.00025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004530688
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004530688

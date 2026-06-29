@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-325-goldwood-gw-2108-specifications-1023.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-325-goldwood-gw-2108-specifications-1023.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.059748447999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.059748447999999996
-  Qes:  # electrical Q factor
-    value: 1.61
-    winner: vendor_page
-    sources:
-      vendor_page: 1.61
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0421
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0421
-  BL:  # force factor (T·m)
-    value: 6.95
-    winner: vendor_page
-    sources:
-      vendor_page: 6.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Pe:  # rated power input (W)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.362833585778362
-    winner: vendor_page
-    sources:
-      vendor_page: 2.362833585778362
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.19
-  Qms:  # mechanical Q factor
-    value: 4.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.1
     winner: vendor_page
     sources:
-      vendor_page: 4.59
+      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.03449
     winner: vendor_page
     sources:
       vendor_page: 0.03449
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 41.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 41.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.362833585778362
+    winner: vendor_page
+    sources:
+      vendor_page: 2.362833585778362
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0421
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0421
+  Qms:  # mechanical Q factor
+    value: 4.59
+    winner: vendor_page
+    sources:
+      vendor_page: 4.59
   Cms:  # mechanical compliance (m/N)
     value: 0.00035999999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00035999999999999997
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-325-goldwood-gw-2108-specifications-1023.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-325-goldwood-gw-2108-specifications-1023.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-210-8-10-OEM-Woofer-8-Ohm-290-325
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.61
+    winner: vendor_page
+    sources:
+      vendor_page: 1.61
+  Pe:  # rated power input (W)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
+  BL:  # force factor (T·m)
+    value: 6.95
+    winner: vendor_page
+    sources:
+      vendor_page: 6.95
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.059748447999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.059748447999999996

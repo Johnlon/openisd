@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/sw280wa03_04.html
+manu_page_url: http://www.wavecor.com/html/sw280wa03_04.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA04_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA04_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/sw280wa03_04.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
+  manu_page: http://www.wavecor.com/html/sw280wa03_04.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0297
-    winner: manu_page
-    sources:
-      manu_page: 0.0297
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: manu_page
-    sources:
-      manu_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.105
-    winner: manu_page
-    sources:
-      manu_page: 0.105
-  BL:  # force factor (T·m)
-    value: 12.5
-    winner: manu_page
-    sources:
-      manu_page: 12.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: manu_page
-    sources:
-      manu_page: 3.3
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: manu_page
-    sources:
-      manu_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 34.5
-    winner: manu_page
-    sources:
-      manu_page: 34.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2
-    winner: manu_page
-    sources:
-      manu_page: 2.2
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 10.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: manu_page
     sources:
-      manu_page: 10.3
+      manu_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0321
     winner: manu_page
     sources:
       manu_page: 0.0321
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 34.5
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 34.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2
+    winner: manu_page
+    sources:
+      manu_page: 2.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.105
+    winner: manu_page
+    sources:
+      manu_page: 0.105
+  Qms:  # mechanical Q factor
+    value: 10.3
+    winner: manu_page
+    sources:
+      manu_page: 10.3
   Cms:  # mechanical compliance (m/N)
     value: 0.0002
     winner: manu_page
     sources:
       manu_page: 0.0002
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
-  manu_page: http://www.wavecor.com/html/sw280wa03_04.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW280WA03_04_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/sw280wa03_04.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW280WA04_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW280WA04_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: manu_page
+    sources:
+      manu_page: 0.48
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: manu_page
+    sources:
+      manu_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 12.5
+    winner: manu_page
+    sources:
+      manu_page: 12.5
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0297
+    winner: manu_page
+    sources:
+      manu_page: 0.0297

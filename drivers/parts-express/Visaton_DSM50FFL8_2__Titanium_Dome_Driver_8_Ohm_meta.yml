@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7801--visaton-dsm50ffl8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7801--visaton-dsm50ffl8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
+  Qts:  # total Q factor
+    value: 0.44
     winner: vendor_page
     sources:
-      vendor_page: 0.00016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 0.7
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
+      vendor_page: 0.44
   Re:  # DC voice coil resistance (Ω)
     value: 6.7
     winner: vendor_page
     sources:
       vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 120.0
+  Sd:  # effective piston area (m²)
+    value: 0.002
     winner: vendor_page
     sources:
-      vendor_page: 120.0
+      vendor_page: 0.002
   Fs:  # free air resonance (Hz)
     value: 430.0
     winner: vendor_page
@@ -51,26 +44,41 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.7244736289955176
-  Qts:  # total Q factor
-    value: 0.44
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0012
     winner: vendor_page
     sources:
-      vendor_page: 0.44
+      vendor_page: 0.0012
   Qms:  # mechanical Q factor
     value: 1.19
     winner: vendor_page
     sources:
       vendor_page: 1.19
-  Sd:  # effective piston area (m²)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.7
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 400.0
     winner: vendor_page
@@ -81,11 +89,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 15000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7801--visaton-dsm50ffl8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7801--visaton-dsm50ffl8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-DSM50FFL8-2-Titanium-Dome-Driver-8-Ohm-292-7801
-frd_url: null
-zma_url: null

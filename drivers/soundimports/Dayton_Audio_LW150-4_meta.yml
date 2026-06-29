@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00349
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00349
-  Qes:  # electrical Q factor
-    value: 0.72
-    winner: vendor_page
-    sources:
-      vendor_page: 0.72
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0219
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0219
-  BL:  # force factor (T·m)
-    value: 6.52
-    winner: vendor_page
-    sources:
-      vendor_page: 6.52
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 62.6
-    winner: vendor_page
-    sources:
-      vendor_page: 62.6
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.64
-  Qms:  # mechanical Q factor
-    value: 6.01
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 6.01
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00916
     winner: vendor_page
     sources:
       vendor_page: 0.00916
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 62.6
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 62.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0219
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0219
+  Qms:  # mechanical Q factor
+    value: 6.01
+    winner: vendor_page
+    sources:
+      vendor_page: 6.01
   Cms:  # mechanical compliance (m/N)
     value: 0.0003
     winner: vendor_page
     sources:
       vendor_page: 0.0003
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.72
+    winner: vendor_page
+    sources:
+      vendor_page: 0.72
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 6.52
+    winner: vendor_page
+    sources:
+      vendor_page: 6.52
+  Le:  # voice coil inductance (H)
+    value: 0.00086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00086
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00349
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00349
   power_peak_W:  # peak power handling (W)
     value: 80.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 31.8
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-lw150-4.html
-frd_url: null
-zma_url: null

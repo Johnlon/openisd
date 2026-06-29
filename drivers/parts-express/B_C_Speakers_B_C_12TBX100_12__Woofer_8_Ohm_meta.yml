@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-569--bc-12tbx100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-569--bc-12tbx100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03681184
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.119
-  BL:  # force factor (T·m)
-    value: 25.5
-    winner: vendor_page
-    sources:
-      vendor_page: 25.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.55121161815704
-    winner: vendor_page
-    sources:
-      vendor_page: 4.55121161815704
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 6.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 6.9
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0531
     winner: vendor_page
     sources:
       vendor_page: 0.0531
+  Fs:  # free air resonance (Hz)
+    value: 42.0
+    winner: vendor_page
+    sources:
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.55121161815704
+    winner: vendor_page
+    sources:
+      vendor_page: 4.55121161815704
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.119
+  Qms:  # mechanical Q factor
+    value: 6.9
+    winner: vendor_page
+    sources:
+      vendor_page: 6.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-569--bc-12tbx100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-569--bc-12tbx100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12TBX100-12-High-Power-Woofer-8-Ohm-294-569
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 25.5
+    winner: vendor_page
+    sources:
+      vendor_page: 25.5
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03681184

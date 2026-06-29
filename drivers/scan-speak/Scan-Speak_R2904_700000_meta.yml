@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/r2904-700000/
+manu_page_url: https://www.scan-speak.dk/product/r2904-700000/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/r2904-700000.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/r2904-700000/
+driver_type: tweeter
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/r2904-700000.pdf
+  manu_page: https://www.scan-speak.dk/product/r2904-700000/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 1.0e-05
-  BL:  # force factor (T·m)
-    value: 2.8
-    winner: manu_page
-    sources:
-      manu_page: 2.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Fs:  # free air resonance (Hz)
-    value: 520.0
-    winner: manu_page
-    sources:
-      manu_page: 520.0
   Qts:  # total Q factor
     value: 0.33
     winner: manu_page
     sources:
       manu_page: 0.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: manu_page
+    sources:
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.00056
     winner: manu_page
     sources:
       manu_page: 0.00056
+  Fs:  # free air resonance (Hz)
+    value: 520.0
+    winner: manu_page
+    sources:
+      manu_page: 520.0
+  BL:  # force factor (T·m)
+    value: 2.8
+    winner: manu_page
+    sources:
+      manu_page: 2.8
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.5
     winner: manu_page
     sources:
       manu_page: 94.5
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/r2904-700000.pdf
-  manu_page: https://www.scan-speak.dk/product/r2904-700000/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/r2904-700000.pdf
-manu_page_url: https://www.scan-speak.dk/product/r2904-700000/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 1.0e-05

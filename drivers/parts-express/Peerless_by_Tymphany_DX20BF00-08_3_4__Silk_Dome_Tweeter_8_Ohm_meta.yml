@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1474--tymphany-dx20bf00-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1474--tymphany-dx20bf00-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Qes:  # electrical Q factor
-    value: 4.23
-    winner: vendor_page
-    sources:
-      vendor_page: 4.23
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.52
-    winner: vendor_page
-    sources:
-      vendor_page: 7.52
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 810.0
-    winner: vendor_page
-    sources:
-      vendor_page: 810.0
   Qts:  # total Q factor
     value: 1.71
     winner: vendor_page
     sources:
       vendor_page: 1.71
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.52
+    winner: vendor_page
+    sources:
+      vendor_page: 7.52
+  Fs:  # free air resonance (Hz)
+    value: 810.0
+    winner: vendor_page
+    sources:
+      vendor_page: 810.0
   Qms:  # mechanical Q factor
     value: 2.86
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1474--tymphany-dx20bf00-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1474--tymphany-dx20bf00-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-DX20BF00-08-3-4-Silk-Dome-Tweeter-8-Ohm-264-1474
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 4.23
+    winner: vendor_page
+    sources:
+      vendor_page: 4.23
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05

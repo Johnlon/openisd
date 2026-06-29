@@ -1,35 +1,22 @@
+source: https://www.soundimports.eu/en/seas-sl26r.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-sl26r.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-sl26r.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-sl26r.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.05
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.273
-    winner: vendor_page
-    sources:
-      vendor_page: 0.273
-  Fs:  # free air resonance (Hz)
-    value: 18.0
-    winner: vendor_page
-    sources:
-      vendor_page: 18.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.08
-    winner: vendor_page
-    sources:
-      vendor_page: 4.08
   Xmax:  # one-way linear excursion (m)
     value: 0.028
     winner: vendor_page
@@ -40,15 +27,28 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0342
+  Fs:  # free air resonance (Hz)
+    value: 18.0
+    winner: vendor_page
+    sources:
+      vendor_page: 18.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.08
+    winner: vendor_page
+    sources:
+      vendor_page: 4.08
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.273
+    winner: vendor_page
+    sources:
+      vendor_page: 0.273
   Cms:  # mechanical compliance (m/N)
     value: 0.00029
     winner: vendor_page
     sources:
       vendor_page: 0.00029
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-sl26r.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-sl26r.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.05
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05

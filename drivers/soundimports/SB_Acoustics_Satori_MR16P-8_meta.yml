@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00156
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00156
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0106
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0106
-  BL:  # force factor (T·m)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0031
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.11
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 5.11
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 32.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 32.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0106
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0106
+  Qms:  # mechanical Q factor
+    value: 5.11
+    winner: vendor_page
+    sources:
+      vendor_page: 5.11
   Cms:  # mechanical compliance (m/N)
     value: 0.0023
     winner: vendor_page
     sources:
       vendor_page: 0.0023
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mr16p-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00156
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00156

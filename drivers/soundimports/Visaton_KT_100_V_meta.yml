@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-kt-100-v.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-kt-100-v.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-kt-100-v.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-kt-100-v.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0075
-  Qes:  # electrical Q factor
-    value: 0.69
-    winner: vendor_page
-    sources:
-      vendor_page: 0.69
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0075
-  BL:  # force factor (T·m)
-    value: 3.43
-    winner: vendor_page
-    sources:
-      vendor_page: 3.43
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 2.94
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 2.94
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.00514
     winner: vendor_page
     sources:
       vendor_page: 0.00514
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 42.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 42.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0075
+  Qms:  # mechanical Q factor
+    value: 2.94
+    winner: vendor_page
+    sources:
+      vendor_page: 2.94
   Cms:  # mechanical compliance (m/N)
     value: 0.002361
     winner: vendor_page
     sources:
       vendor_page: 0.002361
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-kt-100-v.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-kt-100-v.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.69
+    winner: vendor_page
+    sources:
+      vendor_page: 0.69
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 3.43
+    winner: vendor_page
+    sources:
+      vendor_page: 3.43
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0075

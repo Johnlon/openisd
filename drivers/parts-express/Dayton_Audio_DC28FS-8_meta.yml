@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-075-dayton-audio-specifications-46122.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 275-075
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-075-dayton-audio-specifications-46122.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00158
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00158
-  Qes:  # electrical Q factor
-    value: 1.73
-    winner: vendor_page
-    sources:
-      vendor_page: 1.73
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 905.0
-    winner: vendor_page
-    sources:
-      vendor_page: 905.0
   Qts:  # total Q factor
     value: 0.97
     winner: vendor_page
     sources:
       vendor_page: 0.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4
+  Fs:  # free air resonance (Hz)
+    value: 905.0
+    winner: vendor_page
+    sources:
+      vendor_page: 905.0
   Qms:  # mechanical Q factor
     value: 2.21
     winner: vendor_page
@@ -52,14 +48,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-075-dayton-audio-specifications-46122.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-075-dayton-audio-specifications-46122.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC28FS-8-1-1-8-Silk-Dome-Shielded-Tweeter-275-075
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.73
+    winner: vendor_page
+    sources:
+      vendor_page: 1.73
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 0.00158
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00158

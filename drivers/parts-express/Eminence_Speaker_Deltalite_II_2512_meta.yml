@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-593--eminence-deltalite-2512-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.134788 differs from calculated=0.137822 (deps: ro
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-593
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-593--eminence-deltalite-2512-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00043
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.13478796799999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.13478796799999998
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.037
-  BL:  # force factor (T·m)
-    value: 11.3
-    winner: vendor_page
-    sources:
-      vendor_page: 11.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.17
-    winner: vendor_page
-    sources:
-      vendor_page: 5.17
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: vendor_page
-    sources:
-      vendor_page: 44.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.2680593227119377
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2680593227119377
   Xmax:  # one-way linear excursion (m)
     value: 0.004900000000000001
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 3.13
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.17
     winner: vendor_page
     sources:
-      vendor_page: 3.13
+      vendor_page: 5.17
   Sd:  # effective piston area (m²)
     value: 0.05195
     winner: vendor_page
     sources:
       vendor_page: 0.05195
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 44.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 44.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.2680593227119377
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2680593227119377
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.037
+  Qms:  # mechanical Q factor
+    value: 3.13
+    winner: vendor_page
+    sources:
+      vendor_page: 3.13
   Cms:  # mechanical compliance (m/N)
     value: 0.00035999999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00035999999999999997
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-593--eminence-deltalite-2512-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-593--eminence-deltalite-2512-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.3
+    winner: vendor_page
+    sources:
+      vendor_page: 11.3
+  Le:  # voice coil inductance (H)
+    value: 0.00043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00043
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.13478796799999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.13478796799999998

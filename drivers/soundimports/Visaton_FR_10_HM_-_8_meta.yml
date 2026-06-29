@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Qes:  # electrical Q factor
-    value: 1.91
-    winner: vendor_page
-    sources:
-      vendor_page: 1.91
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  BL:  # force factor (T·m)
-    value: 2.9
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.44
-  Qms:  # mechanical Q factor
-    value: 5.89
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 5.89
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.005
     winner: vendor_page
     sources:
       vendor_page: 0.005
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 120.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 120.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Qms:  # mechanical Q factor
+    value: 5.89
+    winner: vendor_page
+    sources:
+      vendor_page: 5.89
   Cms:  # mechanical compliance (m/N)
     value: 0.000564
     winner: vendor_page
     sources:
       vendor_page: 0.000564
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-fr-10-hm-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.91
+    winner: vendor_page
+    sources:
+      vendor_page: 1.91
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.9
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002

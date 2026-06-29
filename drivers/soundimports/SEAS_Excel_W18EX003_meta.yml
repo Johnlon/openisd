@@ -1,15 +1,67 @@
+source: https://www.soundimports.eu/en/seas-w18ex003.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-w18ex003.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-w18ex003.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-w18ex003.html
 specs:
+  Qts:  # total Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
+    winner: vendor_page
+    sources:
+      vendor_page: 6.1
+  Sd:  # effective piston area (m²)
+    value: 0.0126
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0126
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
+  Qms:  # mechanical Q factor
+    value: 4.85
+    winner: vendor_page
+    sources:
+      vendor_page: 4.85
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 160.0
+    winner: vendor_page
+    sources:
+      vendor_page: 160.0
   Le:  # voice coil inductance (H)
     value: 0.0002
     winner: vendor_page
@@ -20,55 +72,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.029
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Qts:  # total Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 4.85
-    winner: vendor_page
-    sources:
-      vendor_page: 4.85
-  Sd:  # effective piston area (m²)
-    value: 0.0126
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0126
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-w18ex003.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-w18ex003.html
-frd_url: null
-zma_url: null

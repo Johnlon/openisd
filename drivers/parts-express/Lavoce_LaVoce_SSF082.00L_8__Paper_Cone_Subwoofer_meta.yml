@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-784--lavoce-ssf082.00l-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-784--lavoce-ssf082.00l-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0025099999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025099999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009627712
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009627712
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: vendor_page
-    sources:
-      vendor_page: 0.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0663
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0663
-  BL:  # force factor (T·m)
-    value: 14.67
-    winner: vendor_page
-    sources:
-      vendor_page: 14.67
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.1792665658986263
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1792665658986263
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 9.94
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 9.94
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.021641999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.021641999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.1792665658986263
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1792665658986263
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0663
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0663
+  Qms:  # mechanical Q factor
+    value: 9.94
+    winner: vendor_page
+    sources:
+      vendor_page: 9.94
   Cms:  # mechanical compliance (m/N)
     value: 0.00014399999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00014399999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: vendor_page
+    sources:
+      vendor_page: 0.52
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 14.67
+    winner: vendor_page
+    sources:
+      vendor_page: 14.67
+  Le:  # voice coil inductance (H)
+    value: 0.0025099999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025099999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009627712
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009627712
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-784--lavoce-ssf082.00l-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-784--lavoce-ssf082.00l-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-SSF082.00L-8-Paper-Cone-Subwoofer-293-784
-frd_url: null
-zma_url: null

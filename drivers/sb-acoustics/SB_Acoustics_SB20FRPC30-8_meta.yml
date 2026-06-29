@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
+manu_page_url: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2022/04/8in-SB20FRPC30-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2022/04/8in-SB20FRPC30-8.pdf
+  manu_page: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00022
-    winner: manu_page
-    sources:
-      manu_page: 0.00022
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0663
-    winner: manu_page
-    sources:
-      manu_page: 0.0663
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: manu_page
-    sources:
-      manu_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0163
-    winner: manu_page
-    sources:
-      manu_page: 0.0163
-  BL:  # force factor (T·m)
-    value: 7.15
-    winner: manu_page
-    sources:
-      manu_page: 7.15
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: manu_page
-    sources:
-      manu_page: 6.0
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: manu_page
-    sources:
-      manu_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 39.4
-    winner: manu_page
-    sources:
-      manu_page: 39.4
   Xmax:  # one-way linear excursion (m)
     value: 0.0041
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 10.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: manu_page
     sources:
-      manu_page: 10.1
+      manu_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0216
     winner: manu_page
     sources:
       manu_page: 0.0216
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 39.4
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 39.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0163
+    winner: manu_page
+    sources:
+      manu_page: 0.0163
+  Qms:  # mechanical Q factor
+    value: 10.1
+    winner: manu_page
+    sources:
+      manu_page: 10.1
   Cms:  # mechanical compliance (m/N)
     value: 0.001
     winner: manu_page
     sources:
       manu_page: 0.001
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: manu_page
+    sources:
+      manu_page: 0.47
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: manu_page
+    sources:
+      manu_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.15
+    winner: manu_page
+    sources:
+      manu_page: 7.15
+  Le:  # voice coil inductance (H)
+    value: 0.00022
+    winner: manu_page
+    sources:
+      manu_page: 0.00022
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0663
+    winner: manu_page
+    sources:
+      manu_page: 0.0663
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 30.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 92.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2022/04/8in-SB20FRPC30-8.pdf
-  manu_page: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2022/04/8in-SB20FRPC30-8.pdf
-manu_page_url: https://sbacoustics.com/product/8in-sb20frpc30-8-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

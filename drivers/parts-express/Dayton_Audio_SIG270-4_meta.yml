@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0586 differs from calculated=0.0593214 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-658
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00079
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00079
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0586
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0586
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.064
-    winner: vendor_page
-    sources:
-      vendor_page: 0.064
-  BL:  # force factor (T·m)
-    value: 11.2
-    winner: vendor_page
-    sources:
-      vendor_page: 11.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3731058622519292
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3731058622519292
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 10.25
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 10.25
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.03615
     winner: vendor_page
     sources:
       vendor_page: 0.03615
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3731058622519292
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3731058622519292
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.064
+    winner: vendor_page
+    sources:
+      vendor_page: 0.064
+  Qms:  # mechanical Q factor
+    value: 10.25
+    winner: vendor_page
+    sources:
+      vendor_page: 10.25
   Cms:  # mechanical compliance (m/N)
     value: 0.00032
     winner: vendor_page
     sources:
       vendor_page: 0.00032
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 11.2
+    winner: vendor_page
+    sources:
+      vendor_page: 11.2
+  Le:  # voice coil inductance (H)
+    value: 0.00079
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00079
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0586
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0586
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 120.0
     winner: vendor_page
     sources:
       vendor_page: 120.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
-frd_url: null
-zma_url: null

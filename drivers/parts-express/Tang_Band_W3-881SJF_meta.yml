@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-911-tang-band-w3-881sjf-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.39 differs from calculated=0.38546 (deps: Qms=6.4
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
 obsolete: null
 dq_issue: Sd_tiny
 community: null
 fetched_sku: 264-911
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-911-tang-band-w3-881sjf-specifications.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00189
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00189
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 4.47
-    winner: vendor_page
-    sources:
-      vendor_page: 4.47
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.19512997848383806
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19512997848383806
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 6.44
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 6.44
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 3.2e-07
     winner: vendor_page
     sources:
       vendor_page: 3.2e-07
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.19512997848383806
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19512997848383806
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 6.44
+    winner: vendor_page
+    sources:
+      vendor_page: 6.44
   Cms:  # mechanical compliance (m/N)
     value: 0.001302
     winner: vendor_page
     sources:
       vendor_page: 0.001302
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-911-tang-band-w3-881sjf-specifications.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-911-tang-band-w3-881sjf-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 4.47
+    winner: vendor_page
+    sources:
+      vendor_page: 4.47
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00189
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00189

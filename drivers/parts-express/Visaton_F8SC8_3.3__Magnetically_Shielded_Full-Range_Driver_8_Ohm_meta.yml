@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7838--visaton-f8sc8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7838--visaton-f8sc8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000991088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000991088
-  Qes:  # electrical Q factor
-    value: 1.29
-    winner: vendor_page
-    sources:
-      vendor_page: 1.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 2.2
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.9
-    winner: vendor_page
-    sources:
-      vendor_page: 7.9
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.33848809735647606
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33848809735647606
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.9
-  Qms:  # mechanical Q factor
-    value: 2.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.9
     winner: vendor_page
     sources:
-      vendor_page: 2.97
+      vendor_page: 7.9
   Sd:  # effective piston area (m²)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
+  Fs:  # free air resonance (Hz)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.33848809735647606
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33848809735647606
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 2.97
+    winner: vendor_page
+    sources:
+      vendor_page: 2.97
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.29
+    winner: vendor_page
+    sources:
+      vendor_page: 1.29
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.2
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000991088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000991088
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 80.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 15000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7838--visaton-f8sc8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7838--visaton-f8sc8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-F8SC8-3.3-Magnetically-Shielded-Full-Range-Driver-8-Ohm-292-7838
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-442-dayton-audio-rss265hf-8-specifications-47082.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-442--Dayton-Audio-RSS265HF-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-442-dayton-audio-rss265hf-8-specifications-47082.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00157
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00157
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.05238608
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05238608
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.131
-    winner: vendor_page
-    sources:
-      vendor_page: 0.131
-  BL:  # force factor (T·m)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 24.9
-    winner: vendor_page
-    sources:
-      vendor_page: 24.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.647433639361601
-    winner: vendor_page
-    sources:
-      vendor_page: 7.647433639361601
   Xmax:  # one-way linear excursion (m)
     value: 0.0143
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 2.68
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 2.68
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.647433639361601
+    winner: vendor_page
+    sources:
+      vendor_page: 7.647433639361601
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.131
+  Qms:  # mechanical Q factor
+    value: 2.68
+    winner: vendor_page
+    sources:
+      vendor_page: 2.68
   Cms:  # mechanical compliance (m/N)
     value: 0.00031
     winner: vendor_page
     sources:
       vendor_page: 0.00031
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-442-dayton-audio-rss265hf-8-specifications-47082.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-442-dayton-audio-rss265hf-8-specifications-47082.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HF-8-10-Reference-Series-HF-Subwoofer-8-Ohm-295-442
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-442--Dayton-Audio-RSS265HF-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 0.00157
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00157
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.05238608
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05238608

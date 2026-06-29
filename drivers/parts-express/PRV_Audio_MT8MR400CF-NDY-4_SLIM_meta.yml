@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.00934454 differs from calculated=0.00957564 (deps
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 267-8032
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000104
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009344544
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009344544
-  Qes:  # electrical Q factor
-    value: 0.88
-    winner: vendor_page
-    sources:
-      vendor_page: 0.88
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0156
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0156
-  BL:  # force factor (T·m)
-    value: 6.49
-    winner: vendor_page
-    sources:
-      vendor_page: 6.49
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 111.3
-    winner: vendor_page
-    sources:
-      vendor_page: 111.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2027970215159614
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2027970215159614
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -68,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.8
-  Qms:  # mechanical Q factor
-    value: 9.07
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 9.07
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0227
     winner: vendor_page
     sources:
       vendor_page: 0.0227
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 111.3
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 111.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.2027970215159614
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2027970215159614
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0156
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0156
+  Qms:  # mechanical Q factor
+    value: 9.07
+    winner: vendor_page
+    sources:
+      vendor_page: 9.07
   Cms:  # mechanical compliance (m/N)
     value: 0.000131
     winner: vendor_page
     sources:
       vendor_page: 0.000131
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.88
+    winner: vendor_page
+    sources:
+      vendor_page: 0.88
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 6.49
+    winner: vendor_page
+    sources:
+      vendor_page: 6.49
+  Le:  # voice coil inductance (H)
+    value: 0.000104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000104
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009344544
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009344544
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 12.0
     winner: vendor_page
@@ -103,13 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 95.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-MT8MR400CF-NDY-4-SLIM-Moto-Series-8-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-267-8032
-frd_url: null
-zma_url: null

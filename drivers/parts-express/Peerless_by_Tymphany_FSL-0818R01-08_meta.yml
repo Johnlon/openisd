@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,52 +17,14 @@ corrections: '''Qts'' stored=0.37 differs from calculated=0.373744 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1404
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000571
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000571
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0159
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0159
-  Qes:  # electrical Q factor
-    value: 0.418
-    winner: vendor_page
-    sources:
-      vendor_page: 0.418
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0205
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0205
-  BL:  # force factor (T·m)
-    value: 11.3
-    winner: vendor_page
-    sources:
-      vendor_page: 11.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 74.0
-    winner: vendor_page
-    sources:
-      vendor_page: 74.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00435
     winner: vendor_page
@@ -64,34 +35,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 3.53
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 3.53
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0222
     winner: vendor_page
     sources:
       vendor_page: 0.0222
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 74.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 74.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0205
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0205
+  Qms:  # mechanical Q factor
+    value: 3.53
+    winner: vendor_page
+    sources:
+      vendor_page: 3.53
   Cms:  # mechanical compliance (m/N)
     value: 0.00023
     winner: vendor_page
     sources:
       vendor_page: 0.00023
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.418
+    winner: vendor_page
+    sources:
+      vendor_page: 0.418
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.3
+    winner: vendor_page
+    sources:
+      vendor_page: 11.3
+  Le:  # voice coil inductance (H)
+    value: 0.000571
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000571
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0159
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0159

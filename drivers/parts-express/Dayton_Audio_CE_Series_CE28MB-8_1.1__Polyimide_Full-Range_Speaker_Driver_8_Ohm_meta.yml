@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00045
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0002265344
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002265344
-  Qes:  # electrical Q factor
-    value: 6.16
-    winner: vendor_page
-    sources:
-      vendor_page: 6.16
-  Mms:  # moving mass incl. air load (kg)
-    value: 8.7e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.7e-05
-  BL:  # force factor (T·m)
-    value: 0.642
-    winner: vendor_page
-    sources:
-      vendor_page: 0.642
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.54
-    winner: vendor_page
-    sources:
-      vendor_page: 7.54
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 623.0
-    winner: vendor_page
-    sources:
-      vendor_page: 623.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.15340312019569402
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15340312019569402
   Xmax:  # one-way linear excursion (m)
     value: 0.0001
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.63
-  Qms:  # mechanical Q factor
-    value: 2.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.54
     winner: vendor_page
     sources:
-      vendor_page: 2.22
+      vendor_page: 7.54
   Sd:  # effective piston area (m²)
     value: 0.000452
     winner: vendor_page
     sources:
       vendor_page: 0.000452
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 623.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 623.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.15340312019569402
+    winner: vendor_page
+    sources:
+      vendor_page: 0.15340312019569402
+  Mms:  # moving mass incl. air load (kg)
+    value: 8.7e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.7e-05
+  Qms:  # mechanical Q factor
+    value: 2.22
+    winner: vendor_page
+    sources:
+      vendor_page: 2.22
   Cms:  # mechanical compliance (m/N)
     value: 0.000748
     winner: vendor_page
     sources:
       vendor_page: 0.000748
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 6.16
+    winner: vendor_page
+    sources:
+      vendor_page: 6.16
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 0.642
+    winner: vendor_page
+    sources:
+      vendor_page: 0.642
+  Le:  # voice coil inductance (H)
+    value: 0.00045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00045
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0002265344
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002265344

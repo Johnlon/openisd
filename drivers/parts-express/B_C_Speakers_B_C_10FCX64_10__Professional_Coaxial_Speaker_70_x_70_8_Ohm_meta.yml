@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5767--bc-10fcx64-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
+driver_type: null
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: null
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5767--bc-10fcx64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.025201952
-    winner: vendor_page
-    sources:
-      vendor_page: 0.025201952
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.037
-  BL:  # force factor (T·m)
-    value: 13.4
-    winner: vendor_page
-    sources:
-      vendor_page: 13.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 63.0
-    winner: vendor_page
-    sources:
-      vendor_page: 63.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8539373355741284
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8539373355741284
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 7.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 7.9
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.032
     winner: vendor_page
     sources:
       vendor_page: 0.032
+  Fs:  # free air resonance (Hz)
+    value: 63.0
+    winner: vendor_page
+    sources:
+      vendor_page: 63.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8539373355741284
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8539373355741284
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.037
+  Qms:  # mechanical Q factor
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5767--bc-10fcx64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5767--bc-10fcx64-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10FCX64-10-Professional-Coaxial-Speaker-70-x-70-8-Ohm-294-5767
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 13.4
+    winner: vendor_page
+    sources:
+      vendor_page: 13.4
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.025201952
+    winner: vendor_page
+    sources:
+      vendor_page: 0.025201952

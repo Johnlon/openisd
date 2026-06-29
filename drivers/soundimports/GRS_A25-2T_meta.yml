@@ -1,30 +1,28 @@
+source: https://www.soundimports.eu/en/grs-a25-2t.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-a25-2t.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/GRS/A25-2T/GRS-A25-2T-data-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/grs-a25-2t.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/GRS/A25-2T/GRS-A25-2T-data-sheet.pdf
+  vendor_page: https://www.soundimports.eu/en/grs-a25-2t.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 5.4
     winner: vendor_page
     sources:
       vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
   Fs:  # free air resonance (Hz)
     value: 730.0
     winner: vendor_page
@@ -35,6 +33,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Le:  # voice coil inductance (H)
+    value: 8.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.0
     winner: vendor_page
@@ -50,11 +58,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/GRS/A25-2T/GRS-A25-2T-data-sheet.pdf
-  vendor_page: https://www.soundimports.eu/en/grs-a25-2t.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/GRS/A25-2T/GRS-A25-2T-data-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-a25-2t.html
-frd_url: null
-zma_url: null

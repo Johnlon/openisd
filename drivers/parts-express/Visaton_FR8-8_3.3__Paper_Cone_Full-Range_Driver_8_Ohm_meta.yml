@@ -1,21 +1,24 @@
+source: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-694--visaton-fr8-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-694--visaton-fr8-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
 specs:
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
   Fs:  # free air resonance (Hz)
     value: 150.0
     winner: vendor_page
@@ -26,16 +29,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 130.0
     winner: vendor_page
     sources:
       vendor_page: 130.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-694--visaton-fr8-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-694--visaton-fr8-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FR8-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-724
-frd_url: null
-zma_url: null

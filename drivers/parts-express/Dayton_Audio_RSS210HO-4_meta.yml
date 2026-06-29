@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-458-dayton-audio-rss210ho-4-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.4 differs from calculated=0.404169 (deps: Qms=3.3
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-458
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-458-dayton-audio-rss210ho-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00099
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.018689088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018689088
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0993
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0993
-  BL:  # force factor (T·m)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.69
-    winner: vendor_page
-    sources:
-      vendor_page: 3.69
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 29.6
-    winner: vendor_page
-    sources:
-      vendor_page: 29.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.545958231137181
-    winner: vendor_page
-    sources:
-      vendor_page: 5.545958231137181
   Xmax:  # one-way linear excursion (m)
     value: 0.011
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.69
     winner: vendor_page
     sources:
-      vendor_page: 3.33
+      vendor_page: 3.69
   Sd:  # effective piston area (m²)
     value: 0.02138
     winner: vendor_page
     sources:
       vendor_page: 0.02138
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 29.6
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 29.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.545958231137181
+    winner: vendor_page
+    sources:
+      vendor_page: 5.545958231137181
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0993
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0993
+  Qms:  # mechanical Q factor
+    value: 3.33
+    winner: vendor_page
+    sources:
+      vendor_page: 3.33
   Cms:  # mechanical compliance (m/N)
     value: 0.00029
     winner: vendor_page
     sources:
       vendor_page: 0.00029
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-458-dayton-audio-rss210ho-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-458-dayton-audio-rss210ho-4-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS210HO-4-8-Reference-Series-HO-Subwoofer-4-Ohm-295-458
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  Le:  # voice coil inductance (H)
+    value: 0.00099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00099
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.018689088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018689088

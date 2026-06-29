@@ -1,50 +1,57 @@
+source: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0382
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0382
-  BL:  # force factor (T·m)
-    value: 18.2
-    winner: vendor_page
-    sources:
-      vendor_page: 18.2
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 695.0
-    winner: vendor_page
-    sources:
-      vendor_page: 695.0
   Qts:  # total Q factor
     value: 1.52
     winner: vendor_page
     sources:
       vendor_page: 1.52
+  Fs:  # free air resonance (Hz)
+    value: 695.0
+    winner: vendor_page
+    sources:
+      vendor_page: 695.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0382
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0382
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 18.2
+    winner: vendor_page
+    sources:
+      vendor_page: 18.2
+  Le:  # voice coil inductance (H)
+    value: 0.00086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00086
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 40.0
     winner: vendor_page
@@ -60,10 +67,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 50.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-hdn-8b.html
-frd_url: null
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1324
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00098
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.044174208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.044174208
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.033600000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033600000000000005
-  BL:  # force factor (T·m)
-    value: 16.7
-    winner: vendor_page
-    sources:
-      vendor_page: 16.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 11.3
-    winner: vendor_page
-    sources:
-      vendor_page: 11.3
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.198712520018699
-    winner: vendor_page
-    sources:
-      vendor_page: 3.198712520018699
   Xmax:  # one-way linear excursion (m)
     value: 0.0072699999999999996
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 3.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 11.3
     winner: vendor_page
     sources:
-      vendor_page: 3.3
+      vendor_page: 11.3
   Sd:  # effective piston area (m²)
     value: 0.0321
     winner: vendor_page
     sources:
       vendor_page: 0.0321
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 16.0
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.198712520018699
+    winner: vendor_page
+    sources:
+      vendor_page: 3.198712520018699
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.033600000000000005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033600000000000005
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
   Cms:  # mechanical compliance (m/N)
     value: 0.0003
     winner: vendor_page
     sources:
       vendor_page: 0.0003
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 16.7
+    winner: vendor_page
+    sources:
+      vendor_page: 16.7
+  Le:  # voice coil inductance (H)
+    value: 0.00098
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00098
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.044174208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.044174208

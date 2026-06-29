@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1622--tymphany-tc5fc00-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1622--tymphany-tc5fc00-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 1.11
-    winner: vendor_page
-    sources:
-      vendor_page: 1.11
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  BL:  # force factor (T·m)
-    value: 1.32
-    winner: vendor_page
-    sources:
-      vendor_page: 1.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.05
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 234.0
-    winner: vendor_page
-    sources:
-      vendor_page: 234.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.16024690592697802
-    winner: vendor_page
-    sources:
-      vendor_page: 0.16024690592697802
   Xmax:  # one-way linear excursion (m)
     value: 0.0006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.85
-  Qms:  # mechanical Q factor
-    value: 3.67
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.05
     winner: vendor_page
     sources:
-      vendor_page: 3.67
+      vendor_page: 3.05
   Sd:  # effective piston area (m²)
     value: 0.00078
     winner: vendor_page
     sources:
       vendor_page: 0.00078
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 234.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 234.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.16024690592697802
+    winner: vendor_page
+    sources:
+      vendor_page: 0.16024690592697802
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Qms:  # mechanical Q factor
+    value: 3.67
+    winner: vendor_page
+    sources:
+      vendor_page: 3.67
   Cms:  # mechanical compliance (m/N)
     value: 0.000107
     winner: vendor_page
     sources:
       vendor_page: 0.000107
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1622--tymphany-tc5fc00-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1622--tymphany-tc5fc00-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.11
+    winner: vendor_page
+    sources:
+      vendor_page: 1.11
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168

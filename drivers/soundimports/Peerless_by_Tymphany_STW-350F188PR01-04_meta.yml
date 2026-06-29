@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00919
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00919
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0903
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0903
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.561
-    winner: vendor_page
-    sources:
-      vendor_page: 0.561
-  BL:  # force factor (T·m)
-    value: 43.3
-    winner: vendor_page
-    sources:
-      vendor_page: 43.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Pe:  # rated power input (W)
-    value: 2500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2500.0
-  Fs:  # free air resonance (Hz)
-    value: 21.0
-    winner: vendor_page
-    sources:
-      vendor_page: 21.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0372
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 14.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.0
     winner: vendor_page
     sources:
-      vendor_page: 14.6
+      vendor_page: 2.0
   Sd:  # effective piston area (m²)
     value: 0.0775
     winner: vendor_page
     sources:
       vendor_page: 0.0775
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 21.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 21.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.561
+    winner: vendor_page
+    sources:
+      vendor_page: 0.561
+  Qms:  # mechanical Q factor
+    value: 14.6
+    winner: vendor_page
+    sources:
+      vendor_page: 14.6
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-stw-350f.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 2500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2500.0
+  BL:  # force factor (T·m)
+    value: 43.3
+    winner: vendor_page
+    sources:
+      vendor_page: 43.3
+  Le:  # voice coil inductance (H)
+    value: 0.00919
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00919
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0903
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0903

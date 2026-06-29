@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-675--bc-18ps76-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-675--bc-18ps76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.20388096
-    winner: vendor_page
-    sources:
-      vendor_page: 0.20388096
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.149
-    winner: vendor_page
-    sources:
-      vendor_page: 0.149
-  BL:  # force factor (T·m)
-    value: 25.8
-    winner: vendor_page
-    sources:
-      vendor_page: 25.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 1200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1200.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.985506527872226
-    winner: vendor_page
-    sources:
-      vendor_page: 5.985506527872226
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 6.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 6.1
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
+  Fs:  # free air resonance (Hz)
+    value: 39.0
+    winner: vendor_page
+    sources:
+      vendor_page: 39.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.985506527872226
+    winner: vendor_page
+    sources:
+      vendor_page: 5.985506527872226
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.149
+    winner: vendor_page
+    sources:
+      vendor_page: 0.149
+  Qms:  # mechanical Q factor
+    value: 6.1
+    winner: vendor_page
+    sources:
+      vendor_page: 6.1
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-675--bc-18ps76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-675--bc-18ps76-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18PS76-18-Woofer-294-675
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 1200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1200.0
+  BL:  # force factor (T·m)
+    value: 25.8
+    winner: vendor_page
+    sources:
+      vendor_page: 25.8
+  Le:  # voice coil inductance (H)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.20388096
+    winner: vendor_page
+    sources:
+      vendor_page: 0.20388096

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7809
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.051536576
-    winner: vendor_page
-    sources:
-      vendor_page: 0.051536576
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033
-  BL:  # force factor (T·m)
-    value: 8.51
-    winner: vendor_page
-    sources:
-      vendor_page: 8.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1985266770920595
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1985266770920595
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -67,21 +32,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 5.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 5.19
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0206
     winner: vendor_page
     sources:
       vendor_page: 0.0206
+  Fs:  # free air resonance (Hz)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1985266770920595
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1985266770920595
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033
+  Qms:  # mechanical Q factor
+    value: 5.19
+    winner: vendor_page
+    sources:
+      vendor_page: 5.19
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 8.51
+    winner: vendor_page
+    sources:
+      vendor_page: 8.51
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.051536576
+    winner: vendor_page
+    sources:
+      vendor_page: 0.051536576
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 7500.0
     winner: vendor_page
@@ -92,13 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 84.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-TIW200XS8-8-High-End-Woofer-8-Ohm-292-7809
-frd_url: null
-zma_url: null

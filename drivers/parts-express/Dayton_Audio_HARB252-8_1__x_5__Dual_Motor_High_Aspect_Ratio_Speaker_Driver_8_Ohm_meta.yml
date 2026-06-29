@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-246--dayton-audio-harb252-8-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/HARB252-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-246--dayton-audio-harb252-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.999999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.999999999999999e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 2.98
-    winner: vendor_page
-    sources:
-      vendor_page: 2.98
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0032400000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0032400000000000003
-  BL:  # force factor (T·m)
-    value: 3.039
-    winner: vendor_page
-    sources:
-      vendor_page: 3.039
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 172.11
-    winner: vendor_page
-    sources:
-      vendor_page: 172.11
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8283056348057964
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8283056348057964
   Xmax:  # one-way linear excursion (m)
     value: 0.00125
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.74
-  Qms:  # mechanical Q factor
-    value: 4.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 4.23
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0021030000000000003
     winner: vendor_page
     sources:
       vendor_page: 0.0021030000000000003
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 172.11
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 172.11
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8283056348057964
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8283056348057964
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0032400000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0032400000000000003
+  Qms:  # mechanical Q factor
+    value: 4.23
+    winner: vendor_page
+    sources:
+      vendor_page: 4.23
   Cms:  # mechanical compliance (m/N)
     value: 0.000305
     winner: vendor_page
     sources:
       vendor_page: 0.000305
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-246--dayton-audio-harb252-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-246--dayton-audio-harb252-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246
-frd_url: https://www.parts-express.com/pedocs/tech-docs/HARB252-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.98
+    winner: vendor_page
+    sources:
+      vendor_page: 2.98
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.039
+    winner: vendor_page
+    sources:
+      vendor_page: 3.039
+  Le:  # voice coil inductance (H)
+    value: 8.999999999999999e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.999999999999999e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168

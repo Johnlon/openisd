@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-110--beston-rt001a-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,19 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 277-110
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-110--beston-rt001a-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 5.4
     winner: vendor_page
     sources:
       vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   Fs:  # free air resonance (Hz)
     value: 3500.0
     winner: vendor_page
@@ -32,19 +38,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-110--beston-rt001a-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-110--beston-rt001a-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beston-RT001A-Ribbon-Tweeter-277-110
-frd_url: null
-zma_url: null

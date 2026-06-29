@@ -1,41 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-855--tang-band-50-1426se-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-855--tang-band-50-1426se-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5e-05
-  Qes:  # electrical Q factor
-    value: 0.92
-    winner: vendor_page
-    sources:
-      vendor_page: 0.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00065
     winner: vendor_page
@@ -46,6 +29,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
+  Fs:  # free air resonance (Hz)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
   Qms:  # mechanical Q factor
     value: 0.91
     winner: vendor_page
@@ -56,11 +49,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-855--tang-band-50-1426se-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-855--tang-band-50-1426se-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-50-1426SE-2-Fabric-Dome-Midrange-264-855
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.92
+    winner: vendor_page
+    sources:
+      vendor_page: 0.92
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 2.5e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5e-05

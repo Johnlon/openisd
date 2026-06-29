@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1381
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-06
-  Qes:  # electrical Q factor
-    value: 2.9
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000364
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000364
-  BL:  # force factor (T·m)
-    value: 3.08
-    winner: vendor_page
-    sources:
-      vendor_page: 3.08
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 1800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1800.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0013
     winner: vendor_page
@@ -62,34 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.6
-  Qms:  # mechanical Q factor
-    value: 3.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 3.54
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.000523
     winner: vendor_page
     sources:
       vendor_page: 0.000523
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 1800.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 1800.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000364
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000364
+  Qms:  # mechanical Q factor
+    value: 3.54
+    winner: vendor_page
+    sources:
+      vendor_page: 3.54
   Cms:  # mechanical compliance (m/N)
     value: 2.0e-05
     winner: vendor_page
     sources:
       vendor_page: 2.0e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.9
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 3.08
+    winner: vendor_page
+    sources:
+      vendor_page: 3.08
+  Le:  # voice coil inductance (H)
+    value: 3.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-06

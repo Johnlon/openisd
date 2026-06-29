@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1108--tymphany-xls-p830452-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,14 @@ corrections: '''Qts'' stored=0.22 differs from calculated=0.225269 (deps: Qms=3.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1108
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1108--tymphany-xls-p830452-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00099
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06682764799999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06682764799999999
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1366
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1366
-  BL:  # force factor (T·m)
-    value: 16.75
-    winner: vendor_page
-    sources:
-      vendor_page: 16.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.891769037600024
-    winner: vendor_page
-    sources:
-      vendor_page: 4.891769037600024
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -69,34 +35,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 3.67
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.67
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.03497
     winner: vendor_page
     sources:
       vendor_page: 0.03497
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 22.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 22.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.891769037600024
+    winner: vendor_page
+    sources:
+      vendor_page: 4.891769037600024
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1366
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1366
+  Qms:  # mechanical Q factor
+    value: 3.67
+    winner: vendor_page
+    sources:
+      vendor_page: 3.67
   Cms:  # mechanical compliance (m/N)
     value: 0.00039
     winner: vendor_page
     sources:
       vendor_page: 0.00039
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1108--tymphany-xls-p830452-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1108--tymphany-xls-p830452-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-830452-10-XLS-Subwoofer-264-1108
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 16.75
+    winner: vendor_page
+    sources:
+      vendor_page: 16.75
+  Le:  # voice coil inductance (H)
+    value: 0.00099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00099
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06682764799999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06682764799999999

@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1102-faitalpro-3fe22-16-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1102-faitalpro-3fe22-16-specifications.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.63
-    winner: vendor_page
-    sources:
-      vendor_page: 0.63
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0023
-  Re:  # DC voice coil resistance (Ω)
-    value: 12.3
-    winner: vendor_page
-    sources:
-      vendor_page: 12.3
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3486065532272885
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3486065532272885
   Xmax:  # one-way linear excursion (m)
     value: 0.00183
     winner: vendor_page
@@ -61,26 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 4.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 12.3
     winner: vendor_page
     sources:
-      vendor_page: 4.56
+      vendor_page: 12.3
   Sd:  # effective piston area (m²)
     value: 0.00302
     winner: vendor_page
     sources:
       vendor_page: 0.00302
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
+  Fs:  # free air resonance (Hz)
+    value: 110.0
     winner: vendor_page
     sources:
-      vendor_page: 16.0
+      vendor_page: 110.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3486065532272885
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3486065532272885
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0023
+  Qms:  # mechanical Q factor
+    value: 4.56
+    winner: vendor_page
+    sources:
+      vendor_page: 4.56
   Cms:  # mechanical compliance (m/N)
     value: 0.00092
     winner: vendor_page
     sources:
       vendor_page: 0.00092
+  Znom:  # nominal impedance (Ω)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.63
+    winner: vendor_page
+    sources:
+      vendor_page: 0.63
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 294.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1102-faitalpro-3fe22-16-specifications.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1102-faitalpro-3fe22-16-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-16-Ohm-294-1102
-frd_url: null
-zma_url: null

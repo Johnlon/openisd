@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-108--ciare-cmr160-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-108--ciare-cmr160-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.017839584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.017839584
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
-  BL:  # force factor (T·m)
-    value: 6.58
-    winner: vendor_page
-    sources:
-      vendor_page: 6.58
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.55
-    winner: vendor_page
-    sources:
-      vendor_page: 3.55
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 66.0
-    winner: vendor_page
-    sources:
-      vendor_page: 66.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4855188646456954
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4855188646456954
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 7.26
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.55
     winner: vendor_page
     sources:
-      vendor_page: 7.26
+      vendor_page: 3.55
   Sd:  # effective piston area (m²)
     value: 0.0135
     winner: vendor_page
     sources:
       vendor_page: 0.0135
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 66.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 66.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4855188646456954
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4855188646456954
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Qms:  # mechanical Q factor
+    value: 7.26
+    winner: vendor_page
+    sources:
+      vendor_page: 7.26
   Cms:  # mechanical compliance (m/N)
     value: 0.0007
     winner: vendor_page
     sources:
       vendor_page: 0.0007
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 6.58
+    winner: vendor_page
+    sources:
+      vendor_page: 6.58
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.017839584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.017839584
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 7.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-108--ciare-cmr160-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-108--ciare-cmr160-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CMR160-6.5-Full-Range-Driver-293-108
-frd_url: null
-zma_url: null

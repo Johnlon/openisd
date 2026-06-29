@@ -1,3 +1,13 @@
+source: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-054--dayton-audio-hts545he-4
+  spec-sheet-5vc.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +16,15 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-054
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-054--dayton-audio-hts545he-4
+    spec-sheet-5vc.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.178962176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.178962176
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.676
-    winner: vendor_page
-    sources:
-      vendor_page: 0.676
-  BL:  # force factor (T·m)
-    value: 38.3
-    winner: vendor_page
-    sources:
-      vendor_page: 38.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 26.3
-    winner: vendor_page
-    sources:
-      vendor_page: 26.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 14.140189232820813
-    winner: vendor_page
-    sources:
-      vendor_page: 14.140189232820813
   Xmax:  # one-way linear excursion (m)
     value: 0.021
     winner: vendor_page
@@ -67,41 +35,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 7.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 7.9
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.1525
     winner: vendor_page
     sources:
       vendor_page: 0.1525
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 26.3
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 26.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 14.140189232820813
+    winner: vendor_page
+    sources:
+      vendor_page: 14.140189232820813
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.676
+    winner: vendor_page
+    sources:
+      vendor_page: 0.676
+  Qms:  # mechanical Q factor
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
   Cms:  # mechanical compliance (m/N)
     value: 5.4e-05
     winner: vendor_page
     sources:
       vendor_page: 5.4e-05
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 38.3
+    winner: vendor_page
+    sources:
+      vendor_page: 38.3
+  Le:  # voice coil inductance (H)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.178962176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.178962176
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 2.0
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-054--dayton-audio-hts545he-4
-    spec-sheet-5vc.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-054--dayton-audio-hts545he-4
-  spec-sheet-5vc.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
-frd_url: null
-zma_url: null

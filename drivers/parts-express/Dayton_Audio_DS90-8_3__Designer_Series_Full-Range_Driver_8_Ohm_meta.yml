@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-422--dayton-audio-ds90-8-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-422--Dayton-Audio-DS90-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-422--dayton-audio-ds90-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005600000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005600000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 0.53
-    winner: vendor_page
-    sources:
-      vendor_page: 0.53
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0038
-  BL:  # force factor (T·m)
-    value: 4.76
-    winner: vendor_page
-    sources:
-      vendor_page: 4.76
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 81.4
-    winner: vendor_page
-    sources:
-      vendor_page: 81.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8874497165373469
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8874497165373469
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 2.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.19
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.00312
     winner: vendor_page
     sources:
       vendor_page: 0.00312
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 81.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 81.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8874497165373469
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8874497165373469
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0038
+  Qms:  # mechanical Q factor
+    value: 2.19
+    winner: vendor_page
+    sources:
+      vendor_page: 2.19
   Cms:  # mechanical compliance (m/N)
     value: 0.00102
     winner: vendor_page
     sources:
       vendor_page: 0.00102
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.53
+    winner: vendor_page
+    sources:
+      vendor_page: 0.53
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 4.76
+    winner: vendor_page
+    sources:
+      vendor_page: 4.76
+  Le:  # voice coil inductance (H)
+    value: 0.0005600000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005600000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 295.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-422--dayton-audio-ds90-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-422--dayton-audio-ds90-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS90-8-3-Designer-Series-Full-Range-Driver-8-Ohm-295-422
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-422--Dayton-Audio-DS90-8_data.zip
-zma_url: null

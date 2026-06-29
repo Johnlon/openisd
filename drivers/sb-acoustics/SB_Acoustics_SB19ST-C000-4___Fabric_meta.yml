@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/sb19st-c000-4/
+manu_page_url: https://sbacoustics.com/product/sb19st-c000-4/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SB19ST-C000-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/sb19st-c000-4/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB19ST-C000-4.pdf
+  manu_page: https://sbacoustics.com/product/sb19st-c000-4/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 7.0e-05
-  Qes:  # electrical Q factor
-    value: 1.5
-    winner: manu_page
-    sources:
-      manu_page: 1.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00022
-    winner: manu_page
-    sources:
-      manu_page: 0.00022
-  BL:  # force factor (T·m)
-    value: 1.75
-    winner: manu_page
-    sources:
-      manu_page: 1.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: manu_page
-    sources:
-      manu_page: 3.4
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 980.0
-    winner: manu_page
-    sources:
-      manu_page: 980.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0006
     winner: manu_page
@@ -56,21 +29,56 @@ specs:
     winner: manu_page
     sources:
       manu_page: 1.22
-  Qms:  # mechanical Q factor
-    value: 6.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: manu_page
     sources:
-      manu_page: 6.45
+      manu_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.00038
     winner: manu_page
     sources:
       manu_page: 0.00038
+  Fs:  # free air resonance (Hz)
+    value: 980.0
+    winner: manu_page
+    sources:
+      manu_page: 980.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00022
+    winner: manu_page
+    sources:
+      manu_page: 0.00022
+  Qms:  # mechanical Q factor
+    value: 6.45
+    winner: manu_page
+    sources:
+      manu_page: 6.45
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: manu_page
     sources:
       manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.5
+    winner: manu_page
+    sources:
+      manu_page: 1.5
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 1.75
+    winner: manu_page
+    sources:
+      manu_page: 1.75
+  Le:  # voice coil inductance (H)
+    value: 7.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 7.0e-05
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 19.1
     winner: manu_page
@@ -86,11 +94,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 88.5
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB19ST-C000-4.pdf
-  manu_page: https://sbacoustics.com/product/sb19st-c000-4/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SB19ST-C000-4.pdf
-manu_page_url: https://sbacoustics.com/product/sb19st-c000-4/
-vendor_page_url: null
-frd_url: null
-zma_url: null

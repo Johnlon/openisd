@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,23 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-737
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.35112832
+  Xmax:  # one-way linear excursion (m)
+    value: 0.045
     winner: vendor_page
     sources:
-      vendor_page: 0.35112832
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.365
+      vendor_page: 0.045
+  Sd:  # effective piston area (m²)
+    value: 0.11946
     winner: vendor_page
     sources:
-      vendor_page: 0.365
+      vendor_page: 0.11946
   Fs:  # free air resonance (Hz)
     value: 20.0
     winner: vendor_page
@@ -32,33 +42,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.926001646306328
-  Xmax:  # one-way linear excursion (m)
-    value: 0.045
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.365
     winner: vendor_page
     sources:
-      vendor_page: 0.045
+      vendor_page: 0.365
   Qms:  # mechanical Q factor
     value: 7.74
     winner: vendor_page
     sources:
       vendor_page: 7.74
-  Sd:  # effective piston area (m²)
-    value: 0.11946
-    winner: vendor_page
-    sources:
-      vendor_page: 0.11946
   Cms:  # mechanical compliance (m/N)
     value: 0.00017299999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00017299999999999998
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS18-PR-18-Signature-Series-Passive-Radiator-295-737
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.35112832
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35112832

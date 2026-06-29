@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Qes:  # electrical Q factor
-    value: 0.67
-    winner: vendor_page
-    sources:
-      vendor_page: 0.67
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0042
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0042
-  BL:  # force factor (T·m)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 81.4
-    winner: vendor_page
-    sources:
-      vendor_page: 81.4
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 2.17
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 2.17
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.00528
     winner: vendor_page
     sources:
       vendor_page: 0.00528
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 81.4
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 81.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0042
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0042
+  Qms:  # mechanical Q factor
+    value: 2.17
+    winner: vendor_page
+    sources:
+      vendor_page: 2.17
   Cms:  # mechanical compliance (m/N)
     value: 0.00092
     winner: vendor_page
     sources:
       vendor_page: 0.00092
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.67
+    winner: vendor_page
+    sources:
+      vendor_page: 0.67
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Le:  # voice coil inductance (H)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
   power_peak_W:  # peak power handling (W)
     value: 80.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 15.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-pc105-4.html
-frd_url: null
-zma_url: null

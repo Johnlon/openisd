@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,23 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-731
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0246922496
+  Xmax:  # one-way linear excursion (m)
+    value: 0.03
     winner: vendor_page
     sources:
-      vendor_page: 0.0246922496
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.145
+      vendor_page: 0.03
+  Sd:  # effective piston area (m²)
+    value: 0.03464
     winner: vendor_page
     sources:
-      vendor_page: 0.145
+      vendor_page: 0.03464
   Fs:  # free air resonance (Hz)
     value: 34.7
     winner: vendor_page
@@ -32,33 +42,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.079585937129632
-  Xmax:  # one-way linear excursion (m)
-    value: 0.03
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.145
     winner: vendor_page
     sources:
-      vendor_page: 0.03
+      vendor_page: 0.145
   Qms:  # mechanical Q factor
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Sd:  # effective piston area (m²)
-    value: 0.03464
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03464
   Cms:  # mechanical compliance (m/N)
     value: 0.000145
     winner: vendor_page
     sources:
       vendor_page: 0.000145
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS10-PR-10-Signature-Series-Passive-Radiator-295-731
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0246922496
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0246922496

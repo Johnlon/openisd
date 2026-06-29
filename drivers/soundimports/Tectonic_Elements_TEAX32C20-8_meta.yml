@@ -1,59 +1,59 @@
+source: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0034
-  BL:  # force factor (T·m)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
   Re:  # DC voice coil resistance (Ω)
     value: 7.4
     winner: vendor_page
     sources:
       vendor_page: 7.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
   Fs:  # free air resonance (Hz)
     value: 400.0
     winner: vendor_page
     sources:
       vendor_page: 400.0
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0034
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 0.0034
   Cms:  # mechanical compliance (m/N)
     value: 4.6e-05
     winner: vendor_page
     sources:
       vendor_page: 4.6e-05
-_sources:
-  vendor_page: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/tectonic-elements-teax32c20-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 7.4
+    winner: vendor_page
+    sources:
+      vendor_page: 7.4
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001

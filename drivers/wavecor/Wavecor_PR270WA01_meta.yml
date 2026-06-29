@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/pr270wa01.html
+manu_page_url: http://www.wavecor.com/html/pr270wa01.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/PR270WA01_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,55 +15,46 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: http://www.wavecor.com/html/pr270wa01.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/PR270WA01_specifications.pdf
+  manu_page: http://www.wavecor.com/html/pr270wa01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.046
-    winner: manu_page
-    sources:
-      manu_page: 0.046
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.112
-    winner: manu_page
-    sources:
-      manu_page: 0.112
-  Fs:  # free air resonance (Hz)
-    value: 26.0
-    winner: manu_page
-    sources:
-      manu_page: 26.0
   Xmax:  # one-way linear excursion (m)
     value: 0.02
     winner: manu_page
     sources:
       manu_page: 0.02
-  Qms:  # mechanical Q factor
-    value: 24.0
-    winner: manu_page
-    sources:
-      manu_page: 24.0
   Sd:  # effective piston area (m²)
     value: 0.0312
     winner: manu_page
     sources:
       manu_page: 0.0312
+  Fs:  # free air resonance (Hz)
+    value: 26.0
+    winner: manu_page
+    sources:
+      manu_page: 26.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.112
+    winner: manu_page
+    sources:
+      manu_page: 0.112
+  Qms:  # mechanical Q factor
+    value: 24.0
+    winner: manu_page
+    sources:
+      manu_page: 24.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00033
     winner: manu_page
     sources:
       manu_page: 0.00033
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/PR270WA01_specifications.pdf
-  manu_page: http://www.wavecor.com/html/pr270wa01.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/PR270WA01_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/pr270wa01.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.046
+    winner: manu_page
+    sources:
+      manu_page: 0.046

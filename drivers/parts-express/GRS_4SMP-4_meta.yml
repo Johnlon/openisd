@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.00396435 differs from calculated=0.00405376 (deps
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-854
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003964352
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003964352
-  Qes:  # electrical Q factor
-    value: 0.67
-    winner: vendor_page
-    sources:
-      vendor_page: 0.67
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0077
-  BL:  # force factor (T·m)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 58.0
-    winner: vendor_page
-    sources:
-      vendor_page: 58.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9200231338316077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9200231338316077
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 3.05
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 3.05
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.0054
     winner: vendor_page
     sources:
       vendor_page: 0.0054
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 58.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 58.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9200231338316077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9200231338316077
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0077
+  Qms:  # mechanical Q factor
+    value: 3.05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.05
   Cms:  # mechanical compliance (m/N)
     value: 0.00098
     winner: vendor_page
     sources:
       vendor_page: 0.00098
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-4SMP-4-292-854
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.67
+    winner: vendor_page
+    sources:
+      vendor_page: 0.67
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
+  Le:  # voice coil inductance (H)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003964352
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003964352

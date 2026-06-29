@@ -1,26 +1,29 @@
+source: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-010-morel-mdt-29-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-010-morel-mdt-29-specifications.pdf
+  vendor_page: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
   Fs:  # free air resonance (Hz)
     value: 900.0
     winner: vendor_page
@@ -31,6 +34,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -41,11 +49,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 277.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-010-morel-mdt-29-specifications.pdf
-  vendor_page: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-010-morel-mdt-29-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MDT-29-1-1-8-Soft-Dome-Tweeter-277-010
-frd_url: null
-zma_url: null

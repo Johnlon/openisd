@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-fr-58-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-fr-58-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-fr-58-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-fr-58-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00018
-  Qes:  # electrical Q factor
-    value: 1.64
-    winner: vendor_page
-    sources:
-      vendor_page: 1.64
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00097
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00097
-  BL:  # force factor (T·m)
-    value: 2.27
-    winner: vendor_page
-    sources:
-      vendor_page: 2.27
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 190.0
-    winner: vendor_page
-    sources:
-      vendor_page: 190.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00055
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.98
-  Qms:  # mechanical Q factor
-    value: 2.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.3
     winner: vendor_page
     sources:
-      vendor_page: 2.41
+      vendor_page: 7.3
   Sd:  # effective piston area (m²)
     value: 0.00132
     winner: vendor_page
     sources:
       vendor_page: 0.00132
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 190.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 190.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00097
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00097
+  Qms:  # mechanical Q factor
+    value: 2.41
+    winner: vendor_page
+    sources:
+      vendor_page: 2.41
   Cms:  # mechanical compliance (m/N)
     value: 0.000728
     winner: vendor_page
     sources:
       vendor_page: 0.000728
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-fr-58-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-fr-58-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.64
+    winner: vendor_page
+    sources:
+      vendor_page: 1.64
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.27
+    winner: vendor_page
+    sources:
+      vendor_page: 2.27
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018

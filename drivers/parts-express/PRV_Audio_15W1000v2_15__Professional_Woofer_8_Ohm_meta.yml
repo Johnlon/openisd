@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0010400000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0010400000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.206429472
-    winner: vendor_page
-    sources:
-      vendor_page: 0.206429472
-  Qes:  # electrical Q factor
-    value: 0.69
-    winner: vendor_page
-    sources:
-      vendor_page: 0.69
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.10745
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10745
-  BL:  # force factor (T·m)
-    value: 14.54
-    winner: vendor_page
-    sources:
-      vendor_page: 14.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 39.56
-    winner: vendor_page
-    sources:
-      vendor_page: 39.56
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.031199768930696
-    winner: vendor_page
-    sources:
-      vendor_page: 1.031199768930696
   Xmax:  # one-way linear excursion (m)
     value: 0.00637
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 25.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 25.9
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.099
     winner: vendor_page
     sources:
       vendor_page: 0.099
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 39.56
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 39.56
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.031199768930696
+    winner: vendor_page
+    sources:
+      vendor_page: 1.031199768930696
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.10745
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10745
+  Qms:  # mechanical Q factor
+    value: 25.9
+    winner: vendor_page
+    sources:
+      vendor_page: 25.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00015
     winner: vendor_page
     sources:
       vendor_page: 0.00015
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.69
+    winner: vendor_page
+    sources:
+      vendor_page: 0.69
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 14.54
+    winner: vendor_page
+    sources:
+      vendor_page: 14.54
+  Le:  # voice coil inductance (H)
+    value: 0.0010400000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0010400000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.206429472
+    winner: vendor_page
+    sources:
+      vendor_page: 0.206429472

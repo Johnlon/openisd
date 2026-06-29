@@ -1,21 +1,24 @@
+source: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-762--visaton-sc10n-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-762--visaton-sc10n-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
 specs:
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
   Fs:  # free air resonance (Hz)
     value: 1700.0
     winner: vendor_page
@@ -26,11 +29,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-762--visaton-sc10n-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-762--visaton-sc10n-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SC10N-8-1-Soft-Dome-Tweeter-Shielded-8-Ohm-292-790
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0

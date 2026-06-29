@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00018
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00125
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00125
-  Qes:  # electrical Q factor
-    value: 0.97
-    winner: vendor_page
-    sources:
-      vendor_page: 0.97
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00262
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00262
-  BL:  # force factor (T·m)
-    value: 2.58
-    winner: vendor_page
-    sources:
-      vendor_page: 2.58
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.72
-    winner: vendor_page
-    sources:
-      vendor_page: 3.72
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.65
-    winner: vendor_page
-    sources:
-      vendor_page: 0.65
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -65,25 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.7
-  Qms:  # mechanical Q factor
-    value: 2.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.72
     winner: vendor_page
     sources:
-      vendor_page: 2.52
+      vendor_page: 3.72
   Sd:  # effective piston area (m²)
     value: 0.003267
     winner: vendor_page
     sources:
       vendor_page: 0.003267
+  Fs:  # free air resonance (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.65
+    winner: vendor_page
+    sources:
+      vendor_page: 0.65
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00262
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00262
+  Qms:  # mechanical Q factor
+    value: 2.52
+    winner: vendor_page
+    sources:
+      vendor_page: 2.52
   Cms:  # mechanical compliance (m/N)
     value: 0.08252
     winner: vendor_page
     sources:
       vendor_page: 0.08252
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sure-electronics-aa-sp15116.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.97
+    winner: vendor_page
+    sources:
+      vendor_page: 0.97
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.58
+    winner: vendor_page
+    sources:
+      vendor_page: 2.58
+  Le:  # voice coil inductance (H)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00125
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00125

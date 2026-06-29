@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5949--bc-speakers-12clx64-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-5949
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5949--bc-speakers-12clx64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00054
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00054
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.074
-  Qes:  # electrical Q factor
-    value: 0.61
-    winner: vendor_page
-    sources:
-      vendor_page: 0.61
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0453
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0453
-  BL:  # force factor (T·m)
-    value: 11.86
-    winner: vendor_page
-    sources:
-      vendor_page: 11.86
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 54.0
-    winner: vendor_page
-    sources:
-      vendor_page: 54.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5217750394477925
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5217750394477925
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.57
-  Qms:  # mechanical Q factor
-    value: 10.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 10.1
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0522
     winner: vendor_page
     sources:
       vendor_page: 0.0522
+  Fs:  # free air resonance (Hz)
+    value: 54.0
+    winner: vendor_page
+    sources:
+      vendor_page: 54.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5217750394477925
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5217750394477925
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0453
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0453
+  Qms:  # mechanical Q factor
+    value: 10.1
+    winner: vendor_page
+    sources:
+      vendor_page: 10.1
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.61
+    winner: vendor_page
+    sources:
+      vendor_page: 0.61
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.86
+    winner: vendor_page
+    sources:
+      vendor_page: 11.86
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
     sources:
       vendor_page: 96.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5949--bc-speakers-12clx64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5949--bc-speakers-12clx64-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12CLX64-12-Professional-Coaxial-Speaker-60-x-60-Degree-8-Ohm-294-5949
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.00054
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00054
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.074

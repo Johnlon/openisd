@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-582--visaton-w170-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 292-582
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-582--visaton-w170-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02406928
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02406928
-  Qes:  # electrical Q factor
-    value: 0.9
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -52,6 +33,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
+    winner: vendor_page
+    sources:
+      vendor_page: 7.2
+  Fs:  # free air resonance (Hz)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
   Qms:  # mechanical Q factor
     value: 2.92
     winner: vendor_page
@@ -62,14 +53,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-582--visaton-w170-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-582--visaton-w170-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W170-8-6.5-Woofer-8-Ohm-292-582
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.9
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02406928
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02406928

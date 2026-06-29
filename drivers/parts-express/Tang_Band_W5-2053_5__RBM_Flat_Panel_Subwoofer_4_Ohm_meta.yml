@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003964352
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003964352
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.039920000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039920000000000004
-  BL:  # force factor (T·m)
-    value: 9.31
-    winner: vendor_page
-    sources:
-      vendor_page: 9.31
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8919970929291638
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8919970929291638
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 4.64
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 4.64
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0075
     winner: vendor_page
     sources:
       vendor_page: 0.0075
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8919970929291638
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8919970929291638
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.039920000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039920000000000004
+  Qms:  # mechanical Q factor
+    value: 4.64
+    winner: vendor_page
+    sources:
+      vendor_page: 4.64
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 9.31
+    winner: vendor_page
+    sources:
+      vendor_page: 9.31
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003964352
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003964352

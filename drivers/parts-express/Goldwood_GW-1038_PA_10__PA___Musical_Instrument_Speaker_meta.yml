@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-390-goldwood-gw-1038pa-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-390-goldwood-gw-1038pa-specifications.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.047005887999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.047005887999999996
-  Qes:  # electrical Q factor
-    value: 1.21
-    winner: vendor_page
-    sources:
-      vendor_page: 1.21
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0245
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0245
-  BL:  # force factor (T·m)
-    value: 7.65
-    winner: vendor_page
-    sources:
-      vendor_page: 7.65
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 63.3
-    winner: vendor_page
-    sources:
-      vendor_page: 63.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.325603325450945
-    winner: vendor_page
-    sources:
-      vendor_page: 2.325603325450945
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.94
-  Qms:  # mechanical Q factor
-    value: 4.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.3
     winner: vendor_page
     sources:
-      vendor_page: 4.19
+      vendor_page: 7.3
   Sd:  # effective piston area (m²)
     value: 0.03607
     winner: vendor_page
     sources:
       vendor_page: 0.03607
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 63.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 63.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.325603325450945
+    winner: vendor_page
+    sources:
+      vendor_page: 2.325603325450945
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0245
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0245
+  Qms:  # mechanical Q factor
+    value: 4.19
+    winner: vendor_page
+    sources:
+      vendor_page: 4.19
   Cms:  # mechanical compliance (m/N)
     value: 0.00026000000000000003
     winner: vendor_page
     sources:
       vendor_page: 0.00026000000000000003
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-390-goldwood-gw-1038pa-specifications.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-390-goldwood-gw-1038pa-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-1038-PA-10-Guitar-Speaker-290-390
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.21
+    winner: vendor_page
+    sources:
+      vendor_page: 1.21
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 7.65
+    winner: vendor_page
+    sources:
+      vendor_page: 7.65
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.047005887999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.047005887999999996

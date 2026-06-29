@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1124
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001982176
-  Qes:  # electrical Q factor
-    value: 1.04
-    winner: vendor_page
-    sources:
-      vendor_page: 1.04
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0039
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0039
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5834386356666759
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5834386356666759
   Xmax:  # one-way linear excursion (m)
     value: 0.00273
     winner: vendor_page
@@ -62,26 +32,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.84
-  Qms:  # mechanical Q factor
-    value: 4.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 4.2
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0048
     winner: vendor_page
     sources:
       vendor_page: 0.0048
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5834386356666759
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5834386356666759
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0039
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0039
+  Qms:  # mechanical Q factor
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00065
     winner: vendor_page
     sources:
       vendor_page: 0.00065
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.04
+    winner: vendor_page
+    sources:
+      vendor_page: 1.04
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001982176
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -92,13 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 294.0
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-4FE35-4-Professional-Woofer-8-Ohm-294-1124
-frd_url: null
-zma_url: null

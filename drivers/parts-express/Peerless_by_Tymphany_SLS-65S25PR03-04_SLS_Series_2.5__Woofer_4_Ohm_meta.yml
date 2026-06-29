@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1013--sls-65s25pr-03-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1013--sls-65s25pr-03-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000247
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000247
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000566336
-  Qes:  # electrical Q factor
-    value: 0.609
-    winner: vendor_page
-    sources:
-      vendor_page: 0.609
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00357
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00357
-  BL:  # force factor (T·m)
-    value: 3.59
-    winner: vendor_page
-    sources:
-      vendor_page: 3.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 94.0
-    winner: vendor_page
-    sources:
-      vendor_page: 94.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.36291072726046913
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36291072726046913
   Xmax:  # one-way linear excursion (m)
     value: 0.00433
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 5.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 5.81
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.00221
     winner: vendor_page
     sources:
       vendor_page: 0.00221
+  Fs:  # free air resonance (Hz)
+    value: 94.0
+    winner: vendor_page
+    sources:
+      vendor_page: 94.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.36291072726046913
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36291072726046913
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00357
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00357
+  Qms:  # mechanical Q factor
+    value: 5.81
+    winner: vendor_page
+    sources:
+      vendor_page: 5.81
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1013--sls-65s25pr-03-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1013--sls-65s25pr-03-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-SLS-65S25PR03-04-SLS-Series-2.5-Woofer-4-Ohm-264-1013
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.609
+    winner: vendor_page
+    sources:
+      vendor_page: 0.609
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.59
+    winner: vendor_page
+    sources:
+      vendor_page: 3.59
+  Le:  # voice coil inductance (H)
+    value: 0.000247
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000247
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000566336

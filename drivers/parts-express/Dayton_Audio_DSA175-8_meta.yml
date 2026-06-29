@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-528--dayton-audio-DSA175-8-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-528
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-528--dayton-audio-DSA175-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00085
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.018689088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018689088
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0242
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0242
-  BL:  # force factor (T·m)
-    value: 9.75
-    winner: vendor_page
-    sources:
-      vendor_page: 9.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 38.36
-    winner: vendor_page
-    sources:
-      vendor_page: 38.36
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.5137086258304193
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5137086258304193
   Xmax:  # one-way linear excursion (m)
     value: 0.0053
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 1.66
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 1.66
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.01287
     winner: vendor_page
     sources:
       vendor_page: 0.01287
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 38.36
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 38.36
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.5137086258304193
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5137086258304193
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0242
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0242
+  Qms:  # mechanical Q factor
+    value: 1.66
+    winner: vendor_page
+    sources:
+      vendor_page: 1.66
   Cms:  # mechanical compliance (m/N)
     value: 0.0007099999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0007099999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-528--dayton-audio-DSA175-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-528--dayton-audio-DSA175-8-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 9.75
+    winner: vendor_page
+    sources:
+      vendor_page: 9.75
+  Le:  # voice coil inductance (H)
+    value: 0.00085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00085
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.018689088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018689088

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3420--prv-audio-18sw2400-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3420--prv-audio-18sw2400-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015400000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015400000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.19255424
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19255424
-  Qes:  # electrical Q factor
-    value: 0.58
-    winner: vendor_page
-    sources:
-      vendor_page: 0.58
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.2312
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2312
-  BL:  # force factor (T·m)
-    value: 22.5
-    winner: vendor_page
-    sources:
-      vendor_page: 22.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 1200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1200.0
-  Fs:  # free air resonance (Hz)
-    value: 36.3
-    winner: vendor_page
-    sources:
-      vendor_page: 36.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.386770050200585
-    winner: vendor_page
-    sources:
-      vendor_page: 3.386770050200585
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 15.57
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 15.57
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.129
     winner: vendor_page
     sources:
       vendor_page: 0.129
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 36.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 36.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.386770050200585
+    winner: vendor_page
+    sources:
+      vendor_page: 3.386770050200585
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.2312
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2312
+  Qms:  # mechanical Q factor
+    value: 15.57
+    winner: vendor_page
+    sources:
+      vendor_page: 15.57
   Cms:  # mechanical compliance (m/N)
     value: 8.3e-05
     winner: vendor_page
     sources:
       vendor_page: 8.3e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.58
+    winner: vendor_page
+    sources:
+      vendor_page: 0.58
+  Pe:  # rated power input (W)
+    value: 1200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1200.0
+  BL:  # force factor (T·m)
+    value: 22.5
+    winner: vendor_page
+    sources:
+      vendor_page: 22.5
+  Le:  # voice coil inductance (H)
+    value: 0.0015400000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015400000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.19255424
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19255424
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 4.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 31.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3420--prv-audio-18sw2400-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3420--prv-audio-18sw2400-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420
-frd_url: null
-zma_url: null

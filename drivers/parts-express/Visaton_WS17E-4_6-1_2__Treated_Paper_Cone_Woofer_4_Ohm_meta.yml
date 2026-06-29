@@ -1,21 +1,24 @@
+source: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-680--visaton-ws17e-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-680--visaton-ws17e-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
 specs:
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
   Fs:  # free air resonance (Hz)
     value: 45.0
     winner: vendor_page
@@ -26,11 +29,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-680--visaton-ws17e-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-680--visaton-ws17e-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-WS17E-6-1-2-Treated-Paper-Cone-Woofer-4-Ohm-292-680
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0

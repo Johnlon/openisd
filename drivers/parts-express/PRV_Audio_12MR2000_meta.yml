@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2733--prv-audio-12mr2000-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.33 differs from calculated=0.335219 (deps: Qms=23
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2733
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2733--prv-audio-12mr2000-specifications.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00083
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00083
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.05238608
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05238608
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.06739
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06739
-  BL:  # force factor (T·m)
-    value: 21.25
-    winner: vendor_page
-    sources:
-      vendor_page: 21.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 57.23
-    winner: vendor_page
-    sources:
-      vendor_page: 57.23
-  Rms:  # mechanical resistance (kg/s)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00662
     winner: vendor_page
@@ -68,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 23.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 23.84
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0573
     winner: vendor_page
     sources:
       vendor_page: 0.0573
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 57.23
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 57.23
+  Rms:  # mechanical resistance (kg/s)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.06739
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06739
+  Qms:  # mechanical Q factor
+    value: 23.84
+    winner: vendor_page
+    sources:
+      vendor_page: 23.84
   Cms:  # mechanical compliance (m/N)
     value: 0.05252
     winner: vendor_page
     sources:
       vendor_page: 0.05252
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 21.25
+    winner: vendor_page
+    sources:
+      vendor_page: 21.25
+  Le:  # voice coil inductance (H)
+    value: 0.00083
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00083
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.05238608
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05238608
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 5.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2733--prv-audio-12mr2000-specifications.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2733--prv-audio-12mr2000-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733
-frd_url: null
-zma_url: null

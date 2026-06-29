@@ -1,41 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-022--dayton-audio-rs52fn-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-022--dayton-audio-rs52fn-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011999999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011999999999999999
-  Qes:  # electrical Q factor
-    value: 1.39
-    winner: vendor_page
-    sources:
-      vendor_page: 1.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 394.3
-    winner: vendor_page
-    sources:
-      vendor_page: 394.3
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -46,26 +29,43 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.05
-  Qms:  # mechanical Q factor
-    value: 4.27
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 4.27
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.00264
     winner: vendor_page
     sources:
       vendor_page: 0.00264
+  Fs:  # free air resonance (Hz)
+    value: 394.3
+    winner: vendor_page
+    sources:
+      vendor_page: 394.3
+  Qms:  # mechanical Q factor
+    value: 4.27
+    winner: vendor_page
+    sources:
+      vendor_page: 4.27
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-022--dayton-audio-rs52fn-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-022--dayton-audio-rs52fn-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS52FN-8-2-Reference-Fabric-Dome-Midrange-8-Ohm-285-022
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.39
+    winner: vendor_page
+    sources:
+      vendor_page: 1.39
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Le:  # voice coil inductance (H)
+    value: 0.00011999999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011999999999999999

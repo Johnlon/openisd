@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-595--visaton-r10s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-595--visaton-r10s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001982176
-  Qes:  # electrical Q factor
-    value: 1.96
-    winner: vendor_page
-    sources:
-      vendor_page: 1.96
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  BL:  # force factor (T·m)
-    value: 1.9
-    winner: vendor_page
-    sources:
-      vendor_page: 1.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3454047619136698
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3454047619136698
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.45
-  Qms:  # mechanical Q factor
-    value: 5.53
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 5.53
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0056
     winner: vendor_page
     sources:
       vendor_page: 0.0056
+  Fs:  # free air resonance (Hz)
+    value: 160.0
+    winner: vendor_page
+    sources:
+      vendor_page: 160.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3454047619136698
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3454047619136698
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Qms:  # mechanical Q factor
+    value: 5.53
+    winner: vendor_page
+    sources:
+      vendor_page: 5.53
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.96
+    winner: vendor_page
+    sources:
+      vendor_page: 1.96
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 1.9
+    winner: vendor_page
+    sources:
+      vendor_page: 1.9
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001982176
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 13.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-595--visaton-r10s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-595--visaton-r10s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-R10S-4-Full-Range-Speaker-4-Ohm-292-595
-frd_url: null
-zma_url: null

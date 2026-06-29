@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015400000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015400000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013025728
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013025728
-  Qes:  # electrical Q factor
-    value: 0.75
-    winner: vendor_page
-    sources:
-      vendor_page: 0.75
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1082
-  BL:  # force factor (T·m)
-    value: 10.76
-    winner: vendor_page
-    sources:
-      vendor_page: 10.76
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.310583833023387
-    winner: vendor_page
-    sources:
-      vendor_page: 4.310583833023387
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.66
-  Qms:  # mechanical Q factor
-    value: 5.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 5.52
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.310583833023387
+    winner: vendor_page
+    sources:
+      vendor_page: 4.310583833023387
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1082
+  Qms:  # mechanical Q factor
+    value: 5.52
+    winner: vendor_page
+    sources:
+      vendor_page: 5.52
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.75
+    winner: vendor_page
+    sources:
+      vendor_page: 0.75
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 10.76
+    winner: vendor_page
+    sources:
+      vendor_page: 10.76
+  Le:  # voice coil inductance (H)
+    value: 0.0015400000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015400000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013025728
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013025728

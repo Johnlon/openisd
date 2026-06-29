@@ -1,15 +1,67 @@
+source: https://www.soundimports.eu/en/markaudio-maop-5.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-5.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-maop-5.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-maop-5.html
 specs:
+  Qts:  # total Q factor
+    value: 0.49
+    winner: vendor_page
+    sources:
+      vendor_page: 0.49
+  Sd:  # effective piston area (m²)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Fs:  # free air resonance (Hz)
+    value: 114.4
+    winner: vendor_page
+    sources:
+      vendor_page: 114.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0014396
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0014396
+  Qms:  # mechanical Q factor
+    value: 1.7096
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7096
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0013445
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013445
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.6916
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6916
+  BL:  # force factor (T·m)
+    value: 2.2555
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2555
   Le:  # voice coil inductance (H)
     value: 6.81e-05
     winner: vendor_page
@@ -20,55 +72,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0015008
-  Qes:  # electrical Q factor
-    value: 0.6916
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6916
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0014396
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0014396
-  BL:  # force factor (T·m)
-    value: 2.2555
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2555
-  Fs:  # free air resonance (Hz)
-    value: 114.4
-    winner: vendor_page
-    sources:
-      vendor_page: 114.4
-  Qts:  # total Q factor
-    value: 0.49
-    winner: vendor_page
-    sources:
-      vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 1.7096
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7096
-  Sd:  # effective piston area (m²)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0013445
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013445
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-maop-5.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-5.html
-frd_url: null
-zma_url: null

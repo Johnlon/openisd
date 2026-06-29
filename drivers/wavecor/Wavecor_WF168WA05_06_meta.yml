@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf168wa05_06.html
+manu_page_url: http://www.wavecor.com/html/wf168wa05_06.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF168WA05_06_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf168wa05_06.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF168WA05_06_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf168wa05_06.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00024
-    winner: manu_page
-    sources:
-      manu_page: 0.00024
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0277
-    winner: manu_page
-    sources:
-      manu_page: 0.0277
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: manu_page
-    sources:
-      manu_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.014
-    winner: manu_page
-    sources:
-      manu_page: 0.014
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: manu_page
-    sources:
-      manu_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: manu_page
-    sources:
-      manu_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.49
-    winner: manu_page
-    sources:
-      manu_page: 0.49
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: manu_page
@@ -67,34 +33,68 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 7.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 7.2
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0131
     winner: manu_page
     sources:
       manu_page: 0.0131
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.49
+    winner: manu_page
+    sources:
+      manu_page: 0.49
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.014
+    winner: manu_page
+    sources:
+      manu_page: 0.014
+  Qms:  # mechanical Q factor
+    value: 7.2
+    winner: manu_page
+    sources:
+      manu_page: 7.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00114
     winner: manu_page
     sources:
       manu_page: 0.00114
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF168WA05_06_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf168wa05_06.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF168WA05_06_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf168wa05_06.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: manu_page
+    sources:
+      manu_page: 0.45
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: manu_page
+    sources:
+      manu_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00024
+    winner: manu_page
+    sources:
+      manu_page: 0.00024
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0277
+    winner: manu_page
+    sources:
+      manu_page: 0.0277

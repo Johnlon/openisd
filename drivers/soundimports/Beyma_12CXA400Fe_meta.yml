@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/beyma-12cxa400fe.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/beyma-12cxa400fe.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/beyma-12cxa400fe.html
+driver_type: woofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/beyma-12cxa400fe.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.094
-    winner: vendor_page
-    sources:
-      vendor_page: 0.094
-  Qes:  # electrical Q factor
-    value: 0.26
-    winner: vendor_page
-    sources:
-      vendor_page: 0.26
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.066
-    winner: vendor_page
-    sources:
-      vendor_page: 0.066
-  BL:  # force factor (T·m)
-    value: 19.8
-    winner: vendor_page
-    sources:
-      vendor_page: 19.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.25
-  Qms:  # mechanical Q factor
-    value: 7.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 7.2
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 42.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.066
+    winner: vendor_page
+    sources:
+      vendor_page: 0.066
+  Qms:  # mechanical Q factor
+    value: 7.2
+    winner: vendor_page
+    sources:
+      vendor_page: 7.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.26
+    winner: vendor_page
+    sources:
+      vendor_page: 0.26
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 19.8
+    winner: vendor_page
+    sources:
+      vendor_page: 19.8
+  Le:  # voice coil inductance (H)
+    value: 0.0011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.094
+    winner: vendor_page
+    sources:
+      vendor_page: 0.094
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/beyma-12cxa400fe.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/beyma-12cxa400fe.html
-frd_url: null
-zma_url: null

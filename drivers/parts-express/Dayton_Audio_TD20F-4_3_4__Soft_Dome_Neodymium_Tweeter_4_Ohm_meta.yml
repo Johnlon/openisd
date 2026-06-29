@@ -1,26 +1,29 @@
+source: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-020--dayton-audio-td20f-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-020--dayton-audio-td20f-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 3.4
     winner: vendor_page
     sources:
       vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
   Fs:  # free air resonance (Hz)
     value: 1696.0
     winner: vendor_page
@@ -31,11 +34,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-020--dayton-audio-td20f-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-020--dayton-audio-td20f-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-TD20F-4-3-4-Soft-Dome-Neodymium-Tweeter-4-Ohm-275-020
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0

@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2048--an3510-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2048--an3510-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001982176
-  Qes:  # electrical Q factor
-    value: 0.74
-    winner: vendor_page
-    sources:
-      vendor_page: 0.74
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00337
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00337
-  BL:  # force factor (T·m)
-    value: 4.56
-    winner: vendor_page
-    sources:
-      vendor_page: 4.56
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.73
-    winner: vendor_page
-    sources:
-      vendor_page: 5.73
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Fs:  # free air resonance (Hz)
-    value: 113.4
-    winner: vendor_page
-    sources:
-      vendor_page: 113.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4717425403970798
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4717425403970798
   Xmax:  # one-way linear excursion (m)
     value: 0.00125
     winner: vendor_page
@@ -61,31 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 5.09
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.73
     winner: vendor_page
     sources:
-      vendor_page: 5.09
+      vendor_page: 5.73
   Sd:  # effective piston area (m²)
     value: 0.003848
     winner: vendor_page
     sources:
       vendor_page: 0.003848
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 113.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 113.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4717425403970798
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4717425403970798
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00337
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00337
+  Qms:  # mechanical Q factor
+    value: 5.09
+    winner: vendor_page
+    sources:
+      vendor_page: 5.09
   Cms:  # mechanical compliance (m/N)
     value: 0.0005200000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0005200000000000001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2048--an3510-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2048--an3510-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.74
+    winner: vendor_page
+    sources:
+      vendor_page: 0.74
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  BL:  # force factor (T·m)
+    value: 4.56
+    winner: vendor_page
+    sources:
+      vendor_page: 4.56
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001982176

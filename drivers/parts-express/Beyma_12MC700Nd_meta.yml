@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.24 differs from calculated=0.244495 (deps: Qms=4.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-015
+_sources:
+  vendor_page: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.058049439999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.058049439999999994
-  Qes:  # electrical Q factor
-    value: 0.26
-    winner: vendor_page
-    sources:
-      vendor_page: 0.26
-  Mms:  # moving mass incl. air load (kg)
-    value: 7.199999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.199999999999999e-05
-  BL:  # force factor (T·m)
-    value: 21.6
-    winner: vendor_page
-    sources:
-      vendor_page: 21.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 51.0
-    winner: vendor_page
-    sources:
-      vendor_page: 51.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0056272820604788875
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0056272820604788875
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -68,28 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.24
-  Qms:  # mechanical Q factor
-    value: 4.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 4.1
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
+  Fs:  # free air resonance (Hz)
+    value: 51.0
+    winner: vendor_page
+    sources:
+      vendor_page: 51.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0056272820604788875
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0056272820604788875
+  Mms:  # moving mass incl. air load (kg)
+    value: 7.199999999999999e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.199999999999999e-05
+  Qms:  # mechanical Q factor
+    value: 4.1
+    winner: vendor_page
+    sources:
+      vendor_page: 4.1
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.26
+    winner: vendor_page
+    sources:
+      vendor_page: 0.26
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 21.6
+    winner: vendor_page
+    sources:
+      vendor_page: 21.6
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.058049439999999994
+    winner: vendor_page
+    sources:
+      vendor_page: 0.058049439999999994

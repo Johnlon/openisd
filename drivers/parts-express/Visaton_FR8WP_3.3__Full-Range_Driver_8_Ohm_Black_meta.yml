@@ -1,41 +1,49 @@
+source: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-624--visaton-fr-8-wp-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-624--visaton-fr-8-wp-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
 specs:
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.8
-    winner: vendor_page
-    sources:
-      vendor_page: 7.8
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 158.0
-    winner: vendor_page
-    sources:
-      vendor_page: 158.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.8
+    winner: vendor_page
+    sources:
+      vendor_page: 7.8
+  Fs:  # free air resonance (Hz)
+    value: 158.0
+    winner: vendor_page
+    sources:
+      vendor_page: 158.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -46,11 +54,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-624--visaton-fr-8-wp-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-624--visaton-fr-8-wp-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FR8WP-8-3.3-Full-Range-Driver-8-Ohm-Black-292-624
-frd_url: null
-zma_url: null

@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-045-dayton-audio-dc25t-8-specifications-46190.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/275-045--Dayton-Audio-DC25T-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-045-dayton-audio-dc25t-8-specifications-46190.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005899999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005899999999999999
-  Qes:  # electrical Q factor
-    value: 2.55
-    winner: vendor_page
-    sources:
-      vendor_page: 2.55
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 1468.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1468.0
   Qts:  # total Q factor
     value: 0.47
     winner: vendor_page
     sources:
       vendor_page: 0.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
+  Fs:  # free air resonance (Hz)
+    value: 1468.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1468.0
   Qms:  # mechanical Q factor
     value: 0.58
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-045-dayton-audio-dc25t-8-specifications-46190.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-045-dayton-audio-dc25t-8-specifications-46190.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC25T-8-1-Titanium-Dome-Tweeter-275-045
-frd_url: https://www.parts-express.com/pedocs/tech-docs/275-045--Dayton-Audio-DC25T-8_data.zip
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.55
+    winner: vendor_page
+    sources:
+      vendor_page: 2.55
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 0.0005899999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005899999999999999

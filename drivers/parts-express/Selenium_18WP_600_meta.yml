@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-474--jbl-selenium-18wp600-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Qts'' stored=0.46 differs from calculated=0.468987 (deps: Qms=20
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-474
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-474--jbl-selenium-18wp600-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00188
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00188
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.294777888
-    winner: vendor_page
-    sources:
-      vendor_page: 0.294777888
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.14
-    winner: vendor_page
-    sources:
-      vendor_page: 0.14
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.99
-    winner: vendor_page
-    sources:
-      vendor_page: 5.99
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 35.2
-    winner: vendor_page
-    sources:
-      vendor_page: 35.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5148501562515169
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5148501562515169
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -63,21 +34,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 20.44
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.99
     winner: vendor_page
     sources:
-      vendor_page: 20.44
+      vendor_page: 5.99
   Sd:  # effective piston area (m²)
     value: 0.1194
     winner: vendor_page
     sources:
       vendor_page: 0.1194
+  Fs:  # free air resonance (Hz)
+    value: 35.2
+    winner: vendor_page
+    sources:
+      vendor_page: 35.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5148501562515169
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5148501562515169
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.14
+    winner: vendor_page
+    sources:
+      vendor_page: 0.14
+  Qms:  # mechanical Q factor
+    value: 20.44
+    winner: vendor_page
+    sources:
+      vendor_page: 20.44
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  Le:  # voice coil inductance (H)
+    value: 0.00188
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00188
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.294777888
+    winner: vendor_page
+    sources:
+      vendor_page: 0.294777888
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 8.0
     winner: vendor_page
@@ -88,14 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 18.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-474--jbl-selenium-18wp600-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-474--jbl-selenium-18wp600-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-18WP-600-18-600-Watt-Woofer-8-Ohm-264-474
-frd_url: null
-zma_url: null

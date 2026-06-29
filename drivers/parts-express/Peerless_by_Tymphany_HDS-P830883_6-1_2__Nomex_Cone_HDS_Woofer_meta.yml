@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1094--tymphany-hds-p830883-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1094--tymphany-hds-p830883-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017999999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022936608
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022936608
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01734
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01734
-  BL:  # force factor (T·m)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 43.0
-    winner: vendor_page
-    sources:
-      vendor_page: 43.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.1294857403360195
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1294857403360195
   Xmax:  # one-way linear excursion (m)
     value: 0.00562
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 2.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 2.2
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.01431
     winner: vendor_page
     sources:
       vendor_page: 0.01431
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 43.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 43.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.1294857403360195
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1294857403360195
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01734
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01734
+  Qms:  # mechanical Q factor
+    value: 2.2
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2
   Cms:  # mechanical compliance (m/N)
     value: 0.0008
     winner: vendor_page
     sources:
       vendor_page: 0.0008
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
+  Le:  # voice coil inductance (H)
+    value: 0.00017999999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017999999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022936608
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022936608
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 4.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1094--tymphany-hds-p830883-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1094--tymphany-hds-p830883-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-830883-6-1-2-Nomex-Cone-HDS-Woofer-264-1094
-frd_url: null
-zma_url: null

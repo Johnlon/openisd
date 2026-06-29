@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1068--faitalpro-18hw1070-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1068--faitalpro-18hw1070-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00126
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00126
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.191421568
-    winner: vendor_page
-    sources:
-      vendor_page: 0.191421568
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.265
-    winner: vendor_page
-    sources:
-      vendor_page: 0.265
-  BL:  # force factor (T·m)
-    value: 21.6
-    winner: vendor_page
-    sources:
-      vendor_page: 21.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.02654824574367
-    winner: vendor_page
-    sources:
-      vendor_page: 5.02654824574367
   Xmax:  # one-way linear excursion (m)
     value: 0.013
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 10.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 10.6
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.1212
     winner: vendor_page
     sources:
       vendor_page: 0.1212
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 32.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.02654824574367
+    winner: vendor_page
+    sources:
+      vendor_page: 5.02654824574367
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.265
+    winner: vendor_page
+    sources:
+      vendor_page: 0.265
+  Qms:  # mechanical Q factor
+    value: 10.6
+    winner: vendor_page
+    sources:
+      vendor_page: 10.6
   Cms:  # mechanical compliance (m/N)
     value: 8.999999999999999e-05
     winner: vendor_page
     sources:
       vendor_page: 8.999999999999999e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1068--faitalpro-18hw1070-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1068--faitalpro-18hw1070-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-4-Ohm-294-1068
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 1600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1600.0
+  BL:  # force factor (T·m)
+    value: 21.6
+    winner: vendor_page
+    sources:
+      vendor_page: 21.6
+  Le:  # voice coil inductance (H)
+    value: 0.00126
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00126
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.191421568
+    winner: vendor_page
+    sources:
+      vendor_page: 0.191421568

@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-464--grs-1td2-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-464--grs-1td2-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025
-  Qes:  # electrical Q factor
-    value: 1.91
-    winner: vendor_page
-    sources:
-      vendor_page: 1.91
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.32
-    winner: vendor_page
-    sources:
-      vendor_page: 7.32
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 2531.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2531.0
   Qts:  # total Q factor
     value: 1.45
     winner: vendor_page
     sources:
       vendor_page: 1.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.32
+    winner: vendor_page
+    sources:
+      vendor_page: 7.32
+  Fs:  # free air resonance (Hz)
+    value: 2531.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2531.0
   Qms:  # mechanical Q factor
     value: 5.94
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-464--grs-1td2-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-464--grs-1td2-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-1TD2-8-1-Designer-Dome-Tweeter-8-Ohm-292-464
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.91
+    winner: vendor_page
+    sources:
+      vendor_page: 1.91
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 0.00025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025

@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
+manu_page_url: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23NRXS45-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23NRXS45-4.pdf
+  manu_page: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: manu_page
-    sources:
-      manu_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0875
-    winner: manu_page
-    sources:
-      manu_page: 0.0875
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: manu_page
-    sources:
-      manu_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0272
-    winner: manu_page
-    sources:
-      manu_page: 0.0272
-  BL:  # force factor (T·m)
-    value: 6.9
-    winner: manu_page
-    sources:
-      manu_page: 6.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: manu_page
-    sources:
-      manu_page: 3.3
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 27.0
-    winner: manu_page
-    sources:
-      manu_page: 27.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.55
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: manu_page
     sources:
-      manu_page: 5.55
+      manu_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0216
     winner: manu_page
     sources:
       manu_page: 0.0216
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 27.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 27.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0272
+    winner: manu_page
+    sources:
+      manu_page: 0.0272
+  Qms:  # mechanical Q factor
+    value: 5.55
+    winner: manu_page
+    sources:
+      manu_page: 5.55
   Cms:  # mechanical compliance (m/N)
     value: 0.00133
     winner: manu_page
     sources:
       manu_page: 0.00133
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: manu_page
+    sources:
+      manu_page: 0.32
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 6.9
+    winner: manu_page
+    sources:
+      manu_page: 6.9
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: manu_page
+    sources:
+      manu_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0875
+    winner: manu_page
+    sources:
+      manu_page: 0.0875
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 45.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 92.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23NRXS45-4.pdf
-  manu_page: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23NRXS45-4.pdf
-manu_page_url: https://sbacoustics.com/product/8-sb23nrxs45-4-norex/
-vendor_page_url: null
-frd_url: null
-zma_url: null

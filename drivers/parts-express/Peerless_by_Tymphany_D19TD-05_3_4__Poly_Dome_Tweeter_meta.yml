@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-500--tymphany-d19td05-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-500--tymphany-d19td05-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Qes:  # electrical Q factor
-    value: 1.94
-    winner: vendor_page
-    sources:
-      vendor_page: 1.94
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.33
-    winner: vendor_page
-    sources:
-      vendor_page: 6.33
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 1687.9
-    winner: vendor_page
-    sources:
-      vendor_page: 1687.9
   Qts:  # total Q factor
     value: 0.69
     winner: vendor_page
     sources:
       vendor_page: 0.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.33
+    winner: vendor_page
+    sources:
+      vendor_page: 6.33
+  Fs:  # free air resonance (Hz)
+    value: 1687.9
+    winner: vendor_page
+    sources:
+      vendor_page: 1687.9
   Qms:  # mechanical Q factor
     value: 1.08
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-500--tymphany-d19td05-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-500--tymphany-d19td05-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-D19TD05-08-3-4-Poly-Dome-Tweeter-264-500
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.94
+    winner: vendor_page
+    sources:
+      vendor_page: 1.94
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05

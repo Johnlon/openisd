@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-028--10cmv2-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-028--10cmv2-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.04389104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04389104
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 4.2000000000000004e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2000000000000004e-05
-  BL:  # force factor (T·m)
-    value: 13.4
-    winner: vendor_page
-    sources:
-      vendor_page: 13.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.003611178081810584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003611178081810584
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 3.8e-06
     winner: vendor_page
     sources:
       vendor_page: 3.8e-06
+  Fs:  # free air resonance (Hz)
+    value: 52.0
+    winner: vendor_page
+    sources:
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.003611178081810584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003611178081810584
+  Mms:  # moving mass incl. air load (kg)
+    value: 4.2000000000000004e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2000000000000004e-05
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 13.4
+    winner: vendor_page
+    sources:
+      vendor_page: 13.4
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.04389104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04389104
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
     sources:
       vendor_page: 95.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-028--10cmv2-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-028--10cmv2-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028
-frd_url: null
-zma_url: null

@@ -1,45 +1,37 @@
+source: https://www.soundimports.eu/en/bliesma-t25s-6.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/bliesma-t25s-6.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/bliesma-t25s-6.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/bliesma-t25s-6.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0e-06
-  Qes:  # electrical Q factor
-    value: 0.82
-    winner: vendor_page
-    sources:
-      vendor_page: 0.82
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 920.0
-    winner: vendor_page
-    sources:
-      vendor_page: 920.0
   Qts:  # total Q factor
     value: 0.51
     winner: vendor_page
     sources:
       vendor_page: 0.51
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Fs:  # free air resonance (Hz)
+    value: 920.0
+    winner: vendor_page
+    sources:
+      vendor_page: 920.0
   Qms:  # mechanical Q factor
     value: 1.35
     winner: vendor_page
@@ -50,15 +42,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.82
+    winner: vendor_page
+    sources:
+      vendor_page: 0.82
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 8.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0e-06
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: vendor_page
     sources:
       vendor_page: 91.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/bliesma-t25s-6.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/bliesma-t25s-6.html
-frd_url: null
-zma_url: null

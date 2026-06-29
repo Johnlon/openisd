@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-045-morel-mw-1075-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-045-morel-mw-1075-specifications.pdf
+  vendor_page: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00063
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00063
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.122894912
-    winner: vendor_page
-    sources:
-      vendor_page: 0.122894912
-  Qes:  # electrical Q factor
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.032600000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032600000000000004
-  BL:  # force factor (T·m)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 180.0
-    winner: vendor_page
-    sources:
-      vendor_page: 180.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.3952110441159604
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3952110441159604
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.62
-  Qms:  # mechanical Q factor
-    value: 2.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.48
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0324
     winner: vendor_page
     sources:
       vendor_page: 0.0324
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 29.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 29.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.3952110441159604
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3952110441159604
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.032600000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.032600000000000004
+  Qms:  # mechanical Q factor
+    value: 2.48
+    winner: vendor_page
+    sources:
+      vendor_page: 2.48
   Cms:  # mechanical compliance (m/N)
     value: 0.0008399999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0008399999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-045-morel-mw-1075-specifications.pdf
-  vendor_page: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-045-morel-mw-1075-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MW-1075-10-Woofer-297-045
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.83
+    winner: vendor_page
+    sources:
+      vendor_page: 0.83
+  Pe:  # rated power input (W)
+    value: 180.0
+    winner: vendor_page
+    sources:
+      vendor_page: 180.0
+  BL:  # force factor (T·m)
+    value: 6.3
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3
+  Le:  # voice coil inductance (H)
+    value: 0.00063
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00063
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.122894912
+    winner: vendor_page
+    sources:
+      vendor_page: 0.122894912

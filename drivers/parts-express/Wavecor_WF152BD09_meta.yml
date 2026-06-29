@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 298-1229
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009627712
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009627712
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.322536845768552
-    winner: vendor_page
-    sources:
-      vendor_page: 0.322536845768552
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -52,33 +32,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 10.5
-    winner: vendor_page
-    sources:
-      vendor_page: 10.5
   Sd:  # effective piston area (m²)
     value: 0.0085
     winner: vendor_page
     sources:
       vendor_page: 0.0085
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 49.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.322536845768552
+    winner: vendor_page
+    sources:
+      vendor_page: 0.322536845768552
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011
+  Qms:  # mechanical Q factor
+    value: 10.5
+    winner: vendor_page
+    sources:
+      vendor_page: 10.5
   Cms:  # mechanical compliance (m/N)
     value: 0.00094
     winner: vendor_page
     sources:
       vendor_page: 0.00094
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF152BD09-6-Kevlar-Carbon-Fiber-Cone-Midwoofer-4-Ohm-298-1229
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009627712
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009627712

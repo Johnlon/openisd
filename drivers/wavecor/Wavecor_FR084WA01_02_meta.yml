@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/fr084wa01_02.html
+manu_page_url: http://www.wavecor.com/html/fr084wa01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR084WA01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: http://www.wavecor.com/html/fr084wa01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR084WA01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/fr084wa01_02.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00107
-    winner: manu_page
-    sources:
-      manu_page: 0.00107
-  Qes:  # electrical Q factor
-    value: 0.96
-    winner: manu_page
-    sources:
-      manu_page: 0.96
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00345
-    winner: manu_page
-    sources:
-      manu_page: 0.00345
-  BL:  # force factor (T·m)
-    value: 2.9
-    winner: manu_page
-    sources:
-      manu_page: 2.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: manu_page
-    sources:
-      manu_page: 3.3
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 113.0
-    winner: manu_page
-    sources:
-      manu_page: 113.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.44
-    winner: manu_page
-    sources:
-      manu_page: 0.44
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.82
-  Qms:  # mechanical Q factor
-    value: 5.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: manu_page
     sources:
-      manu_page: 5.6
+      manu_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0036
     winner: manu_page
     sources:
       manu_page: 0.0036
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 113.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 113.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.44
+    winner: manu_page
+    sources:
+      manu_page: 0.44
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00345
+    winner: manu_page
+    sources:
+      manu_page: 0.00345
+  Qms:  # mechanical Q factor
+    value: 5.6
+    winner: manu_page
+    sources:
+      manu_page: 5.6
   Cms:  # mechanical compliance (m/N)
     value: 0.00058
     winner: manu_page
     sources:
       manu_page: 0.00058
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR084WA01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/fr084wa01_02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR084WA01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/fr084wa01_02.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.96
+    winner: manu_page
+    sources:
+      manu_page: 0.96
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 2.9
+    winner: manu_page
+    sources:
+      manu_page: 2.9
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00107
+    winner: manu_page
+    sources:
+      manu_page: 0.00107

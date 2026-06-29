@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-662--dayton-audio-pcs115-8-specification-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/PCS115-8_data_file.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-662--dayton-audio-pcs115-8-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0017698
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017698
-  Qes:  # electrical Q factor
-    value: 1.22
-    winner: vendor_page
-    sources:
-      vendor_page: 1.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007
-  BL:  # force factor (T·m)
-    value: 4.6
-    winner: vendor_page
-    sources:
-      vendor_page: 4.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 87.0
-    winner: vendor_page
-    sources:
-      vendor_page: 87.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.4224757814395421
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4224757814395421
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.84
-  Qms:  # mechanical Q factor
-    value: 2.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 2.69
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.00515
     winner: vendor_page
     sources:
       vendor_page: 0.00515
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 87.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 87.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.4224757814395421
+    winner: vendor_page
+    sources:
+      vendor_page: 1.4224757814395421
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007
+  Qms:  # mechanical Q factor
+    value: 2.69
+    winner: vendor_page
+    sources:
+      vendor_page: 2.69
   Cms:  # mechanical compliance (m/N)
     value: 0.00047999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00047999999999999996
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.22
+    winner: vendor_page
+    sources:
+      vendor_page: 1.22
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 4.6
+    winner: vendor_page
+    sources:
+      vendor_page: 4.6
+  Le:  # voice coil inductance (H)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0017698
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017698
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 82.4
     winner: vendor_page
     sources:
       vendor_page: 82.4
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-662--dayton-audio-pcs115-8-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-662--dayton-audio-pcs115-8-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PCS115-8-4-Poly-Cone-Woofer-8-Ohm-295-662
-frd_url: https://www.parts-express.com/pedocs/tech-docs/PCS115-8_data_file.zip
-zma_url: null

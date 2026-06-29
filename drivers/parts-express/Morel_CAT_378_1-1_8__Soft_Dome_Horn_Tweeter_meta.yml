@@ -1,31 +1,29 @@
+source: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-084--morel-cat-378-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-084--morel-cat-378-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.999999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.999999999999999e-05
   Re:  # DC voice coil resistance (Ω)
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
   Fs:  # free air resonance (Hz)
     value: 700.0
     winner: vendor_page
@@ -36,11 +34,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-084--morel-cat-378-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-084--morel-cat-378-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-CAT-378-1-1-8-Soft-Dome-Horn-Tweeter-277-084
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  Le:  # voice coil inductance (H)
+    value: 8.999999999999999e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.999999999999999e-05

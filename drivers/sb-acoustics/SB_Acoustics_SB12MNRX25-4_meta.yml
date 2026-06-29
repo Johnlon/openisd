@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
+manu_page_url: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/03/4in-SB12MNRX25-4-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/03/4in-SB12MNRX25-4-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00014
-    winner: manu_page
-    sources:
-      manu_page: 0.00014
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0055
-    winner: manu_page
-    sources:
-      manu_page: 0.0055
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: manu_page
-    sources:
-      manu_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0049
-    winner: manu_page
-    sources:
-      manu_page: 0.0049
-  BL:  # force factor (T·m)
-    value: 3.7
-    winner: manu_page
-    sources:
-      manu_page: 3.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: manu_page
-    sources:
-      manu_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 58.0
-    winner: manu_page
-    sources:
-      manu_page: 58.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00225
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 3.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 3.6
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.005
     winner: manu_page
     sources:
       manu_page: 0.005
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 58.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 58.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0049
+    winner: manu_page
+    sources:
+      manu_page: 0.0049
+  Qms:  # mechanical Q factor
+    value: 3.6
+    winner: manu_page
+    sources:
+      manu_page: 3.6
   Cms:  # mechanical compliance (m/N)
     value: 0.00155
     winner: manu_page
     sources:
       manu_page: 0.00155
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: manu_page
+    sources:
+      manu_page: 0.42
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: manu_page
+    sources:
+      manu_page: 50.0
+  BL:  # force factor (T·m)
+    value: 3.7
+    winner: manu_page
+    sources:
+      manu_page: 3.7
+  Le:  # voice coil inductance (H)
+    value: 0.00014
+    winner: manu_page
+    sources:
+      manu_page: 0.00014
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0055
+    winner: manu_page
+    sources:
+      manu_page: 0.0055
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.4
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 88.5
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/03/4in-SB12MNRX25-4-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/03/4in-SB12MNRX25-4-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/4in-sb12mnrx25-4-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

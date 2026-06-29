@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-614--visaton-sl87-fe-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-614--visaton-sl87-fe-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 0.82
-    winner: vendor_page
-    sources:
-      vendor_page: 0.82
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  BL:  # force factor (T·m)
-    value: 3.95
-    winner: vendor_page
-    sources:
-      vendor_page: 3.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5483507177174911
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5483507177174911
   Xmax:  # one-way linear excursion (m)
     value: 0.00175
     winner: vendor_page
@@ -61,21 +29,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 3.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 3.3
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.00373
     winner: vendor_page
     sources:
       vendor_page: 0.00373
+  Fs:  # free air resonance (Hz)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5483507177174911
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5483507177174911
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.82
+    winner: vendor_page
+    sources:
+      vendor_page: 0.82
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.95
+    winner: vendor_page
+    sources:
+      vendor_page: 3.95
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 87.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-614--visaton-sl87-fe-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-614--visaton-sl87-fe-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SL87-FE-8-Ohm-3.4-Full-Range-Speaker-8-Ohm-292-614
-frd_url: null
-zma_url: null

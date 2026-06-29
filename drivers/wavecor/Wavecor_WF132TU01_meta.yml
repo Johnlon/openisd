@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf132tu01.html
+manu_page_url: http://www.wavecor.com/html/wf132tu01.html
+vendor_page_url: null
+datasheet_url: https://www.wavecor.com/WF132TU01_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: https://www.wavecor.com/WF132TU01_SPL_response.txt
+zma_url: https://www.wavecor.com/WF132TU01_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf132tu01.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.wavecor.com/WF132TU01_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf132tu01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0085
-    winner: manu_page
-    sources:
-      manu_page: 0.0085
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: manu_page
-    sources:
-      manu_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01
-    winner: manu_page
-    sources:
-      manu_page: 0.01
-  BL:  # force factor (T·m)
-    value: 5.2
-    winner: manu_page
-    sources:
-      manu_page: 5.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 55.0
-    winner: manu_page
-    sources:
-      manu_page: 55.0
-  Fs:  # free air resonance (Hz)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: manu_page
@@ -57,29 +33,53 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 12.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 12.0
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0095
     winner: manu_page
     sources:
       manu_page: 0.0095
+  Fs:  # free air resonance (Hz)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01
+    winner: manu_page
+    sources:
+      manu_page: 0.01
+  Qms:  # mechanical Q factor
+    value: 12.0
+    winner: manu_page
+    sources:
+      manu_page: 12.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: manu_page
     sources:
       manu_page: 4.0
-_sources:
-  datasheet: https://www.wavecor.com/WF132TU01_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf132tu01.html
-datasheet_url: https://www.wavecor.com/WF132TU01_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf132tu01.html
-vendor_page_url: null
-frd_url: https://www.wavecor.com/WF132TU01_SPL_response.txt
-zma_url: https://www.wavecor.com/WF132TU01_impedance_response.txt
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: manu_page
+    sources:
+      manu_page: 0.45
+  Pe:  # rated power input (W)
+    value: 55.0
+    winner: manu_page
+    sources:
+      manu_page: 55.0
+  BL:  # force factor (T·m)
+    value: 5.2
+    winner: manu_page
+    sources:
+      manu_page: 5.2
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0085
+    winner: manu_page
+    sources:
+      manu_page: 0.0085

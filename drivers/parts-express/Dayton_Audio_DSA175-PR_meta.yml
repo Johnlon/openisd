@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-548--dayton-audio-dsa75-pr-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,24 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-548
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-548--dayton-audio-dsa75-pr-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026900959999999998
+  Xmax:  # one-way linear excursion (m)
+    value: 0.008
     winner: vendor_page
     sources:
-      vendor_page: 0.026900959999999998
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.030699999999999998
+      vendor_page: 0.008
+  Sd:  # effective piston area (m²)
+    value: 0.01287
     winner: vendor_page
     sources:
-      vendor_page: 0.030699999999999998
+      vendor_page: 0.01287
   Fs:  # free air resonance (Hz)
     value: 26.8
     winner: vendor_page
@@ -32,34 +43,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.2022217542639713
-  Xmax:  # one-way linear excursion (m)
-    value: 0.008
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.030699999999999998
     winner: vendor_page
     sources:
-      vendor_page: 0.008
+      vendor_page: 0.030699999999999998
   Qms:  # mechanical Q factor
     value: 4.3
     winner: vendor_page
     sources:
       vendor_page: 4.3
-  Sd:  # effective piston area (m²)
-    value: 0.01287
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01287
   Cms:  # mechanical compliance (m/N)
     value: 0.00115
     winner: vendor_page
     sources:
       vendor_page: 0.00115
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-548--dayton-audio-dsa75-pr-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-548--dayton-audio-dsa75-pr-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA175-PR-6-1-2-Designer-Series-Aluminum-Cone-Passive-Radiator-295-548
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.026900959999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026900959999999998

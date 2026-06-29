@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1966--cf0820bmb-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1966--cf0820bmb-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00078
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00078
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022370272
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022370272
-  Qes:  # electrical Q factor
-    value: 0.394
-    winner: vendor_page
-    sources:
-      vendor_page: 0.394
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.032350000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032350000000000004
-  BL:  # force factor (T·m)
-    value: 11.92
-    winner: vendor_page
-    sources:
-      vendor_page: 11.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.45
-    winner: vendor_page
-    sources:
-      vendor_page: 5.45
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 50.5
-    winner: vendor_page
-    sources:
-      vendor_page: 50.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.0146580484213175
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0146580484213175
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.366
-  Qms:  # mechanical Q factor
-    value: 5.095
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.45
     winner: vendor_page
     sources:
-      vendor_page: 5.095
+      vendor_page: 5.45
   Sd:  # effective piston area (m²)
     value: 0.022698
     winner: vendor_page
     sources:
       vendor_page: 0.022698
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 50.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 50.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.0146580484213175
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0146580484213175
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.032350000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.032350000000000004
+  Qms:  # mechanical Q factor
+    value: 5.095
+    winner: vendor_page
+    sources:
+      vendor_page: 5.095
   Cms:  # mechanical compliance (m/N)
     value: 0.00031
     winner: vendor_page
     sources:
       vendor_page: 0.00031
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.394
+    winner: vendor_page
+    sources:
+      vendor_page: 0.394
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.92
+    winner: vendor_page
+    sources:
+      vendor_page: 11.92
+  Le:  # voice coil inductance (H)
+    value: 0.00078
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00078
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022370272
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022370272
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 50.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 93.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1966--cf0820bmb-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1966--cf0820bmb-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-CF0820BMB-8-Professional-Midrange-Driver-8-Ohm-294-1966
-frd_url: null
-zma_url: null

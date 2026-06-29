@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00061
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00061
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0113
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0113
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0133
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0133
-  BL:  # force factor (T·m)
-    value: 7.5
-    winner: vendor_page
-    sources:
-      vendor_page: 7.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 2.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 2.4
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.01227
     winner: vendor_page
     sources:
       vendor_page: 0.01227
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 60.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 60.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0133
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0133
+  Qms:  # mechanical Q factor
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
   Cms:  # mechanical compliance (m/N)
     value: 0.000529
     winner: vendor_page
     sources:
       vendor_page: 0.000529
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sica-6-e-15-cs-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 7.5
+    winner: vendor_page
+    sources:
+      vendor_page: 7.5
+  Le:  # voice coil inductance (H)
+    value: 0.00061
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00061
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0113
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0113

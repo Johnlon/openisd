@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/38we-8582t00/
+manu_page_url: https://www.scan-speak.dk/product/38we-8582t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/38we-8582t00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/ddddd.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/38we-8582t00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/38we-8582t00.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,56 +15,47 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: 38.0
-source: https://www.scan-speak.dk/product/38we-8582t00/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/38we-8582t00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/ddddd.pdf
+  manu_page: https://www.scan-speak.dk/product/38we-8582t00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.423
-    winner: manu_page
-    sources:
-      manu_page: 0.423
-  BL:  # force factor (T·m)
-    value: 18.7
-    winner: manu_page
-    sources:
-      manu_page: 18.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: manu_page
-    sources:
-      manu_page: 6.4
-  Fs:  # free air resonance (Hz)
-    value: 26.0
-    winner: manu_page
-    sources:
-      manu_page: 26.0
   Qts:  # total Q factor
     value: 0.24
     winner: manu_page
     sources:
       manu_page: 0.24
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
+    winner: manu_page
+    sources:
+      manu_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0825
     winner: manu_page
     sources:
       manu_page: 0.0825
+  Fs:  # free air resonance (Hz)
+    value: 26.0
+    winner: manu_page
+    sources:
+      manu_page: 26.0
+  BL:  # force factor (T·m)
+    value: 18.7
+    winner: manu_page
+    sources:
+      manu_page: 18.7
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: manu_page
     sources:
       manu_page: 95.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/38we-8582t00.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/ddddd.pdf
-  manu_page: https://www.scan-speak.dk/product/38we-8582t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/38we-8582t00.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/ddddd.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/38we-8582t00.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/38we-8582t00.ZIP
-manu_page_url: https://www.scan-speak.dk/product/38we-8582t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.423
+    winner: manu_page
+    sources:
+      manu_page: 0.423

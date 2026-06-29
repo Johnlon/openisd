@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1044-298-1046--wavecor-sw118wa01-02-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1044-298-1046--wavecor-sw118wa01-02-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00047999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047999999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003398016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003398016
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0079
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0079
-  BL:  # force factor (T·m)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 58.0
-    winner: vendor_page
-    sources:
-      vendor_page: 58.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.34273279854162936
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34273279854162936
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 8.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 8.4
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0049
     winner: vendor_page
     sources:
       vendor_page: 0.0049
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 58.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 58.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.34273279854162936
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34273279854162936
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0079
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0079
+  Qms:  # mechanical Q factor
+    value: 8.4
+    winner: vendor_page
+    sources:
+      vendor_page: 8.4
   Cms:  # mechanical compliance (m/N)
     value: 0.0009699999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0009699999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1044-298-1046--wavecor-sw118wa01-02-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1044-298-1046--wavecor-sw118wa01-02-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-SW118WA01-4-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1044
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
+  Le:  # voice coil inductance (H)
+    value: 0.00047999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047999999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003398016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003398016

@@ -1,20 +1,22 @@
+source: https://www.soundimports.eu/en/hivi-sd11-a.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-sd11-a.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-sd11-a.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-sd11-a.html
 specs:
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   Fs:  # free air resonance (Hz)
     value: 1200.0
     winner: vendor_page
@@ -25,6 +27,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.5
     winner: vendor_page
@@ -40,10 +47,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-sd11-a.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-sd11-a.html
-frd_url: null
-zma_url: null

@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0099
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  BL:  # force factor (T·m)
-    value: 14.2
-    winner: vendor_page
-    sources:
-      vendor_page: 14.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 12.6
-    winner: vendor_page
-    sources:
-      vendor_page: 12.6
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 6.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 12.6
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 12.6
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: vendor_page
     sources:
       vendor_page: 0.0133
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
+  Fs:  # free air resonance (Hz)
+    value: 65.0
     winner: vendor_page
     sources:
-      vendor_page: 16.0
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Qms:  # mechanical Q factor
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
   Cms:  # mechanical compliance (m/N)
     value: 0.0004
     winner: vendor_page
     sources:
       vendor_page: 0.0004
+  Znom:  # nominal impedance (Ω)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 14.2
+    winner: vendor_page
+    sources:
+      vendor_page: 14.2
+  Le:  # voice coil inductance (H)
+    value: 0.00034
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00034
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0099
   power_peak_W:  # peak power handling (W)
     value: 400.0
     winner: vendor_page
@@ -110,10 +117,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 44.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/faitalpro-6rs140-16p.html
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-099--8cx300fe-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-099--8cx300fe-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.010760384
-    winner: vendor_page
-    sources:
-      vendor_page: 0.010760384
-  Qes:  # electrical Q factor
-    value: 0.63
-    winner: vendor_page
-    sources:
-      vendor_page: 0.63
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  BL:  # force factor (T·m)
-    value: 9.6
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 89.0
-    winner: vendor_page
-    sources:
-      vendor_page: 89.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0026628737730427774
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026628737730427774
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 4.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 4.2
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 2.1999999999999997e-06
     winner: vendor_page
     sources:
       vendor_page: 2.1999999999999997e-06
+  Fs:  # free air resonance (Hz)
+    value: 89.0
+    winner: vendor_page
+    sources:
+      vendor_page: 89.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0026628737730427774
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026628737730427774
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Qms:  # mechanical Q factor
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-099--8cx300fe-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-099--8cx300fe-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.63
+    winner: vendor_page
+    sources:
+      vendor_page: 0.63
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 9.6
+    winner: vendor_page
+    sources:
+      vendor_page: 9.6
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.010760384
+    winner: vendor_page
+    sources:
+      vendor_page: 0.010760384

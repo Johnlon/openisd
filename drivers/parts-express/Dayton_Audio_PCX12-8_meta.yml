@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-022--dayton-audio-pcx12-8-specifications-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-022
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-022--dayton-audio-pcx12-8-specifications-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00119
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0314
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0314
-  BL:  # force factor (T·m)
-    value: 9.69
-    winner: vendor_page
-    sources:
-      vendor_page: 9.69
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.96
-    winner: vendor_page
-    sources:
-      vendor_page: 6.96
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 40.5
-    winner: vendor_page
-    sources:
-      vendor_page: 40.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7609835004895503
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7609835004895503
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -67,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 10.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.96
     winner: vendor_page
     sources:
-      vendor_page: 10.5
+      vendor_page: 6.96
   Sd:  # effective piston area (m²)
     value: 0.051071
     winner: vendor_page
     sources:
       vendor_page: 0.051071
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 40.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 40.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7609835004895503
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7609835004895503
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0314
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0314
+  Qms:  # mechanical Q factor
+    value: 10.5
+    winner: vendor_page
+    sources:
+      vendor_page: 10.5
   Cms:  # mechanical compliance (m/N)
     value: 0.000491
     winner: vendor_page
     sources:
       vendor_page: 0.000491
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 9.69
+    winner: vendor_page
+    sources:
+      vendor_page: 9.69
+  Le:  # voice coil inductance (H)
+    value: 0.00119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00119
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.18
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 200.0
     winner: vendor_page
@@ -102,14 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-022--dayton-audio-pcx12-8-specifications-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-022--dayton-audio-pcx12-8-specifications-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PCX12-8-12-Pro-Coaxial-Woofer-295-022
-frd_url: null
-zma_url: null

@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-480--hi-vi-e8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-480--hi-vi-e8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.049837568
-    winner: vendor_page
-    sources:
-      vendor_page: 0.049837568
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0285
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0285
-  BL:  # force factor (T·m)
-    value: 9.9
-    winner: vendor_page
-    sources:
-      vendor_page: 9.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.1438051276961336
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1438051276961336
   Xmax:  # one-way linear excursion (m)
     value: 0.005900000000000001
     winner: vendor_page
@@ -61,6 +29,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
+    winner: vendor_page
+    sources:
+      vendor_page: 7.2
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: vendor_page
+    sources:
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.1438051276961336
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1438051276961336
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0285
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0285
   Qms:  # mechanical Q factor
     value: 2.84
     winner: vendor_page
@@ -71,11 +59,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-480--hi-vi-e8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-480--hi-vi-e8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-E8-8-Treated-Paper-Cone-Woofer-8-Ohms-297-480
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 9.9
+    winner: vendor_page
+    sources:
+      vendor_page: 9.9
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.049837568
+    winner: vendor_page
+    sources:
+      vendor_page: 0.049837568

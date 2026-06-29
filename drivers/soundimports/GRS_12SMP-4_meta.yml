@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/grs-12smp-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-12smp-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/grs-12smp-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/grs-12smp-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00041
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00041
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.132
-  Qes:  # electrical Q factor
-    value: 0.61
-    winner: vendor_page
-    sources:
-      vendor_page: 0.61
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.093
-  BL:  # force factor (T·m)
-    value: 10.2
-    winner: vendor_page
-    sources:
-      vendor_page: 10.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
-  Fs:  # free air resonance (Hz)
-    value: 28.0
-    winner: vendor_page
-    sources:
-      vendor_page: 28.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 3.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 3.1
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.0516
     winner: vendor_page
     sources:
       vendor_page: 0.0516
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 28.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 28.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.093
+  Qms:  # mechanical Q factor
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00035
     winner: vendor_page
     sources:
       vendor_page: 0.00035
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.61
+    winner: vendor_page
+    sources:
+      vendor_page: 0.61
+  Pe:  # rated power input (W)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  BL:  # force factor (T·m)
+    value: 10.2
+    winner: vendor_page
+    sources:
+      vendor_page: 10.2
+  Le:  # voice coil inductance (H)
+    value: 0.00041
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00041
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.132
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.9
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 50.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/grs-12smp-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-12smp-4.html
-frd_url: null
-zma_url: null

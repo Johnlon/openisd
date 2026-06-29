@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2521--celestion-tsq2460-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2521--celestion-tsq2460-specifications.pdf
+  vendor_page: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.403797568
-    winner: vendor_page
-    sources:
-      vendor_page: 0.403797568
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.53
-    winner: vendor_page
-    sources:
-      vendor_page: 0.53
-  BL:  # force factor (T·m)
-    value: 40.5
-    winner: vendor_page
-    sources:
-      vendor_page: 40.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 2400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2400.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 9.375976521490315
-    winner: vendor_page
-    sources:
-      vendor_page: 9.375976521490315
   Xmax:  # one-way linear excursion (m)
     value: 0.01875
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 10.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 10.3
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.2239
     winner: vendor_page
     sources:
       vendor_page: 0.2239
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 29.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 29.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 9.375976521490315
+    winner: vendor_page
+    sources:
+      vendor_page: 9.375976521490315
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.53
+    winner: vendor_page
+    sources:
+      vendor_page: 0.53
+  Qms:  # mechanical Q factor
+    value: 10.3
+    winner: vendor_page
+    sources:
+      vendor_page: 10.3
   Cms:  # mechanical compliance (m/N)
     value: 5.7e-05
     winner: vendor_page
     sources:
       vendor_page: 5.7e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2521--celestion-tsq2460-specifications.pdf
-  vendor_page: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2521--celestion-tsq2460-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-TSQ2460-24-Neodymium-Subwoofer-8-Ohm-294-2521
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 2400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2400.0
+  BL:  # force factor (T·m)
+    value: 40.5
+    winner: vendor_page
+    sources:
+      vendor_page: 40.5
+  Le:  # voice coil inductance (H)
+    value: 0.0025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.403797568
+    winner: vendor_page
+    sources:
+      vendor_page: 0.403797568

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-022--dayton-audio-td25f-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,59 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 275-022
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-022--dayton-audio-td25f-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 1.62
-    winner: vendor_page
-    sources:
-      vendor_page: 1.62
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 900.0
-    winner: vendor_page
-    sources:
-      vendor_page: 900.0
   Qts:  # total Q factor
     value: 0.94
     winner: vendor_page
     sources:
       vendor_page: 0.94
-  Qms:  # mechanical Q factor
-    value: 2.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 2.22
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.00075
     winner: vendor_page
     sources:
       vendor_page: 0.00075
+  Fs:  # free air resonance (Hz)
+    value: 900.0
+    winner: vendor_page
+    sources:
+      vendor_page: 900.0
+  Qms:  # mechanical Q factor
+    value: 2.22
+    winner: vendor_page
+    sources:
+      vendor_page: 2.22
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.62
+    winner: vendor_page
+    sources:
+      vendor_page: 1.62
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2.0
     winner: vendor_page
@@ -67,14 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-022--dayton-audio-td25f-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-022--dayton-audio-td25f-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-TD25F-4-1-Soft-Dome-Tweeter-4-Ohm-275-022
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-366-goldwood-gw-1244-specifications-2997.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-366-goldwood-gw-1244-specifications-2997.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.11949689599999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.11949689599999999
-  Qes:  # electrical Q factor
-    value: 0.86
-    winner: vendor_page
-    sources:
-      vendor_page: 0.86
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0932
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0932
-  BL:  # force factor (T·m)
-    value: 8.48
-    winner: vendor_page
-    sources:
-      vendor_page: 8.48
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 29.7
-    winner: vendor_page
-    sources:
-      vendor_page: 29.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.270335835662237
-    winner: vendor_page
-    sources:
-      vendor_page: 5.270335835662237
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 3.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.3
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.05259
     winner: vendor_page
     sources:
       vendor_page: 0.05259
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 29.7
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 29.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.270335835662237
+    winner: vendor_page
+    sources:
+      vendor_page: 5.270335835662237
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0932
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0932
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
   Cms:  # mechanical compliance (m/N)
     value: 0.00031
     winner: vendor_page
     sources:
       vendor_page: 0.00031
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-366-goldwood-gw-1244-specifications-2997.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-366-goldwood-gw-1244-specifications-2997.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-1244-12-Butyl-Surround-Woofer-4-Ohm-290-366
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.86
+    winner: vendor_page
+    sources:
+      vendor_page: 0.86
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 8.48
+    winner: vendor_page
+    sources:
+      vendor_page: 8.48
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.11949689599999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.11949689599999999

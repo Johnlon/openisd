@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-309-goldwood-gw-s6508-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-309-goldwood-gw-s6508-specifications.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013025728
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013025728
-  Qes:  # electrical Q factor
-    value: 1.09
-    winner: vendor_page
-    sources:
-      vendor_page: 1.09
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.016800000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016800000000000002
-  BL:  # force factor (T·m)
-    value: 6.17
-    winner: vendor_page
-    sources:
-      vendor_page: 6.17
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 85.0
-    winner: vendor_page
-    sources:
-      vendor_page: 85.0
-  Fs:  # free air resonance (Hz)
-    value: 56.2
-    winner: vendor_page
-    sources:
-      vendor_page: 56.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.699808664649478
-    winner: vendor_page
-    sources:
-      vendor_page: 1.699808664649478
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 3.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 3.49
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.013969999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.013969999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 56.2
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 56.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.699808664649478
+    winner: vendor_page
+    sources:
+      vendor_page: 1.699808664649478
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.016800000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016800000000000002
+  Qms:  # mechanical Q factor
+    value: 3.49
+    winner: vendor_page
+    sources:
+      vendor_page: 3.49
   Cms:  # mechanical compliance (m/N)
     value: 0.00047999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00047999999999999996
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-309-goldwood-gw-s6508-specifications.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-309-goldwood-gw-s6508-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-S650-8-6-1-2-Poly-Cone-Woofer-8-Ohm-290-309
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.09
+    winner: vendor_page
+    sources:
+      vendor_page: 1.09
+  Pe:  # rated power input (W)
+    value: 85.0
+    winner: vendor_page
+    sources:
+      vendor_page: 85.0
+  BL:  # force factor (T·m)
+    value: 6.17
+    winner: vendor_page
+    sources:
+      vendor_page: 6.17
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013025728
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013025728

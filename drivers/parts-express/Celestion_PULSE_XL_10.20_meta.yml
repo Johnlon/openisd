@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
+datasheet_url: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-10.20-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2506
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-10.20-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.07692
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07692
-  Qes:  # electrical Q factor
-    value: 0.493
-    winner: vendor_page
-    sources:
-      vendor_page: 0.493
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0398
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0398
-  BL:  # force factor (T·m)
-    value: 10.51
-    winner: vendor_page
-    sources:
-      vendor_page: 10.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 37.5
-    winner: vendor_page
-    sources:
-      vendor_page: 37.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.4
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4
   Xmax:  # one-way linear excursion (m)
     value: 0.00825
     winner: vendor_page
@@ -67,39 +33,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.459
-  Qms:  # mechanical Q factor
-    value: 6.678
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 6.678
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 37.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 92.0
+      vendor_page: 37.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.4
     winner: vendor_page
     sources:
-      vendor_page: 92.0
+      vendor_page: 1.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0398
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0398
+  Qms:  # mechanical Q factor
+    value: 6.678
+    winner: vendor_page
+    sources:
+      vendor_page: 6.678
   Cms:  # mechanical compliance (m/N)
     value: 0.000453
     winner: vendor_page
     sources:
       vendor_page: 0.000453
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-10.20-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
-datasheet_url: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-10.20-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-PULSE-XL-10.20-10-200-Watt-Professional-Woofer-8-Ohm-294-2506
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.493
+    winner: vendor_page
+    sources:
+      vendor_page: 0.493
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 10.51
+    winner: vendor_page
+    sources:
+      vendor_page: 10.51
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 92.0
+    winner: vendor_page
+    sources:
+      vendor_page: 92.0
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.07692
+    winner: vendor_page
+    sources:
+      vendor_page: 0.07692

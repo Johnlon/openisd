@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1016--tymphany-xt25tg30-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1016--tymphany-xt25tg30-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Qes:  # electrical Q factor
-    value: 0.54
-    winner: vendor_page
-    sources:
-      vendor_page: 0.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Fs:  # free air resonance (Hz)
-    value: 436.0
-    winner: vendor_page
-    sources:
-      vendor_page: 436.0
   Qts:  # total Q factor
     value: 0.44
     winner: vendor_page
     sources:
       vendor_page: 0.44
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Fs:  # free air resonance (Hz)
+    value: 436.0
+    winner: vendor_page
+    sources:
+      vendor_page: 436.0
   Qms:  # mechanical Q factor
     value: 2.5
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1016--tymphany-xt25tg30-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1016--tymphany-xt25tg30-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-XT25TG30-04-1-Dual-Ring-Radiator-Tweeter-264-1016
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.54
+    winner: vendor_page
+    sources:
+      vendor_page: 0.54
+  Pe:  # rated power input (W)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05

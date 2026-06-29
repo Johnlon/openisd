@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.005380192
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005380192
-  Qes:  # electrical Q factor
-    value: 0.87
-    winner: vendor_page
-    sources:
-      vendor_page: 0.87
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0091
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0091
-  BL:  # force factor (T·m)
-    value: 4.44
-    winner: vendor_page
-    sources:
-      vendor_page: 4.44
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 83.1
-    winner: vendor_page
-    sources:
-      vendor_page: 83.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.4941533211139226
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4941533211139226
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,30 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 3.18
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.18
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.009677
     winner: vendor_page
     sources:
       vendor_page: 0.009677
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 83.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 83.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.4941533211139226
+    winner: vendor_page
+    sources:
+      vendor_page: 1.4941533211139226
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0091
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0091
+  Qms:  # mechanical Q factor
+    value: 3.18
+    winner: vendor_page
+    sources:
+      vendor_page: 3.18
   Cms:  # mechanical compliance (m/N)
     value: 0.0004
     winner: vendor_page
     sources:
       vendor_page: 0.0004
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-205-4S-5-1-4-Shielded-Poly-Woofer-4-Ohm-290-374
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.87
+    winner: vendor_page
+    sources:
+      vendor_page: 0.87
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 4.44
+    winner: vendor_page
+    sources:
+      vendor_page: 4.44
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.005380192
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005380192

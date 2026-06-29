@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-484--hivi-m4n-b-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-484--hivi-m4n-b-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004247519999999999
-  Qes:  # electrical Q factor
-    value: 1.35
-    winner: vendor_page
-    sources:
-      vendor_page: 1.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0048
-  BL:  # force factor (T·m)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 69.0
-    winner: vendor_page
-    sources:
-      vendor_page: 69.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3527103345318438
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3527103345318438
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -61,26 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.08
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Fs:  # free air resonance (Hz)
+    value: 69.0
+    winner: vendor_page
+    sources:
+      vendor_page: 69.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3527103345318438
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3527103345318438
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0048
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0048
   Qms:  # mechanical Q factor
     value: 5.9
     winner: vendor_page
     sources:
       vendor_page: 5.9
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00128
     winner: vendor_page
     sources:
       vendor_page: 0.00128
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-484--hivi-m4n-b-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-484--hivi-m4n-b-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-M4N-B-4-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-484
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.35
+    winner: vendor_page
+    sources:
+      vendor_page: 1.35
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004247519999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004247519999999999

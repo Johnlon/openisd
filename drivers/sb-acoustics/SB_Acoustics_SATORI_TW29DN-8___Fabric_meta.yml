@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/satori-tw29dn-8/
+manu_page_url: https://sbacoustics.com/product/satori-tw29dn-8/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29DN-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/satori-tw29dn-8/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29DN-8.pdf
+  manu_page: https://sbacoustics.com/product/satori-tw29dn-8/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 0.65
-    winner: manu_page
-    sources:
-      manu_page: 0.65
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00043
-    winner: manu_page
-    sources:
-      manu_page: 0.00043
-  BL:  # force factor (T·m)
-    value: 4.1
-    winner: manu_page
-    sources:
-      manu_page: 4.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: manu_page
-    sources:
-      manu_page: 6.2
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: manu_page
-    sources:
-      manu_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 650.0
-    winner: manu_page
-    sources:
-      manu_page: 650.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00025
     winner: manu_page
@@ -56,21 +29,56 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 1.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: manu_page
     sources:
-      manu_page: 1.61
+      manu_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.00096
     winner: manu_page
     sources:
       manu_page: 0.00096
+  Fs:  # free air resonance (Hz)
+    value: 650.0
+    winner: manu_page
+    sources:
+      manu_page: 650.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00043
+    winner: manu_page
+    sources:
+      manu_page: 0.00043
+  Qms:  # mechanical Q factor
+    value: 1.61
+    winner: manu_page
+    sources:
+      manu_page: 1.61
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: manu_page
     sources:
       manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.65
+    winner: manu_page
+    sources:
+      manu_page: 0.65
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: manu_page
+    sources:
+      manu_page: 80.0
+  BL:  # force factor (T·m)
+    value: 4.1
+    winner: manu_page
+    sources:
+      manu_page: 4.1
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 4.0e-05
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 29.0
     winner: manu_page
@@ -86,11 +94,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 93.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29DN-8.pdf
-  manu_page: https://sbacoustics.com/product/satori-tw29dn-8/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SATORI-TW29DN-8.pdf
-manu_page_url: https://sbacoustics.com/product/satori-tw29dn-8/
-vendor_page_url: null
-frd_url: null
-zma_url: null

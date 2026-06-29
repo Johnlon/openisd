@@ -1,69 +1,69 @@
+source: https://www.soundimports.eu/en/seas-c16nx001x.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-c16nx001x.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-c16nx001x.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-c16nx001x.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0124
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0124
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: vendor_page
-    sources:
-      vendor_page: 38.0
   Qts:  # total Q factor
     value: 0.29
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 4.95
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 4.95
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0094
     winner: vendor_page
     sources:
       vendor_page: 0.0094
+  Fs:  # free air resonance (Hz)
+    value: 38.0
+    winner: vendor_page
+    sources:
+      vendor_page: 38.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0124
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0124
+  Qms:  # mechanical Q factor
+    value: 4.95
+    winner: vendor_page
+    sources:
+      vendor_page: 4.95
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-c16nx001x.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-c16nx001x.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016

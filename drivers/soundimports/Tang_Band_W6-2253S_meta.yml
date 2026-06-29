@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/tang-band-w6-2253s.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/tang-band-w6-2253s.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/tang-band-w6-2253s.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/tang-band-w6-2253s.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000224
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000224
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0399
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0399
-  BL:  # force factor (T·m)
-    value: 7.75
-    winner: vendor_page
-    sources:
-      vendor_page: 7.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 3.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.22
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.011
     winner: vendor_page
     sources:
       vendor_page: 0.011
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 40.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0399
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0399
+  Qms:  # mechanical Q factor
+    value: 3.22
+    winner: vendor_page
+    sources:
+      vendor_page: 3.22
   Cms:  # mechanical compliance (m/N)
     value: 0.000397
     winner: vendor_page
     sources:
       vendor_page: 0.000397
-_sources:
-  vendor_page: https://www.soundimports.eu/en/tang-band-w6-2253s.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/tang-band-w6-2253s.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 7.75
+    winner: vendor_page
+    sources:
+      vendor_page: 7.75
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000224

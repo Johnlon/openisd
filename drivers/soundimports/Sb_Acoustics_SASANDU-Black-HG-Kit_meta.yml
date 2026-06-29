@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0534
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0534
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0156
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0156
-  BL:  # force factor (T·m)
-    value: 7.5
-    winner: vendor_page
-    sources:
-      vendor_page: 7.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0134
     winner: vendor_page
@@ -60,25 +27,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 6.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 6.47
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0158
     winner: vendor_page
     sources:
       vendor_page: 0.0158
+  Fs:  # free air resonance (Hz)
+    value: 33.0
+    winner: vendor_page
+    sources:
+      vendor_page: 33.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0156
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0156
+  Qms:  # mechanical Q factor
+    value: 6.47
+    winner: vendor_page
+    sources:
+      vendor_page: 6.47
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sasandu-black-hg-kit.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 7.5
+    winner: vendor_page
+    sources:
+      vendor_page: 7.5
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0534
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0534

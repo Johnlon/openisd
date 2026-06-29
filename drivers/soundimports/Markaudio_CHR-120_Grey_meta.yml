@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0588923
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0588923
-  Qes:  # electrical Q factor
-    value: 0.4411
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4411
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011131
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011131
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 34.2
-    winner: vendor_page
-    sources:
-      vendor_page: 34.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0052
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0052
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -55,25 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 2.3823
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 2.3823
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0147
     winner: vendor_page
     sources:
       vendor_page: 0.0147
+  Fs:  # free air resonance (Hz)
+    value: 34.2
+    winner: vendor_page
+    sources:
+      vendor_page: 34.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0052
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0052
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.011131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011131
+  Qms:  # mechanical Q factor
+    value: 2.3823
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3823
   Cms:  # mechanical compliance (m/N)
     value: 0.0019409
     winner: vendor_page
     sources:
       vendor_page: 0.0019409
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-chr-120-grey.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.4411
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4411
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0588923
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0588923

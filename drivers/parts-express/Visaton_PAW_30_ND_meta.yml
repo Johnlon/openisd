@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.36 differs from calculated=0.352887 (deps: Qms=7.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7832
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0778712
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0778712
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.069
-    winner: vendor_page
-    sources:
-      vendor_page: 0.069
-  BL:  # force factor (T·m)
-    value: 17.6
-    winner: vendor_page
-    sources:
-      vendor_page: 17.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.5569187914538163
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5569187914538163
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -68,21 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 7.63
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 7.63
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.0539
     winner: vendor_page
     sources:
       vendor_page: 0.0539
+  Fs:  # free air resonance (Hz)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.5569187914538163
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5569187914538163
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.069
+    winner: vendor_page
+    sources:
+      vendor_page: 0.069
+  Qms:  # mechanical Q factor
+    value: 7.63
+    winner: vendor_page
+    sources:
+      vendor_page: 7.63
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 17.6
+    winner: vendor_page
+    sources:
+      vendor_page: 17.6
+  Le:  # voice coil inductance (H)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0778712
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0778712
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 5500.0
     winner: vendor_page
@@ -93,13 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 99.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-PAW30ND8-12-Bass-Midrange-Driver-8-Ohm-292-7832
-frd_url: null
-zma_url: null

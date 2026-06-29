@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0074
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: vendor_page
-    sources:
-      vendor_page: 38.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 5.08
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 5.08
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.007
     winner: vendor_page
     sources:
       vendor_page: 0.007
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 38.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 38.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0074
+  Qms:  # mechanical Q factor
+    value: 5.08
+    winner: vendor_page
+    sources:
+      vendor_page: 5.08
   Cms:  # mechanical compliance (m/N)
     value: 0.00238
     winner: vendor_page
     sources:
       vendor_page: 0.00238
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mw13tx-4.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016

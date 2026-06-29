@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/beyma-12lx60v2.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/beyma-12lx60v2.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/beyma-12lx60v2.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/beyma-12lx60v2.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0021
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.043
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.102
-    winner: vendor_page
-    sources:
-      vendor_page: 0.102
-  BL:  # force factor (T·m)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.1
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 15.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 15.3
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 49.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.1
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.102
+    winner: vendor_page
+    sources:
+      vendor_page: 0.102
+  Qms:  # mechanical Q factor
+    value: 15.3
+    winner: vendor_page
+    sources:
+      vendor_page: 15.3
   Cms:  # mechanical compliance (m/N)
     value: 9.9e-05
     winner: vendor_page
     sources:
       vendor_page: 9.9e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 0.0021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0021
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.043
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/beyma-12lx60v2.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/beyma-12lx60v2.html
-frd_url: null
-zma_url: null

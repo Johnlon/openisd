@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-c220-6-222.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c220-6-222.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C220-6-222/Datasheet%20C220-6-222.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c220-6-222.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C220-6-222/Datasheet%20C220-6-222.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-c220-6-222.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00042
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00042
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.115
-  Qes:  # electrical Q factor
-    value: 0.2
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.027
-  BL:  # force factor (T·m)
-    value: 11.5
-    winner: vendor_page
-    sources:
-      vendor_page: 11.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.89
-    winner: vendor_page
-    sources:
-      vendor_page: 0.89
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -65,26 +28,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.19
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
     winner: vendor_page
     sources:
-      vendor_page: 4.4
+      vendor_page: 6.7
   Sd:  # effective piston area (m²)
     value: 0.0224
     winner: vendor_page
     sources:
       vendor_page: 0.0224
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.89
+    winner: vendor_page
+    sources:
+      vendor_page: 0.89
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.027
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00195
     winner: vendor_page
     sources:
       vendor_page: 0.00195
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.2
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.5
+    winner: vendor_page
+    sources:
+      vendor_page: 11.5
+  Le:  # voice coil inductance (H)
+    value: 0.00042
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00042
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.115
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
@@ -105,11 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 55.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C220-6-222/Datasheet%20C220-6-222.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-c220-6-222.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C220-6-222/Datasheet%20C220-6-222.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c220-6-222.html
-frd_url: null
-zma_url: null

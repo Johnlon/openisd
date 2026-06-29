@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.0300158 differs from calculated=0.0297111 (deps: 
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 267-8050
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00117
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00117
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.030015808
-    winner: vendor_page
-    sources:
-      vendor_page: 0.030015808
-  Qes:  # electrical Q factor
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1409
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1409
-  BL:  # force factor (T·m)
-    value: 9.91
-    winner: vendor_page
-    sources:
-      vendor_page: 9.91
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.7
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 36.2
-    winner: vendor_page
-    sources:
-      vendor_page: 36.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.571738846518411
-    winner: vendor_page
-    sources:
-      vendor_page: 4.571738846518411
   Xmax:  # one-way linear excursion (m)
     value: 0.014
     winner: vendor_page
@@ -68,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 7.01
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.7
     winner: vendor_page
     sources:
-      vendor_page: 7.01
+      vendor_page: 1.7
   Sd:  # effective piston area (m²)
     value: 0.0391
     winner: vendor_page
     sources:
       vendor_page: 0.0391
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 36.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 36.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.571738846518411
+    winner: vendor_page
+    sources:
+      vendor_page: 4.571738846518411
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1409
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1409
+  Qms:  # mechanical Q factor
+    value: 7.01
+    winner: vendor_page
+    sources:
+      vendor_page: 7.01
   Cms:  # mechanical compliance (m/N)
     value: 0.00013700000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.00013700000000000002
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 9.91
+    winner: vendor_page
+    sources:
+      vendor_page: 9.91
+  Le:  # voice coil inductance (H)
+    value: 0.00117
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00117
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.030015808
+    winner: vendor_page
+    sources:
+      vendor_page: 0.030015808
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 107.0
     winner: vendor_page
@@ -103,13 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-MT2.2TWC-4-Moto-Series-2.25-Short-Horn-Chrome-Tweeter-4-Ohm-267-8050
-frd_url: null
-zma_url: null

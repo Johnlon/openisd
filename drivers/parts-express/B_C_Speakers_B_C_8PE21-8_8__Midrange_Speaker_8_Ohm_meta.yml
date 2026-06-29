@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-652--bc-8pe21-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-652--bc-8pe21-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013025728
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013025728
-  Qes:  # electrical Q factor
-    value: 0.2
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018
-  BL:  # force factor (T·m)
-    value: 16.6
-    winner: vendor_page
-    sources:
-      vendor_page: 16.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 87.5
-    winner: vendor_page
-    sources:
-      vendor_page: 87.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.6042149628441704
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6042149628441704
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.19
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 87.5
+    winner: vendor_page
+    sources:
+      vendor_page: 87.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.6042149628441704
+    winner: vendor_page
+    sources:
+      vendor_page: 2.6042149628441704
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-652--bc-8pe21-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-652--bc-8pe21-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-8PE21-8-Midrange-Speaker-294-652
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.2
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 16.6
+    winner: vendor_page
+    sources:
+      vendor_page: 16.6
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013025728
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013025728

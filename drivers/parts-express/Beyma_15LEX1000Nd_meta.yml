@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-044--15lex1000nd-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-044
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-044--15lex1000nd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
 specs:
-  Le:  # voice coil inductance (H)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.112984032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.112984032
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000147
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000147
-  BL:  # force factor (T·m)
-    value: 21.9
-    winner: vendor_page
-    sources:
-      vendor_page: 21.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.009709937909325991
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009709937909325991
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.088
     winner: vendor_page
     sources:
       vendor_page: 0.088
+  Fs:  # free air resonance (Hz)
+    value: 41.0
+    winner: vendor_page
+    sources:
+      vendor_page: 41.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.009709937909325991
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009709937909325991
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000147
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000147
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Znom:  # nominal impedance (Ω)
     value: 40.0
     winner: vendor_page
     sources:
       vendor_page: 40.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 21.9
+    winner: vendor_page
+    sources:
+      vendor_page: 21.9
+  Le:  # voice coil inductance (H)
+    value: 41.0
+    winner: vendor_page
+    sources:
+      vendor_page: 41.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.112984032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.112984032
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
     sources:
       vendor_page: 97.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-044--15lex1000nd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-044--15lex1000nd-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044
-frd_url: null
-zma_url: null

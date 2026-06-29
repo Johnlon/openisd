@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
+manu_page_url: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/5in-SB15CRC30-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/5in-SB15CRC30-4.pdf
+  manu_page: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00012
-    winner: manu_page
-    sources:
-      manu_page: 0.00012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0173
-    winner: manu_page
-    sources:
-      manu_page: 0.0173
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: manu_page
-    sources:
-      manu_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0102
-    winner: manu_page
-    sources:
-      manu_page: 0.0102
-  BL:  # force factor (T·m)
-    value: 4.55
-    winner: manu_page
-    sources:
-      manu_page: 4.55
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: manu_page
-    sources:
-      manu_page: 3.1
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: manu_page
-    sources:
-      manu_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: manu_page
-    sources:
-      manu_page: 37.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 3.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: manu_page
     sources:
-      manu_page: 3.39
+      manu_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0082
     winner: manu_page
     sources:
       manu_page: 0.0082
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 37.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 37.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0102
+    winner: manu_page
+    sources:
+      manu_page: 0.0102
+  Qms:  # mechanical Q factor
+    value: 3.39
+    winner: manu_page
+    sources:
+      manu_page: 3.39
   Cms:  # mechanical compliance (m/N)
     value: 0.00181
     winner: manu_page
     sources:
       manu_page: 0.00181
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: manu_page
+    sources:
+      manu_page: 0.36
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: manu_page
+    sources:
+      manu_page: 50.0
+  BL:  # force factor (T·m)
+    value: 4.55
+    winner: manu_page
+    sources:
+      manu_page: 4.55
+  Le:  # voice coil inductance (H)
+    value: 0.00012
+    winner: manu_page
+    sources:
+      manu_page: 0.00012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0173
+    winner: manu_page
+    sources:
+      manu_page: 0.0173
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 30.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 88.5
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/5in-SB15CRC30-4.pdf
-  manu_page: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/5in-SB15CRC30-4.pdf
-manu_page_url: https://sbacoustics.com/product/6-sb15crc30-4-carbon/
-vendor_page_url: null
-frd_url: null
-zma_url: null

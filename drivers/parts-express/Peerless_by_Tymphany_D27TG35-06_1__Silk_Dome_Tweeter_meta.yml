@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1022--tymphany-d27tg35-06-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1022--tymphany-d27tg35-06-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 1.01
-    winner: vendor_page
-    sources:
-      vendor_page: 1.01
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.9
-    winner: vendor_page
-    sources:
-      vendor_page: 4.9
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 911.7
-    winner: vendor_page
-    sources:
-      vendor_page: 911.7
   Qts:  # total Q factor
     value: 0.55
     winner: vendor_page
     sources:
       vendor_page: 0.55
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
+  Fs:  # free air resonance (Hz)
+    value: 911.7
+    winner: vendor_page
+    sources:
+      vendor_page: 911.7
   Qms:  # mechanical Q factor
     value: 1.21
     winner: vendor_page
@@ -51,6 +44,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 1.01
+    winner: vendor_page
+    sources:
+      vendor_page: 1.01
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 100.0
     winner: vendor_page
@@ -66,11 +74,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1022.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1022--tymphany-d27tg35-06-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1022--tymphany-d27tg35-06-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-D27TG-35-06-1-Silk-Dome-Tweeter-264-1022
-frd_url: null
-zma_url: null

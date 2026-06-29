@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-540--visaton-k50wp-16-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,40 +15,31 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 292-540
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-540--visaton-k50wp-16-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
 specs:
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00025
     winner: vendor_page
     sources:
       vendor_page: 0.00025
+  Fs:  # free air resonance (Hz)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
   Znom:  # nominal impedance (Ω)
     value: 16.0
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-540--visaton-k50wp-16-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-540--visaton-k50wp-16-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-K50WP-16-2-Full-Range-Speaker-16-Ohm-292-540
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0

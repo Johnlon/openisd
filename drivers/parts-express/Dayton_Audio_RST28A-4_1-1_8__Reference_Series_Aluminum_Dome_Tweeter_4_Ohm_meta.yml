@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-131--dayton-audio-rst28a-4-specification-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-131--dayton-audio-rst28a-4-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Qes:  # electrical Q factor
-    value: 1.65
-    winner: vendor_page
-    sources:
-      vendor_page: 1.65
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 775.0
-    winner: vendor_page
-    sources:
-      vendor_page: 775.0
   Qts:  # total Q factor
     value: 0.93
     winner: vendor_page
     sources:
       vendor_page: 0.93
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Fs:  # free air resonance (Hz)
+    value: 775.0
+    winner: vendor_page
+    sources:
+      vendor_page: 775.0
   Qms:  # mechanical Q factor
     value: 2.15
     winner: vendor_page
@@ -51,6 +44,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.65
+    winner: vendor_page
+    sources:
+      vendor_page: 1.65
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 2.9999999999999997e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9999999999999997e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 28.0
     winner: vendor_page
@@ -61,11 +69,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-131--dayton-audio-rst28a-4-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-131--dayton-audio-rst28a-4-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RST28A-4-1-1-8-Reference-Series-Aluminum-Dome-Tweeter-4-Ohm-275-131
-frd_url: null
-zma_url: null

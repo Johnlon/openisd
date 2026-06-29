@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1204-1206-1208-1210--wavecor-wf182bd09-10-11-12-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.357853 (deps: Qms=10
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 298-1210
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1204-1206-1208-1210--wavecor-wf182bd09-10-11-12-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0243
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0243
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0234
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0234
-  BL:  # force factor (T·m)
-    value: 8.2
-    winner: vendor_page
-    sources:
-      vendor_page: 8.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 10.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 10.9
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0131
     winner: vendor_page
     sources:
       vendor_page: 0.0131
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 33.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 33.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0234
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0234
+  Qms:  # mechanical Q factor
+    value: 10.9
+    winner: vendor_page
+    sources:
+      vendor_page: 10.9
   Cms:  # mechanical compliance (m/N)
     value: 0.001
     winner: vendor_page
     sources:
       vendor_page: 0.001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1204-1206-1208-1210--wavecor-wf182bd09-10-11-12-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1204-1206-1208-1210--wavecor-wf182bd09-10-11-12-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF182BD12-7-Balanced-Drive-Paper-Glass-Fiber-Cone-Mid-Woofer-with-Truncated-Frame-298-1210
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 8.2
+    winner: vendor_page
+    sources:
+      vendor_page: 8.2
+  Le:  # voice coil inductance (H)
+    value: 0.00017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0243
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0243

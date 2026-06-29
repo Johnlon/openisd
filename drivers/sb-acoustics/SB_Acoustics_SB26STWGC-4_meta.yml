@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/sb26stwgc-4-fabric/
+manu_page_url: https://sbacoustics.com/product/sb26stwgc-4-fabric/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SB26STWGC-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/sb26stwgc-4-fabric/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB26STWGC-4.pdf
+  manu_page: https://sbacoustics.com/product/sb26stwgc-4-fabric/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 2.1
-    winner: manu_page
-    sources:
-      manu_page: 2.1
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0003
-    winner: manu_page
-    sources:
-      manu_page: 0.0003
-  BL:  # force factor (T·m)
-    value: 1.6
-    winner: manu_page
-    sources:
-      manu_page: 1.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: manu_page
-    sources:
-      manu_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 780.0
-    winner: manu_page
-    sources:
-      manu_page: 780.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0006
     winner: manu_page
@@ -56,21 +29,56 @@ specs:
     winner: manu_page
     sources:
       manu_page: 1.2
-  Qms:  # mechanical Q factor
-    value: 2.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 2.8
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.00062
     winner: manu_page
     sources:
       manu_page: 0.00062
+  Fs:  # free air resonance (Hz)
+    value: 780.0
+    winner: manu_page
+    sources:
+      manu_page: 780.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0003
+    winner: manu_page
+    sources:
+      manu_page: 0.0003
+  Qms:  # mechanical Q factor
+    value: 2.8
+    winner: manu_page
+    sources:
+      manu_page: 2.8
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: manu_page
     sources:
       manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 2.1
+    winner: manu_page
+    sources:
+      manu_page: 2.1
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: manu_page
+    sources:
+      manu_page: 120.0
+  BL:  # force factor (T·m)
+    value: 1.6
+    winner: manu_page
+    sources:
+      manu_page: 1.6
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 4.0e-05
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.4
     winner: manu_page
@@ -86,11 +94,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 93.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/05/SB26STWGC-4.pdf
-  manu_page: https://sbacoustics.com/product/sb26stwgc-4-fabric/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/05/SB26STWGC-4.pdf
-manu_page_url: https://sbacoustics.com/product/sb26stwgc-4-fabric/
-vendor_page_url: null
-frd_url: null
-zma_url: null

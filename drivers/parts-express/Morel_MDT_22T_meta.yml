@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-062-morel-mdt-22-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,50 +15,41 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
 obsolete: null
 dq_issue: Fs_no_Q
 community: null
 fetched_sku: 277-062
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-062-morel-mdt-22-specifications.pdf
+  vendor_page: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
 specs:
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047
   Re:  # DC voice coil resistance (Ω)
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 650.0
-    winner: vendor_page
-    sources:
-      vendor_page: 650.0
   Sd:  # effective piston area (m²)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
+  Fs:  # free air resonance (Hz)
+    value: 650.0
+    winner: vendor_page
+    sources:
+      vendor_page: 650.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-062-morel-mdt-22-specifications.pdf
-  vendor_page: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-062-morel-mdt-22-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MDT-22-1-1-8-Neodymium-Tweeter-277-062
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0

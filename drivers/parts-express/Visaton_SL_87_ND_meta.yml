@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-615--visaton-sl-87-nd-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-615
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-615--visaton-sl-87-nd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
 specs:
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -32,11 +33,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.00373
+  Fs:  # free air resonance (Hz)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -52,14 +63,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-615--visaton-sl-87-nd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-615--visaton-sl-87-nd-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SL87ND-3.4-Full-Range-Speaker-8-Ohm-292-615
-frd_url: null
-zma_url: null

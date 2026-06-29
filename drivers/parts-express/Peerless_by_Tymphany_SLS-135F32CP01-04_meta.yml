@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1596--tymphany-sls-135f32cp01-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1596
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1596--tymphany-sls-135f32cp01-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00026000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00026000000000000003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007928704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007928704
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015099999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015099999999999999
-  BL:  # force factor (T·m)
-    value: 5.02
-    winner: vendor_page
-    sources:
-      vendor_page: 5.02
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.88
-    winner: vendor_page
-    sources:
-      vendor_page: 2.88
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 51.7
-    winner: vendor_page
-    sources:
-      vendor_page: 51.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.092448613308661
-    winner: vendor_page
-    sources:
-      vendor_page: 1.092448613308661
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -67,29 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 4.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.88
     winner: vendor_page
     sources:
-      vendor_page: 4.49
+      vendor_page: 2.88
   Sd:  # effective piston area (m²)
     value: 0.0095
     winner: vendor_page
     sources:
       vendor_page: 0.0095
+  Fs:  # free air resonance (Hz)
+    value: 51.7
+    winner: vendor_page
+    sources:
+      vendor_page: 51.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.092448613308661
+    winner: vendor_page
+    sources:
+      vendor_page: 1.092448613308661
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015099999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015099999999999999
+  Qms:  # mechanical Q factor
+    value: 4.49
+    winner: vendor_page
+    sources:
+      vendor_page: 4.49
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1596--tymphany-sls-135f32cp01-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1596--tymphany-sls-135f32cp01-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 5.02
+    winner: vendor_page
+    sources:
+      vendor_page: 5.02
+  Le:  # voice coil inductance (H)
+    value: 0.00026000000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00026000000000000003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007928704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007928704

@@ -1,40 +1,37 @@
+source: https://www.soundimports.eu/en/scan-speak-d3004602200.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/scan-speak-d3004602200.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/scan-speak-d3004602200.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/scan-speak-d3004602200.html
 specs:
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 440.0
-    winner: vendor_page
-    sources:
-      vendor_page: 440.0
   Qts:  # total Q factor
     value: 0.42
     winner: vendor_page
     sources:
       vendor_page: 0.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Fs:  # free air resonance (Hz)
+    value: 440.0
+    winner: vendor_page
+    sources:
+      vendor_page: 440.0
   Qms:  # mechanical Q factor
     value: 2.42
     winner: vendor_page
@@ -45,10 +42,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/scan-speak-d3004602200.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/scan-speak-d3004602200.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0

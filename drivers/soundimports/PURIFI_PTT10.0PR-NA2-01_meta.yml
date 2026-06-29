@@ -1,49 +1,49 @@
+source: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.082
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.161
-    winner: vendor_page
-    sources:
-      vendor_page: 0.161
-  Fs:  # free air resonance (Hz)
-    value: 19.0
-    winner: vendor_page
-    sources:
-      vendor_page: 19.0
   Xmax:  # one-way linear excursion (m)
     value: 0.025
     winner: vendor_page
     sources:
       vendor_page: 0.025
-  Qms:  # mechanical Q factor
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.036
     winner: vendor_page
     sources:
       vendor_page: 0.036
-_sources:
-  vendor_page: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/purifi-ptt100pr-na2-01.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 19.0
+    winner: vendor_page
+    sources:
+      vendor_page: 19.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.161
+    winner: vendor_page
+    sources:
+      vendor_page: 0.161
+  Qms:  # mechanical Q factor
+    value: 7.1
+    winner: vendor_page
+    sources:
+      vendor_page: 7.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.082

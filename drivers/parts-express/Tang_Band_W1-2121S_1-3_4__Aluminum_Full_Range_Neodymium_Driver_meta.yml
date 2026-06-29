@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-825--tang-band-w1-2121s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-825--tang-band-w1-2121s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00010760384
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00010760384
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  BL:  # force factor (T·m)
-    value: 3.14
-    winner: vendor_page
-    sources:
-      vendor_page: 3.14
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0023
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 1.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 1.33
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.0008935000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0008935000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 120.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 120.0
+  Qms:  # mechanical Q factor
+    value: 1.33
+    winner: vendor_page
+    sources:
+      vendor_page: 1.33
   Cms:  # mechanical compliance (m/N)
     value: 0.000949
     winner: vendor_page
     sources:
       vendor_page: 0.000949
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-825--tang-band-w1-2121s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-825--tang-band-w1-2121s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  BL:  # force factor (T·m)
+    value: 3.14
+    winner: vendor_page
+    sources:
+      vendor_page: 3.14
+  Le:  # voice coil inductance (H)
+    value: 7.000000000000001e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.000000000000001e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00010760384
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00010760384

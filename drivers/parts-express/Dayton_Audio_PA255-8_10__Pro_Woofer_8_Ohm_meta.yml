@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-030-dayton-audio-pa255-8-specifications-46882.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-030--Dayton-Audio-PA255-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-030-dayton-audio-pa255-8-specifications-46882.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00149
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00149
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041200944
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041200944
-  Qes:  # electrical Q factor
-    value: 0.66
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0423
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0423
-  BL:  # force factor (T·m)
-    value: 10.6
-    winner: vendor_page
-    sources:
-      vendor_page: 10.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 50.5
-    winner: vendor_page
-    sources:
-      vendor_page: 50.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.580898267836475
-    winner: vendor_page
-    sources:
-      vendor_page: 1.580898267836475
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.61
-  Qms:  # mechanical Q factor
-    value: 8.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 8.49
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 50.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 50.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.580898267836475
+    winner: vendor_page
+    sources:
+      vendor_page: 1.580898267836475
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0423
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0423
+  Qms:  # mechanical Q factor
+    value: 8.49
+    winner: vendor_page
+    sources:
+      vendor_page: 8.49
   Cms:  # mechanical compliance (m/N)
     value: 0.00023999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00023999999999999998
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-030-dayton-audio-pa255-8-specifications-46882.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-030-dayton-audio-pa255-8-specifications-46882.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PA255-8-10-Pro-Woofer-295-030
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-030--Dayton-Audio-PA255-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 10.6
+    winner: vendor_page
+    sources:
+      vendor_page: 10.6
+  Le:  # voice coil inductance (H)
+    value: 0.00149
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00149
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041200944
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041200944

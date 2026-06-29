@@ -1,54 +1,54 @@
+source: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
+driver_type: pr
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: pr
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000124
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000124
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Fs:  # free air resonance (Hz)
-    value: 43.7
-    winner: vendor_page
-    sources:
-      vendor_page: 43.7
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
     sources:
       vendor_page: 0.004
-  Qms:  # mechanical Q factor
-    value: 5.72
-    winner: vendor_page
-    sources:
-      vendor_page: 5.72
   Sd:  # effective piston area (m²)
     value: 0.00312
     winner: vendor_page
     sources:
       vendor_page: 0.00312
+  Fs:  # free air resonance (Hz)
+    value: 43.7
+    winner: vendor_page
+    sources:
+      vendor_page: 43.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 5.72
+    winner: vendor_page
+    sources:
+      vendor_page: 5.72
   Cms:  # mechanical compliance (m/N)
     value: 0.00255
     winner: vendor_page
     sources:
       vendor_page: 0.00255
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dsa90-pr.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000124
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000124

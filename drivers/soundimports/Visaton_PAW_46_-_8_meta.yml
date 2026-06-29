@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-paw-46-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-paw-46-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-paw-46-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-paw-46-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.325
-    winner: vendor_page
-    sources:
-      vendor_page: 0.325
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.186
-    winner: vendor_page
-    sources:
-      vendor_page: 0.186
-  BL:  # force factor (T·m)
-    value: 23.6
-    winner: vendor_page
-    sources:
-      vendor_page: 23.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0049
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 8.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 8.97
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 29.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 29.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.186
+    winner: vendor_page
+    sources:
+      vendor_page: 0.186
+  Qms:  # mechanical Q factor
+    value: 8.97
+    winner: vendor_page
+    sources:
+      vendor_page: 8.97
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: vendor_page
     sources:
       vendor_page: 0.00016
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-paw-46-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-paw-46-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 23.6
+    winner: vendor_page
+    sources:
+      vendor_page: 23.6
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.325
+    winner: vendor_page
+    sources:
+      vendor_page: 0.325

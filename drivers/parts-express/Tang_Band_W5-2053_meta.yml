@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.33 differs from calculated=0.334387 (deps: Qms=4.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
 obsolete: null
 dq_issue: Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-953
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00387
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00387
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.092
-  BL:  # force factor (T·m)
-    value: 9.31
-    winner: vendor_page
-    sources:
-      vendor_page: 9.31
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8919970929291638
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8919970929291638
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 4.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 4.7
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 7.5e-07
     winner: vendor_page
     sources:
       vendor_page: 7.5e-07
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8919970929291638
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8919970929291638
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.092
+    winner: vendor_page
+    sources:
+      vendor_page: 0.092
+  Qms:  # mechanical Q factor
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00048485
     winner: vendor_page
     sources:
       vendor_page: 0.00048485
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-953--tang-band-w5-2053-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 9.31
+    winner: vendor_page
+    sources:
+      vendor_page: 9.31
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00387
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00387

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,47 +17,13 @@ corrections: '''Qts'' stored=0.31 differs from calculated=0.306011 (deps: Qms=7,
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-796
+_sources:
+  vendor_page: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001699008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001699008
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  BL:  # force factor (T·m)
-    value: 7.9
-    winner: vendor_page
-    sources:
-      vendor_page: 7.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -59,33 +34,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 7.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 7.0
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0054
     winner: vendor_page
     sources:
       vendor_page: 0.0054
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Qms:  # mechanical Q factor
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
   Cms:  # mechanical compliance (m/N)
     value: 0.0004
     winner: vendor_page
     sources:
       vendor_page: 0.0004
-_sources:
-  vendor_page: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Lavoce-WSN041.00-4-Neodymium-Woofer-293-796
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
+  Le:  # voice coil inductance (H)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001699008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001699008

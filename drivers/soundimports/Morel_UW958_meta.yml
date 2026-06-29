@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/morel-uw958.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/morel-uw958.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Morel/UW958/297-128--morel-uw958-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/morel-uw958.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Morel/UW958/297-128--morel-uw958-spec-sheet.pdf
+  vendor_page: https://www.soundimports.eu/en/morel-uw958.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00132
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0395
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0395
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0655
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0655
-  BL:  # force factor (T·m)
-    value: 0.64
-    winner: vendor_page
-    sources:
-      vendor_page: 0.64
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 28.0
-    winner: vendor_page
-    sources:
-      vendor_page: 28.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.37
-    winner: vendor_page
-    sources:
-      vendor_page: 7.37
   Xmax:  # one-way linear excursion (m)
     value: 0.0115
     winner: vendor_page
@@ -65,31 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 1.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 1.61
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0243
     winner: vendor_page
     sources:
       vendor_page: 0.0243
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 28.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 28.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.37
+    winner: vendor_page
+    sources:
+      vendor_page: 7.37
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0655
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0655
+  Qms:  # mechanical Q factor
+    value: 1.61
+    winner: vendor_page
+    sources:
+      vendor_page: 1.61
   Cms:  # mechanical compliance (m/N)
     value: 0.00047
     winner: vendor_page
     sources:
       vendor_page: 0.00047
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Morel/UW958/297-128--morel-uw958-spec-sheet.pdf
-  vendor_page: https://www.soundimports.eu/en/morel-uw958.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Morel/UW958/297-128--morel-uw958-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/morel-uw958.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 0.64
+    winner: vendor_page
+    sources:
+      vendor_page: 0.64
+  Le:  # voice coil inductance (H)
+    value: 0.00132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00132
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0395
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0395

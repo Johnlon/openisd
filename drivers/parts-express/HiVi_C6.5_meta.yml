@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-474--hi-vi-c6.5-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Qts'' stored=0.38 differs from calculated=0.38471 (deps: Qms=2.1
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
 obsolete: null
 dq_issue: missing_Sd; Fs_low
 community: null
 fetched_sku: 297-474
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-474--hi-vi-c6.5-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0133
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0133
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0175
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0175
-  BL:  # force factor (T·m)
-    value: 9.09
-    winner: vendor_page
-    sources:
-      vendor_page: 9.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.7488935718910694
-    winner: vendor_page
-    sources:
-      vendor_page: 2.7488935718910694
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -63,6 +34,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Fs:  # free air resonance (Hz)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.7488935718910694
+    winner: vendor_page
+    sources:
+      vendor_page: 2.7488935718910694
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0175
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0175
   Qms:  # mechanical Q factor
     value: 2.12
     winner: vendor_page
@@ -73,19 +64,28 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 9.09
+    winner: vendor_page
+    sources:
+      vendor_page: 9.09
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-474--hi-vi-c6.5-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-474--hi-vi-c6.5-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-C6.5-6-1-2-Reinforced-Paper-Cone-Woofer-8-Ohms-297-474
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0133
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0133

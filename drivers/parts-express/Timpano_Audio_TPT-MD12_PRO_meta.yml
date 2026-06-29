@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,42 +16,28 @@ corrections: '''Vas'' stored=0.0962771 differs from calculated=0.0978077 (deps: 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3332
+_sources:
+  vendor_page: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.09627712
+  Qts:  # total Q factor
+    value: 0.38
     winner: vendor_page
     sources:
-      vendor_page: 0.09627712
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.045200000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.045200000000000004
-  BL:  # force factor (T·m)
-    value: 14.3
-    winner: vendor_page
-    sources:
-      vendor_page: 14.3
+      vendor_page: 0.38
   Re:  # DC voice coil resistance (Ω)
     value: 5.5
     winner: vendor_page
     sources:
       vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 400.0
+  Sd:  # effective piston area (m²)
+    value: 0.0573
     winner: vendor_page
     sources:
-      vendor_page: 400.0
+      vendor_page: 0.0573
   Fs:  # free air resonance (Hz)
     value: 51.7
     winner: vendor_page
@@ -53,43 +48,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.3722241825448176
-  Qts:  # total Q factor
-    value: 0.38
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.045200000000000004
     winner: vendor_page
     sources:
-      vendor_page: 0.38
+      vendor_page: 0.045200000000000004
   Qms:  # mechanical Q factor
     value: 10.7
     winner: vendor_page
     sources:
       vendor_page: 10.7
-  Sd:  # effective piston area (m²)
-    value: 0.0573
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0573
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00020999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00020999999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 14.3
+    winner: vendor_page
+    sources:
+      vendor_page: 14.3
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.09627712
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09627712
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 101.0
     winner: vendor_page
     sources:
       vendor_page: 101.0
-_sources:
-  vendor_page: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Timpano-Audio-TPT-MD12-PRO-12-Midrange-Speaker-294-3332
-frd_url: null
-zma_url: null

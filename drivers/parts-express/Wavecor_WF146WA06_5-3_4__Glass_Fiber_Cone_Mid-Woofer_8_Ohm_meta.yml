@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1168-1170--wf146wa05-06-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1168-1170--wf146wa05-06-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.015007904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015007904
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0119
-  BL:  # force factor (T·m)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 55.0
-    winner: vendor_page
-    sources:
-      vendor_page: 55.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3925420020660447
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3925420020660447
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,17 +29,32 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Qms:  # mechanical Q factor
-    value: 8.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0093
     winner: vendor_page
     sources:
       vendor_page: 0.0093
-  Znom:  # nominal impedance (Ω)
+  Fs:  # free air resonance (Hz)
+    value: 42.0
+    winner: vendor_page
+    sources:
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3925420020660447
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3925420020660447
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0119
+  Qms:  # mechanical Q factor
     value: 8.0
     winner: vendor_page
     sources:
@@ -86,11 +64,33 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.00122
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1168-1170--wf146wa05-06-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1168-1170--wf146wa05-06-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF146WA06-5-3-4-Glass-Fiber-Cone-Mid-Woofer-8-Ohm-298-1170
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 55.0
+    winner: vendor_page
+    sources:
+      vendor_page: 55.0
+  BL:  # force factor (T·m)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.015007904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015007904

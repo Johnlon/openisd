@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.982176e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.982176e-05
-  Qes:  # electrical Q factor
-    value: 0.54
-    winner: vendor_page
-    sources:
-      vendor_page: 0.54
-  BL:  # force factor (T·m)
-    value: 2.6
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 170.0
-    winner: vendor_page
-    sources:
-      vendor_page: 170.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0012
     winner: vendor_page
@@ -56,26 +29,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 3.11
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.11
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00045
     winner: vendor_page
     sources:
       vendor_page: 0.00045
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 170.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 170.0
+  Qms:  # mechanical Q factor
+    value: 3.11
+    winner: vendor_page
+    sources:
+      vendor_page: 3.11
   Cms:  # mechanical compliance (m/N)
     value: 0.00085
     winner: vendor_page
     sources:
       vendor_page: 0.00085
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.54
+    winner: vendor_page
+    sources:
+      vendor_page: 0.54
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 2.6
+    winner: vendor_page
+    sources:
+      vendor_page: 2.6
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.982176e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.982176e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 20.0
     winner: vendor_page
@@ -86,11 +94,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
-frd_url: null
-zma_url: null

@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1002--tymphany-ox20sc00-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
+driver_type: tweeter
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1002--tymphany-ox20sc00-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Qes:  # electrical Q factor
-    value: 1.83
-    winner: vendor_page
-    sources:
-      vendor_page: 1.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.28
-    winner: vendor_page
-    sources:
-      vendor_page: 3.28
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 1024.9
-    winner: vendor_page
-    sources:
-      vendor_page: 1024.9
   Qts:  # total Q factor
     value: 1.53
     winner: vendor_page
     sources:
       vendor_page: 1.53
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.28
+    winner: vendor_page
+    sources:
+      vendor_page: 3.28
+  Fs:  # free air resonance (Hz)
+    value: 1024.9
+    winner: vendor_page
+    sources:
+      vendor_page: 1024.9
   Qms:  # mechanical Q factor
     value: 9.46
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1002--tymphany-ox20sc00-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1002--tymphany-ox20sc00-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-OX20SC00-04-3-4-Fabric-Dome-Tweeter-264-1002
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.83
+    winner: vendor_page
+    sources:
+      vendor_page: 1.83
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05

@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  Qes:  # electrical Q factor
-    value: 0.63
-    winner: vendor_page
-    sources:
-      vendor_page: 0.63
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  BL:  # force factor (T·m)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.64
-    winner: vendor_page
-    sources:
-      vendor_page: 0.64
   Xmax:  # one-way linear excursion (m)
     value: 0.0026
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.53
-  Qms:  # mechanical Q factor
-    value: 3.26
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 3.26
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0036
     winner: vendor_page
     sources:
       vendor_page: 0.0036
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 110.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 110.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.64
+    winner: vendor_page
+    sources:
+      vendor_page: 0.64
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Qms:  # mechanical Q factor
+    value: 3.26
+    winner: vendor_page
+    sources:
+      vendor_page: 3.26
   Cms:  # mechanical compliance (m/N)
     value: 0.0011
     winner: vendor_page
     sources:
       vendor_page: 0.0011
-_sources:
-  vendor_page: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/scan-speak-10m4614g06.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.63
+    winner: vendor_page
+    sources:
+      vendor_page: 0.63
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013

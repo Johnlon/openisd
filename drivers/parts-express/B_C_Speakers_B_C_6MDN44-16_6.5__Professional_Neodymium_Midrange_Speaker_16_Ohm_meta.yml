@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5903--bc-6mdn44-16-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5903--bc-6mdn44-16-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005600000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005600000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00283168
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.012
-  BL:  # force factor (T·m)
-    value: 14.5
-    winner: vendor_page
-    sources:
-      vendor_page: 14.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 11.8
-    winner: vendor_page
-    sources:
-      vendor_page: 11.8
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 138.0
-    winner: vendor_page
-    sources:
-      vendor_page: 138.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.468318289563132
-    winner: vendor_page
-    sources:
-      vendor_page: 3.468318289563132
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Qms:  # mechanical Q factor
-    value: 3.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 11.8
     winner: vendor_page
     sources:
-      vendor_page: 3.0
+      vendor_page: 11.8
   Sd:  # effective piston area (m²)
     value: 0.0132
     winner: vendor_page
     sources:
       vendor_page: 0.0132
+  Fs:  # free air resonance (Hz)
+    value: 138.0
+    winner: vendor_page
+    sources:
+      vendor_page: 138.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.468318289563132
+    winner: vendor_page
+    sources:
+      vendor_page: 3.468318289563132
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.012
+  Qms:  # mechanical Q factor
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
   Znom:  # nominal impedance (Ω)
     value: 16.0
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5903--bc-6mdn44-16-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5903--bc-6mdn44-16-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-6MDN44-16-6.5-Professional-Neo-Midrange-Speaker-16-Ohm-294-5903
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 14.5
+    winner: vendor_page
+    sources:
+      vendor_page: 14.5
+  Le:  # voice coil inductance (H)
+    value: 0.0005600000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005600000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00283168

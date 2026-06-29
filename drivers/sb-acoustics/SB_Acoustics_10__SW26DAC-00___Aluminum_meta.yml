@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/10in-sw26dac-00/
+manu_page_url: https://sbacoustics.com/product/10in-sw26dac-00/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/10in-SW26DAC-00-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/10in-sw26dac-00/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/10in-SW26DAC-00-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/10in-sw26dac-00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.054
-    winner: manu_page
-    sources:
-      manu_page: 0.054
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.4
-    winner: manu_page
-    sources:
-      manu_page: 0.4
-  Fs:  # free air resonance (Hz)
-    value: 13.0
-    winner: manu_page
-    sources:
-      manu_page: 13.0
-  Qms:  # mechanical Q factor
-    value: 8.8
-    winner: manu_page
-    sources:
-      manu_page: 8.8
   Sd:  # effective piston area (m²)
     value: 0.0312
     winner: manu_page
     sources:
       manu_page: 0.0312
+  Fs:  # free air resonance (Hz)
+    value: 13.0
+    winner: manu_page
+    sources:
+      manu_page: 13.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.4
+    winner: manu_page
+    sources:
+      manu_page: 0.4
+  Qms:  # mechanical Q factor
+    value: 8.8
+    winner: manu_page
+    sources:
+      manu_page: 8.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00039
     winner: manu_page
     sources:
       manu_page: 0.00039
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/10in-SW26DAC-00-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/10in-sw26dac-00/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/10in-SW26DAC-00-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/10in-sw26dac-00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.054
+    winner: manu_page
+    sources:
+      manu_page: 0.054

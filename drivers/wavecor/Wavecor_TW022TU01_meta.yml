@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/tw022tu01.html
+manu_page_url: http://www.wavecor.com/html/tw022tu01.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/TW022TU01_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022TU01_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022TU01_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: http://www.wavecor.com/html/tw022tu01.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW022TU01_specifications.pdf
+  manu_page: http://www.wavecor.com/html/tw022tu01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 7.6e-06
-    winner: manu_page
-    sources:
-      manu_page: 7.6e-06
-  Qes:  # electrical Q factor
-    value: 1.88
-    winner: manu_page
-    sources:
-      manu_page: 1.88
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00026
-    winner: manu_page
-    sources:
-      manu_page: 0.00026
-  BL:  # force factor (T·m)
-    value: 1.6
-    winner: manu_page
-    sources:
-      manu_page: 1.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: manu_page
-    sources:
-      manu_page: 3.6
-  Pe:  # rated power input (W)
-    value: 65.0
-    winner: manu_page
-    sources:
-      manu_page: 65.0
-  Fs:  # free air resonance (Hz)
-    value: 825.0
-    winner: manu_page
-    sources:
-      manu_page: 825.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.93
-    winner: manu_page
-    sources:
-      manu_page: 0.93
   Xmax:  # one-way linear excursion (m)
     value: 0.00035
     winner: manu_page
@@ -62,26 +33,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.81
-  Qms:  # mechanical Q factor
-    value: 1.43
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: manu_page
     sources:
-      manu_page: 1.43
+      manu_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00061
     winner: manu_page
     sources:
       manu_page: 0.00061
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 825.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 825.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.93
+    winner: manu_page
+    sources:
+      manu_page: 0.93
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00026
+    winner: manu_page
+    sources:
+      manu_page: 0.00026
+  Qms:  # mechanical Q factor
+    value: 1.43
+    winner: manu_page
+    sources:
+      manu_page: 1.43
   Cms:  # mechanical compliance (m/N)
     value: 0.000143
     winner: manu_page
     sources:
       manu_page: 0.000143
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.88
+    winner: manu_page
+    sources:
+      manu_page: 1.88
+  Pe:  # rated power input (W)
+    value: 65.0
+    winner: manu_page
+    sources:
+      manu_page: 65.0
+  BL:  # force factor (T·m)
+    value: 1.6
+    winner: manu_page
+    sources:
+      manu_page: 1.6
+  Vas:  # equivalent acoustic volume (m³)
+    value: 7.6e-06
+    winner: manu_page
+    sources:
+      manu_page: 7.6e-06
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2.0
     winner: manu_page
@@ -92,14 +103,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 30.0
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW022TU01_specifications.pdf
-  manu_page: http://www.wavecor.com/html/tw022tu01.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/TW022TU01_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/tw022tu01.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW022TU01_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW022TU01_impedance_response.txt

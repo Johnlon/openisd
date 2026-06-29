@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/morel-caw-428d.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/morel-caw-428d.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/morel-caw-428d.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/morel-caw-428d.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0051
-  Qes:  # electrical Q factor
-    value: 0.427
-    winner: vendor_page
-    sources:
-      vendor_page: 0.427
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0052
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0052
-  BL:  # force factor (T·m)
-    value: 5.24
-    winner: vendor_page
-    sources:
-      vendor_page: 5.24
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.37
-    winner: vendor_page
-    sources:
-      vendor_page: 1.37
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 1.5515
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 1.5515
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.0057
     winner: vendor_page
     sources:
       vendor_page: 0.0057
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.37
+    winner: vendor_page
+    sources:
+      vendor_page: 1.37
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0052
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0052
+  Qms:  # mechanical Q factor
+    value: 1.5515
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5515
   Cms:  # mechanical compliance (m/N)
     value: 0.0009115
     winner: vendor_page
     sources:
       vendor_page: 0.0009115
-_sources:
-  vendor_page: https://www.soundimports.eu/en/morel-caw-428d.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/morel-caw-428d.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.427
+    winner: vendor_page
+    sources:
+      vendor_page: 0.427
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 5.24
+    winner: vendor_page
+    sources:
+      vendor_page: 5.24
+  Le:  # voice coil inductance (H)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0051

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00026000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00026000000000000003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0031714816
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0031714816
-  Qes:  # electrical Q factor
-    value: 1.28
-    winner: vendor_page
-    sources:
-      vendor_page: 1.28
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0101
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0101
-  BL:  # force factor (T·m)
-    value: 4.92
-    winner: vendor_page
-    sources:
-      vendor_page: 4.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 114.1
-    winner: vendor_page
-    sources:
-      vendor_page: 114.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.005502131899579655
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005502131899579655
   Xmax:  # one-way linear excursion (m)
     value: 0.00262
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.17
-  Qms:  # mechanical Q factor
-    value: 1316.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 1316.0
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.01077
     winner: vendor_page
     sources:
       vendor_page: 0.01077
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 114.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 114.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.005502131899579655
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005502131899579655
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0101
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0101
+  Qms:  # mechanical Q factor
+    value: 1316.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1316.0
   Cms:  # mechanical compliance (m/N)
     value: 0.000193
     winner: vendor_page
     sources:
       vendor_page: 0.000193
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.28
+    winner: vendor_page
+    sources:
+      vendor_page: 1.28
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 4.92
+    winner: vendor_page
+    sources:
+      vendor_page: 4.92
+  Le:  # voice coil inductance (H)
+    value: 0.00026000000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00026000000000000003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0031714816
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0031714816
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 11.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR200A-4-6-Alto-Series-Full-Range-Speaker-294-3167
-frd_url: null
-zma_url: null

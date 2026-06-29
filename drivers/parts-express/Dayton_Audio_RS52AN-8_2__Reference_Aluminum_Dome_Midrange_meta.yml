@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-020--dayton-audio-rs52an-8-spec-sheet-2.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/285-020--Dayton-Audio-RS52AN-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-020--dayton-audio-rs52an-8-spec-sheet-2.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013000000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013000000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000141584
-  Qes:  # electrical Q factor
-    value: 1.18
-    winner: vendor_page
-    sources:
-      vendor_page: 1.18
-  BL:  # force factor (T·m)
-    value: 4.26
-    winner: vendor_page
-    sources:
-      vendor_page: 4.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 341.0
-    winner: vendor_page
-    sources:
-      vendor_page: 341.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 3.16
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 3.16
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.00264
     winner: vendor_page
     sources:
       vendor_page: 0.00264
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 341.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 341.0
+  Qms:  # mechanical Q factor
+    value: 3.16
+    winner: vendor_page
+    sources:
+      vendor_page: 3.16
   Cms:  # mechanical compliance (m/N)
     value: 0.00013000000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.00013000000000000002
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-020--dayton-audio-rs52an-8-spec-sheet-2.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-020--dayton-audio-rs52an-8-spec-sheet-2.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS52AN-8-2-Reference-Aluminum-Dome-Midrange-285-020
-frd_url: https://www.parts-express.com/pedocs/tech-docs/285-020--Dayton-Audio-RS52AN-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.18
+    winner: vendor_page
+    sources:
+      vendor_page: 1.18
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 4.26
+    winner: vendor_page
+    sources:
+      vendor_page: 4.26
+  Le:  # voice coil inductance (H)
+    value: 0.00013000000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013000000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000141584

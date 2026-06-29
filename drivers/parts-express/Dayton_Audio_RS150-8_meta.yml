@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-354
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016706911999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016706911999999997
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0074
-  BL:  # force factor (T·m)
-    value: 5.59
-    winner: vendor_page
-    sources:
-      vendor_page: 5.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 47.8
-    winner: vendor_page
-    sources:
-      vendor_page: 47.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3388483776238334
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3388483776238334
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 1.66
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 1.66
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0085
     winner: vendor_page
     sources:
       vendor_page: 0.0085
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 47.8
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 47.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3388483776238334
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3388483776238334
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0074
+  Qms:  # mechanical Q factor
+    value: 1.66
+    winner: vendor_page
+    sources:
+      vendor_page: 1.66
   Cms:  # mechanical compliance (m/N)
     value: 0.00163
     winner: vendor_page
     sources:
       vendor_page: 0.00163
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS150-8-6-Reference-Woofer-295-354
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.59
+    winner: vendor_page
+    sources:
+      vendor_page: 5.59
+  Le:  # voice coil inductance (H)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016706911999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016706911999999997

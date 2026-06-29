@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-150
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000566336
-  Qes:  # electrical Q factor
-    value: 0.87
-    winner: vendor_page
-    sources:
-      vendor_page: 0.87
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
-  BL:  # force factor (T·m)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 117.1
-    winner: vendor_page
-    sources:
-      vendor_page: 117.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.502326786787245
-    winner: vendor_page
-    sources:
-      vendor_page: 0.502326786787245
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 2.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 2.49
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.00212
     winner: vendor_page
     sources:
       vendor_page: 0.00212
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 117.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 117.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.502326786787245
+    winner: vendor_page
+    sources:
+      vendor_page: 0.502326786787245
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Qms:  # mechanical Q factor
+    value: 2.49
+    winner: vendor_page
+    sources:
+      vendor_page: 2.49
   Cms:  # mechanical compliance (m/N)
     value: 0.00107
     winner: vendor_page
     sources:
       vendor_page: 0.00107
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.87
+    winner: vendor_page
+    sources:
+      vendor_page: 0.87
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000566336

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-10fr300.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-10fr300.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-10fr300.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-10fr300.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0474
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0474
-  Qes:  # electrical Q factor
-    value: 0.68
-    winner: vendor_page
-    sources:
-      vendor_page: 0.68
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0321
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0321
-  BL:  # force factor (T·m)
-    value: 9.78
-    winner: vendor_page
-    sources:
-      vendor_page: 9.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 60.12
-    winner: vendor_page
-    sources:
-      vendor_page: 60.12
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 15.57
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 15.57
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0394
     winner: vendor_page
     sources:
       vendor_page: 0.0394
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-10fr300.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-10fr300.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 60.12
+    winner: vendor_page
+    sources:
+      vendor_page: 60.12
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0321
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0321
+  Qms:  # mechanical Q factor
+    value: 15.57
+    winner: vendor_page
+    sources:
+      vendor_page: 15.57
+  Qes:  # electrical Q factor
+    value: 0.68
+    winner: vendor_page
+    sources:
+      vendor_page: 0.68
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 9.78
+    winner: vendor_page
+    sources:
+      vendor_page: 9.78
+  Le:  # voice coil inductance (H)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0474
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0474

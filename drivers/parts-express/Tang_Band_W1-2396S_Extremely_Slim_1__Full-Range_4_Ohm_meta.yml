@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-818--tang-band-w1-2396s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-818--tang-band-w1-2396s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001132672
-  Qes:  # electrical Q factor
-    value: 0.8
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  BL:  # force factor (T·m)
-    value: 2.13
-    winner: vendor_page
-    sources:
-      vendor_page: 2.13
-  Pe:  # rated power input (W)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Fs:  # free air resonance (Hz)
-    value: 180.0
-    winner: vendor_page
-    sources:
-      vendor_page: 180.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.46057738450818686
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46057738450818686
   Xmax:  # one-way linear excursion (m)
     value: 0.0011
     winner: vendor_page
@@ -56,6 +29,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.59
+  Fs:  # free air resonance (Hz)
+    value: 180.0
+    winner: vendor_page
+    sources:
+      vendor_page: 180.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.46057738450818686
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46057738450818686
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
   Qms:  # mechanical Q factor
     value: 2.21
     winner: vendor_page
@@ -66,6 +54,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.8
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8
+  Pe:  # rated power input (W)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  BL:  # force factor (T·m)
+    value: 2.13
+    winner: vendor_page
+    sources:
+      vendor_page: 2.13
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001132672
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 180.0
     winner: vendor_page
@@ -76,11 +84,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-818--tang-band-w1-2396s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-818--tang-band-w1-2396s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W1-2396S-Extremely-Slim-1-Full-Range-4-Ohm-264-818
-frd_url: null
-zma_url: null

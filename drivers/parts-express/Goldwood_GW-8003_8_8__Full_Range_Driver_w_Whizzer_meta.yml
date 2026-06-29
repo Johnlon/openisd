@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-379-goldwood-gw-80038-specifications-44700.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-379-goldwood-gw-80038-specifications-44700.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.044457376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.044457376
-  Qes:  # electrical Q factor
-    value: 1.04
-    winner: vendor_page
-    sources:
-      vendor_page: 1.04
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0212
-  BL:  # force factor (T·m)
-    value: 6.26
-    winner: vendor_page
-    sources:
-      vendor_page: 6.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Pe:  # rated power input (W)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Fs:  # free air resonance (Hz)
-    value: 41.5
-    winner: vendor_page
-    sources:
-      vendor_page: 41.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.7114385242280497
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7114385242280497
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.79
-  Qms:  # mechanical Q factor
-    value: 3.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.3
     winner: vendor_page
     sources:
-      vendor_page: 3.23
+      vendor_page: 7.3
   Sd:  # effective piston area (m²)
     value: 0.021408
     winner: vendor_page
     sources:
       vendor_page: 0.021408
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 41.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 41.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.7114385242280497
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7114385242280497
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0212
+  Qms:  # mechanical Q factor
+    value: 3.23
+    winner: vendor_page
+    sources:
+      vendor_page: 3.23
   Cms:  # mechanical compliance (m/N)
     value: 0.00069
     winner: vendor_page
     sources:
       vendor_page: 0.00069
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-379-goldwood-gw-80038-specifications-44700.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-379-goldwood-gw-80038-specifications-44700.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-8003-8-8-Full-Range-Driver-w-Whizzer-290-379
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.04
+    winner: vendor_page
+    sources:
+      vendor_page: 1.04
+  Pe:  # rated power input (W)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  BL:  # force factor (T·m)
+    value: 6.26
+    winner: vendor_page
+    sources:
+      vendor_page: 6.26
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.044457376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.044457376

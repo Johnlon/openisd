@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-376
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0050970239999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0050970239999999995
-  Qes:  # electrical Q factor
-    value: 1.1
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009
-  BL:  # force factor (T·m)
-    value: 5.62
-    winner: vendor_page
-    sources:
-      vendor_page: 5.62
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 86.1
-    winner: vendor_page
-    sources:
-      vendor_page: 86.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5310818536268742
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5310818536268742
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.82
-  Qms:  # mechanical Q factor
-    value: 3.18
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.1
     winner: vendor_page
     sources:
-      vendor_page: 3.18
+      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.009677
     winner: vendor_page
     sources:
       vendor_page: 0.009677
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 86.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 86.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5310818536268742
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5310818536268742
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009
+  Qms:  # mechanical Q factor
+    value: 3.18
+    winner: vendor_page
+    sources:
+      vendor_page: 3.18
   Cms:  # mechanical compliance (m/N)
     value: 0.00038
     winner: vendor_page
     sources:
       vendor_page: 0.00038
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-205-8S-5-1-4-Shielded-Poly-Woofer-8-Ohm-290-376
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.1
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 5.62
+    winner: vendor_page
+    sources:
+      vendor_page: 5.62
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0050970239999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0050970239999999995

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1548--tymphany-pls-75f25al05-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.00131 differs from calculated=0.00136332 (deps: r
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1548
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1548--tymphany-pls-75f25al05-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00131
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00131
-  Qes:  # electrical Q factor
-    value: 0.826
-    winner: vendor_page
-    sources:
-      vendor_page: 0.826
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00245
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00245
-  BL:  # force factor (T·m)
-    value: 3.36
-    winner: vendor_page
-    sources:
-      vendor_page: 3.36
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 95.0
-    winner: vendor_page
-    sources:
-      vendor_page: 95.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.22473390070388982
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22473390070388982
   Xmax:  # one-way linear excursion (m)
     value: 0.00338
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.75
-  Qms:  # mechanical Q factor
-    value: 7.58
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 7.58
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.00283
     winner: vendor_page
     sources:
       vendor_page: 0.00283
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 95.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 95.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.22473390070388982
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22473390070388982
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00245
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00245
+  Qms:  # mechanical Q factor
+    value: 7.58
+    winner: vendor_page
+    sources:
+      vendor_page: 7.58
   Cms:  # mechanical compliance (m/N)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1548--tymphany-pls-75f25al05-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1548--tymphany-pls-75f25al05-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-PLS-75F25AL05-08-3-Full-Range-Driver-8-Ohm-264-1548
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.826
+    winner: vendor_page
+    sources:
+      vendor_page: 0.826
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 3.36
+    winner: vendor_page
+    sources:
+      vendor_page: 3.36
+  Le:  # voice coil inductance (H)
+    value: 5.5e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00131

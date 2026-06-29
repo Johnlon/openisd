@@ -1,3 +1,13 @@
+source: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
+datasheet_url: https://www.parts-express.com/pedocs/specs/ND90-4 3-1_2_ Aluminum Cone
+  Full-Range Driver 4 Ohm Specification Sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +17,15 @@ corrections: '''Vas'' stored=0.00104772 differs from calculated=0.00100804 (deps
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-208
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/ND90-4 3-1_2_ Aluminum Cone
+    Full-Range Driver 4 Ohm Specification Sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0010477216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0010477216
-  Qes:  # electrical Q factor
-    value: 0.72
-    winner: vendor_page
-    sources:
-      vendor_page: 0.72
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0043
-  BL:  # force factor (T·m)
-    value: 3.47
-    winner: vendor_page
-    sources:
-      vendor_page: 3.47
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 90.2
-    winner: vendor_page
-    sources:
-      vendor_page: 90.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4778424025966028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4778424025966028
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,36 +36,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.63
-  Qms:  # mechanical Q factor
-    value: 5.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 5.1
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00312
     winner: vendor_page
     sources:
       vendor_page: 0.00312
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 90.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 90.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4778424025966028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4778424025966028
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0043
+  Qms:  # mechanical Q factor
+    value: 5.1
+    winner: vendor_page
+    sources:
+      vendor_page: 5.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00073
     winner: vendor_page
     sources:
       vendor_page: 0.00073
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/ND90-4 3-1_2_ Aluminum Cone
-    Full-Range Driver 4 Ohm Specification Sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
-datasheet_url: https://www.parts-express.com/pedocs/specs/ND90-4 3-1_2_ Aluminum Cone
-  Full-Range Driver 4 Ohm Specification Sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND90-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-208
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.72
+    winner: vendor_page
+    sources:
+      vendor_page: 0.72
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.47
+    winner: vendor_page
+    sources:
+      vendor_page: 3.47
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0010477216
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0010477216

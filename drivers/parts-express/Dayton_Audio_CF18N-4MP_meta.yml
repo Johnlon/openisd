@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-410--dayton-audio-cf18n-4mp-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,59 @@ corrections: '''Qts'' stored=1.2 differs from calculated=1.21569 (deps: Qms=2, Q
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 275-410
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-410--dayton-audio-cf18n-4mp-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Qes:  # electrical Q factor
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.54
-    winner: vendor_page
-    sources:
-      vendor_page: 3.54
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 1100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1100.0
   Qts:  # total Q factor
     value: 1.2
     winner: vendor_page
     sources:
       vendor_page: 1.2
-  Qms:  # mechanical Q factor
-    value: 2.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.54
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 3.54
   Sd:  # effective piston area (m²)
     value: 0.000255
     winner: vendor_page
     sources:
       vendor_page: 0.000255
+  Fs:  # free air resonance (Hz)
+    value: 1100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1100.0
+  Qms:  # mechanical Q factor
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 1.0
     winner: vendor_page
@@ -67,14 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-410--dayton-audio-cf18n-4mp-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-410--dayton-audio-cf18n-4mp-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CF18N-4MP-3-4-Carbon-Fiber-Dome-Neodymium-Tweeter-Matched-Pair-4-Ohm-275-410
-frd_url: null
-zma_url: null

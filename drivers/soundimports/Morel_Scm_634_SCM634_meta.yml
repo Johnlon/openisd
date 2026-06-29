@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/morel-scm-634.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/morel-scm-634.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/morel-scm-634.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/morel-scm-634.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0145
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0145
-  BL:  # force factor (T·m)
-    value: 5.09
-    winner: vendor_page
-    sources:
-      vendor_page: 5.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 1.32
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 1.32
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 49.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 49.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0145
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0145
+  Qms:  # mechanical Q factor
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
   Cms:  # mechanical compliance (m/N)
     value: 0.00073
     winner: vendor_page
     sources:
       vendor_page: 0.00073
-_sources:
-  vendor_page: https://www.soundimports.eu/en/morel-scm-634.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/morel-scm-634.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 5.09
+    winner: vendor_page
+    sources:
+      vendor_page: 5.09
+  Le:  # voice coil inductance (H)
+    value: 0.00012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00049

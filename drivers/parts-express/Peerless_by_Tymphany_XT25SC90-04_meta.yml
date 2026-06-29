@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1014--tymphany-xt25sc90-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Vas'' stored=7e-06 differs from calculated=7.09061e-06 (deps: ro
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1014
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1014--tymphany-xt25sc90-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 7.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0e-06
-  Qes:  # electrical Q factor
-    value: 1.17
-    winner: vendor_page
-    sources:
-      vendor_page: 1.17
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000359
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000359
-  BL:  # force factor (T·m)
-    value: 2.27
-    winner: vendor_page
-    sources:
-      vendor_page: 2.27
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 830.0
-    winner: vendor_page
-    sources:
-      vendor_page: 830.0
   Xmax:  # one-way linear excursion (m)
     value: 0.000867
     winner: vendor_page
@@ -63,34 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-  Qms:  # mechanical Q factor
-    value: 7.36
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 7.36
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.000707
     winner: vendor_page
     sources:
       vendor_page: 0.000707
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 830.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 830.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000359
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000359
+  Qms:  # mechanical Q factor
+    value: 7.36
+    winner: vendor_page
+    sources:
+      vendor_page: 7.36
   Cms:  # mechanical compliance (m/N)
     value: 0.0001
     winner: vendor_page
     sources:
       vendor_page: 0.0001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1014--tymphany-xt25sc90-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1014--tymphany-xt25sc90-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-XT25SC90-04-1-Dual-Ring-Radiator-Tweeter-264-1014
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.17
+    winner: vendor_page
+    sources:
+      vendor_page: 1.17
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 2.27
+    winner: vendor_page
+    sources:
+      vendor_page: 2.27
+  Le:  # voice coil inductance (H)
+    value: 2.1e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 7.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-06

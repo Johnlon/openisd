@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-sph-174ke.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-sph-174ke.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-sph-174ke.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-sph-174ke.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00043
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026
-  Qes:  # electrical Q factor
-    value: 0.64
-    winner: vendor_page
-    sources:
-      vendor_page: 0.64
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01423
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01423
-  BL:  # force factor (T·m)
-    value: 5.91
-    winner: vendor_page
-    sources:
-      vendor_page: 5.91
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.39
-    winner: vendor_page
-    sources:
-      vendor_page: 6.39
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 2.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.39
     winner: vendor_page
     sources:
-      vendor_page: 2.59
+      vendor_page: 6.39
   Sd:  # effective piston area (m²)
     value: 0.0137
     winner: vendor_page
     sources:
       vendor_page: 0.0137
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 42.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 42.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01423
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01423
+  Qms:  # mechanical Q factor
+    value: 2.59
+    winner: vendor_page
+    sources:
+      vendor_page: 2.59
   Cms:  # mechanical compliance (m/N)
     value: 0.00098
     winner: vendor_page
     sources:
       vendor_page: 0.00098
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-sph-174ke.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-sph-174ke.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.64
+    winner: vendor_page
+    sources:
+      vendor_page: 0.64
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 5.91
+    winner: vendor_page
+    sources:
+      vendor_page: 5.91
+  Le:  # voice coil inductance (H)
+    value: 0.00043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00043
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026

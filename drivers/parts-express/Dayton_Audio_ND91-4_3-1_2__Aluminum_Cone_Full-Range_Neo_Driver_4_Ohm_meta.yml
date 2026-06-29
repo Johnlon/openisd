@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-224--dayton-audio-nd91-4-specification-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/290-224--Dayton-Audio-ND91-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-224--dayton-audio-nd91-4-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00083
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00083
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0048
-  BL:  # force factor (T·m)
-    value: 4.59
-    winner: vendor_page
-    sources:
-      vendor_page: 4.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.3
-    winner: vendor_page
-    sources:
-      vendor_page: 4.3
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 74.0
-    winner: vendor_page
-    sources:
-      vendor_page: 74.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5263649578090067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5263649578090067
   Xmax:  # one-way linear excursion (m)
     value: 0.0046
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 4.24
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.3
     winner: vendor_page
     sources:
-      vendor_page: 4.24
+      vendor_page: 4.3
   Sd:  # effective piston area (m²)
     value: 0.0030399999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.0030399999999999997
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 74.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 74.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5263649578090067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5263649578090067
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0048
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0048
+  Qms:  # mechanical Q factor
+    value: 4.24
+    winner: vendor_page
+    sources:
+      vendor_page: 4.24
   Cms:  # mechanical compliance (m/N)
     value: 0.0009599999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0009599999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-224--dayton-audio-nd91-4-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-224--dayton-audio-nd91-4-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224
-frd_url: https://www.parts-express.com/pedocs/tech-docs/290-224--Dayton-Audio-ND91-4_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 4.59
+    winner: vendor_page
+    sources:
+      vendor_page: 4.59
+  Le:  # voice coil inductance (H)
+    value: 0.00083
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00083
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584

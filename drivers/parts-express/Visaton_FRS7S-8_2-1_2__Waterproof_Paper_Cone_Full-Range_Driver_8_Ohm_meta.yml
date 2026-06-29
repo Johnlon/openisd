@@ -1,27 +1,35 @@
+source: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-698--visaton-frs7s-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-698--visaton-frs7s-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
 specs:
-  Pe:  # rated power input (W)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Fs:  # free air resonance (Hz)
     value: 150.0
     winner: vendor_page
     sources:
       vendor_page: 150.0
   Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Pe:  # rated power input (W)
     value: 8.0
     winner: vendor_page
     sources:
@@ -36,11 +44,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-698--visaton-frs7s-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-698--visaton-frs7s-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FRS7S-8-2-1-2-Waterproof-Paper-Cone-Full-Range-Driver-8-Ohm-292-728
-frd_url: null
-zma_url: null

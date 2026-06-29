@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-041--12lex1000fe-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.3 differs from calculated=0.293878 (deps: Qms=3.6
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-041
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-041--12lex1000fe-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
 specs:
-  Le:  # voice coil inductance (H)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.038510848
-    winner: vendor_page
-    sources:
-      vendor_page: 0.038510848
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 1.18e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.18e-05
-  BL:  # force factor (T·m)
-    value: 24.6
-    winner: vendor_page
-    sources:
-      vendor_page: 24.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0010091493735031212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0010091493735031212
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 3.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 3.6
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
-  Znom:  # nominal impedance (Ω)
-    value: 50.0
+  Fs:  # free air resonance (Hz)
+    value: 49.0
     winner: vendor_page
     sources:
-      vendor_page: 50.0
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0010091493735031212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0010091493735031212
+  Mms:  # moving mass incl. air load (kg)
+    value: 1.18e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.18e-05
+  Qms:  # mechanical Q factor
+    value: 3.6
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6
   Cms:  # mechanical compliance (m/N)
     value: 0.0101
     winner: vendor_page
     sources:
       vendor_page: 0.0101
+  Znom:  # nominal impedance (Ω)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 24.6
+    winner: vendor_page
+    sources:
+      vendor_page: 24.6
+  Le:  # voice coil inductance (H)
+    value: 49.0
+    winner: vendor_page
+    sources:
+      vendor_page: 49.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.038510848
+    winner: vendor_page
+    sources:
+      vendor_page: 0.038510848
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
     sources:
       vendor_page: 95.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-041--12lex1000fe-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-041--12lex1000fe-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041
-frd_url: null
-zma_url: null

@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-030-dayton-audio-nd20fa-6-specifications-46118.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/275-030--Dayton-Audio-ND20FA-6_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-030-dayton-audio-nd20fa-6-specifications-46118.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Qes:  # electrical Q factor
-    value: 2.88
-    winner: vendor_page
-    sources:
-      vendor_page: 2.88
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 2005.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2005.0
   Qts:  # total Q factor
     value: 0.99
     winner: vendor_page
     sources:
       vendor_page: 0.99
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Fs:  # free air resonance (Hz)
+    value: 2005.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2005.0
   Qms:  # mechanical Q factor
     value: 1.5
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-030-dayton-audio-nd20fa-6-specifications-46118.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-030-dayton-audio-nd20fa-6-specifications-46118.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND20FA-6-3-4-Soft-Dome-Neodymium-Tweeter-275-030
-frd_url: https://www.parts-express.com/pedocs/tech-docs/275-030--Dayton-Audio-ND20FA-6_data.zip
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.88
+    winner: vendor_page
+    sources:
+      vendor_page: 2.88
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1486--tymphany-gbs-135f25al02-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1486--tymphany-gbs-135f25al02-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00020999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00020999999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0053518752
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0053518752
-  Qes:  # electrical Q factor
-    value: 0.66
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0123
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0123
-  BL:  # force factor (T·m)
-    value: 4.92
-    winner: vendor_page
-    sources:
-      vendor_page: 4.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.28
-    winner: vendor_page
-    sources:
-      vendor_page: 3.28
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Fs:  # free air resonance (Hz)
-    value: 63.0
-    winner: vendor_page
-    sources:
-      vendor_page: 63.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1817573530421024
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1817573530421024
   Xmax:  # one-way linear excursion (m)
     value: 0.0033
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.57
-  Qms:  # mechanical Q factor
-    value: 4.12
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.28
     winner: vendor_page
     sources:
-      vendor_page: 4.12
+      vendor_page: 3.28
   Sd:  # effective piston area (m²)
     value: 0.008522
     winner: vendor_page
     sources:
       vendor_page: 0.008522
+  Fs:  # free air resonance (Hz)
+    value: 63.0
+    winner: vendor_page
+    sources:
+      vendor_page: 63.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1817573530421024
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1817573530421024
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0123
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0123
+  Qms:  # mechanical Q factor
+    value: 4.12
+    winner: vendor_page
+    sources:
+      vendor_page: 4.12
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1486--tymphany-gbs-135f25al02-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1486--tymphany-gbs-135f25al02-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-GBS-135F25AL02-04-5-1-4-Aluminum-Cone-Woofer-4-Ohm-264-1486
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  BL:  # force factor (T·m)
+    value: 4.92
+    winner: vendor_page
+    sources:
+      vendor_page: 4.92
+  Le:  # voice coil inductance (H)
+    value: 0.00020999999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00020999999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0053518752
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0053518752

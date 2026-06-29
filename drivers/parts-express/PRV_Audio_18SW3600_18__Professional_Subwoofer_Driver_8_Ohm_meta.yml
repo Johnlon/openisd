@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0030600000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0030600000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.199350272
-    winner: vendor_page
-    sources:
-      vendor_page: 0.199350272
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: vendor_page
-    sources:
-      vendor_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.254
-    winner: vendor_page
-    sources:
-      vendor_page: 0.254
-  BL:  # force factor (T·m)
-    value: 27.11
-    winner: vendor_page
-    sources:
-      vendor_page: 27.11
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Fs:  # free air resonance (Hz)
-    value: 35.4
-    winner: vendor_page
-    sources:
-      vendor_page: 35.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.860569399173855
-    winner: vendor_page
-    sources:
-      vendor_page: 5.860569399173855
   Xmax:  # one-way linear excursion (m)
     value: 0.01325
     winner: vendor_page
@@ -61,31 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 9.64
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 9.64
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.134
     winner: vendor_page
     sources:
       vendor_page: 0.134
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 35.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.860569399173855
+    winner: vendor_page
+    sources:
+      vendor_page: 5.860569399173855
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.254
+    winner: vendor_page
+    sources:
+      vendor_page: 0.254
+  Qms:  # mechanical Q factor
+    value: 9.64
+    winner: vendor_page
+    sources:
+      vendor_page: 9.64
   Cms:  # mechanical compliance (m/N)
     value: 7.9e-05
     winner: vendor_page
     sources:
       vendor_page: 7.9e-05
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: vendor_page
+    sources:
+      vendor_page: 0.42
+  BL:  # force factor (T·m)
+    value: 27.11
+    winner: vendor_page
+    sources:
+      vendor_page: 27.11
+  Le:  # voice coil inductance (H)
+    value: 0.0030600000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0030600000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.199350272
+    winner: vendor_page
+    sources:
+      vendor_page: 0.199350272

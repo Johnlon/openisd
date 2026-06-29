@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
+datasheet_url: https://www.parts-express.com/pedocs/specs/296-414-aurum-cantus-ac-180f1d-specifications-45627.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/296-414-aurum-cantus-ac-180f1d-specifications-45627.pdf
+  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.077021696
-    winner: vendor_page
-    sources:
-      vendor_page: 0.077021696
-  Qes:  # electrical Q factor
-    value: 0.71
-    winner: vendor_page
-    sources:
-      vendor_page: 0.71
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0149
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0149
-  BL:  # force factor (T·m)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9982478558640074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9982478558640074
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.59
-  Qms:  # mechanical Q factor
-    value: 3.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.47
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0168
     winner: vendor_page
     sources:
       vendor_page: 0.0168
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
+  Fs:  # free air resonance (Hz)
+    value: 37.0
     winner: vendor_page
     sources:
-      vendor_page: 16.0
+      vendor_page: 37.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9982478558640074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9982478558640074
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0149
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0149
+  Qms:  # mechanical Q factor
+    value: 3.47
+    winner: vendor_page
+    sources:
+      vendor_page: 3.47
   Cms:  # mechanical compliance (m/N)
     value: 0.0019299999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0019299999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/296-414-aurum-cantus-ac-180f1d-specifications-45627.pdf
-  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
-datasheet_url: https://www.parts-express.com/pedocs/specs/296-414-aurum-cantus-ac-180f1d-specifications-45627.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC-180F1D-7-DVC-Woofer-296-414
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.71
+    winner: vendor_page
+    sources:
+      vendor_page: 0.71
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.077021696
+    winner: vendor_page
+    sources:
+      vendor_page: 0.077021696

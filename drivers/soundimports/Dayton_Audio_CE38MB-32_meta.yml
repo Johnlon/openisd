@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00131
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00131
-  Qes:  # electrical Q factor
-    value: 1.15
-    winner: vendor_page
-    sources:
-      vendor_page: 1.15
-  Mms:  # moving mass incl. air load (kg)
-    value: 6.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0e-05
-  BL:  # force factor (T·m)
-    value: 1.32
-    winner: vendor_page
-    sources:
-      vendor_page: 1.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 31.98
-    winner: vendor_page
-    sources:
-      vendor_page: 31.98
-  Pe:  # rated power input (W)
-    value: 0.25
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25
-  Fs:  # free air resonance (Hz)
-    value: 137.9
-    winner: vendor_page
-    sources:
-      vendor_page: 137.9
   Xmax:  # one-way linear excursion (m)
     value: 0.0001
     winner: vendor_page
@@ -55,26 +27,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 0.66
+  Re:  # DC voice coil resistance (Ω)
+    value: 31.98
     winner: vendor_page
     sources:
-      vendor_page: 0.66
+      vendor_page: 31.98
   Sd:  # effective piston area (m²)
     value: 0.00049
     winner: vendor_page
     sources:
       vendor_page: 0.00049
-  Znom:  # nominal impedance (Ω)
-    value: 32.0
+  Fs:  # free air resonance (Hz)
+    value: 137.9
     winner: vendor_page
     sources:
-      vendor_page: 32.0
+      vendor_page: 137.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 6.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0e-05
+  Qms:  # mechanical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
   Cms:  # mechanical compliance (m/N)
     value: 0.0213
     winner: vendor_page
     sources:
       vendor_page: 0.0213
+  Znom:  # nominal impedance (Ω)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
+  Qes:  # electrical Q factor
+    value: 1.15
+    winner: vendor_page
+    sources:
+      vendor_page: 1.15
+  Pe:  # rated power input (W)
+    value: 0.25
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25
+  BL:  # force factor (T·m)
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
+  Le:  # voice coil inductance (H)
+    value: 0.00131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00131
   power_peak_W:  # peak power handling (W)
     value: 0.5
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce38mb.html
-frd_url: null
-zma_url: null

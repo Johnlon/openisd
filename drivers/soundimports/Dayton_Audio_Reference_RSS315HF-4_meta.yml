@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00096
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00096
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0841
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0841
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.188
-    winner: vendor_page
-    sources:
-      vendor_page: 0.188
-  BL:  # force factor (T·m)
-    value: 13.99
-    winner: vendor_page
-    sources:
-      vendor_page: 13.99
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 24.2
-    winner: vendor_page
-    sources:
-      vendor_page: 24.2
   Xmax:  # one-way linear excursion (m)
     value: 0.0143
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 2.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 2.83
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.05147
     winner: vendor_page
     sources:
       vendor_page: 0.05147
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 24.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 24.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.188
+    winner: vendor_page
+    sources:
+      vendor_page: 0.188
+  Qms:  # mechanical Q factor
+    value: 2.83
+    winner: vendor_page
+    sources:
+      vendor_page: 2.83
   Cms:  # mechanical compliance (m/N)
     value: 0.00023
     winner: vendor_page
     sources:
       vendor_page: 0.00023
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 13.99
+    winner: vendor_page
+    sources:
+      vendor_page: 13.99
+  Le:  # voice coil inductance (H)
+    value: 0.00096
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00096
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0841
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0841
   power_peak_W:  # peak power handling (W)
     value: 800.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 64.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss315hf-4.html
-frd_url: null
-zma_url: null

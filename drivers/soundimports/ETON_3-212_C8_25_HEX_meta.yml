@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/eton-3-212c825-hex.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/eton-3-212c825-hex.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/eton-3-212c825-hex.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/eton-3-212c825-hex.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  BL:  # force factor (T·m)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.79
-    winner: vendor_page
-    sources:
-      vendor_page: 0.79
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 4.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 4.23
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.0034
     winner: vendor_page
     sources:
       vendor_page: 0.0034
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.79
+    winner: vendor_page
+    sources:
+      vendor_page: 0.79
+  Qms:  # mechanical Q factor
+    value: 4.23
+    winner: vendor_page
+    sources:
+      vendor_page: 4.23
   Cms:  # mechanical compliance (m/N)
     value: 0.00046
     winner: vendor_page
     sources:
       vendor_page: 0.00046
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.2
+    winner: vendor_page
+    sources:
+      vendor_page: 7.2
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 25.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/eton-3-212c825-hex.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/eton-3-212c825-hex.html
-frd_url: null
-zma_url: null

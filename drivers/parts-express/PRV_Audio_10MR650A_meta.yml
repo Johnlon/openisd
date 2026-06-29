@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3168--prv-audio-10mr650a-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.04191 differs from calculated=0.0426938 (deps: ro
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3168
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3168--prv-audio-10mr650a-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00044
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00044
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.04191
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04191
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.03186
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03186
-  BL:  # force factor (T·m)
-    value: 12.25
-    winner: vendor_page
-    sources:
-      vendor_page: 12.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 10.1
-    winner: vendor_page
-    sources:
-      vendor_page: 10.1
-  Fs:  # free air resonance (Hz)
-    value: 64.7
-    winner: vendor_page
-    sources:
-      vendor_page: 64.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9127409279402525
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9127409279402525
   Xmax:  # one-way linear excursion (m)
     value: 0.00572
     winner: vendor_page
@@ -68,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 14.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 14.19
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0398
     winner: vendor_page
     sources:
       vendor_page: 0.0398
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 64.7
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 64.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9127409279402525
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9127409279402525
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.03186
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03186
+  Qms:  # mechanical Q factor
+    value: 14.19
+    winner: vendor_page
+    sources:
+      vendor_page: 14.19
   Cms:  # mechanical compliance (m/N)
     value: 0.00019
     winner: vendor_page
     sources:
       vendor_page: 0.00019
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 10.1
+    winner: vendor_page
+    sources:
+      vendor_page: 10.1
+  BL:  # force factor (T·m)
+    value: 12.25
+    winner: vendor_page
+    sources:
+      vendor_page: 12.25
+  Le:  # voice coil inductance (H)
+    value: 0.00044
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00044
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.04191
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04191
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 10.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 325.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3168--prv-audio-10mr650a-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3168--prv-audio-10mr650a-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-10MR650A-10-Alto-Series-Professional-Midrange-8-Ohm-294-3168
-frd_url: null
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-640--visaton-frs-5x-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,75 +16,66 @@ corrections: '''Vas'' stored=0.000229932 differs from calculated=0.000221648 (de
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-640
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-640--visaton-frs-5x-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000229932416
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000229932416
-  Qes:  # electrical Q factor
-    value: 0.88
-    winner: vendor_page
-    sources:
-      vendor_page: 0.88
-  BL:  # force factor (T·m)
-    value: 2.704
-    winner: vendor_page
-    sources:
-      vendor_page: 2.704
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 190.0
-    winner: vendor_page
-    sources:
-      vendor_page: 190.0
   Qts:  # total Q factor
     value: 0.7
     winner: vendor_page
     sources:
       vendor_page: 0.7
-  Qms:  # mechanical Q factor
-    value: 3.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.7
     winner: vendor_page
     sources:
-      vendor_page: 3.49
+      vendor_page: 7.7
   Sd:  # effective piston area (m²)
     value: 0.00125
     winner: vendor_page
     sources:
       vendor_page: 0.00125
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 190.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 190.0
+  Qms:  # mechanical Q factor
+    value: 3.49
+    winner: vendor_page
+    sources:
+      vendor_page: 3.49
   Cms:  # mechanical compliance (m/N)
     value: 0.001
     winner: vendor_page
     sources:
       vendor_page: 0.001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-640--visaton-frs-5x-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-640--visaton-frs-5x-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FRS5X-8-2-Full-Range-Driver-8-Ohm-292-640
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.88
+    winner: vendor_page
+    sources:
+      vendor_page: 0.88
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 2.704
+    winner: vendor_page
+    sources:
+      vendor_page: 2.704
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000229932416
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000229932416

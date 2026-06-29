@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-093--dayton-audio-amt3-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,45 +15,36 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
 obsolete: null
 dq_issue: Fs_no_Q
 community: null
 fetched_sku: 275-093
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-093--dayton-audio-amt3-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 3.7
     winner: vendor_page
     sources:
       vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 875.0
-    winner: vendor_page
-    sources:
-      vendor_page: 875.0
   Sd:  # effective piston area (m²)
     value: 0.003254
     winner: vendor_page
     sources:
       vendor_page: 0.003254
+  Fs:  # free air resonance (Hz)
+    value: 875.0
+    winner: vendor_page
+    sources:
+      vendor_page: 875.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-093--dayton-audio-amt3-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-093--dayton-audio-amt3-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-AMT3-4-Air-Motion-Transformer-Tweeter-275-093
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0

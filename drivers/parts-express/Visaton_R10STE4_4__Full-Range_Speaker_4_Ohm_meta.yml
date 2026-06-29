@@ -1,36 +1,44 @@
+source: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7825--visaton-r10ste4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7825--visaton-r10ste4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
 specs:
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
+  Fs:  # free air resonance (Hz)
+    value: 160.0
+    winner: vendor_page
+    sources:
+      vendor_page: 160.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 90.0
     winner: vendor_page
@@ -41,11 +49,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7825--visaton-r10ste4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7825--visaton-r10ste4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-R10STE4-4-Full-Range-Speaker-4-Ohm-292-7825
-frd_url: null
-zma_url: null

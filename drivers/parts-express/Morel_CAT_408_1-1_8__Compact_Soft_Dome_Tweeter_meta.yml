@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-086--morel-cat-408-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-086--morel-cat-408-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.999999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.999999999999999e-05
-  Qes:  # electrical Q factor
-    value: 1.3
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 780.0
-    winner: vendor_page
-    sources:
-      vendor_page: 780.0
   Qts:  # total Q factor
     value: 0.52
     winner: vendor_page
     sources:
       vendor_page: 0.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Fs:  # free air resonance (Hz)
+    value: 780.0
+    winner: vendor_page
+    sources:
+      vendor_page: 780.0
   Qms:  # mechanical Q factor
     value: 0.87
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-086--morel-cat-408-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-086--morel-cat-408-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-CAT-408-1-1-8-Compact-Soft-Dome-Tweeter-277-086
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.3
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Le:  # voice coil inductance (H)
+    value: 8.999999999999999e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.999999999999999e-05

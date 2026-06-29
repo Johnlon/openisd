@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 9.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 9.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.134
-    winner: vendor_page
-    sources:
-      vendor_page: 0.134
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0126
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0126
-  BL:  # force factor (T·m)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.63
-    winner: vendor_page
-    sources:
-      vendor_page: 0.63
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 4.36
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 4.36
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0222
     winner: vendor_page
     sources:
       vendor_page: 0.0222
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.63
+    winner: vendor_page
+    sources:
+      vendor_page: 0.63
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0126
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0126
+  Qms:  # mechanical Q factor
+    value: 4.36
+    winner: vendor_page
+    sources:
+      vendor_page: 4.36
   Cms:  # mechanical compliance (m/N)
     value: 0.0022
     winner: vendor_page
     sources:
       vendor_page: 0.0022
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-prestige-fa22rcz.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Le:  # voice coil inductance (H)
+    value: 9.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.134
+    winner: vendor_page
+    sources:
+      vendor_page: 0.134

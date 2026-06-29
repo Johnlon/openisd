@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5992-bc-15tbw100-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5992-bc-15tbw100-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0022
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.09599395200000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09599395200000001
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.181
-    winner: vendor_page
-    sources:
-      vendor_page: 0.181
-  BL:  # force factor (T·m)
-    value: 26.4
-    winner: vendor_page
-    sources:
-      vendor_page: 26.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 3000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3000.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 10.080228428041066
-    winner: vendor_page
-    sources:
-      vendor_page: 10.080228428041066
   Xmax:  # one-way linear excursion (m)
     value: 0.012
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 4.4
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 39.0
+    winner: vendor_page
+    sources:
+      vendor_page: 39.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 10.080228428041066
+    winner: vendor_page
+    sources:
+      vendor_page: 10.080228428041066
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.181
+    winner: vendor_page
+    sources:
+      vendor_page: 0.181
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 3000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3000.0
+  BL:  # force factor (T·m)
+    value: 26.4
+    winner: vendor_page
+    sources:
+      vendor_page: 26.4
+  Le:  # voice coil inductance (H)
+    value: 0.0022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0022
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.09599395200000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09599395200000001
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 40.0
     winner: vendor_page
     sources:
       vendor_page: 40.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5992-bc-15tbw100-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5992-bc-15tbw100-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15TBW100-4-15-Professional-Woofer-4-Ohm-294-5992
-frd_url: null
-zma_url: null

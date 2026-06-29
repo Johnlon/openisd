@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00057
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00057
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08098604799999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08098604799999999
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.047
-  BL:  # force factor (T·m)
-    value: 15.9
-    winner: vendor_page
-    sources:
-      vendor_page: 15.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8302866377529092
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8302866377529092
   Xmax:  # one-way linear excursion (m)
     value: 0.0062
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 8.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 8.39
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.053239999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.053239999999999996
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8302866377529092
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8302866377529092
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.047
+  Qms:  # mechanical Q factor
+    value: 8.39
+    winner: vendor_page
+    sources:
+      vendor_page: 8.39
   Cms:  # mechanical compliance (m/N)
     value: 0.0002
     winner: vendor_page
     sources:
       vendor_page: 0.0002
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 15.9
+    winner: vendor_page
+    sources:
+      vendor_page: 15.9
+  Le:  # voice coil inductance (H)
+    value: 0.00057
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00057
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.08098604799999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08098604799999999

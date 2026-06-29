@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-802--lavoce-wsf051.02-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-802--lavoce-wsf051.02-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003398016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003398016
-  Qes:  # electrical Q factor
-    value: 0.66
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66
-  BL:  # force factor (T·m)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 106.0
-    winner: vendor_page
-    sources:
-      vendor_page: 106.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0031
     winner: vendor_page
@@ -56,36 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.6
-  Qms:  # mechanical Q factor
-    value: 7.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 7.02
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.008825
     winner: vendor_page
     sources:
       vendor_page: 0.008825
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 106.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 106.0
+  Qms:  # mechanical Q factor
+    value: 7.02
+    winner: vendor_page
+    sources:
+      vendor_page: 7.02
   Cms:  # mechanical compliance (m/N)
     value: 0.000312
     winner: vendor_page
     sources:
       vendor_page: 0.000312
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Le:  # voice coil inductance (H)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003398016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003398016
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: vendor_page
     sources:
       vendor_page: 91.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-802--lavoce-wsf051.02-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-802--lavoce-wsf051.02-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Lavoce-WSF051.02-5-Woofer-293-802
-frd_url: null
-zma_url: null

@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
+driver_type: midrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0037
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
-  BL:  # force factor (T·m)
-    value: 9.6
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1
   Xmax:  # one-way linear excursion (m)
     value: 0.0051
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 4.4
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.00852
     winner: vendor_page
     sources:
       vendor_page: 0.00852
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 90.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 90.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00037
     winner: vendor_page
     sources:
       vendor_page: 0.00037
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 9.6
+    winner: vendor_page
+    sources:
+      vendor_page: 9.6
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0037
   power_peak_W:  # peak power handling (W)
     value: 240.0
     winner: vendor_page
@@ -110,10 +117,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 37.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/faitalpro-5pr160-8f.html
-frd_url: null
-zma_url: null

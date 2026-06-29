@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-s220-6-222.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-s220-6-222.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/S220-6-222/S220-6-222.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-s220-6-222.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/S220-6-222/S220-6-222.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-s220-6-222.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00036
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00036
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08968
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08968
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.03215
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03215
-  BL:  # force factor (T·m)
-    value: 10.95
-    winner: vendor_page
-    sources:
-      vendor_page: 10.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.52
-    winner: vendor_page
-    sources:
-      vendor_page: 6.52
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.32
-    winner: vendor_page
-    sources:
-      vendor_page: 1.32
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -65,31 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 3.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.52
     winner: vendor_page
     sources:
-      vendor_page: 3.83
+      vendor_page: 6.52
   Sd:  # effective piston area (m²)
     value: 0.0224
     winner: vendor_page
     sources:
       vendor_page: 0.0224
+  Fs:  # free air resonance (Hz)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.03215
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03215
+  Qms:  # mechanical Q factor
+    value: 3.83
+    winner: vendor_page
+    sources:
+      vendor_page: 3.83
   Cms:  # mechanical compliance (m/N)
     value: 0.00126
     winner: vendor_page
     sources:
       vendor_page: 0.00126
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 10.95
+    winner: vendor_page
+    sources:
+      vendor_page: 10.95
+  Le:  # voice coil inductance (H)
+    value: 0.00036
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00036
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.08968
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08968
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.5
     winner: vendor_page
     sources:
       vendor_page: 91.5
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/S220-6-222/S220-6-222.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-s220-6-222.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/S220-6-222/S220-6-222.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-s220-6-222.html
-frd_url: null
-zma_url: null

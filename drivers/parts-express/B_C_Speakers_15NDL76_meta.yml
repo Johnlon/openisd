@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-683
+_sources:
+  vendor_page: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.19255424
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19255424
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.096
-    winner: vendor_page
-    sources:
-      vendor_page: 0.096
-  BL:  # force factor (T·m)
-    value: 22.5
-    winner: vendor_page
-    sources:
-      vendor_page: 22.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.959527602467087
-    winner: vendor_page
-    sources:
-      vendor_page: 4.959527602467087
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -67,28 +32,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 4.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 4.5
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 37.0
+    winner: vendor_page
+    sources:
+      vendor_page: 37.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.959527602467087
+    winner: vendor_page
+    sources:
+      vendor_page: 4.959527602467087
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.096
+    winner: vendor_page
+    sources:
+      vendor_page: 0.096
+  Qms:  # mechanical Q factor
+    value: 4.5
+    winner: vendor_page
+    sources:
+      vendor_page: 4.5
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15NDL76-15-Neodymium-Woofer-294-683
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 22.5
+    winner: vendor_page
+    sources:
+      vendor_page: 22.5
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.19255424
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19255424

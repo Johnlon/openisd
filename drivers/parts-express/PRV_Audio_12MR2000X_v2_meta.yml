@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.28 differs from calculated=0.275512 (deps: Qms=17
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
 obsolete: null
 dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
 community: null
 fetched_sku: 294-3405
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00043
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039643519999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039643519999999995
-  Qes:  # electrical Q factor
-    value: 0.28
-    winner: vendor_page
-    sources:
-      vendor_page: 0.28
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.06986
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06986
-  BL:  # force factor (T·m)
-    value: 23.19
-    winner: vendor_page
-    sources:
-      vendor_page: 23.19
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 64.7
-    winner: vendor_page
-    sources:
-      vendor_page: 64.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.6521019874173306
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6521019874173306
   Xmax:  # one-way linear excursion (m)
     value: 0.0066
     winner: vendor_page
@@ -69,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 17.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 17.19
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0573
     winner: vendor_page
     sources:
       vendor_page: 0.0573
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 64.7
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 64.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.6521019874173306
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6521019874173306
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.06986
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06986
+  Qms:  # mechanical Q factor
+    value: 17.19
+    winner: vendor_page
+    sources:
+      vendor_page: 17.19
   Cms:  # mechanical compliance (m/N)
     value: 8.599999999999999e-05
     winner: vendor_page
     sources:
       vendor_page: 8.599999999999999e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.28
+    winner: vendor_page
+    sources:
+      vendor_page: 0.28
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 23.19
+    winner: vendor_page
+    sources:
+      vendor_page: 23.19
+  Le:  # voice coil inductance (H)
+    value: 0.00043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00043
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039643519999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039643519999999995
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 2.0
     winner: vendor_page
@@ -104,13 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405
-frd_url: null
-zma_url: null

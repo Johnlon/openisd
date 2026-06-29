@@ -1,26 +1,33 @@
+source: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043041536
+  Xmax:  # one-way linear excursion (m)
+    value: 0.011
     winner: vendor_page
     sources:
-      vendor_page: 0.043041536
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0688
+      vendor_page: 0.011
+  Sd:  # effective piston area (m²)
+    value: 0.02112
     winner: vendor_page
     sources:
-      vendor_page: 0.0688
+      vendor_page: 0.02112
   Fs:  # free air resonance (Hz)
     value: 23.3
     winner: vendor_page
@@ -31,30 +38,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.3722339747712757
-  Xmax:  # one-way linear excursion (m)
-    value: 0.011
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0688
     winner: vendor_page
     sources:
-      vendor_page: 0.011
+      vendor_page: 0.0688
   Qms:  # mechanical Q factor
     value: 7.34
     winner: vendor_page
     sources:
       vendor_page: 7.34
-  Sd:  # effective piston area (m²)
-    value: 0.02112
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02112
   Cms:  # mechanical compliance (m/N)
     value: 0.00068
     winner: vendor_page
     sources:
       vendor_page: 0.00068
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS215-PR-8-Designer-Series-Passive-Radiator-295-492
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043041536
+    winner: vendor_page
+    sources:
+      vendor_page: 0.043041536

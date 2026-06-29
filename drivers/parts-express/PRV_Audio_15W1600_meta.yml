@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2742--prv-audio-15w1600-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.42 differs from calculated=0.426376 (deps: Qms=13
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2742
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2742--prv-audio-15w1600-specifications.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0017800000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017800000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0920296
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0920296
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1308
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1308
-  BL:  # force factor (T·m)
-    value: 24.13
-    winner: vendor_page
-    sources:
-      vendor_page: 24.13
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 53.6
-    winner: vendor_page
-    sources:
-      vendor_page: 53.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.199031097051505
-    winner: vendor_page
-    sources:
-      vendor_page: 3.199031097051505
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -68,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 13.77
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 13.77
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.0984
     winner: vendor_page
     sources:
       vendor_page: 0.0984
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 53.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 53.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.199031097051505
+    winner: vendor_page
+    sources:
+      vendor_page: 3.199031097051505
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1308
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1308
+  Qms:  # mechanical Q factor
+    value: 13.77
+    winner: vendor_page
+    sources:
+      vendor_page: 13.77
   Cms:  # mechanical compliance (m/N)
     value: 0.09119
     winner: vendor_page
     sources:
       vendor_page: 0.09119
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 24.13
+    winner: vendor_page
+    sources:
+      vendor_page: 24.13
+  Le:  # voice coil inductance (H)
+    value: 0.0017800000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017800000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0920296
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0920296
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 800.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2742--prv-audio-15w1600-specifications.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2742--prv-audio-15w1600-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742
-frd_url: null
-zma_url: null

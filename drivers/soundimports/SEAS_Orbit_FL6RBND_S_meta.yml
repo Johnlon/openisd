@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/seas-fl6rbnds.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-fl6rbnds.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-fl6rbnds.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-fl6rbnds.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Qes:  # electrical Q factor
-    value: 0.66
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00239
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00239
-  BL:  # force factor (T·m)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.88
-    winner: vendor_page
-    sources:
-      vendor_page: 3.88
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 117.0
-    winner: vendor_page
-    sources:
-      vendor_page: 117.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
   Xmax:  # one-way linear excursion (m)
     value: 0.00435
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 3.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.88
     winner: vendor_page
     sources:
-      vendor_page: 3.2
+      vendor_page: 3.88
   Sd:  # effective piston area (m²)
     value: 0.001735
     winner: vendor_page
     sources:
       vendor_page: 0.001735
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 117.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 117.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00239
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00239
+  Qms:  # mechanical Q factor
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00078
     winner: vendor_page
     sources:
       vendor_page: 0.00078
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-fl6rbnds.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-fl6rbnds.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033

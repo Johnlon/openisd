@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2760--prv-audio-4mr60-4-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2760--prv-audio-4mr60-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003398016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003398016
-  Qes:  # electrical Q factor
-    value: 0.75
-    winner: vendor_page
-    sources:
-      vendor_page: 0.75
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00432
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00432
-  BL:  # force factor (T·m)
-    value: 3.42
-    winner: vendor_page
-    sources:
-      vendor_page: 3.42
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 89.88
-    winner: vendor_page
-    sources:
-      vendor_page: 89.88
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.332376736262695
-    winner: vendor_page
-    sources:
-      vendor_page: 0.332376736262695
   Xmax:  # one-way linear excursion (m)
     value: 0.00287
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 7.34
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 7.34
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0057
     winner: vendor_page
     sources:
       vendor_page: 0.0057
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 89.88
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 89.88
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.332376736262695
+    winner: vendor_page
+    sources:
+      vendor_page: 0.332376736262695
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00432
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00432
+  Qms:  # mechanical Q factor
+    value: 7.34
+    winner: vendor_page
+    sources:
+      vendor_page: 7.34
   Cms:  # mechanical compliance (m/N)
     value: 0.000725
     winner: vendor_page
     sources:
       vendor_page: 0.000725
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2760--prv-audio-4mr60-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2760--prv-audio-4mr60-4-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.75
+    winner: vendor_page
+    sources:
+      vendor_page: 0.75
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 3.42
+    winner: vendor_page
+    sources:
+      vendor_page: 3.42
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003398016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003398016

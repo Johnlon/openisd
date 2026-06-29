@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
+driver_type: mid-bass
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.09231276799999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09231276799999999
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05231
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05231
-  BL:  # force factor (T·m)
-    value: 15.89
-    winner: vendor_page
-    sources:
-      vendor_page: 15.89
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 49.4
-    winner: vendor_page
-    sources:
-      vendor_page: 49.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3474246570022463
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3474246570022463
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 12.05
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 12.05
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0577
     winner: vendor_page
     sources:
       vendor_page: 0.0577
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 49.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 49.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3474246570022463
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3474246570022463
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05231
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05231
+  Qms:  # mechanical Q factor
+    value: 12.05
+    winner: vendor_page
+    sources:
+      vendor_page: 12.05
   Cms:  # mechanical compliance (m/N)
     value: 0.000199
     winner: vendor_page
     sources:
       vendor_page: 0.000199
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 15.89
+    winner: vendor_page
+    sources:
+      vendor_page: 15.89
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.09231276799999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09231276799999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 500.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 70.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12MR1000-PRO-12-Professional-Midrange-Driver-294-3546
-frd_url: null
-zma_url: null

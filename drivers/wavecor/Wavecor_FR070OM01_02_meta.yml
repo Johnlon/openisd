@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/fr070om01_02.html
+manu_page_url: http://www.wavecor.com/html/fr070om01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR070OM01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR070OM02_SPL_response.txt
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: http://www.wavecor.com/html/fr070om01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR070OM01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/fr070om01_02.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 6.7e-05
-    winner: manu_page
-    sources:
-      manu_page: 6.7e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0006
-    winner: manu_page
-    sources:
-      manu_page: 0.0006
-  Qes:  # electrical Q factor
-    value: 0.89
-    winner: manu_page
-    sources:
-      manu_page: 0.89
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00215
-    winner: manu_page
-    sources:
-      manu_page: 0.00215
-  BL:  # force factor (T·m)
-    value: 2.3
-    winner: manu_page
-    sources:
-      manu_page: 2.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 116.0
-    winner: manu_page
-    sources:
-      manu_page: 116.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.11
-    winner: manu_page
-    sources:
-      manu_page: 0.11
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: manu_page
@@ -67,34 +33,68 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 14.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: manu_page
     sources:
-      manu_page: 14.2
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0022
     winner: manu_page
     sources:
       manu_page: 0.0022
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 116.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 116.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.11
+    winner: manu_page
+    sources:
+      manu_page: 0.11
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00215
+    winner: manu_page
+    sources:
+      manu_page: 0.00215
+  Qms:  # mechanical Q factor
+    value: 14.2
+    winner: manu_page
+    sources:
+      manu_page: 14.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00088
     winner: manu_page
     sources:
       manu_page: 0.00088
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR070OM01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/fr070om01_02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR070OM01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/fr070om01_02.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR070OM02_SPL_response.txt
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.89
+    winner: manu_page
+    sources:
+      manu_page: 0.89
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 2.3
+    winner: manu_page
+    sources:
+      manu_page: 2.3
+  Le:  # voice coil inductance (H)
+    value: 6.7e-05
+    winner: manu_page
+    sources:
+      manu_page: 6.7e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0006
+    winner: manu_page
+    sources:
+      manu_page: 0.0006

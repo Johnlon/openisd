@@ -1,45 +1,52 @@
+source: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 9.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 9.0e-05
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 159.4
-    winner: vendor_page
-    sources:
-      vendor_page: 159.4
   Qts:  # total Q factor
     value: 1.81
     winner: vendor_page
     sources:
       vendor_page: 1.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Fs:  # free air resonance (Hz)
+    value: 159.4
+    winner: vendor_page
+    sources:
+      vendor_page: 159.4
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Le:  # voice coil inductance (H)
+    value: 9.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0e-05
   power_peak_W:  # peak power handling (W)
     value: 80.0
     winner: vendor_page
@@ -50,10 +57,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 32.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex32hrts-4.html
-frd_url: null
-zma_url: null

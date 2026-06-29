@@ -1,40 +1,37 @@
+source: https://www.soundimports.eu/en/hivi-b1s.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-b1s.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-b1s.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-b1s.html
 specs:
-  Qes:  # electrical Q factor
-    value: 0.68
-    winner: vendor_page
-    sources:
-      vendor_page: 0.68
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
   Qts:  # total Q factor
     value: 0.56
     winner: vendor_page
     sources:
       vendor_page: 0.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Fs:  # free air resonance (Hz)
+    value: 220.0
+    winner: vendor_page
+    sources:
+      vendor_page: 220.0
   Qms:  # mechanical Q factor
     value: 2.57
     winner: vendor_page
@@ -45,6 +42,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.68
+    winner: vendor_page
+    sources:
+      vendor_page: 0.68
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
   power_peak_W:  # peak power handling (W)
     value: 2.0
     winner: vendor_page
@@ -65,10 +72,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-b1s.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-b1s.html
-frd_url: null
-zma_url: null

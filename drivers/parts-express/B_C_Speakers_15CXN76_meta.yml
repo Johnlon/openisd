@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-578--bc-15cxn76-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.28 differs from calculated=0.285246 (deps: Qms=5.
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-578
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-578--bc-15cxn76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.24352448
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24352448
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.082
-  BL:  # force factor (T·m)
-    value: 17.8
-    winner: vendor_page
-    sources:
-      vendor_page: 17.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: vendor_page
-    sources:
-      vendor_page: 38.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.375587140891654
-    winner: vendor_page
-    sources:
-      vendor_page: 3.375587140891654
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 5.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 5.8
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 38.0
+    winner: vendor_page
+    sources:
+      vendor_page: 38.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.375587140891654
+    winner: vendor_page
+    sources:
+      vendor_page: 3.375587140891654
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.082
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-578--bc-15cxn76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-578--bc-15cxn76-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15CXN76-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-578
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 17.8
+    winner: vendor_page
+    sources:
+      vendor_page: 17.8
+  Le:  # voice coil inductance (H)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.24352448
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24352448

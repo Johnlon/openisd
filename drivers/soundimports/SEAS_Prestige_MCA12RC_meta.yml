@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/seas-mca12rc.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-mca12rc.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-mca12rc.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-mca12rc.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00031
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00031
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qes:  # electrical Q factor
-    value: 0.74
-    winner: vendor_page
-    sources:
-      vendor_page: 0.74
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00458
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00458
-  BL:  # force factor (T·m)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Fs:  # free air resonance (Hz)
-    value: 68.0
-    winner: vendor_page
-    sources:
-      vendor_page: 68.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.85
-    winner: vendor_page
-    sources:
-      vendor_page: 0.85
   Xmax:  # one-way linear excursion (m)
     value: 0.0009
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 2.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.42
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0055
     winner: vendor_page
     sources:
       vendor_page: 0.0055
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 68.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 68.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.85
+    winner: vendor_page
+    sources:
+      vendor_page: 0.85
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00458
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00458
+  Qms:  # mechanical Q factor
+    value: 2.42
+    winner: vendor_page
+    sources:
+      vendor_page: 2.42
   Cms:  # mechanical compliance (m/N)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-mca12rc.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-mca12rc.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.74
+    winner: vendor_page
+    sources:
+      vendor_page: 0.74
+  Pe:  # rated power input (W)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
+  BL:  # force factor (T·m)
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
+  Le:  # voice coil inductance (H)
+    value: 0.00031
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00031
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005

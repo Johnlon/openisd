@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00263
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00263
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.104
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0675
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0675
-  BL:  # force factor (T·m)
-    value: 12.64
-    winner: vendor_page
-    sources:
-      vendor_page: 12.64
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 24.9
-    winner: vendor_page
-    sources:
-      vendor_page: 24.9
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 3.16
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 3.16
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 0.03431
     winner: vendor_page
     sources:
       vendor_page: 0.03431
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0675
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0675
+  Qms:  # mechanical Q factor
+    value: 3.16
+    winner: vendor_page
+    sources:
+      vendor_page: 3.16
   Cms:  # mechanical compliance (m/N)
     value: 0.00061
     winner: vendor_page
     sources:
       vendor_page: 0.00061
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 12.64
+    winner: vendor_page
+    sources:
+      vendor_page: 12.64
+  Le:  # voice coil inductance (H)
+    value: 0.00263
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00263
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.104
   power_peak_W:  # peak power handling (W)
     value: 140.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 35.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dc250-8.html
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1974--tfx0515-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1974--tfx0515-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000363
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000363
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02548512
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02548512
-  Qes:  # electrical Q factor
-    value: 0.665
-    winner: vendor_page
-    sources:
-      vendor_page: 0.665
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00907
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00907
-  BL:  # force factor (T·m)
-    value: 6.96
-    winner: vendor_page
-    sources:
-      vendor_page: 6.96
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.77
-    winner: vendor_page
-    sources:
-      vendor_page: 5.77
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4157467863295192
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4157467863295192
   Xmax:  # one-way linear excursion (m)
     value: 0.00225
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.627
-  Qms:  # mechanical Q factor
-    value: 10.966
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.77
     winner: vendor_page
     sources:
-      vendor_page: 10.966
+      vendor_page: 5.77
   Sd:  # effective piston area (m²)
     value: 0.007854
     winner: vendor_page
     sources:
       vendor_page: 0.007854
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 80.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4157467863295192
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4157467863295192
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00907
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00907
+  Qms:  # mechanical Q factor
+    value: 10.966
+    winner: vendor_page
+    sources:
+      vendor_page: 10.966
   Cms:  # mechanical compliance (m/N)
     value: 0.00029099999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00029099999999999997
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.665
+    winner: vendor_page
+    sources:
+      vendor_page: 0.665
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 6.96
+    winner: vendor_page
+    sources:
+      vendor_page: 6.96
+  Le:  # voice coil inductance (H)
+    value: 0.000363
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000363
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02548512
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02548512
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
     sources:
       vendor_page: 96.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1974--tfx0515-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1974--tfx0515-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974
-frd_url: null
-zma_url: null

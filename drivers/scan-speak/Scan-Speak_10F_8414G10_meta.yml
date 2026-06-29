@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/10f-8414g10/
+manu_page_url: https://www.scan-speak.dk/product/10f-8414g10/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/reviews/10F-8414G10-VoiceCoil_2013-12.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/10f-8414g10/
+driver_type: fullrange
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/reviews/10F-8414G10-VoiceCoil_2013-12.pdf
+  manu_page: https://www.scan-speak.dk/product/10f-8414g10/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00157
-    winner: manu_page
-    sources:
-      manu_page: 0.00157
-  BL:  # force factor (T·m)
-    value: 4.3
-    winner: manu_page
-    sources:
-      manu_page: 4.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: manu_page
-    sources:
-      manu_page: 6.3
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: manu_page
-    sources:
-      manu_page: 100.0
   Qts:  # total Q factor
     value: 0.51
     winner: manu_page
     sources:
       manu_page: 0.51
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
+    winner: manu_page
+    sources:
+      manu_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.00363
     winner: manu_page
     sources:
       manu_page: 0.00363
+  Fs:  # free air resonance (Hz)
+    value: 100.0
+    winner: manu_page
+    sources:
+      manu_page: 100.0
+  BL:  # force factor (T·m)
+    value: 4.3
+    winner: manu_page
+    sources:
+      manu_page: 4.3
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 86.0
     winner: manu_page
     sources:
       manu_page: 86.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/reviews/10F-8414G10-VoiceCoil_2013-12.pdf
-  manu_page: https://www.scan-speak.dk/product/10f-8414g10/
-datasheet_url: https://www.scan-speak.dk/datasheet/reviews/10F-8414G10-VoiceCoil_2013-12.pdf
-manu_page_url: https://www.scan-speak.dk/product/10f-8414g10/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00157
+    winner: manu_page
+    sources:
+      manu_page: 0.00157

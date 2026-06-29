@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-705--lavoce-fsf030.70-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-705
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-705--lavoce-fsf030.70-specifications.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 0.85
-    winner: vendor_page
-    sources:
-      vendor_page: 0.85
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 114.0
-    winner: vendor_page
-    sources:
-      vendor_page: 114.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3114274456602056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3114274456602056
   Xmax:  # one-way linear excursion (m)
     value: 0.0021000000000000003
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.72
-  Qms:  # mechanical Q factor
-    value: 4.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 4.6
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0033200000000000005
     winner: vendor_page
     sources:
       vendor_page: 0.0033200000000000005
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 114.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 114.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3114274456602056
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3114274456602056
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 4.6
+    winner: vendor_page
+    sources:
+      vendor_page: 4.6
   Cms:  # mechanical compliance (m/N)
     value: 0.0009
     winner: vendor_page
     sources:
       vendor_page: 0.0009
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-705--lavoce-fsf030.70-specifications.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-705--lavoce-fsf030.70-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-FSF030.70-3-Full-Range-Woofer-8-Ohm-293-705
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.85
+    winner: vendor_page
+    sources:
+      vendor_page: 0.85
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584

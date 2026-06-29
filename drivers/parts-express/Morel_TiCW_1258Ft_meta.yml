@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,14 @@ corrections: '''Qts'' stored=0.27 differs from calculated=0.266896 (deps: Qms=3.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-110
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.191
-    winner: vendor_page
-    sources:
-      vendor_page: 0.191
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.101
-    winner: vendor_page
-    sources:
-      vendor_page: 0.101
-  BL:  # force factor (T·m)
-    value: 15.25
-    winner: vendor_page
-    sources:
-      vendor_page: 15.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 18.0
-    winner: vendor_page
-    sources:
-      vendor_page: 18.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.39
-    winner: vendor_page
-    sources:
-      vendor_page: 3.39
   Xmax:  # one-way linear excursion (m)
     value: 0.0105
     winner: vendor_page
@@ -69,34 +35,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 3.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 3.35
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0415
     winner: vendor_page
     sources:
       vendor_page: 0.0415
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 18.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 18.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.39
+    winner: vendor_page
+    sources:
+      vendor_page: 3.39
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.101
+    winner: vendor_page
+    sources:
+      vendor_page: 0.101
+  Qms:  # mechanical Q factor
+    value: 3.35
+    winner: vendor_page
+    sources:
+      vendor_page: 3.35
   Cms:  # mechanical compliance (m/N)
     value: 0.00077
     winner: vendor_page
     sources:
       vendor_page: 0.00077
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 15.25
+    winner: vendor_page
+    sources:
+      vendor_page: 15.25
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.191
+    winner: vendor_page
+    sources:
+      vendor_page: 0.191

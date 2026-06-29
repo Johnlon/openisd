@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00028000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00028000000000000003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007928704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007928704
-  Qes:  # electrical Q factor
-    value: 0.28
-    winner: vendor_page
-    sources:
-      vendor_page: 0.28
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016
-  BL:  # force factor (T·m)
-    value: 11.0
-    winner: vendor_page
-    sources:
-      vendor_page: 11.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1266401240459947
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1266401240459947
   Xmax:  # one-way linear excursion (m)
     value: 0.0056
     winner: vendor_page
@@ -66,26 +28,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 5.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 5.8
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.01226
     winner: vendor_page
     sources:
       vendor_page: 0.01226
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1266401240459947
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1266401240459947
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00037
     winner: vendor_page
     sources:
       vendor_page: 0.00037
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.28
+    winner: vendor_page
+    sources:
+      vendor_page: 0.28
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
+  Le:  # voice coil inductance (H)
+    value: 0.00028000000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00028000000000000003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007928704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007928704
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 60.0
     winner: vendor_page
@@ -96,10 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
-frd_url: null
-zma_url: null

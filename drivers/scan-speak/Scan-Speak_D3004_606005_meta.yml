@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/d3004-606005/
+manu_page_url: https://www.scan-speak.dk/product/d3004-606005/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d3004-606005.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/d3004-606005/
+driver_type: tweeter
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/d3004-606005.pdf
+  manu_page: https://www.scan-speak.dk/product/d3004-606005/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 1.0e-05
-  BL:  # force factor (T·m)
-    value: 2.4
-    winner: manu_page
-    sources:
-      manu_page: 2.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.9
-    winner: manu_page
-    sources:
-      manu_page: 2.9
-  Fs:  # free air resonance (Hz)
-    value: 700.0
-    winner: manu_page
-    sources:
-      manu_page: 700.0
   Qts:  # total Q factor
     value: 0.54
     winner: manu_page
     sources:
       manu_page: 0.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.9
+    winner: manu_page
+    sources:
+      manu_page: 2.9
   Sd:  # effective piston area (m²)
     value: 0.0007
     winner: manu_page
     sources:
       manu_page: 0.0007
+  Fs:  # free air resonance (Hz)
+    value: 700.0
+    winner: manu_page
+    sources:
+      manu_page: 700.0
+  BL:  # force factor (T·m)
+    value: 2.4
+    winner: manu_page
+    sources:
+      manu_page: 2.4
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: manu_page
     sources:
       manu_page: 91.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/d3004-606005.pdf
-  manu_page: https://www.scan-speak.dk/product/d3004-606005/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d3004-606005.pdf
-manu_page_url: https://www.scan-speak.dk/product/d3004-606005/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 1.0e-05

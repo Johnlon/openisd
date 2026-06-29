@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
+datasheet_url: https://www.parts-express.com/pedocs/specs/DC300-8%2012_%20Classic%20Woofer%208%20Ohm%20Specification%20Sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/DC300-8%2012_%20Classic%20Woofer%208%20Ohm%20Specification%20Sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0029300000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0029300000000000003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.181510688
-    winner: vendor_page
-    sources:
-      vendor_page: 0.181510688
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1007
-  BL:  # force factor (T·m)
-    value: 16.3
-    winner: vendor_page
-    sources:
-      vendor_page: 16.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 22.9
-    winner: vendor_page
-    sources:
-      vendor_page: 22.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.513773773805402
-    winner: vendor_page
-    sources:
-      vendor_page: 4.513773773805402
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 3.21
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 3.21
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.04988
     winner: vendor_page
     sources:
       vendor_page: 0.04988
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 22.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 22.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.513773773805402
+    winner: vendor_page
+    sources:
+      vendor_page: 4.513773773805402
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1007
+  Qms:  # mechanical Q factor
+    value: 3.21
+    winner: vendor_page
+    sources:
+      vendor_page: 3.21
   Cms:  # mechanical compliance (m/N)
     value: 0.00047999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00047999999999999996
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 16.3
+    winner: vendor_page
+    sources:
+      vendor_page: 16.3
+  Le:  # voice coil inductance (H)
+    value: 0.0029300000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0029300000000000003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.181510688
+    winner: vendor_page
+    sources:
+      vendor_page: 0.181510688
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 0.33
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 300.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/DC300-8%2012_%20Classic%20Woofer%208%20Ohm%20Specification%20Sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
-datasheet_url: https://www.parts-express.com/pedocs/specs/DC300-8%2012_%20Classic%20Woofer%208%20Ohm%20Specification%20Sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320
-frd_url: null
-zma_url: null

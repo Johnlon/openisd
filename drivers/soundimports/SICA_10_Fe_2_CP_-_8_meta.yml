@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00076
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00076
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0402
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0402
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0347
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0347
-  BL:  # force factor (T·m)
-    value: 12.51
-    winner: vendor_page
-    sources:
-      vendor_page: 12.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 55.7
-    winner: vendor_page
-    sources:
-      vendor_page: 55.7
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 5.37
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 5.37
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 55.7
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 55.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0347
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0347
+  Qms:  # mechanical Q factor
+    value: 5.37
+    winner: vendor_page
+    sources:
+      vendor_page: 5.37
   Cms:  # mechanical compliance (m/N)
     value: 0.000236
     winner: vendor_page
     sources:
       vendor_page: 0.000236
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sica-10-fe-2-cp-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 12.51
+    winner: vendor_page
+    sources:
+      vendor_page: 12.51
+  Le:  # voice coil inductance (H)
+    value: 0.00076
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00076
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0402
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0402

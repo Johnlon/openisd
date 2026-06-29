@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1040--tymphany-bc25tg15-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1040--tymphany-bc25tg15-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Qes:  # electrical Q factor
-    value: 1.26
-    winner: vendor_page
-    sources:
-      vendor_page: 1.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 1128.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1128.0
   Qts:  # total Q factor
     value: 0.84
     winner: vendor_page
     sources:
       vendor_page: 0.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Fs:  # free air resonance (Hz)
+    value: 1128.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1128.0
   Qms:  # mechanical Q factor
     value: 2.54
     winner: vendor_page
@@ -51,6 +44,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.26
+    winner: vendor_page
+    sources:
+      vendor_page: 1.26
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 1.0
     winner: vendor_page
@@ -61,11 +69,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 100.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1040--tymphany-bc25tg15-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1040--tymphany-bc25tg15-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-BC25TG15-04-1-Silk-Dome-Tweeter-264-1040
-frd_url: null
-zma_url: null

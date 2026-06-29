@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.060598 differs from calculated=0.0612778 (deps: r
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-818
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.060597952000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.060597952000000004
-  Qes:  # electrical Q factor
-    value: 0.57
-    winner: vendor_page
-    sources:
-      vendor_page: 0.57
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1107
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1107
-  BL:  # force factor (T·m)
-    value: 10.8
-    winner: vendor_page
-    sources:
-      vendor_page: 10.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 25.2
-    winner: vendor_page
-    sources:
-      vendor_page: 25.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.381956265080115
-    winner: vendor_page
-    sources:
-      vendor_page: 4.381956265080115
   Xmax:  # one-way linear excursion (m)
     value: 0.011
     winner: vendor_page
@@ -68,17 +33,32 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 4.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
+  Fs:  # free air resonance (Hz)
+    value: 25.2
+    winner: vendor_page
+    sources:
+      vendor_page: 25.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.381956265080115
+    winner: vendor_page
+    sources:
+      vendor_page: 4.381956265080115
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1107
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1107
+  Qms:  # mechanical Q factor
     value: 4.0
     winner: vendor_page
     sources:
@@ -88,6 +68,36 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.00035999999999999997
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.57
+    winner: vendor_page
+    sources:
+      vendor_page: 0.57
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 10.8
+    winner: vendor_page
+    sources:
+      vendor_page: 10.8
+  Le:  # voice coil inductance (H)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.060597952000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.060597952000000004
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 10.0
     winner: vendor_page
@@ -103,13 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 200.0
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-10SW-4HE-10-Paper-Cone-Rubber-Surround-High-Excursion-Subwoofer-4-Ohm-292-818
-frd_url: null
-zma_url: null

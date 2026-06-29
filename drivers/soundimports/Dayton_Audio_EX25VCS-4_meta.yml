@@ -1,29 +1,29 @@
+source: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
 specs:
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
   Fs:  # free air resonance (Hz)
     value: 104.1
     winner: vendor_page
     sources:
       vendor_page: 104.1
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex25vcs-4.html
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0

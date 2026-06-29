@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7831--visaton-paw25-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7831--visaton-paw25-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.04389104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04389104
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0376
-  BL:  # force factor (T·m)
-    value: 15.6
-    winner: vendor_page
-    sources:
-      vendor_page: 15.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2810097927630375
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2810097927630375
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 9.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 9.59
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0353
     winner: vendor_page
     sources:
       vendor_page: 0.0353
+  Fs:  # free air resonance (Hz)
+    value: 52.0
+    winner: vendor_page
+    sources:
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.2810097927630375
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2810097927630375
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0376
+  Qms:  # mechanical Q factor
+    value: 9.59
+    winner: vendor_page
+    sources:
+      vendor_page: 9.59
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 15.6
+    winner: vendor_page
+    sources:
+      vendor_page: 15.6
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.04389104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04389104
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 4200.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 92.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7831--visaton-paw25-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7831--visaton-paw25-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-PAW25-8-10-Midrange-Driver-8-Ohm-292-7831
-frd_url: null
-zma_url: null

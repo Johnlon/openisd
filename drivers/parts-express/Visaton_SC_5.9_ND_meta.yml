@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7840--visaton-sc5.9nd4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7840
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7840--visaton-sc5.9nd4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 8.03
-    winner: vendor_page
-    sources:
-      vendor_page: 8.03
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  BL:  # force factor (T·m)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Fs:  # free air resonance (Hz)
-    value: 280.0
-    winner: vendor_page
-    sources:
-      vendor_page: 280.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.24778758957891323
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24778758957891323
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -67,21 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.3
-  Qms:  # mechanical Q factor
-    value: 9.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 9.23
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.00265
     winner: vendor_page
     sources:
       vendor_page: 0.00265
+  Fs:  # free air resonance (Hz)
+    value: 280.0
+    winner: vendor_page
+    sources:
+      vendor_page: 280.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.24778758957891323
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24778758957891323
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Qms:  # mechanical Q factor
+    value: 9.23
+    winner: vendor_page
+    sources:
+      vendor_page: 9.23
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 8.03
+    winner: vendor_page
+    sources:
+      vendor_page: 8.03
+  Pe:  # rated power input (W)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  BL:  # force factor (T·m)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 95.0
     winner: vendor_page
@@ -92,14 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 22000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7840--visaton-sc5.9nd4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7840--visaton-sc5.9nd4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SC5.9ND4-Magnetically-Shielded-2-x-3.5-Full-Range-Driver-4-Ohm-292-7840
-frd_url: null
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-493
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00108
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00108
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.157724576
-    winner: vendor_page
-    sources:
-      vendor_page: 0.157724576
-  Qes:  # electrical Q factor
-    value: 1.11
-    winner: vendor_page
-    sources:
-      vendor_page: 1.11
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0732
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0732
-  BL:  # force factor (T·m)
-    value: 11.58
-    winner: vendor_page
-    sources:
-      vendor_page: 11.58
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.26
-    winner: vendor_page
-    sources:
-      vendor_page: 6.26
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 51.5
-    winner: vendor_page
-    sources:
-      vendor_page: 51.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1772540741056463
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1772540741056463
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -67,21 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.05
-  Qms:  # mechanical Q factor
-    value: 20.12
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.26
     winner: vendor_page
     sources:
-      vendor_page: 20.12
+      vendor_page: 6.26
   Sd:  # effective piston area (m²)
     value: 0.092
     winner: vendor_page
     sources:
       vendor_page: 0.092
+  Fs:  # free air resonance (Hz)
+    value: 51.5
+    winner: vendor_page
+    sources:
+      vendor_page: 51.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1772540741056463
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1772540741056463
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0732
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0732
+  Qms:  # mechanical Q factor
+    value: 20.12
+    winner: vendor_page
+    sources:
+      vendor_page: 20.12
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.11
+    winner: vendor_page
+    sources:
+      vendor_page: 1.11
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 11.58
+    winner: vendor_page
+    sources:
+      vendor_page: 11.58
+  Le:  # voice coil inductance (H)
+    value: 0.00108
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00108
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.157724576
+    winner: vendor_page
+    sources:
+      vendor_page: 0.157724576
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 15.0
     winner: vendor_page
@@ -92,14 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
-frd_url: null
-zma_url: null

@@ -1,15 +1,77 @@
+source: https://www.soundimports.eu/en/grs-4as-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-4as-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/grs-4as-4.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/grs-4as-4.html
 specs:
+  Qts:  # total Q factor
+    value: 1.48
+    winner: vendor_page
+    sources:
+      vendor_page: 1.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6
+  Sd:  # effective piston area (m²)
+    value: 0.00551
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00551
+  Fs:  # free air resonance (Hz)
+    value: 131.0
+    winner: vendor_page
+    sources:
+      vendor_page: 131.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0045
+  Qms:  # mechanical Q factor
+    value: 6.09
+    winner: vendor_page
+    sources:
+      vendor_page: 6.09
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.95
+    winner: vendor_page
+    sources:
+      vendor_page: 1.95
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 2.6
+    winner: vendor_page
+    sources:
+      vendor_page: 2.6
   Le:  # voice coil inductance (H)
     value: 0.0003
     winner: vendor_page
@@ -20,61 +82,6 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0014
-  Qes:  # electrical Q factor
-    value: 1.95
-    winner: vendor_page
-    sources:
-      vendor_page: 1.95
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0045
-  BL:  # force factor (T·m)
-    value: 2.6
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 131.0
-    winner: vendor_page
-    sources:
-      vendor_page: 131.0
-  Qts:  # total Q factor
-    value: 1.48
-    winner: vendor_page
-    sources:
-      vendor_page: 1.48
-  Qms:  # mechanical Q factor
-    value: 6.09
-    winner: vendor_page
-    sources:
-      vendor_page: 6.09
-  Sd:  # effective piston area (m²)
-    value: 0.00551
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00551
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
   power_peak_W:  # peak power handling (W)
     value: 50.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 11.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/grs-4as-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-4as-4.html
-frd_url: null
-zma_url: null

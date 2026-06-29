@@ -1,25 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00043
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00043
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
   Fs:  # free air resonance (Hz)
     value: 85.4
     winner: vendor_page
@@ -30,15 +27,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Le:  # voice coil inductance (H)
+    value: 0.00043
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00043
   power_peak_W:  # peak power handling (W)
     value: 80.0
     winner: vendor_page
     sources:
       vendor_page: 80.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ex32vbds-4.html
-frd_url: null
-zma_url: null

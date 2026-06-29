@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-463-dayton-audio-rss265-ho-44-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-463--Dayton-Audio-RSS265HO-44_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-463-dayton-audio-rss265-ho-44-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0007700000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007700000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.034829663999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.034829663999999996
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.161
-    winner: vendor_page
-    sources:
-      vendor_page: 0.161
-  BL:  # force factor (T·m)
-    value: 9.39
-    winner: vendor_page
-    sources:
-      vendor_page: 9.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.6
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 27.6
-    winner: vendor_page
-    sources:
-      vendor_page: 27.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.316733536421541
-    winner: vendor_page
-    sources:
-      vendor_page: 6.316733536421541
   Xmax:  # one-way linear excursion (m)
     value: 0.01325
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 4.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.6
     winner: vendor_page
     sources:
-      vendor_page: 4.42
+      vendor_page: 1.6
   Sd:  # effective piston area (m²)
     value: 0.035230000000000004
     winner: vendor_page
     sources:
       vendor_page: 0.035230000000000004
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 27.6
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 27.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.316733536421541
+    winner: vendor_page
+    sources:
+      vendor_page: 6.316733536421541
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.161
+    winner: vendor_page
+    sources:
+      vendor_page: 0.161
+  Qms:  # mechanical Q factor
+    value: 4.42
+    winner: vendor_page
+    sources:
+      vendor_page: 4.42
   Cms:  # mechanical compliance (m/N)
     value: 0.00020999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00020999999999999998
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-463-dayton-audio-rss265-ho-44-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-463-dayton-audio-rss265-ho-44-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-463--Dayton-Audio-RSS265HO-44_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 9.39
+    winner: vendor_page
+    sources:
+      vendor_page: 9.39
+  Le:  # voice coil inductance (H)
+    value: 0.0007700000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007700000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.034829663999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.034829663999999996

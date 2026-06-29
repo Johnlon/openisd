@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2098--ftx1225-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2098--ftx1225-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.012176224
-    winner: vendor_page
-    sources:
-      vendor_page: 0.012176224
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.04753
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04753
-  BL:  # force factor (T·m)
-    value: 12.54
-    winner: vendor_page
-    sources:
-      vendor_page: 12.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.74
-    winner: vendor_page
-    sources:
-      vendor_page: 5.74
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 42.1
-    winner: vendor_page
-    sources:
-      vendor_page: 42.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.753055367485178
-    winner: vendor_page
-    sources:
-      vendor_page: 3.753055367485178
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.74
     winner: vendor_page
     sources:
-      vendor_page: 3.35
+      vendor_page: 5.74
   Sd:  # effective piston area (m²)
     value: 0.016909999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.016909999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 42.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 42.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.753055367485178
+    winner: vendor_page
+    sources:
+      vendor_page: 3.753055367485178
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.04753
+    winner: vendor_page
+    sources:
+      vendor_page: 0.04753
+  Qms:  # mechanical Q factor
+    value: 3.35
+    winner: vendor_page
+    sources:
+      vendor_page: 3.35
   Cms:  # mechanical compliance (m/N)
     value: 0.0003
     winner: vendor_page
     sources:
       vendor_page: 0.0003
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 12.54
+    winner: vendor_page
+    sources:
+      vendor_page: 12.54
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.012176224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.012176224
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 50.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2098--ftx1225-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2098--ftx1225-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTX1225-12-Coaxial-Full-Range-Professional-Driver-294-2098
-frd_url: null
-zma_url: null

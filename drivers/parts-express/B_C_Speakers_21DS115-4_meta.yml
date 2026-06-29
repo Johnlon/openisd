@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
 obsolete: null
 dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
 community: null
 fetched_sku: 294-6032
+_sources:
+  vendor_page: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.27410662399999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27410662399999997
-  Qes:  # electrical Q factor
-    value: 0.2
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.412
-    winner: vendor_page
-    sources:
-      vendor_page: 0.412
-  BL:  # force factor (T·m)
-    value: 29.23
-    winner: vendor_page
-    sources:
-      vendor_page: 29.23
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.2
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2
-  Pe:  # rated power input (W)
-    value: 3400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3400.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.060015490612698
-    winner: vendor_page
-    sources:
-      vendor_page: 7.060015490612698
   Xmax:  # one-way linear excursion (m)
     value: 0.015
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Qms:  # mechanical Q factor
-    value: 11.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.2
     winner: vendor_page
     sources:
-      vendor_page: 11.0
+      vendor_page: 2.2
   Sd:  # effective piston area (m²)
     value: 0.1681
     winner: vendor_page
     sources:
       vendor_page: 0.1681
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.060015490612698
+    winner: vendor_page
+    sources:
+      vendor_page: 7.060015490612698
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.412
+    winner: vendor_page
+    sources:
+      vendor_page: 0.412
+  Qms:  # mechanical Q factor
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
   Cms:  # mechanical compliance (m/N)
     value: 6.8e-05
     winner: vendor_page
     sources:
       vendor_page: 6.8e-05
-_sources:
-  vendor_page: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.2
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2
+  Pe:  # rated power input (W)
+    value: 3400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3400.0
+  BL:  # force factor (T·m)
+    value: 29.23
+    winner: vendor_page
+    sources:
+      vendor_page: 29.23
+  Le:  # voice coil inductance (H)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.27410662399999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27410662399999997

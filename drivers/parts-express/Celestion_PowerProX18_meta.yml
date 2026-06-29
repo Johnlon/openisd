@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1996
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00161
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00161
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1889
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1889
-  Qes:  # electrical Q factor
-    value: 0.431
-    winner: vendor_page
-    sources:
-      vendor_page: 0.431
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.22998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22998
-  BL:  # force factor (T·m)
-    value: 24.38
-    winner: vendor_page
-    sources:
-      vendor_page: 24.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 1200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1200.0
-  Fs:  # free air resonance (Hz)
-    value: 34.8
-    winner: vendor_page
-    sources:
-      vendor_page: 34.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 15.96
-    winner: vendor_page
-    sources:
-      vendor_page: 15.96
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -67,39 +33,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.379
-  Qms:  # mechanical Q factor
-    value: 3.147
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 3.147
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 34.8
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
+      vendor_page: 34.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 15.96
     winner: vendor_page
     sources:
-      vendor_page: 97.0
+      vendor_page: 15.96
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.22998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22998
+  Qms:  # mechanical Q factor
+    value: 3.147
+    winner: vendor_page
+    sources:
+      vendor_page: 3.147
   Cms:  # mechanical compliance (m/N)
     value: 9.1e-05
     winner: vendor_page
     sources:
       vendor_page: 9.1e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.431
+    winner: vendor_page
+    sources:
+      vendor_page: 0.431
+  Pe:  # rated power input (W)
+    value: 1200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1200.0
+  BL:  # force factor (T·m)
+    value: 24.38
+    winner: vendor_page
+    sources:
+      vendor_page: 24.38
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 97.0
+    winner: vendor_page
+    sources:
+      vendor_page: 97.0
+  Le:  # voice coil inductance (H)
+    value: 0.00161
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00161
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1889
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1889

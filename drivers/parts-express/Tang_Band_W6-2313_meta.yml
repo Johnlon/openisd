@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-9002--tang-band-w6-2313-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
 obsolete: null
 dq_issue: Sd_tiny; tweeter_fs
 community: null
 fetched_sku: 264-9002
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-9002--tang-band-w6-2313-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01329
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01329
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02
-  BL:  # force factor (T·m)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3020388157319824
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3020388157319824
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 4.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 4.69
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 1.4e-06
     winner: vendor_page
     sources:
       vendor_page: 1.4e-06
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3020388157319824
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3020388157319824
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02
+  Qms:  # mechanical Q factor
+    value: 4.69
+    winner: vendor_page
+    sources:
+      vendor_page: 4.69
   Cms:  # mechanical compliance (m/N)
     value: 0.00047734
     winner: vendor_page
     sources:
       vendor_page: 0.00047734
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-9002--tang-band-w6-2313-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-9002--tang-band-w6-2313-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  BL:  # force factor (T·m)
+    value: 7.1
+    winner: vendor_page
+    sources:
+      vendor_page: 7.1
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01329
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01329

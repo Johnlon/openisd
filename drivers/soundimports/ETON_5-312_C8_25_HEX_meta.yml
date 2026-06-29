@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00045
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0084
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0084
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  BL:  # force factor (T·m)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 53.0
-    winner: vendor_page
-    sources:
-      vendor_page: 53.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
   Xmax:  # one-way linear excursion (m)
     value: 0.0075
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 7.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 7.56
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.008
     winner: vendor_page
     sources:
       vendor_page: 0.008
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 53.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 53.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Qms:  # mechanical Q factor
+    value: 7.56
+    winner: vendor_page
+    sources:
+      vendor_page: 7.56
   Cms:  # mechanical compliance (m/N)
     value: 0.00094
     winner: vendor_page
     sources:
       vendor_page: 0.00094
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 5.7
+    winner: vendor_page
+    sources:
+      vendor_page: 5.7
+  Le:  # voice coil inductance (H)
+    value: 0.00045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00045
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0084
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0084
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 25.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/eton-5-312-c8-25-hex.html
-frd_url: null
-zma_url: null

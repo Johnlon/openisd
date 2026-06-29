@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-486-dayton-audio-sd270a-88-specifications-47085.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-486--Dayton-Audio-SD270A-88_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-486-dayton-audio-sd270a-88-specifications-47085.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0011200000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011200000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10760383999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10760383999999999
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0577
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0577
-  BL:  # force factor (T·m)
-    value: 7.8
-    winner: vendor_page
-    sources:
-      vendor_page: 7.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.16
-    winner: vendor_page
-    sources:
-      vendor_page: 3.16
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 26.2
-    winner: vendor_page
-    sources:
-      vendor_page: 26.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.9407252496209497
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9407252496209497
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 3.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.16
     winner: vendor_page
     sources:
-      vendor_page: 3.23
+      vendor_page: 3.16
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 26.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 26.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.9407252496209497
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9407252496209497
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0577
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0577
+  Qms:  # mechanical Q factor
+    value: 3.23
+    winner: vendor_page
+    sources:
+      vendor_page: 3.23
   Cms:  # mechanical compliance (m/N)
     value: 0.00064
     winner: vendor_page
     sources:
       vendor_page: 0.00064
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-486-dayton-audio-sd270a-88-specifications-47085.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-486-dayton-audio-sd270a-88-specifications-47085.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SD270A-88-10-DVC-Subwoofer-295-486
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-486--Dayton-Audio-SD270A-88_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 7.8
+    winner: vendor_page
+    sources:
+      vendor_page: 7.8
+  Le:  # voice coil inductance (H)
+    value: 0.0011200000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011200000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10760383999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10760383999999999

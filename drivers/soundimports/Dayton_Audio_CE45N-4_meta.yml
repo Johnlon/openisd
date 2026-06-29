@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 8.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.4e-05
-  Qes:  # electrical Q factor
-    value: 1.12
-    winner: vendor_page
-    sources:
-      vendor_page: 1.12
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  BL:  # force factor (T·m)
-    value: 1.78
-    winner: vendor_page
-    sources:
-      vendor_page: 1.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.68
-    winner: vendor_page
-    sources:
-      vendor_page: 3.68
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 178.0
-    winner: vendor_page
-    sources:
-      vendor_page: 178.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0011
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.89
-  Qms:  # mechanical Q factor
-    value: 4.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.68
     winner: vendor_page
     sources:
-      vendor_page: 4.23
+      vendor_page: 3.68
   Sd:  # effective piston area (m²)
     value: 0.000804
     winner: vendor_page
     sources:
       vendor_page: 0.000804
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 178.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 178.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00086
+  Qms:  # mechanical Q factor
+    value: 4.23
+    winner: vendor_page
+    sources:
+      vendor_page: 4.23
   Cms:  # mechanical compliance (m/N)
     value: 0.00092
     winner: vendor_page
     sources:
       vendor_page: 0.00092
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.12
+    winner: vendor_page
+    sources:
+      vendor_page: 1.12
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.78
+    winner: vendor_page
+    sources:
+      vendor_page: 1.78
+  Le:  # voice coil inductance (H)
+    value: 7.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 8.4e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.4e-05
   power_peak_W:  # peak power handling (W)
     value: 10.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce45n-4.html
-frd_url: null
-zma_url: null

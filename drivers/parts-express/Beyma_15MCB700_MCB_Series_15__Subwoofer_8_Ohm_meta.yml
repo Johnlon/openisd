@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-022--15mcb700-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-022--15mcb700-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.14809686400000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.14809686400000002
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 9.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6e-05
-  BL:  # force factor (T·m)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: vendor_page
-    sources:
-      vendor_page: 44.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.004914847173616031
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004914847173616031
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 5.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 5.4
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 8.799999999999999e-06
     winner: vendor_page
     sources:
       vendor_page: 8.799999999999999e-06
+  Fs:  # free air resonance (Hz)
+    value: 44.0
+    winner: vendor_page
+    sources:
+      vendor_page: 44.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.004914847173616031
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004914847173616031
+  Mms:  # moving mass incl. air load (kg)
+    value: 9.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 9.6e-05
+  Qms:  # mechanical Q factor
+    value: 5.4
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.14809686400000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.14809686400000002
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 99.0
     winner: vendor_page
     sources:
       vendor_page: 99.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-022--15mcb700-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-022--15mcb700-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
-frd_url: null
-zma_url: null

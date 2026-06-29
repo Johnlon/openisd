@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-213--dayton-audio-nd105-pr-4-inch-aluminum-cone-passive-radiator-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,24 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-213
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-213--dayton-audio-nd105-pr-4-inch-aluminum-cone-passive-radiator-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0025485119999999997
+  Xmax:  # one-way linear excursion (m)
+    value: 0.011
     winner: vendor_page
     sources:
-      vendor_page: 0.0025485119999999997
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013900000000000001
+      vendor_page: 0.011
+  Sd:  # effective piston area (m²)
+    value: 0.00515
     winner: vendor_page
     sources:
-      vendor_page: 0.013900000000000001
+      vendor_page: 0.00515
   Fs:  # free air resonance (Hz)
     value: 51.5
     winner: vendor_page
@@ -32,34 +43,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.7584853629248748
-  Xmax:  # one-way linear excursion (m)
-    value: 0.011
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013900000000000001
     winner: vendor_page
     sources:
-      vendor_page: 0.011
+      vendor_page: 0.013900000000000001
   Qms:  # mechanical Q factor
     value: 5.93
     winner: vendor_page
     sources:
       vendor_page: 5.93
-  Sd:  # effective piston area (m²)
-    value: 0.00515
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00515
   Cms:  # mechanical compliance (m/N)
     value: 0.00068
     winner: vendor_page
     sources:
       vendor_page: 0.00068
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-213--dayton-audio-nd105-pr-4-inch-aluminum-cone-passive-radiator-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-213--dayton-audio-nd105-pr-4-inch-aluminum-cone-passive-radiator-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND105-PR-4-Aluminum-Cone-Passive-Radiator-290-213
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0025485119999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025485119999999997

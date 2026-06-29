@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7805--visaton-al200-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7805--visaton-al200-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.077021696
-    winner: vendor_page
-    sources:
-      vendor_page: 0.077021696
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021
-  BL:  # force factor (T·m)
-    value: 8.8
-    winner: vendor_page
-    sources:
-      vendor_page: 8.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.131984055341738
-    winner: vendor_page
-    sources:
-      vendor_page: 1.131984055341738
   Xmax:  # one-way linear excursion (m)
     value: 0.01
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.73
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 3.73
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 0.0216
     winner: vendor_page
     sources:
       vendor_page: 0.0216
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.131984055341738
+    winner: vendor_page
+    sources:
+      vendor_page: 1.131984055341738
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.021
+  Qms:  # mechanical Q factor
+    value: 3.73
+    winner: vendor_page
+    sources:
+      vendor_page: 3.73
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 8.8
+    winner: vendor_page
+    sources:
+      vendor_page: 8.8
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.077021696
+    winner: vendor_page
+    sources:
+      vendor_page: 0.077021696
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 30000.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 88.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7805--visaton-al200-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7805--visaton-al200-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-AL200-8-8-Aluminum-Cone-Woofer-8-Ohm-292-7805
-frd_url: null
-zma_url: null

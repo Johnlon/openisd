@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2096
+_sources:
+  vendor_page: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008399999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008399999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0212376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0212376
-  Qes:  # electrical Q factor
-    value: 0.242
-    winner: vendor_page
-    sources:
-      vendor_page: 0.242
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02112
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02112
-  BL:  # force factor (T·m)
-    value: 14.4
-    winner: vendor_page
-    sources:
-      vendor_page: 14.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 78.8
-    winner: vendor_page
-    sources:
-      vendor_page: 78.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2248572014011634
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2248572014011634
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -67,26 +32,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.231
-  Qms:  # mechanical Q factor
-    value: 4.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 4.7
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.02271
     winner: vendor_page
     sources:
       vendor_page: 0.02271
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 78.8
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 78.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2248572014011634
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2248572014011634
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02112
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02112
+  Qms:  # mechanical Q factor
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00023799999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00023799999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.242
+    winner: vendor_page
+    sources:
+      vendor_page: 0.242
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 14.4
+    winner: vendor_page
+    sources:
+      vendor_page: 14.4
+  Le:  # voice coil inductance (H)
+    value: 0.0008399999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008399999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0212376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0212376
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
@@ -97,13 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096
-frd_url: null
-zma_url: null

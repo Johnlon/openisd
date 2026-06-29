@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7824--visaton-sl70ndv4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7824--visaton-sl70ndv4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000424752
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000424752
-  Qes:  # electrical Q factor
-    value: 2.23
-    winner: vendor_page
-    sources:
-      vendor_page: 2.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  BL:  # force factor (T·m)
-    value: 1.39
-    winner: vendor_page
-    sources:
-      vendor_page: 1.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Fs:  # free air resonance (Hz)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.22568175797216472
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22568175797216472
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.53
-  Qms:  # mechanical Q factor
-    value: 4.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 4.9
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.00216
     winner: vendor_page
     sources:
       vendor_page: 0.00216
+  Fs:  # free air resonance (Hz)
+    value: 220.0
+    winner: vendor_page
+    sources:
+      vendor_page: 220.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.22568175797216472
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22568175797216472
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Qms:  # mechanical Q factor
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 2.23
+    winner: vendor_page
+    sources:
+      vendor_page: 2.23
+  Pe:  # rated power input (W)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  BL:  # force factor (T·m)
+    value: 1.39
+    winner: vendor_page
+    sources:
+      vendor_page: 1.39
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000424752
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000424752
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 90.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7824--visaton-sl70ndv4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7824--visaton-sl70ndv4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SL70NDV4-2.5-Full-Range-Speaker-4-Ohm-292-7824
-frd_url: null
-zma_url: null

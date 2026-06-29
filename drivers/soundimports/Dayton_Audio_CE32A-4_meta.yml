@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 5.2e-07
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2e-07
-  Qes:  # electrical Q factor
-    value: 1.24
-    winner: vendor_page
-    sources:
-      vendor_page: 1.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00052
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00052
-  BL:  # force factor (T·m)
-    value: 1.59
-    winner: vendor_page
-    sources:
-      vendor_page: 1.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 262.0
-    winner: vendor_page
-    sources:
-      vendor_page: 262.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 2.86
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 2.86
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.000392
     winner: vendor_page
     sources:
       vendor_page: 0.000392
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 262.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 262.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00052
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00052
+  Qms:  # mechanical Q factor
+    value: 2.86
+    winner: vendor_page
+    sources:
+      vendor_page: 2.86
   Cms:  # mechanical compliance (m/N)
     value: 0.00069
     winner: vendor_page
     sources:
       vendor_page: 0.00069
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.24
+    winner: vendor_page
+    sources:
+      vendor_page: 1.24
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 1.59
+    winner: vendor_page
+    sources:
+      vendor_page: 1.59
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 5.2e-07
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2e-07
   power_peak_W:  # peak power handling (W)
     value: 4.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce32a-4.html
-frd_url: null
-zma_url: null

@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/satori-mw16p-12-paper/
+manu_page_url: https://sbacoustics.com/product/satori-mw16p-12-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/6.5-inch-SATORI-MW16P-12.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/satori-mw16p-12-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/6.5-inch-SATORI-MW16P-12.pdf
+  manu_page: https://sbacoustics.com/product/satori-mw16p-12-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: manu_page
-    sources:
-      manu_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0473
-    winner: manu_page
-    sources:
-      manu_page: 0.0473
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: manu_page
-    sources:
-      manu_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0115
-    winner: manu_page
-    sources:
-      manu_page: 0.0115
-  BL:  # force factor (T·m)
-    value: 7.4
-    winner: manu_page
-    sources:
-      manu_page: 7.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 10.0
-    winner: manu_page
-    sources:
-      manu_page: 10.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 30.6
-    winner: manu_page
-    sources:
-      manu_page: 30.6
   Xmax:  # one-way linear excursion (m)
     value: 0.0062
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 4.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 10.0
     winner: manu_page
     sources:
-      manu_page: 4.81
+      manu_page: 10.0
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: manu_page
     sources:
       manu_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 12.0
+  Fs:  # free air resonance (Hz)
+    value: 30.6
     winner: manu_page
     sources:
-      manu_page: 12.0
+      manu_page: 30.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0115
+    winner: manu_page
+    sources:
+      manu_page: 0.0115
+  Qms:  # mechanical Q factor
+    value: 4.81
+    winner: manu_page
+    sources:
+      manu_page: 4.81
   Cms:  # mechanical compliance (m/N)
     value: 0.00235
     winner: manu_page
     sources:
       manu_page: 0.00235
+  Znom:  # nominal impedance (Ω)
+    value: 12.0
+    winner: manu_page
+    sources:
+      manu_page: 12.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: manu_page
+    sources:
+      manu_page: 0.4
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 7.4
+    winner: manu_page
+    sources:
+      manu_page: 7.4
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: manu_page
+    sources:
+      manu_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0473
+    winner: manu_page
+    sources:
+      manu_page: 0.0473
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 35.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 85.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/6.5-inch-SATORI-MW16P-12.pdf
-  manu_page: https://sbacoustics.com/product/satori-mw16p-12-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/6.5-inch-SATORI-MW16P-12.pdf
-manu_page_url: https://sbacoustics.com/product/satori-mw16p-12-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

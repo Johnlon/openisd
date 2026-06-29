@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-656--bc-10ps26-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,42 +16,14 @@ corrections: '''Qts'' stored=0.29 differs from calculated=0.296285 (deps: Qms=2.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 294-656
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-656--bc-10ps26-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03681184
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 54.0
-    winner: vendor_page
-    sources:
-      vendor_page: 54.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -53,6 +34,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Fs:  # free air resonance (Hz)
+    value: 54.0
+    winner: vendor_page
+    sources:
+      vendor_page: 54.0
   Qms:  # mechanical Q factor
     value: 2.9
     winner: vendor_page
@@ -63,14 +54,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-656--bc-10ps26-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-656--bc-10ps26-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10PS26-10-Woofer-294-656
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03681184

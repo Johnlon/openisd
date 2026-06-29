@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-788--lavoce-ssf122.50l-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-788
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-788--lavoce-ssf122.50l-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00138
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00138
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.061447456
-    winner: vendor_page
-    sources:
-      vendor_page: 0.061447456
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0988
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0988
-  BL:  # force factor (T·m)
-    value: 17.1
-    winner: vendor_page
-    sources:
-      vendor_page: 17.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.904325168423313
-    winner: vendor_page
-    sources:
-      vendor_page: 7.904325168423313
   Xmax:  # one-way linear excursion (m)
     value: 0.0115
     winner: vendor_page
@@ -67,39 +33,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 3.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 3.22
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.05309
     winner: vendor_page
     sources:
       vendor_page: 0.05309
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 41.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 41.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.904325168423313
+    winner: vendor_page
+    sources:
+      vendor_page: 7.904325168423313
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0988
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0988
+  Qms:  # mechanical Q factor
+    value: 3.22
+    winner: vendor_page
+    sources:
+      vendor_page: 3.22
   Cms:  # mechanical compliance (m/N)
     value: 0.000154
     winner: vendor_page
     sources:
       vendor_page: 0.000154
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 17.1
+    winner: vendor_page
+    sources:
+      vendor_page: 17.1
+  Le:  # voice coil inductance (H)
+    value: 0.00138
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00138
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.061447456
+    winner: vendor_page
+    sources:
+      vendor_page: 0.061447456
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
     sources:
       vendor_page: 93.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-788--lavoce-ssf122.50l-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-788--lavoce-ssf122.50l-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-SSF122.50L-12-Paper-Cone-Subwoofer-293-788
-frd_url: null
-zma_url: null

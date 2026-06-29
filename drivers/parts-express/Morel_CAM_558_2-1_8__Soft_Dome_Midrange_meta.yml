@@ -1,31 +1,28 @@
+source: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
   Re:  # DC voice coil resistance (Ω)
     value: 6.3
     winner: vendor_page
     sources:
       vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
   Fs:  # free air resonance (Hz)
     value: 380.0
     winner: vendor_page
@@ -36,10 +33,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-CAM-558-2-1-8-Soft-Dome-Midrange-287-025
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019

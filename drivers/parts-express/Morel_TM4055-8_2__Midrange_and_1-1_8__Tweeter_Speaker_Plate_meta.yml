@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
+datasheet_url: https://www.parts-express.com/pedocs/specs/287-038--Morel-TM4055-8-Speaker-Plate-Spec-Sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/287-038--Morel-TM4055-8-Speaker-Plate-Spec-Sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000849504
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000849504
-  Qes:  # electrical Q factor
-    value: 1.32
-    winner: vendor_page
-    sources:
-      vendor_page: 1.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025
-  BL:  # force factor (T·m)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 365.0
-    winner: vendor_page
-    sources:
-      vendor_page: 365.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.825484039049254
-    winner: vendor_page
-    sources:
-      vendor_page: 6.825484039049254
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 0.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 0.84
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0028
     winner: vendor_page
     sources:
       vendor_page: 0.0028
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 365.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 365.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.825484039049254
+    winner: vendor_page
+    sources:
+      vendor_page: 6.825484039049254
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025
+  Qms:  # mechanical Q factor
+    value: 0.84
+    winner: vendor_page
+    sources:
+      vendor_page: 0.84
   Cms:  # mechanical compliance (m/N)
     value: 7.000000000000001e-05
     winner: vendor_page
     sources:
       vendor_page: 7.000000000000001e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/287-038--Morel-TM4055-8-Speaker-Plate-Spec-Sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
-datasheet_url: https://www.parts-express.com/pedocs/specs/287-038--Morel-TM4055-8-Speaker-Plate-Spec-Sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-TM4055-8-2-Midrange-and-1-1-8-Tweeter-Speaker-Plate-287-038
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  Le:  # voice coil inductance (H)
+    value: 0.00017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000849504
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000849504

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1970--cf1025bmb-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1970--cf1025bmb-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00115
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.046156383999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.046156383999999995
-  Qes:  # electrical Q factor
-    value: 0.371
-    winner: vendor_page
-    sources:
-      vendor_page: 0.371
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.055865000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.055865000000000005
-  BL:  # force factor (T·m)
-    value: 15.28
-    winner: vendor_page
-    sources:
-      vendor_page: 15.28
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.04
-    winner: vendor_page
-    sources:
-      vendor_page: 6.04
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 40.9
-    winner: vendor_page
-    sources:
-      vendor_page: 40.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8053716071290913
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8053716071290913
   Xmax:  # one-way linear excursion (m)
     value: 0.0046500000000000005
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.355
-  Qms:  # mechanical Q factor
-    value: 7.952
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.04
     winner: vendor_page
     sources:
-      vendor_page: 7.952
+      vendor_page: 6.04
   Sd:  # effective piston area (m²)
     value: 0.034636
     winner: vendor_page
     sources:
       vendor_page: 0.034636
+  Fs:  # free air resonance (Hz)
+    value: 40.9
+    winner: vendor_page
+    sources:
+      vendor_page: 40.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8053716071290913
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8053716071290913
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.055865000000000005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.055865000000000005
+  Qms:  # mechanical Q factor
+    value: 7.952
+    winner: vendor_page
+    sources:
+      vendor_page: 7.952
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.371
+    winner: vendor_page
+    sources:
+      vendor_page: 0.371
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 15.28
+    winner: vendor_page
+    sources:
+      vendor_page: 15.28
+  Le:  # voice coil inductance (H)
+    value: 0.00115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00115
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.046156383999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.046156383999999995
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.5
     winner: vendor_page
     sources:
       vendor_page: 92.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1970--cf1025bmb-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1970--cf1025bmb-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-CF1025BMB-8-Professional-Midrange-Driver-8-Ohm-294-1970
-frd_url: null
-zma_url: null

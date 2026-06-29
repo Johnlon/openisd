@@ -1,41 +1,41 @@
+source: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-591--visaton-sl-87-wpm-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-591--visaton-sl-87-wpm-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
 specs:
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 290.0
-    winner: vendor_page
-    sources:
-      vendor_page: 290.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
+  Fs:  # free air resonance (Hz)
+    value: 290.0
+    winner: vendor_page
+    sources:
+      vendor_page: 290.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-591--visaton-sl-87-wpm-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-591--visaton-sl-87-wpm-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-SL87WPM-4-3.3-Full-Range-Speaker-4-Ohm-292-591
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0

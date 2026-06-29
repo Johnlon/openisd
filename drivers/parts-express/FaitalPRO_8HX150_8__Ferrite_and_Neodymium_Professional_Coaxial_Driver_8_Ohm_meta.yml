@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1083--faitalpro-8hx150-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1083--faitalpro-8hx150-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00051
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013025728
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013025728
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0223
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0223
-  BL:  # force factor (T·m)
-    value: 11.6
-    winner: vendor_page
-    sources:
-      vendor_page: 11.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 76.0
-    winner: vendor_page
-    sources:
-      vendor_page: 76.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1209202588008382
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1209202588008382
   Xmax:  # one-way linear excursion (m)
     value: 0.00492
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 9.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 9.5
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.02172
     winner: vendor_page
     sources:
       vendor_page: 0.02172
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 76.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 76.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1209202588008382
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1209202588008382
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0223
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0223
+  Qms:  # mechanical Q factor
+    value: 9.5
+    winner: vendor_page
+    sources:
+      vendor_page: 9.5
   Cms:  # mechanical compliance (m/N)
     value: 0.0002
     winner: vendor_page
     sources:
       vendor_page: 0.0002
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.6
+    winner: vendor_page
+    sources:
+      vendor_page: 11.6
+  Le:  # voice coil inductance (H)
+    value: 0.00051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00051
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013025728
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013025728
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.0
     winner: vendor_page
     sources:
       vendor_page: 94.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1083--faitalpro-8hx150-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1083--faitalpro-8hx150-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-8HX150-8-Ferrite-and-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1083
-frd_url: null
-zma_url: null

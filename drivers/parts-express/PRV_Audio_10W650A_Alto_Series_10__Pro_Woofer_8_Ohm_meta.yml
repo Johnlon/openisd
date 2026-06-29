@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00079
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00079
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.033980159999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033980159999999995
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.03404
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03404
-  BL:  # force factor (T·m)
-    value: 14.09
-    winner: vendor_page
-    sources:
-      vendor_page: 14.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 325.0
-    winner: vendor_page
-    sources:
-      vendor_page: 325.0
-  Fs:  # free air resonance (Hz)
-    value: 72.31
-    winner: vendor_page
-    sources:
-      vendor_page: 72.31
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9464893445713456
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9464893445713456
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 16.34
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 16.34
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.0415
     winner: vendor_page
     sources:
       vendor_page: 0.0415
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 72.31
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 72.31
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9464893445713456
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9464893445713456
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.03404
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03404
+  Qms:  # mechanical Q factor
+    value: 16.34
+    winner: vendor_page
+    sources:
+      vendor_page: 16.34
   Cms:  # mechanical compliance (m/N)
     value: 0.00014199999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00014199999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 325.0
+    winner: vendor_page
+    sources:
+      vendor_page: 325.0
+  BL:  # force factor (T·m)
+    value: 14.09
+    winner: vendor_page
+    sources:
+      vendor_page: 14.09
+  Le:  # voice coil inductance (H)
+    value: 0.00079
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00079
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.033980159999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033980159999999995
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-10W650A-10-Alto-Series-Professional-Woofer-8-Ohm-294-2725
-frd_url: null
-zma_url: null

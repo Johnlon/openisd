@@ -1,50 +1,58 @@
+source: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0382
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0382
-  BL:  # force factor (T·m)
-    value: 18.2
-    winner: vendor_page
-    sources:
-      vendor_page: 18.2
   Re:  # DC voice coil resistance (Ω)
     value: 7.46
     winner: vendor_page
     sources:
       vendor_page: 7.46
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
   Fs:  # free air resonance (Hz)
     value: 695.0
     winner: vendor_page
     sources:
       vendor_page: 695.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0382
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0382
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 18.2
+    winner: vendor_page
+    sources:
+      vendor_page: 18.2
+  Le:  # voice coil inductance (H)
+    value: 0.00086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00086
   power_peak_W:  # peak power handling (W)
     value: 100.0
     winner: vendor_page
@@ -70,11 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-hdn-8.html
-frd_url: null
-zma_url: null

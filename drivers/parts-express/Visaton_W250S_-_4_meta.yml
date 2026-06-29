@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-574--visaton-w250s-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,42 +16,14 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.354221 (deps: Qms=2.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
 obsolete: null
 dq_issue: missing_Sd; Fs_low
 community: null
 fetched_sku: 292-574
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-574--visaton-w250s-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00093
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.13507113599999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.13507113599999998
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -53,6 +34,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6
+  Fs:  # free air resonance (Hz)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
   Qms:  # mechanical Q factor
     value: 2.01
     winner: vendor_page
@@ -63,6 +54,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 0.00093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00093
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.13507113599999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.13507113599999998
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2.0
     winner: vendor_page
@@ -73,14 +84,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-574--visaton-w250s-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-574--visaton-w250s-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W250S-4-10-Woofer-with-Treated-Paper-Cone-4-Ohm-292-574
-frd_url: null
-zma_url: null

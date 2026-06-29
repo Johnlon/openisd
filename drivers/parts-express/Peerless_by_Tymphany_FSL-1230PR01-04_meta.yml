@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1003--fsl-1230pr01-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0469 differs from calculated=0.045333 (deps: roo=
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1003
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1003--fsl-1230pr01-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000509
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000509
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0469
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0469
-  Qes:  # electrical Q factor
-    value: 0.597
-    winner: vendor_page
-    sources:
-      vendor_page: 0.597
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0685
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0685
-  BL:  # force factor (T·m)
-    value: 11.8
-    winner: vendor_page
-    sources:
-      vendor_page: 11.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 57.0
-    winner: vendor_page
-    sources:
-      vendor_page: 57.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.9345331377850115
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9345331377850115
   Xmax:  # one-way linear excursion (m)
     value: 0.00717
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 8.36
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 8.36
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0539
     winner: vendor_page
     sources:
       vendor_page: 0.0539
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 57.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 57.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.9345331377850115
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9345331377850115
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0685
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0685
+  Qms:  # mechanical Q factor
+    value: 8.36
+    winner: vendor_page
+    sources:
+      vendor_page: 8.36
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1003--fsl-1230pr01-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1003--fsl-1230pr01-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-FSL-1230PR01-04-FSL-Series-12-Woofer-264-1003
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.597
+    winner: vendor_page
+    sources:
+      vendor_page: 0.597
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 11.8
+    winner: vendor_page
+    sources:
+      vendor_page: 11.8
+  Le:  # voice coil inductance (H)
+    value: 0.000509
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000509
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0469
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0469

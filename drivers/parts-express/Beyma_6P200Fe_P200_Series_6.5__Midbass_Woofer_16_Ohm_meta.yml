@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-034--6p200fe-16-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-034--6p200fe-16-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008778208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008778208
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 1.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6e-05
-  BL:  # force factor (T·m)
-    value: 13.6
-    winner: vendor_page
-    sources:
-      vendor_page: 13.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 9.9
-    winner: vendor_page
-    sources:
-      vendor_page: 9.9
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 66.0
-    winner: vendor_page
-    sources:
-      vendor_page: 66.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.001543033414972475
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001543033414972475
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 4.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 9.9
     winner: vendor_page
     sources:
-      vendor_page: 4.3
+      vendor_page: 9.9
   Sd:  # effective piston area (m²)
     value: 1.35e-06
     winner: vendor_page
     sources:
       vendor_page: 1.35e-06
+  Fs:  # free air resonance (Hz)
+    value: 66.0
+    winner: vendor_page
+    sources:
+      vendor_page: 66.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.001543033414972475
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001543033414972475
+  Mms:  # moving mass incl. air load (kg)
+    value: 1.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6e-05
+  Qms:  # mechanical Q factor
+    value: 4.3
+    winner: vendor_page
+    sources:
+      vendor_page: 4.3
   Znom:  # nominal impedance (Ω)
     value: 16.0
     winner: vendor_page
     sources:
       vendor_page: 16.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 13.6
+    winner: vendor_page
+    sources:
+      vendor_page: 13.6
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.008778208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008778208
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
     sources:
       vendor_page: 93.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-034--6p200fe-16-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-034--6p200fe-16-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034
-frd_url: null
-zma_url: null

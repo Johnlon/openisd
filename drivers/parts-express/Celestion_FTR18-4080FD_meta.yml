@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.40872 differs from calculated=0.419653 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2014
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.40872
-    winner: vendor_page
-    sources:
-      vendor_page: 0.40872
-  Qes:  # electrical Q factor
-    value: 0.304
-    winner: vendor_page
-    sources:
-      vendor_page: 0.304
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.177812
-    winner: vendor_page
-    sources:
-      vendor_page: 0.177812
-  BL:  # force factor (T·m)
-    value: 22.81
-    winner: vendor_page
-    sources:
-      vendor_page: 22.81
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.62
-    winner: vendor_page
-    sources:
-      vendor_page: 5.62
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 25.2
-    winner: vendor_page
-    sources:
-      vendor_page: 25.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.92
-    winner: vendor_page
-    sources:
-      vendor_page: 5.92
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.286
-  Qms:  # mechanical Q factor
-    value: 4.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.62
     winner: vendor_page
     sources:
-      vendor_page: 4.75
+      vendor_page: 5.62
   Sd:  # effective piston area (m²)
     value: 0.11341199999999999
     winner: vendor_page
     sources:
       vendor_page: 0.11341199999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 25.2
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 25.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.92
+    winner: vendor_page
+    sources:
+      vendor_page: 5.92
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.177812
+    winner: vendor_page
+    sources:
+      vendor_page: 0.177812
+  Qms:  # mechanical Q factor
+    value: 4.75
+    winner: vendor_page
+    sources:
+      vendor_page: 4.75
   Cms:  # mechanical compliance (m/N)
     value: 0.00023
     winner: vendor_page
     sources:
       vendor_page: 0.00023
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.304
+    winner: vendor_page
+    sources:
+      vendor_page: 0.304
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 22.81
+    winner: vendor_page
+    sources:
+      vendor_page: 22.81
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.40872
+    winner: vendor_page
+    sources:
+      vendor_page: 0.40872
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
     sources:
       vendor_page: 97.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
-frd_url: null
-zma_url: null

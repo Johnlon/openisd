@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.38 differs from calculated=0.387817 (deps: Qms=3.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-734
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.097976128
-    winner: vendor_page
-    sources:
-      vendor_page: 0.097976128
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.317
-    winner: vendor_page
-    sources:
-      vendor_page: 0.317
-  BL:  # force factor (T·m)
-    value: 24.9
-    winner: vendor_page
-    sources:
-      vendor_page: 24.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1100.0
-  Fs:  # free air resonance (Hz)
-    value: 27.0
-    winner: vendor_page
-    sources:
-      vendor_page: 27.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 16.445805212278312
-    winner: vendor_page
-    sources:
-      vendor_page: 16.445805212278312
   Xmax:  # one-way linear excursion (m)
     value: 0.022
     winner: vendor_page
@@ -69,38 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 3.27
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 3.27
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.08
     winner: vendor_page
     sources:
       vendor_page: 0.08
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 27.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 27.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 16.445805212278312
+    winner: vendor_page
+    sources:
+      vendor_page: 16.445805212278312
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.317
+    winner: vendor_page
+    sources:
+      vendor_page: 0.317
+  Qms:  # mechanical Q factor
+    value: 3.27
+    winner: vendor_page
+    sources:
+      vendor_page: 3.27
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 1100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1100.0
+  BL:  # force factor (T·m)
+    value: 24.9
+    winner: vendor_page
+    sources:
+      vendor_page: 24.9
+  Le:  # voice coil inductance (H)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.097976128
+    winner: vendor_page
+    sources:
+      vendor_page: 0.097976128
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 1.0
     winner: vendor_page
     sources:
       vendor_page: 1.0
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS15-22-15-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-734
-frd_url: null
-zma_url: null

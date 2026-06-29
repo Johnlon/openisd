@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/21we-8542t00/
+manu_page_url: https://www.scan-speak.dk/product/21we-8542t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/21we-8542t00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/21we-8542t00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/21we-8542t00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/21we-8542t00.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,61 +15,52 @@ corrections: null
 reviewed_by: null
 driver_type: midwoofer
 nominal_size_cm: 21.0
-source: https://www.scan-speak.dk/product/21we-8542t00/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/21we-8542t00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/21we-8542t00.pdf
+  manu_page: https://www.scan-speak.dk/product/21we-8542t00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.054
-    winner: manu_page
-    sources:
-      manu_page: 0.054
-  BL:  # force factor (T·m)
-    value: 10.0
-    winner: manu_page
-    sources:
-      manu_page: 10.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: manu_page
-    sources:
-      manu_page: 6.3
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: manu_page
-    sources:
-      manu_page: 36.0
   Qts:  # total Q factor
     value: 0.38
     winner: manu_page
     sources:
       manu_page: 0.38
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
+    winner: manu_page
+    sources:
+      manu_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0233
     winner: manu_page
     sources:
       manu_page: 0.0233
+  Fs:  # free air resonance (Hz)
+    value: 36.0
+    winner: manu_page
+    sources:
+      manu_page: 36.0
   Znom:  # nominal impedance (Ω)
     value: 2.0
     winner: manu_page
     sources:
       manu_page: 2.0
+  BL:  # force factor (T·m)
+    value: 10.0
+    winner: manu_page
+    sources:
+      manu_page: 10.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: manu_page
     sources:
       manu_page: 91.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/21we-8542t00.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/21we-8542t00.pdf
-  manu_page: https://www.scan-speak.dk/product/21we-8542t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/21we-8542t00.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/21we-8542t00.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/21we-8542t00.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/21we-8542t00.ZIP
-manu_page_url: https://www.scan-speak.dk/product/21we-8542t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.054
+    winner: manu_page
+    sources:
+      manu_page: 0.054

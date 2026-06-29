@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01879
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01879
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02379
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02379
-  BL:  # force factor (T·m)
-    value: 12.78
-    winner: vendor_page
-    sources:
-      vendor_page: 12.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 69.97
-    winner: vendor_page
-    sources:
-      vendor_page: 69.97
   Xmax:  # one-way linear excursion (m)
     value: 0.00365
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 2.78
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 2.78
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.0249
     winner: vendor_page
     sources:
       vendor_page: 0.0249
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-8mb700ft-ndy.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 69.97
+    winner: vendor_page
+    sources:
+      vendor_page: 69.97
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02379
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02379
+  Qms:  # mechanical Q factor
+    value: 2.78
+    winner: vendor_page
+    sources:
+      vendor_page: 2.78
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 12.78
+    winner: vendor_page
+    sources:
+      vendor_page: 12.78
+  Le:  # voice coil inductance (H)
+    value: 0.00034
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00034
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01879
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01879

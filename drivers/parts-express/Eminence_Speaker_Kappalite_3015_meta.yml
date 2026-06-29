@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.152911 differs from calculated=0.155913 (deps: ro
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-597
+_sources:
+  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00064
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00064
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.15291072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15291072
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.084
-    winner: vendor_page
-    sources:
-      vendor_page: 0.084
-  BL:  # force factor (T·m)
-    value: 18.6
-    winner: vendor_page
-    sources:
-      vendor_page: 18.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.27
-    winner: vendor_page
-    sources:
-      vendor_page: 5.27
-  Pe:  # rated power input (W)
-    value: 450.0
-    winner: vendor_page
-    sources:
-      vendor_page: 450.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.544841859871468
-    winner: vendor_page
-    sources:
-      vendor_page: 3.544841859871468
   Xmax:  # one-way linear excursion (m)
     value: 0.005900000000000001
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 6.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.27
     winner: vendor_page
     sources:
-      vendor_page: 6.7
+      vendor_page: 5.27
   Sd:  # effective piston area (m²)
     value: 0.0856
     winner: vendor_page
     sources:
       vendor_page: 0.0856
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.544841859871468
+    winner: vendor_page
+    sources:
+      vendor_page: 3.544841859871468
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.084
+    winner: vendor_page
+    sources:
+      vendor_page: 0.084
+  Qms:  # mechanical Q factor
+    value: 6.7
+    winner: vendor_page
+    sources:
+      vendor_page: 6.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00015
     winner: vendor_page
     sources:
       vendor_page: 0.00015
-_sources:
-  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3015-Neo-15-Driver-290-597
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 450.0
+    winner: vendor_page
+    sources:
+      vendor_page: 450.0
+  BL:  # force factor (T·m)
+    value: 18.6
+    winner: vendor_page
+    sources:
+      vendor_page: 18.6
+  Le:  # voice coil inductance (H)
+    value: 0.00064
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00064
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.15291072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.15291072

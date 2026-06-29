@@ -1,45 +1,37 @@
+source: https://www.soundimports.eu/en/visaton-tw-70.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-tw-70.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-tw-70.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-tw-70.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Qes:  # electrical Q factor
-    value: 4.21
-    winner: vendor_page
-    sources:
-      vendor_page: 4.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 1500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1500.0
   Qts:  # total Q factor
     value: 0.97
     winner: vendor_page
     sources:
       vendor_page: 0.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  Fs:  # free air resonance (Hz)
+    value: 1500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1500.0
   Qms:  # mechanical Q factor
     value: 1.26
     winner: vendor_page
@@ -50,10 +42,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-tw-70.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-tw-70.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 4.21
+    winner: vendor_page
+    sources:
+      vendor_page: 4.21
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016

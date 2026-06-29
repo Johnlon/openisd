@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-710--lavoce-wsf041.00-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-710
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-710--lavoce-wsf041.00-specifications.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0015007904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015007904
-  Qes:  # electrical Q factor
-    value: 0.57
-    winner: vendor_page
-    sources:
-      vendor_page: 0.57
-  BL:  # force factor (T·m)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 122.0
-    winner: vendor_page
-    sources:
-      vendor_page: 122.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0028
     winner: vendor_page
@@ -57,34 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.52
-  Qms:  # mechanical Q factor
-    value: 6.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 6.5
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.0052899999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.0052899999999999996
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 122.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 122.0
+  Qms:  # mechanical Q factor
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
   Cms:  # mechanical compliance (m/N)
     value: 0.000378
     winner: vendor_page
     sources:
       vendor_page: 0.000378
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-710--lavoce-wsf041.00-specifications.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-710--lavoce-wsf041.00-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-WSF041.00-4-Woofer-8-Ohm-293-710
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.57
+    winner: vendor_page
+    sources:
+      vendor_page: 0.57
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Le:  # voice coil inductance (H)
+    value: 2.9999999999999997e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9999999999999997e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0015007904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015007904

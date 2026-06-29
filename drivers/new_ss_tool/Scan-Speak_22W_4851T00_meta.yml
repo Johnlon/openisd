@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/22w-4851t00/
+manu_page_url: https://www.scan-speak.dk/product/22w-4851t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/22w-4851t00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/22w-4851t00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/22w-4851t00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/22w-4851t00.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,12 +15,45 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: 22.0
-source: https://www.scan-speak.dk/product/22w-4851t00/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/22w-4851t00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/22w-4851t00.pdf
+  manu_page: https://www.scan-speak.dk/product/22w-4851t00/
 specs:
+  Qts:  # total Q factor
+    value: 0.22
+    winner: manu_page
+    sources:
+      manu_page: 0.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
+    winner: manu_page
+    sources:
+      manu_page: 3.7
+  Sd:  # effective piston area (m²)
+    value: 0.022
+    winner: manu_page
+    sources:
+      manu_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 21.0
+    winner: manu_page
+    sources:
+      manu_page: 21.0
+  BL:  # force factor (T·m)
+    value: 8.2
+    winner: manu_page
+    sources:
+      manu_page: 8.2
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 89.0
+    winner: manu_page
+    sources:
+      manu_page: 89.0
   Le:  # voice coil inductance (H)
     value: 0.05
     winner: manu_page
@@ -22,45 +64,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.126
-  BL:  # force factor (T·m)
-    value: 8.2
-    winner: manu_page
-    sources:
-      manu_page: 8.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: manu_page
-    sources:
-      manu_page: 3.7
-  Fs:  # free air resonance (Hz)
-    value: 21.0
-    winner: manu_page
-    sources:
-      manu_page: 21.0
-  Qts:  # total Q factor
-    value: 0.22
-    winner: manu_page
-    sources:
-      manu_page: 0.22
-  Sd:  # effective piston area (m²)
-    value: 0.022
-    winner: manu_page
-    sources:
-      manu_page: 0.022
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 89.0
-    winner: manu_page
-    sources:
-      manu_page: 89.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/22w-4851t00.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/22w-4851t00.pdf
-  manu_page: https://www.scan-speak.dk/product/22w-4851t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/22w-4851t00.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/22w-4851t00.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/22w-4851t00.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/22w-4851t00.ZIP
-manu_page_url: https://www.scan-speak.dk/product/22w-4851t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null

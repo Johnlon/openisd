@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
+manu_page_url: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/09/10in-SB29NRX-00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/09/10in-SB29NRX-00.pdf
+  manu_page: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.066
-    winner: manu_page
-    sources:
-      manu_page: 0.066
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.505
-    winner: manu_page
-    sources:
-      manu_page: 0.505
-  Fs:  # free air resonance (Hz)
-    value: 10.2
-    winner: manu_page
-    sources:
-      manu_page: 10.2
-  Qms:  # mechanical Q factor
-    value: 10.8
-    winner: manu_page
-    sources:
-      manu_page: 10.8
   Sd:  # effective piston area (m²)
     value: 0.0312
     winner: manu_page
     sources:
       manu_page: 0.0312
+  Fs:  # free air resonance (Hz)
+    value: 10.2
+    winner: manu_page
+    sources:
+      manu_page: 10.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.505
+    winner: manu_page
+    sources:
+      manu_page: 0.505
+  Qms:  # mechanical Q factor
+    value: 10.8
+    winner: manu_page
+    sources:
+      manu_page: 10.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00048
     winner: manu_page
     sources:
       manu_page: 0.00048
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/09/10in-SB29NRX-00.pdf
-  manu_page: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/09/10in-SB29NRX-00.pdf
-manu_page_url: https://sbacoustics.com/product/10in-sb29nrx-00-norex/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.066
+    winner: manu_page
+    sources:
+      manu_page: 0.066

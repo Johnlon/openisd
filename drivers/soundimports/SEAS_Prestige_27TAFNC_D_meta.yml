@@ -1,30 +1,27 @@
+source: https://www.soundimports.eu/en/seas-27tafnc-d.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-27tafnc-d.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-27tafnc-d.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-27tafnc-d.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 2.7
     winner: vendor_page
     sources:
       vendor_page: 2.7
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
   Fs:  # free air resonance (Hz)
     value: 1170.0
     winner: vendor_page
@@ -35,10 +32,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-27tafnc-d.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-27tafnc-d.html
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 3.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0e-05

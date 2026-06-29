@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-053--dayton-audio-ND25FN-4-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/275-053--Dayton-Audio-ND25FN-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-053--dayton-audio-ND25FN-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 2.61
-    winner: vendor_page
-    sources:
-      vendor_page: 2.61
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 1350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1350.0
   Qts:  # total Q factor
     value: 1.56
     winner: vendor_page
     sources:
       vendor_page: 1.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Fs:  # free air resonance (Hz)
+    value: 1350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1350.0
   Qms:  # mechanical Q factor
     value: 3.87
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-053--dayton-audio-ND25FN-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-053--dayton-audio-ND25FN-4-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND25FN-4-1-Silk-Dome-Neodymium-Tweeter-Element-4-Ohm-275-053
-frd_url: https://www.parts-express.com/pedocs/tech-docs/275-053--Dayton-Audio-ND25FN-4_data.zip
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.61
+    winner: vendor_page
+    sources:
+      vendor_page: 2.61
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05

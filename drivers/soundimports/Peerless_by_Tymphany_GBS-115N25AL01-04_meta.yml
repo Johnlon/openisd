@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000344
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000344
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00179
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00179
-  Qes:  # electrical Q factor
-    value: 0.772
-    winner: vendor_page
-    sources:
-      vendor_page: 0.772
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0093
-  BL:  # force factor (T·m)
-    value: 4.53
-    winner: vendor_page
-    sources:
-      vendor_page: 4.53
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00727
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.63
-  Qms:  # mechanical Q factor
-    value: 3.46
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 3.46
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.00581
     winner: vendor_page
     sources:
       vendor_page: 0.00581
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 90.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 90.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0093
+  Qms:  # mechanical Q factor
+    value: 3.46
+    winner: vendor_page
+    sources:
+      vendor_page: 3.46
   Cms:  # mechanical compliance (m/N)
     value: 0.00037
     winner: vendor_page
     sources:
       vendor_page: 0.00037
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-gbs-115n25al01-04.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.772
+    winner: vendor_page
+    sources:
+      vendor_page: 0.772
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 4.53
+    winner: vendor_page
+    sources:
+      vendor_page: 4.53
+  Le:  # voice coil inductance (H)
+    value: 0.000344
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000344
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00179
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00179

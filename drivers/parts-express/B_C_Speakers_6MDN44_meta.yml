@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-645--bc-6mdn44-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.4 differs from calculated=0.395092 (deps: Qms=2.8
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-645
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-645--bc-6mdn44-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0025485119999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025485119999999997
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011
-  BL:  # force factor (T·m)
-    value: 11.0
-    winner: vendor_page
-    sources:
-      vendor_page: 11.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 140.0
-    winner: vendor_page
-    sources:
-      vendor_page: 140.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.455751918948772
-    winner: vendor_page
-    sources:
-      vendor_page: 3.455751918948772
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 2.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 2.8
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0132
     winner: vendor_page
     sources:
       vendor_page: 0.0132
+  Fs:  # free air resonance (Hz)
+    value: 140.0
+    winner: vendor_page
+    sources:
+      vendor_page: 140.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.455751918948772
+    winner: vendor_page
+    sources:
+      vendor_page: 3.455751918948772
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011
+  Qms:  # mechanical Q factor
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-645--bc-6mdn44-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-645--bc-6mdn44-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-6MDN44-6-1-2-Neodymium-Midrange-Speaker-294-645
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
+  Le:  # voice coil inductance (H)
+    value: 0.00047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0025485119999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025485119999999997

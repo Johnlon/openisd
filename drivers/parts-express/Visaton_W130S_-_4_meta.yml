@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-562-visaton-9022-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 292-562
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-562-visaton-9022-specifications.pdf
+  vendor_page: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013875232
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013875232
-  Qes:  # electrical Q factor
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00225
     winner: vendor_page
@@ -52,6 +33,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5
+  Fs:  # free air resonance (Hz)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
   Qms:  # mechanical Q factor
     value: 2.54
     winner: vendor_page
@@ -62,6 +53,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013875232
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013875232
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 130.0
     winner: vendor_page
@@ -72,14 +83,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-562-visaton-9022-specifications.pdf
-  vendor_page: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-562-visaton-9022-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W130S-4-5-Woofer-with-Treated-Paper-Cone-4-Ohm-292-562
-frd_url: null
-zma_url: null

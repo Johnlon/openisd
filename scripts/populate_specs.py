@@ -38,6 +38,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
+from wdr_meta_schema import reorder_meta_for_save
 
 DRIVERS_DIR = Path(__file__).resolve().parent.parent / "drivers"
 SKIP_COLLECTIONS = {"matt", "loudspeakerdatabase", "sample"}
@@ -488,7 +489,7 @@ def process_collection(coll_dir: Path, force: bool) -> tuple[int, int, int]:
             meta["specs"] = _wrap_coaxial(existing_specs, html_src)
             try:
                 meta_path.write_text(
-                    annotate_specs_yaml(yaml.dump(meta, allow_unicode=True, sort_keys=False)),
+                    annotate_specs_yaml(yaml.dump(reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False)),
                     encoding="utf-8",
                 )
                 ok += 1
@@ -536,7 +537,7 @@ def process_collection(coll_dir: Path, force: bool) -> tuple[int, int, int]:
 
         try:
             meta_path.write_text(
-                annotate_specs_yaml(yaml.dump(meta, allow_unicode=True, sort_keys=False)),
+                annotate_specs_yaml(yaml.dump(reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False)),
                 encoding="utf-8",
             )
             ok += 1

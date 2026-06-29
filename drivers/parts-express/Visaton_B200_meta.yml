@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.10194 differs from calculated=0.105891 (deps: roo
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-664
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10194048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10194048
-  Qes:  # electrical Q factor
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009699999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009699999999999999
-  BL:  # force factor (T·m)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.29056923709006904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29056923709006904
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -68,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.76
-  Qms:  # mechanical Q factor
-    value: 8.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 8.39
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0214
     winner: vendor_page
     sources:
       vendor_page: 0.0214
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.29056923709006904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29056923709006904
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009699999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009699999999999999
+  Qms:  # mechanical Q factor
+    value: 8.39
+    winner: vendor_page
+    sources:
+      vendor_page: 8.39
   Cms:  # mechanical compliance (m/N)
     value: 0.00163
     winner: vendor_page
     sources:
       vendor_page: 0.00163
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.83
+    winner: vendor_page
+    sources:
+      vendor_page: 0.83
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10194048
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10194048
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 18.0
     winner: vendor_page
@@ -98,13 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
-frd_url: null
-zma_url: null

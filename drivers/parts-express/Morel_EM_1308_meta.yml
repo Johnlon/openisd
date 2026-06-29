@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
+datasheet_url: https://www.parts-express.com/pedocs/specs/287-030--morel-em-1308-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,70 +16,61 @@ corrections: '''Qts'' stored=0.47 differs from calculated=0.475916 (deps: Qms=0.
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 287-030
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/287-030--morel-em-1308-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Qes:  # electrical Q factor
-    value: 1.01
-    winner: vendor_page
-    sources:
-      vendor_page: 1.01
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 320.0
-    winner: vendor_page
-    sources:
-      vendor_page: 320.0
   Qts:  # total Q factor
     value: 0.47
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Qms:  # mechanical Q factor
-    value: 0.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 0.9
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0028
     winner: vendor_page
     sources:
       vendor_page: 0.0028
+  Fs:  # free air resonance (Hz)
+    value: 320.0
+    winner: vendor_page
+    sources:
+      vendor_page: 320.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Qms:  # mechanical Q factor
+    value: 0.9
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/287-030--morel-em-1308-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
-datasheet_url: https://www.parts-express.com/pedocs/specs/287-030--morel-em-1308-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-EM-1308-2-1-8-Dome-Midrange-287-030
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.01
+    winner: vendor_page
+    sources:
+      vendor_page: 1.01
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002

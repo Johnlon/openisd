@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2773--prv-audio-8mb700ft-ndy-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.3 differs from calculated=0.294984 (deps: Qms=2.7
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2773
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2773--prv-audio-8mb700ft-ndy-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.018689088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018689088
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02379
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02379
-  BL:  # force factor (T·m)
-    value: 12.78
-    winner: vendor_page
-    sources:
-      vendor_page: 12.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 69.97
-    winner: vendor_page
-    sources:
-      vendor_page: 69.97
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.762195749169939
-    winner: vendor_page
-    sources:
-      vendor_page: 3.762195749169939
   Xmax:  # one-way linear excursion (m)
     value: 0.00365
     winner: vendor_page
@@ -68,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 2.78
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 2.78
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.0249
     winner: vendor_page
     sources:
       vendor_page: 0.0249
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 69.97
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 69.97
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.762195749169939
+    winner: vendor_page
+    sources:
+      vendor_page: 3.762195749169939
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02379
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02379
+  Qms:  # mechanical Q factor
+    value: 2.78
+    winner: vendor_page
+    sources:
+      vendor_page: 2.78
   Cms:  # mechanical compliance (m/N)
     value: 0.01879
     winner: vendor_page
     sources:
       vendor_page: 0.01879
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 12.78
+    winner: vendor_page
+    sources:
+      vendor_page: 12.78
+  Le:  # voice coil inductance (H)
+    value: 0.00034
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00034
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.018689088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018689088
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 3.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2773--prv-audio-8mb700ft-ndy-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2773--prv-audio-8mb700ft-ndy-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773
-frd_url: null
-zma_url: null

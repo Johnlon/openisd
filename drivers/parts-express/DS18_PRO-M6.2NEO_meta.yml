@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,37 +15,23 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 294-8052
+_sources:
+  vendor_page: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0130823616
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0130823616
-  Qes:  # electrical Q factor
-    value: 0.386
-    winner: vendor_page
-    sources:
-      vendor_page: 0.386
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 82.0
-    winner: vendor_page
-    sources:
-      vendor_page: 82.0
   Qts:  # total Q factor
     value: 0.367
     winner: vendor_page
     sources:
       vendor_page: 0.367
+  Fs:  # free air resonance (Hz)
+    value: 82.0
+    winner: vendor_page
+    sources:
+      vendor_page: 82.0
   Qms:  # mechanical Q factor
     value: 7.287
     winner: vendor_page
@@ -47,13 +42,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  vendor_page: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/DS18-PRO-M6.2NEO-6.5-Professional-Water-Resistant-Neodymium-Full-Range-Speaker-2-Ohm-294-8052
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.386
+    winner: vendor_page
+    sources:
+      vendor_page: 0.386
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0130823616
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0130823616

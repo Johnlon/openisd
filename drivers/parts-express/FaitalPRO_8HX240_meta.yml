@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1084--faitalpro-8hx240-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0129 differs from calculated=0.0134032 (deps: roo
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1084
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1084--faitalpro-8hx240-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0129
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0129
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0277
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0277
-  BL:  # force factor (T·m)
-    value: 13.8
-    winner: vendor_page
-    sources:
-      vendor_page: 13.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5
   Xmax:  # one-way linear excursion (m)
     value: 0.00617
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 8.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 8.1
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0223
     winner: vendor_page
     sources:
       vendor_page: 0.0223
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0277
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0277
+  Qms:  # mechanical Q factor
+    value: 8.1
+    winner: vendor_page
+    sources:
+      vendor_page: 8.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00019
     winner: vendor_page
     sources:
       vendor_page: 0.00019
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 13.8
+    winner: vendor_page
+    sources:
+      vendor_page: 13.8
+  Le:  # voice coil inductance (H)
+    value: 0.00049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00049
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0129
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0129
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.0
     winner: vendor_page
     sources:
       vendor_page: 94.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1084--faitalpro-8hx240-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1084--faitalpro-8hx240-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-8HX240-8-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1084
-frd_url: null
-zma_url: null

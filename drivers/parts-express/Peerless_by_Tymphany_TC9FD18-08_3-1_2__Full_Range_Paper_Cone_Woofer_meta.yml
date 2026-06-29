@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1062--tymphany-tc9fd18-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1062--tymphany-tc9fd18-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 1.33
-    winner: vendor_page
-    sources:
-      vendor_page: 1.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0024300000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024300000000000003
-  BL:  # force factor (T·m)
-    value: 3.01
-    winner: vendor_page
-    sources:
-      vendor_page: 3.01
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7068583470577035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7068583470577035
   Xmax:  # one-way linear excursion (m)
     value: 0.0025499999999999997
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.89
-  Qms:  # mechanical Q factor
-    value: 2.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.7
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0036299999999999995
     winner: vendor_page
     sources:
       vendor_page: 0.0036299999999999995
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 125.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 125.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7068583470577035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7068583470577035
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0024300000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024300000000000003
+  Qms:  # mechanical Q factor
+    value: 2.7
+    winner: vendor_page
+    sources:
+      vendor_page: 2.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00067
     winner: vendor_page
     sources:
       vendor_page: 0.00067
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1062--tymphany-tc9fd18-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1062--tymphany-tc9fd18-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC9FD18-08-3-1-2-Full-Range-Paper-Cone-Woofer-264-1062
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.33
+    winner: vendor_page
+    sources:
+      vendor_page: 1.33
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 3.01
+    winner: vendor_page
+    sources:
+      vendor_page: 3.01
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

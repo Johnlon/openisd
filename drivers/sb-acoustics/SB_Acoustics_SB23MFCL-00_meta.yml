@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
+manu_page_url: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23MFCL-00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23MFCL-00.pdf
+  manu_page: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0312
-    winner: manu_page
-    sources:
-      manu_page: 0.0312
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.141
-    winner: manu_page
-    sources:
-      manu_page: 0.141
-  Fs:  # free air resonance (Hz)
-    value: 19.0
-    winner: manu_page
-    sources:
-      manu_page: 19.0
-  Qms:  # mechanical Q factor
-    value: 15.3
-    winner: manu_page
-    sources:
-      manu_page: 15.3
   Sd:  # effective piston area (m²)
     value: 0.021
     winner: manu_page
     sources:
       manu_page: 0.021
+  Fs:  # free air resonance (Hz)
+    value: 19.0
+    winner: manu_page
+    sources:
+      manu_page: 19.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.141
+    winner: manu_page
+    sources:
+      manu_page: 0.141
+  Qms:  # mechanical Q factor
+    value: 15.3
+    winner: manu_page
+    sources:
+      manu_page: 15.3
   Cms:  # mechanical compliance (m/N)
     value: 0.0005
     winner: manu_page
     sources:
       manu_page: 0.0005
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23MFCL-00.pdf
-  manu_page: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/05/8-inch-SB23MFCL-00.pdf
-manu_page_url: https://sbacoustics.com/product/8″-sb23mfcl-00-polypropylene/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0312
+    winner: manu_page
+    sources:
+      manu_page: 0.0312

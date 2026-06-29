@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00072
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0158
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0158
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0208
-  BL:  # force factor (T·m)
-    value: 11.4
-    winner: vendor_page
-    sources:
-      vendor_page: 11.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.17
-    winner: vendor_page
-    sources:
-      vendor_page: 4.17
   Xmax:  # one-way linear excursion (m)
     value: 0.0054
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 2.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 2.19
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.02112
     winner: vendor_page
     sources:
       vendor_page: 0.02112
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.17
+    winner: vendor_page
+    sources:
+      vendor_page: 4.17
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0208
+  Qms:  # mechanical Q factor
+    value: 2.19
+    winner: vendor_page
+    sources:
+      vendor_page: 2.19
   Cms:  # mechanical compliance (m/N)
     value: 0.00025
     winner: vendor_page
     sources:
       vendor_page: 0.00025
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-audience-rosso-8cx250.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.4
+    winner: vendor_page
+    sources:
+      vendor_page: 11.4
+  Le:  # voice coil inductance (H)
+    value: 0.00072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00072
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0158
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0158

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,18 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 297-418
+_sources:
+  vendor_page: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 5.1
     winner: vendor_page
     sources:
       vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   Fs:  # free air resonance (Hz)
     value: 1000.0
     winner: vendor_page
@@ -32,18 +37,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 2.83
     winner: vendor_page
     sources:
       vendor_page: 2.83
-_sources:
-  vendor_page: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-Q2R-1-1-8-Textile-Dome-Tweeter-297-418
-frd_url: null
-zma_url: null

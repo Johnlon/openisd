@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0018
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.444007424
-    winner: vendor_page
-    sources:
-      vendor_page: 0.444007424
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.316
-    winner: vendor_page
-    sources:
-      vendor_page: 0.316
-  BL:  # force factor (T·m)
-    value: 29.7
-    winner: vendor_page
-    sources:
-      vendor_page: 29.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 27.6
-    winner: vendor_page
-    sources:
-      vendor_page: 27.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.121441960289485
-    winner: vendor_page
-    sources:
-      vendor_page: 5.121441960289485
   Xmax:  # one-way linear excursion (m)
     value: 0.011
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 10.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 10.7
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.1735
     winner: vendor_page
     sources:
       vendor_page: 0.1735
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 27.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 27.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.121441960289485
+    winner: vendor_page
+    sources:
+      vendor_page: 5.121441960289485
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.316
+    winner: vendor_page
+    sources:
+      vendor_page: 0.316
+  Qms:  # mechanical Q factor
+    value: 10.7
+    winner: vendor_page
+    sources:
+      vendor_page: 10.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 29.7
+    winner: vendor_page
+    sources:
+      vendor_page: 29.7
+  Le:  # voice coil inductance (H)
+    value: 0.0018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0018
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.444007424
+    winner: vendor_page
+    sources:
+      vendor_page: 0.444007424
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
-frd_url: null
-zma_url: null

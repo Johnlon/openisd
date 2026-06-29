@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5791--bc-speakers-12cxn88-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5791--bc-speakers-12cxn88-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0010500000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0010500000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.058898944
-    winner: vendor_page
-    sources:
-      vendor_page: 0.058898944
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.06
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06
-  BL:  # force factor (T·m)
-    value: 20.9
-    winner: vendor_page
-    sources:
-      vendor_page: 20.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.271030833920332
-    winner: vendor_page
-    sources:
-      vendor_page: 2.271030833920332
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 8.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 8.3
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0522
     winner: vendor_page
     sources:
       vendor_page: 0.0522
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.271030833920332
+    winner: vendor_page
+    sources:
+      vendor_page: 2.271030833920332
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.06
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06
+  Qms:  # mechanical Q factor
+    value: 8.3
+    winner: vendor_page
+    sources:
+      vendor_page: 8.3
   Cms:  # mechanical compliance (m/N)
     value: 0.00634
     winner: vendor_page
     sources:
       vendor_page: 0.00634
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5791--bc-speakers-12cxn88-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5791--bc-speakers-12cxn88-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 20.9
+    winner: vendor_page
+    sources:
+      vendor_page: 20.9
+  Le:  # voice coil inductance (H)
+    value: 0.0010500000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0010500000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.058898944
+    winner: vendor_page
+    sources:
+      vendor_page: 0.058898944

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-650--dayton-audio-sig120-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0031 differs from calculated=0.0030684 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-650
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-650--dayton-audio-sig120-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00022
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0031
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0031
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0067
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 74.6
-    winner: vendor_page
-    sources:
-      vendor_page: 74.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6488557190567151
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6488557190567151
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 4.84
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 4.84
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.00564
     winner: vendor_page
     sources:
       vendor_page: 0.00564
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 74.6
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 74.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6488557190567151
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6488557190567151
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0067
+  Qms:  # mechanical Q factor
+    value: 4.84
+    winner: vendor_page
+    sources:
+      vendor_page: 4.84
   Cms:  # mechanical compliance (m/N)
     value: 0.00068
     winner: vendor_page
     sources:
       vendor_page: 0.00068
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00022
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0031
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0031
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 40.0
     winner: vendor_page
     sources:
       vendor_page: 40.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-650--dayton-audio-sig120-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-650--dayton-audio-sig120-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG120-4-4-Signature-Series-Extended-Range-40W-Driver-4-Ohm
-frd_url: null
-zma_url: null

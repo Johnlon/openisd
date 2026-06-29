@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6028--bc-18ds115-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.17 differs from calculated=0.173428 (deps: Qms=4.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-6028
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6028--bc-18ds115-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.17698
-    winner: vendor_page
-    sources:
-      vendor_page: 0.17698
-  Qes:  # electrical Q factor
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.348
-    winner: vendor_page
-    sources:
-      vendor_page: 0.348
-  BL:  # force factor (T·m)
-    value: 34.68
-    winner: vendor_page
-    sources:
-      vendor_page: 34.68
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 3400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3400.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 13.809779917253655
-    winner: vendor_page
-    sources:
-      vendor_page: 13.809779917253655
   Xmax:  # one-way linear excursion (m)
     value: 0.0165
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.17
-  Qms:  # mechanical Q factor
-    value: 4.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 4.75
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.1241
     winner: vendor_page
     sources:
       vendor_page: 0.1241
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 13.809779917253655
+    winner: vendor_page
+    sources:
+      vendor_page: 13.809779917253655
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.348
+    winner: vendor_page
+    sources:
+      vendor_page: 0.348
+  Qms:  # mechanical Q factor
+    value: 4.75
+    winner: vendor_page
+    sources:
+      vendor_page: 4.75
   Cms:  # mechanical compliance (m/N)
     value: 8.09e-05
     winner: vendor_page
     sources:
       vendor_page: 8.09e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6028--bc-18ds115-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6028--bc-18ds115-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18DS115-4-18-Professional-Neodymium-Subwoofer-4-Ohm-294-6028
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.18
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18
+  Pe:  # rated power input (W)
+    value: 3400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3400.0
+  BL:  # force factor (T·m)
+    value: 34.68
+    winner: vendor_page
+    sources:
+      vendor_page: 34.68
+  Le:  # voice coil inductance (H)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.17698
+    winner: vendor_page
+    sources:
+      vendor_page: 0.17698

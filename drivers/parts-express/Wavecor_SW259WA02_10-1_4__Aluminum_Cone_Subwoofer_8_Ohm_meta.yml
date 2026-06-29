@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1068-1070--wavecor-sw259WA01-02-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1068-1070--wavecor-sw259WA01-02-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0023
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039926687999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039926687999999995
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.158
-    winner: vendor_page
-    sources:
-      vendor_page: 0.158
-  BL:  # force factor (T·m)
-    value: 18.6
-    winner: vendor_page
-    sources:
-      vendor_page: 18.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.6778759637200698
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6778759637200698
   Xmax:  # one-way linear excursion (m)
     value: 0.0115
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 14.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 14.2
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0312
     winner: vendor_page
     sources:
       vendor_page: 0.0312
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.6778759637200698
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6778759637200698
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.158
+    winner: vendor_page
+    sources:
+      vendor_page: 0.158
+  Qms:  # mechanical Q factor
+    value: 14.2
+    winner: vendor_page
+    sources:
+      vendor_page: 14.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00029
     winner: vendor_page
     sources:
       vendor_page: 0.00029
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1068-1070--wavecor-sw259WA01-02-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1068-1070--wavecor-sw259WA01-02-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 18.6
+    winner: vendor_page
+    sources:
+      vendor_page: 18.6
+  Le:  # voice coil inductance (H)
+    value: 0.0023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0023
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039926687999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039926687999999995

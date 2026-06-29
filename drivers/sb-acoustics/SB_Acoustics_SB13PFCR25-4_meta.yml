@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
+manu_page_url: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2022/03/5in-SB13PFCR25-4.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2022/03/5in-SB13PFCR25-4.pdf
+  manu_page: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00056
-    winner: manu_page
-    sources:
-      manu_page: 0.00056
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0134
-    winner: manu_page
-    sources:
-      manu_page: 0.0134
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: manu_page
-    sources:
-      manu_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0105
-    winner: manu_page
-    sources:
-      manu_page: 0.0105
-  BL:  # force factor (T·m)
-    value: 5.3
-    winner: manu_page
-    sources:
-      manu_page: 5.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: manu_page
-    sources:
-      manu_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: manu_page
-    sources:
-      manu_page: 44.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 2.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 2.6
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0087
     winner: manu_page
     sources:
       manu_page: 0.0087
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 44.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 44.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0105
+    winner: manu_page
+    sources:
+      manu_page: 0.0105
+  Qms:  # mechanical Q factor
+    value: 2.6
+    winner: manu_page
+    sources:
+      manu_page: 2.6
   Cms:  # mechanical compliance (m/N)
     value: 0.00125
     winner: manu_page
     sources:
       manu_page: 0.00125
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: manu_page
+    sources:
+      manu_page: 0.33
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: manu_page
+    sources:
+      manu_page: 40.0
+  BL:  # force factor (T·m)
+    value: 5.3
+    winner: manu_page
+    sources:
+      manu_page: 5.3
+  Le:  # voice coil inductance (H)
+    value: 0.00056
+    winner: manu_page
+    sources:
+      manu_page: 0.00056
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0134
+    winner: manu_page
+    sources:
+      manu_page: 0.0134
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.4
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2022/03/5in-SB13PFCR25-4.pdf
-  manu_page: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2022/03/5in-SB13PFCR25-4.pdf
-manu_page_url: https://sbacoustics.com/product/5-sb13pfcr25-4-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

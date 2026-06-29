@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/d7608-920010/
+manu_page_url: https://www.scan-speak.dk/product/d7608-920010/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d7608-920010.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d7608-920010.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/d7608-920010.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/d7608-920010.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,47 +15,15 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: 7.6
-source: https://www.scan-speak.dk/product/d7608-920010/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/d7608-920010.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d7608-920010.pdf
+  manu_page: https://www.scan-speak.dk/product/d7608-920010/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013
-    winner: manu_page
-    sources:
-      manu_page: 0.00013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00036
-    winner: manu_page
-    sources:
-      manu_page: 0.00036
-  Qes:  # electrical Q factor
-    value: 2.22
-    winner: manu_page
-    sources:
-      manu_page: 2.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00339
-    winner: manu_page
-    sources:
-      manu_page: 0.00339
-  BL:  # force factor (T·m)
-    value: 4.7
-    winner: manu_page
-    sources:
-      manu_page: 4.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: manu_page
-    sources:
-      manu_page: 5.7
-  Fs:  # free air resonance (Hz)
-    value: 300.0
-    winner: manu_page
-    sources:
-      manu_page: 300.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0004
     winner: manu_page
@@ -57,35 +34,58 @@ specs:
     winner: manu_page
     sources:
       manu_page: 1.73
-  Qms:  # mechanical Q factor
-    value: 7.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: manu_page
     sources:
-      manu_page: 7.75
+      manu_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0055
     winner: manu_page
     sources:
       manu_page: 0.0055
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 92.0
+  Fs:  # free air resonance (Hz)
+    value: 300.0
     winner: manu_page
     sources:
-      manu_page: 92.0
+      manu_page: 300.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00339
+    winner: manu_page
+    sources:
+      manu_page: 0.00339
+  Qms:  # mechanical Q factor
+    value: 7.75
+    winner: manu_page
+    sources:
+      manu_page: 7.75
   Cms:  # mechanical compliance (m/N)
     value: 9.0e-05
     winner: manu_page
     sources:
       manu_page: 9.0e-05
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/d7608-920010.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d7608-920010.pdf
-  manu_page: https://www.scan-speak.dk/product/d7608-920010/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d7608-920010.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d7608-920010.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/d7608-920010.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/d7608-920010.ZIP
-manu_page_url: https://www.scan-speak.dk/product/d7608-920010/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.22
+    winner: manu_page
+    sources:
+      manu_page: 2.22
+  BL:  # force factor (T·m)
+    value: 4.7
+    winner: manu_page
+    sources:
+      manu_page: 4.7
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 92.0
+    winner: manu_page
+    sources:
+      manu_page: 92.0
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: manu_page
+    sources:
+      manu_page: 0.00013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00036
+    winner: manu_page
+    sources:
+      manu_page: 0.00036

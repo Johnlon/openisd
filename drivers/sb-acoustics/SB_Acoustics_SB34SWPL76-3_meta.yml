@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
+manu_page_url: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/12in-SB34SWPL76-3-DV.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/12in-SB34SWPL76-3-DV.pdf
+  manu_page: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0014
-    winner: manu_page
-    sources:
-      manu_page: 0.0014
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043
-    winner: manu_page
-    sources:
-      manu_page: 0.043
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: manu_page
-    sources:
-      manu_page: 0.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.231
-    winner: manu_page
-    sources:
-      manu_page: 0.231
-  BL:  # force factor (T·m)
-    value: 9.7
-    winner: manu_page
-    sources:
-      manu_page: 9.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.0
-    winner: manu_page
-    sources:
-      manu_page: 2.0
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: manu_page
-    sources:
-      manu_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 27.5
-    winner: manu_page
-    sources:
-      manu_page: 27.5
   Xmax:  # one-way linear excursion (m)
     value: 0.015
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.48
-  Qms:  # mechanical Q factor
-    value: 5.62
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.0
     winner: manu_page
     sources:
-      manu_page: 5.62
+      manu_page: 2.0
   Sd:  # effective piston area (m²)
     value: 0.0458
     winner: manu_page
     sources:
       manu_page: 0.0458
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 27.5
     winner: manu_page
     sources:
-      manu_page: 2.0
+      manu_page: 27.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.231
+    winner: manu_page
+    sources:
+      manu_page: 0.231
+  Qms:  # mechanical Q factor
+    value: 5.62
+    winner: manu_page
+    sources:
+      manu_page: 5.62
   Cms:  # mechanical compliance (m/N)
     value: 0.00014
     winner: manu_page
     sources:
       manu_page: 0.00014
+  Znom:  # nominal impedance (Ω)
+    value: 2.0
+    winner: manu_page
+    sources:
+      manu_page: 2.0
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: manu_page
+    sources:
+      manu_page: 0.52
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: manu_page
+    sources:
+      manu_page: 300.0
+  BL:  # force factor (T·m)
+    value: 9.7
+    winner: manu_page
+    sources:
+      manu_page: 9.7
+  Le:  # voice coil inductance (H)
+    value: 0.0014
+    winner: manu_page
+    sources:
+      manu_page: 0.0014
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043
+    winner: manu_page
+    sources:
+      manu_page: 0.043
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 75.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 90.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/12in-SB34SWPL76-3-DV.pdf
-  manu_page: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/12in-SB34SWPL76-3-DV.pdf
-manu_page_url: https://sbacoustics.com/product/12in-sb34swpl76-3-dv/
-vendor_page_url: null
-frd_url: null
-zma_url: null

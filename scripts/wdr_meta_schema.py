@@ -124,6 +124,59 @@ class MetaModel(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 1b. Canonical _meta.yml field order — used by populate_specs and scrapers.
+#     Groups: source/URLs → quality → classification → status → structured data.
+#     Any field NOT in this list is appended at the end (forward compat).
+# ══════════════════════════════════════════════════════════════════════════════
+
+META_FIELD_ORDER: list[str] = [
+    # ── Where this data came from ─────────────────────────────────────────────
+    "source",
+    "manu_page_url",
+    "vendor_page_url",
+    "datasheet_url",
+    "adv_datasheet_url",
+    "drawing_url",
+    "cad_url",
+    "frd_url",
+    "zma_url",
+    # ── Quality and curation ──────────────────────────────────────────────────
+    "quality",
+    "issue",
+    "detail",
+    "corrections",
+    "reviewed_by",
+    # ── Physical classification ───────────────────────────────────────────────
+    "driver_type",
+    "nominal_size_cm",
+    # ── Status flags ─────────────────────────────────────────────────────────
+    "obsolete",
+    "dq_issue",
+    "community",
+    "fetched_sku",
+    # ── Structured provenance and parameters ──────────────────────────────────
+    "_sources",
+    "specs",
+    # ── Legacy fields (stripped on next populate_specs run) ───────────────────
+    "field_provenance",
+    "freq_low_hz",
+    "freq_high_hz",
+]
+
+
+def reorder_meta_for_save(meta: dict) -> dict:
+    """Return a new dict with keys in META_FIELD_ORDER. Unknown keys go at the end."""
+    ordered: dict = {}
+    for k in META_FIELD_ORDER:
+        if k in meta:
+            ordered[k] = meta[k]
+    for k, v in meta.items():
+        if k not in ordered:
+            ordered[k] = v
+    return ordered
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # 2.  WDR field spec
 #     All 56 WinISD-native fields. Source: direct analysis of drivers/matt/
 #     (423 human-curated files) and drivers/sample/ (53 probe experiments).

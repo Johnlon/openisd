@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1654--tympany-sdf-250f75pr01-06-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1654--tympany-sdf-250f75pr01-06-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00102
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00102
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.038482531199999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.038482531199999996
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1035
-  BL:  # force factor (T·m)
-    value: 14.12
-    winner: vendor_page
-    sources:
-      vendor_page: 14.12
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.39
-    winner: vendor_page
-    sources:
-      vendor_page: 4.39
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 33.5
-    winner: vendor_page
-    sources:
-      vendor_page: 33.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8619977996853352
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8619977996853352
   Xmax:  # one-way linear excursion (m)
     value: 0.0126
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 11.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.39
     winner: vendor_page
     sources:
-      vendor_page: 11.7
+      vendor_page: 4.39
   Sd:  # effective piston area (m²)
     value: 0.03526
     winner: vendor_page
     sources:
       vendor_page: 0.03526
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 33.5
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 33.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8619977996853352
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8619977996853352
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1035
+  Qms:  # mechanical Q factor
+    value: 11.7
+    winner: vendor_page
+    sources:
+      vendor_page: 11.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00021799999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.00021799999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1654--tympany-sdf-250f75pr01-06-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1654--tympany-sdf-250f75pr01-06-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-SDF-250F75PR01-06-10-Paper-Cone-Subwoofer-264-1654
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 14.12
+    winner: vendor_page
+    sources:
+      vendor_page: 14.12
+  Le:  # voice coil inductance (H)
+    value: 0.00102
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00102
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.038482531199999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.038482531199999996

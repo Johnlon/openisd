@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1440
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.6e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 2.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-06
-  Qes:  # electrical Q factor
-    value: 2.03
-    winner: vendor_page
-    sources:
-      vendor_page: 2.03
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000289
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000289
-  BL:  # force factor (T·m)
-    value: 3.15
-    winner: vendor_page
-    sources:
-      vendor_page: 3.15
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 1700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1700.0
   Xmax:  # one-way linear excursion (m)
     value: 0.000717
     winner: vendor_page
@@ -62,34 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.4
-  Qms:  # mechanical Q factor
-    value: 4.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 4.42
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 0.000661
     winner: vendor_page
     sources:
       vendor_page: 0.000661
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 1700.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 1700.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000289
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000289
+  Qms:  # mechanical Q factor
+    value: 4.42
+    winner: vendor_page
+    sources:
+      vendor_page: 4.42
   Cms:  # mechanical compliance (m/N)
     value: 3.1e-05
     winner: vendor_page
     sources:
       vendor_page: 3.1e-05
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.03
+    winner: vendor_page
+    sources:
+      vendor_page: 2.03
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 3.15
+    winner: vendor_page
+    sources:
+      vendor_page: 3.15
+  Le:  # voice coil inductance (H)
+    value: 4.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.6e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 2.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-06

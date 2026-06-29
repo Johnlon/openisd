@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1103-faitalpro-3fe25-4-specificarions.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1103
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1103-faitalpro-3fe25-4-specificarions.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00115
-  Qes:  # electrical Q factor
-    value: 0.73
-    winner: vendor_page
-    sources:
-      vendor_page: 0.73
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  BL:  # force factor (T·m)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.42
-    winner: vendor_page
-    sources:
-      vendor_page: 0.42
   Xmax:  # one-way linear excursion (m)
     value: 0.00173
     winner: vendor_page
@@ -67,31 +33,76 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.62
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.00302
     winner: vendor_page
     sources:
       vendor_page: 0.00302
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 110.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 91.0
+      vendor_page: 110.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.42
     winner: vendor_page
     sources:
-      vendor_page: 91.0
+      vendor_page: 0.42
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00089
     winner: vendor_page
     sources:
       vendor_page: 0.00089
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.73
+    winner: vendor_page
+    sources:
+      vendor_page: 0.73
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 91.0
+    winner: vendor_page
+    sources:
+      vendor_page: 91.0
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00115
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -102,14 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 294.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1103-faitalpro-3fe25-4-specificarions.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1103-faitalpro-3fe25-4-specificarions.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-4-Ohm-294-1103
-frd_url: null
-zma_url: null

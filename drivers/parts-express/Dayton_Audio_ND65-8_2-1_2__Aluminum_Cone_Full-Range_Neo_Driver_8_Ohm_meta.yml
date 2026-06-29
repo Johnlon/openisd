@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-206-dayton-audio-nd65-8-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/ND65-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-206-dayton-audio-nd65-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00061
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00061
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003681184
-  Qes:  # electrical Q factor
-    value: 0.71
-    winner: vendor_page
-    sources:
-      vendor_page: 0.71
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
-  BL:  # force factor (T·m)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 102.0
-    winner: vendor_page
-    sources:
-      vendor_page: 102.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.20246667599805906
-    winner: vendor_page
-    sources:
-      vendor_page: 0.20246667599805906
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 8.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.4
     winner: vendor_page
     sources:
-      vendor_page: 8.23
+      vendor_page: 7.4
   Sd:  # effective piston area (m²)
     value: 0.00165
     winner: vendor_page
     sources:
       vendor_page: 0.00165
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 102.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 102.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.20246667599805906
+    winner: vendor_page
+    sources:
+      vendor_page: 0.20246667599805906
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
+  Qms:  # mechanical Q factor
+    value: 8.23
+    winner: vendor_page
+    sources:
+      vendor_page: 8.23
   Cms:  # mechanical compliance (m/N)
     value: 0.00093
     winner: vendor_page
     sources:
       vendor_page: 0.00093
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-206-dayton-audio-nd65-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-206-dayton-audio-nd65-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-ND65-8-2-1-2-Aluminum-Cone-Full-Range-Driver-8-290-206
-frd_url: https://www.parts-express.com/pedocs/tech-docs/ND65-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.71
+    winner: vendor_page
+    sources:
+      vendor_page: 0.71
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
+  Le:  # voice coil inductance (H)
+    value: 0.00061
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00061
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003681184

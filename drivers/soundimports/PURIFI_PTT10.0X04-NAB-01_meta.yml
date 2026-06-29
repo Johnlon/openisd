@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.082
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: vendor_page
-    sources:
-      vendor_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.098
-  BL:  # force factor (T·m)
-    value: 12.8
-    winner: vendor_page
-    sources:
-      vendor_page: 12.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.69
-    winner: vendor_page
-    sources:
-      vendor_page: 2.69
   Xmax:  # one-way linear excursion (m)
     value: 0.025
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 5.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 5.5
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.036
     winner: vendor_page
     sources:
       vendor_page: 0.036
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 24.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 24.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.69
+    winner: vendor_page
+    sources:
+      vendor_page: 2.69
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.098
+    winner: vendor_page
+    sources:
+      vendor_page: 0.098
+  Qms:  # mechanical Q factor
+    value: 5.5
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5
   Cms:  # mechanical compliance (m/N)
     value: 0.00044
     winner: vendor_page
     sources:
       vendor_page: 0.00044
-_sources:
-  vendor_page: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/purifi-ptt100x04-nab-01.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: vendor_page
+    sources:
+      vendor_page: 0.42
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 12.8
+    winner: vendor_page
+    sources:
+      vendor_page: 12.8
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.082

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-338-goldwood-gw-15pc-75-8-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.47 differs from calculated=0.476932 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-338
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-338-goldwood-gw-15pc-75-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00249
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00249
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.15291072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15291072
-  Qes:  # electrical Q factor
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.15180000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15180000000000002
-  BL:  # force factor (T·m)
-    value: 20.2
-    winner: vendor_page
-    sources:
-      vendor_page: 20.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Pe:  # rated power input (W)
-    value: 275.0
-    winner: vendor_page
-    sources:
-      vendor_page: 275.0
-  Fs:  # free air resonance (Hz)
-    value: 32.9
-    winner: vendor_page
-    sources:
-      vendor_page: 32.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.74083836346029
-    winner: vendor_page
-    sources:
-      vendor_page: 8.74083836346029
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Qms:  # mechanical Q factor
-    value: 3.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.1
     winner: vendor_page
     sources:
-      vendor_page: 3.59
+      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.082372
     winner: vendor_page
     sources:
       vendor_page: 0.082372
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 32.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 92.3
+      vendor_page: 32.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 8.74083836346029
     winner: vendor_page
     sources:
-      vendor_page: 92.3
+      vendor_page: 8.74083836346029
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.15180000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.15180000000000002
+  Qms:  # mechanical Q factor
+    value: 3.59
+    winner: vendor_page
+    sources:
+      vendor_page: 3.59
   Cms:  # mechanical compliance (m/N)
     value: 0.00015
     winner: vendor_page
     sources:
       vendor_page: 0.00015
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-338-goldwood-gw-15pc-75-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-338-goldwood-gw-15pc-75-8-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Pe:  # rated power input (W)
+    value: 275.0
+    winner: vendor_page
+    sources:
+      vendor_page: 275.0
+  BL:  # force factor (T·m)
+    value: 20.2
+    winner: vendor_page
+    sources:
+      vendor_page: 20.2
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 92.3
+    winner: vendor_page
+    sources:
+      vendor_page: 92.3
+  Le:  # voice coil inductance (H)
+    value: 0.00249
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00249
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.15291072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.15291072

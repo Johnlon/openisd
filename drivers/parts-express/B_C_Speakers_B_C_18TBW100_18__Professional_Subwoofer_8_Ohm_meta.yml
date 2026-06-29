@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6007--bc-18tbw100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6007--bc-18tbw100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0024500000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024500000000000004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.174997824
-    winner: vendor_page
-    sources:
-      vendor_page: 0.174997824
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.245
-    winner: vendor_page
-    sources:
-      vendor_page: 0.245
-  BL:  # force factor (T·m)
-    value: 26.4
-    winner: vendor_page
-    sources:
-      vendor_page: 26.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 3000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3000.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.734789251133119
-    winner: vendor_page
-    sources:
-      vendor_page: 6.734789251133119
   Xmax:  # one-way linear excursion (m)
     value: 0.012
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 8.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.121
     winner: vendor_page
     sources:
       vendor_page: 0.121
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.734789251133119
+    winner: vendor_page
+    sources:
+      vendor_page: 6.734789251133119
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.245
+    winner: vendor_page
+    sources:
+      vendor_page: 0.245
+  Qms:  # mechanical Q factor
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 3000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3000.0
+  BL:  # force factor (T·m)
+    value: 26.4
+    winner: vendor_page
+    sources:
+      vendor_page: 26.4
+  Le:  # voice coil inductance (H)
+    value: 0.0024500000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024500000000000004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.174997824
+    winner: vendor_page
+    sources:
+      vendor_page: 0.174997824
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 30.0
     winner: vendor_page
     sources:
       vendor_page: 30.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6007--bc-18tbw100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6007--bc-18tbw100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18TBW100-18-Professional-Subwoofer-8-Ohm-294-6007
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6056--bc-15ds115-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6056--bc-15ds115-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0045
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.09401177599999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09401177599999999
-  Qes:  # electrical Q factor
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.254
-    winner: vendor_page
-    sources:
-      vendor_page: 0.254
-  BL:  # force factor (T·m)
-    value: 38.7
-    winner: vendor_page
-    sources:
-      vendor_page: 38.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.9
-    winner: vendor_page
-    sources:
-      vendor_page: 4.9
-  Pe:  # rated power input (W)
-    value: 3200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3200.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 10.128011393226787
-    winner: vendor_page
-    sources:
-      vendor_page: 10.128011393226787
   Xmax:  # one-way linear excursion (m)
     value: 0.0165
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.17
-  Qms:  # mechanical Q factor
-    value: 5.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.9
     winner: vendor_page
     sources:
-      vendor_page: 5.2
+      vendor_page: 4.9
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 33.0
+    winner: vendor_page
+    sources:
+      vendor_page: 33.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 10.128011393226787
+    winner: vendor_page
+    sources:
+      vendor_page: 10.128011393226787
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.254
+    winner: vendor_page
+    sources:
+      vendor_page: 0.254
+  Qms:  # mechanical Q factor
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6056--bc-15ds115-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6056--bc-15ds115-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15DS115-15-Neodymium-Subwoofer-8-Ohm-294-6056
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.18
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18
+  Pe:  # rated power input (W)
+    value: 3200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3200.0
+  BL:  # force factor (T·m)
+    value: 38.7
+    winner: vendor_page
+    sources:
+      vendor_page: 38.7
+  Le:  # voice coil inductance (H)
+    value: 0.0045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0045
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.09401177599999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09401177599999999

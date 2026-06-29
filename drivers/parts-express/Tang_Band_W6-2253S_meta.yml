@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-937--tang-band-w6-2253s-spec-seet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-937
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-937--tang-band-w6-2253s-spec-seet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0063429632
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0063429632
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.039909999999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039909999999999994
-  BL:  # force factor (T·m)
-    value: 7.75
-    winner: vendor_page
-    sources:
-      vendor_page: 7.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.1150549765159905
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1150549765159905
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 3.22
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.22
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.011
     winner: vendor_page
     sources:
       vendor_page: 0.011
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.1150549765159905
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1150549765159905
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.039909999999999994
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039909999999999994
+  Qms:  # mechanical Q factor
+    value: 3.22
+    winner: vendor_page
+    sources:
+      vendor_page: 3.22
   Cms:  # mechanical compliance (m/N)
     value: 0.000397
     winner: vendor_page
     sources:
       vendor_page: 0.000397
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-937--tang-band-w6-2253s-spec-seet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-937--tang-band-w6-2253s-spec-seet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 7.75
+    winner: vendor_page
+    sources:
+      vendor_page: 7.75
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0063429632
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0063429632

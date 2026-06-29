@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/15w-8534t00/
+manu_page_url: https://www.scan-speak.dk/product/15w-8534t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/15w-8534t00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/15w-8534t00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/15w-8534t00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/15w-8534t00.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,56 +15,47 @@ corrections: null
 reviewed_by: null
 driver_type: midwoofer
 nominal_size_cm: 15.0
-source: https://www.scan-speak.dk/product/15w-8534t00/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/15w-8534t00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/15w-8534t00.pdf
+  manu_page: https://www.scan-speak.dk/product/15w-8534t00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03
-    winner: manu_page
-    sources:
-      manu_page: 0.03
-  BL:  # force factor (T·m)
-    value: 5.5
-    winner: manu_page
-    sources:
-      manu_page: 5.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: manu_page
-    sources:
-      manu_page: 5.8
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: manu_page
-    sources:
-      manu_page: 32.0
   Qts:  # total Q factor
     value: 0.39
     winner: manu_page
     sources:
       manu_page: 0.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: manu_page
+    sources:
+      manu_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.00981
     winner: manu_page
     sources:
       manu_page: 0.00981
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: manu_page
+    sources:
+      manu_page: 32.0
+  BL:  # force factor (T·m)
+    value: 5.5
+    winner: manu_page
+    sources:
+      manu_page: 5.5
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 85.5
     winner: manu_page
     sources:
       manu_page: 85.5
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/15w-8534t00.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/15w-8534t00.pdf
-  manu_page: https://www.scan-speak.dk/product/15w-8534t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/15w-8534t00.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/15w-8534t00.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/15w-8534t00.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/15w-8534t00.ZIP
-manu_page_url: https://www.scan-speak.dk/product/15w-8534t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03
+    winner: manu_page
+    sources:
+      manu_page: 0.03

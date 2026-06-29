@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7821--visaton-frws5-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7821--visaton-frws5-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 8.49504e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.49504e-05
-  Qes:  # electrical Q factor
-    value: 3.22
-    winner: vendor_page
-    sources:
-      vendor_page: 3.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  BL:  # force factor (T·m)
-    value: 1.4
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Fs:  # free air resonance (Hz)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.23728041190255234
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23728041190255234
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.63
-  Qms:  # mechanical Q factor
-    value: 3.31
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 3.31
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
+  Fs:  # free air resonance (Hz)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.23728041190255234
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23728041190255234
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Qms:  # mechanical Q factor
+    value: 3.31
+    winner: vendor_page
+    sources:
+      vendor_page: 3.31
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 3.22
+    winner: vendor_page
+    sources:
+      vendor_page: 3.22
+  Pe:  # rated power input (W)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  BL:  # force factor (T·m)
+    value: 1.4
+    winner: vendor_page
+    sources:
+      vendor_page: 1.4
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 8.49504e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.49504e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 90.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7821--visaton-frws5-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7821--visaton-frws5-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FRWS5-8-2-Full-Range-Speaker-8-Ohm-292-7821
-frd_url: null
-zma_url: null

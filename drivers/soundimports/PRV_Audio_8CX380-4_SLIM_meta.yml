@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01721
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01721
-  Qes:  # electrical Q factor
-    value: 1.19
-    winner: vendor_page
-    sources:
-      vendor_page: 1.19
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01338
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01338
-  BL:  # force factor (T·m)
-    value: 4.83
-    winner: vendor_page
-    sources:
-      vendor_page: 4.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 190.0
-    winner: vendor_page
-    sources:
-      vendor_page: 190.0
-  Fs:  # free air resonance (Hz)
-    value: 92.1
-    winner: vendor_page
-    sources:
-      vendor_page: 92.1
   Xmax:  # one-way linear excursion (m)
     value: 0.00275
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.09
-  Qms:  # mechanical Q factor
-    value: 12.43
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 12.43
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0235
     winner: vendor_page
     sources:
       vendor_page: 0.0235
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-8cx380-4-slim.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 92.1
+    winner: vendor_page
+    sources:
+      vendor_page: 92.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01338
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01338
+  Qms:  # mechanical Q factor
+    value: 12.43
+    winner: vendor_page
+    sources:
+      vendor_page: 12.43
+  Qes:  # electrical Q factor
+    value: 1.19
+    winner: vendor_page
+    sources:
+      vendor_page: 1.19
+  Pe:  # rated power input (W)
+    value: 190.0
+    winner: vendor_page
+    sources:
+      vendor_page: 190.0
+  BL:  # force factor (T·m)
+    value: 4.83
+    winner: vendor_page
+    sources:
+      vendor_page: 4.83
+  Le:  # voice coil inductance (H)
+    value: 3.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01721
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01721

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,17 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 292-7828
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
 specs:
-  Pe:  # rated power input (W)
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
   Fs:  # free air resonance (Hz)
     value: 530.0
     winner: vendor_page
@@ -27,6 +32,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 90.0
     winner: vendor_page
@@ -37,13 +47,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20000.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-K23SQ8-0.9-Miniature-Speaker-8-Ohm-292-7828
-frd_url: null
-zma_url: null

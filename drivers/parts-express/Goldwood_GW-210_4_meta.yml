@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-320
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.064279136
-    winner: vendor_page
-    sources:
-      vendor_page: 0.064279136
-  Qes:  # electrical Q factor
-    value: 1.32
-    winner: vendor_page
-    sources:
-      vendor_page: 1.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.037700000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.037700000000000004
-  BL:  # force factor (T·m)
-    value: 5.31
-    winner: vendor_page
-    sources:
-      vendor_page: 5.31
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Fs:  # free air resonance (Hz)
-    value: 41.8
-    winner: vendor_page
-    sources:
-      vendor_page: 41.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.7872599996700407
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7872599996700407
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.07
-  Qms:  # mechanical Q factor
-    value: 5.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 5.54
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.03449
     winner: vendor_page
     sources:
       vendor_page: 0.03449
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 41.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 41.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.7872599996700407
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7872599996700407
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.037700000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.037700000000000004
+  Qms:  # mechanical Q factor
+    value: 5.54
+    winner: vendor_page
+    sources:
+      vendor_page: 5.54
   Cms:  # mechanical compliance (m/N)
     value: 0.00038
     winner: vendor_page
     sources:
       vendor_page: 0.00038
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-210-4-10-OEM-Woofer-4-Ohm-290-320
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.32
+    winner: vendor_page
+    sources:
+      vendor_page: 1.32
+  Pe:  # rated power input (W)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
+  BL:  # force factor (T·m)
+    value: 5.31
+    winner: vendor_page
+    sources:
+      vendor_page: 5.31
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.064279136
+    winner: vendor_page
+    sources:
+      vendor_page: 0.064279136

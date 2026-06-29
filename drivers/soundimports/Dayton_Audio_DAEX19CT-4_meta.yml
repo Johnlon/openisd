@@ -1,60 +1,68 @@
+source: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00058
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00058
-  BL:  # force factor (T·m)
-    value: 1.78
-    winner: vendor_page
-    sources:
-      vendor_page: 1.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 637.0
-    winner: vendor_page
-    sources:
-      vendor_page: 637.0
   Qts:  # total Q factor
     value: 2.34
     winner: vendor_page
     sources:
       vendor_page: 2.34
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 3.8
+  Fs:  # free air resonance (Hz)
+    value: 637.0
+    winner: vendor_page
+    sources:
+      vendor_page: 637.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00058
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00058
   Cms:  # mechanical compliance (m/N)
     value: 1.0e-07
     winner: vendor_page
     sources:
       vendor_page: 1.0e-07
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.78
+    winner: vendor_page
+    sources:
+      vendor_page: 1.78
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
@@ -70,11 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 19.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-daex19ct-4.html
-frd_url: null
-zma_url: null

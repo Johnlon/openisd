@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1323
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00095
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00095
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039360351999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039360351999999994
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.059
-    winner: vendor_page
-    sources:
-      vendor_page: 0.059
-  BL:  # force factor (T·m)
-    value: 14.0
-    winner: vendor_page
-    sources:
-      vendor_page: 14.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.8515994855661195
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8515994855661195
   Xmax:  # one-way linear excursion (m)
     value: 0.00737
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 5.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 5.2
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.0322
     winner: vendor_page
     sources:
       vendor_page: 0.0322
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.8515994855661195
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8515994855661195
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.059
+    winner: vendor_page
+    sources:
+      vendor_page: 0.059
+  Qms:  # mechanical Q factor
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00027
     winner: vendor_page
     sources:
       vendor_page: 0.00027
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 14.0
+    winner: vendor_page
+    sources:
+      vendor_page: 14.0
+  Le:  # voice coil inductance (H)
+    value: 0.00095
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00095
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039360351999999994
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039360351999999994

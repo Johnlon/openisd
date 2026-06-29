@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,28 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 275-144
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Qes:  # electrical Q factor
-    value: 1.46
-    winner: vendor_page
-    sources:
-      vendor_page: 1.46
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 710.0
-    winner: vendor_page
-    sources:
-      vendor_page: 710.0
   Qts:  # total Q factor
     value: 0.92
     winner: vendor_page
     sources:
       vendor_page: 0.92
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3.0
+  Fs:  # free air resonance (Hz)
+    value: 710.0
+    winner: vendor_page
+    sources:
+      vendor_page: 710.0
   Qms:  # mechanical Q factor
     value: 2.52
     winner: vendor_page
@@ -52,6 +47,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.46
+    winner: vendor_page
+    sources:
+      vendor_page: 1.46
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 2.9999999999999997e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9999999999999997e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 28.0
     winner: vendor_page
@@ -62,13 +72,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144
-frd_url: null
-zma_url: null

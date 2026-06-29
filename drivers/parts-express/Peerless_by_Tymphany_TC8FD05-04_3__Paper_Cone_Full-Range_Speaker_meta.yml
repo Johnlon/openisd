@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1656--tympany-tc8fd05-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1656--tympany-tc8fd05-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0008778208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008778208
-  Qes:  # electrical Q factor
-    value: 1.03
-    winner: vendor_page
-    sources:
-      vendor_page: 1.03
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 2.379
-    winner: vendor_page
-    sources:
-      vendor_page: 2.379
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.16
-    winner: vendor_page
-    sources:
-      vendor_page: 3.16
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 146.0
-    winner: vendor_page
-    sources:
-      vendor_page: 146.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5824413046655362
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5824413046655362
   Xmax:  # one-way linear excursion (m)
     value: 0.0016
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.78
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.16
+    winner: vendor_page
+    sources:
+      vendor_page: 3.16
+  Fs:  # free air resonance (Hz)
+    value: 146.0
+    winner: vendor_page
+    sources:
+      vendor_page: 146.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5824413046655362
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5824413046655362
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
   Qms:  # mechanical Q factor
     value: 3.15
     winner: vendor_page
     sources:
       vendor_page: 3.15
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.000574
     winner: vendor_page
     sources:
       vendor_page: 0.000574
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.03
+    winner: vendor_page
+    sources:
+      vendor_page: 1.03
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.379
+    winner: vendor_page
+    sources:
+      vendor_page: 2.379
+  Le:  # voice coil inductance (H)
+    value: 2.9999999999999997e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9999999999999997e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0008778208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008778208
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1656--tympany-tc8fd05-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1656--tympany-tc8fd05-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC8FD05-04-3-Paper-Cone-Full-Range-Driver-264-1656
-frd_url: null
-zma_url: null

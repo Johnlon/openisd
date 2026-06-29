@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/SB%20Acoustics/SB36WBAC21-8/SB-Acoustics%20SB36WBAC21-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/SB%20Acoustics/SB36WBAC21-8/SB-Acoustics%20SB36WBAC21-8.pdf
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 3.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5e-05
-  Qes:  # electrical Q factor
-    value: 0.92
-    winner: vendor_page
-    sources:
-      vendor_page: 0.92
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007
-  BL:  # force factor (T·m)
-    value: 2.1
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -65,31 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.61
-  Qms:  # mechanical Q factor
-    value: 1.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 1.75
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.00042
     winner: vendor_page
     sources:
       vendor_page: 0.00042
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 160.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 160.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007
+  Qms:  # mechanical Q factor
+    value: 1.75
+    winner: vendor_page
+    sources:
+      vendor_page: 1.75
   Cms:  # mechanical compliance (m/N)
     value: 0.00139
     winner: vendor_page
     sources:
       vendor_page: 0.00139
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/SB%20Acoustics/SB36WBAC21-8/SB-Acoustics%20SB36WBAC21-8.pdf
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/SB%20Acoustics/SB36WBAC21-8/SB-Acoustics%20SB36WBAC21-8.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb36wbac21.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.92
+    winner: vendor_page
+    sources:
+      vendor_page: 0.92
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 2.1
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 3.5e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5e-05

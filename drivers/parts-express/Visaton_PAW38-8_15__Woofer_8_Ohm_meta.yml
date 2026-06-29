@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7833--visaton-paw38-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7833--visaton-paw38-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.195102752
-    winner: vendor_page
-    sources:
-      vendor_page: 0.195102752
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.125
-    winner: vendor_page
-    sources:
-      vendor_page: 0.125
-  BL:  # force factor (T·m)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: vendor_page
-    sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.141592653589793
-    winner: vendor_page
-    sources:
-      vendor_page: 3.141592653589793
   Xmax:  # one-way linear excursion (m)
     value: 0.012
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 9.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 9.0
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0898
     winner: vendor_page
     sources:
       vendor_page: 0.0898
+  Fs:  # free air resonance (Hz)
+    value: 36.0
+    winner: vendor_page
+    sources:
+      vendor_page: 36.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.141592653589793
+    winner: vendor_page
+    sources:
+      vendor_page: 3.141592653589793
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.125
+    winner: vendor_page
+    sources:
+      vendor_page: 0.125
+  Qms:  # mechanical Q factor
+    value: 9.0
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  Le:  # voice coil inductance (H)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.195102752
+    winner: vendor_page
+    sources:
+      vendor_page: 0.195102752
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 3700.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 92.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7833--visaton-paw38-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7833--visaton-paw38-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-PAW38-8-15-Woofer-8-Ohm-292-7833
-frd_url: null
-zma_url: null

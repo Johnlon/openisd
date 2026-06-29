@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-418--dayton-audio-gf180-8-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-418--Dayton-Audio-GF180-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-418--dayton-audio-gf180-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.015574240000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015574240000000001
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013900000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013900000000000001
-  BL:  # force factor (T·m)
-    value: 7.9
-    winner: vendor_page
-    sources:
-      vendor_page: 7.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 53.0
-    winner: vendor_page
-    sources:
-      vendor_page: 53.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5077598097065803
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5077598097065803
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 3.07
+  Re:  # DC voice coil resistance (Ω)
+    value: 8.0
     winner: vendor_page
     sources:
-      vendor_page: 3.07
+      vendor_page: 8.0
   Sd:  # effective piston area (m²)
     value: 0.013019999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.013019999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 53.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 53.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5077598097065803
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5077598097065803
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013900000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013900000000000001
+  Qms:  # mechanical Q factor
+    value: 3.07
+    winner: vendor_page
+    sources:
+      vendor_page: 3.07
   Cms:  # mechanical compliance (m/N)
     value: 0.00065
     winner: vendor_page
     sources:
       vendor_page: 0.00065
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-418--dayton-audio-gf180-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-418--dayton-audio-gf180-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-GF180-8-6-1-2-Glass-Fiber-Cone-Woofer-8-Ohm-295-418
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-418--Dayton-Audio-GF180-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
+  Le:  # voice coil inductance (H)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.015574240000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015574240000000001

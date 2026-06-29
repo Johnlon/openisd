@@ -1,26 +1,33 @@
+source: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.011893055999999999
+  Xmax:  # one-way linear excursion (m)
+    value: 0.025
     winner: vendor_page
     sources:
-      vendor_page: 0.011893055999999999
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.085
+      vendor_page: 0.025
+  Sd:  # effective piston area (m²)
+    value: 0.01986
     winner: vendor_page
     sources:
-      vendor_page: 0.085
+      vendor_page: 0.01986
   Fs:  # free air resonance (Hz)
     value: 37.4
     winner: vendor_page
@@ -31,30 +38,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 7.833037682950552
-  Xmax:  # one-way linear excursion (m)
-    value: 0.025
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.085
     winner: vendor_page
     sources:
-      vendor_page: 0.025
+      vendor_page: 0.085
   Qms:  # mechanical Q factor
     value: 2.55
     winner: vendor_page
     sources:
       vendor_page: 2.55
-  Sd:  # effective piston area (m²)
-    value: 0.01986
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01986
   Cms:  # mechanical compliance (m/N)
     value: 0.000212
     winner: vendor_page
     sources:
       vendor_page: 0.000212
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS8-PR-8-Signature-Series-Passive-Radiator-295-729
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.011893055999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011893055999999999

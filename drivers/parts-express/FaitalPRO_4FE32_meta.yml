@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,52 +17,13 @@ corrections: '''Qts'' stored=0.6 differs from calculated=0.6125 (deps: Qms=4.9, 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1121
+_sources:
+  vendor_page: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00017999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017999999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001982176
-  Qes:  # electrical Q factor
-    value: 0.7
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.004200000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004200000000000001
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5385587406153932
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5385587406153932
   Xmax:  # one-way linear excursion (m)
     value: 0.00273
     winner: vendor_page
@@ -64,26 +34,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.6
-  Qms:  # mechanical Q factor
-    value: 4.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 4.9
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.0048
     winner: vendor_page
     sources:
       vendor_page: 0.0048
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5385587406153932
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5385587406153932
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.004200000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004200000000000001
+  Qms:  # mechanical Q factor
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.7
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Le:  # voice coil inductance (H)
+    value: 0.00017999999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00017999999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001982176
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -94,13 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 294.0
-_sources:
-  vendor_page: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-4FE32-4-Neodymium-Professional-Woofer-8-Ohm-294-1121
-frd_url: null
-zma_url: null

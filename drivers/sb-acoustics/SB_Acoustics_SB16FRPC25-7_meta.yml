@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/sb16frpc25-7/
+manu_page_url: https://sbacoustics.com/product/sb16frpc25-7/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/6-inch-SB16FRPC25-7.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/sb16frpc25-7/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/6-inch-SB16FRPC25-7.pdf
+  manu_page: https://sbacoustics.com/product/sb16frpc25-7/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00022
-    winner: manu_page
-    sources:
-      manu_page: 0.00022
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.031
-    winner: manu_page
-    sources:
-      manu_page: 0.031
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: manu_page
-    sources:
-      manu_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0098
-    winner: manu_page
-    sources:
-      manu_page: 0.0098
-  BL:  # force factor (T·m)
-    value: 5.4
-    winner: manu_page
-    sources:
-      manu_page: 5.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: manu_page
-    sources:
-      manu_page: 5.2
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: manu_page
-    sources:
-      manu_page: 44.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00305
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 9.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: manu_page
     sources:
-      manu_page: 9.0
+      manu_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.0128
     winner: manu_page
     sources:
       manu_page: 0.0128
-  Znom:  # nominal impedance (Ω)
-    value: 7.0
+  Fs:  # free air resonance (Hz)
+    value: 44.0
     winner: manu_page
     sources:
-      manu_page: 7.0
+      manu_page: 44.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0098
+    winner: manu_page
+    sources:
+      manu_page: 0.0098
+  Qms:  # mechanical Q factor
+    value: 9.0
+    winner: manu_page
+    sources:
+      manu_page: 9.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00133
     winner: manu_page
     sources:
       manu_page: 0.00133
+  Znom:  # nominal impedance (Ω)
+    value: 7.0
+    winner: manu_page
+    sources:
+      manu_page: 7.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: manu_page
+    sources:
+      manu_page: 0.48
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 5.4
+    winner: manu_page
+    sources:
+      manu_page: 5.4
+  Le:  # voice coil inductance (H)
+    value: 0.00022
+    winner: manu_page
+    sources:
+      manu_page: 0.00022
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.031
+    winner: manu_page
+    sources:
+      manu_page: 0.031
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.4
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 91.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2025/12/6-inch-SB16FRPC25-7.pdf
-  manu_page: https://sbacoustics.com/product/sb16frpc25-7/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2025/12/6-inch-SB16FRPC25-7.pdf
-manu_page_url: https://sbacoustics.com/product/sb16frpc25-7/
-vendor_page_url: null
-frd_url: null
-zma_url: null

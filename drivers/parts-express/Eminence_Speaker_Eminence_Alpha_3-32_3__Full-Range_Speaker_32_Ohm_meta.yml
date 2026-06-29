@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.85
-    winner: vendor_page
-    sources:
-      vendor_page: 0.85
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 6.46
-    winner: vendor_page
-    sources:
-      vendor_page: 6.46
-  Re:  # DC voice coil resistance (Ω)
-    value: 22.4
-    winner: vendor_page
-    sources:
-      vendor_page: 22.4
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 117.0
-    winner: vendor_page
-    sources:
-      vendor_page: 117.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.25047110083134977
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25047110083134977
   Xmax:  # one-way linear excursion (m)
     value: 0.0026
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.74
-  Qms:  # mechanical Q factor
-    value: 5.87
+  Re:  # DC voice coil resistance (Ω)
+    value: 22.4
     winner: vendor_page
     sources:
-      vendor_page: 5.87
+      vendor_page: 22.4
   Sd:  # effective piston area (m²)
     value: 0.00286
     winner: vendor_page
     sources:
       vendor_page: 0.00286
-  Znom:  # nominal impedance (Ω)
-    value: 32.0
+  Fs:  # free air resonance (Hz)
+    value: 117.0
     winner: vendor_page
     sources:
-      vendor_page: 32.0
+      vendor_page: 117.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.25047110083134977
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25047110083134977
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 5.87
+    winner: vendor_page
+    sources:
+      vendor_page: 5.87
   Cms:  # mechanical compliance (m/N)
     value: 0.00086
     winner: vendor_page
     sources:
       vendor_page: 0.00086
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
+  Qes:  # electrical Q factor
+    value: 0.85
+    winner: vendor_page
+    sources:
+      vendor_page: 0.85
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 6.46
+    winner: vendor_page
+    sources:
+      vendor_page: 6.46
+  Le:  # voice coil inductance (H)
+    value: 0.00023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00023
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

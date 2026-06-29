@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-um15-22.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-um15-22.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-um15-22.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-um15-22.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10194
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10194
-  Qes:  # electrical Q factor
-    value: 0.95
-    winner: vendor_page
-    sources:
-      vendor_page: 0.95
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.287
-    winner: vendor_page
-    sources:
-      vendor_page: 0.287
-  BL:  # force factor (T·m)
-    value: 14.1
-    winner: vendor_page
-    sources:
-      vendor_page: 14.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 28.4
-    winner: vendor_page
-    sources:
-      vendor_page: 28.4
   Xmax:  # one-way linear excursion (m)
     value: 0.019
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.71
-  Qms:  # mechanical Q factor
-    value: 2.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 2.8
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.08146
     winner: vendor_page
     sources:
       vendor_page: 0.08146
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 28.4
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 28.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.287
+    winner: vendor_page
+    sources:
+      vendor_page: 0.287
+  Qms:  # mechanical Q factor
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.95
+    winner: vendor_page
+    sources:
+      vendor_page: 0.95
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 14.1
+    winner: vendor_page
+    sources:
+      vendor_page: 14.1
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10194
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10194
   power_peak_W:  # peak power handling (W)
     value: 1.6
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 63.5
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-um15-22.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-um15-22.html
-frd_url: null
-zma_url: null

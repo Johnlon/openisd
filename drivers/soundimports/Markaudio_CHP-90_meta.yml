@@ -1,45 +1,22 @@
+source: https://www.soundimports.eu/en/markaudio-chp-90.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-chp-90.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-chp-90.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-chp-90.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02005
-  Qes:  # electrical Q factor
-    value: 0.4354
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4354
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0054051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0054051
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 48.5
-    winner: vendor_page
-    sources:
-      vendor_page: 48.5
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -50,30 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 2.2008
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 2.2008
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0085
     winner: vendor_page
     sources:
       vendor_page: 0.0085
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 48.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 48.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0054051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0054051
+  Qms:  # mechanical Q factor
+    value: 2.2008
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2008
   Cms:  # mechanical compliance (m/N)
     value: 0.0019898
     winner: vendor_page
     sources:
       vendor_page: 0.0019898
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-chp-90.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-chp-90.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4354
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4354
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02005

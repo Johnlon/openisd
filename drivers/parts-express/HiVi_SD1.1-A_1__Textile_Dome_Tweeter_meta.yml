@@ -1,21 +1,23 @@
+source: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
 specs:
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   Fs:  # free air resonance (Hz)
     value: 1200.0
     winner: vendor_page
@@ -26,10 +28,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
-_sources:
-  vendor_page: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-SD1.1-A-1-Textile-Dome-Tweeter-297-416
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.28 differs from calculated=0.283636 (deps: Qms=5.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-670
+_sources:
+  vendor_page: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10760383999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.10760383999999999
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.163
-    winner: vendor_page
-    sources:
-      vendor_page: 0.163
-  BL:  # force factor (T·m)
-    value: 25.5
-    winner: vendor_page
-    sources:
-      vendor_page: 25.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.893379264896065
-    winner: vendor_page
-    sources:
-      vendor_page: 6.893379264896065
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -68,28 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 5.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 5.2
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.893379264896065
+    winner: vendor_page
+    sources:
+      vendor_page: 6.893379264896065
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.163
+    winner: vendor_page
+    sources:
+      vendor_page: 0.163
+  Qms:  # mechanical Q factor
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15TBX100-15-Woofer-294-670
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 25.5
+    winner: vendor_page
+    sources:
+      vendor_page: 25.5
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10760383999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.10760383999999999

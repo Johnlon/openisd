@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-304-dayton-audio-dc130b-8-specifications-9385.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0121762 differs from calculated=0.0120215 (deps: 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-304
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-304-dayton-audio-dc130b-8-specifications-9385.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0007700000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007700000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.012176224
-    winner: vendor_page
-    sources:
-      vendor_page: 0.012176224
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0091
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0091
-  BL:  # force factor (T·m)
-    value: 5.94
-    winner: vendor_page
-    sources:
-      vendor_page: 5.94
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Fs:  # free air resonance (Hz)
-    value: 52.5
-    winner: vendor_page
-    sources:
-      vendor_page: 52.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.62259015162435
-    winner: vendor_page
-    sources:
-      vendor_page: 1.62259015162435
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 1.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 1.85
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.00916
     winner: vendor_page
     sources:
       vendor_page: 0.00916
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.62259015162435
+    winner: vendor_page
+    sources:
+      vendor_page: 1.62259015162435
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0091
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0091
+  Qms:  # mechanical Q factor
+    value: 1.85
+    winner: vendor_page
+    sources:
+      vendor_page: 1.85
   Cms:  # mechanical compliance (m/N)
     value: 0.00101
     winner: vendor_page
     sources:
       vendor_page: 0.00101
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-304-dayton-audio-dc130b-8-specifications-9385.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-304-dayton-audio-dc130b-8-specifications-9385.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC130B-8-5-1-4-Classic-Woofer-Speaker-295-304
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  BL:  # force factor (T·m)
+    value: 5.94
+    winner: vendor_page
+    sources:
+      vendor_page: 5.94
+  Le:  # voice coil inductance (H)
+    value: 0.0007700000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007700000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.012176224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.012176224

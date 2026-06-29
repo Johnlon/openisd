@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
+manu_page_url: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17NRX2C35-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17NRX2C35-8.pdf
+  manu_page: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: manu_page
-    sources:
-      manu_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.027
-    winner: manu_page
-    sources:
-      manu_page: 0.027
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: manu_page
-    sources:
-      manu_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0139
-    winner: manu_page
-    sources:
-      manu_page: 0.0139
-  BL:  # force factor (T·m)
-    value: 6.25
-    winner: manu_page
-    sources:
-      manu_page: 6.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: manu_page
-    sources:
-      manu_page: 5.7
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: manu_page
-    sources:
-      manu_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 36.5
-    winner: manu_page
-    sources:
-      manu_page: 36.5
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 4.55
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: manu_page
     sources:
-      manu_page: 4.55
+      manu_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0118
     winner: manu_page
     sources:
       manu_page: 0.0118
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 36.5
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 36.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0139
+    winner: manu_page
+    sources:
+      manu_page: 0.0139
+  Qms:  # mechanical Q factor
+    value: 4.55
+    winner: manu_page
+    sources:
+      manu_page: 4.55
   Cms:  # mechanical compliance (m/N)
     value: 0.00137
     winner: manu_page
     sources:
       manu_page: 0.00137
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: manu_page
+    sources:
+      manu_page: 0.47
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: manu_page
+    sources:
+      manu_page: 50.0
+  BL:  # force factor (T·m)
+    value: 6.25
+    winner: manu_page
+    sources:
+      manu_page: 6.25
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: manu_page
+    sources:
+      manu_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.027
+    winner: manu_page
+    sources:
+      manu_page: 0.027
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 35.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 87.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17NRX2C35-8.pdf
-  manu_page: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/02/6in-SB17NRX2C35-8.pdf
-manu_page_url: https://sbacoustics.com/product/6in-sb17nrx2c35-8-norex/
-vendor_page_url: null
-frd_url: null
-zma_url: null

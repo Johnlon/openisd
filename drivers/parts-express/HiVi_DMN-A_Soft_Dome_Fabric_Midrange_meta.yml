@@ -1,26 +1,29 @@
+source: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-415-hi-vi-dmn-a-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-415-hi-vi-dmn-a-specifications.pdf
+  vendor_page: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 4.3
     winner: vendor_page
     sources:
       vendor_page: 4.3
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
   Fs:  # free air resonance (Hz)
     value: 800.0
     winner: vendor_page
@@ -31,11 +34,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-415-hi-vi-dmn-a-specifications.pdf
-  vendor_page: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-415-hi-vi-dmn-a-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-DMN-A-Soft-Dome-Fabric-Midrange-297-415
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0

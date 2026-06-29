@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1430--tymphany-anc-50n25al00-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1430--tymphany-anc-50n25al00-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  BL:  # force factor (T·m)
-    value: 2.78
-    winner: vendor_page
-    sources:
-      vendor_page: 2.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.47
-    winner: vendor_page
-    sources:
-      vendor_page: 3.47
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 132.63
-    winner: vendor_page
-    sources:
-      vendor_page: 132.63
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5258934599410665
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5258934599410665
   Xmax:  # one-way linear excursion (m)
     value: 0.0018
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.47
+    winner: vendor_page
+    sources:
+      vendor_page: 3.47
+  Fs:  # free air resonance (Hz)
+    value: 132.63
+    winner: vendor_page
+    sources:
+      vendor_page: 132.63
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5258934599410665
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5258934599410665
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
   Qms:  # mechanical Q factor
     value: 2.06
     winner: vendor_page
     sources:
       vendor_page: 2.06
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00113
     winner: vendor_page
     sources:
       vendor_page: 0.00113
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1430--tymphany-anc-50n25al00-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1430--tymphany-anc-50n25al00-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-ANC-50N25AL04-04-2-Full-Range-Speaker-4-Ohm-264-1430
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 2.78
+    winner: vendor_page
+    sources:
+      vendor_page: 2.78
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168

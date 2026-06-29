@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-727--lavoce-saf184.01-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-727
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-727--lavoce-saf184.01-specifications.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.22087104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22087104
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.199
-    winner: vendor_page
-    sources:
-      vendor_page: 0.199
-  BL:  # force factor (T·m)
-    value: 25.6
-    winner: vendor_page
-    sources:
-      vendor_page: 25.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.9
-    winner: vendor_page
-    sources:
-      vendor_page: 4.9
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.7427215991090055
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7427215991090055
   Xmax:  # one-way linear excursion (m)
     value: 0.0068
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 8.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.9
     winner: vendor_page
     sources:
-      vendor_page: 8.7
+      vendor_page: 4.9
   Sd:  # effective piston area (m²)
     value: 0.116
     winner: vendor_page
     sources:
       vendor_page: 0.116
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 33.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 33.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.7427215991090055
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7427215991090055
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.199
+    winner: vendor_page
+    sources:
+      vendor_page: 0.199
+  Qms:  # mechanical Q factor
+    value: 8.7
+    winner: vendor_page
+    sources:
+      vendor_page: 8.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-727--lavoce-saf184.01-specifications.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-727--lavoce-saf184.01-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 25.6
+    winner: vendor_page
+    sources:
+      vendor_page: 25.6
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.22087104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22087104

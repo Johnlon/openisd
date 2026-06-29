@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-693--bc-10cl51-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
+driver_type: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: null
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-693--bc-10cl51-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.031148480000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.031148480000000003
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0315
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0315
-  BL:  # force factor (T·m)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.1250579554130047
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1250579554130047
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.032
     winner: vendor_page
     sources:
       vendor_page: 0.032
+  Fs:  # free air resonance (Hz)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.1250579554130047
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1250579554130047
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0315
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0315
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-693--bc-10cl51-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-693--bc-10cl51-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10CL51-10-Neodymium-Woofer-294-693
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.031148480000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.031148480000000003

@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00031
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00031
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.028
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0173
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0173
-  BL:  # force factor (T·m)
-    value: 8.6
-    winner: vendor_page
-    sources:
-      vendor_page: 8.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 37.0
-    winner: vendor_page
-    sources:
-      vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.73
-    winner: vendor_page
-    sources:
-      vendor_page: 0.73
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -65,21 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.95
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.95
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0137
     winner: vendor_page
     sources:
       vendor_page: 0.0137
+  Fs:  # free air resonance (Hz)
+    value: 37.0
+    winner: vendor_page
+    sources:
+      vendor_page: 37.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.73
+    winner: vendor_page
+    sources:
+      vendor_page: 0.73
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0173
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0173
+  Qms:  # mechanical Q factor
+    value: 5.95
+    winner: vendor_page
+    sources:
+      vendor_page: 5.95
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 8.6
+    winner: vendor_page
+    sources:
+      vendor_page: 8.6
+  Le:  # voice coil inductance (H)
+    value: 0.00031
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00031
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.028
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 32.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/eton-7-612-c8-32-rp.html
-frd_url: null
-zma_url: null

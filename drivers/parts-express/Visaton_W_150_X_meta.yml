@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7843--visaton-w150x4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,32 +15,24 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7843
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7843--visaton-w150x4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
 specs:
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.017410000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.017410000000000002
   Re:  # DC voice coil resistance (Ω)
     value: 3.05
     winner: vendor_page
     sources:
       vendor_page: 3.05
-  Pe:  # rated power input (W)
-    value: 50.0
+  Sd:  # effective piston area (m²)
+    value: 0.008331999999999999
     winner: vendor_page
     sources:
-      vendor_page: 50.0
+      vendor_page: 0.008331999999999999
   Fs:  # free air resonance (Hz)
     value: 47.24
     winner: vendor_page
@@ -42,21 +43,31 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.3352960472334263
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.017410000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.017410000000000002
   Qms:  # mechanical Q factor
     value: 3.87
     winner: vendor_page
     sources:
       vendor_page: 3.87
-  Sd:  # effective piston area (m²)
-    value: 0.008331999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008331999999999999
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 95.0
     winner: vendor_page
@@ -67,14 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 22000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7843--visaton-w150x4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7843--visaton-w150x4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W150X4-5.9-Woofer-4-Ohm-292-7843
-frd_url: null
-zma_url: null

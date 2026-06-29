@@ -1,46 +1,24 @@
+source: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-599_Visaton_WS_17_E_Specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-599_Visaton_WS_17_E_Specifications.pdf
+  vendor_page: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.030865312000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.030865312000000002
-  Qes:  # electrical Q factor
-    value: 0.81
-    winner: vendor_page
-    sources:
-      vendor_page: 0.81
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -51,26 +29,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.63
-  Qms:  # mechanical Q factor
-    value: 2.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.83
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
+  Fs:  # free air resonance (Hz)
+    value: 41.0
+    winner: vendor_page
+    sources:
+      vendor_page: 41.0
+  Qms:  # mechanical Q factor
+    value: 2.83
+    winner: vendor_page
+    sources:
+      vendor_page: 2.83
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-599_Visaton_WS_17_E_Specifications.pdf
-  vendor_page: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-599_Visaton_WS_17_E_Specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-WS17E-6.5-HiFi-Woofer-8-Ohm-292-599
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.81
+    winner: vendor_page
+    sources:
+      vendor_page: 0.81
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  Le:  # voice coil inductance (H)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.030865312000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.030865312000000002

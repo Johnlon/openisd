@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00084
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00084
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00727
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00727
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0097
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0097
-  BL:  # force factor (T·m)
-    value: 6.23
-    winner: vendor_page
-    sources:
-      vendor_page: 6.23
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 52.5
-    winner: vendor_page
-    sources:
-      vendor_page: 52.5
   Xmax:  # one-way linear excursion (m)
     value: 0.00485
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 2.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 2.02
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.00754
     winner: vendor_page
     sources:
       vendor_page: 0.00754
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0097
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0097
+  Qms:  # mechanical Q factor
+    value: 2.02
+    winner: vendor_page
+    sources:
+      vendor_page: 2.02
   Cms:  # mechanical compliance (m/N)
     value: 0.00095
     winner: vendor_page
     sources:
       vendor_page: 0.00095
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 6.23
+    winner: vendor_page
+    sources:
+      vendor_page: 6.23
+  Le:  # voice coil inductance (H)
+    value: 0.00084
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00084
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00727
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00727
   power_peak_W:  # peak power handling (W)
     value: 100.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 25.4
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ds135-8.html
-frd_url: null
-zma_url: null

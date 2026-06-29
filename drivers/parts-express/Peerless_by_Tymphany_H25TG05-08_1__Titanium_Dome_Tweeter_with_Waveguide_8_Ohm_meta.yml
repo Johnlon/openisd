@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Qes:  # electrical Q factor
-    value: 3.08
-    winner: vendor_page
-    sources:
-      vendor_page: 3.08
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 1750.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1750.0
   Qts:  # total Q factor
     value: 1.65
     winner: vendor_page
     sources:
       vendor_page: 1.65
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
+    winner: vendor_page
+    sources:
+      vendor_page: 6.7
+  Fs:  # free air resonance (Hz)
+    value: 1750.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1750.0
   Qms:  # mechanical Q factor
     value: 3.6
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1381--tymphany-h25tg05-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 3.08
+    winner: vendor_page
+    sources:
+      vendor_page: 3.08
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05

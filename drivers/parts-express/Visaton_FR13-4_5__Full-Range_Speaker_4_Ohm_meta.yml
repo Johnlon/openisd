@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-518--visaton-fr13-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-518--visaton-fr13-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.006229696
-    winner: vendor_page
-    sources:
-      vendor_page: 0.006229696
-  Qes:  # electrical Q factor
-    value: 1.64
-    winner: vendor_page
-    sources:
-      vendor_page: 1.64
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0045
-  BL:  # force factor (T·m)
-    value: 2.3
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5468923381490935
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5468923381490935
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.25
-  Qms:  # mechanical Q factor
-    value: 5.17
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 5.17
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0087
     winner: vendor_page
     sources:
       vendor_page: 0.0087
+  Fs:  # free air resonance (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5468923381490935
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5468923381490935
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0045
+  Qms:  # mechanical Q factor
+    value: 5.17
+    winner: vendor_page
+    sources:
+      vendor_page: 5.17
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-518--visaton-fr13-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-518--visaton-fr13-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FR13-4-5-Full-Range-Speaker-4-Ohm-292-518
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.64
+    winner: vendor_page
+    sources:
+      vendor_page: 1.64
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 2.3
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.006229696
+    winner: vendor_page
+    sources:
+      vendor_page: 0.006229696

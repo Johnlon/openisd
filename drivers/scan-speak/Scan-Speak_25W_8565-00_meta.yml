@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/25w-8565-00/
+manu_page_url: https://www.scan-speak.dk/product/25w-8565-00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/25w-8565-00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/25w-8565-00/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/25w-8565-00.pdf
+  manu_page: https://www.scan-speak.dk/product/25w-8565-00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.225
-    winner: manu_page
-    sources:
-      manu_page: 0.225
-  BL:  # force factor (T·m)
-    value: 8.2
-    winner: manu_page
-    sources:
-      manu_page: 8.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: manu_page
-    sources:
-      manu_page: 5.5
-  Fs:  # free air resonance (Hz)
-    value: 20.0
-    winner: manu_page
-    sources:
-      manu_page: 20.0
   Qts:  # total Q factor
     value: 0.41
     winner: manu_page
     sources:
       manu_page: 0.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
+    winner: manu_page
+    sources:
+      manu_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.033
     winner: manu_page
     sources:
       manu_page: 0.033
+  Fs:  # free air resonance (Hz)
+    value: 20.0
+    winner: manu_page
+    sources:
+      manu_page: 20.0
+  BL:  # force factor (T·m)
+    value: 8.2
+    winner: manu_page
+    sources:
+      manu_page: 8.2
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: manu_page
     sources:
       manu_page: 88.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/25w-8565-00.pdf
-  manu_page: https://www.scan-speak.dk/product/25w-8565-00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/25w-8565-00.pdf
-manu_page_url: https://www.scan-speak.dk/product/25w-8565-00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.225
+    winner: manu_page
+    sources:
+      manu_page: 0.225

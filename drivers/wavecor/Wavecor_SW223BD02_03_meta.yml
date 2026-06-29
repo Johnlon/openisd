@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/sw223bd02_03.html
+manu_page_url: http://www.wavecor.com/html/sw223bd02_03.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW223BD02_03_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/sw223bd02_03.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW223BD02_03_specifications.pdf
+  manu_page: http://www.wavecor.com/html/sw223bd02_03.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: manu_page
-    sources:
-      manu_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.028
-    winner: manu_page
-    sources:
-      manu_page: 0.028
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: manu_page
-    sources:
-      manu_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.097
-    winner: manu_page
-    sources:
-      manu_page: 0.097
-  BL:  # force factor (T·m)
-    value: 11.0
-    winner: manu_page
-    sources:
-      manu_page: 11.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: manu_page
-    sources:
-      manu_page: 3.5
-  Pe:  # rated power input (W)
-    value: 2500.0
-    winner: manu_page
-    sources:
-      manu_page: 2500.0
-  Fs:  # free air resonance (Hz)
-    value: 24.0
-    winner: manu_page
-    sources:
-      manu_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.35
-    winner: manu_page
-    sources:
-      manu_page: 1.35
   Xmax:  # one-way linear excursion (m)
     value: 0.0117
     winner: manu_page
@@ -67,34 +33,68 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 10.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: manu_page
     sources:
-      manu_page: 10.7
+      manu_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.0206
     winner: manu_page
     sources:
       manu_page: 0.0206
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 24.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 24.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.35
+    winner: manu_page
+    sources:
+      manu_page: 1.35
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.097
+    winner: manu_page
+    sources:
+      manu_page: 0.097
+  Qms:  # mechanical Q factor
+    value: 10.7
+    winner: manu_page
+    sources:
+      manu_page: 10.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00047
     winner: manu_page
     sources:
       manu_page: 0.00047
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW223BD02_03_specifications.pdf
-  manu_page: http://www.wavecor.com/html/sw223bd02_03.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW223BD02_03_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/sw223bd02_03.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: manu_page
+    sources:
+      manu_page: 0.42
+  Pe:  # rated power input (W)
+    value: 2500.0
+    winner: manu_page
+    sources:
+      manu_page: 2500.0
+  BL:  # force factor (T·m)
+    value: 11.0
+    winner: manu_page
+    sources:
+      manu_page: 11.0
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: manu_page
+    sources:
+      manu_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.028
+    winner: manu_page
+    sources:
+      manu_page: 0.028

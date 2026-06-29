@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/10m-4614g06/
+manu_page_url: https://www.scan-speak.dk/product/10m-4614g06/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/10m-4614g06.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/10m-4614g06/
+driver_type: midrange
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/10m-4614g06.pdf
+  manu_page: https://www.scan-speak.dk/product/10m-4614g06/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0013
-    winner: manu_page
-    sources:
-      manu_page: 0.0013
-  BL:  # force factor (T·m)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: manu_page
-    sources:
-      manu_page: 110.0
   Qts:  # total Q factor
     value: 0.53
     winner: manu_page
     sources:
       manu_page: 0.53
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: manu_page
+    sources:
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0036
     winner: manu_page
     sources:
       manu_page: 0.0036
+  Fs:  # free air resonance (Hz)
+    value: 110.0
+    winner: manu_page
+    sources:
+      manu_page: 110.0
+  BL:  # force factor (T·m)
+    value: 3.2
+    winner: manu_page
+    sources:
+      manu_page: 3.2
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: manu_page
     sources:
       manu_page: 88.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/10m-4614g06.pdf
-  manu_page: https://www.scan-speak.dk/product/10m-4614g06/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/10m-4614g06.pdf
-manu_page_url: https://www.scan-speak.dk/product/10m-4614g06/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0013
+    winner: manu_page
+    sources:
+      manu_page: 0.0013

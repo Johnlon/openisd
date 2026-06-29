@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
+datasheet_url: https://www.parts-express.com/pedocs/specs/GRS Spec Sheets/292-405--grs-5pf-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-405
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/GRS Spec Sheets/292-405--grs-5pf-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00141584
-  Qes:  # electrical Q factor
-    value: 3.09
-    winner: vendor_page
-    sources:
-      vendor_page: 3.09
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0060999999999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0060999999999999995
-  BL:  # force factor (T·m)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Pe:  # rated power input (W)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
-  Fs:  # free air resonance (Hz)
-    value: 162.0
-    winner: vendor_page
-    sources:
-      vendor_page: 162.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0417858591535012
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0417858591535012
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.04
-  Qms:  # mechanical Q factor
-    value: 5.96
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.3
     winner: vendor_page
     sources:
-      vendor_page: 5.96
+      vendor_page: 7.3
   Sd:  # effective piston area (m²)
     value: 0.007520000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.007520000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 162.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 162.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0417858591535012
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0417858591535012
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0060999999999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0060999999999999995
+  Qms:  # mechanical Q factor
+    value: 5.96
+    winner: vendor_page
+    sources:
+      vendor_page: 5.96
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: vendor_page
     sources:
       vendor_page: 0.00016
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/GRS Spec Sheets/292-405--grs-5pf-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
-datasheet_url: https://www.parts-express.com/pedocs/specs/GRS Spec Sheets/292-405--grs-5pf-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 3.09
+    winner: vendor_page
+    sources:
+      vendor_page: 3.09
+  Pe:  # rated power input (W)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  BL:  # force factor (T·m)
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00141584

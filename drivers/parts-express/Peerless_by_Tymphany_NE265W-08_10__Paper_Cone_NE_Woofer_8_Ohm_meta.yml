@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1518--tymphany-ne265w-08-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1518--tymphany-ne265w-08-specifications.pdf
+  vendor_page: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00053
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00053
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.09712662400000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09712662400000001
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0741
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0741
-  BL:  # force factor (T·m)
-    value: 14.7
-    winner: vendor_page
-    sources:
-      vendor_page: 14.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.24
-    winner: vendor_page
-    sources:
-      vendor_page: 6.24
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 22.97
-    winner: vendor_page
-    sources:
-      vendor_page: 22.97
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.035282206978539
-    winner: vendor_page
-    sources:
-      vendor_page: 1.035282206978539
   Xmax:  # one-way linear excursion (m)
     value: 0.0094
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 10.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.24
     winner: vendor_page
     sources:
-      vendor_page: 10.33
+      vendor_page: 6.24
   Sd:  # effective piston area (m²)
     value: 0.03269
     winner: vendor_page
     sources:
       vendor_page: 0.03269
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 22.97
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 22.97
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.035282206978539
+    winner: vendor_page
+    sources:
+      vendor_page: 1.035282206978539
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0741
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0741
+  Qms:  # mechanical Q factor
+    value: 10.33
+    winner: vendor_page
+    sources:
+      vendor_page: 10.33
   Cms:  # mechanical compliance (m/N)
     value: 0.00065
     winner: vendor_page
     sources:
       vendor_page: 0.00065
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1518--tymphany-ne265w-08-specifications.pdf
-  vendor_page: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1518--tymphany-ne265w-08-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-NE265W-08-10-Paper-Cone-NE-Woofer-8-Ohm-264-1518
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 14.7
+    winner: vendor_page
+    sources:
+      vendor_page: 14.7
+  Le:  # voice coil inductance (H)
+    value: 0.00053
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00053
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.09712662400000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09712662400000001

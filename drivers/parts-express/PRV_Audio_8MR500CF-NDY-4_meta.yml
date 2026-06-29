@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.23 differs from calculated=0.234875 (deps: Qms=11
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3145
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.9e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.9e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.021803936
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021803936
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02427
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02427
-  BL:  # force factor (T·m)
-    value: 11.49
-    winner: vendor_page
-    sources:
-      vendor_page: 11.49
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 58.7
-    winner: vendor_page
-    sources:
-      vendor_page: 58.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8137576058807355
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8137576058807355
   Xmax:  # one-way linear excursion (m)
     value: 0.00325
     winner: vendor_page
@@ -69,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.23
-  Qms:  # mechanical Q factor
-    value: 11.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 11.0
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.0227
     winner: vendor_page
     sources:
       vendor_page: 0.0227
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 58.7
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 58.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8137576058807355
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8137576058807355
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02427
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02427
+  Qms:  # mechanical Q factor
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
   Cms:  # mechanical compliance (m/N)
     value: 0.000303
     winner: vendor_page
     sources:
       vendor_page: 0.000303
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 11.49
+    winner: vendor_page
+    sources:
+      vendor_page: 11.49
+  Le:  # voice coil inductance (H)
+    value: 7.9e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.021803936
+    winner: vendor_page
+    sources:
+      vendor_page: 0.021803936
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 250.0
     winner: vendor_page
@@ -104,13 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 10.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR500CF-NDY-4-8-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3145
-frd_url: null
-zma_url: null

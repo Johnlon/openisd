@@ -1,50 +1,50 @@
+source: https://www.scan-speak.dk/product/820013/
+manu_page_url: https://www.scan-speak.dk/product/820013/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/820013.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/820013/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/820013.pdf
+  manu_page: https://www.scan-speak.dk/product/820013/
 specs:
-  BL:  # force factor (T·m)
-    value: 4.8
-    winner: manu_page
-    sources:
-      manu_page: 4.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: manu_page
-    sources:
-      manu_page: 80.0
   Qts:  # total Q factor
     value: 0.57
     winner: manu_page
     sources:
       manu_page: 0.57
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
+    winner: manu_page
+    sources:
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.008
     winner: manu_page
     sources:
       manu_page: 0.008
+  Fs:  # free air resonance (Hz)
+    value: 80.0
+    winner: manu_page
+    sources:
+      manu_page: 80.0
+  BL:  # force factor (T·m)
+    value: 4.8
+    winner: manu_page
+    sources:
+      manu_page: 4.8
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: manu_page
     sources:
       manu_page: 88.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/820013.pdf
-  manu_page: https://www.scan-speak.dk/product/820013/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/820013.pdf
-manu_page_url: https://www.scan-speak.dk/product/820013/
-vendor_page_url: null
-frd_url: null
-zma_url: null

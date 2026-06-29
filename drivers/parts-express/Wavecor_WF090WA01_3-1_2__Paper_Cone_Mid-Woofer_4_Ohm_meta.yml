@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1128-1130--wavecor-wf090wa01-02-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1128-1130--wavecor-wf090wa01-02-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00014000000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00014000000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.87
-    winner: vendor_page
-    sources:
-      vendor_page: 0.87
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0034500000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0034500000000000004
-  BL:  # force factor (T·m)
-    value: 2.9
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 109.0
-    winner: vendor_page
-    sources:
-      vendor_page: 109.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3873429237319481
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3873429237319481
   Xmax:  # one-way linear excursion (m)
     value: 0.00275
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.76
-  Qms:  # mechanical Q factor
-    value: 6.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 6.1
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0036
     winner: vendor_page
     sources:
       vendor_page: 0.0036
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 109.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 109.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3873429237319481
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3873429237319481
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0034500000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0034500000000000004
+  Qms:  # mechanical Q factor
+    value: 6.1
+    winner: vendor_page
+    sources:
+      vendor_page: 6.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00062
     winner: vendor_page
     sources:
       vendor_page: 0.00062
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1128-1130--wavecor-wf090wa01-02-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1128-1130--wavecor-wf090wa01-02-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF090WA01-3-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1128
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.87
+    winner: vendor_page
+    sources:
+      vendor_page: 0.87
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.9
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9
+  Le:  # voice coil inductance (H)
+    value: 0.00014000000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00014000000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

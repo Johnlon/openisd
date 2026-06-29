@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-166--ciare-15.00sw-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-166--ciare-15.00sw-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.111001856
-    winner: vendor_page
-    sources:
-      vendor_page: 0.111001856
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
-  BL:  # force factor (T·m)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.75
-    winner: vendor_page
-    sources:
-      vendor_page: 6.75
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.158343260679601
-    winner: vendor_page
-    sources:
-      vendor_page: 7.158343260679601
   Xmax:  # one-way linear excursion (m)
     value: 0.014
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.41
-  Qms:  # mechanical Q factor
-    value: 5.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.75
     winner: vendor_page
     sources:
-      vendor_page: 5.6
+      vendor_page: 6.75
   Sd:  # effective piston area (m²)
     value: 0.078
     winner: vendor_page
     sources:
       vendor_page: 0.078
+  Fs:  # free air resonance (Hz)
+    value: 29.0
+    winner: vendor_page
+    sources:
+      vendor_page: 29.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.158343260679601
+    winner: vendor_page
+    sources:
+      vendor_page: 7.158343260679601
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Qms:  # mechanical Q factor
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-166--ciare-15.00sw-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-166--ciare-15.00sw-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-15.00SW-8-15-High-Power-Subwoofer-8-Ohm-293-166
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  Le:  # voice coil inductance (H)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.111001856
+    winner: vendor_page
+    sources:
+      vendor_page: 0.111001856

@@ -1,45 +1,22 @@
+source: https://www.soundimports.eu/en/grs-10sfpc-b.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-10sfpc-b.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/grs-10sfpc-b.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/grs-10sfpc-b.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00132
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00485
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00485
-  Qes:  # electrical Q factor
-    value: 0.77
-    winner: vendor_page
-    sources:
-      vendor_page: 0.77
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00425
     winner: vendor_page
@@ -50,6 +27,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.62
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
   Qms:  # mechanical Q factor
     value: 3.01
     winner: vendor_page
@@ -60,6 +47,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.77
+    winner: vendor_page
+    sources:
+      vendor_page: 0.77
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  Le:  # voice coil inductance (H)
+    value: 0.00132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00132
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00485
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00485
   power_peak_W:  # peak power handling (W)
     value: 150.0
     winner: vendor_page
@@ -80,10 +87,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 3.5
-_sources:
-  vendor_page: https://www.soundimports.eu/en/grs-10sfpc-b.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-10sfpc-b.html
-frd_url: null
-zma_url: null

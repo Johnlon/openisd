@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.0212093 differs from calculated=0.0214904 (deps: 
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2898
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000275
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000275
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.021209283199999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021209283199999998
-  Qes:  # electrical Q factor
-    value: 1.1
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  BL:  # force factor (T·m)
-    value: 6.53
-    winner: vendor_page
-    sources:
-      vendor_page: 6.53
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 75.6
-    winner: vendor_page
-    sources:
-      vendor_page: 75.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5064059799816383
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5064059799816383
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -68,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.02
-  Qms:  # mechanical Q factor
-    value: 14.07
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 14.07
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 0.0227
     winner: vendor_page
     sources:
       vendor_page: 0.0227
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 75.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 75.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5064059799816383
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5064059799816383
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Qms:  # mechanical Q factor
+    value: 14.07
+    winner: vendor_page
+    sources:
+      vendor_page: 14.07
   Cms:  # mechanical compliance (m/N)
     value: 0.000294
     winner: vendor_page
     sources:
       vendor_page: 0.000294
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.1
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 6.53
+    winner: vendor_page
+    sources:
+      vendor_page: 6.53
+  Le:  # voice coil inductance (H)
+    value: 0.000275
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000275
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.021209283199999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.021209283199999998
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 50.0
     winner: vendor_page
@@ -98,13 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 18.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
-frd_url: null
-zma_url: null

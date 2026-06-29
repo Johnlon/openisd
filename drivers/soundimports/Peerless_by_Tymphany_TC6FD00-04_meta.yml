@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000192
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000192
-  Qes:  # electrical Q factor
-    value: 1.36
-    winner: vendor_page
-    sources:
-      vendor_page: 1.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00133
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00133
-  BL:  # force factor (T·m)
-    value: 1.98
-    winner: vendor_page
-    sources:
-      vendor_page: 1.98
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 180.0
-    winner: vendor_page
-    sources:
-      vendor_page: 180.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0044
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-  Qms:  # mechanical Q factor
-    value: 4.25
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 4.25
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00152
     winner: vendor_page
     sources:
       vendor_page: 0.00152
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 180.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 180.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00133
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00133
+  Qms:  # mechanical Q factor
+    value: 4.25
+    winner: vendor_page
+    sources:
+      vendor_page: 4.25
   Cms:  # mechanical compliance (m/N)
     value: 0.00059
     winner: vendor_page
     sources:
       vendor_page: 0.00059
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-tc6fd00-04.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.36
+    winner: vendor_page
+    sources:
+      vendor_page: 1.36
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 1.98
+    winner: vendor_page
+    sources:
+      vendor_page: 1.98
+  Le:  # voice coil inductance (H)
+    value: 5.1e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.1e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000192
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000192

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6470--bc-speakers-10bg76-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
+driver_type: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: null
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6470--bc-speakers-10bg76-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0013700000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013700000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 3.2564319999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2564319999999998
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09140000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09140000000000001
-  BL:  # force factor (T·m)
-    value: 22.4
-    winner: vendor_page
-    sources:
-      vendor_page: 22.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.1
-    winner: vendor_page
-    sources:
-      vendor_page: 4.1
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.90241702382134
-    winner: vendor_page
-    sources:
-      vendor_page: 4.90241702382134
   Xmax:  # one-way linear excursion (m)
     value: 0.0096
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 5.74
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.1
     winner: vendor_page
     sources:
-      vendor_page: 5.74
+      vendor_page: 4.1
   Sd:  # effective piston area (m²)
     value: 0.032
     winner: vendor_page
     sources:
       vendor_page: 0.032
+  Fs:  # free air resonance (Hz)
+    value: 49.0
+    winner: vendor_page
+    sources:
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.90241702382134
+    winner: vendor_page
+    sources:
+      vendor_page: 4.90241702382134
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09140000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09140000000000001
+  Qms:  # mechanical Q factor
+    value: 5.74
+    winner: vendor_page
+    sources:
+      vendor_page: 5.74
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6470--bc-speakers-10bg76-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6470--bc-speakers-10bg76-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10BG768-10-Neodymium-Subwoofer-294-6470
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 22.4
+    winner: vendor_page
+    sources:
+      vendor_page: 22.4
+  Le:  # voice coil inductance (H)
+    value: 0.0013700000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013700000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 3.2564319999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2564319999999998

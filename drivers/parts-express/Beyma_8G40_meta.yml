@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-003
+_sources:
+  vendor_page: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016990079999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016990079999999998
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.1000000000000002e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1000000000000002e-05
-  BL:  # force factor (T·m)
-    value: 12.2
-    winner: vendor_page
-    sources:
-      vendor_page: 12.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.00135827682375794
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00135827682375794
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 6.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 6.8
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.00135827682375794
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00135827682375794
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.1000000000000002e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1000000000000002e-05
+  Qms:  # mechanical Q factor
+    value: 6.8
+    winner: vendor_page
+    sources:
+      vendor_page: 6.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 12.2
+    winner: vendor_page
+    sources:
+      vendor_page: 12.2
+  Le:  # voice coil inductance (H)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016990079999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016990079999999998
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
     sources:
       vendor_page: 95.0
-_sources:
-  vendor_page: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003
-frd_url: null
-zma_url: null

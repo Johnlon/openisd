@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/5in-sb15nac30-4/
+manu_page_url: https://sbacoustics.com/product/5in-sb15nac30-4/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB15NAC30-4-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/5in-sb15nac30-4/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB15NAC30-4-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/5in-sb15nac30-4/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00012
-    winner: manu_page
-    sources:
-      manu_page: 0.00012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0183
-    winner: manu_page
-    sources:
-      manu_page: 0.0183
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: manu_page
-    sources:
-      manu_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0108
-    winner: manu_page
-    sources:
-      manu_page: 0.0108
-  BL:  # force factor (T·m)
-    value: 4.8
-    winner: manu_page
-    sources:
-      manu_page: 4.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: manu_page
-    sources:
-      manu_page: 3.1
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: manu_page
-    sources:
-      manu_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: manu_page
-    sources:
-      manu_page: 35.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.65
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: manu_page
     sources:
-      manu_page: 5.65
+      manu_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0082
     winner: manu_page
     sources:
       manu_page: 0.0082
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 35.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0108
+    winner: manu_page
+    sources:
+      manu_page: 0.0108
+  Qms:  # mechanical Q factor
+    value: 5.65
+    winner: manu_page
+    sources:
+      manu_page: 5.65
   Cms:  # mechanical compliance (m/N)
     value: 0.00191
     winner: manu_page
     sources:
       manu_page: 0.00191
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: manu_page
+    sources:
+      manu_page: 0.32
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: manu_page
+    sources:
+      manu_page: 50.0
+  BL:  # force factor (T·m)
+    value: 4.8
+    winner: manu_page
+    sources:
+      manu_page: 4.8
+  Le:  # voice coil inductance (H)
+    value: 0.00012
+    winner: manu_page
+    sources:
+      manu_page: 0.00012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0183
+    winner: manu_page
+    sources:
+      manu_page: 0.0183
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 30.5
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 88.5
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB15NAC30-4-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/5in-sb15nac30-4/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/5in-SB15NAC30-4-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/5in-sb15nac30-4/
-vendor_page_url: null
-frd_url: null
-zma_url: null

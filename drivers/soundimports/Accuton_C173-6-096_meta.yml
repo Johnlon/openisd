@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-c173-6-096.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c173-6-096.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C173-6-096/C173-6-096.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c173-6-096.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C173-6-096/C173-6-096.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-c173-6-096.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01699
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01699
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0144
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0144
-  BL:  # force factor (T·m)
-    value: 11.4
-    winner: vendor_page
-    sources:
-      vendor_page: 11.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.77
-    winner: vendor_page
-    sources:
-      vendor_page: 6.77
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.96
-    winner: vendor_page
-    sources:
-      vendor_page: 0.96
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -65,31 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 4.68
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.77
     winner: vendor_page
     sources:
-      vendor_page: 4.68
+      vendor_page: 6.77
   Sd:  # effective piston area (m²)
     value: 0.013
     winner: vendor_page
     sources:
       vendor_page: 0.013
+  Fs:  # free air resonance (Hz)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.96
+    winner: vendor_page
+    sources:
+      vendor_page: 0.96
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0144
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0144
+  Qms:  # mechanical Q factor
+    value: 4.68
+    winner: vendor_page
+    sources:
+      vendor_page: 4.68
   Cms:  # mechanical compliance (m/N)
     value: 0.0007
     winner: vendor_page
     sources:
       vendor_page: 0.0007
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 11.4
+    winner: vendor_page
+    sources:
+      vendor_page: 11.4
+  Le:  # voice coil inductance (H)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01699
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01699
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
     sources:
       vendor_page: 93.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C173-6-096/C173-6-096.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-c173-6-096.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C173-6-096/C173-6-096.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c173-6-096.html
-frd_url: null
-zma_url: null

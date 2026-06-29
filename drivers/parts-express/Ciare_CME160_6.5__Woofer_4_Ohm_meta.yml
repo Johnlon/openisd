@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-112--ciare-cme160-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-112--ciare-cme160-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004530688
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004530688
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0115
-  BL:  # force factor (T·m)
-    value: 7.6
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.48382169174443
-    winner: vendor_page
-    sources:
-      vendor_page: 2.48382169174443
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,7 +29,7 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
+  Re:  # DC voice coil resistance (Ω)
     value: 3.2
     winner: vendor_page
     sources:
@@ -76,16 +39,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0137
+  Fs:  # free air resonance (Hz)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.48382169174443
+    winner: vendor_page
+    sources:
+      vendor_page: 2.48382169174443
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0115
+  Qms:  # mechanical Q factor
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-112--ciare-cme160-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-112--ciare-cme160-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CME160-6.5-Woofer-293-112
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  BL:  # force factor (T·m)
+    value: 7.6
+    winner: vendor_page
+    sources:
+      vendor_page: 7.6
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004530688
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004530688

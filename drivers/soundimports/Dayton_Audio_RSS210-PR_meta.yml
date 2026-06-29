@@ -1,54 +1,54 @@
+source: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
+driver_type: pr
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: pr
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0392
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0392
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.11
-    winner: vendor_page
-    sources:
-      vendor_page: 0.11
-  Fs:  # free air resonance (Hz)
-    value: 19.5
-    winner: vendor_page
-    sources:
-      vendor_page: 19.5
   Xmax:  # one-way linear excursion (m)
     value: 0.02
     winner: vendor_page
     sources:
       vendor_page: 0.02
-  Qms:  # mechanical Q factor
-    value: 10.7
-    winner: vendor_page
-    sources:
-      vendor_page: 10.7
   Sd:  # effective piston area (m²)
     value: 0.0213
     winner: vendor_page
     sources:
       vendor_page: 0.0213
+  Fs:  # free air resonance (Hz)
+    value: 19.5
+    winner: vendor_page
+    sources:
+      vendor_page: 19.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.11
+    winner: vendor_page
+    sources:
+      vendor_page: 0.11
+  Qms:  # mechanical Q factor
+    value: 10.7
+    winner: vendor_page
+    sources:
+      vendor_page: 10.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00061
     winner: vendor_page
     sources:
       vendor_page: 0.00061
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss210-pr.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0392
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0392

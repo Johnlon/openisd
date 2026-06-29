@@ -1,26 +1,28 @@
+source: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 6.8
     winner: vendor_page
     sources:
       vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
   Fs:  # free air resonance (Hz)
     value: 1500.0
     winner: vendor_page
@@ -31,10 +33,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GT-322-1-Titanium-Dome-Tweeter-3-3-4-Square-270-150
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0

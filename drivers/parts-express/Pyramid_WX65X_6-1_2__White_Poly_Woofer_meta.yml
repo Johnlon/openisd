@@ -1,41 +1,24 @@
+source: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-270-pyramid-wx65x-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-270-pyramid-wx65x-specifications.pdf
+  vendor_page: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008495039999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008495039999999999
-  Qes:  # electrical Q factor
-    value: 0.82
-    winner: vendor_page
-    sources:
-      vendor_page: 0.82
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 69.5
-    winner: vendor_page
-    sources:
-      vendor_page: 69.5
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -46,6 +29,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.58
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Fs:  # free air resonance (Hz)
+    value: 69.5
+    winner: vendor_page
+    sources:
+      vendor_page: 69.5
   Qms:  # mechanical Q factor
     value: 2.03
     winner: vendor_page
@@ -56,11 +49,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-270-pyramid-wx65x-specifications.pdf
-  vendor_page: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-270-pyramid-wx65x-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Pyramid-WX65X-6-1-2-White-Poly-Woofer-290-270
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.82
+    winner: vendor_page
+    sources:
+      vendor_page: 0.82
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.008495039999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008495039999999999

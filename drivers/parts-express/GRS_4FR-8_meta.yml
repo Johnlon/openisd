@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.00169901 differs from calculated=0.00167344 (deps
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-434
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001699008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001699008
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0058
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0058
-  BL:  # force factor (T·m)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.9
-    winner: vendor_page
-    sources:
-      vendor_page: 6.9
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 127.0
-    winner: vendor_page
-    sources:
-      vendor_page: 127.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6897457969103552
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6897457969103552
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.7
-  Qms:  # mechanical Q factor
-    value: 6.71
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.9
     winner: vendor_page
     sources:
-      vendor_page: 6.71
+      vendor_page: 6.9
   Sd:  # effective piston area (m²)
     value: 0.0066099999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.0066099999999999996
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 127.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 127.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6897457969103552
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6897457969103552
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0058
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0058
+  Qms:  # mechanical Q factor
+    value: 6.71
+    winner: vendor_page
+    sources:
+      vendor_page: 6.71
   Cms:  # mechanical compliance (m/N)
     value: 0.00027
     winner: vendor_page
     sources:
       vendor_page: 0.00027
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-4FR-8-Full-Range-4-1-2-Speaker-Pioneer-Type-A11EC80-02F-292-434
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Le:  # voice coil inductance (H)
+    value: 0.0007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001699008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001699008

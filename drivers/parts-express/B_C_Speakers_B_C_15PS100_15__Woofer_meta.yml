@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-673--bc-15ps100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-673--bc-15ps100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0021000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0021000000000000003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.15007904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15007904
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.145
-    winner: vendor_page
-    sources:
-      vendor_page: 0.145
-  BL:  # force factor (T·m)
-    value: 22.5
-    winner: vendor_page
-    sources:
-      vendor_page: 22.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 1400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1400.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.26355035309465
-    winner: vendor_page
-    sources:
-      vendor_page: 6.26355035309465
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 4.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 4.8
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 33.0
+    winner: vendor_page
+    sources:
+      vendor_page: 33.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.26355035309465
+    winner: vendor_page
+    sources:
+      vendor_page: 6.26355035309465
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.145
+    winner: vendor_page
+    sources:
+      vendor_page: 0.145
+  Qms:  # mechanical Q factor
+    value: 4.8
+    winner: vendor_page
+    sources:
+      vendor_page: 4.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-673--bc-15ps100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-673--bc-15ps100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 1400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1400.0
+  BL:  # force factor (T·m)
+    value: 22.5
+    winner: vendor_page
+    sources:
+      vendor_page: 22.5
+  Le:  # voice coil inductance (H)
+    value: 0.0021000000000000003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0021000000000000003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.15007904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.15007904

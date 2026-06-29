@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-031--5p200fe-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.33 differs from calculated=0.334395 (deps: Qms=7.
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-031
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-031--5p200fe-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00566336
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01
-  BL:  # force factor (T·m)
-    value: 8.5
-    winner: vendor_page
-    sources:
-      vendor_page: 8.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 72.0
-    winner: vendor_page
-    sources:
-      vendor_page: 72.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6031857894892403
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6031857894892403
   Xmax:  # one-way linear excursion (m)
     value: 0.0057
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 7.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 7.5
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.0095
     winner: vendor_page
     sources:
       vendor_page: 0.0095
+  Fs:  # free air resonance (Hz)
+    value: 72.0
+    winner: vendor_page
+    sources:
+      vendor_page: 72.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6031857894892403
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6031857894892403
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01
+  Qms:  # mechanical Q factor
+    value: 7.5
+    winner: vendor_page
+    sources:
+      vendor_page: 7.5
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 8.5
+    winner: vendor_page
+    sources:
+      vendor_page: 8.5
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00566336
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.0
     winner: vendor_page
     sources:
       vendor_page: 92.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-031--5p200fe-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-031--5p200fe-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031
-frd_url: null
-zma_url: null

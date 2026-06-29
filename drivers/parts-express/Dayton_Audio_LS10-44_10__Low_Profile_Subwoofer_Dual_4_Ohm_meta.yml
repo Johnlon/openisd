@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-251--dayton-audio-ls10-44-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-251--Dayton-Audio-LS10-44_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-251--dayton-audio-ls10-44-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00525
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00525
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.030582144000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.030582144000000002
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.132
-  BL:  # force factor (T·m)
-    value: 21.1
-    winner: vendor_page
-    sources:
-      vendor_page: 21.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 34.3
-    winner: vendor_page
-    sources:
-      vendor_page: 34.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.523834911997337
-    winner: vendor_page
-    sources:
-      vendor_page: 5.523834911997337
   Xmax:  # one-way linear excursion (m)
     value: 0.01
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 5.15
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.4
     winner: vendor_page
     sources:
-      vendor_page: 5.15
+      vendor_page: 7.4
   Sd:  # effective piston area (m²)
     value: 0.03664
     winner: vendor_page
     sources:
       vendor_page: 0.03664
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 34.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 34.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.523834911997337
+    winner: vendor_page
+    sources:
+      vendor_page: 5.523834911997337
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.132
+  Qms:  # mechanical Q factor
+    value: 5.15
+    winner: vendor_page
+    sources:
+      vendor_page: 5.15
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: vendor_page
     sources:
       vendor_page: 0.00016
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-251--dayton-audio-ls10-44-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-251--dayton-audio-ls10-44-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-LS10-44-10-Low-Profile-Subwoofer-Dual-4-Ohm-295-251
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-251--Dayton-Audio-LS10-44_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 21.1
+    winner: vendor_page
+    sources:
+      vendor_page: 21.1
+  Le:  # voice coil inductance (H)
+    value: 0.00525
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00525
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.030582144000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.030582144000000002

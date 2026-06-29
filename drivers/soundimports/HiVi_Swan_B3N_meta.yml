@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/hivi-b3n.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-b3n.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-b3n.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-b3n.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 6.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0e-05
-  Qes:  # electrical Q factor
-    value: 1.07
-    winner: vendor_page
-    sources:
-      vendor_page: 1.07
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0032
-  BL:  # force factor (T·m)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 77.0
-    winner: vendor_page
-    sources:
-      vendor_page: 77.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -55,26 +27,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 4.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 4.48
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 77.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 77.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0032
+  Qms:  # mechanical Q factor
+    value: 4.48
+    winner: vendor_page
+    sources:
+      vendor_page: 4.48
   Cms:  # mechanical compliance (m/N)
     value: 0.00132
     winner: vendor_page
     sources:
       vendor_page: 0.00132
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.07
+    winner: vendor_page
+    sources:
+      vendor_page: 1.07
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 6.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0e-05
   power_peak_W:  # peak power handling (W)
     value: 30.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-b3n.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-b3n.html
-frd_url: null
-zma_url: null

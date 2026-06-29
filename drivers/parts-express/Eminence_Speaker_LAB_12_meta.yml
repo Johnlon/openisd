@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-570--eminence-lab-12-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.12516 differs from calculated=0.127472 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-570
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-570--eminence-lab-12-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00148
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00148
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.125160256
-    winner: vendor_page
-    sources:
-      vendor_page: 0.125160256
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.146
-    winner: vendor_page
-    sources:
-      vendor_page: 0.146
-  BL:  # force factor (T·m)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.29
-    winner: vendor_page
-    sources:
-      vendor_page: 4.29
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5151344749745366
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5151344749745366
   Xmax:  # one-way linear excursion (m)
     value: 0.013
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 13.32
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.29
     winner: vendor_page
     sources:
-      vendor_page: 13.32
+      vendor_page: 4.29
   Sd:  # effective piston area (m²)
     value: 0.05067
     winner: vendor_page
     sources:
       vendor_page: 0.05067
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 22.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 22.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5151344749745366
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5151344749745366
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.146
+    winner: vendor_page
+    sources:
+      vendor_page: 0.146
+  Qms:  # mechanical Q factor
+    value: 13.32
+    winner: vendor_page
+    sources:
+      vendor_page: 13.32
   Cms:  # mechanical compliance (m/N)
     value: 0.00035
     winner: vendor_page
     sources:
       vendor_page: 0.00035
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-570--eminence-lab-12-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-570--eminence-lab-12-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-LAB-12-Professional-12-Subwoofer-Speaker-290-570
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 0.00148
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00148
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.125160256
+    winner: vendor_page
+    sources:
+      vendor_page: 0.125160256

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.8e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.8e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000239
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000239
-  Qes:  # electrical Q factor
-    value: 0.549
-    winner: vendor_page
-    sources:
-      vendor_page: 0.549
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  BL:  # force factor (T·m)
-    value: 2.74
-    winner: vendor_page
-    sources:
-      vendor_page: 2.74
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0018
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 4.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 4.85
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.00139
     winner: vendor_page
     sources:
       vendor_page: 0.00139
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 150.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 150.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Qms:  # mechanical Q factor
+    value: 4.85
+    winner: vendor_page
+    sources:
+      vendor_page: 4.85
   Cms:  # mechanical compliance (m/N)
     value: 0.00088
     winner: vendor_page
     sources:
       vendor_page: 0.00088
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-anc-50n25al04-04.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.549
+    winner: vendor_page
+    sources:
+      vendor_page: 0.549
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 2.74
+    winner: vendor_page
+    sources:
+      vendor_page: 2.74
+  Le:  # voice coil inductance (H)
+    value: 7.8e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.8e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000239
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000239

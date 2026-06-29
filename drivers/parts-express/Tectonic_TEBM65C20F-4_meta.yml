@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-2164--tebm65c20f-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,12 +15,64 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-2164
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-2164--tebm65c20f-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
 specs:
+  Qts:  # total Q factor
+    value: 0.83
+    winner: vendor_page
+    sources:
+      vendor_page: 0.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
+  Sd:  # effective piston area (m²)
+    value: 0.00372
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00372
+  Fs:  # free air resonance (Hz)
+    value: 97.0
+    winner: vendor_page
+    sources:
+      vendor_page: 97.0
+  Qms:  # mechanical Q factor
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.94
+    winner: vendor_page
+    sources:
+      vendor_page: 0.94
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 3.75
+    winner: vendor_page
+    sources:
+      vendor_page: 3.75
   Le:  # voice coil inductance (H)
     value: 2.9999999999999997e-05
     winner: vendor_page
@@ -22,64 +83,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.000991088
-  Qes:  # electrical Q factor
-    value: 0.94
-    winner: vendor_page
-    sources:
-      vendor_page: 0.94
-  BL:  # force factor (T·m)
-    value: 3.75
-    winner: vendor_page
-    sources:
-      vendor_page: 3.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 97.0
-    winner: vendor_page
-    sources:
-      vendor_page: 97.0
-  Qts:  # total Q factor
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Sd:  # effective piston area (m²)
-    value: 0.00372
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00372
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-2164--tebm65c20f-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-2164--tebm65c20f-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tectonic-TEBM65C20F-4-3-1-2-BMR-Full-Range-Speaker-4-Ohm-297-2164
-frd_url: null
-zma_url: null

@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
+manu_page_url: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2024/04/7.5in-SATORI-MT19CP-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2024/04/7.5in-SATORI-MT19CP-8.pdf
+  manu_page: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00012
-    winner: manu_page
-    sources:
-      manu_page: 0.00012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0371
-    winner: manu_page
-    sources:
-      manu_page: 0.0371
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: manu_page
-    sources:
-      manu_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0121
-    winner: manu_page
-    sources:
-      manu_page: 0.0121
-  BL:  # force factor (T·m)
-    value: 8.05
-    winner: manu_page
-    sources:
-      manu_page: 8.05
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: manu_page
-    sources:
-      manu_page: 3.7
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 1200.0
-    winner: manu_page
-    sources:
-      manu_page: 1200.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0036
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 6.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: manu_page
     sources:
-      manu_page: 6.54
+      manu_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.0152
     winner: manu_page
     sources:
       manu_page: 0.0152
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 1200.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 1200.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0121
+    winner: manu_page
+    sources:
+      manu_page: 0.0121
+  Qms:  # mechanical Q factor
+    value: 6.54
+    winner: manu_page
+    sources:
+      manu_page: 6.54
   Cms:  # mechanical compliance (m/N)
     value: 0.00113
     winner: manu_page
     sources:
       manu_page: 0.00113
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: manu_page
+    sources:
+      manu_page: 0.33
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 8.05
+    winner: manu_page
+    sources:
+      manu_page: 8.05
+  Le:  # voice coil inductance (H)
+    value: 0.00012
+    winner: manu_page
+    sources:
+      manu_page: 0.00012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0371
+    winner: manu_page
+    sources:
+      manu_page: 0.0371
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.4
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 90.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2024/04/7.5in-SATORI-MT19CP-8.pdf
-  manu_page: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2024/04/7.5in-SATORI-MT19CP-8.pdf
-manu_page_url: https://sbacoustics.com/product/7½-satori-mt19cp-8-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

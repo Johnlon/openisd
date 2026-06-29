@@ -1,69 +1,69 @@
+source: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Qes:  # electrical Q factor
-    value: 0.7
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 430.0
-    winner: vendor_page
-    sources:
-      vendor_page: 430.0
   Qts:  # total Q factor
     value: 0.44
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 1.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
     winner: vendor_page
     sources:
-      vendor_page: 1.19
+      vendor_page: 6.7
   Sd:  # effective piston area (m²)
     value: 0.002
     winner: vendor_page
     sources:
       vendor_page: 0.002
+  Fs:  # free air resonance (Hz)
+    value: 430.0
+    winner: vendor_page
+    sources:
+      vendor_page: 430.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Qms:  # mechanical Q factor
+    value: 1.19
+    winner: vendor_page
+    sources:
+      vendor_page: 1.19
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-dsm-50-ffl.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.7
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016

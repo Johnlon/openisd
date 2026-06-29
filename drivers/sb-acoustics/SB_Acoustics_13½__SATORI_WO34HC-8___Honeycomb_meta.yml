@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/satori-wo34hc-8/
+manu_page_url: https://sbacoustics.com/product/satori-wo34hc-8/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/03/13.5-inch-SATORI-WO34HC-8.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/satori-wo34hc-8/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2026/03/13.5-inch-SATORI-WO34HC-8.pdf
+  manu_page: https://sbacoustics.com/product/satori-wo34hc-8/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: manu_page
-    sources:
-      manu_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.238
-    winner: manu_page
-    sources:
-      manu_page: 0.238
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: manu_page
-    sources:
-      manu_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.127
-    winner: manu_page
-    sources:
-      manu_page: 0.127
-  BL:  # force factor (T·m)
-    value: 19.0
-    winner: manu_page
-    sources:
-      manu_page: 19.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: manu_page
-    sources:
-      manu_page: 6.8
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: manu_page
-    sources:
-      manu_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 20.2
-    winner: manu_page
-    sources:
-      manu_page: 20.2
   Xmax:  # one-way linear excursion (m)
     value: 0.0083
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 5.37
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: manu_page
     sources:
-      manu_page: 5.37
+      manu_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0585
     winner: manu_page
     sources:
       manu_page: 0.0585
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 20.2
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 20.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.127
+    winner: manu_page
+    sources:
+      manu_page: 0.127
+  Qms:  # mechanical Q factor
+    value: 5.37
+    winner: manu_page
+    sources:
+      manu_page: 5.37
   Cms:  # mechanical compliance (m/N)
     value: 0.00049
     winner: manu_page
     sources:
       manu_page: 0.00049
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: manu_page
+    sources:
+      manu_page: 0.3
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: manu_page
+    sources:
+      manu_page: 200.0
+  BL:  # force factor (T·m)
+    value: 19.0
+    winner: manu_page
+    sources:
+      manu_page: 19.0
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: manu_page
+    sources:
+      manu_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.238
+    winner: manu_page
+    sources:
+      manu_page: 0.238
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 75.6
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 89.5
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2026/03/13.5-inch-SATORI-WO34HC-8.pdf
-  manu_page: https://sbacoustics.com/product/satori-wo34hc-8/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2026/03/13.5-inch-SATORI-WO34HC-8.pdf
-manu_page_url: https://sbacoustics.com/product/satori-wo34hc-8/
-vendor_page_url: null
-frd_url: null
-zma_url: null

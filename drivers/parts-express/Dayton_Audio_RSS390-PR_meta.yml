@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-504--rss390-pr-specification-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,24 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-504
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-504--rss390-pr-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.21265916799999998
+  Xmax:  # one-way linear excursion (m)
+    value: 0.03
     winner: vendor_page
     sources:
-      vendor_page: 0.21265916799999998
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.4
+      vendor_page: 0.03
+  Sd:  # effective piston area (m²)
+    value: 0.08296
     winner: vendor_page
     sources:
-      vendor_page: 0.4
+      vendor_page: 0.08296
   Fs:  # free air resonance (Hz)
     value: 18.2
     winner: vendor_page
@@ -32,34 +43,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 11.23871966493056
-  Xmax:  # one-way linear excursion (m)
-    value: 0.03
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.4
     winner: vendor_page
     sources:
-      vendor_page: 0.03
+      vendor_page: 0.4
   Qms:  # mechanical Q factor
     value: 4.07
     winner: vendor_page
     sources:
       vendor_page: 4.07
-  Sd:  # effective piston area (m²)
-    value: 0.08296
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08296
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-504--rss390-pr-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-504--rss390-pr-specification-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RSS390-PR-15-Reference-Series-Aluminum-Cone-Passive-Radiator-295-504
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.21265916799999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.21265916799999998

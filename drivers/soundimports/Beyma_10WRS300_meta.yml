@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/beyma-10wrs300.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/beyma-10wrs300.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/beyma-10wrs300.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/beyma-10wrs300.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.042
-    winner: vendor_page
-    sources:
-      vendor_page: 0.042
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.039
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039
-  BL:  # force factor (T·m)
-    value: 13.9
-    winner: vendor_page
-    sources:
-      vendor_page: 13.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.3
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 5.5
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.035
     winner: vendor_page
     sources:
       vendor_page: 0.035
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.3
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.039
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039
+  Qms:  # mechanical Q factor
+    value: 5.5
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5
   Cms:  # mechanical compliance (m/N)
     value: 0.000242
     winner: vendor_page
     sources:
       vendor_page: 0.000242
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 13.9
+    winner: vendor_page
+    sources:
+      vendor_page: 13.9
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.042
+    winner: vendor_page
+    sources:
+      vendor_page: 0.042
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/beyma-10wrs300.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/beyma-10wrs300.html
-frd_url: null
-zma_url: null

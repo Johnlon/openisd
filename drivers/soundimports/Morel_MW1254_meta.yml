@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/morel-mw1254.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/morel-mw1254.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/morel-mw1254.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/morel-mw1254.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00115
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.108
-    winner: vendor_page
-    sources:
-      vendor_page: 0.108
-  Qes:  # electrical Q factor
-    value: 0.54
-    winner: vendor_page
-    sources:
-      vendor_page: 0.54
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09
-  BL:  # force factor (T·m)
-    value: 11.81
-    winner: vendor_page
-    sources:
-      vendor_page: 11.81
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.95
-    winner: vendor_page
-    sources:
-      vendor_page: 2.95
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 30.9
-    winner: vendor_page
-    sources:
-      vendor_page: 30.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.98
-    winner: vendor_page
-    sources:
-      vendor_page: 7.98
   Xmax:  # one-way linear excursion (m)
     value: 0.01
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.34
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.95
     winner: vendor_page
     sources:
-      vendor_page: 2.34
+      vendor_page: 2.95
   Sd:  # effective piston area (m²)
     value: 0.04575
     winner: vendor_page
     sources:
       vendor_page: 0.04575
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.98
+    winner: vendor_page
+    sources:
+      vendor_page: 7.98
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09
+  Qms:  # mechanical Q factor
+    value: 2.34
+    winner: vendor_page
+    sources:
+      vendor_page: 2.34
   Cms:  # mechanical compliance (m/N)
     value: 0.000202
     winner: vendor_page
     sources:
       vendor_page: 0.000202
-_sources:
-  vendor_page: https://www.soundimports.eu/en/morel-mw1254.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/morel-mw1254.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.54
+    winner: vendor_page
+    sources:
+      vendor_page: 0.54
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 11.81
+    winner: vendor_page
+    sources:
+      vendor_page: 11.81
+  Le:  # voice coil inductance (H)
+    value: 0.00115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00115
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.108
+    winner: vendor_page
+    sources:
+      vendor_page: 0.108

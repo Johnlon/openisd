@@ -1,46 +1,23 @@
+source: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06512863999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06512863999999999
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -51,6 +28,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
+    winner: vendor_page
+    sources:
+      vendor_page: 3.4
+  Fs:  # free air resonance (Hz)
+    value: 29.0
+    winner: vendor_page
+    sources:
+      vendor_page: 29.0
   Qms:  # mechanical Q factor
     value: 3.99
     winner: vendor_page
@@ -61,6 +48,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06512863999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06512863999999999
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 3.0
     winner: vendor_page
@@ -71,10 +78,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W200S-4-8-Woofer-with-Treated-Paper-Cone-4-Ohm-292-570
-frd_url: null
-zma_url: null

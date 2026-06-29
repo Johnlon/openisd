@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-103-dayton-audio-ce32a-4-specifications-2940.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,47 +16,14 @@ corrections: '''Vas'' stored=1.47247e-05 differs from calculated=1.50406e-05 (de
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 285-103
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-103-dayton-audio-ce32a-4-specifications-2940.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.4724735999999998e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4724735999999998e-05
-  Qes:  # electrical Q factor
-    value: 1.24
-    winner: vendor_page
-    sources:
-      vendor_page: 1.24
-  BL:  # force factor (T·m)
-    value: 1.59
-    winner: vendor_page
-    sources:
-      vendor_page: 1.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 262.0
-    winner: vendor_page
-    sources:
-      vendor_page: 262.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -58,34 +34,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 2.86
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 2.86
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.000392
     winner: vendor_page
     sources:
       vendor_page: 0.000392
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 262.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 262.0
+  Qms:  # mechanical Q factor
+    value: 2.86
+    winner: vendor_page
+    sources:
+      vendor_page: 2.86
   Cms:  # mechanical compliance (m/N)
     value: 0.00069
     winner: vendor_page
     sources:
       vendor_page: 0.00069
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-103-dayton-audio-ce32a-4-specifications-2940.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-103-dayton-audio-ce32a-4-specifications-2940.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE32A-4-1-1-4-Mini-Speaker-4-Ohm-285-103
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.24
+    winner: vendor_page
+    sources:
+      vendor_page: 1.24
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 1.59
+    winner: vendor_page
+    sources:
+      vendor_page: 1.59
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.4724735999999998e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.4724735999999998e-05

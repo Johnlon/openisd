@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000376
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041342527999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041342527999999996
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0541
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0541
-  BL:  # force factor (T·m)
-    value: 12.29
-    winner: vendor_page
-    sources:
-      vendor_page: 12.29
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 46.9
-    winner: vendor_page
-    sources:
-      vendor_page: 46.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.0078417188984496
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0078417188984496
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 7.94
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 7.94
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0373
     winner: vendor_page
     sources:
       vendor_page: 0.0373
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 46.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 46.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.0078417188984496
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0078417188984496
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0541
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0541
+  Qms:  # mechanical Q factor
+    value: 7.94
+    winner: vendor_page
+    sources:
+      vendor_page: 7.94
   Cms:  # mechanical compliance (m/N)
     value: 0.000212
     winner: vendor_page
     sources:
       vendor_page: 0.000212
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 12.29
+    winner: vendor_page
+    sources:
+      vendor_page: 12.29
+  Le:  # voice coil inductance (H)
+    value: 0.000376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000376
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041342527999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041342527999999996
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-MT10W1200-NDY-4-Moto-Series-10-Pro-Low-Frequency-Woofer-4-Ohm-267-8042
-frd_url: null
-zma_url: null

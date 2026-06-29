@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/tw030wa21_22.html
+manu_page_url: http://www.wavecor.com/html/tw030wa21_22.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/TW030WA21_22_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA22_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA22_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: http://www.wavecor.com/html/tw030wa21_22.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW030WA21_22_specifications.pdf
+  manu_page: http://www.wavecor.com/html/tw030wa21_22.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.9e-05
-    winner: manu_page
-    sources:
-      manu_page: 1.9e-05
-  Qes:  # electrical Q factor
-    value: 1.78
-    winner: manu_page
-    sources:
-      manu_page: 1.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00045
-    winner: manu_page
-    sources:
-      manu_page: 0.00045
-  BL:  # force factor (T·m)
-    value: 2.05
-    winner: manu_page
-    sources:
-      manu_page: 2.05
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: manu_page
-    sources:
-      manu_page: 3.6
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: manu_page
-    sources:
-      manu_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 750.0
-    winner: manu_page
-    sources:
-      manu_page: 750.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.26
-    winner: manu_page
-    sources:
-      manu_page: 0.26
   Xmax:  # one-way linear excursion (m)
     value: 0.0004
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 1.46
-  Qms:  # mechanical Q factor
-    value: 8.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: manu_page
     sources:
-      manu_page: 8.2
+      manu_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00115
     winner: manu_page
     sources:
       manu_page: 0.00115
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 750.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 750.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.26
+    winner: manu_page
+    sources:
+      manu_page: 0.26
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00045
+    winner: manu_page
+    sources:
+      manu_page: 0.00045
+  Qms:  # mechanical Q factor
+    value: 8.2
+    winner: manu_page
+    sources:
+      manu_page: 8.2
   Cms:  # mechanical compliance (m/N)
     value: 0.0001
     winner: manu_page
     sources:
       manu_page: 0.0001
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/TW030WA21_22_specifications.pdf
-  manu_page: http://www.wavecor.com/html/tw030wa21_22.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/TW030WA21_22_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/tw030wa21_22.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW030WA22_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW030WA22_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.78
+    winner: manu_page
+    sources:
+      manu_page: 1.78
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: manu_page
+    sources:
+      manu_page: 800.0
+  BL:  # force factor (T·m)
+    value: 2.05
+    winner: manu_page
+    sources:
+      manu_page: 2.05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.9e-05
+    winner: manu_page
+    sources:
+      manu_page: 1.9e-05

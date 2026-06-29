@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-036--8p300fen-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-036--8p300fen-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.024918784
-    winner: vendor_page
-    sources:
-      vendor_page: 0.024918784
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5e-05
-  BL:  # force factor (T·m)
-    value: 11.6
-    winner: vendor_page
-    sources:
-      vendor_page: 11.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 53.0
-    winner: vendor_page
-    sources:
-      vendor_page: 53.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0005821832539869197
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005821832539869197
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 14.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 14.3
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 2.1999999999999997e-06
     winner: vendor_page
     sources:
       vendor_page: 2.1999999999999997e-06
+  Fs:  # free air resonance (Hz)
+    value: 53.0
+    winner: vendor_page
+    sources:
+      vendor_page: 53.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0005821832539869197
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005821832539869197
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.5e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5e-05
+  Qms:  # mechanical Q factor
+    value: 14.3
+    winner: vendor_page
+    sources:
+      vendor_page: 14.3
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 11.6
+    winner: vendor_page
+    sources:
+      vendor_page: 11.6
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.024918784
+    winner: vendor_page
+    sources:
+      vendor_page: 0.024918784
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.0
     winner: vendor_page
     sources:
       vendor_page: 94.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-036--8p300fen-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-036--8p300fen-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036
-frd_url: null
-zma_url: null

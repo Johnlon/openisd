@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-708--dayton-audio-UMII8-22-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/UMII8-22_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-708--dayton-audio-UMII8-22-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00075
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0084100896
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0084100896
-  Qes:  # electrical Q factor
-    value: 0.99
-    winner: vendor_page
-    sources:
-      vendor_page: 0.99
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.082
-  BL:  # force factor (T·m)
-    value: 9.7
-    winner: vendor_page
-    sources:
-      vendor_page: 9.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 46.0
-    winner: vendor_page
-    sources:
-      vendor_page: 46.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.645217735058516
-    winner: vendor_page
-    sources:
-      vendor_page: 7.645217735058516
   Xmax:  # one-way linear excursion (m)
     value: 0.018
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.75
-  Qms:  # mechanical Q factor
-    value: 3.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 3.1
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.02
     winner: vendor_page
     sources:
       vendor_page: 0.02
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 46.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 46.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.645217735058516
+    winner: vendor_page
+    sources:
+      vendor_page: 7.645217735058516
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.082
+    winner: vendor_page
+    sources:
+      vendor_page: 0.082
+  Qms:  # mechanical Q factor
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
   Cms:  # mechanical compliance (m/N)
     value: 0.000148
     winner: vendor_page
     sources:
       vendor_page: 0.000148
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.99
+    winner: vendor_page
+    sources:
+      vendor_page: 0.99
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 9.7
+    winner: vendor_page
+    sources:
+      vendor_page: 9.7
+  Le:  # voice coil inductance (H)
+    value: 0.00075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00075
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0084100896
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0084100896
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 400.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-708--dayton-audio-UMII8-22-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-708--dayton-audio-UMII8-22-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-UMII8-22-ULTIMAX-II-8-400W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-708
-frd_url: https://www.parts-express.com/pedocs/tech-docs/UMII8-22_data.zip
-zma_url: null

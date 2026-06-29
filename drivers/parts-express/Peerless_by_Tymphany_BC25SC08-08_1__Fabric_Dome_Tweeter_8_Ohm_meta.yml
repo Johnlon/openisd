@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Qes:  # electrical Q factor
-    value: 1.83
-    winner: vendor_page
-    sources:
-      vendor_page: 1.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.57
-    winner: vendor_page
-    sources:
-      vendor_page: 6.57
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 1731.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1731.0
   Qts:  # total Q factor
     value: 1.28
     winner: vendor_page
     sources:
       vendor_page: 1.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.57
+    winner: vendor_page
+    sources:
+      vendor_page: 6.57
+  Fs:  # free air resonance (Hz)
+    value: 1731.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1731.0
   Qms:  # mechanical Q factor
     value: 4.23
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.83
+    winner: vendor_page
+    sources:
+      vendor_page: 1.83
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 2.9999999999999997e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.9999999999999997e-05

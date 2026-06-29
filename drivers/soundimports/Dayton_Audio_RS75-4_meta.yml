@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00072
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00014
-  Qes:  # electrical Q factor
-    value: 0.97
-    winner: vendor_page
-    sources:
-      vendor_page: 0.97
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011
-  BL:  # force factor (T·m)
-    value: 2.01
-    winner: vendor_page
-    sources:
-      vendor_page: 2.01
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 177.0
-    winner: vendor_page
-    sources:
-      vendor_page: 177.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0011
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 5.76
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 5.76
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 177.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 177.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011
+  Qms:  # mechanical Q factor
+    value: 5.76
+    winner: vendor_page
+    sources:
+      vendor_page: 5.76
   Cms:  # mechanical compliance (m/N)
     value: 0.00072
     winner: vendor_page
     sources:
       vendor_page: 0.00072
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.97
+    winner: vendor_page
+    sources:
+      vendor_page: 0.97
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.01
+    winner: vendor_page
+    sources:
+      vendor_page: 2.01
+  Le:  # voice coil inductance (H)
+    value: 0.00072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00072
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00014
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00014
   power_peak_W:  # peak power handling (W)
     value: 30.0
     winner: vendor_page
@@ -105,10 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rs75-4.html
-frd_url: null
-zma_url: null

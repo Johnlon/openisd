@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.39 differs from calculated=0.384453 (deps: Qms=6.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
 obsolete: null
 dq_issue: Vas_huge
 community: null
 fetched_sku: 293-106
+_sources:
+  vendor_page: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00054
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00054
-  Vas:  # equivalent acoustic volume (m³)
-    value: 3.81710464
-    winner: vendor_page
-    sources:
-      vendor_page: 3.81710464
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011300000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011300000000000001
-  BL:  # force factor (T·m)
-    value: 9.96
-    winner: vendor_page
-    sources:
-      vendor_page: 9.96
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1507292377816747
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1507292377816747
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -68,21 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 6.17
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 6.17
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.01348
     winner: vendor_page
     sources:
       vendor_page: 0.01348
+  Fs:  # free air resonance (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1507292377816747
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1507292377816747
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.011300000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011300000000000001
+  Qms:  # mechanical Q factor
+    value: 6.17
+    winner: vendor_page
+    sources:
+      vendor_page: 6.17
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 9.96
+    winner: vendor_page
+    sources:
+      vendor_page: 9.96
+  Le:  # voice coil inductance (H)
+    value: 0.00054
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00054
+  Vas:  # equivalent acoustic volume (m³)
+    value: 3.81710464
+    winner: vendor_page
+    sources:
+      vendor_page: 3.81710464
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
@@ -93,13 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CXPA-6-6.5-Neodymium-Coaxial-Driver-293-106
-frd_url: null
-zma_url: null

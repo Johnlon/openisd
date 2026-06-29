@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1313-faitalpro-18xl1600-8-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1313-faitalpro-18xl1600-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00145
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00145
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.18462553599999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18462553599999998
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  BL:  # force factor (T·m)
-    value: 26.7
-    winner: vendor_page
-    sources:
-      vendor_page: 26.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.188694963348302
-    winner: vendor_page
-    sources:
-      vendor_page: 5.188694963348302
   Xmax:  # one-way linear excursion (m)
     value: 0.0129
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 9.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 9.3
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.1124
     winner: vendor_page
     sources:
       vendor_page: 0.1124
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 32.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.188694963348302
+    winner: vendor_page
+    sources:
+      vendor_page: 5.188694963348302
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Qms:  # mechanical Q factor
+    value: 9.3
+    winner: vendor_page
+    sources:
+      vendor_page: 9.3
   Cms:  # mechanical compliance (m/N)
     value: 0.0001
     winner: vendor_page
     sources:
       vendor_page: 0.0001
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 1600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1600.0
+  BL:  # force factor (T·m)
+    value: 26.7
+    winner: vendor_page
+    sources:
+      vendor_page: 26.7
+  Le:  # voice coil inductance (H)
+    value: 0.00145
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00145
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.18462553599999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18462553599999998
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 18.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1600.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1313-faitalpro-18xl1600-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1313-faitalpro-18xl1600-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-18XL1600-18-Neodymium-Professional-Subwoofer-8-Oh-294-1313
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
+datasheet_url: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/290-916--grs-12sfpc-b-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/290-916--grs-12sfpc-b-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.16621961600000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.16621961600000001
-  Qes:  # electrical Q factor
-    value: 1.04
-    winner: vendor_page
-    sources:
-      vendor_page: 1.04
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0409
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0409
-  BL:  # force factor (T·m)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: vendor_page
-    sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2509396706304674
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2509396706304674
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Qms:  # mechanical Q factor
-    value: 4.11
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 4.11
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.05
     winner: vendor_page
     sources:
       vendor_page: 0.05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 36.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 36.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2509396706304674
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2509396706304674
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0409
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0409
+  Qms:  # mechanical Q factor
+    value: 4.11
+    winner: vendor_page
+    sources:
+      vendor_page: 4.11
   Cms:  # mechanical compliance (m/N)
     value: 0.00047
     winner: vendor_page
     sources:
       vendor_page: 0.00047
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/290-916--grs-12sfpc-b-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
-datasheet_url: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/290-916--grs-12sfpc-b-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-12SFPC-B-12-Square-Frame-Paper-Cone-Woofer-Black-290-916
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.04
+    winner: vendor_page
+    sources:
+      vendor_page: 1.04
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 7.3
+    winner: vendor_page
+    sources:
+      vendor_page: 7.3
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.16621961600000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.16621961600000001

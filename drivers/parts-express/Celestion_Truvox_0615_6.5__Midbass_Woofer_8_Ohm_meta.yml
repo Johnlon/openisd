@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2511--celestion-truvox-0615-spec-sheet
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2511--celestion-truvox-0615-spec-sheet
+  vendor_page: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00036899999999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00036899999999999997
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007362368
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007362368
-  Qes:  # electrical Q factor
-    value: 0.516
-    winner: vendor_page
-    sources:
-      vendor_page: 0.516
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.010584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.010584
-  BL:  # force factor (T·m)
-    value: 0.298
-    winner: vendor_page
-    sources:
-      vendor_page: 0.298
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.59
-    winner: vendor_page
-    sources:
-      vendor_page: 5.59
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 89.6
-    winner: vendor_page
-    sources:
-      vendor_page: 89.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0765149960055123
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0765149960055123
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.472
-  Qms:  # mechanical Q factor
-    value: 5.535
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.59
     winner: vendor_page
     sources:
-      vendor_page: 5.535
+      vendor_page: 5.59
   Sd:  # effective piston area (m²)
     value: 0.015453999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.015453999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 89.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 89.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0765149960055123
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0765149960055123
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.010584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.010584
+  Qms:  # mechanical Q factor
+    value: 5.535
+    winner: vendor_page
+    sources:
+      vendor_page: 5.535
   Cms:  # mechanical compliance (m/N)
     value: 0.000298
     winner: vendor_page
     sources:
       vendor_page: 0.000298
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2511--celestion-truvox-0615-spec-sheet
-  vendor_page: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2511--celestion-truvox-0615-spec-sheet
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.516
+    winner: vendor_page
+    sources:
+      vendor_page: 0.516
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 0.298
+    winner: vendor_page
+    sources:
+      vendor_page: 0.298
+  Le:  # voice coil inductance (H)
+    value: 0.00036899999999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00036899999999999997
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007362368
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007362368

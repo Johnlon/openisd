@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/accuton-as250-6-552.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-as250-6-552.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-as250-6-552.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/accuton-as250-6-552.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00067
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.119
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.092
-  BL:  # force factor (T·m)
-    value: 14.8
-    winner: vendor_page
-    sources:
-      vendor_page: 14.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.52
-    winner: vendor_page
-    sources:
-      vendor_page: 2.52
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -65,35 +27,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.3
     winner: vendor_page
     sources:
-      vendor_page: 5.0
+      vendor_page: 7.3
   Sd:  # effective piston area (m²)
     value: 0.0382
     winner: vendor_page
     sources:
       vendor_page: 0.0382
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 22.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 22.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.52
+    winner: vendor_page
+    sources:
+      vendor_page: 2.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.092
+    winner: vendor_page
+    sources:
+      vendor_page: 0.092
+  Qms:  # mechanical Q factor
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00057
     winner: vendor_page
     sources:
       vendor_page: 0.00057
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 14.8
+    winner: vendor_page
+    sources:
+      vendor_page: 14.8
+  Le:  # voice coil inductance (H)
+    value: 0.00067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00067
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.119
   power_peak_W:  # peak power handling (W)
     value: 600.0
     winner: vendor_page
     sources:
       vendor_page: 600.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/accuton-as250-6-552.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-as250-6-552.html
-frd_url: null
-zma_url: null

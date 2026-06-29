@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00084
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00084
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00233
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00233
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0212
-  BL:  # force factor (T·m)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00575
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 2.66
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 2.66
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0216
     winner: vendor_page
     sources:
       vendor_page: 0.0216
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 34.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 34.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0212
+  Qms:  # mechanical Q factor
+    value: 2.66
+    winner: vendor_page
+    sources:
+      vendor_page: 2.66
   Cms:  # mechanical compliance (m/N)
     value: 0.001
     winner: vendor_page
     sources:
       vendor_page: 0.001
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb20pfc30-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
+  Le:  # voice coil inductance (H)
+    value: 0.00084
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00084
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00233
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00233

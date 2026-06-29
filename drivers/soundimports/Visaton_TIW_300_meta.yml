@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-tiw-300.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-tiw-300.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-tiw-300.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-tiw-300.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.16
-    winner: vendor_page
-    sources:
-      vendor_page: 0.16
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.092
-  BL:  # force factor (T·m)
-    value: 16.5
-    winner: vendor_page
-    sources:
-      vendor_page: 16.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0075
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 4.59
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.59
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.051
     winner: vendor_page
     sources:
       vendor_page: 0.051
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 25.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 25.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.092
+    winner: vendor_page
+    sources:
+      vendor_page: 0.092
+  Qms:  # mechanical Q factor
+    value: 4.59
+    winner: vendor_page
+    sources:
+      vendor_page: 4.59
   Cms:  # mechanical compliance (m/N)
     value: 0.000434
     winner: vendor_page
     sources:
       vendor_page: 0.000434
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-tiw-300.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-tiw-300.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 16.5
+    winner: vendor_page
+    sources:
+      vendor_page: 16.5
+  Le:  # voice coil inductance (H)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.16
+    winner: vendor_page
+    sources:
+      vendor_page: 0.16

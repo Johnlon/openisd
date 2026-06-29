@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-697--bc-12bg100-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-697--bc-12bg100-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041059359999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041059359999999996
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.152
-    winner: vendor_page
-    sources:
-      vendor_page: 0.152
-  BL:  # force factor (T·m)
-    value: 23.0
-    winner: vendor_page
-    sources:
-      vendor_page: 23.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.477459191317734
-    winner: vendor_page
-    sources:
-      vendor_page: 5.477459191317734
   Xmax:  # one-way linear excursion (m)
     value: 0.0105
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 6.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 6.8
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0522
     winner: vendor_page
     sources:
       vendor_page: 0.0522
+  Fs:  # free air resonance (Hz)
+    value: 39.0
+    winner: vendor_page
+    sources:
+      vendor_page: 39.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.477459191317734
+    winner: vendor_page
+    sources:
+      vendor_page: 5.477459191317734
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.152
+    winner: vendor_page
+    sources:
+      vendor_page: 0.152
+  Qms:  # mechanical Q factor
+    value: 6.8
+    winner: vendor_page
+    sources:
+      vendor_page: 6.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-697--bc-12bg100-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-697--bc-12bg100-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12BG100-12-Neodymium-Subwoofer-294-697
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 2000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2000.0
+  BL:  # force factor (T·m)
+    value: 23.0
+    winner: vendor_page
+    sources:
+      vendor_page: 23.0
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041059359999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041059359999999996

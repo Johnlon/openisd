@@ -1,54 +1,54 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00646
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00646
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.665
-    winner: vendor_page
-    sources:
-      vendor_page: 0.665
-  Fs:  # free air resonance (Hz)
-    value: 8.7
-    winner: vendor_page
-    sources:
-      vendor_page: 8.7
   Xmax:  # one-way linear excursion (m)
     value: 0.017
     winner: vendor_page
     sources:
       vendor_page: 0.017
-  Qms:  # mechanical Q factor
-    value: 12.1
-    winner: vendor_page
-    sources:
-      vendor_page: 12.1
   Sd:  # effective piston area (m²)
     value: 0.0508
     winner: vendor_page
     sources:
       vendor_page: 0.0508
+  Fs:  # free air resonance (Hz)
+    value: 8.7
+    winner: vendor_page
+    sources:
+      vendor_page: 8.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.665
+    winner: vendor_page
+    sources:
+      vendor_page: 0.665
+  Qms:  # mechanical Q factor
+    value: 12.1
+    winner: vendor_page
+    sources:
+      vendor_page: 12.1
   Cms:  # mechanical compliance (m/N)
     value: 0.0005
     winner: vendor_page
     sources:
       vendor_page: 0.0005
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb34nrx-00.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00646
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00646

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3240--prv-audio-15sw2000-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3240
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3240--prv-audio-15sw2000-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00151
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00151
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.084384064
-    winner: vendor_page
-    sources:
-      vendor_page: 0.084384064
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1691
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1691
-  BL:  # force factor (T·m)
-    value: 23.19
-    winner: vendor_page
-    sources:
-      vendor_page: 23.19
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 52.9
-    winner: vendor_page
-    sources:
-      vendor_page: 52.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.284952835475815
-    winner: vendor_page
-    sources:
-      vendor_page: 3.284952835475815
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 17.11
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 17.11
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.0935
     winner: vendor_page
     sources:
       vendor_page: 0.0935
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 52.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 52.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.284952835475815
+    winner: vendor_page
+    sources:
+      vendor_page: 3.284952835475815
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1691
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1691
+  Qms:  # mechanical Q factor
+    value: 17.11
+    winner: vendor_page
+    sources:
+      vendor_page: 17.11
   Cms:  # mechanical compliance (m/N)
     value: 0.08443
     winner: vendor_page
     sources:
       vendor_page: 0.08443
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3240--prv-audio-15sw2000-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3240--prv-audio-15sw2000-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 23.19
+    winner: vendor_page
+    sources:
+      vendor_page: 23.19
+  Le:  # voice coil inductance (H)
+    value: 0.00151
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00151
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.084384064
+    winner: vendor_page
+    sources:
+      vendor_page: 0.084384064

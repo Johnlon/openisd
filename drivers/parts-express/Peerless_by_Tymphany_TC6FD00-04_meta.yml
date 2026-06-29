@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1126--tymphany-tc6fd00-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,47 +16,14 @@ corrections: '''Vas'' stored=0.000226534 differs from calculated=0.000222864 (de
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1126
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1126--tymphany-tc6fd00-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0002265344
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002265344
-  Qes:  # electrical Q factor
-    value: 1.29
-    winner: vendor_page
-    sources:
-      vendor_page: 1.29
-  BL:  # force factor (T·m)
-    value: 1.92
-    winner: vendor_page
-    sources:
-      vendor_page: 1.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 175.0
-    winner: vendor_page
-    sources:
-      vendor_page: 175.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -58,34 +34,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.98
-  Qms:  # mechanical Q factor
-    value: 4.09
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 4.09
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.0015199999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0015199999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 175.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 175.0
+  Qms:  # mechanical Q factor
+    value: 4.09
+    winner: vendor_page
+    sources:
+      vendor_page: 4.09
   Cms:  # mechanical compliance (m/N)
     value: 0.00068
     winner: vendor_page
     sources:
       vendor_page: 0.00068
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1126--tymphany-tc6fd00-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1126--tymphany-tc6fd00-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC6FD00-04-2-Full-Range-Paper-Cone-Woofer-4-Ohm-264-1126
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.29
+    winner: vendor_page
+    sources:
+      vendor_page: 1.29
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 1.92
+    winner: vendor_page
+    sources:
+      vendor_page: 1.92
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0002265344
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002265344

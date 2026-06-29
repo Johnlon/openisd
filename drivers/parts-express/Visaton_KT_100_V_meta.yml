@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7844--visaton-kt100v4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
 obsolete: null
 dq_issue: Fs_low
 community: null
 fetched_sku: 292-7844
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7844--visaton-kt100v4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007362368
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007362368
-  Qes:  # electrical Q factor
-    value: 0.69
-    winner: vendor_page
-    sources:
-      vendor_page: 0.69
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0075
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6731984257692415
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6731984257692415
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -57,21 +33,56 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 2.94
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 2.94
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.0052899999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.0052899999999999996
+  Fs:  # free air resonance (Hz)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6731984257692415
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6731984257692415
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0075
+  Qms:  # mechanical Q factor
+    value: 2.94
+    winner: vendor_page
+    sources:
+      vendor_page: 2.94
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.69
+    winner: vendor_page
+    sources:
+      vendor_page: 0.69
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007362368
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007362368
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 95.0
     winner: vendor_page
@@ -82,14 +93,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 22000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7844--visaton-kt100v4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7844--visaton-kt100v4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-KT100V4-4-Woofer-4-Ohm-292-7844
-frd_url: null
-zma_url: null

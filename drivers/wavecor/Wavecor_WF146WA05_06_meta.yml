@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf146wa05_06.html
+manu_page_url: http://www.wavecor.com/html/wf146wa05_06.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF146WA05_06_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF146WA06_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF146WA06_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf146wa05_06.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF146WA05_06_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf146wa05_06.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0152
-    winner: manu_page
-    sources:
-      manu_page: 0.0152
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: manu_page
-    sources:
-      manu_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.012
-    winner: manu_page
-    sources:
-      manu_page: 0.012
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: manu_page
-    sources:
-      manu_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: manu_page
-    sources:
-      manu_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: manu_page
-    sources:
-      manu_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.42
-    winner: manu_page
-    sources:
-      manu_page: 0.42
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 7.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 7.4
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0093
     winner: manu_page
     sources:
       manu_page: 0.0093
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 41.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 41.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.42
+    winner: manu_page
+    sources:
+      manu_page: 0.42
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.012
+    winner: manu_page
+    sources:
+      manu_page: 0.012
+  Qms:  # mechanical Q factor
+    value: 7.4
+    winner: manu_page
+    sources:
+      manu_page: 7.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00124
     winner: manu_page
     sources:
       manu_page: 0.00124
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF146WA05_06_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf146wa05_06.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF146WA05_06_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf146wa05_06.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF146WA06_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF146WA06_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: manu_page
+    sources:
+      manu_page: 0.4
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: manu_page
+    sources:
+      manu_page: 250.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: manu_page
+    sources:
+      manu_page: 5.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0152
+    winner: manu_page
+    sources:
+      manu_page: 0.0152

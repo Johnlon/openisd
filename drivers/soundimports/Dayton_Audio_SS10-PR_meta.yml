@@ -1,20 +1,27 @@
+source: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
+driver_type: pr
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: pr
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0247
+  Sd:  # effective piston area (m²)
+    value: 0.03464
     winner: vendor_page
     sources:
-      vendor_page: 0.0247
+      vendor_page: 0.03464
   Fs:  # free air resonance (Hz)
     value: 34.7
     winner: vendor_page
@@ -25,20 +32,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.08
-  Sd:  # effective piston area (m²)
-    value: 0.03464
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03464
   Cms:  # mechanical compliance (m/N)
     value: 0.000145
     winner: vendor_page
     sources:
       vendor_page: 0.000145
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ss10-pr.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0247
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0247

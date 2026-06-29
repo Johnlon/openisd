@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/beyma-12br70.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/beyma-12br70.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/beyma-12br70.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/beyma-12br70.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.142
-    winner: vendor_page
-    sources:
-      vendor_page: 0.142
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.074
-  BL:  # force factor (T·m)
-    value: 12.1
-    winner: vendor_page
-    sources:
-      vendor_page: 12.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 31.0
-    winner: vendor_page
-    sources:
-      vendor_page: 31.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 4.4
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.054
     winner: vendor_page
     sources:
       vendor_page: 0.054
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 31.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 31.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.074
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
   Cms:  # mechanical compliance (m/N)
     value: 0.000345
     winner: vendor_page
     sources:
       vendor_page: 0.000345
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 12.1
+    winner: vendor_page
+    sources:
+      vendor_page: 12.1
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.142
+    winner: vendor_page
+    sources:
+      vendor_page: 0.142
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/beyma-12br70.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/beyma-12br70.html
-frd_url: null
-zma_url: null

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00021
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00065
-  Qes:  # electrical Q factor
-    value: 2.05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.05
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00951
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00951
-  BL:  # force factor (T·m)
-    value: 8.15
-    winner: vendor_page
-    sources:
-      vendor_page: 8.15
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 357.0
-    winner: vendor_page
-    sources:
-      vendor_page: 357.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.76
-  Qms:  # mechanical Q factor
-    value: 12.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 12.4
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0149
     winner: vendor_page
     sources:
       vendor_page: 0.0149
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 357.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 357.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00951
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00951
+  Qms:  # mechanical Q factor
+    value: 12.4
+    winner: vendor_page
+    sources:
+      vendor_page: 12.4
   Cms:  # mechanical compliance (m/N)
     value: 2.1e-05
     winner: vendor_page
     sources:
       vendor_page: 2.1e-05
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mr400seal.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.05
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 8.15
+    winner: vendor_page
+    sources:
+      vendor_page: 8.15
+  Le:  # voice coil inductance (H)
+    value: 0.00021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00021
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00065

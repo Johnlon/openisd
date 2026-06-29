@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00089
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00089
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1865
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1865
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.105
-    winner: vendor_page
-    sources:
-      vendor_page: 0.105
-  BL:  # force factor (T·m)
-    value: 18.4
-    winner: vendor_page
-    sources:
-      vendor_page: 18.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: vendor_page
-    sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
   Xmax:  # one-way linear excursion (m)
     value: 0.00875
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 10.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 10.1
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0847
     winner: vendor_page
     sources:
       vendor_page: 0.0847
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 36.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 36.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.105
+    winner: vendor_page
+    sources:
+      vendor_page: 0.105
+  Qms:  # mechanical Q factor
+    value: 10.1
+    winner: vendor_page
+    sources:
+      vendor_page: 10.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00019
     winner: vendor_page
     sources:
       vendor_page: 0.00019
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 18.4
+    winner: vendor_page
+    sources:
+      vendor_page: 18.4
+  Le:  # voice coil inductance (H)
+    value: 0.00089
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00089
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1865
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1865
   power_peak_W:  # peak power handling (W)
     value: 1200.0
     winner: vendor_page
@@ -110,10 +117,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 77.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/faitalpro-15fh520-8p.html
-frd_url: null
-zma_url: null

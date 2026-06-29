@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-178--ciare-pwa6.38-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.5 differs from calculated=0.494495 (deps: Qms=4.9
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-178
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-178--ciare-pwa6.38-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qes:  # electrical Q factor
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018
-  BL:  # force factor (T·m)
-    value: 8.9
-    winner: vendor_page
-    sources:
-      vendor_page: 8.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8464871106813474
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8464871106813474
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 4.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.7
     winner: vendor_page
     sources:
-      vendor_page: 4.9
+      vendor_page: 4.7
   Sd:  # effective piston area (m²)
     value: 0.01327
     winner: vendor_page
     sources:
       vendor_page: 0.01327
+  Fs:  # free air resonance (Hz)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8464871106813474
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8464871106813474
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018
+  Qms:  # mechanical Q factor
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 8.9
+    winner: vendor_page
+    sources:
+      vendor_page: 8.9
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 90.5
     winner: vendor_page
     sources:
       vendor_page: 90.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-178--ciare-pwa6.38-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-178--ciare-pwa6.38-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-PWA6.38-6-Woofer-8-Ohm-293-178
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005

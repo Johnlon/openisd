@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-100--ciare-ct250-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
+driver_type: tweeter
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-100--ciare-ct250-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0e-05
-  Qes:  # electrical Q factor
-    value: 1.23
-    winner: vendor_page
-    sources:
-      vendor_page: 1.23
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Fs:  # free air resonance (Hz)
-    value: 1400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1400.0
   Qts:  # total Q factor
     value: 0.54
     winner: vendor_page
     sources:
       vendor_page: 0.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Fs:  # free air resonance (Hz)
+    value: 1400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1400.0
   Qms:  # mechanical Q factor
     value: 0.97
     winner: vendor_page
@@ -51,6 +44,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.23
+    winner: vendor_page
+    sources:
+      vendor_page: 1.23
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  Le:  # voice coil inductance (H)
+    value: 8.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0e-05
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -61,11 +69,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 293.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-100--ciare-ct250-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-100--ciare-ct250-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CT250-1-Neodymium-Dome-Tweeter-Pair-293-100
-frd_url: null
-zma_url: null

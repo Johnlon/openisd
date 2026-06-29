@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-114--ciare-cme200-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-114
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-114--ciare-cme200-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00045
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0142
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0142
-  BL:  # force factor (T·m)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Fs:  # free air resonance (Hz)
-    value: 76.0
-    winner: vendor_page
-    sources:
-      vendor_page: 76.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9686876547868869
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9686876547868869
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 7.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 7.0
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0206
     winner: vendor_page
     sources:
       vendor_page: 0.0206
+  Fs:  # free air resonance (Hz)
+    value: 76.0
+    winner: vendor_page
+    sources:
+      vendor_page: 76.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9686876547868869
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9686876547868869
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0142
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0142
+  Qms:  # mechanical Q factor
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  BL:  # force factor (T·m)
+    value: 7.3
+    winner: vendor_page
+    sources:
+      vendor_page: 7.3
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 99.5
     winner: vendor_page
     sources:
       vendor_page: 99.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-114--ciare-cme200-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-114--ciare-cme200-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CME200-8-Woofer-293-114
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.00045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00045
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018

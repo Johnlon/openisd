@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-865--tang-band-25-1719s-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,19 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 264-865
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-865--tang-band-25-1719s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 3.0
     winner: vendor_page
     sources:
       vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Fs:  # free air resonance (Hz)
     value: 800.0
     winner: vendor_page
@@ -32,14 +38,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-865--tang-band-25-1719s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-865--tang-band-25-1719s-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-25-1719S-1-Ceramic-Dome-Tweeter-264-865
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0

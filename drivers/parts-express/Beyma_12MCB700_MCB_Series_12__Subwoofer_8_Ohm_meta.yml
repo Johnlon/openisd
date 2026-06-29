@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-021--12mcb700-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-021--12mcb700-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013308895999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013308895999999999
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 6.900000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.900000000000001e-05
-  BL:  # force factor (T·m)
-    value: 20.4
-    winner: vendor_page
-    sources:
-      vendor_page: 20.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 51.0
-    winner: vendor_page
-    sources:
-      vendor_page: 51.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.005669366434862812
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005669366434862812
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 5.5e-06
     winner: vendor_page
     sources:
       vendor_page: 5.5e-06
+  Fs:  # free air resonance (Hz)
+    value: 51.0
+    winner: vendor_page
+    sources:
+      vendor_page: 51.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.005669366434862812
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005669366434862812
+  Mms:  # moving mass incl. air load (kg)
+    value: 6.900000000000001e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.900000000000001e-05
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 20.4
+    winner: vendor_page
+    sources:
+      vendor_page: 20.4
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013308895999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013308895999999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 98.0
     winner: vendor_page
     sources:
       vendor_page: 98.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-021--12mcb700-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-021--12mcb700-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021
-frd_url: null
-zma_url: null

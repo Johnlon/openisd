@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-428
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
+  vendor_page: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001699008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001699008
-  Qes:  # electrical Q factor
-    value: 1.07
-    winner: vendor_page
-    sources:
-      vendor_page: 1.07
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0032
-  BL:  # force factor (T·m)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 77.0
-    winner: vendor_page
-    sources:
-      vendor_page: 77.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.34557519189487723
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34557519189487723
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -62,34 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 4.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 4.48
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 77.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 77.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.34557519189487723
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34557519189487723
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0032
+  Qms:  # mechanical Q factor
+    value: 4.48
+    winner: vendor_page
+    sources:
+      vendor_page: 4.48
   Cms:  # mechanical compliance (m/N)
     value: 0.00132
     winner: vendor_page
     sources:
       vendor_page: 0.00132
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
-  vendor_page: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.07
+    winner: vendor_page
+    sources:
+      vendor_page: 1.07
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001699008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001699008

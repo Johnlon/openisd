@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3139--prv-audio-6mr500cf-ndy-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3139--prv-audio-6mr500cf-ndy-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000185
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000185
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0050970239999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0050970239999999995
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.016489999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016489999999999998
-  BL:  # force factor (T·m)
-    value: 10.73
-    winner: vendor_page
-    sources:
-      vendor_page: 10.73
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 92.5
-    winner: vendor_page
-    sources:
-      vendor_page: 92.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7458287648773307
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7458287648773307
   Xmax:  # one-way linear excursion (m)
     value: 0.00325
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Qms:  # mechanical Q factor
-    value: 12.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 12.85
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 92.5
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 92.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7458287648773307
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7458287648773307
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.016489999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016489999999999998
+  Qms:  # mechanical Q factor
+    value: 12.85
+    winner: vendor_page
+    sources:
+      vendor_page: 12.85
   Cms:  # mechanical compliance (m/N)
     value: 0.000179
     winner: vendor_page
     sources:
       vendor_page: 0.000179
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 10.73
+    winner: vendor_page
+    sources:
+      vendor_page: 10.73
+  Le:  # voice coil inductance (H)
+    value: 0.000185
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000185
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0050970239999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0050970239999999995
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 250.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 11.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3139--prv-audio-6mr500cf-ndy-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3139--prv-audio-6mr500cf-ndy-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139
-frd_url: null
-zma_url: null

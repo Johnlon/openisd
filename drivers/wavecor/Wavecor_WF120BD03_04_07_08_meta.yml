@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf120bd03_04_07_08.html
+manu_page_url: http://www.wavecor.com/html/wf120bd03_04_07_08.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF120BD03_04_07_08_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,47 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf120bd03_04_07_08.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF120BD03_04_07_08_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf120bd03_04_07_08.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 8.6e-05
+  Qts:  # total Q factor
+    value: 0.42
     winner: manu_page
     sources:
-      manu_page: 8.6e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00325
-    winner: manu_page
-    sources:
-      manu_page: 0.00325
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: manu_page
-    sources:
-      manu_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00655
-    winner: manu_page
-    sources:
-      manu_page: 0.00655
-  BL:  # force factor (T·m)
-    value: 4.5
-    winner: manu_page
-    sources:
-      manu_page: 4.5
+      manu_page: 0.42
   Re:  # DC voice coil resistance (Ω)
     value: 3.2
     winner: manu_page
     sources:
       manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 50.0
+  Sd:  # effective piston area (m²)
+    value: 0.0054
     winner: manu_page
     sources:
-      manu_page: 50.0
+      manu_page: 0.0054
   Fs:  # free air resonance (Hz)
     value: 70.0
     winner: manu_page
@@ -57,39 +48,48 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.49
-  Qts:  # total Q factor
-    value: 0.42
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00655
     winner: manu_page
     sources:
-      manu_page: 0.42
+      manu_page: 0.00655
   Qms:  # mechanical Q factor
     value: 5.9
     winner: manu_page
     sources:
       manu_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.0054
-    winner: manu_page
-    sources:
-      manu_page: 0.0054
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: manu_page
-    sources:
-      manu_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00079
     winner: manu_page
     sources:
       manu_page: 0.00079
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF120BD03_04_07_08_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf120bd03_04_07_08.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF120BD03_04_07_08_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf120bd03_04_07_08.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: manu_page
+    sources:
+      manu_page: 0.46
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: manu_page
+    sources:
+      manu_page: 50.0
+  BL:  # force factor (T·m)
+    value: 4.5
+    winner: manu_page
+    sources:
+      manu_page: 4.5
+  Le:  # voice coil inductance (H)
+    value: 8.6e-05
+    winner: manu_page
+    sources:
+      manu_page: 8.6e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00325
+    winner: manu_page
+    sources:
+      manu_page: 0.00325

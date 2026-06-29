@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1080--tymphany-hds-p830860-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1080--tymphany-hds-p830860-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008495039999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008495039999999999
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009
-  BL:  # force factor (T·m)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 62.0
-    winner: vendor_page
-    sources:
-      vendor_page: 62.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5864332133059769
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5864332133059769
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Qms:  # mechanical Q factor
-    value: 2.21
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 2.21
+      vendor_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.00899
     winner: vendor_page
     sources:
       vendor_page: 0.00899
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 62.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 62.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.5864332133059769
+    winner: vendor_page
+    sources:
+      vendor_page: 1.5864332133059769
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009
+  Qms:  # mechanical Q factor
+    value: 2.21
+    winner: vendor_page
+    sources:
+      vendor_page: 2.21
   Cms:  # mechanical compliance (m/N)
     value: 0.00074
     winner: vendor_page
     sources:
       vendor_page: 0.00074
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1080--tymphany-hds-p830860-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1080--tymphany-hds-p830860-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-830860-5-1-4-PPB-Cone-HDS-Woofer-264-1080
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 5.9
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9
+  Le:  # voice coil inductance (H)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.008495039999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008495039999999999

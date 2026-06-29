@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-640--dayton-audio-apollo-10n-specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-640--Dayton-Audio-10MB250N-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-640--dayton-audio-apollo-10n-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0011200000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011200000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043324704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.043324704
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0342
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0342
-  BL:  # force factor (T·m)
-    value: 19.2
-    winner: vendor_page
-    sources:
-      vendor_page: 19.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 54.0
-    winner: vendor_page
-    sources:
-      vendor_page: 54.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.7241882058394142
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7241882058394142
   Xmax:  # one-way linear excursion (m)
     value: 0.00579
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 6.73
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.4
     winner: vendor_page
     sources:
-      vendor_page: 6.73
+      vendor_page: 7.4
   Sd:  # effective piston area (m²)
     value: 0.033312
     winner: vendor_page
     sources:
       vendor_page: 0.033312
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 54.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 54.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.7241882058394142
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7241882058394142
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0342
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0342
+  Qms:  # mechanical Q factor
+    value: 6.73
+    winner: vendor_page
+    sources:
+      vendor_page: 6.73
   Cms:  # mechanical compliance (m/N)
     value: 0.00025
     winner: vendor_page
     sources:
       vendor_page: 0.00025
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 19.2
+    winner: vendor_page
+    sources:
+      vendor_page: 19.2
+  Le:  # voice coil inductance (H)
+    value: 0.0011200000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011200000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043324704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.043324704
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 250.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-640--dayton-audio-apollo-10n-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-640--dayton-audio-apollo-10n-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-640--Dayton-Audio-10MB250N-8_data.zip
-zma_url: null

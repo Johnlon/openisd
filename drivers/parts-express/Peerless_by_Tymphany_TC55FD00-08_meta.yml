@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1616--tymphany-tc55fd00-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1616
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1616--tymphany-tc55fd00-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000141584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000141584
-  Qes:  # electrical Q factor
-    value: 2.43
-    winner: vendor_page
-    sources:
-      vendor_page: 2.43
-  BL:  # force factor (T·m)
-    value: 1.62
-    winner: vendor_page
-    sources:
-      vendor_page: 1.62
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.58
-    winner: vendor_page
-    sources:
-      vendor_page: 6.58
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 177.03
-    winner: vendor_page
-    sources:
-      vendor_page: 177.03
   Xmax:  # one-way linear excursion (m)
     value: 0.0014
     winner: vendor_page
@@ -57,29 +33,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.17
-  Qms:  # mechanical Q factor
-    value: 2.27
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.58
     winner: vendor_page
     sources:
-      vendor_page: 2.27
+      vendor_page: 6.58
   Sd:  # effective piston area (m²)
     value: 0.0011
     winner: vendor_page
     sources:
       vendor_page: 0.0011
+  Fs:  # free air resonance (Hz)
+    value: 177.03
+    winner: vendor_page
+    sources:
+      vendor_page: 177.03
+  Qms:  # mechanical Q factor
+    value: 2.27
+    winner: vendor_page
+    sources:
+      vendor_page: 2.27
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1616--tymphany-tc55fd00-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1616--tymphany-tc55fd00-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC55FD00-08-1-3-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-1616
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 2.43
+    winner: vendor_page
+    sources:
+      vendor_page: 2.43
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.62
+    winner: vendor_page
+    sources:
+      vendor_page: 1.62
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000141584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000141584

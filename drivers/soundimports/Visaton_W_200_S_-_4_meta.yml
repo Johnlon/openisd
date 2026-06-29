@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-w-200-s-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-w-200-s-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-w-200-s-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-w-200-s-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.065
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.028
-  BL:  # force factor (T·m)
-    value: 7.7
-    winner: vendor_page
-    sources:
-      vendor_page: 7.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.99
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.99
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0214
     winner: vendor_page
     sources:
       vendor_page: 0.0214
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 29.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 29.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.028
+  Qms:  # mechanical Q factor
+    value: 3.99
+    winner: vendor_page
+    sources:
+      vendor_page: 3.99
   Cms:  # mechanical compliance (m/N)
     value: 0.001001
     winner: vendor_page
     sources:
       vendor_page: 0.001001
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-w-200-s-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-w-200-s-4.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  BL:  # force factor (T·m)
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
+  Le:  # voice coil inductance (H)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.065

@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2044--an2075-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2044--an2075-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 0.998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.998
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00149
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00149
-  BL:  # force factor (T·m)
-    value: 2.71
-    winner: vendor_page
-    sources:
-      vendor_page: 2.71
-  Re:  # DC voice coil resistance (Ω)
-    value: 0.84
-    winner: vendor_page
-    sources:
-      vendor_page: 0.84
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 153.4
-    winner: vendor_page
-    sources:
-      vendor_page: 153.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.2719929039622745
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2719929039622745
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -61,31 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.84
-  Qms:  # mechanical Q factor
-    value: 5.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 0.84
     winner: vendor_page
     sources:
-      vendor_page: 5.28
+      vendor_page: 0.84
   Sd:  # effective piston area (m²)
     value: 0.0012490000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0012490000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 153.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 153.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.2719929039622745
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2719929039622745
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00149
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00149
+  Qms:  # mechanical Q factor
+    value: 5.28
+    winner: vendor_page
+    sources:
+      vendor_page: 5.28
   Cms:  # mechanical compliance (m/N)
     value: 0.0007199999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0007199999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2044--an2075-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2044--an2075-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.998
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.71
+    winner: vendor_page
+    sources:
+      vendor_page: 2.71
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168

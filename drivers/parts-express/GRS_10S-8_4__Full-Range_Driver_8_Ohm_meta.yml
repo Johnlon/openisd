@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00020999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00020999999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.050687072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.050687072
-  Qes:  # electrical Q factor
-    value: 2.1
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  BL:  # force factor (T·m)
-    value: 2.8
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 151.0
-    winner: vendor_page
-    sources:
-      vendor_page: 151.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.2964878066825367
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2964878066825367
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -66,26 +28,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.65
-  Qms:  # mechanical Q factor
-    value: 7.68
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 7.68
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.00525
     winner: vendor_page
     sources:
       vendor_page: 0.00525
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 151.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 151.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.2964878066825367
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2964878066825367
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Qms:  # mechanical Q factor
+    value: 7.68
+    winner: vendor_page
+    sources:
+      vendor_page: 7.68
   Cms:  # mechanical compliance (m/N)
     value: 0.00046
     winner: vendor_page
     sources:
       vendor_page: 0.00046
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.1
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
+  Le:  # voice coil inductance (H)
+    value: 0.00020999999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00020999999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.050687072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.050687072
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 25.0
     winner: vendor_page
@@ -101,10 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 11.0
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-10S-8-4-Full-Range-Driver-8-Ohm-292-569
-frd_url: null
-zma_url: null

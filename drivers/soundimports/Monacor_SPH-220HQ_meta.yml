@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-sph-220hq.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-sph-220hq.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-sph-220hq.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-sph-220hq.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0247
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0247
-  BL:  # force factor (T·m)
-    value: 7.63
-    winner: vendor_page
-    sources:
-      vendor_page: 7.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.06
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 3.06
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.0232
     winner: vendor_page
     sources:
       vendor_page: 0.0232
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 30.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0247
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0247
+  Qms:  # mechanical Q factor
+    value: 3.06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.06
   Cms:  # mechanical compliance (m/N)
     value: 0.00106
     winner: vendor_page
     sources:
       vendor_page: 0.00106
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-sph-220hq.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-sph-220hq.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 7.63
+    winner: vendor_page
+    sources:
+      vendor_page: 7.63
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.08
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08

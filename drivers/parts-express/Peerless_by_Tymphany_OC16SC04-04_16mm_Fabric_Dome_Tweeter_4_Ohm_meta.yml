@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1524--tymphany-oc16sc04-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1524--tymphany-oc16sc04-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Qes:  # electrical Q factor
-    value: 4.19
-    winner: vendor_page
-    sources:
-      vendor_page: 4.19
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.93
-    winner: vendor_page
-    sources:
-      vendor_page: 3.93
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 2153.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2153.0
   Qts:  # total Q factor
     value: 1.73
     winner: vendor_page
     sources:
       vendor_page: 1.73
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.93
+    winner: vendor_page
+    sources:
+      vendor_page: 3.93
+  Fs:  # free air resonance (Hz)
+    value: 2153.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2153.0
   Qms:  # mechanical Q factor
     value: 2.94
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1524--tymphany-oc16sc04-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1524--tymphany-oc16sc04-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-OC16SC04-04-16mm-Fabric-Dome-OC-Tweeter-4-Ohm-264-1524
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 4.19
+    winner: vendor_page
+    sources:
+      vendor_page: 4.19
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05

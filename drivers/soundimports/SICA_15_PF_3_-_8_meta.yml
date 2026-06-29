@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sica-15-pf-3-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sica-15-pf-3-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sica-15-pf-3-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sica-15-pf-3-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00102
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00102
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1176
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1105
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1105
-  BL:  # force factor (T·m)
-    value: 21.95
-    winner: vendor_page
-    sources:
-      vendor_page: 21.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
   Xmax:  # one-way linear excursion (m)
     value: 0.008
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 5.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 5.56
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.08553
     winner: vendor_page
     sources:
       vendor_page: 0.08553
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 45.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1105
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1105
+  Qms:  # mechanical Q factor
+    value: 5.56
+    winner: vendor_page
+    sources:
+      vendor_page: 5.56
   Cms:  # mechanical compliance (m/N)
     value: 0.000113
     winner: vendor_page
     sources:
       vendor_page: 0.000113
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sica-15-pf-3-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sica-15-pf-3-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 21.95
+    winner: vendor_page
+    sources:
+      vendor_page: 21.95
+  Le:  # voice coil inductance (H)
+    value: 0.00102
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00102
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1176

@@ -1,55 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-as190-4-251.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-as190-4-251.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/AS190-4-251/AS190-9-251%20CELL.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-as190-4-251.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/AS190-4-251/AS190-9-251%20CELL.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-as190-4-251.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00105
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00105
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0267
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0267
-  Qes:  # electrical Q factor
-    value: 0.49
-    winner: vendor_page
-    sources:
-      vendor_page: 0.49
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0494
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0494
-  BL:  # force factor (T·m)
-    value: 13.5
-    winner: vendor_page
-    sources:
-      vendor_page: 13.5
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 33.4
-    winner: vendor_page
-    sources:
-      vendor_page: 33.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.18
-    winner: vendor_page
-    sources:
-      vendor_page: 2.18
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -60,26 +28,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 4.75
-    winner: vendor_page
-    sources:
-      vendor_page: 4.75
   Sd:  # effective piston area (m²)
     value: 0.0202
     winner: vendor_page
     sources:
       vendor_page: 0.0202
-  Znom:  # nominal impedance (Ω)
-    value: 12.0
+  Fs:  # free air resonance (Hz)
+    value: 33.4
     winner: vendor_page
     sources:
-      vendor_page: 12.0
+      vendor_page: 33.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.18
+    winner: vendor_page
+    sources:
+      vendor_page: 2.18
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0494
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0494
+  Qms:  # mechanical Q factor
+    value: 4.75
+    winner: vendor_page
+    sources:
+      vendor_page: 4.75
   Cms:  # mechanical compliance (m/N)
     value: 0.00046
     winner: vendor_page
     sources:
       vendor_page: 0.00046
+  Znom:  # nominal impedance (Ω)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  Qes:  # electrical Q factor
+    value: 0.49
+    winner: vendor_page
+    sources:
+      vendor_page: 0.49
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 13.5
+    winner: vendor_page
+    sources:
+      vendor_page: 13.5
+  Le:  # voice coil inductance (H)
+    value: 0.00105
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00105
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0267
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0267
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 84.0
     winner: vendor_page
@@ -100,11 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 78.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/AS190-4-251/AS190-9-251%20CELL.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-as190-4-251.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/AS190-4-251/AS190-9-251%20CELL.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-as190-4-251.html
-frd_url: null
-zma_url: null

@@ -1,41 +1,33 @@
+source: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.8e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8e-05
-  Qes:  # electrical Q factor
-    value: 1.69
-    winner: vendor_page
-    sources:
-      vendor_page: 1.69
-  Pe:  # rated power input (W)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Fs:  # free air resonance (Hz)
-    value: 1100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1100.0
   Qts:  # total Q factor
     value: 0.7
     winner: vendor_page
     sources:
       vendor_page: 0.7
+  Fs:  # free air resonance (Hz)
+    value: 1100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1100.0
   Qms:  # mechanical Q factor
     value: 1.2
     winner: vendor_page
@@ -46,10 +38,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA02-30-mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Ferrofluid-298-2106
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.69
+    winner: vendor_page
+    sources:
+      vendor_page: 1.69
+  Pe:  # rated power input (W)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  Le:  # voice coil inductance (H)
+    value: 2.8e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8e-05

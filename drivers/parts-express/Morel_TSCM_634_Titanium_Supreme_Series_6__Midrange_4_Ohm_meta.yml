@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013308895999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013308895999999999
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015300000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015300000000000001
-  BL:  # force factor (T·m)
-    value: 5.09
-    winner: vendor_page
-    sources:
-      vendor_page: 5.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.108353888186479
-    winner: vendor_page
-    sources:
-      vendor_page: 1.108353888186479
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.53
-  Qms:  # mechanical Q factor
-    value: 4.25
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 4.25
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 49.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.108353888186479
+    winner: vendor_page
+    sources:
+      vendor_page: 1.108353888186479
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015300000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015300000000000001
+  Qms:  # mechanical Q factor
+    value: 4.25
+    winner: vendor_page
+    sources:
+      vendor_page: 4.25
   Cms:  # mechanical compliance (m/N)
     value: 0.00086
     winner: vendor_page
     sources:
       vendor_page: 0.00086
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 5.09
+    winner: vendor_page
+    sources:
+      vendor_page: 5.09
+  Le:  # voice coil inductance (H)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013308895999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013308895999999999

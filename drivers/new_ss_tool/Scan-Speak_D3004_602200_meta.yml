@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/d3004-602200/
+manu_page_url: https://www.scan-speak.dk/product/d3004-602200/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d3004-602200.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d3004-602000.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/d3004-602200.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/d3004-602200.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,47 +15,15 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: 2.6
-source: https://www.scan-speak.dk/product/d3004-602200/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/d3004-602200.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d3004-602000.pdf
+  manu_page: https://www.scan-speak.dk/product/d3004-602200/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 3.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 3.0e-05
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: manu_page
-    sources:
-      manu_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000359
-    winner: manu_page
-    sources:
-      manu_page: 0.000359
-  BL:  # force factor (T·m)
-    value: 2.3
-    winner: manu_page
-    sources:
-      manu_page: 2.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Fs:  # free air resonance (Hz)
-    value: 440.0
-    winner: manu_page
-    sources:
-      manu_page: 440.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00025
     winner: manu_page
@@ -57,40 +34,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 2.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: manu_page
     sources:
-      manu_page: 2.42
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0007
     winner: manu_page
     sources:
       manu_page: 0.0007
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 440.0
     winner: manu_page
     sources:
-      manu_page: 4.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 90.5
+      manu_page: 440.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000359
     winner: manu_page
     sources:
-      manu_page: 90.5
+      manu_page: 0.000359
+  Qms:  # mechanical Q factor
+    value: 2.42
+    winner: manu_page
+    sources:
+      manu_page: 2.42
   Cms:  # mechanical compliance (m/N)
     value: 0.00037
     winner: manu_page
     sources:
       manu_page: 0.00037
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/d3004-602200.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d3004-602000.pdf
-  manu_page: https://www.scan-speak.dk/product/d3004-602200/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d3004-602200.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d3004-602000.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/d3004-602200.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/d3004-602200.ZIP
-manu_page_url: https://www.scan-speak.dk/product/d3004-602200/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: manu_page
+    sources:
+      manu_page: 0.5
+  BL:  # force factor (T·m)
+    value: 2.3
+    winner: manu_page
+    sources:
+      manu_page: 2.3
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 90.5
+    winner: manu_page
+    sources:
+      manu_page: 90.5
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 3.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 3.0e-05

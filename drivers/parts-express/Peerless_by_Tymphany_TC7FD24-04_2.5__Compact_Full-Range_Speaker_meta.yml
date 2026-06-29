@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1017--tc7fd24-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1017--tc7fd24-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.7e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00025485119999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025485119999999996
-  Qes:  # electrical Q factor
-    value: 0.995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.995
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  BL:  # force factor (T·m)
-    value: 2.56
-    winner: vendor_page
-    sources:
-      vendor_page: 2.56
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 240.0
-    winner: vendor_page
-    sources:
-      vendor_page: 240.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5698702953023345
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5698702953023345
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.77
-  Qms:  # mechanical Q factor
-    value: 3.44
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.44
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.00238
     winner: vendor_page
     sources:
       vendor_page: 0.00238
+  Fs:  # free air resonance (Hz)
+    value: 240.0
+    winner: vendor_page
+    sources:
+      vendor_page: 240.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5698702953023345
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5698702953023345
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Qms:  # mechanical Q factor
+    value: 3.44
+    winner: vendor_page
+    sources:
+      vendor_page: 3.44
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1017--tc7fd24-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1017--tc7fd24-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-TC7FD24-04-2.5-Compact-Full-Range-Speaker-264-1017
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.995
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.56
+    winner: vendor_page
+    sources:
+      vendor_page: 2.56
+  Le:  # voice coil inductance (H)
+    value: 3.7e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00025485119999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025485119999999996

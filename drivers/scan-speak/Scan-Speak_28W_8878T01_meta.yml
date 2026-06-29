@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/28w-8878t01/
+manu_page_url: https://www.scan-speak.dk/product/28w-8878t01/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/28w-8878t01.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/28w-8878t01/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/28w-8878t01.pdf
+  manu_page: https://www.scan-speak.dk/product/28w-8878t01/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.116
-    winner: manu_page
-    sources:
-      manu_page: 0.116
-  BL:  # force factor (T·m)
-    value: 14.9
-    winner: manu_page
-    sources:
-      manu_page: 14.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: manu_page
-    sources:
-      manu_page: 6.3
-  Fs:  # free air resonance (Hz)
-    value: 22.0
-    winner: manu_page
-    sources:
-      manu_page: 22.0
   Qts:  # total Q factor
     value: 0.31
     winner: manu_page
     sources:
       manu_page: 0.31
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
+    winner: manu_page
+    sources:
+      manu_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0363
     winner: manu_page
     sources:
       manu_page: 0.0363
+  Fs:  # free air resonance (Hz)
+    value: 22.0
+    winner: manu_page
+    sources:
+      manu_page: 22.0
+  BL:  # force factor (T·m)
+    value: 14.9
+    winner: manu_page
+    sources:
+      manu_page: 14.9
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.5
     winner: manu_page
     sources:
       manu_page: 88.5
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/28w-8878t01.pdf
-  manu_page: https://www.scan-speak.dk/product/28w-8878t01/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/28w-8878t01.pdf
-manu_page_url: https://www.scan-speak.dk/product/28w-8878t01/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.116
+    winner: manu_page
+    sources:
+      manu_page: 0.116

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-190--ciare-pwa15.75-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-190--ciare-pwa15.75-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00116
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00116
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.13507113599999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.13507113599999998
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.103
-    winner: vendor_page
-    sources:
-      vendor_page: 0.103
-  BL:  # force factor (T·m)
-    value: 19.3
-    winner: vendor_page
-    sources:
-      vendor_page: 19.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: vendor_page
-    sources:
-      vendor_page: 44.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.3072469003644462
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3072469003644462
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 8.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 8.61
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.0881
     winner: vendor_page
     sources:
       vendor_page: 0.0881
+  Fs:  # free air resonance (Hz)
+    value: 44.0
+    winner: vendor_page
+    sources:
+      vendor_page: 44.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.3072469003644462
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3072469003644462
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.103
+    winner: vendor_page
+    sources:
+      vendor_page: 0.103
+  Qms:  # mechanical Q factor
+    value: 8.61
+    winner: vendor_page
+    sources:
+      vendor_page: 8.61
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-190--ciare-pwa15.75-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-190--ciare-pwa15.75-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-PWA15.75-15-Woofer-8-Ohm-293-190
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 19.3
+    winner: vendor_page
+    sources:
+      vendor_page: 19.3
+  Le:  # voice coil inductance (H)
+    value: 0.00116
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00116
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.13507113599999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.13507113599999998

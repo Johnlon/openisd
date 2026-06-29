@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-880--dayton-audio-dw3-1053SC-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-880--dayton-audio-dw3-1053SC-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00044
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00044
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.72
-    winner: vendor_page
-    sources:
-      vendor_page: 0.72
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00199
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00199
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.98
-    winner: vendor_page
-    sources:
-      vendor_page: 5.98
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.26212869520518617
-    winner: vendor_page
-    sources:
-      vendor_page: 0.26212869520518617
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -61,6 +29,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.62
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.98
+    winner: vendor_page
+    sources:
+      vendor_page: 5.98
+  Fs:  # free air resonance (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.26212869520518617
+    winner: vendor_page
+    sources:
+      vendor_page: 0.26212869520518617
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00199
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00199
   Qms:  # mechanical Q factor
     value: 4.77
     winner: vendor_page
@@ -71,11 +59,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-880--dayton-audio-dw3-1053SC-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-880--dayton-audio-dw3-1053SC-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DW3-1053SC-3-Full-Range-Driver-264-880
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.72
+    winner: vendor_page
+    sources:
+      vendor_page: 0.72
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 0.00044
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00044
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

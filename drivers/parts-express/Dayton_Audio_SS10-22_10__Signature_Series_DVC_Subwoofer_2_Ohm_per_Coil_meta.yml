@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
+datasheet_url: null
+frd_url: https://www.parts-express.com/pedocs/tech-docs/SS10-22_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0205863136
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0205863136
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  BL:  # force factor (T·m)
-    value: 19.5
-    winner: vendor_page
-    sources:
-      vendor_page: 19.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.4
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 10.119235284194493
-    winner: vendor_page
-    sources:
-      vendor_page: 10.119235284194493
   Xmax:  # one-way linear excursion (m)
     value: 0.021
     winner: vendor_page
@@ -66,35 +28,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.4
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 4.4
   Sd:  # effective piston area (m²)
     value: 0.03445
     winner: vendor_page
     sources:
       vendor_page: 0.03445
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 34.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 10.119235284194493
+    winner: vendor_page
+    sources:
+      vendor_page: 10.119235284194493
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.18
+    winner: vendor_page
+    sources:
+      vendor_page: 0.18
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Cms:  # mechanical compliance (m/N)
     value: 0.000122
     winner: vendor_page
     sources:
       vendor_page: 0.000122
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 19.5
+    winner: vendor_page
+    sources:
+      vendor_page: 19.5
+  Le:  # voice coil inductance (H)
+    value: 0.0016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0205863136
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0205863136
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 700.0
     winner: vendor_page
     sources:
       vendor_page: 700.0
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
-frd_url: https://www.parts-express.com/pedocs/tech-docs/SS10-22_data.zip
-zma_url: null

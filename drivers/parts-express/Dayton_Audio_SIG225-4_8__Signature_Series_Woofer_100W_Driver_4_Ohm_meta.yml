@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-656--dayton-audio-sig225-4-specification-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/SIG225-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-656--dayton-audio-sig225-4-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0283168
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.036899999999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.036899999999999995
-  BL:  # force factor (T·m)
-    value: 8.95
-    winner: vendor_page
-    sources:
-      vendor_page: 8.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0455447027505151
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0455447027505151
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 8.87
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 8.87
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.022690000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.022690000000000002
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0455447027505151
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0455447027505151
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.036899999999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.036899999999999995
+  Qms:  # mechanical Q factor
+    value: 8.87
+    winner: vendor_page
+    sources:
+      vendor_page: 8.87
   Cms:  # mechanical compliance (m/N)
     value: 0.00043
     winner: vendor_page
     sources:
       vendor_page: 0.00043
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 8.95
+    winner: vendor_page
+    sources:
+      vendor_page: 8.95
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0283168
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 100.0
     winner: vendor_page
     sources:
       vendor_page: 100.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-656--dayton-audio-sig225-4-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-656--dayton-audio-sig225-4-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-SIG225-4-8-Signature-Series-Woofer-4-Ohm-295-656
-frd_url: https://www.parts-express.com/pedocs/tech-docs/SIG225-4_data.zip
-zma_url: null

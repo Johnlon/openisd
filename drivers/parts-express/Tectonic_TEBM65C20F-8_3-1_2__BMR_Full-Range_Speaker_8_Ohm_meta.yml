@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-2156--tectonic-tebm65c20f-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-2156--tectonic-tebm65c20f-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 1.11
-    winner: vendor_page
-    sources:
-      vendor_page: 1.11
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0056
-  BL:  # force factor (T·m)
-    value: 4.8
-    winner: vendor_page
-    sources:
-      vendor_page: 4.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 104.0
-    winner: vendor_page
-    sources:
-      vendor_page: 104.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5502747553235174
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5502747553235174
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.95
-  Qms:  # mechanical Q factor
-    value: 6.65
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.1
     winner: vendor_page
     sources:
-      vendor_page: 6.65
+      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.004358
     winner: vendor_page
     sources:
       vendor_page: 0.004358
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 104.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 104.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5502747553235174
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5502747553235174
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0056
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0056
+  Qms:  # mechanical Q factor
+    value: 6.65
+    winner: vendor_page
+    sources:
+      vendor_page: 6.65
   Cms:  # mechanical compliance (m/N)
     value: 0.00041999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00041999999999999996
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.11
+    winner: vendor_page
+    sources:
+      vendor_page: 1.11
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 4.8
+    winner: vendor_page
+    sources:
+      vendor_page: 4.8
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 65.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-2156--tectonic-tebm65c20f-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-2156--tectonic-tebm65c20f-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tectonic-TEBM65C20F-8-3-1-2-BMR-Full-Range-Speaker-297-2156
-frd_url: null
-zma_url: null

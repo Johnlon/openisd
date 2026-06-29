@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Vas'' stored=0.00424752 differs from calculated=0.00432266 (deps
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-301
+_sources:
+  vendor_page: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004247519999999999
-  Qes:  # electrical Q factor
-    value: 1.15
-    winner: vendor_page
-    sources:
-      vendor_page: 1.15
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0105
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0105
-  BL:  # force factor (T·m)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 72.9
-    winner: vendor_page
-    sources:
-      vendor_page: 72.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2689879138207427
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2689879138207427
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.88
-  Qms:  # mechanical Q factor
-    value: 3.79
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.79
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.008229
     winner: vendor_page
     sources:
       vendor_page: 0.008229
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 72.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 72.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.2689879138207427
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2689879138207427
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0105
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0105
+  Qms:  # mechanical Q factor
+    value: 3.79
+    winner: vendor_page
+    sources:
+      vendor_page: 3.79
   Cms:  # mechanical compliance (m/N)
     value: 0.00045
     winner: vendor_page
     sources:
       vendor_page: 0.00045
-_sources:
-  vendor_page: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-S525-4-5-1-4-Poly-Cone-Woofer-4-Ohm-290-301
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.15
+    winner: vendor_page
+    sources:
+      vendor_page: 1.15
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004247519999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004247519999999999

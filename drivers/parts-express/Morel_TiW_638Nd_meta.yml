@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-103--morel-tiw-638nd-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Vas'' stored=0.0155 differs from calculated=0.0156687 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-103
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-103--morel-tiw-638nd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00053
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00053
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0155
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0155
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.017
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 43.0
-    winner: vendor_page
-    sources:
-      vendor_page: 43.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.993
-    winner: vendor_page
-    sources:
-      vendor_page: 0.993
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -63,34 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 4.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.7
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 43.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 43.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.993
+    winner: vendor_page
+    sources:
+      vendor_page: 0.993
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.017
+  Qms:  # mechanical Q factor
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00078
     winner: vendor_page
     sources:
       vendor_page: 0.00078
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-103--morel-tiw-638nd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-103--morel-tiw-638nd-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-TiW-638Nd-Titanium-Series-Hybrid-6-Woofer-8-Ohm-297-103
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  Le:  # voice coil inductance (H)
+    value: 0.00053
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00053
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0155
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0155

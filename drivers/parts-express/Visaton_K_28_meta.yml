@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,32 +15,33 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
 obsolete: null
 dq_issue: missing_Sd; Fs_no_Q
 community: null
 fetched_sku: 292-618
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
 specs:
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
     sources:
       vendor_page: 0.0005
+  Fs:  # free air resonance (Hz)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 500.0
     winner: vendor_page
@@ -42,13 +52,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-K28WP-1.1-Miniature-Speaker-8-Ohm-292-618
-frd_url: null
-zma_url: null

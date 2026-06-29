@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.34 differs from calculated=0.345701 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2949
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00041999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00041999999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008211871999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008211871999999999
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0121
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0121
-  BL:  # force factor (T·m)
-    value: 9.77
-    winner: vendor_page
-    sources:
-      vendor_page: 9.77
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 275.0
-    winner: vendor_page
-    sources:
-      vendor_page: 275.0
-  Fs:  # free air resonance (Hz)
-    value: 84.9
-    winner: vendor_page
-    sources:
-      vendor_page: 84.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.6852881029275502
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6852881029275502
   Xmax:  # one-way linear excursion (m)
     value: 0.0054
     winner: vendor_page
@@ -69,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 3.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 3.83
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 84.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 84.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.6852881029275502
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6852881029275502
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0121
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0121
+  Qms:  # mechanical Q factor
+    value: 3.83
+    winner: vendor_page
+    sources:
+      vendor_page: 3.83
   Cms:  # mechanical compliance (m/N)
     value: 0.00029099999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00029099999999999997
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 275.0
+    winner: vendor_page
+    sources:
+      vendor_page: 275.0
+  BL:  # force factor (T·m)
+    value: 9.77
+    winner: vendor_page
+    sources:
+      vendor_page: 9.77
+  Le:  # voice coil inductance (H)
+    value: 0.00041999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00041999999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.008211871999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008211871999999999
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
@@ -104,13 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 7.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MB550FT-6-Forte-Pro-Audio-Midrange-Speaker-294-2949
-frd_url: null
-zma_url: null

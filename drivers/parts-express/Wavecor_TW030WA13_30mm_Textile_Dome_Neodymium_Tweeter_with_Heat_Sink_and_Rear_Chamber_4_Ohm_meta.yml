@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1124-1126--wavecor-tw030wa13-14-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1124-1126--wavecor-tw030wa13-14-specifications.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033
-  Qes:  # electrical Q factor
-    value: 1.72
-    winner: vendor_page
-    sources:
-      vendor_page: 1.72
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Fs:  # free air resonance (Hz)
-    value: 690.0
-    winner: vendor_page
-    sources:
-      vendor_page: 690.0
   Qts:  # total Q factor
     value: 1.01
     winner: vendor_page
     sources:
       vendor_page: 1.01
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5
+  Fs:  # free air resonance (Hz)
+    value: 690.0
+    winner: vendor_page
+    sources:
+      vendor_page: 690.0
   Qms:  # mechanical Q factor
     value: 2.45
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1124-1126--wavecor-tw030wa13-14-specifications.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1124-1126--wavecor-tw030wa13-14-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA13-30mm-Textile-Dome-Neodymium-Tweeter-with-Heat-Sink-and-Rear-Chamber-4-Ohm-298-1124
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.72
+    winner: vendor_page
+    sources:
+      vendor_page: 1.72
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  Le:  # voice coil inductance (H)
+    value: 0.033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-010--8mc300nd-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.22 differs from calculated=0.225743 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
 obsolete: null
 dq_issue: Vas_tiny_for_driver
 community: null
 fetched_sku: 253-010
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-010--8mc300nd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0018122752
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0018122752
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5e-05
-  BL:  # force factor (T·m)
-    value: 16.0
-    winner: vendor_page
-    sources:
-      vendor_page: 16.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 62.0
-    winner: vendor_page
-    sources:
-      vendor_page: 62.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0025628782174021997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025628782174021997
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 3.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 3.8
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 62.0
+    winner: vendor_page
+    sources:
+      vendor_page: 62.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0025628782174021997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025628782174021997
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.5e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5e-05
+  Qms:  # mechanical Q factor
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 16.0
+    winner: vendor_page
+    sources:
+      vendor_page: 16.0
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0018122752
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0018122752
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 300.0
     winner: vendor_page
     sources:
       vendor_page: 300.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-010--8mc300nd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-010--8mc300nd-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010
-frd_url: null
-zma_url: null

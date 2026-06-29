@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.074473184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.074473184
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05594
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05594
-  BL:  # force factor (T·m)
-    value: 16.54
-    winner: vendor_page
-    sources:
-      vendor_page: 16.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 52.72
-    winner: vendor_page
-    sources:
-      vendor_page: 52.72
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.388022372608896
-    winner: vendor_page
-    sources:
-      vendor_page: 1.388022372608896
   Xmax:  # one-way linear excursion (m)
     value: 0.00687
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 13.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 13.35
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0573
     winner: vendor_page
     sources:
       vendor_page: 0.0573
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 52.72
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 52.72
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.388022372608896
+    winner: vendor_page
+    sources:
+      vendor_page: 1.388022372608896
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05594
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05594
+  Qms:  # mechanical Q factor
+    value: 13.35
+    winner: vendor_page
+    sources:
+      vendor_page: 13.35
   Cms:  # mechanical compliance (m/N)
     value: 0.000162
     winner: vendor_page
     sources:
       vendor_page: 0.000162
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 16.54
+    winner: vendor_page
+    sources:
+      vendor_page: 16.54
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.074473184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.074473184
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-12MB1000FT-12-Forte-Series-Professional-Woofer-294-2957
-frd_url: null
-zma_url: null

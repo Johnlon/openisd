@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf165tu01.html
+manu_page_url: http://www.wavecor.com/html/wf165tu01.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF165TU01_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF165CU01_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF165CU01_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf165tu01.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF165TU01_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf165tu01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.012
-    winner: manu_page
-    sources:
-      manu_page: 0.012
-  Qes:  # electrical Q factor
-    value: 0.95
-    winner: manu_page
-    sources:
-      manu_page: 0.95
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.016
-    winner: manu_page
-    sources:
-      manu_page: 0.016
-  BL:  # force factor (T·m)
-    value: 4.3
-    winner: manu_page
-    sources:
-      manu_page: 4.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Pe:  # rated power input (W)
-    value: 170.0
-    winner: manu_page
-    sources:
-      manu_page: 170.0
-  Fs:  # free air resonance (Hz)
-    value: 59.0
-    winner: manu_page
-    sources:
-      manu_page: 59.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.52
-    winner: manu_page
-    sources:
-      manu_page: 0.52
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.88
-  Qms:  # mechanical Q factor
-    value: 11.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: manu_page
     sources:
-      manu_page: 11.4
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0136
     winner: manu_page
     sources:
       manu_page: 0.0136
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 59.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 59.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.52
+    winner: manu_page
+    sources:
+      manu_page: 0.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.016
+    winner: manu_page
+    sources:
+      manu_page: 0.016
+  Qms:  # mechanical Q factor
+    value: 11.4
+    winner: manu_page
+    sources:
+      manu_page: 11.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00046
     winner: manu_page
     sources:
       manu_page: 0.00046
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/WF165TU01_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf165tu01.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/WF165TU01_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf165tu01.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/WF165CU01_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/WF165CU01_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.95
+    winner: manu_page
+    sources:
+      manu_page: 0.95
+  Pe:  # rated power input (W)
+    value: 170.0
+    winner: manu_page
+    sources:
+      manu_page: 170.0
+  BL:  # force factor (T·m)
+    value: 4.3
+    winner: manu_page
+    sources:
+      manu_page: 4.3
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.012
+    winner: manu_page
+    sources:
+      manu_page: 0.012

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-200-dayton-audio-dcs205-4-specifications-46584.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-200--Dayton-Audio-DCS205-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-200-dayton-audio-dcs205-4-specifications-46584.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0017800000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017800000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026900959999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026900959999999998
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0577
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0577
-  BL:  # force factor (T·m)
-    value: 10.7
-    winner: vendor_page
-    sources:
-      vendor_page: 10.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 32.3
-    winner: vendor_page
-    sources:
-      vendor_page: 32.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8646553007712845
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8646553007712845
   Xmax:  # one-way linear excursion (m)
     value: 0.0088
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 6.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 6.28
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.02138
     winner: vendor_page
     sources:
       vendor_page: 0.02138
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 32.3
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 32.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8646553007712845
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8646553007712845
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0577
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0577
+  Qms:  # mechanical Q factor
+    value: 6.28
+    winner: vendor_page
+    sources:
+      vendor_page: 6.28
   Cms:  # mechanical compliance (m/N)
     value: 0.00041999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00041999999999999996
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-200-dayton-audio-dcs205-4-specifications-46584.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-200-dayton-audio-dcs205-4-specifications-46584.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DCS205-4-8-Classic-Subwoofer-4-Ohm-295-200
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-200--Dayton-Audio-DCS205-4_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 10.7
+    winner: vendor_page
+    sources:
+      vendor_page: 10.7
+  Le:  # voice coil inductance (H)
+    value: 0.0017800000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017800000000000001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.026900959999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026900959999999998

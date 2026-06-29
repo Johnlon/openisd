@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3412--prv-audio-10mb1000ft-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3412
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3412--prv-audio-10mb1000ft-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00026
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01025
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0281
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0281
-  BL:  # force factor (T·m)
-    value: 14.49
-    winner: vendor_page
-    sources:
-      vendor_page: 14.49
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0670276418115212
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0670276418115212
   Xmax:  # one-way linear excursion (m)
     value: 0.00587
     winner: vendor_page
@@ -67,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 12.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 12.41
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.038
     winner: vendor_page
     sources:
       vendor_page: 0.038
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 75.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 75.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0670276418115212
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0670276418115212
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0281
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0281
+  Qms:  # mechanical Q factor
+    value: 12.41
+    winner: vendor_page
+    sources:
+      vendor_page: 12.41
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: vendor_page
     sources:
       vendor_page: 0.00016
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 14.49
+    winner: vendor_page
+    sources:
+      vendor_page: 14.49
+  Le:  # voice coil inductance (H)
+    value: 0.00026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00026
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01025
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.5
     winner: vendor_page
@@ -102,14 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 7.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3412--prv-audio-10mb1000ft-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3412--prv-audio-10mb1000ft-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412
-frd_url: null
-zma_url: null

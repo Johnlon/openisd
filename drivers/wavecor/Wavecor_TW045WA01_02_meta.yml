@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/tw045wa01_02.html
+manu_page_url: http://www.wavecor.com/html/tw045wa01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/TW045WA01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW045WA01_02_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW045WA01_02_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: http://www.wavecor.com/html/tw045wa01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/TW045WA01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/tw045wa01_02.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.8e-05
-    winner: manu_page
-    sources:
-      manu_page: 1.8e-05
-  Qes:  # electrical Q factor
-    value: 1.85
-    winner: manu_page
-    sources:
-      manu_page: 1.85
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00112
-    winner: manu_page
-    sources:
-      manu_page: 0.00112
-  BL:  # force factor (T·m)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.9
-    winner: manu_page
-    sources:
-      manu_page: 2.9
-  Pe:  # rated power input (W)
-    value: 1300.0
-    winner: manu_page
-    sources:
-      manu_page: 1300.0
-  Fs:  # free air resonance (Hz)
-    value: 840.0
-    winner: manu_page
-    sources:
-      manu_page: 840.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.34
-    winner: manu_page
-    sources:
-      manu_page: 1.34
   Xmax:  # one-way linear excursion (m)
     value: 0.00075
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 1.3
-  Qms:  # mechanical Q factor
-    value: 4.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.9
     winner: manu_page
     sources:
-      manu_page: 4.4
+      manu_page: 2.9
   Sd:  # effective piston area (m²)
     value: 0.002
     winner: manu_page
     sources:
       manu_page: 0.002
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 840.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 840.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.34
+    winner: manu_page
+    sources:
+      manu_page: 1.34
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00112
+    winner: manu_page
+    sources:
+      manu_page: 0.00112
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: manu_page
+    sources:
+      manu_page: 4.4
   Cms:  # mechanical compliance (m/N)
     value: 3.2e-05
     winner: manu_page
     sources:
       manu_page: 3.2e-05
-_sources:
-  datasheet: http://www.wavecor.com/TW045WA01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/tw045wa01_02.html
-datasheet_url: http://www.wavecor.com/TW045WA01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/tw045wa01_02.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/TW045WA01_02_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/TW045WA01_02_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.85
+    winner: manu_page
+    sources:
+      manu_page: 1.85
+  Pe:  # rated power input (W)
+    value: 1300.0
+    winner: manu_page
+    sources:
+      manu_page: 1300.0
+  BL:  # force factor (T·m)
+    value: 3.0
+    winner: manu_page
+    sources:
+      manu_page: 3.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.8e-05
+    winner: manu_page
+    sources:
+      manu_page: 1.8e-05

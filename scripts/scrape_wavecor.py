@@ -287,6 +287,12 @@ def _process_splits(out_dir: Path) -> None:
             (out_dir / wdr_name).write_text(wdr_text, encoding="utf-8")
 
             meta = {
+                "source":          url,
+                "manu_page_url":   url,
+                "vendor_page_url": None,
+                "datasheet_url":   cfg["datasheet_url"],
+                "frd_url":         None,
+                "zma_url":         None,
                 "quality":     "M",
                 "issue":       "scraped_not_human_verified",
                 "detail": (
@@ -296,12 +302,6 @@ def _process_splits(out_dir: Path) -> None:
                 ),
                 "corrections":      variant.get("corrections"),
                 "reviewed_by":     None,
-                "source":          url,
-                "datasheet_url":   cfg["datasheet_url"],
-                "manu_page_url":   url,
-                "vendor_page_url": None,
-                "frd_url":         None,
-                "zma_url":         None,
                 "obsolete":    True if variant.get("discontinued") else None,
                 "dq_issue":    variant.get("dq_issue"),
                 "community":   None,

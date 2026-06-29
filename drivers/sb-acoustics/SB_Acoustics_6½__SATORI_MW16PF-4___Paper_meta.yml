@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
+manu_page_url: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/6.5in-SATORI-MW16PF-4-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/6.5in-SATORI-MW16PF-4-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: manu_page
-    sources:
-      manu_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.049
-    winner: manu_page
-    sources:
-      manu_page: 0.049
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: manu_page
-    sources:
-      manu_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0128
-    winner: manu_page
-    sources:
-      manu_page: 0.0128
-  BL:  # force factor (T·m)
-    value: 4.7
-    winner: manu_page
-    sources:
-      manu_page: 4.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: manu_page
-    sources:
-      manu_page: 3.3
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: manu_page
-    sources:
-      manu_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 28.0
-    winner: manu_page
-    sources:
-      manu_page: 28.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 4.63
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: manu_page
     sources:
-      manu_page: 4.63
+      manu_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: manu_page
     sources:
       manu_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 28.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 28.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0128
+    winner: manu_page
+    sources:
+      manu_page: 0.0128
+  Qms:  # mechanical Q factor
+    value: 4.63
+    winner: manu_page
+    sources:
+      manu_page: 4.63
   Cms:  # mechanical compliance (m/N)
     value: 0.0025
     winner: manu_page
     sources:
       manu_page: 0.0025
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: manu_page
+    sources:
+      manu_page: 0.35
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: manu_page
+    sources:
+      manu_page: 60.0
+  BL:  # force factor (T·m)
+    value: 4.7
+    winner: manu_page
+    sources:
+      manu_page: 4.7
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: manu_page
+    sources:
+      manu_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.049
+    winner: manu_page
+    sources:
+      manu_page: 0.049
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 36.0
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 90.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/6.5in-SATORI-MW16PF-4-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/6.5in-SATORI-MW16PF-4-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/6½-satori-mw16pf-4-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

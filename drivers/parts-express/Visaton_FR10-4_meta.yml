@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-700--visaton-fr10-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,17 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 292-700
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-700--visaton-fr10-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
 specs:
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
   Fs:  # free air resonance (Hz)
     value: 90.0
     winner: vendor_page
@@ -27,14 +33,8 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-700--visaton-fr10-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-700--visaton-fr10-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FR10-4-4-Paper-Cone-Full-Range-Driver-4-Ohm-292-730
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0

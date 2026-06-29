@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/18wu-4741t00/
+manu_page_url: https://www.scan-speak.dk/product/18wu-4741t00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/reviews/15WU-4741T00_18WU-4741T00-VoiceCoil_2009-2.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/18wu-4741t00/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/reviews/15WU-4741T00_18WU-4741T00-VoiceCoil_2009-2.pdf
+  manu_page: https://www.scan-speak.dk/product/18wu-4741t00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0384
-    winner: manu_page
-    sources:
-      manu_page: 0.0384
-  BL:  # force factor (T·m)
-    value: 5.9
-    winner: manu_page
-    sources:
-      manu_page: 5.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: manu_page
-    sources:
-      manu_page: 3.3
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: manu_page
-    sources:
-      manu_page: 34.0
   Qts:  # total Q factor
     value: 0.36
     winner: manu_page
     sources:
       manu_page: 0.36
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
+    winner: manu_page
+    sources:
+      manu_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0154
     winner: manu_page
     sources:
       manu_page: 0.0154
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: manu_page
+    sources:
+      manu_page: 34.0
+  BL:  # force factor (T·m)
+    value: 5.9
+    winner: manu_page
+    sources:
+      manu_page: 5.9
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.5
     winner: manu_page
     sources:
       manu_page: 87.5
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/reviews/15WU-4741T00_18WU-4741T00-VoiceCoil_2009-2.pdf
-  manu_page: https://www.scan-speak.dk/product/18wu-4741t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/reviews/15WU-4741T00_18WU-4741T00-VoiceCoil_2009-2.pdf
-manu_page_url: https://www.scan-speak.dk/product/18wu-4741t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0384
+    winner: manu_page
+    sources:
+      manu_page: 0.0384

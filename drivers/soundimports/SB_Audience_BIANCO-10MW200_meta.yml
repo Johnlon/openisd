@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.038
-  BL:  # force factor (T·m)
-    value: 13.0
-    winner: vendor_page
-    sources:
-      vendor_page: 13.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 56.0
-    winner: vendor_page
-    sources:
-      vendor_page: 56.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
   Xmax:  # one-way linear excursion (m)
     value: 0.0067
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 2.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 2.28
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.03664
     winner: vendor_page
     sources:
       vendor_page: 0.03664
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 56.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 56.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.038
+  Qms:  # mechanical Q factor
+    value: 2.28
+    winner: vendor_page
+    sources:
+      vendor_page: 2.28
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-audience-bianco-10mw200.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 13.0
+    winner: vendor_page
+    sources:
+      vendor_page: 13.0
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041

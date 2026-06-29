@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-116--ciare-cme250-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.48 differs from calculated=0.484912 (deps: Qms=5.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-116
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-116--ciare-cme250-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.074
-  Qes:  # electrical Q factor
-    value: 0.53
-    winner: vendor_page
-    sources:
-      vendor_page: 0.53
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0355
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0355
-  BL:  # force factor (T·m)
-    value: 7.5
-    winner: vendor_page
-    sources:
-      vendor_page: 7.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
-  Fs:  # free air resonance (Hz)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.87834171288316
-    winner: vendor_page
-    sources:
-      vendor_page: 1.87834171288316
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.48
-  Qms:  # mechanical Q factor
-    value: 5.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 5.7
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.038
     winner: vendor_page
     sources:
       vendor_page: 0.038
+  Fs:  # free air resonance (Hz)
+    value: 48.0
+    winner: vendor_page
+    sources:
+      vendor_page: 48.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.87834171288316
+    winner: vendor_page
+    sources:
+      vendor_page: 1.87834171288316
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0355
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0355
+  Qms:  # mechanical Q factor
+    value: 5.7
+    winner: vendor_page
+    sources:
+      vendor_page: 5.7
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.53
+    winner: vendor_page
+    sources:
+      vendor_page: 0.53
+  Pe:  # rated power input (W)
+    value: 220.0
+    winner: vendor_page
+    sources:
+      vendor_page: 220.0
+  BL:  # force factor (T·m)
+    value: 7.5
+    winner: vendor_page
+    sources:
+      vendor_page: 7.5
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
     sources:
       vendor_page: 97.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-116--ciare-cme250-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-116--ciare-cme250-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CME250-10-Woofer-293-116
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.074

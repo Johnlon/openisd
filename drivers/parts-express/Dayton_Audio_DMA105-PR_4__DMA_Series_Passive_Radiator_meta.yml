@@ -1,26 +1,34 @@
+source: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-597--dayton-audio-dma105-pr-specification-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-597--dayton-audio-dma105-pr-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0025201952
+  Xmax:  # one-way linear excursion (m)
+    value: 0.009
     winner: vendor_page
     sources:
-      vendor_page: 0.0025201952
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0293
+      vendor_page: 0.009
+  Sd:  # effective piston area (m²)
+    value: 0.00541
     winner: vendor_page
     sources:
-      vendor_page: 0.0293
+      vendor_page: 0.00541
   Fs:  # free air resonance (Hz)
     value: 37.9
     winner: vendor_page
@@ -31,31 +39,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.8945242035979122
-  Xmax:  # one-way linear excursion (m)
-    value: 0.009
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0293
     winner: vendor_page
     sources:
-      vendor_page: 0.009
+      vendor_page: 0.0293
   Qms:  # mechanical Q factor
     value: 7.8
     winner: vendor_page
     sources:
       vendor_page: 7.8
-  Sd:  # effective piston area (m²)
-    value: 0.00541
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00541
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-597--dayton-audio-dma105-pr-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-597--dayton-audio-dma105-pr-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA105-PR-4-DMA-Series-Passive-Radiator-295-597
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0025201952
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0025201952

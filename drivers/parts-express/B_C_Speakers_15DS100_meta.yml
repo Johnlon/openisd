@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6480--bc-speakers-15ds100-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.23 differs from calculated=0.223695 (deps: Qms=8.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
 obsolete: null
 dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
 community: null
 fetched_sku: 294-6480
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6480--bc-speakers-15ds100-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.073
-    winner: vendor_page
-    sources:
-      vendor_page: 0.073
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.233
-    winner: vendor_page
-    sources:
-      vendor_page: 0.233
-  BL:  # force factor (T·m)
-    value: 24.3
-    winner: vendor_page
-    sources:
-      vendor_page: 24.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Pe:  # rated power input (W)
-    value: 3000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3000.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.996973638031973
-    winner: vendor_page
-    sources:
-      vendor_page: 6.996973638031973
   Xmax:  # one-way linear excursion (m)
     value: 0.013
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.23
-  Qms:  # mechanical Q factor
-    value: 8.16
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.4
     winner: vendor_page
     sources:
-      vendor_page: 8.16
+      vendor_page: 2.4
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 39.0
+    winner: vendor_page
+    sources:
+      vendor_page: 39.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.996973638031973
+    winner: vendor_page
+    sources:
+      vendor_page: 6.996973638031973
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.233
+    winner: vendor_page
+    sources:
+      vendor_page: 0.233
+  Qms:  # mechanical Q factor
+    value: 8.16
+    winner: vendor_page
+    sources:
+      vendor_page: 8.16
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 3000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 3000.0
+  BL:  # force factor (T·m)
+    value: 24.3
+    winner: vendor_page
+    sources:
+      vendor_page: 24.3
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.8
     winner: vendor_page
     sources:
       vendor_page: 96.8
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6480--bc-speakers-15ds100-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6480--bc-speakers-15ds100-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15DS100-DS-Series-15-High-Energy-Neodymium-Subwoofer-4-Ohm-294-6480
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.073
+    winner: vendor_page
+    sources:
+      vendor_page: 0.073

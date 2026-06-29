@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03673
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03673
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0332
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0332
-  BL:  # force factor (T·m)
-    value: 14.39
-    winner: vendor_page
-    sources:
-      vendor_page: 14.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 64.72
-    winner: vendor_page
-    sources:
-      vendor_page: 64.72
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 15.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 15.39
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.038
     winner: vendor_page
     sources:
       vendor_page: 0.038
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-10mb800ft.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 64.72
+    winner: vendor_page
+    sources:
+      vendor_page: 64.72
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0332
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0332
+  Qms:  # mechanical Q factor
+    value: 15.39
+    winner: vendor_page
+    sources:
+      vendor_page: 15.39
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 14.39
+    winner: vendor_page
+    sources:
+      vendor_page: 14.39
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03673
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03673

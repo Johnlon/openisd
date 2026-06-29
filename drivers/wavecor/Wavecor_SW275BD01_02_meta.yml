@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/sw275bd01_02.html
+manu_page_url: http://www.wavecor.com/html/sw275bd01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW275BD01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW275BD02_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW275BD02_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/sw275bd01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW275BD01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/sw275bd01_02.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00094
-    winner: manu_page
-    sources:
-      manu_page: 0.00094
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.031
-    winner: manu_page
-    sources:
-      manu_page: 0.031
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: manu_page
-    sources:
-      manu_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.121
-    winner: manu_page
-    sources:
-      manu_page: 0.121
-  BL:  # force factor (T·m)
-    value: 12.1
-    winner: manu_page
-    sources:
-      manu_page: 12.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: manu_page
-    sources:
-      manu_page: 3.7
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: manu_page
-    sources:
-      manu_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 30.8
-    winner: manu_page
-    sources:
-      manu_page: 30.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.85
-    winner: manu_page
-    sources:
-      manu_page: 1.85
   Xmax:  # one-way linear excursion (m)
     value: 0.016
     winner: manu_page
@@ -67,34 +33,68 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.57
-  Qms:  # mechanical Q factor
-    value: 12.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: manu_page
     sources:
-      manu_page: 12.7
+      manu_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.0314
     winner: manu_page
     sources:
       manu_page: 0.0314
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.8
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 30.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.85
+    winner: manu_page
+    sources:
+      manu_page: 1.85
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.121
+    winner: manu_page
+    sources:
+      manu_page: 0.121
+  Qms:  # mechanical Q factor
+    value: 12.7
+    winner: manu_page
+    sources:
+      manu_page: 12.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: manu_page
     sources:
       manu_page: 0.00022
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW275BD01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/sw275bd01_02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW275BD01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/sw275bd01_02.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/SW275BD02_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW275BD02_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: manu_page
+    sources:
+      manu_page: 0.59
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: manu_page
+    sources:
+      manu_page: 250.0
+  BL:  # force factor (T·m)
+    value: 12.1
+    winner: manu_page
+    sources:
+      manu_page: 12.1
+  Le:  # voice coil inductance (H)
+    value: 0.00094
+    winner: manu_page
+    sources:
+      manu_page: 0.00094
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.031
+    winner: manu_page
+    sources:
+      manu_page: 0.031

@@ -1,15 +1,77 @@
+source: https://www.soundimports.eu/en/grs-rsb901-1.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-rsb901-1.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/grs-rsb901-1.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/grs-rsb901-1.html
 specs:
+  Qts:  # total Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Re:  # DC voice coil resistance (Ω)
+    value: 0.76
+    winner: vendor_page
+    sources:
+      vendor_page: 0.76
+  Sd:  # effective piston area (m²)
+    value: 0.00666
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00666
+  Fs:  # free air resonance (Hz)
+    value: 83.4
+    winner: vendor_page
+    sources:
+      vendor_page: 83.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00338
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00338
+  Qms:  # mechanical Q factor
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00108
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00108
+  Znom:  # nominal impedance (Ω)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 1.767
+    winner: vendor_page
+    sources:
+      vendor_page: 1.767
   Le:  # voice coil inductance (H)
     value: 0.00011
     winner: vendor_page
@@ -20,61 +82,6 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.00024
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00338
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00338
-  BL:  # force factor (T·m)
-    value: 1.767
-    winner: vendor_page
-    sources:
-      vendor_page: 1.767
-  Re:  # DC voice coil resistance (Ω)
-    value: 0.76
-    winner: vendor_page
-    sources:
-      vendor_page: 0.76
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 83.4
-    winner: vendor_page
-    sources:
-      vendor_page: 83.4
-  Qts:  # total Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Sd:  # effective piston area (m²)
-    value: 0.00666
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00666
-  Znom:  # nominal impedance (Ω)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00108
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00108
   power_peak_W:  # peak power handling (W)
     value: 60.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 15.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/grs-rsb901-1.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-rsb901-1.html
-frd_url: null
-zma_url: null

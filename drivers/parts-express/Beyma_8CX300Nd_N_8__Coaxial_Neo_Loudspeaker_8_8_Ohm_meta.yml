@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-100--8cx300nd-n-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-100--8cx300nd-n-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022936608
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022936608
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  BL:  # force factor (T·m)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 61.0
-    winner: vendor_page
-    sources:
-      vendor_page: 61.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0005896527749814689
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005896527749814689
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 13.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 13.0
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 2.1999999999999997e-06
     winner: vendor_page
     sources:
       vendor_page: 2.1999999999999997e-06
+  Fs:  # free air resonance (Hz)
+    value: 61.0
+    winner: vendor_page
+    sources:
+      vendor_page: 61.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0005896527749814689
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005896527749814689
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Qms:  # mechanical Q factor
+    value: 13.0
+    winner: vendor_page
+    sources:
+      vendor_page: 13.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-100--8cx300nd-n-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-100--8cx300nd-n-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022936608
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022936608

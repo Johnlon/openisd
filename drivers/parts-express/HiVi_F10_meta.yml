@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-450-hi-vi-f10-specifications-45088.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-450
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-450-hi-vi-f10-specifications-45088.pdf
+  vendor_page: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.07872070399999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07872070399999999
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0726
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0726
-  BL:  # force factor (T·m)
-    value: 15.7
-    winner: vendor_page
-    sources:
-      vendor_page: 15.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 28.0
-    winner: vendor_page
-    sources:
-      vendor_page: 28.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.494620916491145
-    winner: vendor_page
-    sources:
-      vendor_page: 2.494620916491145
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -62,34 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 5.12
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.12
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0363
     winner: vendor_page
     sources:
       vendor_page: 0.0363
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 28.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 28.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.494620916491145
+    winner: vendor_page
+    sources:
+      vendor_page: 2.494620916491145
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0726
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0726
+  Qms:  # mechanical Q factor
+    value: 5.12
+    winner: vendor_page
+    sources:
+      vendor_page: 5.12
   Cms:  # mechanical compliance (m/N)
     value: 0.00041999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00041999999999999996
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-450-hi-vi-f10-specifications-45088.pdf
-  vendor_page: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-450-hi-vi-f10-specifications-45088.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-F10-10-Woofer-297-450
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 15.7
+    winner: vendor_page
+    sources:
+      vendor_page: 15.7
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.07872070399999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.07872070399999999

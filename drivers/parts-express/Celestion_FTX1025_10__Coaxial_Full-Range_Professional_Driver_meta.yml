@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2510--celestion-ftx1025-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2510--celestion-ftx1025-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00047999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00047999999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.025768288
-    winner: vendor_page
-    sources:
-      vendor_page: 0.025768288
-  Qes:  # electrical Q factor
-    value: 0.523
-    winner: vendor_page
-    sources:
-      vendor_page: 0.523
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.032549999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032549999999999996
-  BL:  # force factor (T·m)
-    value: 12.3
-    winner: vendor_page
-    sources:
-      vendor_page: 12.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.42
-    winner: vendor_page
-    sources:
-      vendor_page: 5.42
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 71.5
-    winner: vendor_page
-    sources:
-      vendor_page: 71.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.244983588605355
-    winner: vendor_page
-    sources:
-      vendor_page: 5.244983588605355
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.788
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.42
     winner: vendor_page
     sources:
-      vendor_page: 2.788
+      vendor_page: 5.42
   Sd:  # effective piston area (m²)
     value: 0.034636
     winner: vendor_page
     sources:
       vendor_page: 0.034636
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 71.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 71.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.244983588605355
+    winner: vendor_page
+    sources:
+      vendor_page: 5.244983588605355
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.032549999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.032549999999999996
+  Qms:  # mechanical Q factor
+    value: 2.788
+    winner: vendor_page
+    sources:
+      vendor_page: 2.788
   Cms:  # mechanical compliance (m/N)
     value: 0.00015
     winner: vendor_page
     sources:
       vendor_page: 0.00015
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2510--celestion-ftx1025-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2510--celestion-ftx1025-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTX1025-10-Coaxial-Full-Range-Professional-Driver-294-2510
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.523
+    winner: vendor_page
+    sources:
+      vendor_page: 0.523
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 12.3
+    winner: vendor_page
+    sources:
+      vendor_page: 12.3
+  Le:  # voice coil inductance (H)
+    value: 0.00047999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00047999999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.025768288
+    winner: vendor_page
+    sources:
+      vendor_page: 0.025768288

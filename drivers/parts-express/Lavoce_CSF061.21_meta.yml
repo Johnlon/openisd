@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-792--lavoce-csf061.21-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 293-792
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-792--lavoce-csf061.21-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00038
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007928704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007928704
-  Qes:  # electrical Q factor
-    value: 0.79
-    winner: vendor_page
-    sources:
-      vendor_page: 0.79
-  BL:  # force factor (T·m)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 89.0
-    winner: vendor_page
-    sources:
-      vendor_page: 89.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -57,34 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 4.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 4.8
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0135
     winner: vendor_page
     sources:
       vendor_page: 0.0135
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 89.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 89.0
+  Qms:  # mechanical Q factor
+    value: 4.8
+    winner: vendor_page
+    sources:
+      vendor_page: 4.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00033
     winner: vendor_page
     sources:
       vendor_page: 0.00033
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-792--lavoce-csf061.21-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-792--lavoce-csf061.21-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Lavoce-CSF061.21-6.5-Coaxial-Woofer-293-792
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.79
+    winner: vendor_page
+    sources:
+      vendor_page: 0.79
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 6.2
+    winner: vendor_page
+    sources:
+      vendor_page: 6.2
+  Le:  # voice coil inductance (H)
+    value: 0.00038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00038
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007928704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007928704

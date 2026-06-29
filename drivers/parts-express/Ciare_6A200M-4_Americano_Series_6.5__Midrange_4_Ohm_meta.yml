@@ -1,56 +1,39 @@
+source: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-200--ciare-americano-6a200m-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-200--ciare-americano-6a200m-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00020999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00020999999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007928704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007928704
-  Qes:  # electrical Q factor
-    value: 0.51
-    winner: vendor_page
-    sources:
-      vendor_page: 0.51
-  BL:  # force factor (T·m)
-    value: 4.61
-    winner: vendor_page
-    sources:
-      vendor_page: 4.61
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 86.32
-    winner: vendor_page
-    sources:
-      vendor_page: 86.32
   Qts:  # total Q factor
     value: 0.48
     winner: vendor_page
     sources:
       vendor_page: 0.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6
+  Fs:  # free air resonance (Hz)
+    value: 86.32
+    winner: vendor_page
+    sources:
+      vendor_page: 86.32
   Qms:  # mechanical Q factor
     value: 7.82
     winner: vendor_page
@@ -61,16 +44,33 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.51
+    winner: vendor_page
+    sources:
+      vendor_page: 0.51
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 4.61
+    winner: vendor_page
+    sources:
+      vendor_page: 4.61
+  Le:  # voice coil inductance (H)
+    value: 0.00020999999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00020999999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007928704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007928704
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: vendor_page
     sources:
       vendor_page: 91.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-200--ciare-americano-6a200m-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-200--ciare-americano-6a200m-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-6A200M-4-Americano-Series-6.5-Midrange-4-Ohm-293-200
-frd_url: null
-zma_url: null

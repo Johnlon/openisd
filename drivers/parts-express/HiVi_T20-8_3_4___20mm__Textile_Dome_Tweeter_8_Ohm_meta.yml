@@ -1,31 +1,29 @@
+source: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-464--hi-vi-t20-8-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-464--hi-vi-t20-8-specifications.pdf
+  vendor_page: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 6.5
     winner: vendor_page
     sources:
       vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   Fs:  # free air resonance (Hz)
     value: 2000.0
     winner: vendor_page
@@ -36,16 +34,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: vendor_page
     sources:
       vendor_page: 89.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-464--hi-vi-t20-8-specifications.pdf
-  vendor_page: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-464--hi-vi-t20-8-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-T20-8-3-4-20mm-Textile-Dome-Tweeter-8-Ohm-297-464
-frd_url: null
-zma_url: null

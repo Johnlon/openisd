@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2060--tf0818-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2060
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2060--tf0818-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00075
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009441
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009441
-  Qes:  # electrical Q factor
-    value: 0.493
-    winner: vendor_page
-    sources:
-      vendor_page: 0.493
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01957
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01957
-  BL:  # force factor (T·m)
-    value: 12.95
-    winner: vendor_page
-    sources:
-      vendor_page: 12.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.72
-    winner: vendor_page
-    sources:
-      vendor_page: 6.72
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.72
-    winner: vendor_page
-    sources:
-      vendor_page: 3.72
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.429
-  Qms:  # mechanical Q factor
-    value: 3.311
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.72
     winner: vendor_page
     sources:
-      vendor_page: 3.311
+      vendor_page: 6.72
   Sd:  # effective piston area (m²)
     value: 0.022680000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.022680000000000002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 100.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 100.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.72
+    winner: vendor_page
+    sources:
+      vendor_page: 3.72
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01957
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01957
+  Qms:  # mechanical Q factor
+    value: 3.311
+    winner: vendor_page
+    sources:
+      vendor_page: 3.311
   Cms:  # mechanical compliance (m/N)
     value: 0.00013
     winner: vendor_page
     sources:
       vendor_page: 0.00013
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2060--tf0818-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2060--tf0818-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-TF0818-8-Professional-Speaker-150W-294-2060
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.493
+    winner: vendor_page
+    sources:
+      vendor_page: 0.493
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 12.95
+    winner: vendor_page
+    sources:
+      vendor_page: 12.95
+  Le:  # voice coil inductance (H)
+    value: 0.00075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00075
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009441
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009441

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-479--jbl-selenium-12mpro-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,52 +16,14 @@ corrections: '''Qts'' stored=0.38 differs from calculated=0.385599 (deps: Qms=10
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-479
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-479--jbl-selenium-12mpro-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00067
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.055500928
-    winner: vendor_page
-    sources:
-      vendor_page: 0.055500928
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.051859999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.051859999999999996
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.65
-    winner: vendor_page
-    sources:
-      vendor_page: 5.65
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 59.3
-    winner: vendor_page
-    sources:
-      vendor_page: 59.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8041706077309771
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8041706077309771
   Xmax:  # one-way linear excursion (m)
     value: 0.0024
     winner: vendor_page
@@ -63,29 +34,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 10.71
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.65
     winner: vendor_page
     sources:
-      vendor_page: 10.71
+      vendor_page: 5.65
   Sd:  # effective piston area (m²)
     value: 0.053092999999999994
     winner: vendor_page
     sources:
       vendor_page: 0.053092999999999994
+  Fs:  # free air resonance (Hz)
+    value: 59.3
+    winner: vendor_page
+    sources:
+      vendor_page: 59.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8041706077309771
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8041706077309771
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.051859999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.051859999999999996
+  Qms:  # mechanical Q factor
+    value: 10.71
+    winner: vendor_page
+    sources:
+      vendor_page: 10.71
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-479--jbl-selenium-12mpro-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-479--jbl-selenium-12mpro-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/JBL-Selenium-12M-PRO-12-700-Watt-Professional-Mid-Bass-8-Ohm-264-479
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  Le:  # voice coil inductance (H)
+    value: 0.00067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00067
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.055500928
+    winner: vendor_page
+    sources:
+      vendor_page: 0.055500928

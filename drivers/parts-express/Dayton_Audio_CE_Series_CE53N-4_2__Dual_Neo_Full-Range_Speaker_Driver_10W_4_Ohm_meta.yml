@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-171--dayton-audio-ce53n-4-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/CE53N-4_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-171--dayton-audio-ce53n-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00015007904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015007904
-  Qes:  # electrical Q factor
-    value: 1.3
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00087
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00087
-  BL:  # force factor (T·m)
-    value: 1.71
-    winner: vendor_page
-    sources:
-      vendor_page: 1.71
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.47
-    winner: vendor_page
-    sources:
-      vendor_page: 3.47
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 197.0
-    winner: vendor_page
-    sources:
-      vendor_page: 197.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.19942132033287208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19942132033287208
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-  Qms:  # mechanical Q factor
-    value: 5.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.47
     winner: vendor_page
     sources:
-      vendor_page: 5.4
+      vendor_page: 3.47
   Sd:  # effective piston area (m²)
     value: 0.0008550000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0008550000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 197.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 197.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.19942132033287208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19942132033287208
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00087
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00087
+  Qms:  # mechanical Q factor
+    value: 5.4
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00075
     winner: vendor_page
     sources:
       vendor_page: 0.00075
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-171--dayton-audio-ce53n-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-171--dayton-audio-ce53n-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE53N-4-2-Dual-Neo-Full-Range-10W-4-ohm-285-171
-frd_url: https://www.parts-express.com/pedocs/tech-docs/CE53N-4_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.3
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 1.71
+    winner: vendor_page
+    sources:
+      vendor_page: 1.71
+  Le:  # voice coil inductance (H)
+    value: 7.000000000000001e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.000000000000001e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00015007904
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015007904

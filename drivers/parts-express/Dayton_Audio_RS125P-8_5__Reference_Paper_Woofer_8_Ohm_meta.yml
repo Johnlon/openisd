@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-361--rs125p-8-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-361--Dayton-Audio-RS125P-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-361--rs125p-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003964352
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003964352
-  Qes:  # electrical Q factor
-    value: 0.53
-    winner: vendor_page
-    sources:
-      vendor_page: 0.53
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0050999999999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0050999999999999995
-  BL:  # force factor (T·m)
-    value: 5.08
-    winner: vendor_page
-    sources:
-      vendor_page: 5.08
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8762098260402782
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8762098260402782
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 2.56
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.00528
     winner: vendor_page
     sources:
       vendor_page: 0.00528
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.8762098260402782
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8762098260402782
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0050999999999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0050999999999999995
+  Qms:  # mechanical Q factor
+    value: 2.56
+    winner: vendor_page
+    sources:
+      vendor_page: 2.56
   Cms:  # mechanical compliance (m/N)
     value: 0.00102
     winner: vendor_page
     sources:
       vendor_page: 0.00102
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.53
+    winner: vendor_page
+    sources:
+      vendor_page: 0.53
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 5.08
+    winner: vendor_page
+    sources:
+      vendor_page: 5.08
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003964352
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003964352
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 295.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-361--rs125p-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-361--rs125p-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-RS125P-8-5-Reference-Paper-Woofer-8-Ohm-295-361
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-361--Dayton-Audio-RS125P-8_data.zip
-zma_url: null

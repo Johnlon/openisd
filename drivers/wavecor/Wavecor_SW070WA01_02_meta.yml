@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/sw070wa01_02.html
+manu_page_url: http://www.wavecor.com/html/sw070wa01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW070WA01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,47 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/sw070wa01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW070WA01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/sw070wa01_02.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00016
+  Qts:  # total Q factor
+    value: 0.39
     winner: manu_page
     sources:
-      manu_page: 0.00016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00068
-    winner: manu_page
-    sources:
-      manu_page: 0.00068
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: manu_page
-    sources:
-      manu_page: 0.42
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00365
-    winner: manu_page
-    sources:
-      manu_page: 0.00365
-  BL:  # force factor (T·m)
-    value: 3.85
-    winner: manu_page
-    sources:
-      manu_page: 3.85
+      manu_page: 0.39
   Re:  # DC voice coil resistance (Ω)
     value: 3.2
     winner: manu_page
     sources:
       manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 15.0
+  Sd:  # effective piston area (m²)
+    value: 0.0022
     winner: manu_page
     sources:
-      manu_page: 15.0
+      manu_page: 0.0022
   Fs:  # free air resonance (Hz)
     value: 84.0
     winner: manu_page
@@ -57,39 +48,48 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.3
-  Qts:  # total Q factor
-    value: 0.39
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00365
     winner: manu_page
     sources:
-      manu_page: 0.39
+      manu_page: 0.00365
   Qms:  # mechanical Q factor
     value: 6.4
     winner: manu_page
     sources:
       manu_page: 6.4
-  Sd:  # effective piston area (m²)
-    value: 0.0022
-    winner: manu_page
-    sources:
-      manu_page: 0.0022
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: manu_page
-    sources:
-      manu_page: 4.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00098
     winner: manu_page
     sources:
       manu_page: 0.00098
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW070WA01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/sw070wa01_02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW070WA01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/sw070wa01_02.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: manu_page
+    sources:
+      manu_page: 0.42
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: manu_page
+    sources:
+      manu_page: 15.0
+  BL:  # force factor (T·m)
+    value: 3.85
+    winner: manu_page
+    sources:
+      manu_page: 3.85
+  Le:  # voice coil inductance (H)
+    value: 0.00016
+    winner: manu_page
+    sources:
+      manu_page: 0.00016
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00068
+    winner: manu_page
+    sources:
+      manu_page: 0.00068

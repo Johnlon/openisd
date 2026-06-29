@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-432
+_sources:
+  vendor_page: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0001982176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001982176
-  Qes:  # electrical Q factor
-    value: 1.53
-    winner: vendor_page
-    sources:
-      vendor_page: 1.53
-  BL:  # force factor (T·m)
-    value: 2.5
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 152.0
-    winner: vendor_page
-    sources:
-      vendor_page: 152.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -52,33 +32,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.2
-  Qms:  # mechanical Q factor
-    value: 5.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.69
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 152.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 152.0
+  Qms:  # mechanical Q factor
+    value: 5.69
+    winner: vendor_page
+    sources:
+      vendor_page: 5.69
   Cms:  # mechanical compliance (m/N)
     value: 0.0006889999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0006889999999999999
-_sources:
-  vendor_page: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-B2S-2-Shielded-Aluminum-Driver-297-432
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.53
+    winner: vendor_page
+    sources:
+      vendor_page: 1.53
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.5
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0001982176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001982176

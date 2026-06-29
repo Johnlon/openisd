@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1354-tymphany-tc7fd04-04-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.000368118 differs from calculated=0.000359581 (de
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1354
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1354-tymphany-tc7fd04-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003681184
-  Qes:  # electrical Q factor
-    value: 0.88
-    winner: vendor_page
-    sources:
-      vendor_page: 0.88
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  BL:  # force factor (T·m)
-    value: 2.44
-    winner: vendor_page
-    sources:
-      vendor_page: 2.44
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 202.0
-    winner: vendor_page
-    sources:
-      vendor_page: 202.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4479541524883328
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4479541524883328
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.7
-  Qms:  # mechanical Q factor
-    value: 3.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.39
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.00221
     winner: vendor_page
     sources:
       vendor_page: 0.00221
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 202.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 202.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4479541524883328
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4479541524883328
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Qms:  # mechanical Q factor
+    value: 3.39
+    winner: vendor_page
+    sources:
+      vendor_page: 3.39
   Cms:  # mechanical compliance (m/N)
     value: 0.000519
     winner: vendor_page
     sources:
       vendor_page: 0.000519
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.88
+    winner: vendor_page
+    sources:
+      vendor_page: 0.88
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.44
+    winner: vendor_page
+    sources:
+      vendor_page: 2.44
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003681184
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 86.8
     winner: vendor_page
     sources:
       vendor_page: 86.8
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1354-tymphany-tc7fd04-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1354-tymphany-tc7fd04-04-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TC7FD04-04-2-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1354
-frd_url: null
-zma_url: null

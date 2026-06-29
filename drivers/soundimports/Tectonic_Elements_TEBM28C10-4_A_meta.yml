@@ -1,15 +1,77 @@
+source: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
 specs:
+  Qts:  # total Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
+  Sd:  # effective piston area (m²)
+    value: 0.000855
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000855
+  Fs:  # free air resonance (Hz)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Qms:  # mechanical Q factor
+    value: 2.74
+    winner: vendor_page
+    sources:
+      vendor_page: 2.74
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.87
+    winner: vendor_page
+    sources:
+      vendor_page: 2.87
   Le:  # voice coil inductance (H)
     value: 9.0e-05
     winner: vendor_page
@@ -20,65 +82,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.3e-06
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  BL:  # force factor (T·m)
-    value: 2.87
-    winner: vendor_page
-    sources:
-      vendor_page: 2.87
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.4
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Qts:  # total Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 2.74
-    winner: vendor_page
-    sources:
-      vendor_page: 2.74
-  Sd:  # effective piston area (m²)
-    value: 0.000855
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000855
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
-_sources:
-  vendor_page: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/tectonic-elements-tebm28c10-4-a.html
-frd_url: null
-zma_url: null

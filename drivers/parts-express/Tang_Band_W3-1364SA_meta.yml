@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-844-tang-band-w3-1364sa-specifications-45311.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
 obsolete: null
 dq_issue: Sd_tiny
 community: null
 fetched_sku: 264-844
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-844-tang-band-w3-1364sa-specifications-45311.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00188
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00188
-  Qes:  # electrical Q factor
-    value: 0.77
-    winner: vendor_page
-    sources:
-      vendor_page: 0.77
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.075
-  BL:  # force factor (T·m)
-    value: 3.51
-    winner: vendor_page
-    sources:
-      vendor_page: 3.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Fs:  # free air resonance (Hz)
-    value: 105.0
-    winner: vendor_page
-    sources:
-      vendor_page: 105.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.47351908625478417
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47351908625478417
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -62,26 +33,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.59
-  Qms:  # mechanical Q factor
-    value: 2.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 2.48
+      vendor_page: 6.6
   Sd:  # effective piston area (m²)
     value: 3.2e-07
     winner: vendor_page
     sources:
       vendor_page: 3.2e-07
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 105.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 105.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.47351908625478417
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47351908625478417
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.075
+    winner: vendor_page
+    sources:
+      vendor_page: 0.075
+  Qms:  # mechanical Q factor
+    value: 2.48
+    winner: vendor_page
+    sources:
+      vendor_page: 2.48
   Cms:  # mechanical compliance (m/N)
     value: 0.001296
     winner: vendor_page
     sources:
       vendor_page: 0.001296
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.77
+    winner: vendor_page
+    sources:
+      vendor_page: 0.77
+  Pe:  # rated power input (W)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  BL:  # force factor (T·m)
+    value: 3.51
+    winner: vendor_page
+    sources:
+      vendor_page: 3.51
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00188
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00188
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -92,14 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 264.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-844-tang-band-w3-1364sa-specifications-45311.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-844-tang-band-w3-1364sa-specifications-45311.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844
-frd_url: null
-zma_url: null

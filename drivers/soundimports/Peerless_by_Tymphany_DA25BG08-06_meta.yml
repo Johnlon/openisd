@@ -1,45 +1,37 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 2.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4e-05
-  Qes:  # electrical Q factor
-    value: 0.704
-    winner: vendor_page
-    sources:
-      vendor_page: 0.704
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 710.0
-    winner: vendor_page
-    sources:
-      vendor_page: 710.0
   Qts:  # total Q factor
     value: 0.51
     winner: vendor_page
     sources:
       vendor_page: 0.51
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Fs:  # free air resonance (Hz)
+    value: 710.0
+    winner: vendor_page
+    sources:
+      vendor_page: 710.0
   Qms:  # mechanical Q factor
     value: 1.78
     winner: vendor_page
@@ -50,10 +42,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 6.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-da25bg08-06.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.704
+    winner: vendor_page
+    sources:
+      vendor_page: 0.704
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  Le:  # voice coil inductance (H)
+    value: 2.4e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4e-05

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-092--4fr40-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-092--4fr40-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0027750464
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0027750464
-  Qes:  # electrical Q factor
-    value: 0.96
-    winner: vendor_page
-    sources:
-      vendor_page: 0.96
-  Mms:  # moving mass incl. air load (kg)
-    value: 4.4e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4e-06
-  BL:  # force factor (T·m)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 92.0
-    winner: vendor_page
-    sources:
-      vendor_page: 92.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0002250826028625041
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002250826028625041
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.88
-  Qms:  # mechanical Q factor
-    value: 11.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 11.3
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 5.499999999999999e-07
     winner: vendor_page
     sources:
       vendor_page: 5.499999999999999e-07
+  Fs:  # free air resonance (Hz)
+    value: 92.0
+    winner: vendor_page
+    sources:
+      vendor_page: 92.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.0002250826028625041
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002250826028625041
+  Mms:  # moving mass incl. air load (kg)
+    value: 4.4e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4e-06
+  Qms:  # mechanical Q factor
+    value: 11.3
+    winner: vendor_page
+    sources:
+      vendor_page: 11.3
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.96
+    winner: vendor_page
+    sources:
+      vendor_page: 0.96
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0027750464
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0027750464
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.0
     winner: vendor_page
     sources:
       vendor_page: 87.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-092--4fr40-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-092--4fr40-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092
-frd_url: null
-zma_url: null

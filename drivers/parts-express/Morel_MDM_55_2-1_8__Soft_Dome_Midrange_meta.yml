@@ -1,66 +1,66 @@
+source: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
+datasheet_url: https://www.parts-express.com/pedocs/specs/287-020--morel-mdm-55-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/287-020--morel-mdm-55-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Qes:  # electrical Q factor
-    value: 1.75
-    winner: vendor_page
-    sources:
-      vendor_page: 1.75
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 380.0
-    winner: vendor_page
-    sources:
-      vendor_page: 380.0
   Qts:  # total Q factor
     value: 0.68
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Qms:  # mechanical Q factor
-    value: 1.13
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 1.13
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0028
     winner: vendor_page
     sources:
       vendor_page: 0.0028
+  Fs:  # free air resonance (Hz)
+    value: 380.0
+    winner: vendor_page
+    sources:
+      vendor_page: 380.0
+  Qms:  # mechanical Q factor
+    value: 1.13
+    winner: vendor_page
+    sources:
+      vendor_page: 1.13
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/287-020--morel-mdm-55-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
-datasheet_url: https://www.parts-express.com/pedocs/specs/287-020--morel-mdm-55-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-MDM-55-2-1-8-Soft-Dome-Midrange-287-020
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.75
+    winner: vendor_page
+    sources:
+      vendor_page: 1.75
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019

@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-806--lavoce-wsf081.82-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-806--lavoce-wsf081.82-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.014299984
-    winner: vendor_page
-    sources:
-      vendor_page: 0.014299984
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  BL:  # force factor (T·m)
-    value: 11.25
-    winner: vendor_page
-    sources:
-      vendor_page: 11.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 79.0
-    winner: vendor_page
-    sources:
-      vendor_page: 79.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0046
     winner: vendor_page
@@ -56,36 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 2.95
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 2.95
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.02351
     winner: vendor_page
     sources:
       vendor_page: 0.02351
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 79.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 79.0
+  Qms:  # mechanical Q factor
+    value: 2.95
+    winner: vendor_page
+    sources:
+      vendor_page: 2.95
   Cms:  # mechanical compliance (m/N)
     value: 0.00020899999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00020899999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.25
+    winner: vendor_page
+    sources:
+      vendor_page: 11.25
+  Le:  # voice coil inductance (H)
+    value: 0.00049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00049
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.014299984
+    winner: vendor_page
+    sources:
+      vendor_page: 0.014299984
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
     sources:
       vendor_page: 96.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-806--lavoce-wsf081.82-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-806--lavoce-wsf081.82-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Lavoce-WSF081.82-8-Woofer-293-806
-frd_url: null
-zma_url: null

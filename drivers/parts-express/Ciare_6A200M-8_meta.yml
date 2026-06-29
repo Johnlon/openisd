@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-201--ciare-americano-6a200m-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 293-201
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-201--ciare-americano-6a200m-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0076455360000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0076455360000000005
-  Qes:  # electrical Q factor
-    value: 0.62
-    winner: vendor_page
-    sources:
-      vendor_page: 0.62
-  BL:  # force factor (T·m)
-    value: 8.09
-    winner: vendor_page
-    sources:
-      vendor_page: 8.09
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.98
-    winner: vendor_page
-    sources:
-      vendor_page: 6.98
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 90.06
-    winner: vendor_page
-    sources:
-      vendor_page: 90.06
   Qts:  # total Q factor
     value: 0.56
     winner: vendor_page
     sources:
       vendor_page: 0.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.98
+    winner: vendor_page
+    sources:
+      vendor_page: 6.98
+  Fs:  # free air resonance (Hz)
+    value: 90.06
+    winner: vendor_page
+    sources:
+      vendor_page: 90.06
   Qms:  # mechanical Q factor
     value: 6.42
     winner: vendor_page
@@ -62,19 +48,33 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.62
+    winner: vendor_page
+    sources:
+      vendor_page: 0.62
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 8.09
+    winner: vendor_page
+    sources:
+      vendor_page: 8.09
+  Le:  # voice coil inductance (H)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0076455360000000005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0076455360000000005
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.0
     winner: vendor_page
     sources:
       vendor_page: 91.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-201--ciare-americano-6a200m-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-201--ciare-americano-6a200m-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-6A200M-8-Americano-Series-6.5-Midrange-8-Ohm-293-201
-frd_url: null
-zma_url: null

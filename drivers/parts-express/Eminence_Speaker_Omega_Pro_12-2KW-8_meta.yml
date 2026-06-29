@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-4300--eminence-12-2kw-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0495544 differs from calculated=0.0506356 (deps: 
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-4300
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-4300--eminence-12-2kw-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00113
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00113
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0495544
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0495544
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09196
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09196
-  BL:  # force factor (T·m)
-    value: 20.4
-    winner: vendor_page
-    sources:
-      vendor_page: 20.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.04
-    winner: vendor_page
-    sources:
-      vendor_page: 6.04
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 48.14
-    winner: vendor_page
-    sources:
-      vendor_page: 48.14
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8693128253786304
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8693128253786304
   Xmax:  # one-way linear excursion (m)
     value: 0.0070999999999999995
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 14.88
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.04
     winner: vendor_page
     sources:
-      vendor_page: 14.88
+      vendor_page: 6.04
   Sd:  # effective piston area (m²)
     value: 0.05454
     winner: vendor_page
     sources:
       vendor_page: 0.05454
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 48.14
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 48.14
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8693128253786304
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8693128253786304
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09196
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09196
+  Qms:  # mechanical Q factor
+    value: 14.88
+    winner: vendor_page
+    sources:
+      vendor_page: 14.88
   Cms:  # mechanical compliance (m/N)
     value: 0.00011999999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.00011999999999999999
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-4300--eminence-12-2kw-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-4300--eminence-12-2kw-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-Omega-Pro-12-2KW-8-12-Professional-Series-Speaker-8-Ohm-290-4300
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 20.4
+    winner: vendor_page
+    sources:
+      vendor_page: 20.4
+  Le:  # voice coil inductance (H)
+    value: 0.00113
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00113
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0495544
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0495544

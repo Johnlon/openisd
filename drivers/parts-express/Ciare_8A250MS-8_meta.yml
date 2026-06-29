@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-207--ciare-americano-8a250ms-8-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,29 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 293-207
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-207--ciare-americano-8a250ms-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000566336
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000566336
-  Qes:  # electrical Q factor
-    value: 3.66
-    winner: vendor_page
-    sources:
-      vendor_page: 3.66
-  BL:  # force factor (T·m)
-    value: 7.3
-    winner: vendor_page
-    sources:
-      vendor_page: 7.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.72
-    winner: vendor_page
-    sources:
-      vendor_page: 5.72
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  Fs:  # free air resonance (Hz)
-    value: 425.13
-    winner: vendor_page
-    sources:
-      vendor_page: 425.13
   Qts:  # total Q factor
     value: 2.21
     winner: vendor_page
     sources:
       vendor_page: 2.21
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.72
+    winner: vendor_page
+    sources:
+      vendor_page: 5.72
+  Fs:  # free air resonance (Hz)
+    value: 425.13
+    winner: vendor_page
+    sources:
+      vendor_page: 425.13
   Qms:  # mechanical Q factor
     value: 5.55
     winner: vendor_page
@@ -62,19 +48,33 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 3.66
+    winner: vendor_page
+    sources:
+      vendor_page: 3.66
+  Pe:  # rated power input (W)
+    value: 125.0
+    winner: vendor_page
+    sources:
+      vendor_page: 125.0
+  BL:  # force factor (T·m)
+    value: 7.3
+    winner: vendor_page
+    sources:
+      vendor_page: 7.3
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000566336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000566336
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 120.0
     winner: vendor_page
     sources:
       vendor_page: 120.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-207--ciare-americano-8a250ms-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-207--ciare-americano-8a250ms-8-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-8A250MS-8-Americano-Series-8-Sealed-Back-Midrange-8-Ohm-293-207
-frd_url: null
-zma_url: null

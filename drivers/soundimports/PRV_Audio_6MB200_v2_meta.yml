@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00413
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00413
-  Qes:  # electrical Q factor
-    value: 1.2
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01157
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01157
-  BL:  # force factor (T·m)
-    value: 7.05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.05
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 123.28
-    winner: vendor_page
-    sources:
-      vendor_page: 123.28
   Xmax:  # one-way linear excursion (m)
     value: 0.0048
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.13
-  Qms:  # mechanical Q factor
-    value: 20.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
     winner: vendor_page
     sources:
-      vendor_page: 20.81
+      vendor_page: 6.7
   Sd:  # effective piston area (m²)
     value: 0.0154
     winner: vendor_page
     sources:
       vendor_page: 0.0154
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mb200-v2.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 123.28
+    winner: vendor_page
+    sources:
+      vendor_page: 123.28
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01157
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01157
+  Qms:  # mechanical Q factor
+    value: 20.81
+    winner: vendor_page
+    sources:
+      vendor_page: 20.81
+  Qes:  # electrical Q factor
+    value: 1.2
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 7.05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.05
+  Le:  # voice coil inductance (H)
+    value: 0.00025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00413
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00413

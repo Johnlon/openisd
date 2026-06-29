@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,33 +15,24 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
 obsolete: null
 dq_issue: missing_Sd; Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms; Qts_impossible2;
   Qts_high
 community: null
 fetched_sku: 298-1219
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
 specs:
-  Qes:  # electrical Q factor
-    value: 1.78
-    winner: vendor_page
-    sources:
-      vendor_page: 1.78
-  Pe:  # rated power input (W)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Fs:  # free air resonance (Hz)
-    value: 750.0
-    winner: vendor_page
-    sources:
-      vendor_page: 750.0
   Qts:  # total Q factor
     value: 11.46
     winner: vendor_page
     sources:
       vendor_page: 11.46
+  Fs:  # free air resonance (Hz)
+    value: 750.0
+    winner: vendor_page
+    sources:
+      vendor_page: 750.0
   Qms:  # mechanical Q factor
     value: 8.2
     winner: vendor_page
@@ -43,13 +43,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA21-30mm-Graphene-Dome-Tweeter-4-Ohm-298-1219
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.78
+    winner: vendor_page
+    sources:
+      vendor_page: 1.78
+  Pe:  # rated power input (W)
+    value: 65.0
+    winner: vendor_page
+    sources:
+      vendor_page: 65.0

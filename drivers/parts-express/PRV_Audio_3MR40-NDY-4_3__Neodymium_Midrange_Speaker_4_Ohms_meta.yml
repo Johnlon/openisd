@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0006229696
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006229696
-  Qes:  # electrical Q factor
-    value: 0.99
-    winner: vendor_page
-    sources:
-      vendor_page: 0.99
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00262
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00262
-  BL:  # force factor (T·m)
-    value: 2.93
-    winner: vendor_page
-    sources:
-      vendor_page: 2.93
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 153.2
-    winner: vendor_page
-    sources:
-      vendor_page: 153.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7395806602161205
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7395806602161205
   Xmax:  # one-way linear excursion (m)
     value: 0.0014
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.77
-  Qms:  # mechanical Q factor
-    value: 3.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 3.41
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0033200000000000005
     winner: vendor_page
     sources:
       vendor_page: 0.0033200000000000005
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 153.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 153.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7395806602161205
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7395806602161205
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00262
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00262
+  Qms:  # mechanical Q factor
+    value: 3.41
+    winner: vendor_page
+    sources:
+      vendor_page: 3.41
   Cms:  # mechanical compliance (m/N)
     value: 0.000443
     winner: vendor_page
     sources:
       vendor_page: 0.000443
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.99
+    winner: vendor_page
+    sources:
+      vendor_page: 0.99
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 2.93
+    winner: vendor_page
+    sources:
+      vendor_page: 2.93
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0006229696
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006229696
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 120.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 91.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
-frd_url: null
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.31 differs from calculated=0.30662 (deps: Qms=1.7
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-434
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0014299999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0014299999999999998
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.159140416
-    winner: vendor_page
-    sources:
-      vendor_page: 0.159140416
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0974
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0974
-  BL:  # force factor (T·m)
-    value: 15.6
-    winner: vendor_page
-    sources:
-      vendor_page: 15.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 24.2
-    winner: vendor_page
-    sources:
-      vendor_page: 24.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.273726493769194
-    winner: vendor_page
-    sources:
-      vendor_page: 8.273726493769194
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 1.79
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 1.79
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.05067
     winner: vendor_page
     sources:
       vendor_page: 0.05067
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.2
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 8.273726493769194
+    winner: vendor_page
+    sources:
+      vendor_page: 8.273726493769194
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0974
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0974
+  Qms:  # mechanical Q factor
+    value: 1.79
+    winner: vendor_page
+    sources:
+      vendor_page: 1.79
   Cms:  # mechanical compliance (m/N)
     value: 0.00044
     winner: vendor_page
     sources:
       vendor_page: 0.00044
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS315-8-12-Designer-Series-Woofer-295-434
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 15.6
+    winner: vendor_page
+    sources:
+      vendor_page: 15.6
+  Le:  # voice coil inductance (H)
+    value: 0.0014299999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0014299999999999998
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.159140416
+    winner: vendor_page
+    sources:
+      vendor_page: 0.159140416

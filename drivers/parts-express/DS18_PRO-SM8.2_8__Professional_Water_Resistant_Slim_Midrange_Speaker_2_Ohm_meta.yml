@@ -1,41 +1,23 @@
+source: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01132672
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0008
     winner: vendor_page
@@ -46,6 +28,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 110.0
+    winner: vendor_page
+    sources:
+      vendor_page: 110.0
   Qms:  # mechanical Q factor
     value: 3.88
     winner: vendor_page
@@ -56,10 +48,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  vendor_page: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/DS18-PRO-SM8.2-8-Professional-Water-Resistant-Slim-Midrange-Speaker-2-Ohm-294-8050
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01132672

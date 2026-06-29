@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2956--prv-audio-10mr2000-ndy-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
 obsolete: null
 dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
 community: null
 fetched_sku: 294-2956
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2956--prv-audio-10mr2000-ndy-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02798
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02798
-  Qes:  # electrical Q factor
-    value: 0.21
-    winner: vendor_page
-    sources:
-      vendor_page: 0.21
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05933
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05933
-  BL:  # force factor (T·m)
-    value: 21.73
-    winner: vendor_page
-    sources:
-      vendor_page: 21.73
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 54.48
-    winner: vendor_page
-    sources:
-      vendor_page: 54.48
-  Rms:  # mechanical resistance (kg/s)
-    value: 13.187746633311741
-    winner: vendor_page
-    sources:
-      vendor_page: 13.187746633311741
   Xmax:  # one-way linear excursion (m)
     value: 0.00715
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Qms:  # mechanical Q factor
-    value: 1.54
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 1.54
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0373
     winner: vendor_page
     sources:
       vendor_page: 0.0373
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 54.48
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 54.48
+  Rms:  # mechanical resistance (kg/s)
+    value: 13.187746633311741
+    winner: vendor_page
+    sources:
+      vendor_page: 13.187746633311741
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05933
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05933
+  Qms:  # mechanical Q factor
+    value: 1.54
+    winner: vendor_page
+    sources:
+      vendor_page: 1.54
   Cms:  # mechanical compliance (m/N)
     value: 0.000143
     winner: vendor_page
     sources:
       vendor_page: 0.000143
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2956--prv-audio-10mr2000-ndy-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2956--prv-audio-10mr2000-ndy-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.21
+    winner: vendor_page
+    sources:
+      vendor_page: 0.21
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 21.73
+    winner: vendor_page
+    sources:
+      vendor_page: 21.73
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02798
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02798

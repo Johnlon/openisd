@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6012--bc-8ndl64-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6012--bc-8ndl64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009910879999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009910879999999999
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.028
-  BL:  # force factor (T·m)
-    value: 17.5
-    winner: vendor_page
-    sources:
-      vendor_page: 17.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2794850080074793
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2794850080074793
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.25
-  Qms:  # mechanical Q factor
-    value: 11.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 11.0
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.2794850080074793
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2794850080074793
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.028
+  Qms:  # mechanical Q factor
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6012--bc-8ndl64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6012--bc-8ndl64-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-8NDL64-8-Neodymium-Woofer-294-6012
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 17.5
+    winner: vendor_page
+    sources:
+      vendor_page: 17.5
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009910879999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009910879999999999

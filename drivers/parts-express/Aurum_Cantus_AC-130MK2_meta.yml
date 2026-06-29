@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
+datasheet_url: https://www.parts-express.com/pedocs/specs/296-404-aurum-cantus-ac-130mk2-specifications-45625.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.29 differs from calculated=0.297493 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 296-404
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/296-404-aurum-cantus-ac-130mk2-specifications-45625.pdf
+  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00035
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039
-    winner: vendor_page
-    sources:
-      vendor_page: 0.039
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009
-  BL:  # force factor (T·m)
-    value: 5.63
-    winner: vendor_page
-    sources:
-      vendor_page: 5.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6553653548879369
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6553653548879369
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 3.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
     winner: vendor_page
     sources:
-      vendor_page: 3.02
+      vendor_page: 7.0
   Sd:  # effective piston area (m²)
     value: 0.0095
     winner: vendor_page
     sources:
       vendor_page: 0.0095
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6553653548879369
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6553653548879369
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009
+  Qms:  # mechanical Q factor
+    value: 3.02
+    winner: vendor_page
+    sources:
+      vendor_page: 3.02
   Cms:  # mechanical compliance (m/N)
     value: 0.00306
     winner: vendor_page
     sources:
       vendor_page: 0.00306
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/296-404-aurum-cantus-ac-130mk2-specifications-45625.pdf
-  vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
-datasheet_url: https://www.parts-express.com/pedocs/specs/296-404-aurum-cantus-ac-130mk2-specifications-45625.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Aurum-Cantus-AC-130MKII-5-1-4-Carbon-Fiber-Kevlar-Woofer-296-404
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 5.63
+    winner: vendor_page
+    sources:
+      vendor_page: 5.63
+  Le:  # voice coil inductance (H)
+    value: 0.00035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00035
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039
+    winner: vendor_page
+    sources:
+      vendor_page: 0.039

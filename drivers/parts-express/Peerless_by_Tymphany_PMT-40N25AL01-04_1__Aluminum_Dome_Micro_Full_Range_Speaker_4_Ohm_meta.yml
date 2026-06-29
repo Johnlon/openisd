@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1154--tymphany-pmt-40n25al01-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1154--tymphany-pmt-40n25al01-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 0.59
-    winner: vendor_page
-    sources:
-      vendor_page: 0.59
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00101
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00101
-  BL:  # force factor (T·m)
-    value: 3.02
-    winner: vendor_page
-    sources:
-      vendor_page: 3.02
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 234.0
-    winner: vendor_page
-    sources:
-      vendor_page: 234.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7815621134204334
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7815621134204334
   Xmax:  # one-way linear excursion (m)
     value: 0.0019
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 1.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 1.9
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0008
     winner: vendor_page
     sources:
       vendor_page: 0.0008
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 234.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 234.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7815621134204334
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7815621134204334
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00101
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00101
+  Qms:  # mechanical Q factor
+    value: 1.9
+    winner: vendor_page
+    sources:
+      vendor_page: 1.9
   Cms:  # mechanical compliance (m/N)
     value: 0.04586
     winner: vendor_page
     sources:
       vendor_page: 0.04586
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.59
+    winner: vendor_page
+    sources:
+      vendor_page: 0.59
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 3.02
+    winner: vendor_page
+    sources:
+      vendor_page: 3.02
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 85.6
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1154--tymphany-pmt-40n25al01-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1154--tymphany-pmt-40n25al01-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154
-frd_url: null
-zma_url: null

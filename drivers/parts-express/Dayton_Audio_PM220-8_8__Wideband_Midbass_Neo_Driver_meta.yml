@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-345-Dayton-Audio-PM220-8-Specifications.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/295-345--Dayton-Audio-PM220-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
+driver_type: mid-bass
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-345-Dayton-Audio-PM220-8-Specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.062863296
-    winner: vendor_page
-    sources:
-      vendor_page: 0.062863296
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0107
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0107
-  BL:  # force factor (T·m)
-    value: 7.21
-    winner: vendor_page
-    sources:
-      vendor_page: 7.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 49.1
-    winner: vendor_page
-    sources:
-      vendor_page: 49.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6498025718175077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6498025718175077
   Xmax:  # one-way linear excursion (m)
     value: 0.0046
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.08
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 5.08
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.02053
     winner: vendor_page
     sources:
       vendor_page: 0.02053
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 49.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 49.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6498025718175077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6498025718175077
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0107
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0107
+  Qms:  # mechanical Q factor
+    value: 5.08
+    winner: vendor_page
+    sources:
+      vendor_page: 5.08
   Cms:  # mechanical compliance (m/N)
     value: 0.00098
     winner: vendor_page
     sources:
       vendor_page: 0.00098
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-345-Dayton-Audio-PM220-8-Specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-345-Dayton-Audio-PM220-8-Specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
-frd_url: https://www.parts-express.com/pedocs/tech-docs/295-345--Dayton-Audio-PM220-8_data.zip
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 7.21
+    winner: vendor_page
+    sources:
+      vendor_page: 7.21
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.062863296
+    winner: vendor_page
+    sources:
+      vendor_page: 0.062863296

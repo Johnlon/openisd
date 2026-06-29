@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
+datasheet_url: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/292-480--grs-8sw-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/292-480--grs-8sw-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022087104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022087104
-  Qes:  # electrical Q factor
-    value: 1.13
-    winner: vendor_page
-    sources:
-      vendor_page: 1.13
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0332
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0332
-  BL:  # force factor (T·m)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Fs:  # free air resonance (Hz)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.3124443661712215
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3124443661712215
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.89
-  Qms:  # mechanical Q factor
-    value: 4.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 4.33
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.02168
     winner: vendor_page
     sources:
       vendor_page: 0.02168
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 48.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 48.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.3124443661712215
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3124443661712215
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0332
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0332
+  Qms:  # mechanical Q factor
+    value: 4.33
+    winner: vendor_page
+    sources:
+      vendor_page: 4.33
   Cms:  # mechanical compliance (m/N)
     value: 0.00033
     winner: vendor_page
     sources:
       vendor_page: 0.00033
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/292-480--grs-8sw-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
-datasheet_url: https://www.parts-express.com/pedocs/specs/GRS%20Spec%20Sheets/292-480--grs-8sw-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-8SW-4-8-Poly-Cone-Subwoofer-4-Ohm-292-480
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.13
+    winner: vendor_page
+    sources:
+      vendor_page: 1.13
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  BL:  # force factor (T·m)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022087104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022087104

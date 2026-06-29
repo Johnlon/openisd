@@ -1,3 +1,12 @@
+source: https://www.soundimports.eu/en/grs-12sw-4he.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/grs-12sw-4he.html
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
@@ -6,52 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: null
 nominal_size_cm: null
-source: https://www.soundimports.eu/en/grs-12sw-4he.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/grs-12sw-4he.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0035
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.080419712
-    winner: vendor_page
-    sources:
-      vendor_page: 0.080419712
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.237
-    winner: vendor_page
-    sources:
-      vendor_page: 0.237
-  BL:  # force factor (T·m)
-    value: 16.2
-    winner: vendor_page
-    sources:
-      vendor_page: 16.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -62,26 +32,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 4.08
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
     winner: vendor_page
     sources:
-      vendor_page: 4.08
+      vendor_page: 3.9
   Sd:  # effective piston area (m²)
     value: 0.05073
     winner: vendor_page
     sources:
       vendor_page: 0.05073
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 22.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 22.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.237
+    winner: vendor_page
+    sources:
+      vendor_page: 0.237
+  Qms:  # mechanical Q factor
+    value: 4.08
+    winner: vendor_page
+    sources:
+      vendor_page: 4.08
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 16.2
+    winner: vendor_page
+    sources:
+      vendor_page: 16.2
+  Le:  # voice coil inductance (H)
+    value: 0.0035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0035
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.080419712
+    winner: vendor_page
+    sources:
+      vendor_page: 0.080419712
   power_peak_W:  # peak power handling (W)
     value: 500.0
     winner: vendor_page
@@ -102,13 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/grs-12sw-4he.html
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/grs-12sw-4he.html
-frd_url: null
-zma_url: null

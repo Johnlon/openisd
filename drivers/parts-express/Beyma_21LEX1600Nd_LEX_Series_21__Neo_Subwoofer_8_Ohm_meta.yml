@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-053--21lex1600nd-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-053--21lex1600nd-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0047
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.304971936
-    winner: vendor_page
-    sources:
-      vendor_page: 0.304971936
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000393
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000393
-  BL:  # force factor (T·m)
-    value: 36.6
-    winner: vendor_page
-    sources:
-      vendor_page: 36.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.008613808694377594
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008613808694377594
   Xmax:  # one-way linear excursion (m)
     value: 0.014
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 8.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 8.6
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 1.734e-05
     winner: vendor_page
     sources:
       vendor_page: 1.734e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.008613808694377594
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008613808694377594
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000393
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000393
+  Qms:  # mechanical Q factor
+    value: 8.6
+    winner: vendor_page
+    sources:
+      vendor_page: 8.6
   Cms:  # mechanical compliance (m/N)
     value: 0.072
     winner: vendor_page
     sources:
       vendor_page: 0.072
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  Pe:  # rated power input (W)
+    value: 1600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1600.0
+  BL:  # force factor (T·m)
+    value: 36.6
+    winner: vendor_page
+    sources:
+      vendor_page: 36.6
+  Le:  # voice coil inductance (H)
+    value: 0.0047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0047
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.304971936
+    winner: vendor_page
+    sources:
+      vendor_page: 0.304971936
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 98.0
     winner: vendor_page
     sources:
       vendor_page: 98.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-053--21lex1600nd-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-053--21lex1600nd-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053
-frd_url: null
-zma_url: null

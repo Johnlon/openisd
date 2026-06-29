@@ -1,26 +1,34 @@
+source: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-595--dayton-audio-dma80-pr-specification-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-595--dayton-audio-dma80-pr-specification-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0020104928
+  Xmax:  # one-way linear excursion (m)
+    value: 0.007
     winner: vendor_page
     sources:
-      vendor_page: 0.0020104928
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013699999999999999
+      vendor_page: 0.007
+  Sd:  # effective piston area (m²)
+    value: 0.00312
     winner: vendor_page
     sources:
-      vendor_page: 0.013699999999999999
+      vendor_page: 0.00312
   Fs:  # free air resonance (Hz)
     value: 34.6
     winner: vendor_page
@@ -31,31 +39,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3342710998102432
-  Xmax:  # one-way linear excursion (m)
-    value: 0.007
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013699999999999999
     winner: vendor_page
     sources:
-      vendor_page: 0.007
+      vendor_page: 0.013699999999999999
   Qms:  # mechanical Q factor
     value: 8.91
     winner: vendor_page
     sources:
       vendor_page: 8.91
-  Sd:  # effective piston area (m²)
-    value: 0.00312
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00312
   Cms:  # mechanical compliance (m/N)
     value: 0.00141
     winner: vendor_page
     sources:
       vendor_page: 0.00141
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-595--dayton-audio-dma80-pr-specification-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-595--dayton-audio-dma80-pr-specification-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DMA80-PR-3-DMA-Series-Passive-Radiator-295-595
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0020104928
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0020104928

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 6.7e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 2.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4e-05
-  Qes:  # electrical Q factor
-    value: 0.94
-    winner: vendor_page
-    sources:
-      vendor_page: 0.94
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000604
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000604
-  BL:  # force factor (T·m)
-    value: 1.84
-    winner: vendor_page
-    sources:
-      vendor_page: 1.84
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Fs:  # free air resonance (Hz)
-    value: 240.0
-    winner: vendor_page
-    sources:
-      vendor_page: 240.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00314
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 2.13
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 2.13
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.000487
     winner: vendor_page
     sources:
       vendor_page: 0.000487
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 240.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 240.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000604
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000604
+  Qms:  # mechanical Q factor
+    value: 2.13
+    winner: vendor_page
+    sources:
+      vendor_page: 2.13
   Cms:  # mechanical compliance (m/N)
     value: 0.00071
     winner: vendor_page
     sources:
       vendor_page: 0.00071
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-pmt-30n18al04-04.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.94
+    winner: vendor_page
+    sources:
+      vendor_page: 0.94
+  Pe:  # rated power input (W)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  BL:  # force factor (T·m)
+    value: 1.84
+    winner: vendor_page
+    sources:
+      vendor_page: 1.84
+  Le:  # voice coil inductance (H)
+    value: 6.7e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.7e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 2.4e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4e-05

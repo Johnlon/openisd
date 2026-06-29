@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00263
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00263
-  BL:  # force factor (T·m)
-    value: 3.91
-    winner: vendor_page
-    sources:
-      vendor_page: 3.91
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.55
-    winner: vendor_page
-    sources:
-      vendor_page: 3.55
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 105.0
-    winner: vendor_page
-    sources:
-      vendor_page: 105.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Qms:  # mechanical Q factor
-    value: 9.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.55
     winner: vendor_page
     sources:
-      vendor_page: 9.35
+      vendor_page: 3.55
   Sd:  # effective piston area (m²)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 105.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 105.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00263
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00263
+  Qms:  # mechanical Q factor
+    value: 9.35
+    winner: vendor_page
+    sources:
+      vendor_page: 9.35
   Cms:  # mechanical compliance (m/N)
     value: 0.00084
     winner: vendor_page
     sources:
       vendor_page: 0.00084
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-sph-30x-4sw.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.91
+    winner: vendor_page
+    sources:
+      vendor_page: 3.91
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011

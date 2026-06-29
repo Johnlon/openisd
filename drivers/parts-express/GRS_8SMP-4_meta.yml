@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-866--grs-8smp-4-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0376 differs from calculated=0.0385247 (deps: roo
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-866
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-866--grs-8smp-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0376
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.029
-  BL:  # force factor (T·m)
-    value: 7.56
-    winner: vendor_page
-    sources:
-      vendor_page: 7.56
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: vendor_page
-    sources:
-      vendor_page: 38.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.574003794985838
-    winner: vendor_page
-    sources:
-      vendor_page: 2.574003794985838
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 2.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 2.69
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.0211
     winner: vendor_page
     sources:
       vendor_page: 0.0211
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 38.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 38.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.574003794985838
+    winner: vendor_page
+    sources:
+      vendor_page: 2.574003794985838
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.029
+  Qms:  # mechanical Q factor
+    value: 2.69
+    winner: vendor_page
+    sources:
+      vendor_page: 2.69
   Cms:  # mechanical compliance (m/N)
     value: 0.00061
     winner: vendor_page
     sources:
       vendor_page: 0.00061
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-866--grs-8smp-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-866--grs-8smp-4-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-8-Woofer-Surface-Mount-Poly-Cone-4-Ohm-8SMP-4-292-866
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 7.56
+    winner: vendor_page
+    sources:
+      vendor_page: 7.56
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0376

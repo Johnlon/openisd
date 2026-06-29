@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-msh-116-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-msh-116-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-msh-116-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-msh-116-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00018
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0027
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0046
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0046
-  BL:  # force factor (T·m)
-    value: 4.3
-    winner: vendor_page
-    sources:
-      vendor_page: 4.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 95.0
-    winner: vendor_page
-    sources:
-      vendor_page: 95.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -65,25 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 2.38
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 2.38
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0055
     winner: vendor_page
     sources:
       vendor_page: 0.0055
+  Fs:  # free air resonance (Hz)
+    value: 95.0
+    winner: vendor_page
+    sources:
+      vendor_page: 95.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.2
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0046
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0046
+  Qms:  # mechanical Q factor
+    value: 2.38
+    winner: vendor_page
+    sources:
+      vendor_page: 2.38
   Cms:  # mechanical compliance (m/N)
     value: 0.00062
     winner: vendor_page
     sources:
       vendor_page: 0.00062
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-msh-116-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-msh-116-4.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 4.3
+    winner: vendor_page
+    sources:
+      vendor_page: 4.3
+  Le:  # voice coil inductance (H)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0027

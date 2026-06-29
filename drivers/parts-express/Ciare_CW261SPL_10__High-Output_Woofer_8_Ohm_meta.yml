@@ -1,41 +1,41 @@
+source: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-144--ciare-cw261spl-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-144--ciare-cw261spl-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
 specs:
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: vendor_page
-    sources:
-      vendor_page: 44.0
   Sd:  # effective piston area (m²)
     value: 0.0356
     winner: vendor_page
     sources:
       vendor_page: 0.0356
+  Fs:  # free air resonance (Hz)
+    value: 44.0
+    winner: vendor_page
+    sources:
+      vendor_page: 44.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-144--ciare-cw261spl-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-144--ciare-cw261spl-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CW261SPL-10-High-Output-Woofer-8-Ohm-293-144
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/css-sdx10.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/css-sdx10.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/css-sdx10.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/css-sdx10.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00142
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00142
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03398
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03398
-  Qes:  # electrical Q factor
-    value: 0.63
-    winner: vendor_page
-    sources:
-      vendor_page: 0.63
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1005
-  BL:  # force factor (T·m)
-    value: 10.26
-    winner: vendor_page
-    sources:
-      vendor_page: 10.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Pe:  # rated power input (W)
-    value: 750.0
-    winner: vendor_page
-    sources:
-      vendor_page: 750.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0184
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.54
-  Qms:  # mechanical Q factor
-    value: 3.69
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
     winner: vendor_page
     sources:
-      vendor_page: 3.69
+      vendor_page: 3.5
   Sd:  # effective piston area (m²)
     value: 0.02924
     winner: vendor_page
     sources:
       vendor_page: 0.02924
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1005
+  Qms:  # mechanical Q factor
+    value: 3.69
+    winner: vendor_page
+    sources:
+      vendor_page: 3.69
   Cms:  # mechanical compliance (m/N)
     value: 0.00028
     winner: vendor_page
     sources:
       vendor_page: 0.00028
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.63
+    winner: vendor_page
+    sources:
+      vendor_page: 0.63
+  Pe:  # rated power input (W)
+    value: 750.0
+    winner: vendor_page
+    sources:
+      vendor_page: 750.0
+  BL:  # force factor (T·m)
+    value: 10.26
+    winner: vendor_page
+    sources:
+      vendor_page: 10.26
+  Le:  # voice coil inductance (H)
+    value: 0.00142
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00142
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03398
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03398
   power_peak_W:  # peak power handling (W)
     value: 1500.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/css-sdx10.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/css-sdx10.html
-frd_url: null
-zma_url: null

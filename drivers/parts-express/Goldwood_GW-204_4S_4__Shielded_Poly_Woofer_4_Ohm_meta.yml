@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-370-goldwood-gw-2044s-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-370-goldwood-gw-2044s-specifications.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 2.2
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0052
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0052
-  BL:  # force factor (T·m)
-    value: 2.84
-    winner: vendor_page
-    sources:
-      vendor_page: 2.84
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 139.8
-    winner: vendor_page
-    sources:
-      vendor_page: 139.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6352746023514982
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6352746023514982
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.69
-  Qms:  # mechanical Q factor
-    value: 7.19
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 7.19
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.005352
     winner: vendor_page
     sources:
       vendor_page: 0.005352
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 139.8
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 139.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6352746023514982
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6352746023514982
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0052
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0052
+  Qms:  # mechanical Q factor
+    value: 7.19
+    winner: vendor_page
+    sources:
+      vendor_page: 7.19
   Cms:  # mechanical compliance (m/N)
     value: 0.00023999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00023999999999999998
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-370-goldwood-gw-2044s-specifications.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-370-goldwood-gw-2044s-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 2.2
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 2.84
+    winner: vendor_page
+    sources:
+      vendor_page: 2.84
+  Le:  # voice coil inductance (H)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

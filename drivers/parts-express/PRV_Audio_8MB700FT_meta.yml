@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3540--prv-audio-8mb700ft-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-3540
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3540--prv-audio-8mb700ft-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00046
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00046
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.019991660799999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.019991660799999998
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02094
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02094
-  BL:  # force factor (T·m)
-    value: 12.25
-    winner: vendor_page
-    sources:
-      vendor_page: 12.25
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 72.3
-    winner: vendor_page
-    sources:
-      vendor_page: 72.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.582779333448955
-    winner: vendor_page
-    sources:
-      vendor_page: 1.582779333448955
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -67,26 +33,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 6.01
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 6.01
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.0249
     winner: vendor_page
     sources:
       vendor_page: 0.0249
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 72.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 72.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.582779333448955
+    winner: vendor_page
+    sources:
+      vendor_page: 1.582779333448955
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02094
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02094
+  Qms:  # mechanical Q factor
+    value: 6.01
+    winner: vendor_page
+    sources:
+      vendor_page: 6.01
   Cms:  # mechanical compliance (m/N)
     value: 0.02
     winner: vendor_page
     sources:
       vendor_page: 0.02
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 12.25
+    winner: vendor_page
+    sources:
+      vendor_page: 12.25
+  Le:  # voice coil inductance (H)
+    value: 0.00046
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00046
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.019991660799999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.019991660799999998
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 3.0
     winner: vendor_page
@@ -102,14 +113,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3540--prv-audio-8mb700ft-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3540--prv-audio-8mb700ft-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540
-frd_url: null
-zma_url: null

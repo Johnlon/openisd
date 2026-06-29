@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-060--12wr400-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.27 differs from calculated=0.266667 (deps: Qms=5.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-060
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-060--12wr400-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
 specs:
-  Le:  # voice coil inductance (H)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.090896928
-    winner: vendor_page
-    sources:
-      vendor_page: 0.090896928
-  Qes:  # electrical Q factor
-    value: 0.28
-    winner: vendor_page
-    sources:
-      vendor_page: 0.28
-  Mms:  # moving mass incl. air load (kg)
-    value: 6.3e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3e-05
-  BL:  # force factor (T·m)
-    value: 18.0
-    winner: vendor_page
-    sources:
-      vendor_page: 18.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.002968805057642355
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002968805057642355
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,7 +34,7 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
+  Re:  # DC voice coil resistance (Ω)
     value: 5.6
     winner: vendor_page
     sources:
@@ -78,19 +44,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.053
+  Fs:  # free air resonance (Hz)
+    value: 42.0
+    winner: vendor_page
+    sources:
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.002968805057642355
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002968805057642355
+  Mms:  # moving mass incl. air load (kg)
+    value: 6.3e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3e-05
+  Qms:  # mechanical Q factor
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
   Znom:  # nominal impedance (Ω)
     value: 45.0
     winner: vendor_page
     sources:
       vendor_page: 45.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-060--12wr400-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-060--12wr400-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.28
+    winner: vendor_page
+    sources:
+      vendor_page: 0.28
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 18.0
+    winner: vendor_page
+    sources:
+      vendor_page: 18.0
+  Le:  # voice coil inductance (H)
+    value: 42.0
+    winner: vendor_page
+    sources:
+      vendor_page: 42.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.090896928
+    winner: vendor_page
+    sources:
+      vendor_page: 0.090896928

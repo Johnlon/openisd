@@ -1,3 +1,12 @@
+source: https://www.scan-speak.dk/product/d2004-602200/
+manu_page_url: https://www.scan-speak.dk/product/d2004-602200/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d2004-602200.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d2004-602000.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/d2004-602200.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/d2004-602200.ZIP
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
@@ -6,56 +15,47 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: 1.9
-source: https://www.scan-speak.dk/product/d2004-602200/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/d2004-602200.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d2004-602000.pdf
+  manu_page: https://www.scan-speak.dk/product/d2004-602200/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.0e-05
-    winner: manu_page
-    sources:
-      manu_page: 1.0e-05
-  BL:  # force factor (T·m)
-    value: 1.3
-    winner: manu_page
-    sources:
-      manu_page: 1.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.8
-    winner: manu_page
-    sources:
-      manu_page: 2.8
-  Fs:  # free air resonance (Hz)
-    value: 550.0
-    winner: manu_page
-    sources:
-      manu_page: 550.0
   Qts:  # total Q factor
     value: 0.95
     winner: manu_page
     sources:
       manu_page: 0.95
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.8
+    winner: manu_page
+    sources:
+      manu_page: 2.8
   Sd:  # effective piston area (m²)
     value: 0.00045
     winner: manu_page
     sources:
       manu_page: 0.00045
+  Fs:  # free air resonance (Hz)
+    value: 550.0
+    winner: manu_page
+    sources:
+      manu_page: 550.0
+  BL:  # force factor (T·m)
+    value: 1.3
+    winner: manu_page
+    sources:
+      manu_page: 1.3
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/d2004-602200.pdf
-  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d2004-602000.pdf
-  manu_page: https://www.scan-speak.dk/product/d2004-602200/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d2004-602200.pdf
-adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d2004-602000.pdf
-drawing_url: https://www.scan-speak.dk/datasheet/drw/d2004-602200.png
-cad_url: https://www.scan-speak.dk/datasheet/3d/d2004-602200.ZIP
-manu_page_url: https://www.scan-speak.dk/product/d2004-602200/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.0e-05
+    winner: manu_page
+    sources:
+      manu_page: 1.0e-05

@@ -1,36 +1,36 @@
+source: https://www.scan-speak.dk/product/26w-0-00-00/
+manu_page_url: https://www.scan-speak.dk/product/26w-0-00-00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/26w-0-00-00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/26w-0-00-00/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/26w-0-00-00.pdf
+  manu_page: https://www.scan-speak.dk/product/26w-0-00-00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.095
-    winner: manu_page
-    sources:
-      manu_page: 0.095
-  Fs:  # free air resonance (Hz)
-    value: 11.0
-    winner: manu_page
-    sources:
-      manu_page: 11.0
   Sd:  # effective piston area (m²)
     value: 0.0352
     winner: manu_page
     sources:
       manu_page: 0.0352
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/26w-0-00-00.pdf
-  manu_page: https://www.scan-speak.dk/product/26w-0-00-00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/26w-0-00-00.pdf
-manu_page_url: https://www.scan-speak.dk/product/26w-0-00-00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 11.0
+    winner: manu_page
+    sources:
+      manu_page: 11.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.095
+    winner: manu_page
+    sources:
+      manu_page: 0.095

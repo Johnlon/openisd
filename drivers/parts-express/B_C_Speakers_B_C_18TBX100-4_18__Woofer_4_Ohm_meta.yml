@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6009--bc-18tbx100-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6009--bc-18tbx100-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00173
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00173
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.25598387199999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25598387199999995
-  Qes:  # electrical Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  BL:  # force factor (T·m)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 2400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2400.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.19342551707702
-    winner: vendor_page
-    sources:
-      vendor_page: 6.19342551707702
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 7.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 7.0
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.1212
     winner: vendor_page
     sources:
       vendor_page: 0.1212
+  Fs:  # free air resonance (Hz)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.19342551707702
+    winner: vendor_page
+    sources:
+      vendor_page: 6.19342551707702
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Qms:  # mechanical Q factor
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6009--bc-18tbx100-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6009--bc-18tbx100-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-18TBX100-4-18-Professional-Subwoofer-4-Ohm-294-6009
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.33
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33
+  Pe:  # rated power input (W)
+    value: 2400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2400.0
+  BL:  # force factor (T·m)
+    value: 22.0
+    winner: vendor_page
+    sources:
+      vendor_page: 22.0
+  Le:  # voice coil inductance (H)
+    value: 0.00173
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00173
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.25598387199999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25598387199999995

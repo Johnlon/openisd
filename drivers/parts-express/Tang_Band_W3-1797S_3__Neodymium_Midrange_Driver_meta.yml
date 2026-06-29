@@ -1,41 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-888--tang-band-w3-1797s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-888--tang-band-w3-1797s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001132672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001132672
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -46,6 +29,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6
+  Fs:  # free air resonance (Hz)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
   Qms:  # mechanical Q factor
     value: 1.66
     winner: vendor_page
@@ -56,11 +49,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-888--tang-band-w3-1797s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-888--tang-band-w3-1797s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001132672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001132672

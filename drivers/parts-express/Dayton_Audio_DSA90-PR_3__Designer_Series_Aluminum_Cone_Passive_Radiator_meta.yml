@@ -1,26 +1,34 @@
+source: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-542--dayton-audio-dsa90-pr-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
+driver_type: pr
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: pr
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-542--dayton-audio-dsa90-pr-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0035112832
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
     winner: vendor_page
     sources:
-      vendor_page: 0.0035112832
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.005
+      vendor_page: 0.004
+  Sd:  # effective piston area (m²)
+    value: 0.00312
     winner: vendor_page
     sources:
-      vendor_page: 0.005
+      vendor_page: 0.00312
   Fs:  # free air resonance (Hz)
     value: 43.7
     winner: vendor_page
@@ -31,31 +39,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.2400132848983811
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 0.004
+      vendor_page: 0.005
   Qms:  # mechanical Q factor
     value: 5.72
     winner: vendor_page
     sources:
       vendor_page: 5.72
-  Sd:  # effective piston area (m²)
-    value: 0.00312
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00312
   Cms:  # mechanical compliance (m/N)
     value: 0.0025499999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.0025499999999999997
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-542--dayton-audio-dsa90-pr-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-542--dayton-audio-dsa90-pr-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA90-PR-3-Designer-Series-Aluminum-Cone-Passive-Radiator-295-542
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0035112832
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0035112832

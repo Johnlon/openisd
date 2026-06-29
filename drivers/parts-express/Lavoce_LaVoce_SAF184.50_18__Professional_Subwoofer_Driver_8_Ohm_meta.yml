@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.16197209599999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.16197209599999998
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.271
-    winner: vendor_page
-    sources:
-      vendor_page: 0.271
-  BL:  # force factor (T·m)
-    value: 30.72
-    winner: vendor_page
-    sources:
-      vendor_page: 30.72
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.55
-    winner: vendor_page
-    sources:
-      vendor_page: 5.55
-  Pe:  # rated power input (W)
-    value: 1800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1800.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 11.036298636777476
-    winner: vendor_page
-    sources:
-      vendor_page: 11.036298636777476
   Xmax:  # one-way linear excursion (m)
     value: 0.0125
     winner: vendor_page
@@ -66,30 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 5.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.55
     winner: vendor_page
     sources:
-      vendor_page: 5.4
+      vendor_page: 5.55
   Sd:  # effective piston area (m²)
     value: 0.1225
     winner: vendor_page
     sources:
       vendor_page: 0.1225
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 11.036298636777476
+    winner: vendor_page
+    sources:
+      vendor_page: 11.036298636777476
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.271
+    winner: vendor_page
+    sources:
+      vendor_page: 0.271
+  Qms:  # mechanical Q factor
+    value: 5.4
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4
   Cms:  # mechanical compliance (m/N)
     value: 8.0e-05
     winner: vendor_page
     sources:
       vendor_page: 8.0e-05
-_sources:
-  vendor_page: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 1800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1800.0
+  BL:  # force factor (T·m)
+    value: 30.72
+    winner: vendor_page
+    sources:
+      vendor_page: 30.72
+  Le:  # voice coil inductance (H)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.16197209599999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.16197209599999998

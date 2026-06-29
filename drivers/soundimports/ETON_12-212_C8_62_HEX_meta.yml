@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00157
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00157
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.176
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0927
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0927
-  BL:  # force factor (T·m)
-    value: 15.7
-    winner: vendor_page
-    sources:
-      vendor_page: 15.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.13
-    winner: vendor_page
-    sources:
-      vendor_page: 2.13
   Xmax:  # one-way linear excursion (m)
     value: 0.0085
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 7.15
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 7.15
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0515
     winner: vendor_page
     sources:
       vendor_page: 0.0515
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.13
+    winner: vendor_page
+    sources:
+      vendor_page: 2.13
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0927
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0927
+  Qms:  # mechanical Q factor
+    value: 7.15
+    winner: vendor_page
+    sources:
+      vendor_page: 7.15
   Cms:  # mechanical compliance (m/N)
     value: 0.00047
     winner: vendor_page
     sources:
       vendor_page: 0.00047
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 15.7
+    winner: vendor_page
+    sources:
+      vendor_page: 15.7
+  Le:  # voice coil inductance (H)
+    value: 0.00157
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00157
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.176
   power_peak_W:  # peak power handling (W)
     value: 400.0
     winner: vendor_page
@@ -110,10 +117,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 62.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/eton-12-212-c8-62-hex.html
-frd_url: null
-zma_url: null

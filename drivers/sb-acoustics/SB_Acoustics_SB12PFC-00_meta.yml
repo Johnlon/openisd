@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/4-sb12pfc-00-paper/
+manu_page_url: https://sbacoustics.com/product/4-sb12pfc-00-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PFC-00-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,47 +11,41 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/4-sb12pfc-00-paper/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PFC-00-OEM-only.pdf
+  manu_page: https://sbacoustics.com/product/4-sb12pfc-00-paper/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0042
-    winner: manu_page
-    sources:
-      manu_page: 0.0042
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0188
-    winner: manu_page
-    sources:
-      manu_page: 0.0188
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: manu_page
-    sources:
-      manu_page: 34.0
-  Qms:  # mechanical Q factor
-    value: 12.5
-    winner: manu_page
-    sources:
-      manu_page: 12.5
   Sd:  # effective piston area (m²)
     value: 0.005
     winner: manu_page
     sources:
       manu_page: 0.005
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: manu_page
+    sources:
+      manu_page: 34.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0188
+    winner: manu_page
+    sources:
+      manu_page: 0.0188
+  Qms:  # mechanical Q factor
+    value: 12.5
+    winner: manu_page
+    sources:
+      manu_page: 12.5
   Cms:  # mechanical compliance (m/N)
     value: 0.0012
     winner: manu_page
     sources:
       manu_page: 0.0012
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PFC-00-OEM-only.pdf
-  manu_page: https://sbacoustics.com/product/4-sb12pfc-00-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2021/02/4in-SB12PFC-00-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/4-sb12pfc-00-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0042
+    winner: manu_page
+    sources:
+      manu_page: 0.0042

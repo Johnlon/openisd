@@ -1,3 +1,9 @@
+source: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -5,58 +11,14 @@ detail: Automatically scraped from Parts Express API. T/S parameters have not be
 corrections: Product confirmed obsolete per Digikey (https://www.digikey.co.uk/en/products/detail/peerless-by-tymphany/NE315W-04/6557467).
   PE page returns stub HTML — no spec sheet available.
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00038
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.201615616
-    winner: vendor_page
-    sources:
-      vendor_page: 0.201615616
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1139
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1139
-  BL:  # force factor (T·m)
-    value: 11.12
-    winner: vendor_page
-    sources:
-      vendor_page: 11.12
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.78
-    winner: vendor_page
-    sources:
-      vendor_page: 2.78
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 19.94
-    winner: vendor_page
-    sources:
-      vendor_page: 19.94
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9147536436772971
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9147536436772971
   Xmax:  # one-way linear excursion (m)
     value: 0.009
     winner: vendor_page
@@ -67,30 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 15.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.78
     winner: vendor_page
     sources:
-      vendor_page: 15.6
+      vendor_page: 2.78
   Sd:  # effective piston area (m²)
     value: 0.05067
     winner: vendor_page
     sources:
       vendor_page: 0.05067
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 19.94
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 19.94
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9147536436772971
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9147536436772971
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1139
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1139
+  Qms:  # mechanical Q factor
+    value: 15.6
+    winner: vendor_page
+    sources:
+      vendor_page: 15.6
   Cms:  # mechanical compliance (m/N)
     value: 0.000559
     winner: vendor_page
     sources:
       vendor_page: 0.000559
-_sources:
-  vendor_page: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-NE315W-04-12-Paper-Cone-NE-Woofer-4-Ohm-264-1520
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.12
+    winner: vendor_page
+    sources:
+      vendor_page: 11.12
+  Le:  # voice coil inductance (H)
+    value: 0.00038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00038
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.201615616
+    winner: vendor_page
+    sources:
+      vendor_page: 0.201615616

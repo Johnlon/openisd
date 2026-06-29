@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3404--prv-audio-6mb100-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3404--prv-audio-6mb100-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00022
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.006796032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.006796032
-  Qes:  # electrical Q factor
-    value: 1.37
-    winner: vendor_page
-    sources:
-      vendor_page: 1.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011529999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011529999999999999
-  BL:  # force factor (T·m)
-    value: 4.33
-    winner: vendor_page
-    sources:
-      vendor_page: 4.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 93.2
-    winner: vendor_page
-    sources:
-      vendor_page: 93.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1742410084093833
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1742410084093833
   Xmax:  # one-way linear excursion (m)
     value: 0.00275
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.1
-  Qms:  # mechanical Q factor
-    value: 5.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 5.75
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 93.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 93.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1742410084093833
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1742410084093833
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.011529999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011529999999999999
+  Qms:  # mechanical Q factor
+    value: 5.75
+    winner: vendor_page
+    sources:
+      vendor_page: 5.75
   Cms:  # mechanical compliance (m/N)
     value: 0.000252
     winner: vendor_page
     sources:
       vendor_page: 0.000252
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.37
+    winner: vendor_page
+    sources:
+      vendor_page: 1.37
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 4.33
+    winner: vendor_page
+    sources:
+      vendor_page: 4.33
+  Le:  # voice coil inductance (H)
+    value: 0.00022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00022
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.006796032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.006796032
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 90.0
     winner: vendor_page
     sources:
       vendor_page: 90.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3404--prv-audio-6mb100-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3404--prv-audio-6mb100-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MB100-4-6-Midbass-Woofer-Pair-4-Ohm-294-3404
-frd_url: null
-zma_url: null

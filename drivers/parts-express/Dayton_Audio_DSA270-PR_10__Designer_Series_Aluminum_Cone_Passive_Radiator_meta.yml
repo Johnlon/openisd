@@ -1,26 +1,34 @@
+source: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-552--dayton-audio-dsa70-pr-Spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-552--dayton-audio-dsa70-pr-Spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.105904832
+  Xmax:  # one-way linear excursion (m)
+    value: 0.011
     winner: vendor_page
     sources:
-      vendor_page: 0.105904832
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0884
+      vendor_page: 0.011
+  Sd:  # effective piston area (m²)
+    value: 0.0353
     winner: vendor_page
     sources:
-      vendor_page: 0.0884
+      vendor_page: 0.0353
   Fs:  # free air resonance (Hz)
     value: 21.9
     winner: vendor_page
@@ -31,31 +39,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.3125466591801125
-  Xmax:  # one-way linear excursion (m)
-    value: 0.011
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0884
     winner: vendor_page
     sources:
-      vendor_page: 0.011
+      vendor_page: 0.0884
   Qms:  # mechanical Q factor
     value: 5.26
     winner: vendor_page
     sources:
       vendor_page: 5.26
-  Sd:  # effective piston area (m²)
-    value: 0.0353
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0353
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-552--dayton-audio-dsa70-pr-Spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-552--dayton-audio-dsa70-pr-Spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DSA270-PR-10-Designer-Series-Aluminum-Cone-Passive-Radiator-295-552
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.105904832
+    winner: vendor_page
+    sources:
+      vendor_page: 0.105904832

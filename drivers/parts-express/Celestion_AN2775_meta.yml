@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-2046
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00357
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00357
-  Qes:  # electrical Q factor
-    value: 1.166
-    winner: vendor_page
-    sources:
-      vendor_page: 1.166
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00268
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00268
-  BL:  # force factor (T·m)
-    value: 3.06
-    winner: vendor_page
-    sources:
-      vendor_page: 3.06
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.26
-    winner: vendor_page
-    sources:
-      vendor_page: 5.26
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 123.3
-    winner: vendor_page
-    sources:
-      vendor_page: 123.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3837783522450372
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3837783522450372
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -62,34 +33,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.959
-  Qms:  # mechanical Q factor
-    value: 5.408
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.26
     winner: vendor_page
     sources:
-      vendor_page: 5.408
+      vendor_page: 5.26
   Sd:  # effective piston area (m²)
     value: 0.002827
     winner: vendor_page
     sources:
       vendor_page: 0.002827
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 123.3
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 123.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3837783522450372
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3837783522450372
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00268
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00268
+  Qms:  # mechanical Q factor
+    value: 5.408
+    winner: vendor_page
+    sources:
+      vendor_page: 5.408
   Cms:  # mechanical compliance (m/N)
     value: 0.621
     winner: vendor_page
     sources:
       vendor_page: 0.621
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2046--an2775-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.166
+    winner: vendor_page
+    sources:
+      vendor_page: 1.166
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 3.06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.06
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00357
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00357

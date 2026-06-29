@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 298-1186
+_sources:
+  vendor_page: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022370272
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022370272
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0125
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0125
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.4007133486721675
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4007133486721675
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.48
-  Qms:  # mechanical Q factor
-    value: 9.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 9.8
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0139
     winner: vendor_page
     sources:
       vendor_page: 0.0139
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.4007133486721675
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4007133486721675
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0125
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0125
+  Qms:  # mechanical Q factor
+    value: 9.8
+    winner: vendor_page
+    sources:
+      vendor_page: 9.8
   Cms:  # mechanical compliance (m/N)
     value: 0.0008100000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0008100000000000001
-_sources:
-  vendor_page: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-WF166TU02-6-1-2-Paper-Cone-Mid-Woofer-4-Ohm-298-1186
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Le:  # voice coil inductance (H)
+    value: 0.00023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00023
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022370272
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022370272

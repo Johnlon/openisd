@@ -1,70 +1,70 @@
+source: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00058
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00058
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00026
-  BL:  # force factor (T·m)
-    value: 1.12
-    winner: vendor_page
-    sources:
-      vendor_page: 1.12
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.6
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 1276.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1276.0
   Qts:  # total Q factor
     value: 1.25
     winner: vendor_page
     sources:
       vendor_page: 1.25
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 7.6
+  Fs:  # free air resonance (Hz)
+    value: 1276.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1276.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00026
   Cms:  # mechanical compliance (m/N)
     value: 2.0e-07
     winner: vendor_page
     sources:
       vendor_page: 2.0e-07
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 1.12
+    winner: vendor_page
+    sources:
+      vendor_page: 1.12
+  Le:  # voice coil inductance (H)
+    value: 0.00058
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00058
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 25.0
     winner: vendor_page
     sources:
       vendor_page: 25.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Dayton%20Audio/BCE-1/pdf_Dayton%20Audio_BCE-1_2.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-daex25w-8.html
-frd_url: null
-zma_url: null

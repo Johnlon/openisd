@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00018
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.024
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0169
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0169
-  BL:  # force factor (T·m)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 36.0
-    winner: vendor_page
-    sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0135
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.82
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 3.82
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0123
     winner: vendor_page
     sources:
       vendor_page: 0.0123
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 36.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 36.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0169
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0169
+  Qms:  # mechanical Q factor
+    value: 3.82
+    winner: vendor_page
+    sources:
+      vendor_page: 3.82
   Cms:  # mechanical compliance (m/N)
     value: 0.00112
     winner: vendor_page
     sources:
       vendor_page: 0.00112
-_sources:
-  vendor_page: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/scan-speak-16w4538g05.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 5.5
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5
+  Le:  # voice coil inductance (H)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.024

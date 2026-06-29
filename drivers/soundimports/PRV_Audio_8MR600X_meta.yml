@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-8mr600x.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-8mr600x.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-8mr600x.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-8mr600x.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01999
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01731
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01731
-  BL:  # force factor (T·m)
-    value: 10.54
-    winner: vendor_page
-    sources:
-      vendor_page: 10.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 76.9
-    winner: vendor_page
-    sources:
-      vendor_page: 76.9
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 7.07
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 7.07
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0241
     winner: vendor_page
     sources:
       vendor_page: 0.0241
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-8mr600x.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-8mr600x.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 76.9
+    winner: vendor_page
+    sources:
+      vendor_page: 76.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01731
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01731
+  Qms:  # mechanical Q factor
+    value: 7.07
+    winner: vendor_page
+    sources:
+      vendor_page: 7.07
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 10.54
+    winner: vendor_page
+    sources:
+      vendor_page: 10.54
+  Le:  # voice coil inductance (H)
+    value: 0.00049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00049
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01999

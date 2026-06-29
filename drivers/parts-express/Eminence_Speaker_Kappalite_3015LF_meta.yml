@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-598--eminence-kappalite-3015lf-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.150929 differs from calculated=0.154178 (deps: ro
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-598
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-598--eminence-kappalite-3015lf-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00093
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.150928544
-    winner: vendor_page
-    sources:
-      vendor_page: 0.150928544
-  Qes:  # electrical Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.093
-  BL:  # force factor (T·m)
-    value: 17.0
-    winner: vendor_page
-    sources:
-      vendor_page: 17.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Pe:  # rated power input (W)
-    value: 450.0
-    winner: vendor_page
-    sources:
-      vendor_page: 450.0
-  Fs:  # free air resonance (Hz)
-    value: 44.0
-    winner: vendor_page
-    sources:
-      vendor_page: 44.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.8663092839441315
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8663092839441315
   Xmax:  # one-way linear excursion (m)
     value: 0.0096
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 8.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 8.97
+      vendor_page: 5.5
   Sd:  # effective piston area (m²)
     value: 0.08811000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.08811000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 44.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 44.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.8663092839441315
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8663092839441315
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.093
+  Qms:  # mechanical Q factor
+    value: 8.97
+    winner: vendor_page
+    sources:
+      vendor_page: 8.97
   Cms:  # mechanical compliance (m/N)
     value: 0.00014000000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.00014000000000000001
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-598--eminence-kappalite-3015lf-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-598--eminence-kappalite-3015lf-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-KAPPALITE-3015LF-Neo-15-Driver-290-598
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: vendor_page
+    sources:
+      vendor_page: 0.48
+  Pe:  # rated power input (W)
+    value: 450.0
+    winner: vendor_page
+    sources:
+      vendor_page: 450.0
+  BL:  # force factor (T·m)
+    value: 17.0
+    winner: vendor_page
+    sources:
+      vendor_page: 17.0
+  Le:  # voice coil inductance (H)
+    value: 0.00093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00093
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.150928544
+    winner: vendor_page
+    sources:
+      vendor_page: 0.150928544

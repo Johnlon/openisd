@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
+datasheet_url: https://www.parts-express.com/pedocs/manuals/295-637--dayton-audio-mb1025-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/manuals/295-637--dayton-audio-mb1025-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.050687072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.050687072
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.041100000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041100000000000005
-  BL:  # force factor (T·m)
-    value: 13.1
-    winner: vendor_page
-    sources:
-      vendor_page: 13.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.7960975619209656
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7960975619209656
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 6.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 6.47
+      vendor_page: 5.3
   Sd:  # effective piston area (m²)
     value: 0.03425
     winner: vendor_page
     sources:
       vendor_page: 0.03425
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.7960975619209656
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7960975619209656
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.041100000000000005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041100000000000005
+  Qms:  # mechanical Q factor
+    value: 6.47
+    winner: vendor_page
+    sources:
+      vendor_page: 6.47
   Cms:  # mechanical compliance (m/N)
     value: 0.0003
     winner: vendor_page
     sources:
       vendor_page: 0.0003
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 13.1
+    winner: vendor_page
+    sources:
+      vendor_page: 13.1
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.050687072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.050687072
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 350.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/manuals/295-637--dayton-audio-mb1025-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
-datasheet_url: https://www.parts-express.com/pedocs/manuals/295-637--dayton-audio-mb1025-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-MB1025-8-10-Professional-High-Power-Midbass-Driver-8-Ohm-295-637
-frd_url: null
-zma_url: null

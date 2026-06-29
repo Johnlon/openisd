@@ -1,50 +1,37 @@
+source: https://www.soundimports.eu/en/fountek-fw100b.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/fountek-fw100b.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/fountek-fw100b.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/fountek-fw100b.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
+  Qts:  # total Q factor
+    value: 0.63
     winner: vendor_page
     sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00212
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00212
-  Qes:  # electrical Q factor
-    value: 0.79
-    winner: vendor_page
-    sources:
-      vendor_page: 0.79
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00804
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00804
-  BL:  # force factor (T·m)
-    value: 5.59
-    winner: vendor_page
-    sources:
-      vendor_page: 5.59
+      vendor_page: 0.63
   Re:  # DC voice coil resistance (Ω)
     value: 6.2
     winner: vendor_page
     sources:
       vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 35.0
+  Sd:  # effective piston area (m²)
+    value: 0.00554
     winner: vendor_page
     sources:
-      vendor_page: 35.0
+      vendor_page: 0.00554
   Fs:  # free air resonance (Hz)
     value: 77.0
     winner: vendor_page
@@ -55,31 +42,51 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.26
-  Qts:  # total Q factor
-    value: 0.63
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00804
     winner: vendor_page
     sources:
-      vendor_page: 0.63
+      vendor_page: 0.00804
   Qms:  # mechanical Q factor
     value: 3.09
     winner: vendor_page
     sources:
       vendor_page: 3.09
-  Sd:  # effective piston area (m²)
-    value: 0.00554
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00554
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 0.000487
     winner: vendor_page
     sources:
       vendor_page: 0.000487
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.79
+    winner: vendor_page
+    sources:
+      vendor_page: 0.79
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  BL:  # force factor (T·m)
+    value: 5.59
+    winner: vendor_page
+    sources:
+      vendor_page: 5.59
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00212
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00212
   power_peak_W:  # peak power handling (W)
     value: 70.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 26.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/fountek-fw100b.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/fountek-fw100b.html
-frd_url: null
-zma_url: null

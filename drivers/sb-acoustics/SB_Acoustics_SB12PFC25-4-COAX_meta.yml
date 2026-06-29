@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
+manu_page_url: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/11/4in-SB12PFC25-4-COAX-OEM-only.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,7 +11,6 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: coaxial
-source: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
 obsolete: null
 dq_issue: null
 community: null
@@ -103,8 +108,3 @@ specs:
       winner: manu_page
       sources:
         manu_page: 10.0
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/11/4in-SB12PFC25-4-COAX-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
-vendor_page_url: null
-frd_url: null
-zma_url: null

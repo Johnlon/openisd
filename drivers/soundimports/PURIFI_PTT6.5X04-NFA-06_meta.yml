@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00038
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0259
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0259
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0267
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0267
-  BL:  # force factor (T·m)
-    value: 8.1
-    winner: vendor_page
-    sources:
-      vendor_page: 8.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.88
-    winner: vendor_page
-    sources:
-      vendor_page: 0.88
   Xmax:  # one-way linear excursion (m)
     value: 0.01
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 5.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 5.8
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.01327
     winner: vendor_page
     sources:
       vendor_page: 0.01327
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 30.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.88
+    winner: vendor_page
+    sources:
+      vendor_page: 0.88
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0267
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0267
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00104
     winner: vendor_page
     sources:
       vendor_page: 0.00104
-_sources:
-  vendor_page: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/purifi-ptt65x04-nfa-06.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 8.1
+    winner: vendor_page
+    sources:
+      vendor_page: 8.1
+  Le:  # voice coil inductance (H)
+    value: 0.00038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00038
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0259
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0259

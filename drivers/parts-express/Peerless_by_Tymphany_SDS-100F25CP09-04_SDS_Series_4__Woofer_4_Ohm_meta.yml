@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1011--sds-100f25cp09-04-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
+driver_type: woofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1011--sds-100f25cp09-04-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00041999999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00041999999999999996
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.019821759999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.019821759999999997
-  Qes:  # electrical Q factor
-    value: 0.584
-    winner: vendor_page
-    sources:
-      vendor_page: 0.584
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0072
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0072
-  BL:  # force factor (T·m)
-    value: 4.72
-    winner: vendor_page
-    sources:
-      vendor_page: 4.72
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6777368421227419
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6777368421227419
   Xmax:  # one-way linear excursion (m)
     value: 0.00505
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.53
-  Qms:  # mechanical Q factor
-    value: 5.34
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 5.34
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00503
     winner: vendor_page
     sources:
       vendor_page: 0.00503
+  Fs:  # free air resonance (Hz)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6777368421227419
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6777368421227419
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0072
+  Qms:  # mechanical Q factor
+    value: 5.34
+    winner: vendor_page
+    sources:
+      vendor_page: 5.34
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1011--sds-100f25cp09-04-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1011--sds-100f25cp09-04-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-by-Tymphany-SDS-100F25CP09-04-SDS-Series-4-Woofer-4-Ohm-264-1011
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.584
+    winner: vendor_page
+    sources:
+      vendor_page: 0.584
+  Pe:  # rated power input (W)
+    value: 25.0
+    winner: vendor_page
+    sources:
+      vendor_page: 25.0
+  BL:  # force factor (T·m)
+    value: 4.72
+    winner: vendor_page
+    sources:
+      vendor_page: 4.72
+  Le:  # voice coil inductance (H)
+    value: 0.00041999999999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00041999999999999996
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.019821759999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.019821759999999997

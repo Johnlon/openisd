@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-712--lavoce-waf061.80-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-712--lavoce-waf061.80-specifications.pdf
+  vendor_page: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.007362368
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007362368
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02
-  BL:  # force factor (T·m)
-    value: 9.5
-    winner: vendor_page
-    sources:
-      vendor_page: 9.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.949783825503891
-    winner: vendor_page
-    sources:
-      vendor_page: 0.949783825503891
   Xmax:  # one-way linear excursion (m)
     value: 0.0048
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 8.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.7
     winner: vendor_page
     sources:
-      vendor_page: 8.6
+      vendor_page: 4.7
   Sd:  # effective piston area (m²)
     value: 0.0135
     winner: vendor_page
     sources:
       vendor_page: 0.0135
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.949783825503891
+    winner: vendor_page
+    sources:
+      vendor_page: 0.949783825503891
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02
+  Qms:  # mechanical Q factor
+    value: 8.6
+    winner: vendor_page
+    sources:
+      vendor_page: 8.6
   Cms:  # mechanical compliance (m/N)
     value: 0.0003
     winner: vendor_page
     sources:
       vendor_page: 0.0003
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-712--lavoce-waf061.80-specifications.pdf
-  vendor_page: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-712--lavoce-waf061.80-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/LaVoce-WAF061.80-6-1-2-Woofer-8-Ohm-293-712
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 9.5
+    winner: vendor_page
+    sources:
+      vendor_page: 9.5
+  Le:  # voice coil inductance (H)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.007362368
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007362368

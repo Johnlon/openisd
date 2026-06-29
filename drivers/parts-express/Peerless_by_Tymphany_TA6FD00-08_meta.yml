@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1612--tymphany-ta6fd00-08-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1612
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1612--tymphany-ta6fd00-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00025485119999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025485119999999996
-  Qes:  # electrical Q factor
-    value: 1.42
-    winner: vendor_page
-    sources:
-      vendor_page: 1.42
-  BL:  # force factor (T·m)
-    value: 2.45
-    winner: vendor_page
-    sources:
-      vendor_page: 2.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.46
-    winner: vendor_page
-    sources:
-      vendor_page: 6.46
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 150.1
-    winner: vendor_page
-    sources:
-      vendor_page: 150.1
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -57,29 +33,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.03
-  Qms:  # mechanical Q factor
-    value: 3.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.46
     winner: vendor_page
     sources:
-      vendor_page: 3.81
+      vendor_page: 6.46
   Sd:  # effective piston area (m²)
     value: 0.0015199999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0015199999999999999
+  Fs:  # free air resonance (Hz)
+    value: 150.1
+    winner: vendor_page
+    sources:
+      vendor_page: 150.1
+  Qms:  # mechanical Q factor
+    value: 3.81
+    winner: vendor_page
+    sources:
+      vendor_page: 3.81
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1612--tymphany-ta6fd00-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1612--tymphany-ta6fd00-08-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-TA6FD00-08-2-Aluminum-Cone-Full-Range-Driver-8-Ohm-264-1612
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.42
+    winner: vendor_page
+    sources:
+      vendor_page: 1.42
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 2.45
+    winner: vendor_page
+    sources:
+      vendor_page: 2.45
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00025485119999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025485119999999996

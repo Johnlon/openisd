@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2997--prv-audio-8mr600x-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2997--prv-audio-8mr600x-specifications.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.020104927999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.020104927999999998
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01731
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01731
-  BL:  # force factor (T·m)
-    value: 10.54
-    winner: vendor_page
-    sources:
-      vendor_page: 10.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 76.9
-    winner: vendor_page
-    sources:
-      vendor_page: 76.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1829975964092967
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1829975964092967
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 7.07
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 7.07
+      vendor_page: 5.7
   Sd:  # effective piston area (m²)
     value: 0.0241
     winner: vendor_page
     sources:
       vendor_page: 0.0241
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 76.9
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 76.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1829975964092967
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1829975964092967
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01731
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01731
+  Qms:  # mechanical Q factor
+    value: 7.07
+    winner: vendor_page
+    sources:
+      vendor_page: 7.07
   Cms:  # mechanical compliance (m/N)
     value: 0.00025
     winner: vendor_page
     sources:
       vendor_page: 0.00025
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 10.54
+    winner: vendor_page
+    sources:
+      vendor_page: 10.54
+  Le:  # voice coil inductance (H)
+    value: 0.00049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00049
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.020104927999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.020104927999999998
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 98.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2997--prv-audio-8mr600x-specifications.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2997--prv-audio-8mr600x-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR600X-8-Pro-Audio-Midrange-Speaker-8-Ohm-294-2997
-frd_url: null
-zma_url: null

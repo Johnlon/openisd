@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 1.8e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8e-05
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  BL:  # force factor (T·m)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.98
-    winner: vendor_page
-    sources:
-      vendor_page: 3.98
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 113.0
-    winner: vendor_page
-    sources:
-      vendor_page: 113.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Qms:  # mechanical Q factor
-    value: 2.04
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.98
     winner: vendor_page
     sources:
-      vendor_page: 2.04
+      vendor_page: 3.98
   Sd:  # effective piston area (m²)
     value: 0.00229
     winner: vendor_page
     sources:
       vendor_page: 0.00229
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 113.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 113.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Qms:  # mechanical Q factor
+    value: 2.04
+    winner: vendor_page
+    sources:
+      vendor_page: 2.04
   Cms:  # mechanical compliance (m/N)
     value: 0.00071
     winner: vendor_page
     sources:
       vendor_page: 0.00071
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 1.8e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8e-05
   power_peak_W:  # peak power handling (W)
     value: 30.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-dma70-4.html
-frd_url: null
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.soundimports.eu/en/tang-band-w8-1772.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/tang-band-w8-1772.html
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
@@ -6,52 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: null
 nominal_size_cm: null
-source: https://www.soundimports.eu/en/tang-band-w8-1772.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/tang-band-w8-1772.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 9.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 9.0e-06
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.094578112
-    winner: vendor_page
-    sources:
-      vendor_page: 0.094578112
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01011
-  BL:  # force factor (T·m)
-    value: 7.12
-    winner: vendor_page
-    sources:
-      vendor_page: 7.12
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -62,26 +32,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 1.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 1.02
+      vendor_page: 6.8
   Sd:  # effective piston area (m²)
     value: 0.0009
     winner: vendor_page
     sources:
       vendor_page: 0.0009
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 42.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 42.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01011
+  Qms:  # mechanical Q factor
+    value: 1.02
+    winner: vendor_page
+    sources:
+      vendor_page: 1.02
   Cms:  # mechanical compliance (m/N)
     value: 0.00137
     winner: vendor_page
     sources:
       vendor_page: 0.00137
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 7.12
+    winner: vendor_page
+    sources:
+      vendor_page: 7.12
+  Le:  # voice coil inductance (H)
+    value: 9.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0e-06
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.094578112
+    winner: vendor_page
+    sources:
+      vendor_page: 0.094578112
   power_peak_W:  # peak power handling (W)
     value: 60.0
     winner: vendor_page
@@ -102,13 +112,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/tang-band-w8-1772.html
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/tang-band-w8-1772.html
-frd_url: null
-zma_url: null

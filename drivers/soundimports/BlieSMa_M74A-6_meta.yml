@@ -1,45 +1,22 @@
+source: https://www.soundimports.eu/en/bliesma-m74a-6.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/bliesma-m74a-6.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/bliesma-m74a-6.html
+driver_type: midrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/bliesma-m74a-6.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6e-05
-  Qes:  # electrical Q factor
-    value: 0.75
-    winner: vendor_page
-    sources:
-      vendor_page: 0.75
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0023
-  BL:  # force factor (T·m)
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Fs:  # free air resonance (Hz)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0012
     winner: vendor_page
@@ -50,21 +27,51 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.67
-  Qms:  # mechanical Q factor
-    value: 6.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 6.4
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.005025
     winner: vendor_page
     sources:
       vendor_page: 0.005025
+  Fs:  # free air resonance (Hz)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0023
+  Qms:  # mechanical Q factor
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
   Znom:  # nominal impedance (Ω)
     value: 6.0
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.75
+    winner: vendor_page
+    sources:
+      vendor_page: 0.75
+  BL:  # force factor (T·m)
+    value: 6.8
+    winner: vendor_page
+    sources:
+      vendor_page: 6.8
+  Le:  # voice coil inductance (H)
+    value: 3.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.0
     winner: vendor_page
@@ -75,10 +82,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 74.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/bliesma-m74a-6.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/bliesma-m74a-6.html
-frd_url: null
-zma_url: null

@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/12m-4631g00/
+manu_page_url: https://www.scan-speak.dk/product/12m-4631g00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/12m-4631g00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/12m-4631g00/
+driver_type: midrange
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/12m-4631g00.pdf
+  manu_page: https://www.scan-speak.dk/product/12m-4631g00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0023
-    winner: manu_page
-    sources:
-      manu_page: 0.0023
-  BL:  # force factor (T·m)
-    value: 5.3
-    winner: manu_page
-    sources:
-      manu_page: 5.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Fs:  # free air resonance (Hz)
-    value: 75.0
-    winner: manu_page
-    sources:
-      manu_page: 75.0
   Qts:  # total Q factor
     value: 0.33
     winner: manu_page
     sources:
       manu_page: 0.33
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: manu_page
+    sources:
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0049
     winner: manu_page
     sources:
       manu_page: 0.0049
+  Fs:  # free air resonance (Hz)
+    value: 75.0
+    winner: manu_page
+    sources:
+      manu_page: 75.0
+  BL:  # force factor (T·m)
+    value: 5.3
+    winner: manu_page
+    sources:
+      manu_page: 5.3
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/12m-4631g00.pdf
-  manu_page: https://www.scan-speak.dk/product/12m-4631g00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/12m-4631g00.pdf
-manu_page_url: https://www.scan-speak.dk/product/12m-4631g00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0023
+    winner: manu_page
+    sources:
+      manu_page: 0.0023

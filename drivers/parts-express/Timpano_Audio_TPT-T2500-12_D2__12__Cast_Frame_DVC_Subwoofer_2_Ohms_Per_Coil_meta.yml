@@ -1,46 +1,24 @@
+source: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
+datasheet_url: https://cdn.shopify.com/s/files/1/0840/9428/8174/files/Timpano-Flyer-2-Panel-spread-For-Website-1.pdf?v=1722888558
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://cdn.shopify.com/s/files/1/0840/9428/8174/files/Timpano-Flyer-2-Panel-spread-For-Website-1.pdf?v=1722888558
+  vendor_page: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026391257600000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026391257600000002
-  Qes:  # electrical Q factor
-    value: 0.916
-    winner: vendor_page
-    sources:
-      vendor_page: 0.916
-  BL:  # force factor (T·m)
-    value: 10.82
-    winner: vendor_page
-    sources:
-      vendor_page: 10.82
-  Re:  # DC voice coil resistance (Ω)
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Pe:  # rated power input (W)
-    value: 1250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1250.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0235
     winner: vendor_page
@@ -51,6 +29,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 0.83
+    winner: vendor_page
+    sources:
+      vendor_page: 0.83
+  Fs:  # free air resonance (Hz)
+    value: 39.0
+    winner: vendor_page
+    sources:
+      vendor_page: 39.0
   Qms:  # mechanical Q factor
     value: 9.1
     winner: vendor_page
@@ -61,11 +49,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.0
-_sources:
-  datasheet: https://cdn.shopify.com/s/files/1/0840/9428/8174/files/Timpano-Flyer-2-Panel-spread-For-Website-1.pdf?v=1722888558
-  vendor_page: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
-datasheet_url: https://cdn.shopify.com/s/files/1/0840/9428/8174/files/Timpano-Flyer-2-Panel-spread-For-Website-1.pdf?v=1722888558
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Timpano-Audio-TPT-T2500-12-D2-12-Cast-Frame-DVC-Subwoofer-2-Ohms-Per-Coil-294-4114
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.916
+    winner: vendor_page
+    sources:
+      vendor_page: 0.916
+  Pe:  # rated power input (W)
+    value: 1250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1250.0
+  BL:  # force factor (T·m)
+    value: 10.82
+    winner: vendor_page
+    sources:
+      vendor_page: 10.82
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.026391257600000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026391257600000002

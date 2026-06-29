@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-377-goldwood-gw-5028s-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.9 differs from calculated=0.917647 (deps: Qms=3.9
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 290-377
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-377-goldwood-gw-5028s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004247519999999999
-  Qes:  # electrical Q factor
-    value: 1.2
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009
-  BL:  # force factor (T·m)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.1
-    winner: vendor_page
-    sources:
-      vendor_page: 7.1
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Fs:  # free air resonance (Hz)
-    value: 80.1
-    winner: vendor_page
-    sources:
-      vendor_page: 80.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1614226379348112
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1614226379348112
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.9
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.1
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 7.1
   Sd:  # effective piston area (m²)
     value: 0.008365000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.008365000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 80.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 85.0
+      vendor_page: 80.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1614226379348112
     winner: vendor_page
     sources:
-      vendor_page: 85.0
+      vendor_page: 1.1614226379348112
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00043
     winner: vendor_page
     sources:
       vendor_page: 0.00043
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-377-goldwood-gw-5028s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-377-goldwood-gw-5028s-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Goldwood-GW-5028-S-5-1-4-Shielded-Woofer-290-377
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.2
+    winner: vendor_page
+    sources:
+      vendor_page: 1.2
+  Pe:  # rated power input (W)
+    value: 70.0
+    winner: vendor_page
+    sources:
+      vendor_page: 70.0
+  BL:  # force factor (T·m)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 85.0
+    winner: vendor_page
+    sources:
+      vendor_page: 85.0
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004247519999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004247519999999999

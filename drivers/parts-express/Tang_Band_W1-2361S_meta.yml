@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-978--tang-band-w1-2361s-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.18 differs from calculated=0.182192 (deps: Qms=0.
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
 obsolete: null
 dq_issue: Sd_tiny; Qms_low
 community: null
 fetched_sku: 264-978
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-978--tang-band-w1-2361s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.6e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6e-06
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013
-  BL:  # force factor (T·m)
-    value: 1.33
-    winner: vendor_page
-    sources:
-      vendor_page: 1.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5134259993866749
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5134259993866749
   Xmax:  # one-way linear excursion (m)
     value: 0.00025
     winner: vendor_page
@@ -68,34 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.18
-  Qms:  # mechanical Q factor
-    value: 0.35
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 0.35
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 2.5e-08
     winner: vendor_page
     sources:
       vendor_page: 2.5e-08
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 220.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 220.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.5134259993866749
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5134259993866749
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013
+  Qms:  # mechanical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
   Cms:  # mechanical compliance (m/N)
     value: 0.003751
     winner: vendor_page
     sources:
       vendor_page: 0.003751
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-978--tang-band-w1-2361s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-978--tang-band-w1-2361s-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 1.33
+    winner: vendor_page
+    sources:
+      vendor_page: 1.33
+  Le:  # voice coil inductance (H)
+    value: 3.6e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.6e-06
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033

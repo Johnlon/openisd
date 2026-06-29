@@ -1,46 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
+datasheet_url: https://www.parts-express.com/pedocs/specs/285-145-dayton-audio-ce140-30s-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/285-145-dayton-audio-ce140-30s-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00078
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00078
-  Qes:  # electrical Q factor
-    value: 1.35
-    winner: vendor_page
-    sources:
-      vendor_page: 1.35
-  BL:  # force factor (T·m)
-    value: 4.34
-    winner: vendor_page
-    sources:
-      vendor_page: 4.34
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.75
-    winner: vendor_page
-    sources:
-      vendor_page: 7.75
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 105.0
-    winner: vendor_page
-    sources:
-      vendor_page: 105.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -51,31 +29,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.04
-  Qms:  # mechanical Q factor
-    value: 4.64
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.75
     winner: vendor_page
     sources:
-      vendor_page: 4.64
+      vendor_page: 7.75
   Sd:  # effective piston area (m²)
     value: 0.00251
     winner: vendor_page
     sources:
       vendor_page: 0.00251
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 105.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 105.0
+  Qms:  # mechanical Q factor
+    value: 4.64
+    winner: vendor_page
+    sources:
+      vendor_page: 4.64
   Cms:  # mechanical compliance (m/N)
     value: 0.00047
     winner: vendor_page
     sources:
       vendor_page: 0.00047
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-145-dayton-audio-ce140-30s-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
-datasheet_url: https://www.parts-express.com/pedocs/specs/285-145-dayton-audio-ce140-30s-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-CE140-30S-8-1-x-5-Extended-Range-Driver-8-Ohm-285-145
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.35
+    winner: vendor_page
+    sources:
+      vendor_page: 1.35
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 4.34
+    winner: vendor_page
+    sources:
+      vendor_page: 4.34
+  Le:  # voice coil inductance (H)
+    value: 0.00078
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00078

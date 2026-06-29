@@ -1,55 +1,23 @@
+source: https://www.soundimports.eu/en/accuton-c168-6-990.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c168-6-990.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C168-6-990/C168-6-990.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c168-6-990.html
+driver_type: midrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: midrange
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C168-6-990/C168-6-990.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-c168-6-990.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 6.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0103
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0103
-  Qes:  # electrical Q factor
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0161
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0161
-  BL:  # force factor (T·m)
-    value: 11.7
-    winner: vendor_page
-    sources:
-      vendor_page: 11.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 55.0
-    winner: vendor_page
-    sources:
-      vendor_page: 55.0
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -60,31 +28,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Qms:  # mechanical Q factor
-    value: 4.76
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.76
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0118
     winner: vendor_page
     sources:
       vendor_page: 0.0118
+  Fs:  # free air resonance (Hz)
+    value: 55.0
+    winner: vendor_page
+    sources:
+      vendor_page: 55.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0161
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0161
+  Qms:  # mechanical Q factor
+    value: 4.76
+    winner: vendor_page
+    sources:
+      vendor_page: 4.76
   Cms:  # mechanical compliance (m/N)
     value: 0.00052
     winner: vendor_page
     sources:
       vendor_page: 0.00052
+  Qes:  # electrical Q factor
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 11.7
+    winner: vendor_page
+    sources:
+      vendor_page: 11.7
+  Le:  # voice coil inductance (H)
+    value: 6.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0103
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0103
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 93.0
     winner: vendor_page
     sources:
       vendor_page: 93.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C168-6-990/C168-6-990.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-c168-6-990.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C168-6-990/C168-6-990.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c168-6-990.html
-frd_url: null
-zma_url: null

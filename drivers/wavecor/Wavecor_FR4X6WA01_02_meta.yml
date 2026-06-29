@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/fr4x6wa01_02.html
+manu_page_url: http://www.wavecor.com/html/fr4x6wa01_02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR4X6WA01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR4X6WA02_on-axis_SPL_response.txt
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR4X6WA02_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,52 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
-source: http://www.wavecor.com/html/fr4x6wa01_02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR4X6WA01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/fr4x6wa01_02.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00019
-    winner: manu_page
-    sources:
-      manu_page: 0.00019
-  Qes:  # electrical Q factor
-    value: 1.04
-    winner: manu_page
-    sources:
-      manu_page: 1.04
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0014
-    winner: manu_page
-    sources:
-      manu_page: 0.0014
-  BL:  # force factor (T·m)
-    value: 2.1
-    winner: manu_page
-    sources:
-      manu_page: 2.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: manu_page
-    sources:
-      manu_page: 3.0
-  Pe:  # rated power input (W)
-    value: 35.0
-    winner: manu_page
-    sources:
-      manu_page: 35.0
-  Fs:  # free air resonance (Hz)
-    value: 173.0
-    winner: manu_page
-    sources:
-      manu_page: 173.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3
-    winner: manu_page
-    sources:
-      manu_page: 0.3
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: manu_page
@@ -62,34 +33,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.86
-  Qms:  # mechanical Q factor
-    value: 5.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: manu_page
     sources:
-      manu_page: 5.1
+      manu_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0015
     winner: manu_page
     sources:
       manu_page: 0.0015
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 173.0
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 173.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3
+    winner: manu_page
+    sources:
+      manu_page: 0.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0014
+    winner: manu_page
+    sources:
+      manu_page: 0.0014
+  Qms:  # mechanical Q factor
+    value: 5.1
+    winner: manu_page
+    sources:
+      manu_page: 5.1
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: manu_page
     sources:
       manu_page: 0.0006
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/FR4X6WA01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/fr4x6wa01_02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/FR4X6WA01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/fr4x6wa01_02.html
-vendor_page_url: null
-frd_url: http://www.wavecor.com/Driver%20measurements%20TXT/SPL%20response/FR4X6WA02_on-axis_SPL_response.txt
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/FR4X6WA02_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.04
+    winner: manu_page
+    sources:
+      manu_page: 1.04
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: manu_page
+    sources:
+      manu_page: 35.0
+  BL:  # force factor (T·m)
+    value: 2.1
+    winner: manu_page
+    sources:
+      manu_page: 2.1
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00019
+    winner: manu_page
+    sources:
+      manu_page: 0.00019

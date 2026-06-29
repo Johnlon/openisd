@@ -1,54 +1,54 @@
+source: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.073
-    winner: vendor_page
-    sources:
-      vendor_page: 0.073
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.132
-  Fs:  # free air resonance (Hz)
-    value: 14.0
-    winner: vendor_page
-    sources:
-      vendor_page: 14.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0075
     winner: vendor_page
     sources:
       vendor_page: 0.0075
-  Qms:  # mechanical Q factor
-    value: 9.4
-    winner: vendor_page
-    sources:
-      vendor_page: 9.4
   Sd:  # effective piston area (m²)
     value: 0.02351
     winner: vendor_page
     sources:
       vendor_page: 0.02351
+  Fs:  # free air resonance (Hz)
+    value: 14.0
+    winner: vendor_page
+    sources:
+      vendor_page: 14.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.132
+  Qms:  # mechanical Q factor
+    value: 9.4
+    winner: vendor_page
+    sources:
+      vendor_page: 9.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00093
     winner: vendor_page
     sources:
       vendor_page: 0.00093
-_sources:
-  vendor_page: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/purifi-ptt80pr-na2-01.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.073
+    winner: vendor_page
+    sources:
+      vendor_page: 0.073

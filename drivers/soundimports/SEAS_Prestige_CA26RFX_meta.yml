@@ -1,60 +1,23 @@
+source: https://www.soundimports.eu/en/seas-ca26rfx.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-ca26rfx.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Seas/CA26RFX/h1305_ca26rfx_datasheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-ca26rfx.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Seas/CA26RFX/h1305_ca26rfx_datasheet.pdf
+  vendor_page: https://www.soundimports.eu/en/seas-ca26rfx.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00195
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00195
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.129
-    winner: vendor_page
-    sources:
-      vendor_page: 0.129
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0361
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0361
-  BL:  # force factor (T·m)
-    value: 10.7
-    winner: vendor_page
-    sources:
-      vendor_page: 10.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -65,31 +28,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Qms:  # mechanical Q factor
-    value: 2.14
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.14
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.035
     winner: vendor_page
     sources:
       vendor_page: 0.035
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 25.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 25.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.4
+    winner: vendor_page
+    sources:
+      vendor_page: 3.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0361
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0361
+  Qms:  # mechanical Q factor
+    value: 2.14
+    winner: vendor_page
+    sources:
+      vendor_page: 2.14
   Cms:  # mechanical compliance (m/N)
     value: 0.0008
     winner: vendor_page
     sources:
       vendor_page: 0.0008
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Seas/CA26RFX/h1305_ca26rfx_datasheet.pdf
-  vendor_page: https://www.soundimports.eu/en/seas-ca26rfx.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Seas/CA26RFX/h1305_ca26rfx_datasheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-ca26rfx.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 10.7
+    winner: vendor_page
+    sources:
+      vendor_page: 10.7
+  Le:  # voice coil inductance (H)
+    value: 0.00195
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00195
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.129
+    winner: vendor_page
+    sources:
+      vendor_page: 0.129

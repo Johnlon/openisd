@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-461--grs-6lpsw-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-461--grs-6lpsw-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0075889024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0075889024
-  Qes:  # electrical Q factor
-    value: 1.35
-    winner: vendor_page
-    sources:
-      vendor_page: 1.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0358
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0358
-  BL:  # force factor (T·m)
-    value: 5.39
-    winner: vendor_page
-    sources:
-      vendor_page: 5.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.052666469934867
-    winner: vendor_page
-    sources:
-      vendor_page: 2.052666469934867
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.08
-  Qms:  # mechanical Q factor
-    value: 5.26
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 5.26
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.0131
     winner: vendor_page
     sources:
       vendor_page: 0.0131
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 48.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 48.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.052666469934867
+    winner: vendor_page
+    sources:
+      vendor_page: 2.052666469934867
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0358
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0358
+  Qms:  # mechanical Q factor
+    value: 5.26
+    winner: vendor_page
+    sources:
+      vendor_page: 5.26
   Cms:  # mechanical compliance (m/N)
     value: 0.00031
     winner: vendor_page
     sources:
       vendor_page: 0.00031
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-461--grs-6lpsw-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-461--grs-6lpsw-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.35
+    winner: vendor_page
+    sources:
+      vendor_page: 1.35
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 5.39
+    winner: vendor_page
+    sources:
+      vendor_page: 5.39
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0075889024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0075889024

@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0274956128
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0274956128
-  Qes:  # electrical Q factor
-    value: 2.58
-    winner: vendor_page
-    sources:
-      vendor_page: 2.58
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013630000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013630000000000001
-  BL:  # force factor (T·m)
-    value: 8.83
-    winner: vendor_page
-    sources:
-      vendor_page: 8.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.721048276563272
-    winner: vendor_page
-    sources:
-      vendor_page: 4.721048276563272
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,26 +28,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.26
-  Qms:  # mechanical Q factor
-    value: 18.14
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 18.14
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0241
     winner: vendor_page
     sources:
       vendor_page: 0.0241
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 1000.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 1000.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.721048276563272
+    winner: vendor_page
+    sources:
+      vendor_page: 4.721048276563272
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013630000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013630000000000001
+  Qms:  # mechanical Q factor
+    value: 18.14
+    winner: vendor_page
+    sources:
+      vendor_page: 18.14
   Cms:  # mechanical compliance (m/N)
     value: 1.2e-05
     winner: vendor_page
     sources:
       vendor_page: 1.2e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.58
+    winner: vendor_page
+    sources:
+      vendor_page: 2.58
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 8.83
+    winner: vendor_page
+    sources:
+      vendor_page: 8.83
+  Le:  # voice coil inductance (H)
+    value: 0.00025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0274956128
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0274956128
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 8.0
     winner: vendor_page
@@ -101,10 +108,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 400.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536
-frd_url: null
-zma_url: null

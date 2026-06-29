@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-803
+_sources:
+  vendor_page: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
 specs:
-  Le:  # voice coil inductance (H)
-    value: 3.5999999999999994e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5999999999999994e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00022936607999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00022936607999999998
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  BL:  # force factor (T·m)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -57,33 +32,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 4.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 4.5
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 160.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 160.0
+  Qms:  # mechanical Q factor
+    value: 4.5
+    winner: vendor_page
+    sources:
+      vendor_page: 4.5
   Cms:  # mechanical compliance (m/N)
     value: 0.0007289999999999999
     winner: vendor_page
     sources:
       vendor_page: 0.0007289999999999999
-_sources:
-  vendor_page: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W2-2243S-2-Aluminum-Magnesium-Full-Range-Driver-264-803
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  BL:  # force factor (T·m)
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
+  Le:  # voice coil inductance (H)
+    value: 3.5999999999999994e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5999999999999994e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00022936607999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00022936607999999998

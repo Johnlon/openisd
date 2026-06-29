@@ -1,25 +1,27 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.055
+  Sd:  # effective piston area (m²)
+    value: 0.0216
     winner: vendor_page
     sources:
-      vendor_page: 0.055
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0767
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0767
+      vendor_page: 0.0216
   Fs:  # free air resonance (Hz)
     value: 20.0
     winner: vendor_page
@@ -30,25 +32,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0767
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0767
   Qms:  # mechanical Q factor
     value: 6.8
     winner: vendor_page
     sources:
       vendor_page: 6.8
-  Sd:  # effective piston area (m²)
-    value: 0.0216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0216
   Cms:  # mechanical compliance (m/N)
     value: 0.00083
     winner: vendor_page
     sources:
       vendor_page: 0.00083
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb20pfc-00.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.055

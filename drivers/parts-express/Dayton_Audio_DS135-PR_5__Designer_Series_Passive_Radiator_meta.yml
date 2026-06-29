@@ -1,26 +1,34 @@
+source: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-495--dayton-audio-ds135-pr-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-495--dayton-audio-ds135-pr-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.012176224
+  Xmax:  # one-way linear excursion (m)
+    value: 0.008
     winner: vendor_page
     sources:
-      vendor_page: 0.012176224
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0218
+      vendor_page: 0.008
+  Sd:  # effective piston area (m²)
+    value: 0.007540000000000001
     winner: vendor_page
     sources:
-      vendor_page: 0.0218
+      vendor_page: 0.007540000000000001
   Fs:  # free air resonance (Hz)
     value: 27.7
     winner: vendor_page
@@ -31,31 +39,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.9654362034588968
-  Xmax:  # one-way linear excursion (m)
-    value: 0.008
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0218
     winner: vendor_page
     sources:
-      vendor_page: 0.008
+      vendor_page: 0.0218
   Qms:  # mechanical Q factor
     value: 3.93
     winner: vendor_page
     sources:
       vendor_page: 3.93
-  Sd:  # effective piston area (m²)
-    value: 0.007540000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007540000000000001
   Cms:  # mechanical compliance (m/N)
     value: 0.00152
     winner: vendor_page
     sources:
       vendor_page: 0.00152
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-495--dayton-audio-ds135-pr-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-495--dayton-audio-ds135-pr-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DS135-PR-5-Designer-Series-Passive-Radiator-295-495
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.012176224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.012176224

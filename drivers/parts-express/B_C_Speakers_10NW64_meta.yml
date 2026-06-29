@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-679--bc-10nw64-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.26 differs from calculated=0.254048 (deps: Qms=4.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-679
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-679--bc-10nw64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00065
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022087104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022087104
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.047
-  BL:  # force factor (T·m)
-    value: 18.3
-    winner: vendor_page
-    sources:
-      vendor_page: 18.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 59.0
-    winner: vendor_page
-    sources:
-      vendor_page: 59.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.051923920188138
-    winner: vendor_page
-    sources:
-      vendor_page: 4.051923920188138
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 4.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 4.3
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.032
     winner: vendor_page
     sources:
       vendor_page: 0.032
+  Fs:  # free air resonance (Hz)
+    value: 59.0
+    winner: vendor_page
+    sources:
+      vendor_page: 59.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.051923920188138
+    winner: vendor_page
+    sources:
+      vendor_page: 4.051923920188138
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.047
+  Qms:  # mechanical Q factor
+    value: 4.3
+    winner: vendor_page
+    sources:
+      vendor_page: 4.3
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-679--bc-10nw64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-679--bc-10nw64-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10NW64-10-Neodymium-Woofer-294-679
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 18.3
+    winner: vendor_page
+    sources:
+      vendor_page: 18.3
+  Le:  # voice coil inductance (H)
+    value: 0.00065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00065
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022087104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022087104

@@ -1,45 +1,22 @@
+source: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00024
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Qes:  # electrical Q factor
-    value: 1.41
-    winner: vendor_page
-    sources:
-      vendor_page: 1.41
-  Re:  # DC voice coil resistance (Ω)
-    value: 10.6
-    winner: vendor_page
-    sources:
-      vendor_page: 10.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 450.0
-    winner: vendor_page
-    sources:
-      vendor_page: 450.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -50,25 +27,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.1
-  Qms:  # mechanical Q factor
-    value: 4.99
+  Re:  # DC voice coil resistance (Ω)
+    value: 10.6
     winner: vendor_page
     sources:
-      vendor_page: 4.99
+      vendor_page: 10.6
   Sd:  # effective piston area (m²)
     value: 0.0057
     winner: vendor_page
     sources:
       vendor_page: 0.0057
+  Fs:  # free air resonance (Hz)
+    value: 450.0
+    winner: vendor_page
+    sources:
+      vendor_page: 450.0
+  Qms:  # mechanical Q factor
+    value: 4.99
+    winner: vendor_page
+    sources:
+      vendor_page: 4.99
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/volt-loudspeakers-vm753e.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.41
+    winner: vendor_page
+    sources:
+      vendor_page: 1.41
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 0.00024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00024
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00016

@@ -1,46 +1,24 @@
+source: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-588--visaton-w300-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-588--visaton-w300-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00177
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00177
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.19000572799999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19000572799999998
-  Qes:  # electrical Q factor
-    value: 0.54
-    winner: vendor_page
-    sources:
-      vendor_page: 0.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -51,6 +29,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
+    winner: vendor_page
+    sources:
+      vendor_page: 6.6
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: vendor_page
+    sources:
+      vendor_page: 32.0
   Qms:  # mechanical Q factor
     value: 2.68
     winner: vendor_page
@@ -61,6 +49,26 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.54
+    winner: vendor_page
+    sources:
+      vendor_page: 0.54
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Le:  # voice coil inductance (H)
+    value: 0.00177
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00177
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.19000572799999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19000572799999998
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 300.0
     winner: vendor_page
@@ -71,11 +79,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.47
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-588--visaton-w300-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-588--visaton-w300-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-W300-8-12-Woofer-8-Ohm-292-588
-frd_url: null
-zma_url: null

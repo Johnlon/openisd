@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1971--celestion-cf1230bmb-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1971--celestion-cf1230bmb-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000713
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000713
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.060597952000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.060597952000000004
-  Qes:  # electrical Q factor
-    value: 0.417
-    winner: vendor_page
-    sources:
-      vendor_page: 0.417
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.08841
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08841
-  BL:  # force factor (T·m)
-    value: 18.38
-    winner: vendor_page
-    sources:
-      vendor_page: 18.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.84
-    winner: vendor_page
-    sources:
-      vendor_page: 5.84
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 43.4
-    winner: vendor_page
-    sources:
-      vendor_page: 43.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.416433234000501
-    winner: vendor_page
-    sources:
-      vendor_page: 5.416433234000501
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.381
-  Qms:  # mechanical Q factor
-    value: 4.451
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.84
     winner: vendor_page
     sources:
-      vendor_page: 4.451
+      vendor_page: 5.84
   Sd:  # effective piston area (m²)
     value: 0.053092999999999994
     winner: vendor_page
     sources:
       vendor_page: 0.053092999999999994
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 43.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 43.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.416433234000501
+    winner: vendor_page
+    sources:
+      vendor_page: 5.416433234000501
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.08841
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08841
+  Qms:  # mechanical Q factor
+    value: 4.451
+    winner: vendor_page
+    sources:
+      vendor_page: 4.451
   Cms:  # mechanical compliance (m/N)
     value: 0.000152
     winner: vendor_page
     sources:
       vendor_page: 0.000152
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.417
+    winner: vendor_page
+    sources:
+      vendor_page: 0.417
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 18.38
+    winner: vendor_page
+    sources:
+      vendor_page: 18.38
+  Le:  # voice coil inductance (H)
+    value: 0.000713
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000713
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.060597952000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.060597952000000004
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
     sources:
       vendor_page: 96.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1971--celestion-cf1230bmb-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1971--celestion-cf1230bmb-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
-frd_url: null
-zma_url: null

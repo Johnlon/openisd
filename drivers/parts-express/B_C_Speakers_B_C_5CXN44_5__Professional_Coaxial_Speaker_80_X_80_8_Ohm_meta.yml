@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6049--bc-5cxn44-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6049--bc-5cxn44-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00037
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004247519999999999
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  BL:  # force factor (T·m)
-    value: 8.1
-    winner: vendor_page
-    sources:
-      vendor_page: 8.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6872233929727671
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6872233929727671
   Xmax:  # one-way linear excursion (m)
     value: 0.0055
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 9.6
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.7
     winner: vendor_page
     sources:
-      vendor_page: 9.6
+      vendor_page: 4.7
   Sd:  # effective piston area (m²)
     value: 0.0095
     winner: vendor_page
     sources:
       vendor_page: 0.0095
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 70.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6872233929727671
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6872233929727671
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Qms:  # mechanical Q factor
+    value: 9.6
+    winner: vendor_page
+    sources:
+      vendor_page: 9.6
   Cms:  # mechanical compliance (m/N)
     value: 0.000345
     winner: vendor_page
     sources:
       vendor_page: 0.000345
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 8.1
+    winner: vendor_page
+    sources:
+      vendor_page: 8.1
+  Le:  # voice coil inductance (H)
+    value: 0.00037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00037
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004247519999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004247519999999999
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 101.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.83
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6049--bc-5cxn44-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6049--bc-5cxn44-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
-frd_url: null
-zma_url: null

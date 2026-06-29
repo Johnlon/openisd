@@ -1,35 +1,37 @@
+source: https://www.soundimports.eu/en/markaudio-chn-40.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-chn-40.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-chn-40.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-chn-40.html
 specs:
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0016942
+  Qts:  # total Q factor
+    value: 0.64
     winner: vendor_page
     sources:
-      vendor_page: 0.0016942
-  BL:  # force factor (T·m)
-    value: 3.1071
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1071
+      vendor_page: 0.64
   Re:  # DC voice coil resistance (Ω)
     value: 6.8
     winner: vendor_page
     sources:
       vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 7.0
+  Sd:  # effective piston area (m²)
+    value: 2.3e-05
     winner: vendor_page
     sources:
-      vendor_page: 7.0
+      vendor_page: 2.3e-05
   Fs:  # free air resonance (Hz)
     value: 97.5
     winner: vendor_page
@@ -40,30 +42,28 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.2753
-  Qts:  # total Q factor
-    value: 0.64
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0016942
     winner: vendor_page
     sources:
-      vendor_page: 0.64
-  Sd:  # effective piston area (m²)
-    value: 2.3e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.0016942
   Cms:  # mechanical compliance (m/N)
     value: 0.0015733
     winner: vendor_page
     sources:
       vendor_page: 0.0015733
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-chn-40.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-chn-40.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Pe:  # rated power input (W)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  BL:  # force factor (T·m)
+    value: 3.1071
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1071

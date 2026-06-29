@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
+datasheet_url: https://www.parts-express.com/pedocs/specs/290-3007--css-ld25x-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/290-3007--css-ld25x-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
-  Qes:  # electrical Q factor
-    value: 1.85
-    winner: vendor_page
-    sources:
-      vendor_page: 1.85
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Fs:  # free air resonance (Hz)
-    value: 865.0
-    winner: vendor_page
-    sources:
-      vendor_page: 865.0
   Qts:  # total Q factor
     value: 1.28
     winner: vendor_page
     sources:
       vendor_page: 1.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
+    winner: vendor_page
+    sources:
+      vendor_page: 6.4
+  Fs:  # free air resonance (Hz)
+    value: 865.0
+    winner: vendor_page
+    sources:
+      vendor_page: 865.0
   Qms:  # mechanical Q factor
     value: 4.21
     winner: vendor_page
@@ -51,11 +44,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-3007--css-ld25x-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
-datasheet_url: https://www.parts-express.com/pedocs/specs/290-3007--css-ld25x-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/CSS-LD25X-25mm-Silk-Dome-XBL2-Tweeter-290-3007
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.85
+    winner: vendor_page
+    sources:
+      vendor_page: 1.85
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  Le:  # voice coil inductance (H)
+    value: 7.000000000000001e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.000000000000001e-05

@@ -1,31 +1,29 @@
+source: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-500--epique-ec30-4-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/EC30-4_data_revised.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-500--epique-ec30-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
 specs:
-  Qes:  # electrical Q factor
-    value: 1.163
-    winner: vendor_page
-    sources:
-      vendor_page: 1.163
   Re:  # DC voice coil resistance (Ω)
     value: 4.03
     winner: vendor_page
     sources:
       vendor_page: 4.03
-  Pe:  # rated power input (W)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
   Fs:  # free air resonance (Hz)
     value: 700.0
     winner: vendor_page
@@ -41,6 +39,16 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.163
+    winner: vendor_page
+    sources:
+      vendor_page: 1.163
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 800.0
     winner: vendor_page
@@ -51,11 +59,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-500--epique-ec30-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-500--epique-ec30-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Epique-High-Resolution-Tweeter-Ceramic-Dome-30mm-4-Ohm-Matched-Pair-EC30MP-4-275-502
-frd_url: https://www.parts-express.com/pedocs/tech-docs/EC30-4_data_revised.zip
-zma_url: null

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-411--hivi-b1s-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-411
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-411--hivi-b1s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Qes:  # electrical Q factor
-    value: 0.68
-    winner: vendor_page
-    sources:
-      vendor_page: 0.68
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
-  BL:  # force factor (T·m)
-    value: 2.3
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 220.0
-    winner: vendor_page
-    sources:
-      vendor_page: 220.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00095
     winner: vendor_page
@@ -57,34 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.56
-  Qms:  # mechanical Q factor
-    value: 2.57
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 2.57
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0005
     winner: vendor_page
     sources:
       vendor_page: 0.0005
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 220.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 220.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Qms:  # mechanical Q factor
+    value: 2.57
+    winner: vendor_page
+    sources:
+      vendor_page: 2.57
   Cms:  # mechanical compliance (m/N)
     value: 0.001057
     winner: vendor_page
     sources:
       vendor_page: 0.001057
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-411--hivi-b1s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-411--hivi-b1s-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.68
+    winner: vendor_page
+    sources:
+      vendor_page: 0.68
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 2.3
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3
+  Vas:  # equivalent acoustic volume (m³)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05

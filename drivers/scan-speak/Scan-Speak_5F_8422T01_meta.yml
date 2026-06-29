@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/5f-8422t01/
+manu_page_url: https://www.scan-speak.dk/product/5f-8422t01/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/reviews/5F-8422T01-VoiceCoil_2013-10.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/5f-8422t01/
+driver_type: fullrange
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/reviews/5F-8422T01-VoiceCoil_2013-10.pdf
+  manu_page: https://www.scan-speak.dk/product/5f-8422t01/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0005
-    winner: manu_page
-    sources:
-      manu_page: 0.0005
-  BL:  # force factor (T·m)
-    value: 3.1
-    winner: manu_page
-    sources:
-      manu_page: 3.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: manu_page
-    sources:
-      manu_page: 6.0
-  Fs:  # free air resonance (Hz)
-    value: 93.0
-    winner: manu_page
-    sources:
-      manu_page: 93.0
   Qts:  # total Q factor
     value: 0.61
     winner: manu_page
     sources:
       manu_page: 0.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
+    winner: manu_page
+    sources:
+      manu_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.00152
     winner: manu_page
     sources:
       manu_page: 0.00152
+  Fs:  # free air resonance (Hz)
+    value: 93.0
+    winner: manu_page
+    sources:
+      manu_page: 93.0
+  BL:  # force factor (T·m)
+    value: 3.1
+    winner: manu_page
+    sources:
+      manu_page: 3.1
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 80.0
     winner: manu_page
     sources:
       manu_page: 80.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/reviews/5F-8422T01-VoiceCoil_2013-10.pdf
-  manu_page: https://www.scan-speak.dk/product/5f-8422t01/
-datasheet_url: https://www.scan-speak.dk/datasheet/reviews/5F-8422T01-VoiceCoil_2013-10.pdf
-manu_page_url: https://www.scan-speak.dk/product/5f-8422t01/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0005
+    winner: manu_page
+    sources:
+      manu_page: 0.0005

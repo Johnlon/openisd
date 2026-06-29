@@ -1,61 +1,23 @@
+source: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000136
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000136
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004530688
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004530688
-  Qes:  # electrical Q factor
-    value: 0.64
-    winner: vendor_page
-    sources:
-      vendor_page: 0.64
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.007940000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007940000000000001
-  BL:  # force factor (T·m)
-    value: 6.37
-    winner: vendor_page
-    sources:
-      vendor_page: 6.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 144.1
-    winner: vendor_page
-    sources:
-      vendor_page: 144.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6000777631010644
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6000777631010644
   Xmax:  # one-way linear excursion (m)
     value: 0.00325
     winner: vendor_page
@@ -66,26 +28,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.6
-  Qms:  # mechanical Q factor
-    value: 11.98
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 11.98
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 144.1
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 144.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.6000777631010644
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6000777631010644
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.007940000000000001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.007940000000000001
+  Qms:  # mechanical Q factor
+    value: 11.98
+    winner: vendor_page
+    sources:
+      vendor_page: 11.98
   Cms:  # mechanical compliance (m/N)
     value: 0.000154
     winner: vendor_page
     sources:
       vendor_page: 0.000154
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.64
+    winner: vendor_page
+    sources:
+      vendor_page: 0.64
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 6.37
+    winner: vendor_page
+    sources:
+      vendor_page: 6.37
+  Le:  # voice coil inductance (H)
+    value: 0.000136
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000136
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.004530688
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004530688
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2019.1
     winner: vendor_page
@@ -96,10 +103,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 294.0
-_sources:
-  vendor_page: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-6MR400-4-BULLET-6-Midrange-Speaker-4-Ohm-294-3137
-frd_url: null
-zma_url: null

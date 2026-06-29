@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/morel-ticw-638nd.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/morel-ticw-638nd.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/morel-ticw-638nd.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/morel-ticw-638nd.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00102
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00102
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0168
-  BL:  # force factor (T·m)
-    value: 7.5
-    winner: vendor_page
-    sources:
-      vendor_page: 7.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
   Xmax:  # one-way linear excursion (m)
     value: 0.00525
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 2.47
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 2.47
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 33.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 33.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0168
+  Qms:  # mechanical Q factor
+    value: 2.47
+    winner: vendor_page
+    sources:
+      vendor_page: 2.47
   Cms:  # mechanical compliance (m/N)
     value: 0.00146
     winner: vendor_page
     sources:
       vendor_page: 0.00146
-_sources:
-  vendor_page: https://www.soundimports.eu/en/morel-ticw-638nd.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/morel-ticw-638nd.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 7.5
+    winner: vendor_page
+    sources:
+      vendor_page: 7.5
+  Le:  # voice coil inductance (H)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00102
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00102

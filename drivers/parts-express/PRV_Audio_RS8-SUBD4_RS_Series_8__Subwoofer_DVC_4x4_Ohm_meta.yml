@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-3581--prv-audio-rs8-subd4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3581--prv-audio-rs8-subd4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00124
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00124
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003681184
-  Qes:  # electrical Q factor
-    value: 0.82
-    winner: vendor_page
-    sources:
-      vendor_page: 0.82
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.13219999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.13219999999999998
-  BL:  # force factor (T·m)
-    value: 9.55
-    winner: vendor_page
-    sources:
-      vendor_page: 9.55
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.7
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 53.4
-    winner: vendor_page
-    sources:
-      vendor_page: 53.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.45584514296779
-    winner: vendor_page
-    sources:
-      vendor_page: 5.45584514296779
   Xmax:  # one-way linear excursion (m)
     value: 0.0145
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.75
-  Qms:  # mechanical Q factor
-    value: 8.13
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.7
     winner: vendor_page
     sources:
-      vendor_page: 8.13
+      vendor_page: 1.7
   Sd:  # effective piston area (m²)
     value: 0.0201
     winner: vendor_page
     sources:
       vendor_page: 0.0201
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
+  Fs:  # free air resonance (Hz)
+    value: 53.4
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 53.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.45584514296779
+    winner: vendor_page
+    sources:
+      vendor_page: 5.45584514296779
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.13219999999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.13219999999999998
+  Qms:  # mechanical Q factor
+    value: 8.13
+    winner: vendor_page
+    sources:
+      vendor_page: 8.13
   Cms:  # mechanical compliance (m/N)
     value: 5.9999999999999995e-05
     winner: vendor_page
     sources:
       vendor_page: 5.9999999999999995e-05
+  Znom:  # nominal impedance (Ω)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Qes:  # electrical Q factor
+    value: 0.82
+    winner: vendor_page
+    sources:
+      vendor_page: 0.82
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 9.55
+    winner: vendor_page
+    sources:
+      vendor_page: 9.55
+  Le:  # voice coil inductance (H)
+    value: 0.00124
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00124
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003681184
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 250.0
     winner: vendor_page
     sources:
       vendor_page: 250.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3581--prv-audio-rs8-subd4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-3581--prv-audio-rs8-subd4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581
-frd_url: null
-zma_url: null

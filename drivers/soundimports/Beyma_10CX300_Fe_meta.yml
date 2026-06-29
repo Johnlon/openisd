@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/beyma-10cx300fe.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/beyma-10cx300fe.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/beyma-10cx300fe.html
+driver_type: woofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/beyma-10cx300fe.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.063
-    winner: vendor_page
-    sources:
-      vendor_page: 0.063
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.035
-  BL:  # force factor (T·m)
-    value: 11.6
-    winner: vendor_page
-    sources:
-      vendor_page: 11.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  Fs:  # free air resonance (Hz)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0067
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 5.3
+      vendor_page: 5.2
   Sd:  # effective piston area (m²)
     value: 0.038
     winner: vendor_page
     sources:
       vendor_page: 0.038
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 48.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 48.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.035
+  Qms:  # mechanical Q factor
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
   Cms:  # mechanical compliance (m/N)
     value: 0.000307
     winner: vendor_page
     sources:
       vendor_page: 0.000307
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 600.0
+    winner: vendor_page
+    sources:
+      vendor_page: 600.0
+  BL:  # force factor (T·m)
+    value: 11.6
+    winner: vendor_page
+    sources:
+      vendor_page: 11.6
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.063
+    winner: vendor_page
+    sources:
+      vendor_page: 0.063
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.5
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/beyma-10cx300fe.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/beyma-10cx300fe.html
-frd_url: null
-zma_url: null

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-648--dayton-audio-odeum-apollo-15lf-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/15LF500-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-648--dayton-audio-odeum-apollo-15lf-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00174
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00174
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.33130655999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33130655999999997
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.117
-    winner: vendor_page
-    sources:
-      vendor_page: 0.117
-  BL:  # force factor (T·m)
-    value: 21.1
-    winner: vendor_page
-    sources:
-      vendor_page: 21.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 25.5
-    winner: vendor_page
-    sources:
-      vendor_page: 25.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.7978930393985517
-    winner: vendor_page
-    sources:
-      vendor_page: 2.7978930393985517
   Xmax:  # one-way linear excursion (m)
     value: 0.00925
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 6.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 6.7
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.08374
     winner: vendor_page
     sources:
       vendor_page: 0.08374
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 25.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 25.5
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.7978930393985517
+    winner: vendor_page
+    sources:
+      vendor_page: 2.7978930393985517
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.117
+    winner: vendor_page
+    sources:
+      vendor_page: 0.117
+  Qms:  # mechanical Q factor
+    value: 6.7
+    winner: vendor_page
+    sources:
+      vendor_page: 6.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00033
     winner: vendor_page
     sources:
       vendor_page: 0.00033
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.27
+    winner: vendor_page
+    sources:
+      vendor_page: 0.27
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 21.1
+    winner: vendor_page
+    sources:
+      vendor_page: 21.1
+  Le:  # voice coil inductance (H)
+    value: 0.00174
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00174
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.33130655999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.33130655999999997
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 500.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-648--dayton-audio-odeum-apollo-15lf-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-648--dayton-audio-odeum-apollo-15lf-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-Odeum-Apollo-15LF-15LF500-8-15-Professional-Woofer-8-ohm-295-648
-frd_url: https://www.parts-express.com/pedocs/tech-docs/15LF500-8_data.zip
-zma_url: null

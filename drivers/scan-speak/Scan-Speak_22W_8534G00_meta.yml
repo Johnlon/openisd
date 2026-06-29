@@ -1,56 +1,56 @@
+source: https://www.scan-speak.dk/product/22w-8534g00/
+manu_page_url: https://www.scan-speak.dk/product/22w-8534g00/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/22w-8534g00.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/22w-8534g00/
+driver_type: woofer
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: woofer
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/22w-8534g00.pdf
+  manu_page: https://www.scan-speak.dk/product/22w-8534g00/
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0942
-    winner: manu_page
-    sources:
-      manu_page: 0.0942
-  BL:  # force factor (T·m)
-    value: 7.8
-    winner: manu_page
-    sources:
-      manu_page: 7.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: manu_page
-    sources:
-      manu_page: 5.9
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: manu_page
-    sources:
-      manu_page: 30.0
   Qts:  # total Q factor
     value: 0.39
     winner: manu_page
     sources:
       manu_page: 0.39
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
+    winner: manu_page
+    sources:
+      manu_page: 5.9
   Sd:  # effective piston area (m²)
     value: 0.0235
     winner: manu_page
     sources:
       manu_page: 0.0235
+  Fs:  # free air resonance (Hz)
+    value: 30.0
+    winner: manu_page
+    sources:
+      manu_page: 30.0
+  BL:  # force factor (T·m)
+    value: 7.8
+    winner: manu_page
+    sources:
+      manu_page: 7.8
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: manu_page
     sources:
       manu_page: 89.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/22w-8534g00.pdf
-  manu_page: https://www.scan-speak.dk/product/22w-8534g00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/22w-8534g00.pdf
-manu_page_url: https://www.scan-speak.dk/product/22w-8534g00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0942
+    winner: manu_page
+    sources:
+      manu_page: 0.0942

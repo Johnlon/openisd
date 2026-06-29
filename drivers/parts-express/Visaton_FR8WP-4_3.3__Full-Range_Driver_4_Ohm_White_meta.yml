@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-625--visaton-fr8wp-4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-625--visaton-fr8wp-4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.011609887999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011609887999999999
-  Qes:  # electrical Q factor
-    value: 1.33
-    winner: vendor_page
-    sources:
-      vendor_page: 1.33
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0029
-  BL:  # force factor (T·m)
-    value: 2.8
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.1
-    winner: vendor_page
-    sources:
-      vendor_page: 4.1
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 158.0
-    winner: vendor_page
-    sources:
-      vendor_page: 158.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0988379800571322
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0988379800571322
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.88
-  Qms:  # mechanical Q factor
-    value: 2.62
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.1
     winner: vendor_page
     sources:
-      vendor_page: 2.62
+      vendor_page: 4.1
   Sd:  # effective piston area (m²)
     value: 0.003
     winner: vendor_page
     sources:
       vendor_page: 0.003
+  Fs:  # free air resonance (Hz)
+    value: 158.0
+    winner: vendor_page
+    sources:
+      vendor_page: 158.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0988379800571322
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0988379800571322
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0029
+  Qms:  # mechanical Q factor
+    value: 2.62
+    winner: vendor_page
+    sources:
+      vendor_page: 2.62
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.33
+    winner: vendor_page
+    sources:
+      vendor_page: 1.33
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.011609887999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.011609887999999999
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 95.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 22000.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-625--visaton-fr8wp-4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-625--visaton-fr8wp-4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-FR8WP-4-3.3-Full-Range-Driver-4-Ohm-White-292-7846
-frd_url: null
-zma_url: null

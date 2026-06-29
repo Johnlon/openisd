@@ -1,45 +1,38 @@
+source: https://www.soundimports.eu/en/accuton-c25-4-158.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/accuton-c25-4-158.html
+datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C25-4-158/Datasheet%20C25-6-158.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/accuton-c25-4-158.html
+driver_type: tweeter
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C25-4-158/Datasheet%20C25-6-158.pdf
+  vendor_page: https://www.soundimports.eu/en/accuton-c25-4-158.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 1.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0e-05
-  Qes:  # electrical Q factor
-    value: 0.81
-    winner: vendor_page
-    sources:
-      vendor_page: 0.81
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 810.0
-    winner: vendor_page
-    sources:
-      vendor_page: 810.0
   Qts:  # total Q factor
     value: 0.61
     winner: vendor_page
     sources:
       vendor_page: 0.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Fs:  # free air resonance (Hz)
+    value: 810.0
+    winner: vendor_page
+    sources:
+      vendor_page: 810.0
   Qms:  # mechanical Q factor
     value: 2.68
     winner: vendor_page
@@ -50,6 +43,21 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.81
+    winner: vendor_page
+    sources:
+      vendor_page: 0.81
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 1.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.5
     winner: vendor_page
@@ -65,11 +73,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 30.0
-_sources:
-  datasheet: https://doc.soundimports.nl/pdf/brands/Accuton/C25-4-158/Datasheet%20C25-6-158.pdf
-  vendor_page: https://www.soundimports.eu/en/accuton-c25-4-158.html
-datasheet_url: https://doc.soundimports.nl/pdf/brands/Accuton/C25-4-158/Datasheet%20C25-6-158.pdf
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/accuton-c25-4-158.html
-frd_url: null
-zma_url: null

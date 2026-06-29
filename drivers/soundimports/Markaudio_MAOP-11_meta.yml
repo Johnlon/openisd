@@ -1,50 +1,37 @@
+source: https://www.soundimports.eu/en/markaudio-maop-11.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-11.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-maop-11.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-maop-11.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0693
+  Qts:  # total Q factor
+    value: 0.2996
     winner: vendor_page
     sources:
-      vendor_page: 0.0693
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0184
-  Qes:  # electrical Q factor
-    value: 0.3523
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3523
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0120624
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0120624
-  BL:  # force factor (T·m)
-    value: 8.0545
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0545
+      vendor_page: 0.2996
   Re:  # DC voice coil resistance (Ω)
     value: 6.8
     winner: vendor_page
     sources:
       vendor_page: 6.8
-  Pe:  # rated power input (W)
-    value: 35.0
+  Sd:  # effective piston area (m²)
+    value: 0.0111
     winner: vendor_page
     sources:
-      vendor_page: 35.0
+      vendor_page: 0.0111
   Fs:  # free air resonance (Hz)
     value: 44.3
     winner: vendor_page
@@ -55,35 +42,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.6767
-  Qts:  # total Q factor
-    value: 0.2996
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0120624
     winner: vendor_page
     sources:
-      vendor_page: 0.2996
+      vendor_page: 0.0120624
   Qms:  # mechanical Q factor
     value: 2.0043
     winner: vendor_page
     sources:
       vendor_page: 2.0043
-  Sd:  # effective piston area (m²)
-    value: 0.0111
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0111
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 0.001068
     winner: vendor_page
     sources:
       vendor_page: 0.001068
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-maop-11.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-maop-11.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.3523
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3523
+  Pe:  # rated power input (W)
+    value: 35.0
+    winner: vendor_page
+    sources:
+      vendor_page: 35.0
+  BL:  # force factor (T·m)
+    value: 8.0545
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0545
+  Le:  # voice coil inductance (H)
+    value: 0.0693
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0693
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0184

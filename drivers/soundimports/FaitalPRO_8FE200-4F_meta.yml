@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00025
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0158
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0158
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0153
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0153
-  BL:  # force factor (T·m)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Fs:  # free air resonance (Hz)
-    value: 80.0
-    winner: vendor_page
-    sources:
-      vendor_page: 80.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9
   Xmax:  # one-way linear excursion (m)
     value: 0.00462
     winner: vendor_page
@@ -65,26 +27,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Qms:  # mechanical Q factor
-    value: 8.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 8.7
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0209
     winner: vendor_page
     sources:
       vendor_page: 0.0209
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 80.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 80.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.9
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0153
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0153
+  Qms:  # mechanical Q factor
+    value: 8.7
+    winner: vendor_page
+    sources:
+      vendor_page: 8.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00026
     winner: vendor_page
     sources:
       vendor_page: 0.00026
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  BL:  # force factor (T·m)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  Le:  # voice coil inductance (H)
+    value: 0.00025
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00025
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0158
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0158
   power_peak_W:  # peak power handling (W)
     value: 260.0
     winner: vendor_page
@@ -110,10 +117,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 37.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/faitalpro-8fe200-4f.html
-frd_url: null
-zma_url: null

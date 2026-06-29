@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013
-  BL:  # force factor (T·m)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.85
-    winner: vendor_page
-    sources:
-      vendor_page: 5.85
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 39.0
-    winner: vendor_page
-    sources:
-      vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.64
-    winner: vendor_page
-    sources:
-      vendor_page: 0.64
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 5.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.85
     winner: vendor_page
     sources:
-      vendor_page: 5.0
+      vendor_page: 5.85
   Sd:  # effective piston area (m²)
     value: 0.009
     winner: vendor_page
     sources:
       vendor_page: 0.009
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 39.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 39.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.64
+    winner: vendor_page
+    sources:
+      vendor_page: 0.64
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013
+  Qms:  # mechanical Q factor
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00127
     winner: vendor_page
     sources:
       vendor_page: 0.00127
-_sources:
-  vendor_page: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/scan-speak-15w-8530k00.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 6.6
+    winner: vendor_page
+    sources:
+      vendor_page: 6.6
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016

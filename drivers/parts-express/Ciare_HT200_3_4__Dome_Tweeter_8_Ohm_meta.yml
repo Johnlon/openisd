@@ -1,46 +1,39 @@
+source: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-192--ciare-ht200-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-192--ciare-ht200-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0e-05
-  Qes:  # electrical Q factor
-    value: 1.6
-    winner: vendor_page
-    sources:
-      vendor_page: 1.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
   Qts:  # total Q factor
     value: 1.2
     winner: vendor_page
     sources:
       vendor_page: 1.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
+  Fs:  # free air resonance (Hz)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
   Qms:  # mechanical Q factor
     value: 4.7
     winner: vendor_page
@@ -51,16 +44,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.6
+    winner: vendor_page
+    sources:
+      vendor_page: 1.6
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 90.0
     winner: vendor_page
     sources:
       vendor_page: 90.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-192--ciare-ht200-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-192--ciare-ht200-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-HT200-.75-Dome-Tweeter-8-Ohm-293-192
-frd_url: null
-zma_url: null

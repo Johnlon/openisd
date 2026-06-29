@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.343314 (deps: Qms=4.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1976
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00099
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06433
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06433
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.07242
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07242
-  BL:  # force factor (T·m)
-    value: 18.55
-    winner: vendor_page
-    sources:
-      vendor_page: 18.55
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.09
-    winner: vendor_page
-    sources:
-      vendor_page: 6.09
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 46.6
-    winner: vendor_page
-    sources:
-      vendor_page: 46.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.45
-    winner: vendor_page
-    sources:
-      vendor_page: 4.45
   Xmax:  # one-way linear excursion (m)
     value: 0.0005
     winner: vendor_page
@@ -68,39 +34,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 4.76
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.09
     winner: vendor_page
     sources:
-      vendor_page: 4.76
+      vendor_page: 6.09
   Sd:  # effective piston area (m²)
     value: 0.053093
     winner: vendor_page
     sources:
       vendor_page: 0.053093
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 46.6
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
+      vendor_page: 46.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.45
     winner: vendor_page
     sources:
-      vendor_page: 97.0
+      vendor_page: 4.45
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.07242
+    winner: vendor_page
+    sources:
+      vendor_page: 0.07242
+  Qms:  # mechanical Q factor
+    value: 4.76
+    winner: vendor_page
+    sources:
+      vendor_page: 4.76
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: vendor_page
     sources:
       vendor_page: 0.00016
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 18.55
+    winner: vendor_page
+    sources:
+      vendor_page: 18.55
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 97.0
+    winner: vendor_page
+    sources:
+      vendor_page: 97.0
+  Le:  # voice coil inductance (H)
+    value: 0.00099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00099
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06433
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06433

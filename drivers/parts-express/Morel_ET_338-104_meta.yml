@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
+datasheet_url: https://www.parts-express.com/pedocs/specs/277-072--morel-et-338-104-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,50 +15,41 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
 obsolete: null
 dq_issue: Fs_no_Q
 community: null
 fetched_sku: 277-072
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/277-072--morel-et-338-104-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
 specs:
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00044
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00044
   Re:  # DC voice coil resistance (Ω)
     value: 5.2
     winner: vendor_page
     sources:
       vendor_page: 5.2
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
   Sd:  # effective piston area (m²)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
+  Fs:  # free air resonance (Hz)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00044
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00044
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/277-072--morel-et-338-104-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
-datasheet_url: https://www.parts-express.com/pedocs/specs/277-072--morel-et-338-104-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-ET-338-104-1-1-8-Soft-Dome-Tweeter-Matched-Pair-277-072
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0

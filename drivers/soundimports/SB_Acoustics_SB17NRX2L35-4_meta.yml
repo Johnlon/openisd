@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00014
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0219
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0219
-  Qes:  # electrical Q factor
-    value: 0.26
-    winner: vendor_page
-    sources:
-      vendor_page: 0.26
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0135
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0135
-  BL:  # force factor (T·m)
-    value: 6.45
-    winner: vendor_page
-    sources:
-      vendor_page: 6.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0048
     winner: vendor_page
@@ -60,25 +27,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.25
-  Qms:  # mechanical Q factor
-    value: 4.97
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 4.97
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0118
     winner: vendor_page
     sources:
       vendor_page: 0.0118
+  Fs:  # free air resonance (Hz)
+    value: 41.0
+    winner: vendor_page
+    sources:
+      vendor_page: 41.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0135
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0135
+  Qms:  # mechanical Q factor
+    value: 4.97
+    winner: vendor_page
+    sources:
+      vendor_page: 4.97
   Cms:  # mechanical compliance (m/N)
     value: 0.0011
     winner: vendor_page
     sources:
       vendor_page: 0.0011
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb17nrx2l35-4.html
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.26
+    winner: vendor_page
+    sources:
+      vendor_page: 0.26
+  Pe:  # rated power input (W)
+    value: 60.0
+    winner: vendor_page
+    sources:
+      vendor_page: 60.0
+  BL:  # force factor (T·m)
+    value: 6.45
+    winner: vendor_page
+    sources:
+      vendor_page: 6.45
+  Le:  # voice coil inductance (H)
+    value: 0.00014
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00014
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0219
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0219

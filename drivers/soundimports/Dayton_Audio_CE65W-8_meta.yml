@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00051
-  Qes:  # electrical Q factor
-    value: 1.43
-    winner: vendor_page
-    sources:
-      vendor_page: 1.43
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00191
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00191
-  BL:  # force factor (T·m)
-    value: 2.73
-    winner: vendor_page
-    sources:
-      vendor_page: 2.73
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.9
-    winner: vendor_page
-    sources:
-      vendor_page: 6.9
-  Pe:  # rated power input (W)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Fs:  # free air resonance (Hz)
-    value: 105.0
-    winner: vendor_page
-    sources:
-      vendor_page: 105.0
   Xmax:  # one-way linear excursion (m)
     value: 0.002
     winner: vendor_page
@@ -55,26 +27,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.99
-  Qms:  # mechanical Q factor
-    value: 3.85
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.9
     winner: vendor_page
     sources:
-      vendor_page: 3.85
+      vendor_page: 6.9
   Sd:  # effective piston area (m²)
     value: 0.002124
     winner: vendor_page
     sources:
       vendor_page: 0.002124
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 105.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 105.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00191
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00191
+  Qms:  # mechanical Q factor
+    value: 3.85
+    winner: vendor_page
+    sources:
+      vendor_page: 3.85
   Cms:  # mechanical compliance (m/N)
     value: 0.00091
     winner: vendor_page
     sources:
       vendor_page: 0.00091
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.43
+    winner: vendor_page
+    sources:
+      vendor_page: 1.43
+  Pe:  # rated power input (W)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  BL:  # force factor (T·m)
+    value: 2.73
+    winner: vendor_page
+    sources:
+      vendor_page: 2.73
+  Le:  # voice coil inductance (H)
+    value: 0.00051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00051
   power_peak_W:  # peak power handling (W)
     value: 15.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 16.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce65w-8.html
-frd_url: null
-zma_url: null

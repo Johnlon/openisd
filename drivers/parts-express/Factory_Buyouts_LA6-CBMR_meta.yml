@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
+datasheet_url: https://www.parts-express.com/pedocs/specs/299-2255--eminence-la6-cbmr-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 299-2255
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/299-2255--eminence-la6-cbmr-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00033
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000283168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000283168
-  Qes:  # electrical Q factor
-    value: 1.24
-    winner: vendor_page
-    sources:
-      vendor_page: 1.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009
-  BL:  # force factor (T·m)
-    value: 11.1
-    winner: vendor_page
-    sources:
-      vendor_page: 11.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 460.0
-    winner: vendor_page
-    sources:
-      vendor_page: 460.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.310666828026672
-    winner: vendor_page
-    sources:
-      vendor_page: 8.310666828026672
   Xmax:  # one-way linear excursion (m)
     value: 0.0002
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.89
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3
+  Fs:  # free air resonance (Hz)
+    value: 460.0
+    winner: vendor_page
+    sources:
+      vendor_page: 460.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 8.310666828026672
+    winner: vendor_page
+    sources:
+      vendor_page: 8.310666828026672
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009
   Qms:  # mechanical Q factor
     value: 3.13
     winner: vendor_page
     sources:
       vendor_page: 3.13
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 1.0e-05
     winner: vendor_page
     sources:
       vendor_page: 1.0e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.24
+    winner: vendor_page
+    sources:
+      vendor_page: 1.24
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.1
+    winner: vendor_page
+    sources:
+      vendor_page: 11.1
+  Le:  # voice coil inductance (H)
+    value: 0.00033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00033
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000283168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000283168
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.8
     winner: vendor_page
     sources:
       vendor_page: 97.8
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/299-2255--eminence-la6-cbmr-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
-datasheet_url: https://www.parts-express.com/pedocs/specs/299-2255--eminence-la6-cbmr-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Eminence-6-1-2-Sealed-Back-Midrange-Speaker-8-Ohm-299-2255
-frd_url: null
-zma_url: null

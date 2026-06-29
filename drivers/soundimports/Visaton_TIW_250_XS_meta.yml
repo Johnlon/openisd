@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.066
-    winner: vendor_page
-    sources:
-      vendor_page: 0.066
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.049
-  BL:  # force factor (T·m)
-    value: 13.0
-    winner: vendor_page
-    sources:
-      vendor_page: 13.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 33.0
-    winner: vendor_page
-    sources:
-      vendor_page: 33.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0085
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 5.21
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 5.21
+      vendor_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.0314
     winner: vendor_page
     sources:
       vendor_page: 0.0314
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 33.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 33.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.049
+  Qms:  # mechanical Q factor
+    value: 5.21
+    winner: vendor_page
+    sources:
+      vendor_page: 5.21
   Cms:  # mechanical compliance (m/N)
     value: 0.000472
     winner: vendor_page
     sources:
       vendor_page: 0.000472
-_sources:
-  vendor_page: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/visaton-tiw-250-xs.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 13.0
+    winner: vendor_page
+    sources:
+      vendor_page: 13.0
+  Le:  # voice coil inductance (H)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.066
+    winner: vendor_page
+    sources:
+      vendor_page: 0.066

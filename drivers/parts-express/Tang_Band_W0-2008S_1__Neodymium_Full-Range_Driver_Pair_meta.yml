@@ -1,71 +1,79 @@
+source: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-921--tang-band-w0-2008s-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
+driver_type: tweeter
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-921--tang-band-w0-2008s-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
 specs:
-  Le:  # voice coil inductance (H)
-    value: 7.0e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0e-06
-  Qes:  # electrical Q factor
-    value: 0.86
-    winner: vendor_page
-    sources:
-      vendor_page: 0.86
-  BL:  # force factor (T·m)
-    value: 0.99
-    winner: vendor_page
-    sources:
-      vendor_page: 0.99
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Fs:  # free air resonance (Hz)
-    value: 280.0
-    winner: vendor_page
-    sources:
-      vendor_page: 280.0
   Qts:  # total Q factor
     value: 0.5
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 1.17
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 1.17
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.00014
     winner: vendor_page
     sources:
       vendor_page: 0.00014
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 280.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 280.0
+  Qms:  # mechanical Q factor
+    value: 1.17
+    winner: vendor_page
+    sources:
+      vendor_page: 1.17
   Cms:  # mechanical compliance (m/N)
     value: 0.00266
     winner: vendor_page
     sources:
       vendor_page: 0.00266
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.86
+    winner: vendor_page
+    sources:
+      vendor_page: 0.86
+  Pe:  # rated power input (W)
+    value: 1.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1.0
+  BL:  # force factor (T·m)
+    value: 0.99
+    winner: vendor_page
+    sources:
+      vendor_page: 0.99
+  Le:  # voice coil inductance (H)
+    value: 7.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-06
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 20.0
     winner: vendor_page
@@ -76,11 +84,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-921--tang-band-w0-2008s-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-921--tang-band-w0-2008s-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W0-2008S-1-Neodymium-Full-Range-Driver-Pair-264-921
-frd_url: null
-zma_url: null

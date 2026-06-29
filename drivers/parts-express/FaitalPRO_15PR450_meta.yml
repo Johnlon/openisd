@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1330--faitalpro-15pr450-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.2356 differs from calculated=0.239626 (deps: roo=
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-1330
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1330--faitalpro-15pr450-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00065
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00065
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.2356
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2356
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09
-  BL:  # force factor (T·m)
-    value: 16.6
-    winner: vendor_page
-    sources:
-      vendor_page: 16.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 400.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.9
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -68,31 +34,76 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 6.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 6.9
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0857
     winner: vendor_page
     sources:
       vendor_page: 0.0857
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 98.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.9
     winner: vendor_page
     sources:
-      vendor_page: 98.0
+      vendor_page: 2.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09
+    winner: vendor_page
+    sources:
+      vendor_page: 0.09
+  Qms:  # mechanical Q factor
+    value: 6.9
+    winner: vendor_page
+    sources:
+      vendor_page: 6.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00023
     winner: vendor_page
     sources:
       vendor_page: 0.00023
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  Pe:  # rated power input (W)
+    value: 400.0
+    winner: vendor_page
+    sources:
+      vendor_page: 400.0
+  BL:  # force factor (T·m)
+    value: 16.6
+    winner: vendor_page
+    sources:
+      vendor_page: 16.6
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 98.0
+    winner: vendor_page
+    sources:
+      vendor_page: 98.0
+  Le:  # voice coil inductance (H)
+    value: 0.00065
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00065
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.2356
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2356
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 35.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1330--faitalpro-15pr450-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1330--faitalpro-15pr450-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-15PR450-15-Professional-Woofer-8-Ohm-294-1330
-frd_url: null
-zma_url: null

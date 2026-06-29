@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-655--visaton-bf37-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,12 +15,59 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-655
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-655--visaton-bf37-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
 specs:
+  Qts:  # total Q factor
+    value: 0.74
+    winner: vendor_page
+    sources:
+      vendor_page: 0.74
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
+  Sd:  # effective piston area (m²)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Fs:  # free air resonance (Hz)
+    value: 155.0
+    winner: vendor_page
+    sources:
+      vendor_page: 155.0
+  Qms:  # mechanical Q factor
+    value: 5.11
+    winner: vendor_page
+    sources:
+      vendor_page: 5.11
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.86
+    winner: vendor_page
+    sources:
+      vendor_page: 0.86
+  Pe:  # rated power input (W)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  BL:  # force factor (T·m)
+    value: 1.99
+    winner: vendor_page
+    sources:
+      vendor_page: 1.99
   Le:  # voice coil inductance (H)
     value: 0.00017
     winner: vendor_page
@@ -22,51 +78,6 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.946527999999999e-05
-  Qes:  # electrical Q factor
-    value: 0.86
-    winner: vendor_page
-    sources:
-      vendor_page: 0.86
-  BL:  # force factor (T·m)
-    value: 1.99
-    winner: vendor_page
-    sources:
-      vendor_page: 1.99
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Fs:  # free air resonance (Hz)
-    value: 155.0
-    winner: vendor_page
-    sources:
-      vendor_page: 155.0
-  Qts:  # total Q factor
-    value: 0.74
-    winner: vendor_page
-    sources:
-      vendor_page: 0.74
-  Qms:  # mechanical Q factor
-    value: 5.11
-    winner: vendor_page
-    sources:
-      vendor_page: 5.11
-  Sd:  # effective piston area (m²)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 150.0
     winner: vendor_page
@@ -77,14 +88,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 19.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-655--visaton-bf37-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-655--visaton-bf37-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-BF37-1.5-Full-Range-Speaker-4-ohm-292-655
-frd_url: null
-zma_url: null

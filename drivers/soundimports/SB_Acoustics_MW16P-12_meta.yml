@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0473
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0473
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0115
-  BL:  # force factor (T·m)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 30.6
-    winner: vendor_page
-    sources:
-      vendor_page: 30.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
   Xmax:  # one-way linear excursion (m)
     value: 0.0124
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Qms:  # mechanical Q factor
-    value: 4.81
+  Re:  # DC voice coil resistance (Ω)
+    value: 10.0
     winner: vendor_page
     sources:
-      vendor_page: 4.81
+      vendor_page: 10.0
   Sd:  # effective piston area (m²)
     value: 0.0119
     winner: vendor_page
     sources:
       vendor_page: 0.0119
-  Znom:  # nominal impedance (Ω)
-    value: 12.0
+  Fs:  # free air resonance (Hz)
+    value: 30.6
     winner: vendor_page
     sources:
-      vendor_page: 12.0
+      vendor_page: 30.6
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0115
+  Qms:  # mechanical Q factor
+    value: 4.81
+    winner: vendor_page
+    sources:
+      vendor_page: 4.81
   Cms:  # mechanical compliance (m/N)
     value: 0.00235
     winner: vendor_page
     sources:
       vendor_page: 0.00235
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-mw16p-12.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 7.4
+    winner: vendor_page
+    sources:
+      vendor_page: 7.4
+  Le:  # voice coil inductance (H)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0473
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0473

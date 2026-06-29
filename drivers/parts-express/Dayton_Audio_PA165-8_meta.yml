@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,47 +15,28 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-015
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00054
+  Qts:  # total Q factor
+    value: 0.47
     winner: vendor_page
     sources:
-      vendor_page: 0.00054
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.009061376
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009061376
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0092
-  BL:  # force factor (T·m)
-    value: 6.33
-    winner: vendor_page
-    sources:
-      vendor_page: 6.33
+      vendor_page: 0.47
   Re:  # DC voice coil resistance (Ω)
     value: 5.15
     winner: vendor_page
     sources:
       vendor_page: 5.15
-  Pe:  # rated power input (W)
-    value: 75.0
+  Sd:  # effective piston area (m²)
+    value: 0.01208
     winner: vendor_page
     sources:
-      vendor_page: 75.0
+      vendor_page: 0.01208
   Fs:  # free air resonance (Hz)
     value: 80.8
     winner: vendor_page
@@ -57,38 +47,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.1327254018013777
-  Qts:  # total Q factor
-    value: 0.47
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0092
     winner: vendor_page
     sources:
-      vendor_page: 0.47
+      vendor_page: 0.0092
   Qms:  # mechanical Q factor
     value: 2.19
     winner: vendor_page
     sources:
       vendor_page: 2.19
-  Sd:  # effective piston area (m²)
-    value: 0.01208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01208
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Cms:  # mechanical compliance (m/N)
     value: 0.00041999999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.00041999999999999996
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-PA165-8-6-PA-Driver-Speaker-295-015
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: vendor_page
+    sources:
+      vendor_page: 0.6
+  Pe:  # rated power input (W)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  BL:  # force factor (T·m)
+    value: 6.33
+    winner: vendor_page
+    sources:
+      vendor_page: 6.33
+  Le:  # voice coil inductance (H)
+    value: 0.00054
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00054
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.009061376
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009061376

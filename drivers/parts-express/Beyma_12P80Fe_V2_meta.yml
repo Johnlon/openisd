@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-006--12p80fev2-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.21 differs from calculated=0.212798 (deps: Qms=6.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-006
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-006--12p80fev2-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
 specs:
-  Le:  # voice coil inductance (H)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06088112
-    winner: vendor_page
-    sources:
-      vendor_page: 0.06088112
-  Qes:  # electrical Q factor
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
-  Mms:  # moving mass incl. air load (kg)
-    value: 7.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6e-05
-  BL:  # force factor (T·m)
-    value: 23.0
-    winner: vendor_page
-    sources:
-      vendor_page: 23.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 48.0
-    winner: vendor_page
-    sources:
-      vendor_page: 48.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.003526316923167866
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003526316923167866
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Qms:  # mechanical Q factor
-    value: 6.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 6.5
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.055
     winner: vendor_page
     sources:
       vendor_page: 0.055
+  Fs:  # free air resonance (Hz)
+    value: 48.0
+    winner: vendor_page
+    sources:
+      vendor_page: 48.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.003526316923167866
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003526316923167866
+  Mms:  # moving mass incl. air load (kg)
+    value: 7.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.6e-05
+  Qms:  # mechanical Q factor
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
   Znom:  # nominal impedance (Ω)
     value: 50.0
     winner: vendor_page
     sources:
       vendor_page: 50.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-006--12p80fev2-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-006--12p80fev2-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 23.0
+    winner: vendor_page
+    sources:
+      vendor_page: 23.0
+  Le:  # voice coil inductance (H)
+    value: 48.0
+    winner: vendor_page
+    sources:
+      vendor_page: 48.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06088112
+    winner: vendor_page
+    sources:
+      vendor_page: 0.06088112

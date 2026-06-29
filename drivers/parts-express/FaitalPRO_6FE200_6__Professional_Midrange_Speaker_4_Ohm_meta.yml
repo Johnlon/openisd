@@ -1,56 +1,24 @@
+source: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-1151-faitalpro-6fe200-4-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1151-faitalpro-6fe200-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.003681184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003681184
-  Qes:  # electrical Q factor
-    value: 0.8
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009699999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009699999999999999
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Pe:  # rated power input (W)
-    value: 130.0
-    winner: vendor_page
-    sources:
-      vendor_page: 130.0
-  Fs:  # free air resonance (Hz)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1739370301054632
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1739370301054632
   Xmax:  # one-way linear excursion (m)
     value: 0.00462
     winner: vendor_page
@@ -61,31 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.71
-  Qms:  # mechanical Q factor
-    value: 6.23
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 6.23
+      vendor_page: 3.0
   Sd:  # effective piston area (m²)
     value: 0.0118
     winner: vendor_page
     sources:
       vendor_page: 0.0118
+  Fs:  # free air resonance (Hz)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.1739370301054632
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1739370301054632
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.009699999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.009699999999999999
+  Qms:  # mechanical Q factor
+    value: 6.23
+    winner: vendor_page
+    sources:
+      vendor_page: 6.23
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.8
+    winner: vendor_page
+    sources:
+      vendor_page: 0.8
+  Pe:  # rated power input (W)
+    value: 130.0
+    winner: vendor_page
+    sources:
+      vendor_page: 130.0
+  Le:  # voice coil inductance (H)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003681184
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003681184
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 100.0
     winner: vendor_page
     sources:
       vendor_page: 100.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1151-faitalpro-6fe200-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-1151-faitalpro-6fe200-4-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/FaitalPRO-6FE200-6-Professional-Woofer-4-Ohm-294-1151
-frd_url: null
-zma_url: null

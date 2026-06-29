@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5980--bc-15cl76-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5980--bc-15cl76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.13592063999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.13592063999999998
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.108
-    winner: vendor_page
-    sources:
-      vendor_page: 0.108
-  BL:  # force factor (T·m)
-    value: 21.0
-    winner: vendor_page
-    sources:
-      vendor_page: 21.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 42.0
-    winner: vendor_page
-    sources:
-      vendor_page: 42.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.607661842198304
-    winner: vendor_page
-    sources:
-      vendor_page: 3.607661842198304
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 7.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 7.9
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
+  Fs:  # free air resonance (Hz)
+    value: 42.0
+    winner: vendor_page
+    sources:
+      vendor_page: 42.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.607661842198304
+    winner: vendor_page
+    sources:
+      vendor_page: 3.607661842198304
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.108
+    winner: vendor_page
+    sources:
+      vendor_page: 0.108
+  Qms:  # mechanical Q factor
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5980--bc-15cl76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5980--bc-15cl76-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15CL76-15-Professional-Neodymium-Woofer-8-Ohm-294-5980
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 21.0
+    winner: vendor_page
+    sources:
+      vendor_page: 21.0
+  Le:  # voice coil inductance (H)
+    value: 0.0013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0013
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.13592063999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.13592063999999998

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.047289055999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.047289055999999996
-  Qes:  # electrical Q factor
-    value: 0.68
-    winner: vendor_page
-    sources:
-      vendor_page: 0.68
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.032100000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032100000000000004
-  BL:  # force factor (T·m)
-    value: 9.78
-    winner: vendor_page
-    sources:
-      vendor_page: 9.78
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 60.12
-    winner: vendor_page
-    sources:
-      vendor_page: 60.12
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7787808433802915
-    winner: vendor_page
-    sources:
-      vendor_page: 0.7787808433802915
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Qms:  # mechanical Q factor
-    value: 15.57
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 15.57
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.0394
     winner: vendor_page
     sources:
       vendor_page: 0.0394
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 60.12
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 60.12
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.7787808433802915
+    winner: vendor_page
+    sources:
+      vendor_page: 0.7787808433802915
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.032100000000000004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.032100000000000004
+  Qms:  # mechanical Q factor
+    value: 15.57
+    winner: vendor_page
+    sources:
+      vendor_page: 15.57
   Cms:  # mechanical compliance (m/N)
     value: 0.000216
     winner: vendor_page
     sources:
       vendor_page: 0.000216
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.68
+    winner: vendor_page
+    sources:
+      vendor_page: 0.68
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 9.78
+    winner: vendor_page
+    sources:
+      vendor_page: 9.78
+  Le:  # voice coil inductance (H)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.047289055999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.047289055999999996

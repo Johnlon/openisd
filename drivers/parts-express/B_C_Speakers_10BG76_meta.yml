@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6471--bc-speakers-10mb76-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-6471
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6471--bc-speakers-10mb76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00137
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00137
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0167
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0167
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0914
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0914
-  BL:  # force factor (T·m)
-    value: 22.4
-    winner: vendor_page
-    sources:
-      vendor_page: 22.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.1
-    winner: vendor_page
-    sources:
-      vendor_page: 4.1
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 49.0
-    winner: vendor_page
-    sources:
-      vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.90241702382134
-    winner: vendor_page
-    sources:
-      vendor_page: 4.90241702382134
   Xmax:  # one-way linear excursion (m)
     value: 0.0096
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.22
-  Qms:  # mechanical Q factor
-    value: 5.74
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.1
     winner: vendor_page
     sources:
-      vendor_page: 5.74
+      vendor_page: 4.1
   Sd:  # effective piston area (m²)
     value: 0.032
     winner: vendor_page
     sources:
       vendor_page: 0.032
+  Fs:  # free air resonance (Hz)
+    value: 49.0
+    winner: vendor_page
+    sources:
+      vendor_page: 49.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.90241702382134
+    winner: vendor_page
+    sources:
+      vendor_page: 4.90241702382134
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0914
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0914
+  Qms:  # mechanical Q factor
+    value: 5.74
+    winner: vendor_page
+    sources:
+      vendor_page: 5.74
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 22.4
+    winner: vendor_page
+    sources:
+      vendor_page: 22.4
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 91.5
     winner: vendor_page
     sources:
       vendor_page: 91.5
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6471--bc-speakers-10mb76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6471--bc-speakers-10mb76-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10BG76-4-10-Neodymium-Subwoofer-294-6471
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.00137
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00137
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0167
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0167

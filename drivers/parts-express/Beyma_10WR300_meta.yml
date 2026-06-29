@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
+datasheet_url: https://www.parts-express.com/pedocs/specs/253-059--10wr300-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.354545 (deps: Qms=3.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-059
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/253-059--10wr300-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
 specs:
-  Le:  # voice coil inductance (H)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041908864
-    winner: vendor_page
-    sources:
-      vendor_page: 0.041908864
-  Qes:  # electrical Q factor
-    value: 0.39
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 3.9e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9e-05
-  BL:  # force factor (T·m)
-    value: 14.2
-    winner: vendor_page
-    sources:
-      vendor_page: 14.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 52.0
-    winner: vendor_page
-    sources:
-      vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.003267256359733385
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003267256359733385
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -68,29 +34,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 3.9
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.035
     winner: vendor_page
     sources:
       vendor_page: 0.035
+  Fs:  # free air resonance (Hz)
+    value: 52.0
+    winner: vendor_page
+    sources:
+      vendor_page: 52.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.003267256359733385
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003267256359733385
+  Mms:  # moving mass incl. air load (kg)
+    value: 3.9e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9e-05
+  Qms:  # mechanical Q factor
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
   Znom:  # nominal impedance (Ω)
     value: 55.0
     winner: vendor_page
     sources:
       vendor_page: 55.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-059--10wr300-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
-datasheet_url: https://www.parts-express.com/pedocs/specs/253-059--10wr300-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-10WR300-WR-Series-10-Woofer-8-Ohm-253-059
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.39
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: vendor_page
+    sources:
+      vendor_page: 300.0
+  BL:  # force factor (T·m)
+    value: 14.2
+    winner: vendor_page
+    sources:
+      vendor_page: 14.2
+  Le:  # voice coil inductance (H)
+    value: 52.0
+    winner: vendor_page
+    sources:
+      vendor_page: 52.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041908864
+    winner: vendor_page
+    sources:
+      vendor_page: 0.041908864

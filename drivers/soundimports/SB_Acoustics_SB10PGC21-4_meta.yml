@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Qes:  # electrical Q factor
-    value: 1.01
-    winner: vendor_page
-    sources:
-      vendor_page: 1.01
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  BL:  # force factor (T·m)
-    value: 2.3
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 89.0
-    winner: vendor_page
-    sources:
-      vendor_page: 89.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.14
-    winner: vendor_page
-    sources:
-      vendor_page: 0.14
   Xmax:  # one-way linear excursion (m)
     value: 0.00225
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.92
-  Qms:  # mechanical Q factor
-    value: 11.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 11.2
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0027
     winner: vendor_page
     sources:
       vendor_page: 0.0027
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 89.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 89.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.14
+    winner: vendor_page
+    sources:
+      vendor_page: 0.14
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Qms:  # mechanical Q factor
+    value: 11.2
+    winner: vendor_page
+    sources:
+      vendor_page: 11.2
   Cms:  # mechanical compliance (m/N)
     value: 0.00114
     winner: vendor_page
     sources:
       vendor_page: 0.00114
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb10pgc21-4.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 1.01
+    winner: vendor_page
+    sources:
+      vendor_page: 1.01
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.3
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3
+  Le:  # voice coil inductance (H)
+    value: 0.00015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00015
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012

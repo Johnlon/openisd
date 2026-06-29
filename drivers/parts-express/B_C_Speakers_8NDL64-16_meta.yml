@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6013--bc-speakers-8ndl64-16-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 294-6013
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6013--bc-speakers-8ndl64-16-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00103
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00103
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0118
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0118
-  Qes:  # electrical Q factor
-    value: 0.25
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.027
-  BL:  # force factor (T·m)
-    value: 24.0
-    winner: vendor_page
-    sources:
-      vendor_page: 24.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 11.2
-    winner: vendor_page
-    sources:
-      vendor_page: 11.2
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 73.0
-    winner: vendor_page
-    sources:
-      vendor_page: 73.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8211997412427887
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8211997412427887
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -67,34 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.24
-  Qms:  # mechanical Q factor
-    value: 6.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 11.2
     winner: vendor_page
     sources:
-      vendor_page: 6.8
+      vendor_page: 11.2
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 73.0
+    winner: vendor_page
+    sources:
+      vendor_page: 73.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.8211997412427887
+    winner: vendor_page
+    sources:
+      vendor_page: 1.8211997412427887
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.027
+  Qms:  # mechanical Q factor
+    value: 6.8
+    winner: vendor_page
+    sources:
+      vendor_page: 6.8
   Znom:  # nominal impedance (Ω)
     value: 6.0
     winner: vendor_page
     sources:
       vendor_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.25
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 24.0
+    winner: vendor_page
+    sources:
+      vendor_page: 24.0
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 97.0
     winner: vendor_page
     sources:
       vendor_page: 97.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6013--bc-speakers-8ndl64-16-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6013--bc-speakers-8ndl64-16-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-8NDL64-16-8-Neodymium-Woofer-16-Ohm-294-6013
-frd_url: null
-zma_url: null
+  Le:  # voice coil inductance (H)
+    value: 0.00103
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00103
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0118
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0118

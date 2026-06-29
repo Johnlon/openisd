@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
+datasheet_url: https://www.parts-express.com/pedocs/specs/293-170--ciare-csd124-22-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/293-170--ciare-csd124-22-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00092
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.054085087999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054085087999999996
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.146
-    winner: vendor_page
-    sources:
-      vendor_page: 0.146
-  BL:  # force factor (T·m)
-    value: 18.21
-    winner: vendor_page
-    sources:
-      vendor_page: 18.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 34.0
-    winner: vendor_page
-    sources:
-      vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.225495382203486
-    winner: vendor_page
-    sources:
-      vendor_page: 6.225495382203486
   Xmax:  # one-way linear excursion (m)
     value: 0.013
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 5.01
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 5.01
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0491
     winner: vendor_page
     sources:
       vendor_page: 0.0491
+  Fs:  # free air resonance (Hz)
+    value: 34.0
+    winner: vendor_page
+    sources:
+      vendor_page: 34.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 6.225495382203486
+    winner: vendor_page
+    sources:
+      vendor_page: 6.225495382203486
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.146
+    winner: vendor_page
+    sources:
+      vendor_page: 0.146
+  Qms:  # mechanical Q factor
+    value: 5.01
+    winner: vendor_page
+    sources:
+      vendor_page: 5.01
   Znom:  # nominal impedance (Ω)
     value: 2.0
     winner: vendor_page
     sources:
       vendor_page: 2.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-170--ciare-csd124-22-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
-datasheet_url: https://www.parts-express.com/pedocs/specs/293-170--ciare-csd124-22-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 18.21
+    winner: vendor_page
+    sources:
+      vendor_page: 18.21
+  Le:  # voice coil inductance (H)
+    value: 0.00092
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00092
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.054085087999999996
+    winner: vendor_page
+    sources:
+      vendor_page: 0.054085087999999996

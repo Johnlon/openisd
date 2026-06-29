@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0228
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0228
-  BL:  # force factor (T·m)
-    value: 11.96
-    winner: vendor_page
-    sources:
-      vendor_page: 11.96
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 56.0
-    winner: vendor_page
-    sources:
-      vendor_page: 56.0
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 1.52
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 1.52
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0213
     winner: vendor_page
     sources:
       vendor_page: 0.0213
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 56.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 56.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0228
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0228
+  Qms:  # mechanical Q factor
+    value: 1.52
+    winner: vendor_page
+    sources:
+      vendor_page: 1.52
   Cms:  # mechanical compliance (m/N)
     value: 0.00035
     winner: vendor_page
     sources:
       vendor_page: 0.00035
-_sources:
-  vendor_page: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/monacor-sp-8-150pro.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 11.96
+    winner: vendor_page
+    sources:
+      vendor_page: 11.96
+  Le:  # voice coil inductance (H)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022

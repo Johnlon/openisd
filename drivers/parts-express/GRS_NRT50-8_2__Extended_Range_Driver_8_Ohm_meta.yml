@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
+datasheet_url: https://www.parts-express.com/pedocs/specs/272-252--grs-nrt50-8-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/272-252--grs-nrt50-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00011999999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011999999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 5.66336e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.66336e-05
-  Qes:  # electrical Q factor
-    value: 1.65
-    winner: vendor_page
-    sources:
-      vendor_page: 1.65
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00111
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00111
-  BL:  # force factor (T·m)
-    value: 2.57
-    winner: vendor_page
-    sources:
-      vendor_page: 2.57
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.39358553560775067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.39358553560775067
   Xmax:  # one-way linear excursion (m)
     value: 0.0025
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.21
-  Qms:  # mechanical Q factor
-    value: 4.43
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 4.43
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.0008900000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.0008900000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 250.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 250.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.39358553560775067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.39358553560775067
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00111
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00111
+  Qms:  # mechanical Q factor
+    value: 4.43
+    winner: vendor_page
+    sources:
+      vendor_page: 4.43
   Cms:  # mechanical compliance (m/N)
     value: 0.00035999999999999997
     winner: vendor_page
     sources:
       vendor_page: 0.00035999999999999997
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.65
+    winner: vendor_page
+    sources:
+      vendor_page: 1.65
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 2.57
+    winner: vendor_page
+    sources:
+      vendor_page: 2.57
+  Le:  # voice coil inductance (H)
+    value: 0.00011999999999999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011999999999999999
+  Vas:  # equivalent acoustic volume (m³)
+    value: 5.66336e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.66336e-05
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 79.9
     winner: vendor_page
     sources:
       vendor_page: 79.9
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/272-252--grs-nrt50-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
-datasheet_url: https://www.parts-express.com/pedocs/specs/272-252--grs-nrt50-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-NRT50-8-2-Extended-Range-Driver-8-Ohm-272-252
-frd_url: null
-zma_url: null

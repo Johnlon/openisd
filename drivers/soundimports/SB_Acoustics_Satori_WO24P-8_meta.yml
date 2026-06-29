@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00056
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00309
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00309
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0445
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0445
-  BL:  # force factor (T·m)
-    value: 9.9
-    winner: vendor_page
-    sources:
-      vendor_page: 9.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
-  Fs:  # free air resonance (Hz)
-    value: 24.5
-    winner: vendor_page
-    sources:
-      vendor_page: 24.5
   Xmax:  # one-way linear excursion (m)
     value: 0.0085
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Qms:  # mechanical Q factor
-    value: 5.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 5.7
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.0255
     winner: vendor_page
     sources:
       vendor_page: 0.0255
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 24.5
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 24.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0445
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0445
+  Qms:  # mechanical Q factor
+    value: 5.7
+    winner: vendor_page
+    sources:
+      vendor_page: 5.7
   Cms:  # mechanical compliance (m/N)
     value: 0.00095
     winner: vendor_page
     sources:
       vendor_page: 0.00095
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-wo24p-8.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Pe:  # rated power input (W)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  BL:  # force factor (T·m)
+    value: 9.9
+    winner: vendor_page
+    sources:
+      vendor_page: 9.9
+  Le:  # voice coil inductance (H)
+    value: 0.00056
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00056
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00309
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00309

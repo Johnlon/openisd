@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,57 +15,13 @@ corrections: null
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-412
+_sources:
+  vendor_page: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.112417696
-    winner: vendor_page
-    sources:
-      vendor_page: 0.112417696
-  Qes:  # electrical Q factor
-    value: 2.76
-    winner: vendor_page
-    sources:
-      vendor_page: 2.76
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.061799999999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.061799999999999994
-  BL:  # force factor (T·m)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  Fs:  # free air resonance (Hz)
-    value: 38.0
-    winner: vendor_page
-    sources:
-      vendor_page: 38.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2735643105362926
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2735643105362926
   Xmax:  # one-way linear excursion (m)
     value: 0.0035
     winner: vendor_page
@@ -67,33 +32,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.93
-  Qms:  # mechanical Q factor
-    value: 6.49
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.4
     winner: vendor_page
     sources:
-      vendor_page: 6.49
+      vendor_page: 7.4
   Sd:  # effective piston area (m²)
     value: 0.05243
     winner: vendor_page
     sources:
       vendor_page: 0.05243
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 38.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 38.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2735643105362926
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2735643105362926
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.061799999999999994
+    winner: vendor_page
+    sources:
+      vendor_page: 0.061799999999999994
+  Qms:  # mechanical Q factor
+    value: 6.49
+    winner: vendor_page
+    sources:
+      vendor_page: 6.49
   Cms:  # mechanical compliance (m/N)
     value: 0.00029
     winner: vendor_page
     sources:
       vendor_page: 0.00029
-_sources:
-  vendor_page: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-12PF-8-12-Paper-Cone-Foam-Surround-Woofer-292-412
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 2.76
+    winner: vendor_page
+    sources:
+      vendor_page: 2.76
+  Pe:  # rated power input (W)
+    value: 120.0
+    winner: vendor_page
+    sources:
+      vendor_page: 120.0
+  BL:  # force factor (T·m)
+    value: 6.3
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3
+  Le:  # voice coil inductance (H)
+    value: 0.0012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.112417696
+    winner: vendor_page
+    sources:
+      vendor_page: 0.112417696

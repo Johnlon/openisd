@@ -1,3 +1,9 @@
+source: https://sbacoustics.com/product/15in-sb42fhcl75-6/
+manu_page_url: https://sbacoustics.com/product/15in-sb42fhcl75-6/
+vendor_page_url: null
+datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/15in-SB42FHCL75-6.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/S
@@ -5,52 +11,14 @@ detail: Automatically scraped from SB Acoustics website (scraped 2026-06-29). T/
 corrections: null
 reviewed_by: null
 driver_type: null
-source: https://sbacoustics.com/product/15in-sb42fhcl75-6/
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/15in-SB42FHCL75-6.pdf
+  manu_page: https://sbacoustics.com/product/15in-sb42fhcl75-6/
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0021
-    winner: manu_page
-    sources:
-      manu_page: 0.0021
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.462
-    winner: manu_page
-    sources:
-      manu_page: 0.462
-  Qes:  # electrical Q factor
-    value: 0.32
-    winner: manu_page
-    sources:
-      manu_page: 0.32
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.166
-    winner: manu_page
-    sources:
-      manu_page: 0.166
-  BL:  # force factor (T·m)
-    value: 16.7
-    winner: manu_page
-    sources:
-      manu_page: 16.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.6
-    winner: manu_page
-    sources:
-      manu_page: 4.6
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: manu_page
-    sources:
-      manu_page: 300.0
-  Fs:  # free air resonance (Hz)
-    value: 18.4
-    winner: manu_page
-    sources:
-      manu_page: 18.4
   Xmax:  # one-way linear excursion (m)
     value: 0.0115
     winner: manu_page
@@ -61,26 +29,66 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.31
-  Qms:  # mechanical Q factor
-    value: 7.4
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.6
     winner: manu_page
     sources:
-      manu_page: 7.4
+      manu_page: 4.6
   Sd:  # effective piston area (m²)
     value: 0.085
     winner: manu_page
     sources:
       manu_page: 0.085
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
+  Fs:  # free air resonance (Hz)
+    value: 18.4
     winner: manu_page
     sources:
-      manu_page: 6.0
+      manu_page: 18.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.166
+    winner: manu_page
+    sources:
+      manu_page: 0.166
+  Qms:  # mechanical Q factor
+    value: 7.4
+    winner: manu_page
+    sources:
+      manu_page: 7.4
   Cms:  # mechanical compliance (m/N)
     value: 0.00045
     winner: manu_page
     sources:
       manu_page: 0.00045
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: manu_page
+    sources:
+      manu_page: 6.0
+  Qes:  # electrical Q factor
+    value: 0.32
+    winner: manu_page
+    sources:
+      manu_page: 0.32
+  Pe:  # rated power input (W)
+    value: 300.0
+    winner: manu_page
+    sources:
+      manu_page: 300.0
+  BL:  # force factor (T·m)
+    value: 16.7
+    winner: manu_page
+    sources:
+      manu_page: 16.7
+  Le:  # voice coil inductance (H)
+    value: 0.0021
+    winner: manu_page
+    sources:
+      manu_page: 0.0021
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.462
+    winner: manu_page
+    sources:
+      manu_page: 0.462
   voice_coil_dia_mm:  # voice coil diameter (mm)
     value: 75.6
     winner: manu_page
@@ -96,11 +104,3 @@ specs:
     winner: manu_page
     sources:
       manu_page: 93.0
-_sources:
-  datasheet: https://sbacoustics.com/wp-content/uploads/2020/03/15in-SB42FHCL75-6.pdf
-  manu_page: https://sbacoustics.com/product/15in-sb42fhcl75-6/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/03/15in-SB42FHCL75-6.pdf
-manu_page_url: https://sbacoustics.com/product/15in-sb42fhcl75-6/
-vendor_page_url: null
-frd_url: null
-zma_url: null

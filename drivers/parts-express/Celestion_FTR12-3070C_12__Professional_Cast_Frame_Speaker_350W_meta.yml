@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00109
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00109
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.043607872
-    winner: vendor_page
-    sources:
-      vendor_page: 0.043607872
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05461
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05461
-  BL:  # force factor (T·m)
-    value: 18.58
-    winner: vendor_page
-    sources:
-      vendor_page: 18.58
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.59
-    winner: vendor_page
-    sources:
-      vendor_page: 5.59
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 65.1
-    winner: vendor_page
-    sources:
-      vendor_page: 65.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.977650428783044
-    winner: vendor_page
-    sources:
-      vendor_page: 7.977650428783044
   Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
@@ -66,36 +29,73 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Qms:  # mechanical Q factor
-    value: 2.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.59
     winner: vendor_page
     sources:
-      vendor_page: 2.8
+      vendor_page: 5.59
   Sd:  # effective piston area (m²)
     value: 0.05313
     winner: vendor_page
     sources:
       vendor_page: 0.05313
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.1
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.1
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.977650428783044
+    winner: vendor_page
+    sources:
+      vendor_page: 7.977650428783044
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05461
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05461
+  Qms:  # mechanical Q factor
+    value: 2.8
+    winner: vendor_page
+    sources:
+      vendor_page: 2.8
   Cms:  # mechanical compliance (m/N)
     value: 1.0e-05
     winner: vendor_page
     sources:
       vendor_page: 1.0e-05
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: vendor_page
+    sources:
+      vendor_page: 0.36
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 18.58
+    winner: vendor_page
+    sources:
+      vendor_page: 18.58
+  Le:  # voice coil inductance (H)
+    value: 0.00109
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00109
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.043607872
+    winner: vendor_page
+    sources:
+      vendor_page: 0.043607872
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
     winner: vendor_page
     sources:
       vendor_page: 96.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
-frd_url: null
-zma_url: null

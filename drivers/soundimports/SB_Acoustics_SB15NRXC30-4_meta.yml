@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00012
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00058
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00058
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
-    sources:
-      vendor_page: 0.31
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0086
-  BL:  # force factor (T·m)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 41.0
-    winner: vendor_page
-    sources:
-      vendor_page: 41.0
   Xmax:  # one-way linear excursion (m)
     value: 0.005
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 5.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
     winner: vendor_page
     sources:
-      vendor_page: 5.3
+      vendor_page: 3.1
   Sd:  # effective piston area (m²)
     value: 0.0082
     winner: vendor_page
     sources:
       vendor_page: 0.0082
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 41.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 41.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0086
+  Qms:  # mechanical Q factor
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
   Cms:  # mechanical compliance (m/N)
     value: 0.00175
     winner: vendor_page
     sources:
       vendor_page: 0.00175
-_sources:
-  vendor_page: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/sb-acoustics-sb15nrxc30-4.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: vendor_page
+    sources:
+      vendor_page: 0.31
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  BL:  # force factor (T·m)
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
+  Le:  # voice coil inductance (H)
+    value: 0.00012
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00012
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00058
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00058

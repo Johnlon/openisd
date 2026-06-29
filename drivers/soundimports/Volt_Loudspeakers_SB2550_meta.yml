@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00146
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00146
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.111
-    winner: vendor_page
-    sources:
-      vendor_page: 0.111
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.08448
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08448
-  BL:  # force factor (T·m)
-    value: 14.0
-    winner: vendor_page
-    sources:
-      vendor_page: 14.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 21.0
-    winner: vendor_page
-    sources:
-      vendor_page: 21.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.82
-    winner: vendor_page
-    sources:
-      vendor_page: 5.82
   Xmax:  # one-way linear excursion (m)
     value: 0.011
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Qms:  # mechanical Q factor
-    value: 1.9
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 1.9
+      vendor_page: 6.0
   Sd:  # effective piston area (m²)
     value: 0.0337
     winner: vendor_page
     sources:
       vendor_page: 0.0337
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 21.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 21.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.82
+    winner: vendor_page
+    sources:
+      vendor_page: 5.82
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.08448
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08448
+  Qms:  # mechanical Q factor
+    value: 1.9
+    winner: vendor_page
+    sources:
+      vendor_page: 1.9
   Cms:  # mechanical compliance (m/N)
     value: 0.00069
     winner: vendor_page
     sources:
       vendor_page: 0.00069
-_sources:
-  vendor_page: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/volt-loudspeakers-sb2550.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 14.0
+    winner: vendor_page
+    sources:
+      vendor_page: 14.0
+  Le:  # voice coil inductance (H)
+    value: 0.00146
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00146
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.111
+    winner: vendor_page
+    sources:
+      vendor_page: 0.111

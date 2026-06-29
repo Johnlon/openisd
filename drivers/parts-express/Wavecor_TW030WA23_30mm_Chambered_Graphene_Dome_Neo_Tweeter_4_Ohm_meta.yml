@@ -1,36 +1,34 @@
+source: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
+datasheet_url: https://www.parts-express.com/pedocs/specs/298-1221--tw030wa23-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
+driver_type: tweeter
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1221--tw030wa23-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
 specs:
-  Qes:  # electrical Q factor
-    value: 1.82
-    winner: vendor_page
-    sources:
-      vendor_page: 1.82
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 750.0
-    winner: vendor_page
-    sources:
-      vendor_page: 750.0
   Qts:  # total Q factor
     value: 1.1
     winner: vendor_page
     sources:
       vendor_page: 1.1
+  Fs:  # free air resonance (Hz)
+    value: 750.0
+    winner: vendor_page
+    sources:
+      vendor_page: 750.0
   Qms:  # mechanical Q factor
     value: 2.8
     winner: vendor_page
@@ -41,11 +39,13 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1221--tw030wa23-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
-datasheet_url: https://www.parts-express.com/pedocs/specs/298-1221--tw030wa23-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Wavecor-TW030WA23-30mm-Chambered-Graphene-Dome-Neo-Tweeter-4-Ohm-298-1221
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 1.82
+    winner: vendor_page
+    sources:
+      vendor_page: 1.82
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0

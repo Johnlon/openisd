@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-470--hi-vi-dm-7500-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,22 +15,19 @@ corrections: null
 reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 297-470
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-470--hi-vi-dm-7500-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
 specs:
   Re:  # DC voice coil resistance (Ω)
     value: 4.1
     winner: vendor_page
     sources:
       vendor_page: 4.1
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
   Fs:  # free air resonance (Hz)
     value: 300.0
     winner: vendor_page
@@ -32,6 +38,11 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 3.0
     winner: vendor_page
@@ -42,14 +53,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2019.1
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-470--hi-vi-dm-7500-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-470--hi-vi-dm-7500-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-DM-7500-3-Soft-Dome-Midrange-Driver-6-Ohms-297-470
-frd_url: null
-zma_url: null

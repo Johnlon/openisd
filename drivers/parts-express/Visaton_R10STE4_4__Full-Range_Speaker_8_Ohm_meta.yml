@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-7813--visaton-R10STE4-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-7813--visaton-R10STE4-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.001699008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001699008
-  Qes:  # electrical Q factor
-    value: 2.92
-    winner: vendor_page
-    sources:
-      vendor_page: 2.92
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  BL:  # force factor (T·m)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.32067293433771416
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32067293433771416
   Xmax:  # one-way linear excursion (m)
     value: 0.0015
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1.99
-  Qms:  # mechanical Q factor
-    value: 6.27
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 6.27
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.0056
     winner: vendor_page
     sources:
       vendor_page: 0.0056
+  Fs:  # free air resonance (Hz)
+    value: 160.0
+    winner: vendor_page
+    sources:
+      vendor_page: 160.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.32067293433771416
+    winner: vendor_page
+    sources:
+      vendor_page: 0.32067293433771416
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 6.27
+    winner: vendor_page
+    sources:
+      vendor_page: 6.27
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 2.92
+    winner: vendor_page
+    sources:
+      vendor_page: 2.92
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 2.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2.0
+  Le:  # voice coil inductance (H)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001699008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001699008
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 1300.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-7813--visaton-R10STE4-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-7813--visaton-R10STE4-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-R10STE8-4-Full-Range-Speaker-8-Ohm-292-7813
-frd_url: null
-zma_url: null

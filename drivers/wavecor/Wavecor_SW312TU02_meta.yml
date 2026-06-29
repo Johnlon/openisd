@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/sw312tu02.html
+manu_page_url: http://www.wavecor.com/html/sw312tu02.html
+vendor_page_url: null
+datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW312TU02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW312TU02_impedance_response.txt
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 2026-06-29). T/S parameters
@@ -6,47 +15,14 @@ corrections: null
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/sw312tu02.html
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW312TU02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/sw312tu02.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.065
-    winner: manu_page
-    sources:
-      manu_page: 0.065
-  Qes:  # electrical Q factor
-    value: 0.53
-    winner: manu_page
-    sources:
-      manu_page: 0.53
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.194
-    winner: manu_page
-    sources:
-      manu_page: 0.194
-  BL:  # force factor (T·m)
-    value: 14.3
-    winner: manu_page
-    sources:
-      manu_page: 14.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: manu_page
-    sources:
-      manu_page: 3.2
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: manu_page
-    sources:
-      manu_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 27.5
-    winner: manu_page
-    sources:
-      manu_page: 27.5
   Xmax:  # one-way linear excursion (m)
     value: 0.0115
     winner: manu_page
@@ -57,34 +33,58 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.5
-  Qms:  # mechanical Q factor
-    value: 11.5
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: manu_page
     sources:
-      manu_page: 11.5
+      manu_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.0513
     winner: manu_page
     sources:
       manu_page: 0.0513
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 27.5
     winner: manu_page
     sources:
-      manu_page: 4.0
+      manu_page: 27.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.194
+    winner: manu_page
+    sources:
+      manu_page: 0.194
+  Qms:  # mechanical Q factor
+    value: 11.5
+    winner: manu_page
+    sources:
+      manu_page: 11.5
   Cms:  # mechanical compliance (m/N)
     value: 0.000173
     winner: manu_page
     sources:
       manu_page: 0.000173
-_sources:
-  datasheet: http://www.wavecor.com/Driver%20specifications%20PDF/SW312TU02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/sw312tu02.html
-datasheet_url: http://www.wavecor.com/Driver%20specifications%20PDF/SW312TU02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/sw312tu02.html
-vendor_page_url: null
-frd_url: null
-zma_url: http://www.wavecor.com/Driver%20measurements%20TXT/Impedance%20response/SW312TU02_impedance_response.txt
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: manu_page
+    sources:
+      manu_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.53
+    winner: manu_page
+    sources:
+      manu_page: 0.53
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: manu_page
+    sources:
+      manu_page: 250.0
+  BL:  # force factor (T·m)
+    value: 14.3
+    winner: manu_page
+    sources:
+      manu_page: 14.3
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.065
+    winner: manu_page
+    sources:
+      manu_page: 0.065

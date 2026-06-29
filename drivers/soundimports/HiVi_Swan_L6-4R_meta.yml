@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/hivi-l6-4r.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/hivi-l6-4r.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/hivi-l6-4r.html
+driver_type: mid-bass
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: mid-bass
+_sources:
+  vendor_page: https://www.soundimports.eu/en/hivi-l6-4r.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01469
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01469
-  Qes:  # electrical Q factor
-    value: 0.443
-    winner: vendor_page
-    sources:
-      vendor_page: 0.443
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.017315
-    winner: vendor_page
-    sources:
-      vendor_page: 0.017315
-  BL:  # force factor (T·m)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -55,26 +27,61 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.856
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.856
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0133
     winner: vendor_page
     sources:
       vendor_page: 0.0133
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 50.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.017315
+    winner: vendor_page
+    sources:
+      vendor_page: 0.017315
+  Qms:  # mechanical Q factor
+    value: 3.856
+    winner: vendor_page
+    sources:
+      vendor_page: 3.856
   Cms:  # mechanical compliance (m/N)
     value: 0.58845
     winner: vendor_page
     sources:
       vendor_page: 0.58845
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.443
+    winner: vendor_page
+    sources:
+      vendor_page: 0.443
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 6.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01469
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01469
   power_peak_W:  # peak power handling (W)
     value: 60.0
     winner: vendor_page
@@ -90,10 +97,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 30.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/hivi-l6-4r.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/hivi-l6-4r.html
-frd_url: null
-zma_url: null

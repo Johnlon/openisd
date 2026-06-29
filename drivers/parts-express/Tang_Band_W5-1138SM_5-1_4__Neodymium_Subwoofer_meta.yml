@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-831--tang-band-w5-1138sm-specifications.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-831--tang-band-w5-1138sm-specifications.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00115
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0059465279999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0059465279999999995
-  Qes:  # electrical Q factor
-    value: 0.58
-    winner: vendor_page
-    sources:
-      vendor_page: 0.58
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02495
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02495
-  BL:  # force factor (T·m)
-    value: 6.51
-    winner: vendor_page
-    sources:
-      vendor_page: 6.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.4927372097653286
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4927372097653286
   Xmax:  # one-way linear excursion (m)
     value: 0.00925
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.48
-  Qms:  # mechanical Q factor
-    value: 2.83
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 2.83
+      vendor_page: 3.4
   Sd:  # effective piston area (m²)
     value: 0.0094
     winner: vendor_page
     sources:
       vendor_page: 0.0094
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.4927372097653286
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4927372097653286
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02495
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02495
+  Qms:  # mechanical Q factor
+    value: 2.83
+    winner: vendor_page
+    sources:
+      vendor_page: 2.83
   Cms:  # mechanical compliance (m/N)
     value: 0.00049
     winner: vendor_page
     sources:
       vendor_page: 0.00049
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-831--tang-band-w5-1138sm-specifications.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-831--tang-band-w5-1138sm-specifications.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.58
+    winner: vendor_page
+    sources:
+      vendor_page: 0.58
+  Pe:  # rated power input (W)
+    value: 40.0
+    winner: vendor_page
+    sources:
+      vendor_page: 40.0
+  BL:  # force factor (T·m)
+    value: 6.51
+    winner: vendor_page
+    sources:
+      vendor_page: 6.51
+  Le:  # voice coil inductance (H)
+    value: 0.00115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00115
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0059465279999999995
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0059465279999999995

@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
+datasheet_url: https://www.parts-express.com/pedocs/specs/297-086--morel-caw-938-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/297-086--morel-caw-938-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.069942496
-    winner: vendor_page
-    sources:
-      vendor_page: 0.069942496
-  Qes:  # electrical Q factor
-    value: 0.67
-    winner: vendor_page
-    sources:
-      vendor_page: 0.67
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0275
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0275
-  BL:  # force factor (T·m)
-    value: 6.88
-    winner: vendor_page
-    sources:
-      vendor_page: 6.88
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.159844949342983
-    winner: vendor_page
-    sources:
-      vendor_page: 2.159844949342983
   Xmax:  # one-way linear excursion (m)
     value: 0.00425
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.52
-  Qms:  # mechanical Q factor
-    value: 2.32
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 2.32
+      vendor_page: 6.3
   Sd:  # effective piston area (m²)
     value: 0.0219
     winner: vendor_page
     sources:
       vendor_page: 0.0219
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 29.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 29.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.159844949342983
+    winner: vendor_page
+    sources:
+      vendor_page: 2.159844949342983
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0275
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0275
+  Qms:  # mechanical Q factor
+    value: 2.32
+    winner: vendor_page
+    sources:
+      vendor_page: 2.32
   Cms:  # mechanical compliance (m/N)
     value: 0.00107
     winner: vendor_page
     sources:
       vendor_page: 0.00107
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-086--morel-caw-938-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
-datasheet_url: https://www.parts-express.com/pedocs/specs/297-086--morel-caw-938-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.67
+    winner: vendor_page
+    sources:
+      vendor_page: 0.67
+  Pe:  # rated power input (W)
+    value: 150.0
+    winner: vendor_page
+    sources:
+      vendor_page: 150.0
+  BL:  # force factor (T·m)
+    value: 6.88
+    winner: vendor_page
+    sources:
+      vendor_page: 6.88
+  Le:  # voice coil inductance (H)
+    value: 0.00062
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00062
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.069942496
+    winner: vendor_page
+    sources:
+      vendor_page: 0.069942496

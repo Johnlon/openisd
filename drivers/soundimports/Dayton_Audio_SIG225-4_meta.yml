@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00104
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.03693
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03693
-  BL:  # force factor (T·m)
-    value: 8.95
-    winner: vendor_page
-    sources:
-      vendor_page: 8.95
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.89
-    winner: vendor_page
-    sources:
-      vendor_page: 3.89
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 39.94
-    winner: vendor_page
-    sources:
-      vendor_page: 39.94
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -60,26 +27,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Qms:  # mechanical Q factor
-    value: 8.87
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.89
     winner: vendor_page
     sources:
-      vendor_page: 8.87
+      vendor_page: 3.89
   Sd:  # effective piston area (m²)
     value: 0.02269
     winner: vendor_page
     sources:
       vendor_page: 0.02269
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 39.94
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 39.94
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.03693
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03693
+  Qms:  # mechanical Q factor
+    value: 8.87
+    winner: vendor_page
+    sources:
+      vendor_page: 8.87
   Cms:  # mechanical compliance (m/N)
     value: 0.00043
     winner: vendor_page
     sources:
       vendor_page: 0.00043
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 8.95
+    winner: vendor_page
+    sources:
+      vendor_page: 8.95
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00104
   power_peak_W:  # peak power handling (W)
     value: 200.0
     winner: vendor_page
@@ -100,10 +107,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 3000.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-sig225-4.html
-frd_url: null
-zma_url: null

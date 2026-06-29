@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6038--bc-15cxn88-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6038--bc-15cxn88-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0010500000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0010500000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.178112672
-    winner: vendor_page
-    sources:
-      vendor_page: 0.178112672
-  Qes:  # electrical Q factor
-    value: 0.26
-    winner: vendor_page
-    sources:
-      vendor_page: 0.26
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.093
-  BL:  # force factor (T·m)
-    value: 21.2
-    winner: vendor_page
-    sources:
-      vendor_page: 21.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  Fs:  # free air resonance (Hz)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.2692669264765106
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2692669264765106
   Xmax:  # one-way linear excursion (m)
     value: 0.0085
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.25
-  Qms:  # mechanical Q factor
-    value: 10.3
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 10.3
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.0855
     winner: vendor_page
     sources:
       vendor_page: 0.0855
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 40.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 40.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.2692669264765106
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2692669264765106
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.093
+  Qms:  # mechanical Q factor
+    value: 10.3
+    winner: vendor_page
+    sources:
+      vendor_page: 10.3
   Cms:  # mechanical compliance (m/N)
     value: 0.00017
     winner: vendor_page
     sources:
       vendor_page: 0.00017
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.26
+    winner: vendor_page
+    sources:
+      vendor_page: 0.26
+  Pe:  # rated power input (W)
+    value: 1000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 21.2
+    winner: vendor_page
+    sources:
+      vendor_page: 21.2
+  Le:  # voice coil inductance (H)
+    value: 0.0010500000000000002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0010500000000000002
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.178112672
+    winner: vendor_page
+    sources:
+      vendor_page: 0.178112672
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 100.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2.83
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6038--bc-15cxn88-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6038--bc-15cxn88-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-15CXN88-15-Neodymium-Coaxial-Speaker-80-x-80-Degree-294-6038
-frd_url: null
-zma_url: null

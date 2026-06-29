@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-6016--bc-10mbx64-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
+driver_type: null
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: null
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6016--bc-10mbx64-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00044
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00044
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026051456
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026051456
-  Qes:  # electrical Q factor
-    value: 0.28
-    winner: vendor_page
-    sources:
-      vendor_page: 0.28
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033
-  BL:  # force factor (T·m)
-    value: 17.1
-    winner: vendor_page
-    sources:
-      vendor_page: 17.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.369358120975053
-    winner: vendor_page
-    sources:
-      vendor_page: 3.369358120975053
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -66,21 +29,66 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Qms:  # mechanical Q factor
-    value: 4.0
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 5.4
   Sd:  # effective piston area (m²)
     value: 0.005363000000000001
     winner: vendor_page
     sources:
       vendor_page: 0.005363000000000001
+  Fs:  # free air resonance (Hz)
+    value: 65.0
+    winner: vendor_page
+    sources:
+      vendor_page: 65.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.369358120975053
+    winner: vendor_page
+    sources:
+      vendor_page: 3.369358120975053
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033
+  Qms:  # mechanical Q factor
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.28
+    winner: vendor_page
+    sources:
+      vendor_page: 0.28
+  Pe:  # rated power input (W)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  BL:  # force factor (T·m)
+    value: 17.1
+    winner: vendor_page
+    sources:
+      vendor_page: 17.1
+  Le:  # voice coil inductance (H)
+    value: 0.00044
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00044
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.026051456
+    winner: vendor_page
+    sources:
+      vendor_page: 0.026051456
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 2.0
     winner: vendor_page
@@ -91,11 +99,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 2019.1
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6016--bc-10mbx64-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-6016--bc-10mbx64-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-10MBX64-10-Professional-Neodymium-Woofer-8-Ohm-294-6016
-frd_url: null
-zma_url: null

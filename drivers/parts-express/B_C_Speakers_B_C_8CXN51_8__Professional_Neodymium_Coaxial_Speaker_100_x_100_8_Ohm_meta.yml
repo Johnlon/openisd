@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-5764--bc-8cxn51-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
+driver_type: coaxial
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: coaxial
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-5764--bc-8cxn51-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0009
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016990079999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016990079999999998
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022
-  BL:  # force factor (T·m)
-    value: 12.6
-    winner: vendor_page
-    sources:
-      vendor_page: 12.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 68.0
-    winner: vendor_page
-    sources:
-      vendor_page: 68.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.9999245147958853
-    winner: vendor_page
-    sources:
-      vendor_page: 1.9999245147958853
   Xmax:  # one-way linear excursion (m)
     value: 0.006
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Qms:  # mechanical Q factor
-    value: 4.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 4.7
+      vendor_page: 5.0
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 68.0
+    winner: vendor_page
+    sources:
+      vendor_page: 68.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.9999245147958853
+    winner: vendor_page
+    sources:
+      vendor_page: 1.9999245147958853
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022
+  Qms:  # mechanical Q factor
+    value: 4.7
+    winner: vendor_page
+    sources:
+      vendor_page: 4.7
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-5764--bc-8cxn51-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-5764--bc-8cxn51-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-8CXN51-8-Neodymium-Coaxial-Speaker-100-x-100-8-Ohm-294-5764
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.29
+    winner: vendor_page
+    sources:
+      vendor_page: 0.29
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 12.6
+    winner: vendor_page
+    sources:
+      vendor_page: 12.6
+  Le:  # voice coil inductance (H)
+    value: 0.0009
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0009
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016990079999999998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016990079999999998

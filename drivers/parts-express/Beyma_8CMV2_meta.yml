@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,13 @@ corrections: '''Qts'' stored=0.52 differs from calculated=0.513333 (deps: Qms=7.
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 253-027
+_sources:
+  vendor_page: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.014724736
-    winner: vendor_page
-    sources:
-      vendor_page: 0.014724736
-  Qes:  # electrical Q factor
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.1000000000000002e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1000000000000002e-05
-  BL:  # force factor (T·m)
-    value: 9.6
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 75.0
-    winner: vendor_page
-    sources:
-      vendor_page: 75.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.00128519699465037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00128519699465037
   Xmax:  # one-way linear excursion (m)
     value: 0.0057
     winner: vendor_page
@@ -68,33 +33,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.52
-  Qms:  # mechanical Q factor
-    value: 7.7
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 7.7
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.022
     winner: vendor_page
     sources:
       vendor_page: 0.022
+  Fs:  # free air resonance (Hz)
+    value: 75.0
+    winner: vendor_page
+    sources:
+      vendor_page: 75.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.00128519699465037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00128519699465037
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.1000000000000002e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1000000000000002e-05
+  Qms:  # mechanical Q factor
+    value: 7.7
+    winner: vendor_page
+    sources:
+      vendor_page: 7.7
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.55
+    winner: vendor_page
+    sources:
+      vendor_page: 0.55
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 9.6
+    winner: vendor_page
+    sources:
+      vendor_page: 9.6
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.014724736
+    winner: vendor_page
+    sources:
+      vendor_page: 0.014724736
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 94.0
     winner: vendor_page
     sources:
       vendor_page: 94.0
-_sources:
-  vendor_page: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027
-frd_url: null
-zma_url: null

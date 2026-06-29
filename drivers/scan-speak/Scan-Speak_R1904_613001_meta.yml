@@ -1,51 +1,51 @@
+source: https://www.scan-speak.dk/product/r1904-613001/
+manu_page_url: https://www.scan-speak.dk/product/r1904-613001/
+vendor_page_url: null
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/r1904-613001.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
   have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.scan-speak.dk/product/r1904-613001/
+driver_type: tweeter
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: tweeter
+_sources:
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/r1904-613001.pdf
+  manu_page: https://www.scan-speak.dk/product/r1904-613001/
 specs:
-  BL:  # force factor (T·m)
-    value: 1.4
-    winner: manu_page
-    sources:
-      manu_page: 1.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.7
-    winner: manu_page
-    sources:
-      manu_page: 2.7
-  Fs:  # free air resonance (Hz)
-    value: 1000.0
-    winner: manu_page
-    sources:
-      manu_page: 1000.0
   Qts:  # total Q factor
     value: 1.61
     winner: manu_page
     sources:
       manu_page: 1.61
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.7
+    winner: manu_page
+    sources:
+      manu_page: 2.7
   Sd:  # effective piston area (m²)
     value: 0.00038
     winner: manu_page
     sources:
       manu_page: 0.00038
+  Fs:  # free air resonance (Hz)
+    value: 1000.0
+    winner: manu_page
+    sources:
+      manu_page: 1000.0
+  BL:  # force factor (T·m)
+    value: 1.4
+    winner: manu_page
+    sources:
+      manu_page: 1.4
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.0
     winner: manu_page
     sources:
       manu_page: 87.0
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/r1904-613001.pdf
-  manu_page: https://www.scan-speak.dk/product/r1904-613001/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/r1904-613001.pdf
-manu_page_url: https://www.scan-speak.dk/product/r1904-613001/
-vendor_page_url: null
-frd_url: null
-zma_url: null

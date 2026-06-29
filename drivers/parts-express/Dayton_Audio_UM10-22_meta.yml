@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-510-dayton-audio-um10-22-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,57 +16,14 @@ corrections: '''Vas'' stored=0.0196 differs from calculated=0.0198155 (deps: roo
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-510
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-510-dayton-audio-um10-22-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00077
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0196
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0196
-  Qes:  # electrical Q factor
-    value: 0.94
-    winner: vendor_page
-    sources:
-      vendor_page: 0.94
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.192
-    winner: vendor_page
-    sources:
-      vendor_page: 0.192
-  BL:  # force factor (T·m)
-    value: 12.3
-    winner: vendor_page
-    sources:
-      vendor_page: 12.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 31.9
-    winner: vendor_page
-    sources:
-      vendor_page: 31.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 12.742799128944878
-    winner: vendor_page
-    sources:
-      vendor_page: 12.742799128944878
   Xmax:  # one-way linear excursion (m)
     value: 0.019
     winner: vendor_page
@@ -68,26 +34,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.72
-  Qms:  # mechanical Q factor
-    value: 3.02
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 3.02
+      vendor_page: 3.7
   Sd:  # effective piston area (m²)
     value: 0.03278
     winner: vendor_page
     sources:
       vendor_page: 0.03278
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 31.9
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 31.9
+  Rms:  # mechanical resistance (kg/s)
+    value: 12.742799128944878
+    winner: vendor_page
+    sources:
+      vendor_page: 12.742799128944878
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.192
+    winner: vendor_page
+    sources:
+      vendor_page: 0.192
+  Qms:  # mechanical Q factor
+    value: 3.02
+    winner: vendor_page
+    sources:
+      vendor_page: 3.02
   Cms:  # mechanical compliance (m/N)
     value: 0.00013
     winner: vendor_page
     sources:
       vendor_page: 0.00013
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.94
+    winner: vendor_page
+    sources:
+      vendor_page: 0.94
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 12.3
+    winner: vendor_page
+    sources:
+      vendor_page: 12.3
+  Le:  # voice coil inductance (H)
+    value: 0.00077
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00077
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0196
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0196
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 500.0
     winner: vendor_page
@@ -103,14 +114,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-510-dayton-audio-um10-22-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-510-dayton-audio-um10-22-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-UM10-22-10-Ultimax-DVC-Subwoofer-2-ohms-Per-Co-295-510
-frd_url: null
-zma_url: null

@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/seas-w26fx002.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-w26fx002.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-w26fx002.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-w26fx002.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00081
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00081
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.087
-    winner: vendor_page
-    sources:
-      vendor_page: 0.087
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0424
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0424
-  BL:  # force factor (T·m)
-    value: 10.9
-    winner: vendor_page
-    sources:
-      vendor_page: 10.9
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 31.0
-    winner: vendor_page
-    sources:
-      vendor_page: 31.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.52
-    winner: vendor_page
-    sources:
-      vendor_page: 3.52
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 2.55
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 2.55
+      vendor_page: 6.2
   Sd:  # effective piston area (m²)
     value: 0.033
     winner: vendor_page
     sources:
       vendor_page: 0.033
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 31.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 31.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.52
+    winner: vendor_page
+    sources:
+      vendor_page: 3.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0424
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0424
+  Qms:  # mechanical Q factor
+    value: 2.55
+    winner: vendor_page
+    sources:
+      vendor_page: 2.55
   Cms:  # mechanical compliance (m/N)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-w26fx002.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-w26fx002.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 10.9
+    winner: vendor_page
+    sources:
+      vendor_page: 10.9
+  Le:  # voice coil inductance (H)
+    value: 0.00081
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00081
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.087
+    winner: vendor_page
+    sources:
+      vendor_page: 0.087

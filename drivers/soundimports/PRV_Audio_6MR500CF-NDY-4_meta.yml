@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00021
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0061
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0061
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01636
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01636
-  BL:  # force factor (T·m)
-    value: 10.93
-    winner: vendor_page
-    sources:
-      vendor_page: 10.93
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 85.2
-    winner: vendor_page
-    sources:
-      vendor_page: 85.2
   Xmax:  # one-way linear excursion (m)
     value: 0.00325
     winner: vendor_page
@@ -60,20 +27,53 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.24
-  Qms:  # mechanical Q factor
-    value: 11.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
     winner: vendor_page
     sources:
-      vendor_page: 11.1
+      vendor_page: 3.3
   Sd:  # effective piston area (m²)
     value: 0.0143
     winner: vendor_page
     sources:
       vendor_page: 0.0143
-_sources:
-  vendor_page: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/prv-audio-6mr500cf-ndy-4.html
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 85.2
+    winner: vendor_page
+    sources:
+      vendor_page: 85.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01636
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01636
+  Qms:  # mechanical Q factor
+    value: 11.1
+    winner: vendor_page
+    sources:
+      vendor_page: 11.1
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 10.93
+    winner: vendor_page
+    sources:
+      vendor_page: 10.93
+  Le:  # voice coil inductance (H)
+    value: 0.00021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00021
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0061
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0061

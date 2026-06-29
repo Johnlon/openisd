@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,42 +15,28 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 292-7802
+_sources:
+  vendor_page: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.0e-05
+  Qts:  # total Q factor
+    value: 0.41
     winner: vendor_page
     sources:
-      vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0003398016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003398016
-  Qes:  # electrical Q factor
-    value: 1.11
-    winner: vendor_page
-    sources:
-      vendor_page: 1.11
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
+      vendor_page: 0.41
   Re:  # DC voice coil resistance (Ω)
     value: 5.6
     winner: vendor_page
     sources:
       vendor_page: 5.6
-  Pe:  # rated power input (W)
-    value: 80.0
+  Sd:  # effective piston area (m²)
+    value: 0.00049
     winner: vendor_page
     sources:
-      vendor_page: 80.0
+      vendor_page: 0.00049
   Fs:  # free air resonance (Hz)
     value: 1600.0
     winner: vendor_page
@@ -52,26 +47,41 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 4.5695893143124255
-  Qts:  # total Q factor
-    value: 0.41
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0003
     winner: vendor_page
     sources:
-      vendor_page: 0.41
+      vendor_page: 0.0003
   Qms:  # mechanical Q factor
     value: 0.66
     winner: vendor_page
     sources:
       vendor_page: 0.66
-  Sd:  # effective piston area (m²)
-    value: 0.00049
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00049
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 1.11
+    winner: vendor_page
+    sources:
+      vendor_page: 1.11
+  Pe:  # rated power input (W)
+    value: 80.0
+    winner: vendor_page
+    sources:
+      vendor_page: 80.0
+  Le:  # voice coil inductance (H)
+    value: 5.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0003398016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003398016
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 1000.0
     winner: vendor_page
@@ -82,13 +92,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 30000.0
-_sources:
-  vendor_page: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Visaton-G25FFL8-1-Fabric-Dome-Tweeter-8-Ohm-292-7802
-frd_url: null
-zma_url: null

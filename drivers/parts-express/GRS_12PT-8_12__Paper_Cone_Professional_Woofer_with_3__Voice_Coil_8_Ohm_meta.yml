@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
+datasheet_url: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
+frd_url: https://www.parts-express.com/pedocs/tech-docs/292-806--grs-12PT-8_data.zip
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.112134528
-    winner: vendor_page
-    sources:
-      vendor_page: 0.112134528
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.073
-    winner: vendor_page
-    sources:
-      vendor_page: 0.073
-  BL:  # force factor (T·m)
-    value: 17.4
-    winner: vendor_page
-    sources:
-      vendor_page: 17.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.6
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3267387156895738
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3267387156895738
   Xmax:  # one-way linear excursion (m)
     value: 0.0068
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Qms:  # mechanical Q factor
-    value: 12.1
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.6
     winner: vendor_page
     sources:
-      vendor_page: 12.1
+      vendor_page: 7.6
   Sd:  # effective piston area (m²)
     value: 0.05309
     winner: vendor_page
     sources:
       vendor_page: 0.05309
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 35.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 35.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3267387156895738
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3267387156895738
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.073
+    winner: vendor_page
+    sources:
+      vendor_page: 0.073
+  Qms:  # mechanical Q factor
+    value: 12.1
+    winner: vendor_page
+    sources:
+      vendor_page: 12.1
   Cms:  # mechanical compliance (m/N)
     value: 0.00028000000000000003
     winner: vendor_page
     sources:
       vendor_page: 0.00028000000000000003
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Pe:  # rated power input (W)
+    value: 350.0
+    winner: vendor_page
+    sources:
+      vendor_page: 350.0
+  BL:  # force factor (T·m)
+    value: 17.4
+    winner: vendor_page
+    sources:
+      vendor_page: 17.4
+  Le:  # voice coil inductance (H)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.112134528
+    winner: vendor_page
+    sources:
+      vendor_page: 0.112134528
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 12.0
     winner: vendor_page
@@ -96,11 +104,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
-datasheet_url: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
-frd_url: https://www.parts-express.com/pedocs/tech-docs/292-806--grs-12PT-8_data.zip
-zma_url: null

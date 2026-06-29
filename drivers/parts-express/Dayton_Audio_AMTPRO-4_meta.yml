@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
+datasheet_url: https://www.parts-express.com/pedocs/specs/275-094--dayton-audio-amtpro-4-specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,50 +15,41 @@ corrections: null
 reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
 obsolete: null
 dq_issue: missing_Sd
 community: null
 fetched_sku: 275-094
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/275-094--dayton-audio-amtpro-4-specifications.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
 specs:
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.96
-    winner: vendor_page
-    sources:
-      vendor_page: 3.96
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Fs:  # free air resonance (Hz)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
   Qts:  # total Q factor
     value: 4.12
     winner: vendor_page
     sources:
       vendor_page: 4.12
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.96
+    winner: vendor_page
+    sources:
+      vendor_page: 3.96
+  Fs:  # free air resonance (Hz)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
   Znom:  # nominal impedance (Ω)
     value: 4.0
     winner: vendor_page
     sources:
       vendor_page: 4.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/275-094--dayton-audio-amtpro-4-specifications.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
-datasheet_url: https://www.parts-express.com/pedocs/specs/275-094--dayton-audio-amtpro-4-specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-AMTPRO-4-Air-Motion-Transformer-Tweeter-275-094
-frd_url: null
-zma_url: null
+  Pe:  # rated power input (W)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Le:  # voice coil inductance (H)
+    value: 5.9999999999999995e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9999999999999995e-05

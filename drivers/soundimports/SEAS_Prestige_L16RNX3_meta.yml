@@ -1,60 +1,22 @@
+source: https://www.soundimports.eu/en/seas-l16rnx3.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/seas-l16rnx3.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/seas-l16rnx3.html
+driver_type: subwoofer
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: subwoofer
+_sources:
+  vendor_page: https://www.soundimports.eu/en/seas-l16rnx3.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.018
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0208
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0208
-  BL:  # force factor (T·m)
-    value: 8.7
-    winner: vendor_page
-    sources:
-      vendor_page: 8.7
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.76
-    winner: vendor_page
-    sources:
-      vendor_page: 0.76
   Xmax:  # one-way linear excursion (m)
     value: 0.007
     winner: vendor_page
@@ -65,30 +27,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Qms:  # mechanical Q factor
-    value: 5.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 5.48
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.0104
     winner: vendor_page
     sources:
       vendor_page: 0.0104
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 32.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 32.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.76
+    winner: vendor_page
+    sources:
+      vendor_page: 0.76
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0208
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0208
+  Qms:  # mechanical Q factor
+    value: 5.48
+    winner: vendor_page
+    sources:
+      vendor_page: 5.48
   Cms:  # mechanical compliance (m/N)
     value: 0.0012
     winner: vendor_page
     sources:
       vendor_page: 0.0012
-_sources:
-  vendor_page: https://www.soundimports.eu/en/seas-l16rnx3.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/seas-l16rnx3.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: vendor_page
+    sources:
+      vendor_page: 0.35
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 8.7
+    winner: vendor_page
+    sources:
+      vendor_page: 8.7
+  Le:  # voice coil inductance (H)
+    value: 0.0006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0006
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.018

@@ -1,75 +1,82 @@
+source: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
+driver_type: fullrange
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: fullrange
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00014
-  Qes:  # electrical Q factor
-    value: 0.9
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  BL:  # force factor (T·m)
-    value: 3.72
-    winner: vendor_page
-    sources:
-      vendor_page: 3.72
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  Fs:  # free air resonance (Hz)
-    value: 97.0
-    winner: vendor_page
-    sources:
-      vendor_page: 97.0
   Qts:  # total Q factor
     value: 0.81
     winner: vendor_page
     sources:
       vendor_page: 0.81
-  Qms:  # mechanical Q factor
-    value: 7.92
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.7
     winner: vendor_page
     sources:
-      vendor_page: 7.92
+      vendor_page: 6.7
   Sd:  # effective piston area (m²)
     value: 0.00283
     winner: vendor_page
     sources:
       vendor_page: 0.00283
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 97.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 97.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Qms:  # mechanical Q factor
+    value: 7.92
+    winner: vendor_page
+    sources:
+      vendor_page: 7.92
   Cms:  # mechanical compliance (m/N)
     value: 0.000889
     winner: vendor_page
     sources:
       vendor_page: 0.000889
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.9
+    winner: vendor_page
+    sources:
+      vendor_page: 0.9
+  Pe:  # rated power input (W)
+    value: 15.0
+    winner: vendor_page
+    sources:
+      vendor_page: 15.0
+  BL:  # force factor (T·m)
+    value: 3.72
+    winner: vendor_page
+    sources:
+      vendor_page: 3.72
+  Le:  # voice coil inductance (H)
+    value: 0.00014
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00014
   power_peak_W:  # peak power handling (W)
     value: 30.0
     winner: vendor_page
@@ -95,10 +102,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 20.0
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-ce81pf-8.html
-frd_url: null
-zma_url: null

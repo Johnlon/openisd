@@ -1,50 +1,22 @@
+source: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00018
-  Qes:  # electrical Q factor
-    value: 0.69
-    winner: vendor_page
-    sources:
-      vendor_page: 0.69
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0039
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0039
-  BL:  # force factor (T·m)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  Fs:  # free air resonance (Hz)
-    value: 65.4
-    winner: vendor_page
-    sources:
-      vendor_page: 65.4
   Xmax:  # one-way linear excursion (m)
     value: 0.004
     winner: vendor_page
@@ -55,30 +27,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Qms:  # mechanical Q factor
-    value: 2.66
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
     winner: vendor_page
     sources:
-      vendor_page: 2.66
+      vendor_page: 7.2
   Sd:  # effective piston area (m²)
     value: 0.00502
     winner: vendor_page
     sources:
       vendor_page: 0.00502
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 65.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 65.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0039
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0039
+  Qms:  # mechanical Q factor
+    value: 2.66
+    winner: vendor_page
+    sources:
+      vendor_page: 2.66
   Cms:  # mechanical compliance (m/N)
     value: 0.00144
     winner: vendor_page
     sources:
       vendor_page: 0.00144
-_sources:
-  vendor_page: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/markaudio-chr-70-champagne.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.69
+    winner: vendor_page
+    sources:
+      vendor_page: 0.69
+  Pe:  # rated power input (W)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  BL:  # force factor (T·m)
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018

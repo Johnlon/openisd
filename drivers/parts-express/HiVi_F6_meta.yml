@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,47 +16,13 @@ corrections: '''Qts'' stored=0.35 differs from calculated=0.34634 (deps: Qms=3.9
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 297-440
+_sources:
+  vendor_page: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.016423743999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016423743999999997
-  Qes:  # electrical Q factor
-    value: 0.38
-    winner: vendor_page
-    sources:
-      vendor_page: 0.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0183
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0183
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Pe:  # rated power input (W)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Fs:  # free air resonance (Hz)
-    value: 45.0
-    winner: vendor_page
-    sources:
-      vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3233256011412762
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3233256011412762
   Xmax:  # one-way linear excursion (m)
     value: 0.0043
     winner: vendor_page
@@ -58,33 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 3.91
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 3.91
+      vendor_page: 6.5
   Sd:  # effective piston area (m²)
     value: 0.0139
     winner: vendor_page
     sources:
       vendor_page: 0.0139
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 45.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 45.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.3233256011412762
+    winner: vendor_page
+    sources:
+      vendor_page: 1.3233256011412762
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0183
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0183
+  Qms:  # mechanical Q factor
+    value: 3.91
+    winner: vendor_page
+    sources:
+      vendor_page: 3.91
   Cms:  # mechanical compliance (m/N)
     value: 7.000000000000001e-05
     winner: vendor_page
     sources:
       vendor_page: 7.000000000000001e-05
-_sources:
-  vendor_page: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/HiVi-F6-6-1-2-Bass-Midrange-297-440
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.38
+    winner: vendor_page
+    sources:
+      vendor_page: 0.38
+  Pe:  # rated power input (W)
+    value: 45.0
+    winner: vendor_page
+    sources:
+      vendor_page: 45.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.016423743999999997
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016423743999999997

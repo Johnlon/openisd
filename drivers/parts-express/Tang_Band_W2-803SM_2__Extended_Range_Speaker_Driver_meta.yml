@@ -1,51 +1,24 @@
+source: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-805--tang-band-w2-803sm-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
+driver_type: mid-bass
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: mid-bass
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-805--tang-band-w2-803sm-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
 specs:
-  Le:  # voice coil inductance (H)
-    value: 4.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0002265344
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002265344
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  BL:  # force factor (T·m)
-    value: 2.69
-    winner: vendor_page
-    sources:
-      vendor_page: 2.69
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.6
-    winner: vendor_page
-    sources:
-      vendor_page: 3.6
-  Pe:  # rated power input (W)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Fs:  # free air resonance (Hz)
-    value: 160.0
-    winner: vendor_page
-    sources:
-      vendor_page: 160.0
   Xmax:  # one-way linear excursion (m)
     value: 0.001
     winner: vendor_page
@@ -56,31 +29,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Qms:  # mechanical Q factor
-    value: 3.56
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.6
     winner: vendor_page
     sources:
-      vendor_page: 3.56
+      vendor_page: 3.6
   Sd:  # effective piston area (m²)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 160.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 160.0
+  Qms:  # mechanical Q factor
+    value: 3.56
+    winner: vendor_page
+    sources:
+      vendor_page: 3.56
   Cms:  # mechanical compliance (m/N)
     value: 0.0010500000000000002
     winner: vendor_page
     sources:
       vendor_page: 0.0010500000000000002
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-805--tang-band-w2-803sm-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-805--tang-band-w2-803sm-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Tang-Band-W2-803SM-2-Extended-Range-Speaker-Driver-264-805
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: vendor_page
+    sources:
+      vendor_page: 0.46
+  Pe:  # rated power input (W)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  BL:  # force factor (T·m)
+    value: 2.69
+    winner: vendor_page
+    sources:
+      vendor_page: 2.69
+  Le:  # voice coil inductance (H)
+    value: 4.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0e-05
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0002265344
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002265344

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -7,47 +16,13 @@ corrections: '''Qts'' stored=0.49 differs from calculated=0.482806 (deps: Qms=6.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-420
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00311
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00311
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.154609728
-    winner: vendor_page
-    sources:
-      vendor_page: 0.154609728
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: vendor_page
-    sources:
-      vendor_page: 0.52
-  BL:  # force factor (T·m)
-    value: 16.8
-    winner: vendor_page
-    sources:
-      vendor_page: 16.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 24.2
-    winner: vendor_page
-    sources:
-      vendor_page: 24.2
   Xmax:  # one-way linear excursion (m)
     value: 0.0205
     winner: vendor_page
@@ -58,33 +33,58 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Qms:  # mechanical Q factor
-    value: 6.75
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 6.75
+      vendor_page: 3.8
   Sd:  # effective piston area (m²)
     value: 0.08042
     winner: vendor_page
     sources:
       vendor_page: 0.08042
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 24.2
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 24.2
+  Qms:  # mechanical Q factor
+    value: 6.75
+    winner: vendor_page
+    sources:
+      vendor_page: 6.75
   Cms:  # mechanical compliance (m/N)
     value: 0.00017
     winner: vendor_page
     sources:
       vendor_page: 0.00017
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-TIT400C-4-15-Titanic-Mk-III-Subwoofer-4-Ohm-295-420
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: vendor_page
+    sources:
+      vendor_page: 0.52
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 16.8
+    winner: vendor_page
+    sources:
+      vendor_page: 16.8
+  Le:  # voice coil inductance (H)
+    value: 0.00311
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00311
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.154609728
+    winner: vendor_page
+    sources:
+      vendor_page: 0.154609728

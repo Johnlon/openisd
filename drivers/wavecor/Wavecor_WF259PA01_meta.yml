@@ -1,3 +1,12 @@
+source: http://www.wavecor.com/html/wf259pa01_02.html
+manu_page_url: http://www.wavecor.com/html/wf259pa01_02.html
+vendor_page_url: null
+datasheet_url: https://www.wavecor.com/WF259PA01_02_specifications.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: 'Automatically scraped from Wavecor website (scraped 20260629). Split from
@@ -8,52 +17,14 @@ corrections: Split from combined WF259PA01_02 page (col_idx=1). PA01 = 8 ohm. Be
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: http://www.wavecor.com/html/wf259pa01_02.html
 obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
+_sources:
+  datasheet: https://www.wavecor.com/WF259PA01_02_specifications.pdf
+  manu_page: http://www.wavecor.com/html/wf259pa01_02.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.031
-    winner: manu_page
-    sources:
-      manu_page: 0.031
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: manu_page
-    sources:
-      manu_page: 0.36
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.053
-    winner: manu_page
-    sources:
-      manu_page: 0.053
-  BL:  # force factor (T·m)
-    value: 16.8
-    winner: manu_page
-    sources:
-      manu_page: 16.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: manu_page
-    sources:
-      manu_page: 5.6
-  Pe:  # rated power input (W)
-    value: 1100.0
-    winner: manu_page
-    sources:
-      manu_page: 1100.0
-  Fs:  # free air resonance (Hz)
-    value: 55.0
-    winner: manu_page
-    sources:
-      manu_page: 55.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.32
-    winner: manu_page
-    sources:
-      manu_page: 1.32
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: manu_page
@@ -64,34 +35,63 @@ specs:
     winner: manu_page
     sources:
       manu_page: 0.35
-  Qms:  # mechanical Q factor
-    value: 13.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: manu_page
     sources:
-      manu_page: 13.8
+      manu_page: 5.6
   Sd:  # effective piston area (m²)
     value: 0.037
     winner: manu_page
     sources:
       manu_page: 0.037
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 55.0
     winner: manu_page
     sources:
-      manu_page: 8.0
+      manu_page: 55.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.32
+    winner: manu_page
+    sources:
+      manu_page: 1.32
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.053
+    winner: manu_page
+    sources:
+      manu_page: 0.053
+  Qms:  # mechanical Q factor
+    value: 13.8
+    winner: manu_page
+    sources:
+      manu_page: 13.8
   Cms:  # mechanical compliance (m/N)
     value: 0.00016
     winner: manu_page
     sources:
       manu_page: 0.00016
-_sources:
-  datasheet: https://www.wavecor.com/WF259PA01_02_specifications.pdf
-  manu_page: http://www.wavecor.com/html/wf259pa01_02.html
-datasheet_url: https://www.wavecor.com/WF259PA01_02_specifications.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: http://www.wavecor.com/html/wf259pa01_02.html
-vendor_page_url: null
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: manu_page
+    sources:
+      manu_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: manu_page
+    sources:
+      manu_page: 0.36
+  Pe:  # rated power input (W)
+    value: 1100.0
+    winner: manu_page
+    sources:
+      manu_page: 1100.0
+  BL:  # force factor (T·m)
+    value: 16.8
+    winner: manu_page
+    sources:
+      manu_page: 16.8
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.031
+    winner: manu_page
+    sources:
+      manu_page: 0.031

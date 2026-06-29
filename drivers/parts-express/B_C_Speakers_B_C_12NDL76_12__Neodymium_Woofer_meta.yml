@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
+datasheet_url: https://www.parts-express.com/pedocs/specs/294-570--bc-12ndl76-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
+driver_type: subwoofer
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/294-570--bc-12ndl76-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.070792
-    winner: vendor_page
-    sources:
-      vendor_page: 0.070792
-  Qes:  # electrical Q factor
-    value: 0.21
-    winner: vendor_page
-    sources:
-      vendor_page: 0.21
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.053
-    winner: vendor_page
-    sources:
-      vendor_page: 0.053
-  BL:  # force factor (T·m)
-    value: 20.1
-    winner: vendor_page
-    sources:
-      vendor_page: 20.1
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
-    sources:
-      vendor_page: 800.0
-  Fs:  # free air resonance (Hz)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.964390729529977
-    winner: vendor_page
-    sources:
-      vendor_page: 3.964390729529977
   Xmax:  # one-way linear excursion (m)
     value: 0.0065
     winner: vendor_page
@@ -66,26 +29,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.2
-  Qms:  # mechanical Q factor
-    value: 4.2
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 4.2
+      vendor_page: 5.1
   Sd:  # effective piston area (m²)
     value: 0.0522
     winner: vendor_page
     sources:
       vendor_page: 0.0522
+  Fs:  # free air resonance (Hz)
+    value: 50.0
+    winner: vendor_page
+    sources:
+      vendor_page: 50.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.964390729529977
+    winner: vendor_page
+    sources:
+      vendor_page: 3.964390729529977
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.053
+    winner: vendor_page
+    sources:
+      vendor_page: 0.053
+  Qms:  # mechanical Q factor
+    value: 4.2
+    winner: vendor_page
+    sources:
+      vendor_page: 4.2
   Znom:  # nominal impedance (Ω)
     value: 8.0
     winner: vendor_page
     sources:
       vendor_page: 8.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-570--bc-12ndl76-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
-datasheet_url: https://www.parts-express.com/pedocs/specs/294-570--bc-12ndl76-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/B-C-12NDL76-12-Neodymium-Woofer-294-570
-frd_url: null
-zma_url: null
+  Qes:  # electrical Q factor
+    value: 0.21
+    winner: vendor_page
+    sources:
+      vendor_page: 0.21
+  Pe:  # rated power input (W)
+    value: 800.0
+    winner: vendor_page
+    sources:
+      vendor_page: 800.0
+  BL:  # force factor (T·m)
+    value: 20.1
+    winner: vendor_page
+    sources:
+      vendor_page: 20.1
+  Le:  # voice coil inductance (H)
+    value: 0.001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.070792
+    winner: vendor_page
+    sources:
+      vendor_page: 0.070792

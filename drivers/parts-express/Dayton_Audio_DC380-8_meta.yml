@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
+datasheet_url: https://www.parts-express.com/pedocs/specs/295-325-dayton-audio-dc380-8-specifications-46152.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,14 @@ corrections: '''Qts'' stored=0.3 differs from calculated=0.303988 (deps: Qms=2.8
 reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-325
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/295-325-dayton-audio-dc380-8-specifications-46152.pdf
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00309
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00309
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.391338176
-    winner: vendor_page
-    sources:
-      vendor_page: 0.391338176
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1829
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1829
-  BL:  # force factor (T·m)
-    value: 20.4
-    winner: vendor_page
-    sources:
-      vendor_page: 20.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Fs:  # free air resonance (Hz)
-    value: 18.8
-    winner: vendor_page
-    sources:
-      vendor_page: 18.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.527825206426185
-    winner: vendor_page
-    sources:
-      vendor_page: 7.527825206426185
   Xmax:  # one-way linear excursion (m)
     value: 0.00435
     winner: vendor_page
@@ -69,26 +35,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Qms:  # mechanical Q factor
-    value: 2.87
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 2.87
+      vendor_page: 6.4
   Sd:  # effective piston area (m²)
     value: 0.08347
     winner: vendor_page
     sources:
       vendor_page: 0.08347
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 18.8
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 18.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.527825206426185
+    winner: vendor_page
+    sources:
+      vendor_page: 7.527825206426185
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1829
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1829
+  Qms:  # mechanical Q factor
+    value: 2.87
+    winner: vendor_page
+    sources:
+      vendor_page: 2.87
   Cms:  # mechanical compliance (m/N)
     value: 0.00039
     winner: vendor_page
     sources:
       vendor_page: 0.00039
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.34
+    winner: vendor_page
+    sources:
+      vendor_page: 0.34
+  Pe:  # rated power input (W)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  BL:  # force factor (T·m)
+    value: 20.4
+    winner: vendor_page
+    sources:
+      vendor_page: 20.4
+  Le:  # voice coil inductance (H)
+    value: 0.00309
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00309
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.391338176
+    winner: vendor_page
+    sources:
+      vendor_page: 0.391338176
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 0.35
     winner: vendor_page
@@ -99,14 +110,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 300.0
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-325-dayton-audio-dc380-8-specifications-46152.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
-datasheet_url: https://www.parts-express.com/pedocs/specs/295-325-dayton-audio-dc380-8-specifications-46152.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DC380-8-15-Classic-Woofer-295-325
-frd_url: null
-zma_url: null

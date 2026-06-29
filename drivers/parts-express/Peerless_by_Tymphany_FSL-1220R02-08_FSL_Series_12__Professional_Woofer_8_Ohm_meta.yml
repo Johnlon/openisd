@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1410--tymphany-fsl-1220R02-08-spec-sheet.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
+driver_type: subwoofer
+obsolete: true
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: true
-driver_type: subwoofer
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1410--tymphany-fsl-1220R02-08-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00066
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00066
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.051253408
-    winner: vendor_page
-    sources:
-      vendor_page: 0.051253408
-  Qes:  # electrical Q factor
-    value: 0.58
-    winner: vendor_page
-    sources:
-      vendor_page: 0.58
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.046
-    winner: vendor_page
-    sources:
-      vendor_page: 0.046
-  BL:  # force factor (T·m)
-    value: 13.96
-    winner: vendor_page
-    sources:
-      vendor_page: 13.96
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  Fs:  # free air resonance (Hz)
-    value: 67.0
-    winner: vendor_page
-    sources:
-      vendor_page: 67.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.034328565984893
-    winner: vendor_page
-    sources:
-      vendor_page: 4.034328565984893
   Xmax:  # one-way linear excursion (m)
     value: 0.0024
     winner: vendor_page
@@ -66,31 +29,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.51
-  Qms:  # mechanical Q factor
-    value: 4.8
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
     winner: vendor_page
     sources:
-      vendor_page: 4.8
+      vendor_page: 5.8
   Sd:  # effective piston area (m²)
     value: 0.054329999999999996
     winner: vendor_page
     sources:
       vendor_page: 0.054329999999999996
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 67.0
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 67.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.034328565984893
+    winner: vendor_page
+    sources:
+      vendor_page: 4.034328565984893
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.046
+    winner: vendor_page
+    sources:
+      vendor_page: 0.046
+  Qms:  # mechanical Q factor
+    value: 4.8
+    winner: vendor_page
+    sources:
+      vendor_page: 4.8
   Cms:  # mechanical compliance (m/N)
     value: 0.000123
     winner: vendor_page
     sources:
       vendor_page: 0.000123
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1410--tymphany-fsl-1220R02-08-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1410--tymphany-fsl-1220R02-08-spec-sheet.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-FSL-1220R02-08-Professional-12-Woofer-8-Ohm-264-1410
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.58
+    winner: vendor_page
+    sources:
+      vendor_page: 0.58
+  Pe:  # rated power input (W)
+    value: 250.0
+    winner: vendor_page
+    sources:
+      vendor_page: 250.0
+  BL:  # force factor (T·m)
+    value: 13.96
+    winner: vendor_page
+    sources:
+      vendor_page: 13.96
+  Le:  # voice coil inductance (H)
+    value: 0.00066
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00066
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.051253408
+    winner: vendor_page
+    sources:
+      vendor_page: 0.051253408

@@ -1,55 +1,22 @@
+source: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
+driver_type: null
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: null
+_sources:
+  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.000169
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000169
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00143
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00143
-  Qes:  # electrical Q factor
-    value: 0.386
-    winner: vendor_page
-    sources:
-      vendor_page: 0.386
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00486
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00486
-  BL:  # force factor (T·m)
-    value: 4.3
-    winner: vendor_page
-    sources:
-      vendor_page: 4.3
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Fs:  # free air resonance (Hz)
-    value: 73.0
-    winner: vendor_page
-    sources:
-      vendor_page: 73.0
   Xmax:  # one-way linear excursion (m)
     value: 0.0102
     winner: vendor_page
@@ -60,30 +27,63 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Qms:  # mechanical Q factor
-    value: 5.41
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
     winner: vendor_page
     sources:
-      vendor_page: 5.41
+      vendor_page: 3.2
   Sd:  # effective piston area (m²)
     value: 0.00322
     winner: vendor_page
     sources:
       vendor_page: 0.00322
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 73.0
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 73.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00486
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00486
+  Qms:  # mechanical Q factor
+    value: 5.41
+    winner: vendor_page
+    sources:
+      vendor_page: 5.41
   Cms:  # mechanical compliance (m/N)
     value: 0.00097
     winner: vendor_page
     sources:
       vendor_page: 0.00097
-_sources:
-  vendor_page: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/peerless-by-tymphany-sls-85s25cp04-04.html
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.386
+    winner: vendor_page
+    sources:
+      vendor_page: 0.386
+  Pe:  # rated power input (W)
+    value: 30.0
+    winner: vendor_page
+    sources:
+      vendor_page: 30.0
+  BL:  # force factor (T·m)
+    value: 4.3
+    winner: vendor_page
+    sources:
+      vendor_page: 4.3
+  Le:  # voice coil inductance (H)
+    value: 0.000169
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000169
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00143
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00143

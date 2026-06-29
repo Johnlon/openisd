@@ -1,61 +1,24 @@
+source: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
+datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
   verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
+driver_type: mid-bass
+obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-obsolete: null
-driver_type: mid-bass
+_sources:
+  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
+  vendor_page: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0193686912
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0193686912
-  Qes:  # electrical Q factor
-    value: 0.78
-    winner: vendor_page
-    sources:
-      vendor_page: 0.78
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02191
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02191
-  BL:  # force factor (T·m)
-    value: 8.66
-    winner: vendor_page
-    sources:
-      vendor_page: 8.66
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.1
-    winner: vendor_page
-    sources:
-      vendor_page: 6.1
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  Fs:  # free air resonance (Hz)
-    value: 69.4
-    winner: vendor_page
-    sources:
-      vendor_page: 69.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.437050436942962
-    winner: vendor_page
-    sources:
-      vendor_page: 0.437050436942962
   Xmax:  # one-way linear excursion (m)
     value: 0.0045
     winner: vendor_page
@@ -66,26 +29,71 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.75
-  Qms:  # mechanical Q factor
-    value: 21.86
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.1
     winner: vendor_page
     sources:
-      vendor_page: 21.86
+      vendor_page: 6.1
   Sd:  # effective piston area (m²)
     value: 0.0241
     winner: vendor_page
     sources:
       vendor_page: 0.0241
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 69.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 69.4
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.437050436942962
+    winner: vendor_page
+    sources:
+      vendor_page: 0.437050436942962
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02191
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02191
+  Qms:  # mechanical Q factor
+    value: 21.86
+    winner: vendor_page
+    sources:
+      vendor_page: 21.86
   Cms:  # mechanical compliance (m/N)
     value: 0.00023999999999999998
     winner: vendor_page
     sources:
       vendor_page: 0.00023999999999999998
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0
+  Qes:  # electrical Q factor
+    value: 0.78
+    winner: vendor_page
+    sources:
+      vendor_page: 0.78
+  Pe:  # rated power input (W)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  BL:  # force factor (T·m)
+    value: 8.66
+    winner: vendor_page
+    sources:
+      vendor_page: 8.66
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0193686912
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0193686912
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 60.0
     winner: vendor_page
@@ -101,11 +109,3 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.0
-_sources:
-  datasheet: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-  vendor_page: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
-datasheet_url: https://prvaudio.com/wp-content/uploads/2026/02/PRV-Catalog-2026.pdf
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534
-frd_url: null
-zma_url: null

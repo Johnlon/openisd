@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
+datasheet_url: https://www.parts-express.com/pedocs/specs/264-1060--tymphany-sds-p830878-spec-sheet.pdf
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -6,30 +15,21 @@ corrections: null
 reviewed_by: null
 driver_type: passive_radiator
 nominal_size_cm: null
-source: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 264-1060
+_sources:
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1060--tymphany-sds-p830878-spec-sheet.pdf
+  vendor_page: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
 specs:
-  Fs:  # free air resonance (Hz)
-    value: 29.0
-    winner: vendor_page
-    sources:
-      vendor_page: 29.0
   Sd:  # effective piston area (m²)
     value: 0.00502
     winner: vendor_page
     sources:
       vendor_page: 0.00502
-_sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1060--tymphany-sds-p830878-spec-sheet.pdf
-  vendor_page: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
-datasheet_url: https://www.parts-express.com/pedocs/specs/264-1060--tymphany-sds-p830878-spec-sheet.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Peerless-830878-3-1-2-Passive-Radiator-264-1060
-frd_url: null
-zma_url: null
+  Fs:  # free air resonance (Hz)
+    value: 29.0
+    winner: vendor_page
+    sources:
+      vendor_page: 29.0

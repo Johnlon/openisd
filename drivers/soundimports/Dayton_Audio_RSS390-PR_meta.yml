@@ -1,25 +1,32 @@
+source: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
+manu_page_url: null
+vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
+datasheet_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from SoundImports (scraped via soundimports.eu). T/S
   parameters have not been verified by a human against the datasheet.
 corrections: null
 reviewed_by: null
-source: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
+driver_type: pr
 dq_issue: null
 community: null
 fetched_sku: null
-driver_type: pr
+_sources:
+  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
 specs:
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.2128
+  Xmax:  # one-way linear excursion (m)
+    value: 0.03
     winner: vendor_page
     sources:
-      vendor_page: 0.2128
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.4
+      vendor_page: 0.03
+  Sd:  # effective piston area (m²)
+    value: 0.08296
     winner: vendor_page
     sources:
-      vendor_page: 0.4
+      vendor_page: 0.08296
   Fs:  # free air resonance (Hz)
     value: 18.2
     winner: vendor_page
@@ -30,30 +37,23 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 12.41
-  Xmax:  # one-way linear excursion (m)
-    value: 0.03
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.4
     winner: vendor_page
     sources:
-      vendor_page: 0.03
+      vendor_page: 0.4
   Qms:  # mechanical Q factor
     value: 4.07
     winner: vendor_page
     sources:
       vendor_page: 4.07
-  Sd:  # effective piston area (m²)
-    value: 0.08296
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08296
   Cms:  # mechanical compliance (m/N)
     value: 0.00022
     winner: vendor_page
     sources:
       vendor_page: 0.00022
-_sources:
-  vendor_page: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
-datasheet_url: null
-manu_page_url: null
-vendor_page_url: https://www.soundimports.eu/en/dayton-audio-rss390-pr.html
-frd_url: null
-zma_url: null
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.2128
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2128

@@ -1,3 +1,12 @@
+source: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
+manu_page_url: null
+vendor_page_url: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
+datasheet_url: null
+adv_datasheet_url: null
+drawing_url: null
+cad_url: null
+frd_url: null
+zma_url: null
 quality: M
 issue: scraped_not_human_verified
 detail: Automatically scraped from Parts Express API. T/S parameters have not been
@@ -8,57 +17,13 @@ corrections: '''Qts'' stored=0.46 differs from calculated=0.468434 (deps: Qms=7.
 reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
-source: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: 295-202
+_sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
 specs:
-  Le:  # voice coil inductance (H)
-    value: 0.0018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0018
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.03199798399999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03199798399999999
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0955
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0955
-  BL:  # force factor (T·m)
-    value: 12.6
-    winner: vendor_page
-    sources:
-      vendor_page: 12.6
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.45
-    winner: vendor_page
-    sources:
-      vendor_page: 3.45
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Fs:  # free air resonance (Hz)
-    value: 37.7
-    winner: vendor_page
-    sources:
-      vendor_page: 37.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.048742078261998
-    winner: vendor_page
-    sources:
-      vendor_page: 3.048742078261998
   Xmax:  # one-way linear excursion (m)
     value: 0.0083
     winner: vendor_page
@@ -69,33 +34,68 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.46
-  Qms:  # mechanical Q factor
-    value: 7.42
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.45
     winner: vendor_page
     sources:
-      vendor_page: 7.42
+      vendor_page: 3.45
   Sd:  # effective piston area (m²)
     value: 0.03464
     winner: vendor_page
     sources:
       vendor_page: 0.03464
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 37.7
     winner: vendor_page
     sources:
-      vendor_page: 4.0
+      vendor_page: 37.7
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.048742078261998
+    winner: vendor_page
+    sources:
+      vendor_page: 3.048742078261998
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0955
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0955
+  Qms:  # mechanical Q factor
+    value: 7.42
+    winner: vendor_page
+    sources:
+      vendor_page: 7.42
   Cms:  # mechanical compliance (m/N)
     value: 0.00019
     winner: vendor_page
     sources:
       vendor_page: 0.00019
-_sources:
-  vendor_page: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
-datasheet_url: null
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: null
-vendor_page_url: https://www.parts-express.com/Dayton-Audio-DCS255-4-10-Classic-Subwoofer-4-Ohm-295-202
-frd_url: null
-zma_url: null
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: vendor_page
+    sources:
+      vendor_page: 4.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: vendor_page
+    sources:
+      vendor_page: 0.5
+  Pe:  # rated power input (W)
+    value: 200.0
+    winner: vendor_page
+    sources:
+      vendor_page: 200.0
+  BL:  # force factor (T·m)
+    value: 12.6
+    winner: vendor_page
+    sources:
+      vendor_page: 12.6
+  Le:  # voice coil inductance (H)
+    value: 0.0018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0018
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03199798399999999
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03199798399999999
