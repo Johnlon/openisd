@@ -33,6 +33,13 @@ FIELD_MAP = {
     "linear coil travel":    ("Xmax", 0.5e-3), # mm p-p → m one-way
     "rated power handling":  ("Pe",   1.0),    # W
     "nominal impedance":     ("Znom", 1.0),    # Ω — Znom not Z
+    "sensitivity":           ("SPL",  1.0),    # dB (2.83V/1m); strip (2.83V/1m) before parse
+}
+
+# Non-T/S li fragments → specs dict keys (mm values for physical dimensions)
+_EXTRA_SPEC_MAP = {
+    "voice coil diameter": "voice_coil_dia_mm",
+    "air gap height":      "Hg_mm",
 }
 
 
@@ -50,18 +57,22 @@ def parse_product(html: str, url: str) -> dict | None:
     li_items = re.findall(r"<li>(.*?)</li>", html, re.S | re.I)
     woofer_fields: dict[str, float] = {}
     tweeter_fields: dict[str, float] = {}
+    extra_specs: dict[str, float] = {}
     in_tweeter_section = False
 
     for li_raw in li_items:
         text = html_module.unescape(re.sub(r"<[^>]+>", "", li_raw)).strip()
+        tl = text.lower()
+        # Strip parenthesized qualifiers (e.g. "(2.83V/1m)") before number extraction
+        parse_text = re.sub(r"\([^)]*\)", " ", text)
 
         # Detect tweeter section start: second "Nominal Impedance" (after woofer)
-        if is_coaxial and text.lower().startswith("nominal impedance") and woofer_fields:
+        if is_coaxial and tl.startswith("nominal impedance") and woofer_fields:
             in_tweeter_section = True
 
         for fragment, (key, factor) in FIELD_MAP.items():
-            if fragment in text.lower():
-                val = parse_number(text)
+            if fragment in tl:
+                val = parse_number(parse_text)
                 if val is not None:
                     val_si = round(val * factor, 9)
                     if in_tweeter_section:
@@ -70,6 +81,14 @@ def parse_product(html: str, url: str) -> dict | None:
                         # For coaxial: keep first occurrence (prevent tweeter overwriting woofer)
                         if not (is_coaxial and key in woofer_fields):
                             woofer_fields[key] = val_si
+                break
+
+        # Non-T/S extra specs (not in WDR, goes into specs: block in meta only)
+        for fragment, spec_key in _EXTRA_SPEC_MAP.items():
+            if fragment in tl:
+                val = parse_number(parse_text)
+                if val is not None:
+                    extra_specs[spec_key] = val
                 break
 
     if not woofer_fields.get("Fs"):
@@ -99,6 +118,7 @@ def parse_product(html: str, url: str) -> dict | None:
         "manufacturer":  "SB Acoustics",
         "provided_by":   f"SB Acoustics website (scraped {__import__('datetime').date.today()})",
         "fields":        woofer_fields,
+        "extra_specs":   extra_specs or None,
         "pdf_url":       pdf_url,
         "extra_links":   [l[0] for l in extra],
     }

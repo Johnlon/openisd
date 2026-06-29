@@ -15,3 +15,5 @@ community: null
 fetched_sku: null
 obsolete: null
 driver_type: null
+specs:
+  power_rms_W: 250.0

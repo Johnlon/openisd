@@ -22,3 +22,7 @@ fetched_sku: 292-644
 field_provenance: null
 freq_low_hz: null
 freq_high_hz: null
+specs:
+  freq_low_hz: 2019.1
+  freq_high_hz: 292.0
+  power_rms_W: 20.0

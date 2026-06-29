@@ -15,4 +15,9 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-specs: null
+specs:
+  voice_coil_dia_mm: 38.5
+  Hg_mm: 6.0
+  linear_xmax_mm: 13.0
+  sensitivity_db: 88.5
+  power_rms_W: 70.0

@@ -14,3 +14,7 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: midrange
+specs:
+  power_rms_W: 120.0
+  sensitivity_db: 90.0
+  linear_xmax_mm: 2.0

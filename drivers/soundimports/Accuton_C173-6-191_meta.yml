@@ -16,3 +16,10 @@ fetched_sku: null
 driver_type: subwoofer
 freq_low_hz: 35.0
 freq_high_hz: 2800.0
+specs:
+  power_rms_W: 120.0
+  sensitivity_db: 88.0
+  voice_coil_dia_mm: 38.0
+  linear_xmax_mm: 10.0
+  freq_low_hz: 35.0
+  freq_high_hz: 2800.0

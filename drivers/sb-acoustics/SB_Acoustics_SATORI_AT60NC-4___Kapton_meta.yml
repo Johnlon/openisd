@@ -15,4 +15,8 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
-specs: null
+specs:
+  sensitivity_db: 91.0
+  freq_low_hz: 2400.0
+  freq_high_hz: 30000.0
+  power_rms_W: 100.0

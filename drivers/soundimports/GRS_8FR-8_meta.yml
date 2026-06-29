@@ -14,3 +14,8 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: fullrange
+specs:
+  power_rms_W: 85.0
+  sensitivity_db: 89.7
+  voice_coil_dia_mm: 38.0
+  linear_xmax_mm: 6.0

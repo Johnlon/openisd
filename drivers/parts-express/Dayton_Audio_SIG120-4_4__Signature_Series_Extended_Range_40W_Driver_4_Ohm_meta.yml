@@ -16,3 +16,8 @@ fetched_sku: null
 driver_type: woofer
 freq_low_hz: 75.0
 freq_high_hz: 8500.0
+specs:
+  sensitivity_db: 40.0
+  power_rms_W: 40.0
+  freq_low_hz: 75.0
+  freq_high_hz: 8500.0

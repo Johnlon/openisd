@@ -22,3 +22,5 @@ fetched_sku: 298-1148
 field_provenance: null
 freq_low_hz: null
 freq_high_hz: null
+specs:
+  power_rms_W: 60.0

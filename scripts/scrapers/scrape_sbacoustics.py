@@ -48,6 +48,12 @@ _HTML_FIELD_MAP = {
     "sensitivity":           ("SPL",  1.0),
 }
 
+# Non-T/S specs extracted from HTML li items → extra_specs key names
+_EXTRA_SPEC_MAP = {
+    "voice coil diameter": "voice_coil_dia_mm",
+    "air gap height":      "Hg_mm",
+}
+
 
 def parse_product(html: str, url: str) -> dict | None:
     m = re.search(r"<h1[^>]*>([^<]+)</h1>", html, re.I)
@@ -55,17 +61,25 @@ def parse_product(html: str, url: str) -> dict | None:
 
     li_items = re.findall(r"<li>(.*?)</li>", html, re.S | re.I)
     fields: dict[str, float] = {}
+    extra_specs: dict[str, float] = {}
     for li_raw in li_items:
         text = html_module.unescape(re.sub(r"<[^>]+>", "", li_raw)).strip()
+        tl = text.lower()
+        # Strip parenthesized qualifiers (e.g. "(2.83V/1m)") before number extraction
+        parse_text = re.sub(r"\([^)]*\)", " ", text)
+        # T/S fields
         for fragment, (key, factor) in _HTML_FIELD_MAP.items():
-            if fragment in text.lower():
-                # Strip parenthesized qualifiers (e.g. "(2.83V/1m)") before
-                # extracting the first number, so sensitivity doesn't pick up
-                # the reference voltage instead of the dB value.
-                parse_text = re.sub(r"\([^)]*\)", " ", text)
+            if fragment in tl:
                 val = parse_number(parse_text)
                 if val is not None:
                     fields[key] = round(val * factor, 9)
+                break
+        # Non-T/S extra specs
+        for fragment, spec_key in _EXTRA_SPEC_MAP.items():
+            if fragment in tl:
+                val = parse_number(parse_text)
+                if val is not None:
+                    extra_specs[spec_key] = val
                 break
 
     if not fields.get("Fs"):
@@ -91,6 +105,7 @@ def parse_product(html: str, url: str) -> dict | None:
         "manufacturer": "SB Acoustics",
         "provided_by":  "SB Acoustics website",
         "fields":       fields,
+        "extra_specs":  extra_specs or None,
         "pdf_url":      pdf_url,
         "extra_links":  [lnk[0] for lnk in extra],
     }

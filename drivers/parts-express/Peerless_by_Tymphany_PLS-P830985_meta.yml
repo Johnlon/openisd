@@ -22,3 +22,7 @@ fetched_sku: 264-1050
 field_provenance: null
 freq_low_hz: 90.0
 freq_high_hz: 20000.0
+specs:
+  power_rms_W: 2.0
+  freq_low_hz: 90.0
+  freq_high_hz: 20000.0

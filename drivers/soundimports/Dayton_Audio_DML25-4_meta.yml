@@ -14,3 +14,7 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: tweeter
+specs:
+  power_rms_W: 40.0
+  sensitivity_db: 82.1
+  linear_xmax_mm: 3.0

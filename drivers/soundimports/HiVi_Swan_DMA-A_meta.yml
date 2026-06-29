@@ -14,3 +14,7 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: midrange
+specs:
+  power_rms_W: 80.0
+  sensitivity_db: 92.0
+  voice_coil_dia_mm: 50.0

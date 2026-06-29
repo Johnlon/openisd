@@ -17,3 +17,8 @@ obsolete: null
 driver_type: mid-bass
 freq_low_hz: 100.0
 freq_high_hz: 5200.0
+specs:
+  power_rms_W: 2.0
+  sensitivity_db: 6.1
+  freq_low_hz: 100.0
+  freq_high_hz: 5.0

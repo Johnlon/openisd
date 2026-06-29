@@ -82,3 +82,8 @@ field_provenance:
     winner: html
 freq_low_hz: null
 freq_high_hz: null
+specs:
+  power_rms_W: 40.0
+  sensitivity_db: 92.0
+  voice_coil_dia_mm: 30.5
+  linear_xmax_mm: 10.0

@@ -14,3 +14,5 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: subwoofer
+specs:
+  power_rms_W: 60.0

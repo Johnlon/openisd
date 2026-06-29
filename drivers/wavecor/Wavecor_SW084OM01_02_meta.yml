@@ -93,3 +93,6 @@ field_provenance:
     winner: html
 freq_low_hz: null
 freq_high_hz: 2000.0
+specs:
+  power_rms_W: 40.0
+  freq_high_hz: 2000.0

@@ -45,3 +45,5 @@ manu_page_fields:
 - Vas
 freq_low_hz: null
 freq_high_hz: null
+specs:
+  sensitivity_db: 84.5

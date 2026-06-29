@@ -17,3 +17,7 @@ obsolete: null
 driver_type: mid-bass
 freq_low_hz: 500.0
 freq_high_hz: 6000.0
+specs:
+  freq_low_hz: 1.0
+  freq_high_hz: 300.0
+  power_rms_W: 50.0

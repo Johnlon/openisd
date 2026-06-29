@@ -17,3 +17,8 @@ obsolete: null
 driver_type: woofer
 freq_low_hz: 100.0
 freq_high_hz: 11000.0
+specs:
+  sensitivity_db: 25.0
+  freq_low_hz: 100.0
+  freq_high_hz: 11.0
+  power_rms_W: 25.0

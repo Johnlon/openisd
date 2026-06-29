@@ -95,6 +95,7 @@ FIELD_MAP = {
     "mechanical resistance":  ("Rms",  1.0),    # Ns/m  (PA/pro models)
     "power handling":         ("Pe",   1.0),    # W (first match = continuous)
     "nominal impedance":      ("Znom", 1.0),    # Ω
+    "sensitivity":            ("SPL",  1.0),    # dB (2.83V/1m)
 }
 
 # Pages that require per-variant WDR files instead of a single combined WDR.

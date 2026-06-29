@@ -14,3 +14,8 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: mid-bass
+specs:
+  power_rms_W: 500.0
+  sensitivity_db: 92.4
+  voice_coil_dia_mm: 50.0
+  linear_xmax_mm: 6.0

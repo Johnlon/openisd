@@ -17,3 +17,7 @@ obsolete: null
 driver_type: woofer
 freq_low_hz: 85.0
 freq_high_hz: 13500.0
+specs:
+  freq_low_hz: 2019.1
+  freq_high_hz: 295.0
+  power_rms_W: 30.0

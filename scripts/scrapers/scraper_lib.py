@@ -600,6 +600,28 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
     if html_fields and not pdf_fields:
         detail_parts.append("PDF extraction returned no matches; using HTML only.")
 
+    # ── Build specs: block ────────────────────────────────────────────────────
+    # Coaxials: specs from parse_product() with woofer/tweeter sub-dicts.
+    # All others: build from merged T/S fields + extra_specs from parse_product().
+    _prod_specs = product.get("specs")
+    if _prod_specs and ("woofer" in _prod_specs or "tweeter" in _prod_specs):
+        _specs = _prod_specs  # preserve coaxial structure
+    else:
+        _specs: dict = {}
+        if fields.get("SPL")  and fields["SPL"] > 0:
+            _specs["sensitivity_db"]  = fields["SPL"]
+        if fields.get("Pe")   and fields["Pe"] > 0:
+            _specs["power_rms_W"]     = fields["Pe"]
+        if fields.get("Xmax") and fields["Xmax"] > 0:
+            _specs["linear_xmax_mm"] = round(fields["Xmax"] * 2000, 1)
+        if freq_low_hz:
+            _specs["freq_low_hz"]     = freq_low_hz
+        if freq_high_hz:
+            _specs["freq_high_hz"]    = freq_high_hz
+        # extra_specs from parse_product(): non-T/S data (voice coil dia, Hg, etc.)
+        _specs.update(product.get("extra_specs") or {})
+        _specs = _specs or None
+
     meta = {
         "quality":            "M",
         "issue":              "scraped_not_human_verified",
@@ -624,6 +646,7 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
         "field_provenance":   field_provenance or None,
         "freq_low_hz":        freq_low_hz,
         "freq_high_hz":       freq_high_hz,
+        "specs":              _specs,
     }
     meta_path = cfg.out / wdr_name.replace(".wdr", "_meta.yml")
     meta_path.write_text(yaml.dump(meta, allow_unicode=True, sort_keys=False), encoding="utf-8")

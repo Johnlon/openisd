@@ -15,3 +15,5 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: tweeter
+specs:
+  sensitivity_db: 94.5

@@ -17,3 +17,8 @@ obsolete: null
 driver_type: subwoofer
 freq_low_hz: 30.0
 freq_high_hz: 1000.0
+specs:
+  sensitivity_db: 1200.0
+  freq_low_hz: 18.0
+  freq_high_hz: 18.0
+  power_rms_W: 18.0

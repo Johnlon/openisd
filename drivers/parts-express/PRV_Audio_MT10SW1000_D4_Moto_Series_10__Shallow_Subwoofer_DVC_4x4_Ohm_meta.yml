@@ -15,3 +15,6 @@ community: null
 fetched_sku: null
 obsolete: null
 driver_type: subwoofer
+specs:
+  power_rms_W: 4.0
+  sensitivity_db: 500.0

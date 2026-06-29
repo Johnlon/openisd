@@ -14,3 +14,7 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: fullrange
+specs:
+  power_rms_W: 80.0
+  sensitivity_db: 90.3
+  linear_xmax_mm: 4.0

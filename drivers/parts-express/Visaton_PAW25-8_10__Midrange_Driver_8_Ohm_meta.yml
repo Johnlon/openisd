@@ -15,3 +15,7 @@ community: null
 fetched_sku: null
 obsolete: null
 driver_type: woofer
+specs:
+  power_rms_W: 0.2
+  freq_low_hz: 4200.0
+  freq_high_hz: 92.0

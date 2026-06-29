@@ -22,3 +22,8 @@ fetched_sku: 292-820
 field_provenance: null
 freq_low_hz: 20.0
 freq_high_hz: 500.0
+specs:
+  freq_low_hz: 12.0
+  freq_high_hz: 4.0
+  sensitivity_db: 250.0
+  power_rms_W: 250.0

@@ -17,3 +17,8 @@ obsolete: null
 driver_type: coaxial
 freq_low_hz: 70.0
 freq_high_hz: 4000.0
+specs:
+  sensitivity_db: 94.0
+  power_rms_W: 250.0
+  freq_low_hz: 70.0
+  freq_high_hz: 4000.0

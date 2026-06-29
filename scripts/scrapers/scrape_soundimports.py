@@ -224,6 +224,39 @@ def parse_product(html: str, url: str) -> dict | None:
     if not fields.get("Fs"):
         return None
 
+    # Non-T/S extra specs from the same dt/dd table
+    extra_specs: dict = {}
+    for label, value_str in specs_raw.items():
+        ll = label.lower()
+        v = value_str.lower()
+        if "sensitivity" in ll and "db" in v:
+            n = parse_number(value_str)
+            if n is not None:
+                extra_specs["sensitivity_db"] = n
+        elif "power handling" in ll and "rms" in ll:
+            n = parse_number(value_str)
+            if n is not None:
+                extra_specs["power_rms_W"] = n
+        elif "power handling" in ll and "max" in ll:
+            n = parse_number(value_str)
+            if n is not None:
+                extra_specs["power_peak_W"] = n
+        elif "frequency response" in ll or "frequency range" in ll:
+            nums = re.findall(r"\d+", value_str)
+            if len(nums) >= 2:
+                extra_specs.setdefault("freq_low_hz",  float(nums[0]))
+                extra_specs.setdefault("freq_high_hz", float(nums[-1]))
+        elif "voice coil diameter" in ll:
+            # May be in inches ("1\"") or mm; only capture mm values
+            if "mm" in v:
+                n = parse_number(value_str)
+                if n is not None:
+                    extra_specs["voice_coil_dia_mm"] = n
+        elif "weight" in ll and "kg" in v:
+            n = parse_number(value_str)
+            if n is not None:
+                extra_specs["weight_kg"] = n
+
     pdf_matches = re.findall(r'"(https?://[^"]+\.pdf)"', html, re.I)
     pdf_url = pdf_matches[0] if pdf_matches else None
     extra = re.findall(r'"(https?://[^"]+\.(frd|zma|zip|txt))"', html, re.I)
@@ -234,6 +267,7 @@ def parse_product(html: str, url: str) -> dict | None:
         "manufacturer": brand,
         "provided_by":  "SoundImports (scraped via soundimports.eu)",
         "fields":       fields,
+        "extra_specs":  extra_specs or None,
         "pdf_url":      pdf_url,
         "extra_links":  [lnk[0] for lnk in extra],
     }

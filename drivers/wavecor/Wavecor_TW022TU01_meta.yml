@@ -87,3 +87,7 @@ field_provenance:
     winner: html
 freq_low_hz: 2.0
 freq_high_hz: 30.0
+specs:
+  freq_low_hz: 2.0
+  freq_high_hz: 30.0
+  power_rms_W: 65.0

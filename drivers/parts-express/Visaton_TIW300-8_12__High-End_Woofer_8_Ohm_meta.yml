@@ -15,3 +15,7 @@ community: null
 fetched_sku: null
 obsolete: true
 driver_type: subwoofer
+specs:
+  freq_low_hz: 4000.0
+  freq_high_hz: 90.0
+  power_rms_W: 600.0

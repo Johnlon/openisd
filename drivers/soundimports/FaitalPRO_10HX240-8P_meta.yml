@@ -14,3 +14,8 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: null
+specs:
+  power_rms_W: 500.0
+  sensitivity_db: 96.0
+  voice_coil_dia_mm: 65.0
+  linear_xmax_mm: 14.74

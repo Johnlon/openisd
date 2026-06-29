@@ -14,3 +14,5 @@ obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
+specs:
+  sensitivity_db: 88.0

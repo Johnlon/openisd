@@ -17,3 +17,7 @@ fetched_sku: null
 driver_type: midrange
 freq_low_hz: 100.0
 freq_high_hz: 12000.0
+specs:
+  sensitivity_db: 88.0
+  freq_low_hz: 100.0
+  freq_high_hz: 12000.0

@@ -16,3 +16,5 @@ community: null
 fetched_sku: null
 obsolete: true
 driver_type: subwoofer
+specs:
+  power_rms_W: 150.0

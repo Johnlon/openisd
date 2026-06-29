@@ -17,3 +17,8 @@ obsolete: null
 driver_type: tweeter
 freq_low_hz: 250.0
 freq_high_hz: 15000.0
+specs:
+  power_rms_W: 1.0
+  sensitivity_db: 75.7
+  freq_low_hz: 250.0
+  freq_high_hz: 15000.0

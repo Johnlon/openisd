@@ -15,3 +15,8 @@ community: null
 fetched_sku: null
 obsolete: null
 driver_type: subwoofer
+specs:
+  sensitivity_db: 107.0
+  freq_low_hz: 10.0
+  freq_high_hz: 4.0
+  power_rms_W: 2.0

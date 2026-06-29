@@ -14,3 +14,8 @@ dq_issue: null
 community: null
 fetched_sku: null
 driver_type: subwoofer
+specs:
+  power_rms_W: 1.2
+  sensitivity_db: 86.7
+  voice_coil_dia_mm: 63.5
+  linear_xmax_mm: 38.0
