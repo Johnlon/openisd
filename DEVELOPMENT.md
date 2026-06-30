@@ -104,7 +104,7 @@ Keep changes incremental:
 
 ## 6. Platform — Windows + Git Bash only
 
-All scripts and SDLC tooling have been developed and tested on **Windows with Git Bash**. Git Bash is placed first in the Windows `PATH` so `bash` resolves to Git Bash, not WSL or any other shell.
+This project has been developed exclusively on **Windows 11 with Git Bash**. Other operating systems (macOS, Linux) have not been considered yet — support may be added in future. Git Bash is placed first in the Windows `PATH` so `bash` resolves to Git Bash, not WSL or any other shell.
 
 **The SDLC has not yet been made cross-platform.** Running scripts in the wrong shell (WSL, PowerShell, cmd) causes errors and confusion. To prevent this, every script in `scripts/` asserts it is running in Git Bash at startup — it checks for `$MSYSTEM` (set by Git Bash to `MINGW64`/`MINGW32`, absent in WSL and PowerShell) and exits immediately with a clear error if the assertion fails. Any new script added to `scripts/` must include this guard.
 

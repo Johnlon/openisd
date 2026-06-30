@@ -45,7 +45,7 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 ## Shell environment — Windows + Git Bash only
 
-This project runs on **Windows with Git Bash as the primary shell**. Git Bash is placed first in the Windows `PATH` so that `bash` always resolves to Git Bash, not WSL or any other shell.
+This project has been developed exclusively on **Windows 11 with Git Bash**. Other operating systems (macOS, Linux) have not been considered yet — support may be added in future. Git Bash is placed first in the Windows `PATH` so that `bash` always resolves to Git Bash, not WSL or any other shell.
 
 **The SDLC scripts have not yet been made cross-platform.** Running them in the wrong shell (WSL, PowerShell, cmd) causes errors and confusion. To avoid this, every project script asserts it is running in Git Bash at startup and exits immediately with a clear error if not.
 
