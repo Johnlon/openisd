@@ -72,7 +72,6 @@ for i in $(seq 1 45); do
   if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/@vite/client" 2>/dev/null | grep -q "200"; then
     echo "========================================"
     echo "  Server UP — http://localhost:${PORT}/  (PID $SERVER_PID)"
-    python "$SCRIPT_DIR/_net-urls.py" "$LOG_FILE"
     echo "========================================"
     exit 0
   fi
