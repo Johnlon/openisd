@@ -53,33 +53,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/kill-http.sh"
 
 PID_FILE="$(pwd)/.server.pid"
-LOG_FILE="$(pwd)/.server.log"
+
+# Write THIS script's PID so stop-http.sh can kill the whole process group
+echo "$$" > "$PID_FILE"
+echo "Script PID: $$ (written to .server.pid)"
 
 echo ""
-echo "Starting server (log → .server.log, PID → .server.pid)"
-nohup npm run dev -- --port 4000 --strictPort > "$LOG_FILE" 2>&1 &
+echo "Starting server..."
+npm run dev -- --port 4000 --strictPort &
 SERVER_PID=$!
-echo "$SERVER_PID" > "$PID_FILE"
-echo "PID: $SERVER_PID"
 
 echo "Waiting for server on http://localhost:4000/ ..."
 for i in $(seq 1 45); do
   if curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/@vite/client 2>/dev/null | grep -q "200"; then
     echo "========================================"
-    echo "  Server UP — http://localhost:4000/  (PID $SERVER_PID)"
+    echo "  Server UP — http://localhost:4000/  (node PID $SERVER_PID)"
+    echo "  Run 'bash scripts/stop-http.sh' to stop."
     echo "========================================"
+    # Stay alive — keeps node children in user process tree so they are killable
+    wait "$SERVER_PID"
+    echo "Server stopped."
+    rm -f "$PID_FILE"
     exit 0
   fi
-  # Bail early if npm died
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then
-    echo "ERROR: dev server process exited unexpectedly — check .server.log"
+    echo "ERROR: dev server process exited unexpectedly"
+    rm -f "$PID_FILE"
     exit 1
   fi
   echo "  waiting... ($i/45)"
   sleep 2
 done
 
-echo "ERROR: server did not respond on port 4000 after 90s — check .server.log"
+echo "ERROR: server did not respond on port 4000 after 90s"
 kill "$SERVER_PID" 2>/dev/null || true
 rm -f "$PID_FILE"
 exit 1

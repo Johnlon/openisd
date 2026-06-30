@@ -71,7 +71,7 @@ When a task recurs (killing ports, cleaning build artefacts, resetting state, et
 
 **Available utility scripts:**
 
-- `scripts/start-http.sh` — **PRIMARY SCRIPT. AI must use this to start the server.** Runs all health checks then starts `vite dev` on port 4000. Never use `npm run dev`, `npm run preview`, or ad-hoc vite commands directly. **Always run in the foreground** (`run_in_background: false`) so kill retries and health check output are visible in real time.
+- `scripts/start-http.sh` — **PRIMARY SCRIPT. AI must use this to start the server.** Runs all health checks then starts `vite dev` on port 4000. Never use `npm run dev`, `npm run preview`, or ad-hoc vite commands directly. **Always run in the foreground** (`run_in_background: false`) — the script blocks until the server stops. This keeps node children in the user process tree so they are killable. Writes its own PID to `.server.pid` for `stop-http.sh` to target.
 - `scripts/stop-http.sh` — stop the dev server. Calls `kill-http.sh` to kill all processes on ports 4000-4005. **Always run in the foreground** so kill progress is visible.
 - `scripts/kill-http.sh [port …]` — kill all processes on ports 4000-4005 (or specified ports). Contains all kill logic — escalates from PID tree-kill to image-name kill. Called by `start-http.sh` and `stop-http.sh`; never call ad-hoc.
 - `scripts/build-release.sh` — production dist build (`GITHUB_PAGES=true`). Used by the release-drivers workflow; never run ad-hoc.
