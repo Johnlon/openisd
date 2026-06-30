@@ -3,6 +3,7 @@
 # Exit code 0 = all passed. Non-zero = something failed.
 # Add new checks here as they are created — this is the single entry point.
 set -euo pipefail
+[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
 
 PASS=0
 FAIL=0

@@ -102,13 +102,36 @@ Keep changes incremental:
 
 ---
 
-## 6. Running things
+## 6. Platform — Windows + Git Bash only
 
-```
-npm run dev              # dev server at http://localhost:5173
-npm run build            # production build → dist/
-npm test                 # engine unit tests + Playwright browser tests
-npx playwright test      # browser tests only
+All scripts and SDLC tooling have been developed and tested on **Windows with Git Bash**. Git Bash is placed first in the Windows `PATH` so `bash` resolves to Git Bash, not WSL or any other shell. The SDLC has not been made cross-platform — WSL and Linux environments are untested and unsupported for the scripts in `scripts/`.
+
+Scripts that use Windows-native tools (`netstat`, `taskkill`, `cmd /c`) guard against running in the wrong shell: they check for `$MSYSTEM` (set by Git Bash) and exit with an error if it is absent.
+
+---
+
+## 7. Running things
+
+Always use the project scripts — do not run `npm run dev`, `vite`, or ad-hoc commands directly.
+
+```bash
+bash scripts/start-http.sh    # health checks then dev server at http://localhost:4000
+bash scripts/health-check.sh  # lint + unit tests + golden tests + DQ (no server)
+bash scripts/kill-http.sh     # kill all processes on ports 4000–4005
+bash scripts/preview-4000.sh  # serve built dist at http://localhost:4000
+bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
 ```
 
-CI runs both suites on every push and pull request.
+Unit tests only:
+
+```bash
+node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
+```
+
+Browser tests:
+
+```bash
+npx playwright test
+```
+
+CI runs lint, unit tests, and Playwright on every push.

@@ -4,6 +4,7 @@
 # → image-name kill. Loops until clean or 60s timeout.
 # Pass explicit ports to override: scripts/kill-http.sh 4000 4001
 set -euo pipefail
+[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
 
 PORT_MIN=4000
 PORT_MAX=4005

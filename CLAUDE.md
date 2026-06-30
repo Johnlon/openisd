@@ -43,9 +43,15 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 ---
 
-## Shell commands
+## Shell environment — Windows + Git Bash only
 
+This project runs on **Windows with Git Bash as the primary shell**. Git Bash is placed first in the Windows `PATH` so that `bash` always resolves to Git Bash, not WSL or any other shell. The SDLC has not yet been made cross-platform — WSL and Linux are not tested or supported for project scripts.
+
+**Consequences for AI:**
 - Always use the **Bash** tool for shell commands. Never use PowerShell.
+- All scripts use Windows-native tools via Git Bash: `netstat` is `C:\Windows\System32\NETSTAT.EXE`, process killing uses `cmd /c "taskkill ..."`, not Unix `kill`.
+- Do not use WSL commands (`wsl --`, `wsl.exe`) in scripts — WSL processes are in a separate namespace and cannot reliably kill Windows-side listeners.
+- Every script that uses Windows-specific tools (`netstat`, `taskkill`, `cmd`) **must** guard against running in the wrong shell. The guard is `[ -z "${MSYSTEM:-}" ] && echo "ERROR: run in Git Bash" && exit 1`. `MSYSTEM` is set by Git Bash (`MINGW64`/`MINGW32`) and absent in WSL, PowerShell, and cmd.
 
 ## AI role — build tools, don't perform ad-hoc tasks
 

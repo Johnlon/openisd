@@ -2,6 +2,7 @@
 # Start the dev server — runs all quality checks first, then serves on port 4000.
 # This is the ONE script AI and developers should use. Never run npm run dev directly.
 set -euo pipefail
+[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
 
 PASS=0
 FAIL=0

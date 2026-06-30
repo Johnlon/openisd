@@ -3,6 +3,7 @@
 # Used by the release-drivers workflow (see .claude/skills/release-drivers.md).
 # Output goes to packages/ui/dist/ — pushed to gh-pages by GitHub Actions.
 set -euo pipefail
+[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
 
 echo "========================================"
 echo "  Release build — $(date '+%H:%M:%S')"
