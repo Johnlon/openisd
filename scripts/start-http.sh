@@ -39,15 +39,17 @@ fi
 echo "  All $PASS checks passed — starting server"
 echo "========================================"
 
+# If a Vite dev server is already up on 4000, reuse it — don't kill and restart
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/@vite/client 2>/dev/null | grep -q "200"; then
+  echo "========================================"
+  echo "  Server already UP — http://localhost:4000/"
+  echo "========================================"
+  exit 0
+fi
+
 # Kill project port range and wait until port 4000 is confirmed free
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/kill-http.sh"
-
-# Final confirmation that 4000 is truly free before Vite tries to bind
-still=$(netstat -ano 2>/dev/null | awk "/:4000[[:space:]].*LISTENING/{print 1; exit}")
-if [ -n "$still" ]; then
-  echo "WARNING: port 4000 may still be occupied — starting anyway (will fail loudly if so)"
-fi
 
 echo ""
 npm run dev -- --port 4000 --strictPort &
@@ -55,8 +57,7 @@ SERVER_PID=$!
 
 echo "Waiting for server on http://localhost:4000/ ..."
 for i in $(seq 1 45); do
-  code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/ 2>/dev/null || echo "000")
-  if [ "$code" = "200" ]; then
+  if curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/@vite/client 2>/dev/null | grep -q "200"; then
     echo "========================================"
     echo "  Server UP — http://localhost:4000/"
     echo "========================================"
