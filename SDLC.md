@@ -113,6 +113,21 @@ scrape → schema-validate (gate) → dq_check → _problems.log → human revie
 
 ---
 
+## Port assignments — RESERVED (agents and scripts must respect)
+
+| Port range | Owner / purpose                                                          |
+| ---------- | ------------------------------------------------------------------------ |
+| 4000–4005  | Human dev preview servers (`scripts/preview-4000.sh`, manual use)        |
+| 4100       | Playwright / automated browser tests — exclusive, never reused by humans |
+| 8000       | Vite dev server (`npm run dev -- --port 8000`), the canonical dev URL    |
+
+**Rules:**
+- Playwright config always targets **4100**. `reuseExistingServer: false` so the test harness starts its own vite instance and never accidentally reuses a preview server.
+- Agents starting a dev server for the user always use **8000** (kill any occupant first).
+- Scripts and scrapers must not bind to 4100 or 8000. Use ephemeral OS-assigned ports (`port=0`) or the 4000–4005 range when a preview is needed.
+
+---
+
 ## Maximising efficiency
 
 - **Parallelise review, serialise truth.** Independent review angles (Python, JS,

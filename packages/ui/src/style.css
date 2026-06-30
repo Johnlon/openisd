@@ -94,36 +94,63 @@ a { color:var(--acc) }
 .status.loading { padding:24px 8px; text-align:center; animation:pulse 1.4s ease-in-out infinite }
 @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
 
+/* Tab bar — hidden on desktop, shown by @media below */
+.mob-tabs { display: none }
+
 /* ── Mobile / responsive layout ──────────────────────────────────────────── */
 @media (max-width: 720px) {
-  /* Header: wrap buttons below title, hide long tagline */
-  header { flex-wrap: wrap; padding: 6px 10px; gap: 4px }
-  header h1 { font-size: 13px; width: 100%; margin-bottom: 2px }
+  /* Header: one scrollable row so height stays ≈41px — don't wrap.
+     Tagline hidden to save space; buttons remain reachable via horizontal scroll. */
+  header { overflow-x: auto; flex-wrap: nowrap; padding: 6px 10px; gap: 6px }
   header h1 small { display: none }
-  header .sp { display: none }
-  header button { font-size: 11px; padding: 3px 8px }
+  header .sp { flex-shrink: 0; width: 6px }
+  header button { font-size: 11px; padding: 3px 8px; flex-shrink: 0; white-space: nowrap }
 
-  /* Layout: stack vertically — controls on top, graphs below */
-  .layout { flex-direction: column; height: auto; min-height: calc(100vh - 56px) }
-  .side {
-    width: 100%;
-    min-width: unset;
-    border-right: none;
+  /* Tab bar: Controls / Graphs switcher, exactly 40px tall.
+     .layout height = calc(100vh - 41px header - 40px tabs) = calc(100vh - 81px). */
+  .mob-tabs {
+    display: flex;
+    height: 40px;
+    flex-shrink: 0;
+    background: var(--panel);
     border-bottom: 1px solid var(--line);
-    max-height: 45vh;
-    overflow-y: auto;
   }
-  .main { flex: 1; min-height: 50vh; overflow: hidden }
+  .mob-tabs button {
+    flex: 1;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mut);
+    background: transparent;
+    cursor: pointer;
+    min-height: unset;
+  }
+  .mob-tabs button.active { color: var(--acc); border-bottom-color: var(--acc) }
+  .mob-tabs button:hover:not(.active) { color: var(--fg) }
+
+  /* Layout: subtract tab bar height so canvas chain remains unbroken.
+     Base .layout has height:calc(100vh - 41px); on mobile shorten by 40px more. */
+  .layout { height: calc(100vh - 81px) }
+
+  /* When a panel is hidden via v-show, the other fills the full layout width. */
+  .mob-hidden { display: none !important }
+  .side { width: 100%; min-width: unset; border-right: none }
 
   /* Graph grid: single column on mobile */
-  .ggrid { grid-template-columns: 1fr !important; grid-auto-rows: minmax(220px, 1fr) }
+  .ggrid { grid-template-columns: 1fr !important }
+
+  /* Driver browser modal: full width */
+  .modal { width: 96vw; max-height: 90vh }
 
   /* Filter rows: horizontal scroll if inputs overflow narrow screens */
   .flt-row { overflow-x: auto; padding-bottom: 2px }
 
-  /* Stat bar: tighter padding */
+  /* Stat bar: tighter */
   .stat { padding: 5px 10px; font-size: 10.5px }
 
-  /* Touch-friendlier tap targets */
+  /* Touch-friendly tap targets */
   button { min-height: 30px }
 }

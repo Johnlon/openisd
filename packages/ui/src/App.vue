@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import AppHeader from './components/AppHeader.vue';
 import SidePanel from './components/SidePanel.vue';
 import GraphArea from './components/GraphArea.vue';
@@ -9,6 +9,11 @@ import Flash from './components/Flash.vue';
 import { state, driver } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
+
+const mobileTab = ref('graphs');
+const isMobile = ref(false);
+const MQ = typeof window !== 'undefined' ? window.matchMedia('(max-width: 720px)') : null;
+function onMqChange(e) { isMobile.value = e.matches; }
 
 function handleHashChange() {
   const saved = loadFromHash();
@@ -30,6 +35,7 @@ watch(
 );
 
 onMounted(() => {
+  if (MQ) { isMobile.value = MQ.matches; MQ.addEventListener('change', onMqChange); }
   const fromUrl = loadFromHash();
   if (!fromUrl) {
     const local = loadLocal();
@@ -43,17 +49,22 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (MQ) MQ.removeEventListener('change', onMqChange);
   window.removeEventListener('hashchange', handleHashChange);
 });
 </script>
 
 <template>
   <AppHeader />
+  <div v-if="isMobile" class="mob-tabs">
+    <button :class="{ active: mobileTab === 'controls' }" title="Show driver and box controls" @click="mobileTab = 'controls'">Controls</button>
+    <button :class="{ active: mobileTab === 'graphs' }" title="Show simulation graphs" @click="mobileTab = 'graphs'">Graphs</button>
+  </div>
   <div class="layout">
-    <div id="side" class="side">
+    <div id="side" class="side" :class="{ 'mob-hidden': isMobile && mobileTab !== 'controls' }">
       <SidePanel />
     </div>
-    <div class="main">
+    <div class="main" :class="{ 'mob-hidden': isMobile && mobileTab !== 'graphs' }">
       <GraphArea />
       <StatBar />
     </div>
