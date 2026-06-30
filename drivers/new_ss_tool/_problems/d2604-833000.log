@@ -1,6 +1,0 @@
-[19:04:54] DONE problems=0
-[19:09:26] DONE problems=0
-[21:27:25] PROBLEM field=pdf_range_Znom item=D2604/833000 url=https://www.scan-speak.dk/datasheet/pdf/d2604-833000.pdf offset=0
-         raw_value="extracted=Znom=38 raw='38' range=1–32 Ω pos=1232 local=drivers\\new_ss_tool\\datasheets\\d2604-833000.pdf context=…\x0e5Z \\]B] ↵↵↵y/\x0e-\x0f\x13Z↵↵]↵\x0e\x132\x0f\x13↵'z↵38\x12\x12\x0f\x13\x11\x0e\x13\x12*H↵↵]D↵f'?↵\x11\x11\x11]+9B,/+F\x0fBf]2f \rB\x12…"
-         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
-[21:27:26] DONE problems=1

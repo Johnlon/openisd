@@ -51,6 +51,13 @@ watch(
 
 export const driver = computed(() => deriveDriver(state.driverRaw));
 
+export const driverWarnings = computed(() => {
+  const w = [];
+  if (state.driverRaw.Pe == null)
+    w.push('Pe (rated power) not in datasheet — thermal power limit not shown on Max-SPL / Max-Power curves');
+  return w;
+});
+
 export const syncedP = computed(() => {
   const p = { ...state.P };
   if (state.box === 'vented' || state.box === 'bandpass4') {

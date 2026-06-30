@@ -22,6 +22,7 @@ subsequent runs only fetch new pages. Use --refresh to force re-scrape all.
 
 import dataclasses
 import json
+import math
 import yaml
 import re
 import sys
@@ -425,11 +426,15 @@ def parse_field_value(key: str, value_text: str, nominal_factor: float,
     elif key == "Mms":
         if "kg" in both:
             factor = 1.0                       # already kg
+        elif "mg" in both:
+            factor = 1e-6                      # mg → kg (ultra-light tweeter domes)
         # else: g → kg (nominal 1e-3)
 
     elif key == "Le":
         if "µh" in both or "uh" in both:
             factor = 1e-6                      # µH → H
+        elif "mh" not in both and "h" in both:
+            factor = 1.0                       # bare H (no prefix) → no conversion
         # else: mH → H (nominal 1e-3)
 
     elif key == "Cms":
@@ -459,7 +464,9 @@ def parse_field_value(key: str, value_text: str, nominal_factor: float,
         # else: litres → m³ (nominal 1e-3)
 
     elif key == "Xmax":
-        if re.search(r'(?<!\w)in(?!\w)|"', both) and "min" not in both:
+        if "m" in both and "mm" not in both and not (re.search(r'(?<!\w)in(?!\w)|"', both) and "min" not in both):
+            factor = 1.0                       # bare 'm' (SI metres) — no "mm" in string
+        elif re.search(r'(?<!\w)in(?!\w)|"', both) and "min" not in both:
             factor = 25.4e-3                   # inch one-way → m
         # else: nominal (mm one-way = 1e-3, or p-p encoded in FIELD_MAP as 0.5e-3)
 
@@ -471,7 +478,7 @@ def parse_field_value(key: str, value_text: str, nominal_factor: float,
 
 # ── Spec YAML annotation ───────────────────────────────────────────────────────
 # Inline comments added to spec field key lines in the written YAML.
-# Duplicated from this dict into populate_specs.py for standalone use — keep in sync.
+# Inline comments written into the specs: YAML block by annotate_specs_yaml().
 
 SPEC_FIELD_COMMENTS: dict[str, str] = {
     "Fs":               "free air resonance (Hz)",
@@ -540,6 +547,29 @@ class WriteResult:
         return bool(self.missing_ts)
 
 
+# Calculatable field definitions — mirrors _WDR_CALCULATABLE in wdr_meta_schema.py.
+# Only Vd/Dd/EBP are auto-added here; Qts/Rme/Mpow/Vas/gamma are published by vendors.
+_CALC_FIELDS = {
+    "Vd":  (("Sd", "Xmax"),  lambda f: f["Sd"] * f["Xmax"]),
+    "Dd":  (("Sd",),         lambda f: 2.0 * math.sqrt(f["Sd"] / math.pi)),
+    "EBP": (("Fs", "Qes"),   lambda f: f["Fs"] / f["Qes"]),
+}
+
+
+def _build_specs(specs: dict | None, fields: dict) -> dict | None:
+    """Merge caller-supplied specs provenance with auto-computed calculatable fields."""
+    block = dict(specs) if specs else {}
+    for cfld, (deps, fn) in _CALC_FIELDS.items():
+        if cfld not in block and all(d in fields and fields[d] for d in deps):
+            try:
+                val = fn(fields)
+                block[cfld] = {"value": val, "winner": "calculated",
+                               "sources": {"calculated": val}}
+            except Exception:
+                pass
+    return block or None
+
+
 def write_driver(
     out_dir: Path,
     *,
@@ -580,7 +610,8 @@ def write_driver(
     dq_issue_static: static known-issue string from the scraper config (e.g. wavecor variant
                      known issues); merged with live check_fields output.
     sources:         pre-built _sources index; if None, a minimal one is built from the URL args.
-    specs:           pre-built unified provenance block; None means populate_specs.py fills it later.
+    specs:           provenance block built by the caller (e.g. _scrape_one); calculatable fields
+                     (Vd, Dd, EBP) are auto-added here if their dependencies are present in fields.
     """
     # ── 1. Mandatory T/S check ────────────────────────────────────────────────
     missing = WDR_MANDATORY_TS - set(fields)
@@ -647,7 +678,7 @@ def write_driver(
         "community":       None,
         "fetched_sku":     fetched_sku or None,
         "_sources":        sources or None,
-        "specs":           specs or None,
+        "specs":           _build_specs(specs, fields),
     }
     _write_meta(meta_path, meta)
 

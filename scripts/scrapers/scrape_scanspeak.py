@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_html_table_ts
+from scraper_lib import run_scraper, parse_number, parse_html_table_ts, extract_h1, extract_measurement_links, woocommerce_url_filter
 
 VENDOR      = "Scan-Speak"
 SITEMAP_URL = "https://www.scan-speak.dk/sitemap.xml"
@@ -62,11 +62,7 @@ def parse_product(html: str, url: str) -> dict | None:
     Returns None for non-product pages (categories, etc.).
     Returns a dict with HTML-extracted fields; the runner supplements with PDF.
     """
-    # Title — used for model identification
-    m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.I | re.S)
-    name = re.sub(r"<[^>]+>", "", m.group(1)).strip() if m else ""
-    if not name:
-        name = url.rstrip("/").split("/")[-1]
+    name = extract_h1(html, fallback=url.rstrip("/").split("/")[-1])
 
     # Scan-Speak uses a two-column <tr><td> spec table for T/S data and metadata.
     # T/S extraction via shared helper; metadata rows extracted separately.
@@ -129,11 +125,10 @@ def parse_product(html: str, url: str) -> dict | None:
 
     # FRD, ZMA, ZIP measurement files — exclude /datasheet/3d/ (handled above as cad_url)
     # and /wp-content/ (product photos, button icons).
-    extra_links = [
-        m[0] for m in re.findall(r'"(https://[^"]+\.(frd|zma|zip|txt))"', html, re.I)
-        if "/datasheet/3d/" not in m[0].lower()
-        and "/wp-content/" not in m[0].lower()
-    ]
+    extra_links = extract_measurement_links(
+        html,
+        url_filter=lambda u: "/datasheet/3d/" not in u.lower() and "/wp-content/" not in u.lower(),
+    )
 
     return {
         "brand":            "Scan-Speak",
@@ -154,13 +149,9 @@ def parse_product(html: str, url: str) -> dict | None:
     }
 
 
-def _url_filter(url: str) -> bool:
-    return "/product/" in url and "/product-category/" not in url
-
-
 if __name__ == "__main__":
     run_scraper(
         VENDOR, SITEMAP_URL, parse_product, OUT_DIR,
-        url_filter=_url_filter,
+        url_filter=woocommerce_url_filter,
         html_wins=True,   # scan-speak.dk HTML is authoritative; OCR drops decimal points on some values (6.1→61, 16.1→161)
     )

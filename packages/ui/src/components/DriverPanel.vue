@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue';
-import { state, driver, driverShort } from '../store.js';
+import { computed, ref, watch } from 'vue';
+import { state, driver, driverWarnings, driverShort } from '../store.js';
 import { ebp } from '@resonate/engine';
 
 const d = computed(() => state.driverRaw);
@@ -11,6 +11,9 @@ const sug = computed(() => {
   const e = ebpVal.value;
   return e < 50 ? 'sealed' : e > 100 ? 'vented' : 'sealed or vented';
 });
+
+const dismissed = ref(false);
+watch(driver, () => { dismissed.value = false; });
 
 const drvLinks = computed(() => {
   const r = state.driverRaw;
@@ -36,6 +39,10 @@ function numInput(key, scale, val) {
 <template>
   <fieldset>
     <legend>Driver</legend>
+    <div v-if="driverWarnings.length && !dismissed" class="drv-warn">
+      <span>⚠ {{ driverWarnings.join(' · ') }}</span>
+      <button class="drv-warn-x" @click="dismissed = true" title="Dismiss this warning">✕</button>
+    </div>
     <div class="row" style="margin-bottom:6px">
       <button style="flex:1" @click="state.browseMode = 'select'; state.browseOpen = true" title="Open the driver library and select a driver to load into the current design">Select driver…</button>
     </div>

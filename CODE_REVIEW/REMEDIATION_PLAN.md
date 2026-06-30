@@ -5,11 +5,11 @@
 A full-codebase review (Python scrapers, JS/Vue, structure/docs) produced 15
 verified findings and 10 preventative practices. This plan tracks remediation.
 
-**Artifacts (in `CODE_REVIEW/`):**
+**Artifacts:**
 
 - `CODE_REVIEW/CODE_REVIEW.md` — the 15 findings, each with file:line, failure
   scenario, and a preventative practice. Source of truth for this plan.
-- `CODE_REVIEW/SDLC.md` — the Human/Agent/Tooling workflow these fixes operate
+- `SDLC.md` (repo root) — the Human/Agent/Tooling workflow these fixes operate
   within.
 
 **Task list:** umbrella `#2`, broken into linked sub-tasks `#4`–`#9`.

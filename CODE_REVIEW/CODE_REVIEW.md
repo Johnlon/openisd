@@ -186,3 +186,68 @@ Generalised rules worth adding to `CLAUDE.md`/CI:
 9. **Stable entity ids** — derive from persisted data, never a module counter that
    resets. (9)
 10. **CI guards for doc rules** — no-history grep + markdown link-checker. (13, 14)
+
+---
+
+## Engine / calculation core (`src/core/`) — robustness
+
+The math in `src/core/` is correct on inspection, pure, side-effect-free, and
+deterministic (verified: no `console`/`fetch`/`localStorage`/`Date`/`Math.random`,
+no module-level mutable state, no argument mutation — `deriveDriver` and
+`maxCurves` defensively copy their inputs). **These are not "vibe-coded".** The one
+systemic weakness is the absence of an input-validation boundary: the pure
+functions trust their callers completely and emit `NaN`/`Infinity` instead of a
+clear error when handed incomplete or degenerate data.
+
+See `CODE_REVIEW/ENGINE_HARDENING.md` for the proposed fix (a boundary guard) and
+an explanation of why that is better than returning `NaN`.
+
+### 16. `driver.js:91` vs `:28-30` — driver with `Vas` but no `Qes`/`Qms` derives `Bl`/`Rms` as `NaN`
+
+`parseWdr` accepts a driver if it has `Vas` even without `Qes`/`Qms`
+(`if (!(d.Fs && d.Sd && d.Re && (d.Vas || (d.Qts && d.Qes))))`). But
+`deriveDriver` can only fill a missing Q when it has **two** of {Qts, Qes, Qms}
+(lines 28-30). With only `Qts`+`Vas`, `Qes`/`Qms` stay `undefined`, so
+`Rms = ws·Mms/undefined` → `NaN` (line 34) and `Bl = √(…/undefined)` → `NaN`
+(line 35). The whole circuit then produces `NaN` → blank graphs, with no error.
+The parser's contract and the derivation's contract disagree.
+
+**Preventative:** one validated definition of "complete driver". Either `parseWdr`
+rejects incomplete-Q drivers, or `deriveDriver` handles the `Vas`+`Qts` case — and
+a boundary guard throws a named error rather than letting `NaN` propagate.
+
+### 17. `complex.js:5-6` — `cDiv`/`cInv` divide by `re²+im²` with no zero guard
+
+Root enabler of every `NaN` above: a zero denominator yields `Infinity`/`NaN`
+silently. (Keep the hot path branch-free; prevent zero denominators at the
+boundary instead — see ENGINE_HARDENING.md.)
+
+### 18. `circuit.js:85,126,128` — `Cab = Vb/(ρc²)` with `Vb` 0/undefined → `cInv(0)` poison
+
+A box volume of 0 or an unset `Vb` makes `Zc = cInv(cx(0, 0))` → `Infinity`/`NaN`
+through the entire solve.
+
+### 19. `sweep.js:98` — silent fabricated power rating `(drv.Pe || 50)`
+
+A driver with no `Pe` gets a fabricated **50 W** baked into its max-SPL/max-power
+curves and presented to the user as fact. ⚠ Affects computed output — sign-off
+gated.
+
+**Preventative:** require `Pe`, or surface "assumed 50 W (no datasheet rating)" in
+the UI so the number is not presented as truth.
+
+### 20. `constants.js:11-12` — values labelled "20 °C" correspond to ~24 °C
+
+`C = 345.0` m/s and `RHO = 1.184` kg/m³ are commented "20 °C", but textbook 20 °C
+dry-air values are ≈343.2 m/s and ≈1.204 kg/m³ (345/1.184 ≈ 24 °C). A fixed ~1%
+systematic offset on all volume/SPL/tuning math, with no user temperature input.
+⚠ Affects computed output — sign-off gated; verify exact textbook values first.
+
+### 21. `driver.js:110` — opaque 48-char `ParState` magic string
+
+A WinISD field-state string with no explanation. Maintainability wart inside core.
+
+### Already listed above (engine-related)
+
+- §10 `sweep.js:103` — `NaN` max curves when `Xmax` absent.
+- §11 `driver.js:29-30` — division by zero when `Qms == Qts`.

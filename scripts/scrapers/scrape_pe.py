@@ -36,7 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
     safe_filename, load_manifest, save_manifest,
-    ProblemLog, write_driver, parse_html_table_ts,
+    ProblemLog, write_driver, parse_html_table_ts, ts,
 )
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -73,7 +73,7 @@ CATEGORY_TYPE: dict[str, str] = {
     "Tweeters":                                       "tweeter",
     "Midrange / Midbass Drivers & Full-Range Speakers": "midrange",
     "Planar / Ribbon Transducers":                    "tweeter",
-    "Passive Radiators":                              "passive_radiator",
+    "Passive Radiators":                              "pr",
     "Car Audio Tweeters":                             "tweeter",
     "Car Audio Midbass Speakers":                     "midrange",
     "Car Subwoofer Speakers":                         "subwoofer",
@@ -83,11 +83,6 @@ CATEGORY_TYPE: dict[str, str] = {
     "Pro Coaxial Full-Range Speakers":                "fullrange",
 }
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _ts() -> str:
-    return datetime.now().strftime("%H:%M:%S")
 
 
 # PE HTML product pages carry a "Thiele-Small Parameters" table with labeled units.
@@ -205,11 +200,11 @@ def _prefetch_html_playwright(items: list[dict], html_dir: Path,
         if not (html_dir / f"{re.sub(r'[^\w\-]', '_', it.get('itemid', ''))}_product.html").exists()
     ]
     if not to_fetch:
-        print(f"[{_ts()}] [Parts Express] All product HTML cached — skipping browser phase",
+        print(f"[{ts()}] [Parts Express] All product HTML cached — skipping browser phase",
               flush=True)
         return
 
-    print(f"[{_ts()}] [Parts Express] Fetching {len(to_fetch)} product pages "
+    print(f"[{ts()}] [Parts Express] Fetching {len(to_fetch)} product pages "
           f"(Playwright / Chromium, {concurrency} concurrent) ...", flush=True)
 
     async def _run_all() -> None:
@@ -235,7 +230,7 @@ def _prefetch_html_playwright(items: list[dict], html_dir: Path,
             await browser.close()
 
     asyncio.run(_run_all())
-    print(f"[{_ts()}] [Parts Express] Browser phase done", flush=True)
+    print(f"[{ts()}] [Parts Express] Browser phase done", flush=True)
 
 
 def _enrich_one(args: tuple) -> tuple[str, dict]:
@@ -357,7 +352,7 @@ def main() -> None:
     start = datetime.now()
 
     # ── Collect all items from API (using JSON cache) ─────────────────────────
-    print(f"[{_ts()}] [{VENDOR}] Fetching {len(BRANDS)} brands from API ...", flush=True)
+    print(f"[{ts()}] [{VENDOR}] Fetching {len(BRANDS)} brands from API ...", flush=True)
 
     all_items: list[dict] = []
     seen_ids: set[str] = set()
@@ -369,30 +364,30 @@ def main() -> None:
             brand = futures[future]
             try:
                 brand_items = future.result()
-                print(f"[{_ts()}]   {brand}: {len(brand_items)} items", flush=True)
+                print(f"[{ts()}]   {brand}: {len(brand_items)} items", flush=True)
                 for it in brand_items:
                     iid = it.get("itemid")
                     if iid and iid not in seen_ids:
                         seen_ids.add(iid)
                         all_items.append(it)
             except Exception as e:
-                print(f"[{_ts()}]   {brand}: ERROR {e}", flush=True)
+                print(f"[{ts()}]   {brand}: ERROR {e}", flush=True)
                 prob.log("brand_fetch", brand, API_URL, None, str(e))
 
-    print(f"[{_ts()}] [{VENDOR}] {len(all_items)} unique items from API", flush=True)
+    print(f"[{ts()}] [{VENDOR}] {len(all_items)} unique items from API", flush=True)
 
     # ── Filter to driver categories with T/S data ─────────────────────────────
     drivers = [
         it for it in all_items
         if it.get("custitem_itemcategoryfacet") in INCLUDE_CATS
     ]
-    print(f"[{_ts()}] [{VENDOR}] {len(drivers)} items in driver categories", flush=True)
+    print(f"[{ts()}] [{VENDOR}] {len(drivers)} items in driver categories", flush=True)
 
     already_scraped = set(manifest.get("scraped", {}).keys())
     to_write = drivers if args.refresh else [
         it for it in drivers if it.get("itemid") not in already_scraped
     ]
-    print(f"[{_ts()}] [{VENDOR}] {len(to_write)} new (not yet scraped)", flush=True)
+    print(f"[{ts()}] [{VENDOR}] {len(to_write)} new (not yet scraped)", flush=True)
 
     if args.limit:
         to_write = to_write[:args.limit]
@@ -403,7 +398,7 @@ def main() -> None:
     _prefetch_html_playwright(drivers, json_cache, args.delay, concurrency=args.browser_workers)
 
     # ── Phase 2: parse HTML, fetch PDFs, extract T/S fields (parallel) ────────
-    print(f"[{_ts()}] [{VENDOR}] Enriching {len(to_write)} drivers "
+    print(f"[{ts()}] [{VENDOR}] Enriching {len(to_write)} drivers "
           f"(PDF extract, {args.workers} workers) ...", flush=True)
 
     enrich_args = [
@@ -421,12 +416,12 @@ def main() -> None:
                 enrichment[sku_res] = enc
             except Exception as e:
                 enrichment[sku_done] = {}
-                print(f"[{_ts()}]   {sku_done}: enrich ERROR {e}", flush=True)
+                print(f"[{ts()}]   {sku_done}: enrich ERROR {e}", flush=True)
             n_done += 1
             if n_done % 100 == 0:
-                print(f"[{_ts()}] [{VENDOR}]   enriched {n_done}/{len(to_write)}", flush=True)
+                print(f"[{ts()}] [{VENDOR}]   enriched {n_done}/{len(to_write)}", flush=True)
 
-    print(f"[{_ts()}] [{VENDOR}] Enrichment done", flush=True)
+    print(f"[{ts()}] [{VENDOR}] Enrichment done", flush=True)
 
     # ── Write WDRs ────────────────────────────────────────────────────────────
     ok = dq_warned = schema_fail = 0
@@ -464,17 +459,26 @@ def main() -> None:
             if k not in fields or fields[k] is None:
                 fields[k] = v
 
-        # freq_low/high go into specs so they get proper provenance tracking;
-        # top-level freq_low_hz/freq_high_hz are legacy and not written here.
-        pe_specs: dict | None = None
-        if freq_low or freq_high:
-            pe_specs = {}
-            if freq_low:
-                pe_specs["freq_low_hz"] = {"value": freq_low, "winner": "vendor_page",
-                                           "sources": {"vendor_page": freq_low}}
-            if freq_high:
-                pe_specs["freq_high_hz"] = {"value": freq_high, "winner": "vendor_page",
-                                            "sources": {"vendor_page": freq_high}}
+        # Build full T/S specs provenance — PDF primary, HTML fills gaps.
+        pe_specs: dict = {}
+        for _fld in set(pdf_fields) | {k for k, v in html_fields.items() if v is not None}:
+            _src_vals: dict = {}
+            if _fld in pdf_fields and pdf_fields[_fld] is not None:
+                _src_vals["datasheet"] = pdf_fields[_fld]
+            if html_fields.get(_fld) is not None:
+                _src_vals["vendor_page"] = html_fields[_fld]
+            if not _src_vals:
+                continue
+            _winner = "datasheet" if "datasheet" in _src_vals else "vendor_page"
+            pe_specs[_fld] = {"value": _src_vals[_winner], "winner": _winner,
+                              "sources": _src_vals}
+        # Freq range (always from vendor page HTML)
+        if freq_low:
+            pe_specs["freq_low_hz"] = {"value": freq_low, "winner": "vendor_page",
+                                       "sources": {"vendor_page": freq_low}}
+        if freq_high:
+            pe_specs["freq_high_hz"] = {"value": freq_high, "winner": "vendor_page",
+                                        "sources": {"vendor_page": freq_high}}
 
         wr = write_driver(
             out,
@@ -492,12 +496,12 @@ def main() -> None:
             detail=("Automatically scraped from Parts Express API. "
                     "T/S parameters have not been verified by a human against the datasheet."),
             fetched_sku=sku or None,
-            specs=pe_specs,
+            specs=pe_specs or None,
             sources={"vendor_page": url, "datasheet": pdf_url} if pdf_url else {"vendor_page": url},
         )
 
         if wr.ts_fail:
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} SKIP missing T/S: "
+            print(f"[{ts()}]   [{i}/{total}] {brand} {model} SKIP missing T/S: "
                   f"{', '.join(sorted(wr.missing_ts))}", flush=True)
             manifest.setdefault("scraped", {})[sku or safe_filename(f"{brand} {model}")] = {
                 "file": None, "status": "skipped"
@@ -505,20 +509,20 @@ def main() -> None:
             continue
 
         for rule_id in wr.dq_issues:
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} DQ {rule_id}", flush=True)
+            print(f"[{ts()}]   [{i}/{total}] {brand} {model} DQ {rule_id}", flush=True)
             prob.log(rule_id, sku, url, rule_id, "DQ check failure")
             dq_warned += 1
 
         wdr_name = wr.wdr_name
         if wr.schema_fail:
             schema_fail += 1
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} SCHEMA FAIL ({len(wr.hard_errors)})",
+            print(f"[{ts()}]   [{i}/{total}] {brand} {model} SCHEMA FAIL ({len(wr.hard_errors)})",
                   flush=True)
             for e in wr.hard_errors:
                 prob.log("schema", sku, url, None, e)
         else:
             ok += 1
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} OK", flush=True)
+            print(f"[{ts()}]   [{i}/{total}] {brand} {model} OK", flush=True)
 
         manifest.setdefault("scraped", {})[sku or wdr_name] = {
             "file": wdr_name, "status": "ok" if not wr.schema_fail else "schema_fail"
@@ -527,14 +531,14 @@ def main() -> None:
             save_manifest(out, manifest)
         if i % 100 == 0:
             elapsed = (datetime.now() - start).seconds
-            print(f"[{_ts()}] [{VENDOR}] {i}/{total} ({100*i//total}%) — "
+            print(f"[{ts()}] [{VENDOR}] {i}/{total} ({100*i//total}%) — "
                   f"{ok} OK, {dq_warned} DQ, {schema_fail} schema fails — {elapsed}s",
                   flush=True)
 
     save_manifest(out, manifest)
     elapsed = int((datetime.now() - start).total_seconds())
     prob.finalize(total)
-    print(f"\n[{_ts()}] [{VENDOR}] Done: {ok} OK, {dq_warned} DQ warnings, "
+    print(f"\n[{ts()}] [{VENDOR}] Done: {ok} OK, {dq_warned} DQ warnings, "
           f"{schema_fail} schema fails — {elapsed}s", flush=True)
     print(f"  Output: {out.resolve()}", flush=True)
 

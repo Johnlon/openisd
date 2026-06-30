@@ -1,6 +1,0 @@
-[19:04:56] DONE problems=0
-[19:09:27] DONE problems=0
-[21:27:26] PROBLEM field=pdf_range_Znom item=D2905/950000 url=https://www.scan-speak.dk/datasheet/pdf/d2905-950000.pdf offset=0
-         raw_value="extracted=Znom=62 raw='62' range=1–32 Ω pos=805 local=drivers\\new_ss_tool\\datasheets\\d2905-950000.pdf context=… Electrical Data:↵Ferro Fluid Nominal impedance [Zn] 62↵Low Resonance Rear Chamber Minimum imped…"
-         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
-[21:27:28] DONE problems=1

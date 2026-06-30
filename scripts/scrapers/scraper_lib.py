@@ -70,6 +70,106 @@ HEADERS             = _plib.HEADERS             # noqa: F401
 check_fields        = _dqlib.check_fields       # noqa: F401
 
 
+def ts() -> str:
+    """Current time as HH:MM:SS — for timestamped progress output."""
+    return datetime.now().strftime("%H:%M:%S")
+
+
+def extract_h1(html: str, fallback: str = "") -> str:
+    """Return the text content of the first <h1> in html, HTML-decoded and stripped."""
+    import re as _re, html as _html
+    m = _re.search(r"<h1[^>]*>([\s\S]*?)</h1>", html, _re.I)
+    return _html.unescape(_re.sub(r"<[^>]+>", "", m.group(1))).strip() if m else fallback
+
+
+def extract_measurement_links(html: str, url_filter=None) -> list[str]:
+    """
+    Return all FRD, ZMA, ZIP, TXT measurement-file URLs found in html.
+    url_filter: optional callable(url) -> bool for vendor-specific filtering
+                (e.g. restrict to a vendor CDN, or exclude non-measurement paths).
+    """
+    import re as _re
+    links = [m[0] for m in _re.findall(r'"(https?://[^"]+\.(frd|zma|zip|txt))"', html, _re.I)]
+    return [l for l in links if url_filter(l)] if url_filter else links
+
+
+def woocommerce_url_filter(url: str) -> bool:
+    """Accept WooCommerce product pages; reject category, nav, and admin URLs."""
+    return "/product/" in url and "/product-category/" not in url
+
+
+def parse_freq_range_str(
+    value_str: str, unit_str: str = ""
+) -> tuple[float | None, float | None]:
+    """
+    Parse a frequency range string and return (low_hz, high_hz) in Hz.
+
+    Handles mixed-unit formats:
+      "20 Hz - 20 kHz"      → (20.0, 20000.0)
+      "0.5 kHz - 5 kHz"     → (500.0, 5000.0)
+      "20 - 20000 Hz"        → (20.0, 20000.0)
+      "0.5 - 5" + "[kHz]"   → (500.0, 5000.0)  (Wavecor style: unit in separate cell)
+      "80 Hz"                → (None, 80.0)      (single value = upper limit)
+      "full range" / ""      → (None, None)
+
+    unit_str: optional separate unit column (combined with value_str for detection).
+    """
+    import re as _re
+    both = (value_str + " " + unit_str).lower()
+
+    def _num_to_hz(n_str: str, per_num_unit: str | None, global_unit: str) -> float | None:
+        try:
+            n = float(n_str.replace(",", ""))
+        except ValueError:
+            return None
+        u = per_num_unit or global_unit
+        return n * 1000.0 if u and "k" in u else n
+
+    m = _re.search(
+        r"([\d,\.]+)\s*(khz|hz)?\s*[-–]\s*([\d,\.]+)\s*(khz|hz)?",
+        both,
+    )
+    if m:
+        global_units = _re.findall(r"(khz|hz)", both)
+        g = global_units[-1] if global_units else ""
+        lo = _num_to_hz(m.group(1), m.group(2), g)
+        hi = _num_to_hz(m.group(3), m.group(4), g)
+        if lo is not None and hi is not None and lo < hi:
+            return lo, hi
+
+    # Single value — treat as upper-limit (e.g. Wavecor woofer max upper freq)
+    m2 = _re.search(r"([\d,\.]+)\s*(khz|hz)?", both)
+    if m2:
+        try:
+            n = float(m2.group(1).replace(",", ""))
+        except ValueError:
+            return None, None
+        u = m2.group(2) or ""
+        return None, n * 1000.0 if "k" in u else n
+
+    return None, None
+
+
+def extract_li_specs(html: str) -> dict[str, str]:
+    """
+    Extract {label: value} pairs from <li> items in html.
+
+    label: full decoded text of the <li> (used as fragment-match key).
+    value: same text but with parenthetical qualifiers stripped
+           (e.g. "(2.83V/1m)" → dropped) so parse_field_value gets a clean number+unit.
+
+    Returns an empty dict if no <li> items are found.
+    """
+    import re as _re, html as _html
+    specs: dict[str, str] = {}
+    for li_raw in _re.findall(r"<li>(.*?)</li>", html, _re.S | _re.I):
+        text = _html.unescape(_re.sub(r"<[^>]+>", "", li_raw)).strip()
+        value = _re.sub(r"\([^)]*\)", " ", text)
+        if text:
+            specs[text] = value
+    return specs
+
+
 def match_ts_fields(specs: dict[str, str], field_map: dict) -> dict[str, float]:
     """
     Match T/S fields from a {label: "value unit"} dict using a fragment→(key,factor) map.
@@ -131,16 +231,7 @@ def parse_html_li_ts(html: str, field_map: dict) -> dict[str, float]:
     than a table. Parenthesized qualifiers like "(2.83V/1m)" are stripped before
     number extraction so they don't confuse parse_field_value().
     """
-    import re as _re, html as _html
-    specs: dict[str, str] = {}
-    for li_raw in _re.findall(r"<li>(.*?)</li>", html, _re.S | _re.I):
-        text = _html.unescape(_re.sub(r"<[^>]+>", "", li_raw)).strip()
-        # Strip parenthesized qualifiers like "(2.83V/1m)" before number extraction.
-        # Use the raw text as label key so match_ts_fields can fragment-match on it.
-        value = _re.sub(r"\([^)]*\)", " ", text)
-        if text:
-            specs[text] = value
-    return match_ts_fields(specs, field_map)
+    return match_ts_fields(extract_li_specs(html), field_map)
 
 
 # pdf_lib is NOT imported at module level here — imported inside each worker process.
@@ -402,9 +493,6 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
 
     _plib  = _load("_parent_scraper_lib_w", _PARENT / "scraper_lib.py")
     _dqlib = _load("_parent_dq_check_w",    _PARENT / "dq_check.py")
-
-    def ts():
-        return datetime.now().strftime("%H:%M:%S")
 
     i, url = idx_url
     slug = url.rstrip("/").split("/")[-1]
@@ -852,9 +940,6 @@ def run_scraper(
         slug = url.rstrip("/").split("/")[-1]
         p = problems_dir / (re.sub(r"[^\w\-.]", "_", slug) + ".log")
         return p.exists() and p.stat().st_mtime > marker_mtime
-
-    def ts():
-        return datetime.now().strftime("%H:%M:%S")
 
     print(f"[{ts()}] [{vendor_name}] Collecting product URLs ...", flush=True)
     if callable(sitemap_url):

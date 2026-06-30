@@ -61,7 +61,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
     run_scraper, parse_number, fetch, to_wdr, safe_filename,
-    write_driver, match_ts_fields,
+    write_driver, match_ts_fields, ts, parse_freq_range_str,
 )
 
 VENDOR      = "Wavecor"
@@ -143,8 +143,6 @@ SPLIT_PAGES = {
 }
 
 
-def _ts() -> str:
-    return datetime.now().strftime("%H:%M:%S")
 
 
 def _parse_html_fields(html: str, col_idx: int = 0) -> dict[str, float]:
@@ -238,25 +236,14 @@ def _parse_freq_range_html(html: str) -> tuple[float | None, float | None]:
             continue
 
         # Unit cell is always the last cell.
-        unit_text = _html_mod.unescape(re.sub(r"<[^>]+>", "", cells[-1])).strip().lower()
-        factor = 1000.0 if "khz" in unit_text else 1.0
+        unit_text = _html_mod.unescape(re.sub(r"<[^>]+>", "", cells[-1])).strip()
 
         # Value cell: take first non-empty data cell (cells[2] or similar).
         val_text = re.sub(r"<[^>]+>", "", cells[2]).strip().lower()
         if not val_text or val_text in ("&nbsp;", "full range", "full\xa0range"):
             return None, None
 
-        # "N1 - N2" → low and high; bare "N" → high only.
-        m = re.match(r"([\d,\.]+)\s*[-–]\s*([\d,\.]+)", val_text)
-        if m:
-            lo = parse_number(m.group(1))
-            hi = parse_number(m.group(2))
-            if lo and hi:
-                return lo * factor, hi * factor
-
-        single = parse_number(val_text)
-        if single:
-            return None, single * factor
+        return parse_freq_range_str(val_text, unit_str=unit_text)
 
     return None, None
 
@@ -339,13 +326,13 @@ def _process_splits(out_dir: Path) -> None:
         if cached_path.exists():
             html = cached_path.read_text(encoding="utf-8", errors="replace")
         else:
-            print(f"[{_ts()}] SPLIT {slug}: not in cache — fetching live", flush=True)
+            print(f"[{ts()}] SPLIT {slug}: not in cache — fetching live", flush=True)
             try:
                 html = fetch(url)
                 html_dir.mkdir(exist_ok=True)
                 cached_path.write_text(html, encoding="utf-8")
             except Exception as exc:
-                print(f"[{_ts()}] SPLIT {slug}: fetch failed: {exc}", flush=True)
+                print(f"[{ts()}] SPLIT {slug}: fetch failed: {exc}", flush=True)
                 continue
 
         freq_low, freq_high = _parse_freq_range_html(html)
@@ -357,7 +344,7 @@ def _process_splits(out_dir: Path) -> None:
             fields  = _parse_html_fields(html, col_idx=col_idx)
 
             if not fields:
-                print(f"[{_ts()}] SPLIT {model}: no fields parsed (col_idx={col_idx})", flush=True)
+                print(f"[{ts()}] SPLIT {model}: no fields parsed (col_idx={col_idx})", flush=True)
                 continue
 
             wr = write_driver(
@@ -382,19 +369,19 @@ def _process_splits(out_dir: Path) -> None:
                 sources={"datasheet": cfg["datasheet_url"], "manu_page": url},
             )
             if wr.ts_fail:
-                print(f"[{_ts()}] SPLIT {model}: SKIP missing T/S: "
+                print(f"[{ts()}] SPLIT {model}: SKIP missing T/S: "
                       f"{', '.join(sorted(wr.missing_ts))}", flush=True)
                 continue
             for rule_id in wr.dq_issues:
-                print(f"[{_ts()}] SPLIT {model} DQ {rule_id}", flush=True)
+                print(f"[{ts()}] SPLIT {model} DQ {rule_id}", flush=True)
             if wr.schema_fail:
-                print(f"[{_ts()}] SPLIT {model}: SCHEMA FAIL ({len(wr.hard_errors)} errors)",
+                print(f"[{ts()}] SPLIT {model}: SCHEMA FAIL ({len(wr.hard_errors)} errors)",
                       flush=True)
                 for e in wr.hard_errors:
                     print(f"  {e}", flush=True)
             else:
                 print(
-                    f"[{_ts()}] SPLIT {model}: {len(fields)} fields "
+                    f"[{ts()}] SPLIT {model}: {len(fields)} fields "
                     f"(col_idx={col_idx}, {variant['note']})",
                     flush=True,
                 )

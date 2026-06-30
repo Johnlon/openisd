@@ -95,17 +95,17 @@ export function sweep(drv, box, P) {
  */
 export function maxCurves(drv, box, P) {
   const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
-  const Pe   = (drv.Pe || 50) * (P.nDrivers || 1);
+  const Pe   = drv.Pe != null ? drv.Pe * (P.nDrivers || 1) : null;
   const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
   const maxspl = [], maxpwr = [], xlim = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
     const vXmax = (excAt283 > 0 && drv.Xmax != null) ? 2.83 * (drv.Xmax / excAt283) : 1e9;
-    const vPe   = Math.sqrt(Pe * Re);
+    const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));
     maxpwr.push(vUse * vUse / Re);
     xlim.push(vXmax < vPe);
   }
-  return { fs: base.fs, maxspl, maxpwr, xlim };
+  return { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null };
 }

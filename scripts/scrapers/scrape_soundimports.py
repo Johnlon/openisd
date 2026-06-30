@@ -29,7 +29,7 @@ import time
 
 # ── Import new scraper_lib from this directory ────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, fetch, match_ts_fields
+from scraper_lib import run_scraper, parse_number, fetch, match_ts_fields, extract_h1, extract_measurement_links, parse_freq_range_str
 
 VENDOR      = "SoundImports"
 SITEMAP_URL = "https://www.soundimports.eu/en/sitemap.xml"
@@ -170,10 +170,7 @@ def parse_product(html: str, url: str) -> dict | None:
     if not model:
         return None
 
-    h1_m = re.search(r"<h1[^>]*>([\s\S]*?)</h1>", html, re.I)
-    h1_text = html_module.unescape(
-        re.sub(r"<[^>]+>", "", h1_m.group(1))
-    ).strip() if h1_m else ""
+    h1_text = extract_h1(html)
 
     if model in h1_text:
         brand = h1_text[:h1_text.index(model)].strip()
@@ -213,10 +210,11 @@ def parse_product(html: str, url: str) -> dict | None:
             if n is not None:
                 extra_specs["power_peak_W"] = n
         elif "frequency response" in ll or "frequency range" in ll:
-            nums = re.findall(r"\d+", value_str)
-            if len(nums) >= 2:
-                extra_specs.setdefault("freq_low_hz",  float(nums[0]))
-                extra_specs.setdefault("freq_high_hz", float(nums[-1]))
+            lo, hi = parse_freq_range_str(value_str)
+            if lo is not None:
+                extra_specs.setdefault("freq_low_hz", lo)
+            if hi is not None:
+                extra_specs.setdefault("freq_high_hz", hi)
         elif "voice coil diameter" in ll:
             # May be in inches ("1\"") or mm; only capture mm values
             if "mm" in v:
@@ -230,7 +228,6 @@ def parse_product(html: str, url: str) -> dict | None:
 
     pdf_matches = re.findall(r'"(https?://[^"]+\.pdf)"', html, re.I)
     pdf_url = pdf_matches[0] if pdf_matches else None
-    extra = re.findall(r'"(https?://[^"]+\.(frd|zma|zip|txt))"', html, re.I)
 
     return {
         "brand":        brand,
@@ -240,7 +237,7 @@ def parse_product(html: str, url: str) -> dict | None:
         "fields":       fields,
         "extra_specs":  extra_specs or None,
         "datasheet_url":  pdf_url,
-        "extra_links":  [lnk[0] for lnk in extra],
+        "extra_links":  extract_measurement_links(html),
     }
 
 

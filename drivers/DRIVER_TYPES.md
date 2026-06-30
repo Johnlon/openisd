@@ -27,7 +27,7 @@ driver that carries that label.
 | ------------------------------------------------------------------ | -------------------------- | -------------------------------------------------------------- |
 | Subwoofer                                                          | `Subwoofer`                | `sub` + `woofer` + `bass`                                      |
 | Woofer                                                             | `Woofer`                   | `woofer` + `bass`                                              |
-| Mid-bass / mid-woofer / midbass                                    | `Mid-bass`                 | `woofer` + `mid` + `bass`                                      |
+| Mid-bass / mid-woofer / midbass / midwoofer (Scan-Speak term)      | `Mid-bass`                 | `woofer` + `mid` + `bass`                                      |
 | Midrange / mid-range                                               | `Midrange`                 | `woofer` + `mid` (cone driver; no bass, no tweet)              |
 | Full-range / fullrange                                             | `Full-range`               | `woofer` + `mid` + `tweet` + `bass` + `fullrange`              |
 | BMR / balanced mode radiator                                       | `BMR`                      | `mid` + `tweet` (NOT bass — needs separate woofer for LF)      |

@@ -1,6 +1,0 @@
-[19:04:50] DONE problems=0
-[19:09:22] DONE problems=0
-[21:27:24] PROBLEM field=pdf_range_Znom item=26W/4558T00 url=https://www.scan-speak.dk/datasheet/pdf/26w-4558t00.pdf offset=0
-         raw_value="extracted=Znom=42 raw='42' range=1–32 Ω pos=803 local=drivers\\new_ss_tool\\datasheets\\26w-4558t00.pdf context=…ata:↵High Output 88dB @ 2,83V Nominal impedance [Zn] 42↵(remy ReserTse hikes GB Minimum impedanc…"
-         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
-[21:27:24] DONE problems=1

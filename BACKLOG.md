@@ -154,6 +154,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 ## UX & platform
 
 - [x] [ ] **P1** Save / restore graph layout (which graphs, sizes, positions) — graph selection persisted in localStorage
+- [ ] **P1** ✨ NEW — MaxSPL chart: color curve by limiting factor — Xmax-limited segments in design color, Pe-limited segments in amber. `xlim[]` boolean array is already returned by `maxCurves`. Implement by (a) attaching `xlim` to the MaxSPL series in `series.js`, (b) drawing two color passes in `canvas.js` series loop, (c) phantom legend entries "Xmax limit" / "Pe limit". Only applies to primary design; compare overlays keep their assigned color. When Pe is absent, amber pass draws nothing. WinISD has no equivalent.
 - [ ] **P2** Draggable / resizable graph panels
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path
 - [ ] **P2** Configurable graph gridlines (3 / 5 / 10 dB) and contrast
@@ -168,9 +169,15 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 
 ## Quality / infrastructure
 
+- [ ] **P1** Fix existing code-review / vibe-coding issues before adding new features — run `/code-review` and clear all findings first
+- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); Python: add `ruff` + `import-linter`; see `OTHER_TOOLS.md`
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
 - [ ] **P2** Unify DQ and schema validation — single WDR parser, range bounds defined once; see `PLAN_SCRAPING.md`
+- [ ] **P1** Universal value provenance in `_meta.yml` — every field becomes `[value, source_key]` with a `_sources` index; redesign `MetaModel` and scraper write path; see `PLAN_SCRAPING.md`
+- [ ] **P2** Diagnose and fix sb-acoustics `specs: null` — re-run scraper; fix coaxial detection if still broken after fresh run; see `PLAN_SCRAPING.md`
+- [ ] **P2** Migrate old-architecture scrapers (dayton, pe, scan-speak, sb-acoustics) to new `scripts/scrapers/scraper_lib.py` so they write `field_provenance`, `freq_low_hz`, `freq_high_hz`; see `PLAN_SCRAPING.md`
+- [ ] **P3** Add `specs` extraction to scrapers where manufacturer pages publish structured non-T/S data; see `PLAN_SCRAPING.md`
 
 ---
 

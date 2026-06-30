@@ -16,13 +16,15 @@ in millimetres peak-to-peak. pdf_lib applies ×0.0005 (p-p → one-way metres)
 when brand="SB Acoustics". HTML map applies the same factor manually.
 """
 
-import html as html_module
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_html_li_ts
+from scraper_lib import (
+    run_scraper, parse_number, parse_html_li_ts, extract_li_specs, match_ts_fields,
+    extract_h1, extract_measurement_links, woocommerce_url_filter,
+)
 
 VENDOR      = "SB Acoustics"
 SITEMAP_URL = "https://sbacoustics.com/product-sitemap.xml"
@@ -48,30 +50,20 @@ _HTML_FIELD_MAP = {
     "sensitivity":           ("SPL",  1.0),
 }
 
-# Non-T/S specs extracted from HTML li items → extra_specs key names
+# Non-T/S specs extracted from HTML li items — same format as _HTML_FIELD_MAP so
+# match_ts_fields can process them; factor=1.0 (values are in mm already).
 _EXTRA_SPEC_MAP = {
-    "voice coil diameter": "voice_coil_dia_mm",
-    "air gap height":      "Hg_mm",
+    "voice coil diameter": ("voice_coil_dia_mm", 1.0),
+    "air gap height":      ("Hg_mm", 1.0),
 }
 
 
 def parse_product(html: str, url: str) -> dict | None:
-    m = re.search(r"<h1[^>]*>([^<]+)</h1>", html, re.I)
-    name = m.group(1).strip() if m else url.rstrip("/").split("/")[-1]
+    name = extract_h1(html, fallback=url.rstrip("/").split("/")[-1])
 
-    fields: dict[str, float] = parse_html_li_ts(html, _HTML_FIELD_MAP)
-    # Non-T/S extra specs (voice coil dia, air gap) — still extracted from <li> items.
-    extra_specs: dict[str, float] = {}
-    for li_raw in re.findall(r"<li>(.*?)</li>", html, re.S | re.I):
-        text = html_module.unescape(re.sub(r"<[^>]+>", "", li_raw)).strip()
-        tl = text.lower()
-        parse_text = re.sub(r"\([^)]*\)", " ", text)
-        for fragment, spec_key in _EXTRA_SPEC_MAP.items():
-            if fragment in tl:
-                val = parse_number(parse_text)
-                if val is not None:
-                    extra_specs[spec_key] = val
-                break
+    li_specs = extract_li_specs(html)
+    fields: dict[str, float] = match_ts_fields(li_specs, _HTML_FIELD_MAP)
+    extra_specs: dict[str, float] = match_ts_fields(li_specs, _EXTRA_SPEC_MAP)
 
     if not fields.get("Fs"):
         return None
@@ -85,10 +77,10 @@ def parse_product(html: str, url: str) -> dict | None:
         r'"(https://sbacoustics\.com/wp-content/uploads/[^"]+\.pdf)"', html, re.I)
     pdf_url = pdf_matches[-1] if pdf_matches else None
 
-    # FRD, ZMA, ZIP (often contains FRD/ZMA), TXT measurement files
-    extra = re.findall(
-        r'"(https://sbacoustics\.com/wp-content/uploads/[^"]+\.(frd|zma|zip|txt))"',
-        html, re.I)
+    extra_links = extract_measurement_links(
+        html,
+        url_filter=lambda u: "sbacoustics.com/wp-content/uploads/" in u,
+    )
 
     return {
         "brand":        "SB Acoustics",
@@ -98,16 +90,12 @@ def parse_product(html: str, url: str) -> dict | None:
         "fields":       fields,
         "extra_specs":  extra_specs or None,
         "datasheet_url":  pdf_url,
-        "extra_links":  [lnk[0] for lnk in extra],
+        "extra_links":  extra_links,
     }
-
-
-def _url_filter(url: str) -> bool:
-    return "/product/" in url and "/product-category/" not in url
 
 
 if __name__ == "__main__":
     run_scraper(
         VENDOR, SITEMAP_URL, parse_product, OUT_DIR,
-        url_filter=_url_filter,
+        url_filter=woocommerce_url_filter,
     )

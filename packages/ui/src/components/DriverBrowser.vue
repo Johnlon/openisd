@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import { state } from '../store.js';
 import { parseWdr } from '@resonate/engine';
-import sourcesJson from '../../drivers/sources.json';
+import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
 const sources     = sourcesJson.sources || [];
@@ -82,11 +82,13 @@ const COAX_PAT     = /\bcoax(ial)?\b|coaxial/i;
 // driverType = scraper-derived type written to _meta.yml (e.g. 'coaxial', 'subwoofer')
 function classifyTypes(Fs, Sd, nameStr, driverType) {
   const nm = nameStr || '';
-  const dt = (driverType || '').toLowerCase();
+  // Scrapers may write compound values like "midwoofer, automotive" — take the primary
+  // type token only; secondary qualifiers (automotive, marine, etc.) are not type tags.
+  const dt = (driverType || '').split(',')[0].trim().toLowerCase();
   const types = new Set();
   const canonical = [];
 
-  if (PR_PAT.test(nm) || dt === 'pr' || dt === 'passive radiator')
+  if (PR_PAT.test(nm) || dt === 'pr' || dt === 'passive radiator' || dt === 'passive_radiator')
     return { types: ['pr'], canonical: 'Passive Radiator' };
   if (COAX_PAT.test(nm) || dt === 'coaxial' || dt === 'coax')
     return { types: ['coax', 'woofer', 'bass', 'mid', 'tweet'], canonical: 'Coaxial' };
@@ -100,7 +102,8 @@ function classifyTypes(Fs, Sd, nameStr, driverType) {
   }
   if (SUB_PAT.test(nm) || dt === 'subwoofer' || dt === 'sub')
     { types.add('sub'); types.add('woofer'); types.add('bass'); canonical.push('Subwoofer'); }
-  if (MIDBASS_PAT.test(nm) || dt === 'mid-bass' || dt === 'midbass')
+  // "midwoofer" is Scan-Speak's category name for mid-bass cone drivers — same chip mapping
+  if (MIDBASS_PAT.test(nm) || dt === 'mid-bass' || dt === 'midbass' || dt === 'midwoofer')
     { types.add('woofer'); types.add('mid'); types.add('bass'); canonical.push('Mid-bass'); }
   if ((WOOFER_PAT.test(nm) || dt === 'woofer') && !MIDBASS_PAT.test(nm))
     { types.add('woofer'); types.add('bass'); canonical.push('Woofer'); }
@@ -553,7 +556,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
                 <tbody>
                   <tr><td>Subwoofer</td><td>Subwoofer</td><td>Sub · Woofer · Bass</td></tr>
                   <tr><td>Woofer</td><td>Woofer</td><td>Woofer · Bass</td></tr>
-                  <tr><td>Mid-bass / mid-woofer</td><td>Mid-bass</td><td>Woofer · Mid · Bass</td></tr>
+                  <tr><td>Mid-bass / mid-woofer / midwoofer</td><td>Mid-bass</td><td>Woofer · Mid · Bass</td></tr>
                   <tr><td>Midrange / mid-range</td><td>Midrange</td><td>Woofer · Mid</td></tr>
                   <tr><td>Full-range</td><td>Full-range</td><td>Woofer · Mid · Tweet · Bass · Full-range</td></tr>
                   <tr><td>BMR / balanced mode</td><td>BMR</td><td>Mid · Tweet <em>(not bass)</em></td></tr>
@@ -562,6 +565,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
                   <tr><td>Planar</td><td>Planar Tweeter</td><td>Tweet</td></tr>
                   <tr><td>AMT / air motion</td><td>AMT</td><td>Tweet</td></tr>
                   <tr><td>Passive radiator</td><td>Passive Radiator</td><td>PR</td></tr>
+                  <tr><td>Coaxial / coax</td><td>Coaxial</td><td>Woofer · Mid · Tweet · Bass · Coaxial</td></tr>
                   <tr class="help-fallback"><td><em>Tiny piston (Sd &lt; 12 cm²)</em></td><td>Tweeter</td><td>Tweet</td></tr>
                   <tr class="help-fallback"><td><em>Very low Fs (&lt; 40 Hz)</em></td><td>Subwoofer</td><td>Sub · Woofer · Bass</td></tr>
                   <tr class="help-unclass"><td><em>No signal either way</em></td><td>⚠ Unclassified</td><td><em>shows in all queries</em></td></tr>

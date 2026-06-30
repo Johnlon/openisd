@@ -30,6 +30,49 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 - Always use the **Bash** tool for shell commands. Never use PowerShell.
 
+## Dev server — hard rules
+
+- **Always start with `npm run dev -- --port 8000`** (not `npx vite`, not `node .bin/vite`). The `predev` script bundles drivers and runs lint first; bypassing it produces a stale bundle.
+- **After starting the server, verify the page loads before telling the user to check it.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/` and confirm 200. If it returns an error or the server log shows a compile error, fix the error first — never hand off a broken URL.
+- **One port only — 8000.** Never start a second server on another port without killing 8000 first. If 8000 is occupied, kill the occupying process (`taskkill /PID <pid> /F`), then start fresh.
+- **Unregister any stale service worker before handing off to the user.** After starting the dev server, use the browser automation tools to run: `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:8000`. Do this silently — never ask the user to touch DevTools. The SW only gets registered from a production build (`npm run build`); in pure dev sessions it is absent, but if one is present it will serve stale compiled JS and make source changes invisible.
+
+## Post-deploy / post-build test — hard rule
+
+**After every `npm run build` or any change that is handed to the user as "ready to check", run a post-deploy smoke test before saying it is done.** Minimum checks:
+
+1. `curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/` → must be 200.
+2. Fetch the compiled JS entry point from the Vite server log output and confirm no `[vite] error` lines appear in the server output.
+3. For UI changes: use the browser automation tools (`mcp__claude-in-chrome__*`) to load the page and visually confirm the changed element is present and correct — do not rely on source-file grep alone. A component that compiles but renders incorrectly is still broken.
+
+**Never say "it should work now — please check" without completing steps 1–3.** If a step fails, fix the problem first.
+
+## JavaScript error handling — Go-inspired pattern (preferred)
+
+All functions that perform I/O, validation, or calculations that can partially fail **must** return `{ value, errors }` rather than throwing or returning bare values.
+
+**Shape:**
+
+```js
+// errors is always an array — empty means clean, never omit it
+{ value: <result or null>, errors: [{ level: 'error'|'warn', field, message }, ...] }
+```
+
+**Rules:**
+
+- **Return value even when errors are present** where the data is still partially usable. Reserve `value: null` for truly unrecoverable failures (e.g. parse fails completely). Degraded data + warnings is better than null + error for chart rendering.
+- **Caller always checks `errors`** — never silently discard. A caller that ignores errors must do so explicitly (e.g. `const { value } = fn(); // errors intentionally ignored — display handled upstream`).
+- **`level: 'error'`** — value is unusable; caller must not render or use it.
+- **`level: 'warn'`** — value is usable but degraded; caller should surface the warning to the user.
+- **Per-point invalidity** — when a calculation produces invalid results for a subset of points (not all), set those positions to `null` in the value array (renderer draws gaps) and include a `level: 'warn'` entry describing the affected range. Do not set `value: null` for partial failures.
+- **Never throw from engine or extractor functions** — throw only from pure parsers where the input is structurally invalid (e.g. `parseWdr` on non-WDR text). Calculation functions catch their own errors internally and return them in `errors`.
+
+**Where this applies:**
+
+- `engine.js` — `loadDriver`, `extractSpl`, `extractExcursion`, `extractMaxSpl`, etc.
+- Any future function that reads files, calls external APIs, or runs calculations that can produce NaN/Infinity.
+- Does **not** apply to pure math functions in `src/core/` — those remain plain return-value functions. The engine layer wraps them and owns the error contract.
+
 ## Markdown formatting
 
 - After writing or editing any `.md` file that contains tables, run `npx prettier --write <file>` to format the tables. Do not spend tokens manually aligning columns — use the tool.
@@ -54,10 +97,22 @@ The scraping pipeline must be able to regenerate everything in `drivers/` from s
 - Scripts that walk `drivers/` and rewrite field values to fix a known bad pattern
 - Scripts that "normalise" units, casing, or formatting across WDR or `_meta.yml` files
 - One-shot migration scripts that apply a correction to many files at once
+- **"Backfill" scripts** — scripts that re-read existing WDR or `_meta.yml` files and derive a field value from file contents or filenames, then write it back. Example: a script that reads WDR filenames, infers `driver_type` from them, and persists that to `_meta.yml`. This pattern is banned even when it mirrors runtime logic.
+- **"Enrich" / "derive-and-persist" passes** — any second-pass script that reads already-written scraper output and adds or updates fields. The scraper must write every field at scrape time. A separate enrichment pass creates a second authority that diverges from the scraper on re-run.
+
+**Why the backfill/enrich pattern is especially dangerous:** it creates three separate authorities — the scraper vocabulary (what the scraper writes), the backfill vocabulary (what the backfill writes), and the runtime classifier (what the app computes). These inevitably diverge and produce driver cards that show the wrong type, silently. The chaos is invisible until users notice wrong filter results.
+
+**The two valid authorities for any sidecar field:**
+1. The scraper writes it directly at scrape time from authoritative source data (HTML, PDF).
+2. The app computes it at runtime (e.g. `classifyTypes()` in `DriverBrowser.vue`).
+
+There is no third option.
 
 **The only correct fix is to find the bug in the scraper and rerun the scraper.** A patch script applied to generated files will be silently wiped on the next scraper run — it fixes nothing permanently and creates a false sense of correctness.
 
 **If the scraper cannot yet regenerate the correct value**, the right response is to fix the scraper until it can, not to write a patch script as a shortcut. If a human explicitly authorises a one-time direct file edit (recorded in the conversation), that is the narrow exception — and even then, no script; the edit is manual and deliberate.
+
+**`driver_type` specifically:** this field is either written by the scraper at scrape time (from the vendor's category label), or left null for `classifyTypes()` to handle at runtime from the driver name and T/S parameters. Never write a script that derives and persists `driver_type` from existing file content.
 
 ## Protected collections — DO NOT MODIFY
 

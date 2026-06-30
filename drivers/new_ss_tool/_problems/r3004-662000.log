@@ -1,6 +1,0 @@
-[19:04:56] DONE problems=0
-[19:09:30] DONE problems=0
-[21:27:29] PROBLEM field=pdf_range_Znom item=R3004/662000 url=https://www.scan-speak.dk/datasheet/pdf/r3004-662000.pdf offset=0
-         raw_value="extracted=Znom=42 raw='42' range=1–32 Ω pos=819 local=drivers\\new_ss_tool\\datasheets\\r3004-662000.pdf context=…a:↵Patented Phase Plug Design Nominal impedance [Zn] 42↵Patented Symmetrical Drive (SD-2) motor …"
-         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
-[21:27:29] DONE problems=1
