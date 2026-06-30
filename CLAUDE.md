@@ -66,21 +66,21 @@ When a task recurs (killing ports, cleaning build artefacts, resetting state, et
 - `scripts/start-http.sh` — **PRIMARY SCRIPT. AI must use this to start the server.** Runs all health checks then starts `vite preview` on port 4000. Never use `npm run dev`, `npm run preview`, or ad-hoc vite commands directly.
 - `scripts/health-check.sh` — all health checks: lint, unit tests, golden tests, DQ validation. Single entry point — add new checks here as they are created.
 - `scripts/preview-4000.sh` — kill ports 4000-4005 then start `vite preview` on port 4000 (called by `start-http.sh`).
-- `scripts/kill-port.sh <port> [port …]` — kill all processes listening on the given port(s) on Windows (called by `preview-4000.sh`).
+- `scripts/kill-http.sh <port> [port …]` — kill all processes listening on the given port(s) on Windows (called by `preview-4000.sh`).
 
 ## Port range — hard rule
 
 **This project uses ports 4000–4005 only. NEVER use a port outside this range — not for any reason.**
 
 - **Reserved ports:** 4000 = dev/preview server, 4001 = Playwright webServer, 4002–4005 = experiments.
-- **Before starting any server:** run `bash scripts/kill-port.sh` to clear the range. Never reach for `taskkill` ad-hoc.
-- **If a port outside 4000–4005 is suggested by a tool or auto-incremented by Vite:** stop, run `bash scripts/kill-port.sh`, and restart on 4000. Never accept drift.
+- **Before starting any server:** run `bash scripts/kill-http.sh` to clear the range. Never reach for `taskkill` ad-hoc.
+- **If a port outside 4000–4005 is suggested by a tool or auto-incremented by Vite:** stop, run `bash scripts/kill-http.sh`, and restart on 4000. Never accept drift.
 
 ## Dev server — hard rules
 
-- **Always start with `npm run dev -- --port 4000`** (not `npx vite`, not `node .bin/vite`). The `predev` script bundles drivers and runs lint first; bypassing it produces a stale bundle.
-- **After starting the server, verify the page loads before telling the user to check it.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/` and confirm 200. If it returns an error or the server log shows a compile error, fix the error first — never hand off a broken URL.
-- **Unregister any stale service worker before handing off to the user.** After starting the dev server, use the browser automation tools to run: `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4000`. Do this silently — never ask the user to touch DevTools. The SW only gets registered from a production build (`npm run build`); in pure dev sessions it is absent, but if one is present it will serve stale compiled JS and make source changes invisible.
+- **Always start the server with `bash scripts/start-http.sh`.** Never use `npm run dev`, `npm run preview`, `npx vite`, or any ad-hoc vite command directly. `start-http.sh` runs all quality checks first (lint, unit tests, golden tests, DQ), kills the port range, then starts the dev server on port 4000. If you bypass it you skip the checks and risk serving broken code.
+- **After starting, verify the page loads.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/` and confirm 200. If the server log shows a compile error, fix it first — never hand off a broken URL.
+- **Unregister any stale service worker before handing off to the user.** Use browser automation to run `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4000`. Do this silently. The SW is only registered from a production build; in dev sessions it is usually absent, but if present it will serve stale JS and make changes invisible.
 
 ## Post-deploy / post-build test — hard rule
 

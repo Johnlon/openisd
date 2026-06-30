@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Kill all processes on the project's reserved port range (4000-4015).
 # No arguments needed — always scans the full range.
-# Pass explicit ports to override: scripts/kill-port.sh 4000 4001
+# Pass explicit ports to override: scripts/kill-http.sh 4000 4001
 set -euo pipefail
 
 # Project-reserved port range. AI must never start servers outside this range.

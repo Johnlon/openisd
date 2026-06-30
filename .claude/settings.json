@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash scripts/kill-port.sh*)"
+      "Bash(bash scripts/kill-http.sh*)",
+      "Bash(bash scripts/start-http.sh*)"
     ]
   }
 }

@@ -5,6 +5,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-bash "$SCRIPT_DIR/kill-port.sh"
+bash "$SCRIPT_DIR/kill-http.sh"
 sleep 2
 npm run preview -- --port 4000 --strictPort

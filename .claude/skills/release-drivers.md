@@ -133,7 +133,7 @@ e.g. `data: release scan-speak + wavecor refresh (121 + 79 drivers)`.
 Still inside the worktree (`../resonate-main`):
 
 ```bash
-bash scripts/kill-port.sh
+bash scripts/kill-http.sh
 GITHUB_PAGES=true npm run build
 ```
 
