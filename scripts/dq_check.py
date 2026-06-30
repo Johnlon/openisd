@@ -30,6 +30,11 @@ except ImportError:
     _YAML_OK = False
 
 DRIVERS_DIR = pathlib.Path(__file__).parent.parent / "drivers"
+
+# Collections excluded from the default DQ run — not scraper-generated data.
+# Use --all to include them.
+NON_SCRAPED = {"sample", "matt", "winisd", "loudspeakerdatabase"}
+
 # URL fields live in _meta.yml sidecars (NOT in WDR files)
 SIDECAR_URL_FIELDS = ["datasheet_url", "adv_datasheet_url", "drawing_url", "cad_url",
                       "manu_page_url", "vendor_page_url", "frd_url", "zma_url"]
@@ -281,6 +286,8 @@ def _check_url(url: str) -> str:
 def main():
     ap = argparse.ArgumentParser(description="WDR data quality check")
     ap.add_argument("--collection", help="Only check this collection subdirectory")
+    ap.add_argument("--all", action="store_true",
+                    help=f"Include non-scraped collections ({', '.join(sorted(NON_SCRAPED))})")
     ap.add_argument("--check-urls", action="store_true",
                     help="GET (Range: bytes=0-3) every URL in _meta.yml sidecars; validates real content-type")
     args = ap.parse_args()
@@ -293,6 +300,8 @@ def main():
         if not coll_path.is_dir():
             continue
         if args.collection and coll_path.name != args.collection:
+            continue
+        if not args.all and coll_path.name in NON_SCRAPED:
             continue
         for wdr_path in sorted(coll_path.glob("*.wdr")):
             all_wdr.append((coll_path, wdr_path))
