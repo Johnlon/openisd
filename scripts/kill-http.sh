@@ -53,17 +53,18 @@ _kill_port() {
     fi
 
     # Step 2: taskkill tree-kill by Windows PID
+    # MSYS_NO_PATHCONV=1 prevents Git Bash converting /F /PID /T as POSIX paths
     if [ "$attempt" -le 4 ]; then
-      cmd /c "taskkill /PID $winpid /F /T" > /dev/null 2>&1 \
-        && echo "  [attempt $attempt] taskkill /T WinPID $winpid" \
+      MSYS_NO_PATHCONV=1 taskkill /PID "$winpid" /F /T > /dev/null 2>&1 \
+        && echo "  [attempt $attempt] taskkill /F /PID $winpid" \
         || true
     fi
   done
 
   # Step 3+: nuke all node.exe by image name
   if [ "$attempt" -ge 5 ]; then
-    echo "  [attempt $attempt] escalating — taskkill /IM node.exe /F /T"
-    cmd /c "taskkill /IM node.exe /F /T" > /dev/null 2>&1 || true
+    echo "  [attempt $attempt] escalating — taskkill /IM node.exe /F"
+    MSYS_NO_PATHCONV=1 taskkill /IM node.exe /F > /dev/null 2>&1 || true
     # Also try kill -9 on all POSIX node PIDs
     ps -W 2>/dev/null | awk '/node/{if ($1 < 1000000) print $1}' \
       | xargs -r kill -9 2>/dev/null || true
