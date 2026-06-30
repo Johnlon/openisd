@@ -298,7 +298,7 @@ def main():
             all_wdr.append((coll_path, wdr_path))
     total_files = len(all_wdr)
 
-    tty = sys.stdout.isatty() or bool(os.environ.get("TERM"))
+    tty = os.isatty(sys.stdout.fileno())
     for i, (coll_path, wdr_path) in enumerate(all_wdr, 1):
         msg = f"  {i}/{total_files}  {coll_path.name}/{wdr_path.name}"
         if tty:
@@ -341,6 +341,8 @@ def main():
             by_rule[rule_id] = {"desc": desc, "hits": []}
         by_rule[rule_id]["hits"].append((coll, fname, detail, fields, sidecar))
 
+    rule_col = max(len(r[0]) for r in RULES)  # fixed width for rule_id column
+
     total = 0
     seen_files = set()
     for rule_id, data in sorted(by_rule.items()):
@@ -348,15 +350,8 @@ def main():
         print(f"\n── {rule_id} ({len(hits)}) — {data['desc']}")
         n = len(hits)
         for j, (coll, fname, detail, fields, sidecar) in enumerate(hits, 1):
-            if tty:
-                sys.stdout.write(f"\r   {j}/{n}  [{rule_id}]  {coll}/{fname}\x1b[K")
-                sys.stdout.flush()
-            else:
-                print(f"   [{rule_id}]  {coll}/{fname}  {detail}")
+            print(f"   {j}/{n}  [{rule_id:<{rule_col}}]  {coll}/{fname}  {detail}")
             seen_files.add(f"{coll}/{fname}")
-        if tty:
-            sys.stdout.write("\r\x1b[K")  # clear the flashed line
-            sys.stdout.flush()
         total += n
 
     print(f"\nTotal issues: {total} across {len(seen_files)} files")
