@@ -93,3 +93,37 @@ a { color:var(--acc) }
 .status.err { color:var(--bad) }
 .status.loading { padding:24px 8px; text-align:center; animation:pulse 1.4s ease-in-out infinite }
 @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+/* ── Mobile / responsive layout ──────────────────────────────────────────── */
+@media (max-width: 720px) {
+  /* Header: wrap buttons below title, hide long tagline */
+  header { flex-wrap: wrap; padding: 6px 10px; gap: 4px }
+  header h1 { font-size: 13px; width: 100%; margin-bottom: 2px }
+  header h1 small { display: none }
+  header .sp { display: none }
+  header button { font-size: 11px; padding: 3px 8px }
+
+  /* Layout: stack vertically — controls on top, graphs below */
+  .layout { flex-direction: column; height: auto; min-height: calc(100vh - 56px) }
+  .side {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+  .main { flex: 1; min-height: 50vh; overflow: hidden }
+
+  /* Graph grid: single column on mobile */
+  .ggrid { grid-template-columns: 1fr !important; grid-auto-rows: minmax(220px, 1fr) }
+
+  /* Filter rows: horizontal scroll if inputs overflow narrow screens */
+  .flt-row { overflow-x: auto; padding-bottom: 2px }
+
+  /* Stat bar: tighter padding */
+  .stat { padding: 5px 10px; font-size: 10.5px }
+
+  /* Touch-friendlier tap targets */
+  button { min-height: 30px }
+}

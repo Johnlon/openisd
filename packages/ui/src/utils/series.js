@@ -60,8 +60,14 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
     series = [{ xs: sw.fs, ys: sw.phase.map(p => p * 180 / Math.PI), color: meta.color, name: 'Phase' }];
     const ys = series[0].ys; ymin = Math.floor(Math.min(...ys) / 90) * 90; ymax = Math.ceil(Math.max(...ys) / 90) * 90;
   } else if (tabId === 'MaxSPL') {
-    series = [{ xs: mx.fs, ys: mx.maxspl, color: meta.color, name: 'Max SPL' }];
+    series = [{ xs: mx.fs, ys: mx.maxspl, color: meta.color, name: 'Max SPL', xlim: mx.xlim }];
     const mx2 = Math.max(...mx.maxspl); ymax = Math.ceil(mx2 / 5) * 5; ymin = ymax - 40;
+    if (mx.xlim && !mx.peAbsent) {
+      // Phantom legend entries replace the generic "Max SPL" label when both limits apply.
+      series[0].name = '';
+      series.push({ xs: [], ys: [], color: meta.color, name: 'Xmax limit', phantom: true });
+      series.push({ xs: [], ys: [], color: '#ffb454',  name: 'Pe limit',   phantom: true });
+    }
   } else if (tabId === 'MaxPwr') {
     series = [{ xs: mx.fs, ys: mx.maxpwr, color: meta.color, name: 'Max power' }];
     logy = true; ymin = 1; ymax = Math.max(...mx.maxpwr) * 1.2;
@@ -77,7 +83,10 @@ export function buildPlotData(tabId, fmin, fmax, currentDesign, compare) {
     const pd = seriesFor(tabId, d.driver, d.box, d.P, d.curves, d.maxCurves || d.maxCurvesData || {});
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
     const prim = { ...pd.series[0] };
-    if (multi) { prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name; }
+    if (multi) {
+      prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
+      if (di > 0) delete prim.xlim; // compare overlays: solid color, no segmented coloring
+    }
     out.series.push(prim);
     if (di === 0) for (let k = 1; k < pd.series.length; k++) out.series.push(pd.series[k]);
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);

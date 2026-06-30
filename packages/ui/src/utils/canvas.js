@@ -57,15 +57,32 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
   }
 
   // series
+  const PE_LIMIT_COLOR = '#ffb454';
   for (const s of plotData.series) {
-    ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.1 : 1.7;
+    if (s.phantom) continue;
+    ctx.lineWidth = s.dash ? 1.1 : 1.7;
     if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
-    ctx.beginPath(); let started = false;
-    for (let i = 0; i < s.xs.length; i++) {
-      const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
-      if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+    if (s.xlim) {
+      // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
+      for (const [isXlim, passColor] of [[true, s.color], [false, PE_LIMIT_COLOR]]) {
+        ctx.strokeStyle = passColor;
+        ctx.beginPath(); let started = false;
+        for (let i = 0; i < s.xs.length; i++) {
+          if (s.xlim[i] !== isXlim) { started = false; continue; }
+          const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+          if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+        }
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = s.color;
+      ctx.beginPath(); let started = false;
+      for (let i = 0; i < s.xs.length; i++) {
+        const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+        if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
   }
   ctx.setLineDash([]);
 
@@ -113,7 +130,7 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
     ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke(); ctx.setLineDash([]);
     let html = `<b>${fx.toFixed(fx < 100 ? 1 : 0)}Hz</b>`;
     for (const s of plotData.series) {
-      if (s.dash) continue;
+      if (s.dash || s.phantom) continue;
       const y = s.ys[bi];
       ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(X(fx), Y(y), 2.6, 0, 7); ctx.fill();
       html += ` <span style="color:${s.color}">${fmtVal(y, plotData.unit)}</span>`;
