@@ -28,13 +28,12 @@ from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 
-import yaml
 
 # ── Import new scraper_lib from this directory ────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
-    to_wdr, safe_filename, load_manifest, save_manifest,
-    validate_driver, ProblemLog, check_fields,
+    safe_filename, load_manifest, save_manifest,
+    ProblemLog, write_driver,
 )
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -511,91 +510,64 @@ def main() -> None:
                                  f"{k}: PDF={pdf_v:.4g} vs API={v:.4g} ({rel*100:.1f}% diff)"
                                  f" — PDF used as primary; API value may indicate unit error")
 
-        # DQ check — always write the driver; record every issue; never abort.
-        # Standard procedure when values are mutually inconsistent: mark ALL
-        # participating fields as suspect in dq_issue — don't guess which is wrong.
-        # TODO: Resonate UI should display fields flagged in dq_issue with a different
-        #       colour so users can see at a glance which values need verification.
-        dq_issues = []
-        for rule_id, desc, detail in check_fields(fields):
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} DQ {rule_id}: {detail}",
-                  flush=True)
-            prob.log(rule_id, sku, url, detail, desc)
-            dq_warned += 1
-            dq_issues.append(rule_id)
-            # When Q values are mutually inconsistent, all three are suspect —
-            # we cannot know which is wrong without the datasheet.
-            if rule_id in ("Qts_impossible", "Qts_impossible2"):
-                for fld in ("Qts", "Qes", "Qms"):
-                    tag = f"suspect:{fld}"
-                    if tag not in dq_issues:
-                        dq_issues.append(tag)
+        # freq_low/high go into specs so they get proper provenance tracking;
+        # top-level freq_low_hz/freq_high_hz are legacy and not written here.
+        pe_specs: dict | None = None
+        if freq_low or freq_high:
+            pe_specs = {}
+            if freq_low:
+                pe_specs["freq_low_hz"] = {"value": freq_low, "winner": "vendor_page",
+                                           "sources": {"vendor_page": freq_low}}
+            if freq_high:
+                pe_specs["freq_high_hz"] = {"value": freq_high, "winner": "vendor_page",
+                                            "sources": {"vendor_page": freq_high}}
 
-        wdr_text = to_wdr(
-            brand=brand, model=model,
+        wr = write_driver(
+            out,
+            brand=brand,
+            model=model,
+            manufacturer=brand,
             fields=fields,
             provided_by=f"Parts Express (fetched {today})",
+            url=url,
+            today=today,
             comment=f"Source: {url}",
-            manufacturer=brand,
-            date_added=today, date_modified=today,
-        )
-        wdr_name  = safe_filename(f"{brand} {model}".strip())
-        wdr_path  = out / wdr_name
-        meta_path = out / wdr_name.replace(".wdr", "_meta.yml")
-        wdr_path.write_text(wdr_text, encoding="utf-8")
-
-        meta = {
-            "quality":          "M",
-            "issue":            "scraped_not_human_verified",
-            "detail":           ("Automatically scraped from Parts Express API. "
-                                 "T/S parameters have not been verified by a human "
-                                 "against the datasheet."),
-            "corrections":      None,
-            "reviewed_by":      None,
-            "driver_type":      CATEGORY_TYPE.get(it.get("custitem_itemcategoryfacet", "")),
-            "nominal_size_cm":  None,
-            "datasheet_url":        pdf_url or None,
-            "adv_datasheet_url":    None,
-            "drawing_url":          None,
-            "cad_url":              None,
-            "manu_page_url":        None,
-            "vendor_page_url":      url or None,
-            "source":               url or None,
-            "frd_url":              None,
-            "zma_url":              None,
-            "obsolete":         None,
-            "dq_issue":         "; ".join(dq_issues) if dq_issues else None,
-            "community":        None,
-            "fetched_sku":      sku or None,
-            "field_provenance": None,
-            "freq_low_hz":      freq_low,
-            "freq_high_hz":     freq_high,
-        }
-        meta_path.write_text(
-            yaml.dump(meta, allow_unicode=True, sort_keys=False), encoding="utf-8"
+            is_manufacturer_site=False,
+            datasheet_url=pdf_url or None,
+            driver_type=CATEGORY_TYPE.get(it.get("custitem_itemcategoryfacet", "")),
+            detail=("Automatically scraped from Parts Express API. "
+                    "T/S parameters have not been verified by a human against the datasheet."),
+            fetched_sku=sku or None,
+            specs=pe_specs,
+            sources={"vendor_page": url, "datasheet": pdf_url} if pdf_url else {"vendor_page": url},
         )
 
-        all_issues = validate_driver(wdr_path, meta_path)
-        # validate_driver wraps items as "WDR: ..." so INFO items appear as "WDR: INFO: ..."
-        hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
-        infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
-        if infos:
-            corrections = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
-            meta["corrections"] = corrections
-            meta_path.write_text(yaml.dump(meta, allow_unicode=True, sort_keys=False),
-                                 encoding="utf-8")
-        if hard_errors:
+        if wr.ts_fail:
+            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} SKIP missing T/S: "
+                  f"{', '.join(sorted(wr.missing_ts))}", flush=True)
+            manifest.setdefault("scraped", {})[sku or safe_filename(f"{brand} {model}")] = {
+                "file": None, "status": "skipped"
+            }
+            continue
+
+        for rule_id in wr.dq_issues:
+            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} DQ {rule_id}", flush=True)
+            prob.log(rule_id, sku, url, rule_id, "DQ check failure")
+            dq_warned += 1
+
+        wdr_name = wr.wdr_name
+        if wr.schema_fail:
             schema_fail += 1
-            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} SCHEMA FAIL ({len(hard_errors)})",
+            print(f"[{_ts()}]   [{i}/{total}] {brand} {model} SCHEMA FAIL ({len(wr.hard_errors)})",
                   flush=True)
-            for e in hard_errors:
+            for e in wr.hard_errors:
                 prob.log("schema", sku, url, None, e)
         else:
             ok += 1
             print(f"[{_ts()}]   [{i}/{total}] {brand} {model} OK", flush=True)
 
         manifest.setdefault("scraped", {})[sku or wdr_name] = {
-            "file": wdr_name, "status": "ok" if not hard_errors else "schema_fail"
+            "file": wdr_name, "status": "ok" if not wr.schema_fail else "schema_fail"
         }
         if i % 50 == 0:
             save_manifest(out, manifest)

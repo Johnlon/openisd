@@ -61,6 +61,10 @@ to_wdr              = _plib.to_wdr              # noqa: F401
 safe_filename       = _plib.safe_filename       # noqa: F401
 parse_number        = _plib.parse_number        # noqa: F401
 parse_field_value   = _plib.parse_field_value   # noqa: F401
+write_driver        = _plib.write_driver        # noqa: F401
+WriteResult         = _plib.WriteResult         # noqa: F401
+annotate_specs_yaml = _plib.annotate_specs_yaml # noqa: F401
+SPEC_FIELD_COMMENTS = _plib.SPEC_FIELD_COMMENTS # noqa: F401
 DEFAULT_DELAY_S     = _plib.DEFAULT_DELAY_S     # noqa: F401
 HEADERS             = _plib.HEADERS             # noqa: F401
 check_fields        = _dqlib.check_fields       # noqa: F401
@@ -145,51 +149,6 @@ def merge_fields(pdf_fields: dict, html_fields: dict) -> dict:
     merged = dict(html_fields)
     merged.update(pdf_fields)
     return merged
-
-
-# ── Spec field comments and YAML annotator ────────────────────────────────────
-
-SPEC_FIELD_COMMENTS: dict[str, str] = {
-    "Fs":               "free air resonance (Hz)",
-    "Re":               "DC voice coil resistance (Ω)",
-    "Qts":              "total Q factor",
-    "Qes":              "electrical Q factor",
-    "Qms":              "mechanical Q factor",
-    "BL":               "force factor (T·m)",
-    "Mms":              "moving mass incl. air load (kg)",
-    "Cms":              "mechanical compliance (m/N)",
-    "Sd":               "effective piston area (m²)",
-    "Vas":              "equivalent acoustic volume (m³)",
-    "Xmax":             "one-way linear excursion (m)",
-    "Le":               "voice coil inductance (H)",
-    "Znom":             "nominal impedance (Ω)",
-    "Pe":               "rated power input (W)",
-    "SPL":              "sensitivity (dB, 2.83 V/1 m)",
-    "Rms":              "mechanical resistance (kg/s)",
-    "voice_coil_dia_mm": "voice coil diameter (mm)",
-    "Hg_mm":            "magnetic gap height (mm)",
-    "freq_low_hz":      "published lower frequency limit (Hz)",
-    "freq_high_hz":     "published upper frequency limit (Hz)",
-    "power_peak_W":     "peak power handling (W)",
-    "weight_kg":        "driver weight (kg)",
-}
-
-
-def annotate_specs_yaml(yaml_str: str) -> str:
-    """Insert inline # comments on spec field key lines in yaml.dump() output."""
-    in_specs = False
-    out = []
-    for line in yaml_str.splitlines():
-        if line == "specs:":
-            in_specs = True
-        elif in_specs and line and not line.startswith(" "):
-            in_specs = False
-        if in_specs:
-            m = re.match(r"^( {2})([A-Za-z_][A-Za-z0-9_]*):(\s*)$", line)
-            if m and m.group(2) in SPEC_FIELD_COMMENTS:
-                line = f"{m.group(1)}{m.group(2)}:  # {SPEC_FIELD_COMMENTS[m.group(2)]}"
-        out.append(line)
-    return "\n".join(out) + "\n"
 
 
 # ── PDF fetch / cache helper ───────────────────────────────────────────────────
@@ -667,23 +626,12 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
     frd_url      = frd_url      or _fetch_measurement(product.get("frd_url"),       "FRD")
     zma_url = zma_url or _fetch_measurement(product.get("zma_url"), "IMP")
 
-    # ── Write WDR ─────────────────────────────────────────────────────────────
+    # ── Write WDR + _meta.yml ────────────────────────────────────────────────
     today = datetime.now(timezone.utc).strftime("%Y%m%d")
     comment_parts = [f"Source: {url}"]
     if datasheet_url:
         comment_parts.append(f"Datasheet: {datasheet_url}")
 
-    wdr_text = _plib.to_wdr(
-        brand=brand, model=model, fields=fields,
-        provided_by=product.get("provided_by", cfg.vendor_name),
-        comment=" | ".join(comment_parts),
-        manufacturer=product.get("manufacturer", brand),
-        date_added=today, date_modified=today,
-    )
-    wdr_name = _plib.safe_filename(f"{brand} {model}".strip())
-    (cfg.out / wdr_name).write_text(wdr_text, encoding="utf-8")
-
-    # ── Write _meta.yml sidecar ───────────────────────────────────────────────
     detail_parts = [
         f"Automatically scraped from {product.get('provided_by', cfg.vendor_name)}.",
         "T/S parameters not human-verified.",
@@ -694,9 +642,6 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
     if html_fields and not pdf_fields:
         detail_parts.append("PDF extraction returned no matches; using HTML only.")
 
-    # _specs was built above in the unified provenance block.
-
-    # Named source index
     _sources_index: dict[str, str | None] = {}
     if datasheet_url:
         _sources_index["datasheet"] = datasheet_url
@@ -704,54 +649,52 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
         _sources_index["adv_datasheet"] = adv_datasheet_url
     _sources_index[_html_src] = url
 
-    meta = {
-        # ── Source/URLs ──────────────────────────────────────────────────────
-        "source":              url,
-        "manu_page_url":       url if cfg.is_manufacturer_site else None,
-        "vendor_page_url":     None if cfg.is_manufacturer_site else url,
-        "datasheet_url":       datasheet_url or None,
-        "adv_datasheet_url":   adv_datasheet_url or None,
-        "drawing_url":         drawing_url or None,
-        "cad_url":             cad_url or None,
-        "frd_url":             frd_url or None,
-        "zma_url":             zma_url or None,
-        # ── Quality / curation ───────────────────────────────────────────────
-        "quality":         "M",
-        "issue":           "scraped_not_human_verified",
-        "detail":          " ".join(detail_parts),
-        "corrections":     None,
-        "reviewed_by":     None,
-        # ── Classification ───────────────────────────────────────────────────
-        "driver_type":     product.get("driver_type") or None,
-        "nominal_size_cm": product.get("nominal_size_cm"),
-        # ── Status flags ─────────────────────────────────────────────────────
-        "obsolete":        None,
-        "dq_issue":        None,
-        "community":       None,
-        "fetched_sku":     None,
-        # ── Structured provenance ────────────────────────────────────────────
-        "_sources":        _sources_index,
-        "specs":           _specs or None,
-    }
-    meta_path = cfg.out / wdr_name.replace(".wdr", "_meta.yml")
-    _meta_yaml = yaml.dump(_reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False)
-    meta_path.write_text(annotate_specs_yaml(_meta_yaml), encoding="utf-8")
+    wr = _plib.write_driver(
+        cfg.out,
+        brand=brand,
+        model=model,
+        manufacturer=product.get("manufacturer", brand),
+        fields=fields,
+        provided_by=product.get("provided_by", cfg.vendor_name),
+        url=url,
+        today=today,
+        comment=" | ".join(comment_parts),
+        is_manufacturer_site=cfg.is_manufacturer_site,
+        datasheet_url=datasheet_url or None,
+        adv_datasheet_url=adv_datasheet_url or None,
+        drawing_url=drawing_url or None,
+        cad_url=cad_url or None,
+        frd_url=frd_url or None,
+        zma_url=zma_url or None,
+        driver_type=product.get("driver_type") or None,
+        nominal_size_cm=product.get("nominal_size_cm"),
+        detail=" ".join(detail_parts),
+        specs=_specs or None,
+        sources=_sources_index,
+    )
 
-    # ── Strict schema validation ───────────────────────────────────────────────
-    # Both files must pass before the driver counts as success.
-    # Failures are logged as PROBLEM entries; the driver is marked "schema_fail".
-    _val_errors = _validate_driver(cfg.out / wdr_name, meta_path)
-    if _val_errors:
-        for _e in _val_errors:
-            _prob("schema_fail", item_id, url, _e, "File failed strict schema validation")
-        print(f"[{ts()}]   [{i}/{cfg.total}] {slug} SCHEMA FAIL ({len(_val_errors)} errors)",
-              flush=True)
-        # Still write the marker so the run can resume; driver is not re-scraped.
+    if wr.ts_fail:
+        _prob("missing_ts", item_id, url, str(sorted(wr.missing_ts)),
+              "Missing mandatory T/S fields — driver not written")
+        print(f"[{ts()}]   [{i}/{cfg.total}] {slug} SKIP missing T/S: "
+              f"{', '.join(sorted(wr.missing_ts))}", flush=True)
         with open(_prob_path, "a", encoding="utf-8") as _f:
-            _f.write(f"[{ts()}] SCHEMA_FAIL errors={len(_val_errors)}\n")
+            _f.write(f"[{ts()}] SKIP missing_ts={sorted(wr.missing_ts)}\n")
+        return _WorkerResult("skip", None, url)
+
+    for rule_id in wr.dq_issues:
+        _prob(rule_id, item_id, url, rule_id, "DQ check failure")
+
+    wdr_name = wr.wdr_name
+    if wr.schema_fail:
+        for _e in wr.hard_errors:
+            _prob("schema_fail", item_id, url, _e, "File failed strict schema validation")
+        print(f"[{ts()}]   [{i}/{cfg.total}] {slug} SCHEMA FAIL ({len(wr.hard_errors)} errors)",
+              flush=True)
+        with open(_prob_path, "a", encoding="utf-8") as _f:
+            _f.write(f"[{ts()}] SCHEMA_FAIL errors={len(wr.hard_errors)}\n")
         return _WorkerResult("schema_fail", wdr_name, url)
 
-    # Always write the marker file so parent can track completion via mtime.
     with open(_prob_path, "a", encoding="utf-8") as _f:
         _f.write(f"[{ts()}] DONE problems={_prob_count}\n")
 

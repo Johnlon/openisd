@@ -20,6 +20,7 @@ The manifest (manifest.json in the output dir) tracks every scraped URL so
 subsequent runs only fetch new pages. Use --refresh to force re-scrape all.
 """
 
+import dataclasses
 import json
 import yaml
 import re
@@ -468,6 +469,218 @@ def parse_field_value(key: str, value_text: str, nominal_factor: float,
     return round(result, 9)
 
 
+# ── Spec YAML annotation ───────────────────────────────────────────────────────
+# Inline comments added to spec field key lines in the written YAML.
+# Duplicated from this dict into populate_specs.py for standalone use — keep in sync.
+
+SPEC_FIELD_COMMENTS: dict[str, str] = {
+    "Fs":               "free air resonance (Hz)",
+    "Re":               "DC voice coil resistance (Ω)",
+    "Qts":              "total Q factor",
+    "Qes":              "electrical Q factor",
+    "Qms":              "mechanical Q factor",
+    "BL":               "force factor (T·m)",
+    "Mms":              "moving mass incl. air load (kg)",
+    "Cms":              "mechanical compliance (m/N)",
+    "Sd":               "effective piston area (m²)",
+    "Vas":              "equivalent acoustic volume (m³)",
+    "Xmax":             "one-way linear excursion (m)",
+    "Le":               "voice coil inductance (H)",
+    "Znom":             "nominal impedance (Ω)",
+    "Pe":               "rated power input (W)",
+    "SPL":              "sensitivity (dB, 2.83 V/1 m)",
+    "Rms":              "mechanical resistance (kg/s)",
+    "voice_coil_dia_mm": "voice coil diameter (mm)",
+    "Hg_mm":            "magnetic gap height (mm)",
+    "freq_low_hz":      "published lower frequency limit (Hz)",
+    "freq_high_hz":     "published upper frequency limit (Hz)",
+    "power_peak_W":     "peak power handling (W)",
+    "weight_kg":        "driver weight (kg)",
+}
+
+
+def annotate_specs_yaml(yaml_str: str) -> str:
+    """Insert inline # comments on spec field key lines in yaml.dump() output."""
+    in_specs = False
+    out = []
+    for line in yaml_str.splitlines():
+        if line == "specs:":
+            in_specs = True
+        elif in_specs and line and not line.startswith(" "):
+            in_specs = False
+        if in_specs:
+            m = re.match(r"^( {2})([A-Za-z_][A-Za-z0-9_]*):(\s*)$", line)
+            if m and m.group(2) in SPEC_FIELD_COMMENTS:
+                line = f"{m.group(1)}{m.group(2)}:  # {SPEC_FIELD_COMMENTS[m.group(2)]}"
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+# ── Single driver write function ───────────────────────────────────────────────
+
+@dataclasses.dataclass
+class WriteResult:
+    """Return value from write_driver — summarises what happened during the write."""
+    wdr_name: str | None = None          # filename written; None → mandatory-TS check failed
+    missing_ts: frozenset = dataclasses.field(default_factory=frozenset)
+    dq_issues: list = dataclasses.field(default_factory=list)   # rule_ids from check_fields
+    hard_errors: list = dataclasses.field(default_factory=list) # from validate_driver
+    infos: list = dataclasses.field(default_factory=list)       # INFO items from validate_driver
+
+    @property
+    def ok(self) -> bool:
+        return self.wdr_name is not None and not self.hard_errors
+
+    @property
+    def schema_fail(self) -> bool:
+        return self.wdr_name is not None and bool(self.hard_errors)
+
+    @property
+    def ts_fail(self) -> bool:
+        return bool(self.missing_ts)
+
+
+def write_driver(
+    out_dir: Path,
+    *,
+    brand: str,
+    model: str,
+    manufacturer: str,
+    fields: dict,
+    provided_by: str,
+    url: str,
+    today: str,
+    comment: str = "",
+    is_manufacturer_site: bool = True,
+    datasheet_url: str | None = None,
+    adv_datasheet_url: str | None = None,
+    drawing_url: str | None = None,
+    cad_url: str | None = None,
+    frd_url: str | None = None,
+    zma_url: str | None = None,
+    driver_type: str | None = None,
+    nominal_size_cm: float | None = None,
+    detail: str = "",
+    corrections: str | None = None,
+    obsolete: bool | None = None,
+    dq_issue_static: str | None = None,
+    fetched_sku: str | None = None,
+    specs: dict | None = None,
+    sources: dict | None = None,
+) -> WriteResult:
+    """
+    Write WDR + _meta.yml for one scraped driver — all validation in one place.
+
+    Enforces:
+    - Mandatory T/S field check (WDR_MANDATORY_TS) — returns ts_fail if any missing, writes nothing
+    - DQ check (check_fields) — issues collected and stored in dq_issue
+    - Canonical field ordering (reorder_meta_for_save) and spec annotation (annotate_specs_yaml)
+    - Schema validation (validate_driver) — INFO items → corrections; errors → dq_issue tags
+
+    dq_issue_static: static known-issue string from the scraper config (e.g. wavecor variant
+                     known issues); merged with live check_fields output.
+    sources:         pre-built _sources index; if None, a minimal one is built from the URL args.
+    specs:           pre-built unified provenance block; None means populate_specs.py fills it later.
+    """
+    # ── 1. Mandatory T/S check ────────────────────────────────────────────────
+    missing = WDR_MANDATORY_TS - set(fields)
+    if missing:
+        return WriteResult(missing_ts=frozenset(missing))
+
+    # ── 2. DQ check ───────────────────────────────────────────────────────────
+    dq_issues: list[str] = []
+    for rule_id, _desc, _detail in check_fields(fields):
+        dq_issues.append(rule_id)
+        if rule_id in ("Qts_impossible", "Qts_impossible2"):
+            for fld in ("Qts", "Qes", "Qms"):
+                tag = f"suspect:{fld}"
+                if tag not in dq_issues:
+                    dq_issues.append(tag)
+
+    dq_parts = ["; ".join(dq_issues)] if dq_issues else []
+    if dq_issue_static:
+        dq_parts.append(dq_issue_static)
+    dq_combined = "; ".join(dq_parts) or None
+
+    # ── 3. Build _sources index ───────────────────────────────────────────────
+    if sources is None:
+        sources = {}
+        if datasheet_url:
+            sources["datasheet"] = datasheet_url
+        if adv_datasheet_url and adv_datasheet_url != datasheet_url:
+            sources["adv_datasheet"] = adv_datasheet_url
+        sources["manu_page" if is_manufacturer_site else "vendor_page"] = url
+
+    # ── 4. Write WDR ──────────────────────────────────────────────────────────
+    wdr_text = to_wdr(
+        brand=brand, model=model, fields=fields,
+        provided_by=provided_by,
+        comment=comment,
+        manufacturer=manufacturer,
+        date_added=today, date_modified=today,
+    )
+    wdr_name = safe_filename(f"{brand} {model}".strip())
+    wdr_path  = out_dir / wdr_name
+    meta_path = out_dir / wdr_name.replace(".wdr", "_meta.yml")
+    wdr_path.write_text(wdr_text, encoding="utf-8")
+
+    # ── 5. Write _meta.yml ────────────────────────────────────────────────────
+    meta: dict = {
+        "source":          url,
+        "manu_page_url":   url if is_manufacturer_site else None,
+        "vendor_page_url": None if is_manufacturer_site else url,
+        "datasheet_url":   datasheet_url or None,
+        "adv_datasheet_url": adv_datasheet_url or None,
+        "drawing_url":     drawing_url or None,
+        "cad_url":         cad_url or None,
+        "frd_url":         frd_url or None,
+        "zma_url":         zma_url or None,
+        "quality":         "M",
+        "issue":           "scraped_not_human_verified",
+        "detail":          detail or None,
+        "corrections":     corrections or None,
+        "reviewed_by":     None,
+        "driver_type":     driver_type or None,
+        "nominal_size_cm": nominal_size_cm,
+        "obsolete":        obsolete,
+        "dq_issue":        dq_combined,
+        "community":       None,
+        "fetched_sku":     fetched_sku or None,
+        "_sources":        sources or None,
+        "specs":           specs or None,
+    }
+    _write_meta(meta_path, meta)
+
+    # ── 6. Schema validation — patch corrections + schema dq tags back in ─────
+    all_issues  = validate_driver(wdr_path, meta_path)
+    hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
+    infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
+
+    if infos or hard_errors:
+        if infos:
+            existing_corr = meta.get("corrections") or ""
+            new_corr = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
+            meta["corrections"] = (existing_corr + "; " + new_corr) if existing_corr else new_corr
+        if hard_errors:
+            existing_dq = meta.get("dq_issue") or ""
+            schema_tags = "; ".join(f"schema:{e[:60]}" for e in hard_errors)
+            meta["dq_issue"] = (existing_dq + "; " + schema_tags) if existing_dq else schema_tags
+        _write_meta(meta_path, meta)
+
+    return WriteResult(
+        wdr_name=wdr_name,
+        dq_issues=dq_issues,
+        hard_errors=hard_errors,
+        infos=infos,
+    )
+
+
+def _write_meta(path: Path, meta: dict) -> None:
+    """Reorder + annotate + write a meta dict as YAML."""
+    raw = yaml.dump(reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False)
+    path.write_text(annotate_specs_yaml(raw), encoding="utf-8")
+
+
 # ---------------------------------------------------------------------------
 # Main runner — called by each vendor script
 # ---------------------------------------------------------------------------
@@ -585,60 +798,10 @@ def run_scraper(vendor_name: str,
             time.sleep(delay_s)
             return
 
-        # Reject drivers that don't provide the minimum T/S parameter set.
-        # Schema defines WDR_MANDATORY_TS — a WDR missing any of these is not
-        # useful for simulation and should not be written.
-        fields = product.get("fields", {})
-        missing_ts = WDR_MANDATORY_TS - set(fields)
-        if missing_ts:
-            print(f"[{ts()}]   [{i}/{total}] {slug} SKIP: missing T/S fields: {', '.join(sorted(missing_ts))}", flush=True)
-            # Delete any stale WDR/meta written by a previous run (before the
-            # mandatory-TS check existed) so they don't linger on disk.
-            _brand = product.get("brand", "")
-            _model = product.get("model", "")
-            if _brand and _model:
-                _stale = out / safe_filename(f"{_brand} {_model}".strip())
-                if _stale.exists():
-                    _stale.unlink()
-                    print(f"[{ts()}]   [{i}/{total}] {slug} DELETED stale WDR: {_stale.name}", flush=True)
-                _stale_meta = _stale.with_suffix("").with_name(_stale.stem + "_meta.yml")
-                if _stale_meta.exists():
-                    _stale_meta.unlink()
-            with counters_lock:
-                mark_scraped(url, manifest, None, status="skipped",
-                             title=slug, category="")
-                skipped += 1
-                done = ok + skipped + failed
-                if done % 50 == 0:
-                    save_manifest(out, manifest)
-                if done % 100 == 0:
-                    print(progress_line(), flush=True)
-            time.sleep(delay_s)
-            return
-
-        comment_parts = [f"Source: {url}"]
-        if product.get("pdf_url"):
-            comment_parts.append(f"Datasheet: {product['pdf_url']}")
-
-        brand = product.get("brand", "")
-        model = product.get("model", "")
-        today = datetime.now(timezone.utc).strftime("%Y%m%d")
-
-        # DQ check — log every issue; always write the driver (data with DQ flags
-        # is better than no data; UI can highlight suspect values via dq_issue field).
-        # TODO: Resonate UI should show suspect values in a different colour.
-        dq_issues: list[str] = []
-        for rule_id, desc, detail in check_fields(product["fields"]):
-            print(f"[{ts()}]   [{i}/{total}] {slug} DQ {rule_id}: {detail}", flush=True)
-            dq_issues.append(rule_id)
-            if rule_id in ("Qts_impossible", "Qts_impossible2"):
-                for fld in ("Qts", "Qes", "Qms"):
-                    tag = f"suspect:{fld}"
-                    if tag not in dq_issues:
-                        dq_issues.append(tag)
-
-        # Download FRD/impedance files first so the WDR can reference them.
-        extras = []
+        brand   = product.get("brand", "")
+        model   = product.get("model", "")
+        today   = datetime.now(timezone.utc).strftime("%Y%m%d")
+        extras  = []
         frd_url = ""
         zma_url = ""
 
@@ -658,7 +821,7 @@ def run_scraper(vendor_name: str,
             if not fpath.exists():
                 try:
                     fpath.write_bytes(fetch_binary(product["frd_url"]))
-                    extras.append(f"+FRD")
+                    extras.append("+FRD")
                 except Exception as e:
                     extras.append(f"(FRD err: {e})")
             if fpath.exists():
@@ -670,7 +833,7 @@ def run_scraper(vendor_name: str,
             if not fpath.exists():
                 try:
                     fpath.write_bytes(fetch_binary(product["zma_url"]))
-                    extras.append(f"+IMP")
+                    extras.append("+IMP")
                 except Exception as e:
                     extras.append(f"(IMP err: {e})")
             if fpath.exists():
@@ -686,69 +849,63 @@ def run_scraper(vendor_name: str,
                 except Exception as e:
                     extras.append(f"({fname} err: {e})")
 
-        # Write WDR — pure WinISD schema, no boxbench_ fields.
-        wdr_text = to_wdr(
-            brand=brand, model=model, fields=product["fields"],
-            provided_by=product.get("provided_by", vendor_name),
-            comment=" | ".join(comment_parts),
+        comment_parts = [f"Source: {url}"]
+        if product.get("datasheet_url"):
+            comment_parts.append(f"Datasheet: {product['datasheet_url']}")
+
+        result = write_driver(
+            out,
+            brand=brand,
+            model=model,
             manufacturer=product.get("manufacturer", ""),
-            date_added=today, date_modified=today,
-        )
-        wdr_name = safe_filename(f"{brand} {model}".strip())
-        (out / wdr_name).write_text(wdr_text, encoding="utf-8")
-
-        # Write sidecar — all provenance/quality metadata lives here, not in WDR.
-        meta = {
-            "quality": "M",
-            "issue": "scraped_not_human_verified",
-            "detail": (f"Automatically scraped from {product.get('provided_by', vendor_name)}. "
-                       "T/S parameters have not been verified by a human against the datasheet."),
-            "corrections": None,
-            "reviewed_by": None,
-            "driver_type": product.get("driver_type") or None,
-            "datasheet_url": product.get("datasheet_url") or None,
-            "manu_page_url": url if is_manufacturer_site else None,
-            "vendor_page_url": None if is_manufacturer_site else url,
-            "source": url,
-            "frd_url": frd_url or None,
-            "zma_url": zma_url or None,
-            "obsolete": None,
-            "dq_issue": "; ".join(dq_issues) if dq_issues else None,
-            "community": None,
-            "fetched_sku": None,
-            "specs": product.get("specs") or None,
-        }
-        (out / wdr_name.replace(".wdr", "_meta.yml")).write_text(
-            yaml.dump(reorder_meta_for_save(meta), allow_unicode=True, sort_keys=False), encoding="utf-8"
+            fields=product["fields"],
+            provided_by=product.get("provided_by", vendor_name),
+            url=url,
+            today=today,
+            comment=" | ".join(comment_parts),
+            is_manufacturer_site=is_manufacturer_site,
+            datasheet_url=product.get("datasheet_url") or None,
+            frd_url=frd_url or None,
+            zma_url=zma_url or None,
+            driver_type=product.get("driver_type") or None,
+            detail=(f"Automatically scraped from {product.get('provided_by', vendor_name)}. "
+                    "T/S parameters have not been verified by a human against the datasheet."),
+            specs=product.get("specs") or None,
         )
 
-        # Cross-check field consistency (Qts from Qes+Qms, Vas from Sd+Cms, etc.).
-        # INFO: level items go into corrections; hard errors are logged but driver is
-        # still written — some data is always better than none.
-        wdr_path  = out / wdr_name
-        meta_path = out / wdr_name.replace(".wdr", "_meta.yml")
-        all_issues = validate_driver(wdr_path, meta_path)
-        hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
-        infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
-        if infos or hard_errors:
-            # Re-read and update meta with corrections/schema issues
-            import yaml as _yaml
-            _m = _yaml.safe_load(meta_path.read_text(encoding="utf-8")) or {}
-            if infos:
-                _m["corrections"] = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
-            if hard_errors:
-                existing_dq = _m.get("dq_issue") or ""
-                schema_tags = [f"schema:{e[:60]}" for e in hard_errors]
-                _m["dq_issue"] = (existing_dq + "; " if existing_dq else "") + "; ".join(schema_tags)
-            meta_path.write_text(_yaml.dump(reorder_meta_for_save(_m), allow_unicode=True, sort_keys=False), encoding="utf-8")
+        if result.ts_fail:
+            # write_driver found missing mandatory fields — log, clean up stale files, skip
+            print(f"[{ts()}]   [{i}/{total}] {slug} SKIP: missing T/S: "
+                  f"{', '.join(sorted(result.missing_ts))}", flush=True)
+            _stale = out / safe_filename(f"{brand} {model}".strip())
+            if _stale.exists():
+                _stale.unlink()
+                print(f"[{ts()}]   [{i}/{total}] {slug} DELETED stale WDR: {_stale.name}", flush=True)
+            _stale_meta = _stale.with_suffix("").with_name(_stale.stem + "_meta.yml")
+            if _stale_meta.exists():
+                _stale_meta.unlink()
+            with counters_lock:
+                mark_scraped(url, manifest, None, status="skipped", title=slug, category="")
+                skipped += 1
+                done = ok + skipped + failed
+                if done % 50 == 0:
+                    save_manifest(out, manifest)
+            time.sleep(delay_s)
+            return
 
-        suffix = " ".join(extras)
-        if hard_errors:
-            print(f"[{ts()}]   [{i}/{total}] {slug} SCHEMA FAIL ({len(hard_errors)}) {suffix}".rstrip(), flush=True)
+        for rule_id in result.dq_issues:
+            print(f"[{ts()}]   [{i}/{total}] {slug} DQ {rule_id}", flush=True)
+
+        wdr_name = result.wdr_name
+        suffix   = " ".join(extras)
+        if result.schema_fail:
+            print(f"[{ts()}]   [{i}/{total}] {slug} SCHEMA FAIL ({len(result.hard_errors)}) {suffix}".rstrip(),
+                  flush=True)
         else:
             print(f"[{ts()}]   [{i}/{total}] {slug} OK {suffix}".rstrip(), flush=True)
         with counters_lock:
-            mark_scraped(url, manifest, wdr_name, status="ok" if not hard_errors else "schema_fail")
+            mark_scraped(url, manifest, wdr_name,
+                         status="ok" if not result.schema_fail else "schema_fail")
             ok += 1
             done = ok + skipped + failed
             if done % 50 == 0:

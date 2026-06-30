@@ -54,15 +54,14 @@ import html as _html_mod
 import re
 import sys
 import urllib.parse
-import yaml
 from datetime import date, datetime
 from pathlib import Path
 
 # ── Import new scraper_lib from this directory ────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
-    run_scraper, parse_number, parse_field_value, fetch, to_wdr, safe_filename, validate_driver,
-    check_fields,
+    run_scraper, parse_number, parse_field_value, fetch, to_wdr, safe_filename,
+    write_driver,
 )
 
 VENDOR      = "Wavecor"
@@ -365,68 +364,37 @@ def _process_splits(out_dir: Path) -> None:
                 print(f"[{_ts()}] SPLIT {model}: no fields parsed (col_idx={col_idx})", flush=True)
                 continue
 
-            wdr_text = to_wdr(
-                brand="Wavecor", model=model, fields=fields,
-                provided_by=f"Wavecor website (scraped {today})",
-                comment=f"Source: {url} | Datasheet: {cfg['pdf_url']}",
+            wr = write_driver(
+                out_dir,
+                brand="Wavecor",
+                model=model,
                 manufacturer="Wavecor",
-                date_added=today, date_modified=today,
+                fields=fields,
+                provided_by=f"Wavecor website (scraped {today})",
+                url=url,
+                today=today,
+                comment=f"Source: {url} | Datasheet: {cfg['pdf_url']}",
+                is_manufacturer_site=True,
+                datasheet_url=cfg["datasheet_url"],
+                driver_type=driver_type,
+                detail=(f"Automatically scraped from Wavecor website. "
+                        f"Split from combined page: {variant['note']}. "
+                        "T/S parameters have not been verified by a human against the datasheet."),
+                corrections=variant.get("corrections"),
+                obsolete=True if variant.get("discontinued") else None,
+                dq_issue_static=variant.get("dq_issue"),
+                sources={"datasheet": cfg["datasheet_url"], "manu_page": url},
             )
-            wdr_name = safe_filename(f"Wavecor {model}".strip())
-            wdr_path  = out_dir / wdr_name
-            meta_path = out_dir / wdr_name.replace(".wdr", "_meta.yml")
-            wdr_path.write_text(wdr_text, encoding="utf-8")
-
-            meta = {
-                "quality":          "M",
-                "issue":            "scraped_not_human_verified",
-                "detail": (
-                    f"Automatically scraped from Wavecor website (scraped {today}). "
-                    f"Split from combined page: {variant['note']}. "
-                    "T/S parameters have not been verified by a human against the datasheet."
-                ),
-                "corrections":      variant.get("corrections"),
-                "reviewed_by":      None,
-                "driver_type":      driver_type,
-                "nominal_size_cm":  None,
-                "datasheet_url":    cfg["datasheet_url"],
-                "adv_datasheet_url": None,
-                "drawing_url":      None,
-                "cad_url":          None,
-                "manu_page_url":    url,
-                "vendor_page_url":  None,
-                "source":           url,
-                "frd_url":          None,
-                "zma_url":          None,
-                "obsolete":         True if variant.get("discontinued") else None,
-                "dq_issue":         variant.get("dq_issue"),
-                "community":        None,
-                "fetched_sku":      None,
-            }
-            meta_path.write_text(
-                yaml.dump(meta, allow_unicode=True, sort_keys=False), encoding="utf-8"
-            )
-
-            for rule_id, desc, detail in check_fields(fields):
-                print(f"[{_ts()}] SPLIT {model} DQ {rule_id}: {detail}", flush=True)
-
-            all_issues  = validate_driver(wdr_path, meta_path)
-            hard_errors = [e for e in all_issues if ": INFO:" not in e and not e.startswith("INFO:")]
-            infos       = [e for e in all_issues if ": INFO:" in e or e.startswith("INFO:")]
-            if infos:
-                import yaml as _yaml
-                meta_path2 = wdr_path.with_suffix("").with_name(
-                    wdr_path.stem + "_meta.yml")
-                if meta_path2.exists():
-                    _m = _yaml.safe_load(meta_path2.read_text(encoding="utf-8")) or {}
-                    _m["corrections"] = "; ".join(e.split(": INFO: ", 1)[-1] for e in infos)
-                    meta_path2.write_text(
-                        _yaml.dump(_m, allow_unicode=True, sort_keys=False),
-                        encoding="utf-8")
-            if hard_errors:
-                print(f"[{_ts()}] SPLIT {model}: SCHEMA FAIL ({len(hard_errors)} errors)",
+            if wr.ts_fail:
+                print(f"[{_ts()}] SPLIT {model}: SKIP missing T/S: "
+                      f"{', '.join(sorted(wr.missing_ts))}", flush=True)
+                continue
+            for rule_id in wr.dq_issues:
+                print(f"[{_ts()}] SPLIT {model} DQ {rule_id}", flush=True)
+            if wr.schema_fail:
+                print(f"[{_ts()}] SPLIT {model}: SCHEMA FAIL ({len(wr.hard_errors)} errors)",
                       flush=True)
-                for e in hard_errors:
+                for e in wr.hard_errors:
                     print(f"  {e}", flush=True)
             else:
                 print(
