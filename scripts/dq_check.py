@@ -349,10 +349,10 @@ def main():
         n = len(hits)
         for j, (coll, fname, detail, fields, sidecar) in enumerate(hits, 1):
             if tty:
-                sys.stdout.write(f"\r   {j}/{n}  {coll}/{fname}  [{detail}]\x1b[K")
+                sys.stdout.write(f"\r   {j}/{n}  [{rule_id}]  {coll}/{fname}\x1b[K")
                 sys.stdout.flush()
             else:
-                print(f"   {coll}/{fname}  [{detail}]")
+                print(f"   [{rule_id}]  {coll}/{fname}  {detail}")
             seen_files.add(f"{coll}/{fname}")
         if tty:
             sys.stdout.write("\r\x1b[K")  # clear the flashed line
