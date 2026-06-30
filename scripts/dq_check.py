@@ -297,10 +297,14 @@ def main():
             all_wdr.append((coll_path, wdr_path))
     total_files = len(all_wdr)
 
+    tty = sys.stdout.isatty()
     for i, (coll_path, wdr_path) in enumerate(all_wdr, 1):
         msg = f"  {i}/{total_files}  {coll_path.name}/{wdr_path.name}"
-        sys.stdout.write(f"\r{msg}\x1b[K")
-        sys.stdout.flush()
+        if tty:
+            sys.stdout.write(f"\r{msg}\x1b[K")
+            sys.stdout.flush()
+        elif i % 100 == 0 or i == total_files:
+            print(msg)
         fields = parse_fields(wdr_path.read_text(encoding="utf-8", errors="replace"))
         sidecar_path = wdr_path.with_name(wdr_path.stem + "_meta.yml")
         sidecar = {}
@@ -342,17 +346,15 @@ def main():
         hits = data["hits"]
         print(f"\n── {rule_id} ({len(hits)}) — {data['desc']}")
         for coll, fname, detail, fields, sidecar in hits:
-            print(f"   {coll}/{fname}  [{detail}]")
-            for k in SIDECAR_URL_FIELDS:
-                url = sidecar.get(k) or ""
-                if not isinstance(url, str) or not url.startswith("http"):
-                    continue
-                status = f"  → {url_status[url]}" if url in url_status else ""
-                print(f"     {k}: {url}{status}")
-            corr = sidecar.get("corrections") or ""
-            if corr:
-                print(f"     corrections: {str(corr)[:120]}{'…' if len(str(corr)) > 120 else ''}")
+            if tty:
+                sys.stdout.write(f"\r   {coll}/{fname}  [{detail}]\x1b[K")
+                sys.stdout.flush()
+            else:
+                print(f"   {coll}/{fname}  [{detail}]")
             seen_files.add(f"{coll}/{fname}")
+        if tty:
+            sys.stdout.write("\r\x1b[K")  # clear the flashed line
+            sys.stdout.flush()
         total += len(hits)
 
     print(f"\nTotal issues: {total} across {len(seen_files)} files")
