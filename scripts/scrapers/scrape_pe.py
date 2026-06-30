@@ -36,7 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
     safe_filename, load_manifest, save_manifest,
-    ProblemLog, write_driver, parse_field_value, parse_html_table_ts,
+    ProblemLog, write_driver, parse_html_table_ts,
 )
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -113,11 +113,6 @@ _HTML_TS_MAP = {
 }
 
 
-def _parse_html_ts(html: str) -> dict[str, float]:
-    return parse_html_table_ts(
-        html, _HTML_TS_MAP,
-        section_pattern=r"Thiele.Small Parameters.*?</table>",
-    )
 
 
 # ── API fetch (top-level so ProcessPoolExecutor can pickle it) ────────────────
@@ -276,7 +271,9 @@ def _enrich_one(args: tuple) -> tuple[str, dict]:
     html = html_path.read_text(encoding="utf-8", errors="replace")
 
     # ── T/S fields from HTML Thiele-Small Parameters table ────────────────────
-    out["html_fields"] = _parse_html_ts(html)
+    out["html_fields"] = parse_html_table_ts(
+        html, _HTML_TS_MAP, section_pattern=r"Thiele.Small Parameters.*?</table>",
+    )
 
     # ── Freq range from HTML specs table ──────────────────────────────────────
     plain = _re.sub(r"<[^>]+>", " ", html)
