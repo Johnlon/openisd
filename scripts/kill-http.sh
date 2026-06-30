@@ -1,24 +1,20 @@
 #!/usr/bin/env bash
-# Kill all processes on the project's reserved port range (4000-4005).
+# Kill all processes on the specified port(s).
+# Usage: scripts/kill-http.sh <port> [port ...]
 # Escalation chain per port:
 #   1. tskill <winpid>  — most reliable: Terminal Services kill, works on orphaned PPID=0 processes
 #   2. bash kill -9 via MSYS2 PID from ps -W (only when PPID != 0)
 #   3. taskkill /PID /F /T  — Windows tree-kill (MSYS_NO_PATHCONV=1 to stop Git Bash mangling /F /PID)
 #   4. taskkill /IM node.exe /F  — image-name nuke all node
 # Loops until netstat confirms port is free or 10 attempts exhausted.
-# Pass explicit ports to override: scripts/kill-http.sh 4000 4001
 set -euo pipefail
 [ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
 
-PORT_MIN=4000
-PORT_MAX=4005
-
-if [ $# -gt 0 ]; then
-  ports=("$@")
-else
-  ports=()
-  for p in $(seq "$PORT_MIN" "$PORT_MAX"); do ports+=("$p"); done
+if [ $# -eq 0 ]; then
+  echo "ERROR: kill-http.sh requires at least one port argument" >&2
+  exit 1
 fi
+ports=("$@")
 
 _winpids_on_port() {
   netstat -ano 2>/dev/null \
