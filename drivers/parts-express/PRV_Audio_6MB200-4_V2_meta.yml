@@ -16,95 +16,91 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00396435 differs from calculated=0.13356'
 community: null
 fetched_sku: 294-3055
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3055--prv-audio-6mb200-4-v2-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-6MB200-4-V2-6-Midbass-Woofer-4-Ohm-294-3055
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3055--prv-audio-6mb200-4-v2-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0048
   Qts:  # total Q factor
     value: 0.97
     winner: vendor_page
     sources:
       vendor_page: 0.97
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Sd:  # effective piston area (m²)
-    value: 0.0154
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0154
   Fs:  # free air resonance (Hz)
     value: 123.79
     winner: vendor_page
     sources:
       vendor_page: 123.79
-  Rms:  # mechanical resistance (kg/s)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.011890000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011890000000000001
-  Qms:  # mechanical Q factor
-    value: 20.84
-    winner: vendor_page
-    sources:
-      vendor_page: 20.84
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00397
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00397
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 1.02
-    winner: vendor_page
-    sources:
-      vendor_page: 1.02
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  BL:  # force factor (T·m)
-    value: 5.79
-    winner: vendor_page
-    sources:
-      vendor_page: 5.79
-  Le:  # voice coil inductance (H)
-    value: 0.00017999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017999999999999998
   Vas:  # equivalent acoustic volume (m³)
     value: 0.003964352
     winner: vendor_page
     sources:
       vendor_page: 0.003964352
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 6.0
+  Qes:  # electrical Q factor
+    value: 1.02
     winner: vendor_page
     sources:
-      vendor_page: 6.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 500.0
+      vendor_page: 1.02
+  BL:  # force factor (T·m)
+    value: 5.79
     winner: vendor_page
     sources:
-      vendor_page: 500.0
+      vendor_page: 5.79
+  Qms:  # mechanical Q factor
+    value: 20.84
+    winner: vendor_page
+    sources:
+      vendor_page: 20.84
+  Rms:  # mechanical resistance (kg/s)
+    value: 200.0
+    winner: datasheet
+    sources:
+      datasheet: 200.0
+  Le:  # voice coil inductance (H)
+    value: 0.00018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00018
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01189
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01189
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00397
+    winner: datasheet
+    sources:
+      datasheet: 0.00397
+      vendor_page: 0.000139
+  Sd:  # effective piston area (m²)
+    value: 0.0154
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0154
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0048
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0048
+  Vd:
+    value: 7.392e-05
+    winner: calculated
+    sources:
+      calculated: 7.392e-05
+  Dd:
+    value: 0.14002817212590296
+    winner: calculated
+    sources:
+      calculated: 0.14002817212590296
+  EBP:
+    value: 121.36274509803921
+    winner: calculated
+    sources:
+      calculated: 121.36274509803921

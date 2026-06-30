@@ -24,93 +24,88 @@ fetched_sku: 294-3403
 _sources:
   vendor_page: https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0045
   Qts:  # total Q factor
     value: 0.21
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Sd:  # effective piston area (m²)
-    value: 0.0552
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0552
   Fs:  # free air resonance (Hz)
     value: 52.5
     winner: vendor_page
     sources:
       vendor_page: 52.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.092498891874089
-    winner: vendor_page
-    sources:
-      vendor_page: 2.092498891874089
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.054299999999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054299999999999994
-  Qms:  # mechanical Q factor
-    value: 8.56
-    winner: vendor_page
-    sources:
-      vendor_page: 8.56
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00016900000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016900000000000002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.21
-    winner: vendor_page
-    sources:
-      vendor_page: 0.21
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 600.0
-  BL:  # force factor (T·m)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Le:  # voice coil inductance (H)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
   Vas:  # equivalent acoustic volume (m³)
     value: 0.071924672
     winner: vendor_page
     sources:
       vendor_page: 0.071924672
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 1200.0
+  Qes:  # electrical Q factor
+    value: 0.21
     winner: vendor_page
     sources:
-      vendor_page: 1200.0
+      vendor_page: 0.21
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0045
+  Qms:  # mechanical Q factor
+    value: 8.56
+    winner: vendor_page
+    sources:
+      vendor_page: 8.56
+  Le:  # voice coil inductance (H)
+    value: 0.00023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00023
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0543
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0543
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000169
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000169
+  Sd:  # effective piston area (m²)
+    value: 0.0552
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0552
+  BL:  # force factor (T·m)
+    value: 22.0
+    winner: vendor_page
+    sources:
+      vendor_page: 22.0
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
     sources:
       vendor_page: 70.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 6.0
+    value: 6500.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 6500.0
+  Vd:
+    value: 0.00024839999999999997
+    winner: calculated
+    sources:
+      calculated: 0.00024839999999999997
+  Dd:
+    value: 0.2651090773047596
+    winner: calculated
+    sources:
+      calculated: 0.2651090773047596
+  EBP:
+    value: 250.0
+    winner: calculated
+    sources:
+      calculated: 250.0

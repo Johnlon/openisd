@@ -16,90 +16,86 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00821187 differs from calculated=1.26983'
 community: null
 fetched_sku: 294-3582
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3582--prv-audio-rs10-subd4-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-RS10-SUBD4-RS-Series-10-Subwoofer-DVC-4x4-Ohm-294-3582
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3582--prv-audio-rs10-subd4-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0175
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0175
   Qts:  # total Q factor
     value: 0.69
     winner: vendor_page
     sources:
       vendor_page: 0.69
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.7
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7
-  Sd:  # effective piston area (m²)
-    value: 0.033
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033
   Fs:  # free air resonance (Hz)
     value: 48.5
     winner: vendor_page
     sources:
       vendor_page: 48.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.055074264602431
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.008211872
     winner: vendor_page
     sources:
-      vendor_page: 6.055074264602431
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1987
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1987
-  Qms:  # mechanical Q factor
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00822
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00822
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
+      vendor_page: 0.008211872
   Qes:  # electrical Q factor
     value: 0.74
     winner: vendor_page
     sources:
       vendor_page: 0.74
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
   BL:  # force factor (T·m)
     value: 11.76
     winner: vendor_page
     sources:
       vendor_page: 11.76
+  Qms:  # mechanical Q factor
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
   Le:  # voice coil inductance (H)
-    value: 0.0015400000000000001
+    value: 0.00154
     winner: vendor_page
     sources:
-      vendor_page: 0.0015400000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008211871999999999
+      vendor_page: 0.00154
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.7
     winner: vendor_page
     sources:
-      vendor_page: 0.008211871999999999
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 500.0
+      vendor_page: 1.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1987
     winner: vendor_page
     sources:
-      vendor_page: 500.0
+      vendor_page: 0.1987
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00822
+    winner: datasheet
+    sources:
+      datasheet: 0.00822
+      vendor_page: 5.4e-05
+  Sd:  # effective piston area (m²)
+    value: 0.033
+    winner: vendor_page
+    sources:
+      vendor_page: 0.033
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0175
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0175
+  Vd:
+    value: 0.0005775000000000001
+    winner: calculated
+    sources:
+      calculated: 0.0005775000000000001
+  Dd:
+    value: 0.20498025508877768
+    winner: calculated
+    sources:
+      calculated: 0.20498025508877768
+  EBP:
+    value: 65.54054054054055
+    winner: calculated
+    sources:
+      calculated: 65.54054054054055

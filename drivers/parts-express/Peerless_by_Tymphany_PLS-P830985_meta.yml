@@ -16,85 +16,98 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.000566336 differs from calculated=0.0008'
 community: null
 fetched_sku: 264-1050
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1050--tymphany-pls-p830985-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-830985-2-1-2-Full-Range-Woofer-264-1050
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1050--tymphany-pls-p830985-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
   Qts:  # total Q factor
     value: 0.63
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Sd:  # effective piston area (m²)
-    value: 0.0022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0022
+      datasheet: 0.63
+      vendor_page: 0.54
   Fs:  # free air resonance (Hz)
     value: 101.2
     winner: vendor_page
     sources:
       vendor_page: 101.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3491707719261534
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3491707719261534
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
-  Qms:  # mechanical Q factor
-    value: 4.08
-    winner: vendor_page
-    sources:
-      vendor_page: 4.08
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00127
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00127
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.75
-    winner: vendor_page
-    sources:
-      vendor_page: 0.75
-  Pe:  # rated power input (W)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  BL:  # force factor (T·m)
-    value: 2.7
-    winner: vendor_page
-    sources:
-      vendor_page: 2.7
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
   Vas:  # equivalent acoustic volume (m³)
     value: 0.000566336
     winner: vendor_page
     sources:
       vendor_page: 0.000566336
+  Qes:  # electrical Q factor
+    value: 0.75
+    winner: datasheet
+    sources:
+      datasheet: 0.75
+      vendor_page: 0.64
+  BL:  # force factor (T·m)
+    value: 2.7
+    winner: vendor_page
+    sources:
+      vendor_page: 2.7
+  Qms:  # mechanical Q factor
+    value: 4.08
+    winner: datasheet
+    sources:
+      datasheet: 4.08
+      vendor_page: 3.46
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00127
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00127
+  Sd:  # effective piston area (m²)
+    value: 0.0022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0022
+  Xmax:  # one-way linear excursion (m)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 20000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20000.0
+  Vd:
+    value: 4.4e-06
+    winner: calculated
+    sources:
+      calculated: 4.4e-06
+  Dd:
+    value: 0.05292567428401227
+    winner: calculated
+    sources:
+      calculated: 0.05292567428401227
+  EBP:
+    value: 134.93333333333334
+    winner: calculated
+    sources:
+      calculated: 134.93333333333334

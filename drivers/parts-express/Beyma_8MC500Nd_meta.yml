@@ -17,85 +17,87 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Cms'' = 0.231 above maximum 0.1 m/N;
+  schema:WDR: ''Sd'' = 2.2e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 253-011
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-011--8mc500nd-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-8MC500Nd-MC-Series-8-Neo-Woofer-8-ohm-253-011
+  datasheet: https://www.parts-express.com/pedocs/specs/253-011--8mc500nd-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.18
     winner: vendor_page
     sources:
       vendor_page: 0.18
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022
   Fs:  # free air resonance (Hz)
     value: 69.0
     winner: vendor_page
     sources:
       vendor_page: 69.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0038351596471130783
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0038351596471130783
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.3e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.3e-05
-  Qms:  # mechanical Q factor
-    value: 2.6
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.19
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  BL:  # force factor (T·m)
-    value: 16.7
-    winner: vendor_page
-    sources:
-      vendor_page: 16.7
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
   Vas:  # equivalent acoustic volume (m³)
     value: 0.015857408
     winner: vendor_page
     sources:
       vendor_page: 0.015857408
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 98.0
+  Qes:  # electrical Q factor
+    value: 0.19
     winner: vendor_page
     sources:
-      vendor_page: 98.0
+      vendor_page: 0.19
+  BL:  # force factor (T·m)
+    value: 16.7
+    winner: vendor_page
+    sources:
+      vendor_page: 16.7
+  Qms:  # mechanical Q factor
+    value: 2.6
+    winner: vendor_page
+    sources:
+      vendor_page: 2.6
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.3e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.3e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.231
+    winner: vendor_page
+    sources:
+      vendor_page: 0.231
+  Sd:  # effective piston area (m²)
+    value: 2.2e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.005
+  Vd:
+    value: 8.800000000000001e-09
+    winner: calculated
+    sources:
+      calculated: 8.800000000000001e-09
+  Dd:
+    value: 0.0016736567743768011
+    winner: calculated
+    sources:
+      calculated: 0.0016736567743768011
+  EBP:
+    value: 363.1578947368421
+    winner: calculated
+    sources:
+      calculated: 363.1578947368421

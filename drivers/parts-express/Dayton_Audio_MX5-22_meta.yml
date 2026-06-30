@@ -21,96 +21,103 @@ dq_issue: null
 community: null
 fetched_sku: 295-742
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-742--dayton-audio-mx5-22-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-MX5-22-5-1-4-Max-X-High-Excursion-DVC-Subwoofer-Driver-2-Ohms-Per-Coil-295-742
+  datasheet: https://www.parts-express.com/pedocs/specs/295-742--dayton-audio-mx5-22-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0093
-  Qts:  # total Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.3
-    winner: vendor_page
-    sources:
-      vendor_page: 4.3
-  Sd:  # effective piston area (m²)
-    value: 0.00844
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00844
   Fs:  # free air resonance (Hz)
     value: 45.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 45.0
       vendor_page: 45.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.4342141752980515
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4342141752980515
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026
-  Qms:  # mechanical Q factor
-    value: 3.02
-    winner: vendor_page
-    sources:
-      vendor_page: 3.02
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00048
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.5
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.5
       vendor_page: 0.5
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 3.02
+    winner: datasheet
     sources:
-      vendor_page: 50.0
+      datasheet: 3.02
+      vendor_page: 3.02
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.026
+    winner: datasheet
+    sources:
+      datasheet: 0.026
+      vendor_page: 0.026
   BL:  # force factor (T·m)
     value: 8.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 8.0
       vendor_page: 8.0
-  Le:  # voice coil inductance (H)
-    value: 0.0011
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.43
+    winner: datasheet
     sources:
-      vendor_page: 0.0011
+      datasheet: 0.43
+      vendor_page: 0.43
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0049
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.0049
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 50.0
-    winner: vendor_page
+      datasheet: 0.0049
+      vendor_page: 0.00487049
+  Le:  # voice coil inductance (H)
+    value: 0.0011
+    winner: datasheet
     sources:
-      vendor_page: 50.0
+      datasheet: 0.0011
+      vendor_page: 0.0011
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.3
+    winner: datasheet
+    sources:
+      datasheet: 4.3
+      vendor_page: 4.3
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00048
+    winner: datasheet
+    sources:
+      datasheet: 0.00048
+      vendor_page: 0.00048
+  Sd:  # effective piston area (m²)
+    value: 0.00844
+    winner: datasheet
+    sources:
+      datasheet: 0.00844
+      vendor_page: 0.00844
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0093
+    winner: datasheet
+    sources:
+      datasheet: 0.0093
+      vendor_page: 0.0093
   freq_low_hz:  # published lower frequency limit (Hz)
-    value: 25.0
+    value: 30.0
     winner: vendor_page
     sources:
-      vendor_page: 25.0
+      vendor_page: 30.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 1.0
+    value: 1000.0
     winner: vendor_page
     sources:
-      vendor_page: 1.0
+      vendor_page: 1000.0
+  Vd:
+    value: 7.849199999999999e-05
+    winner: calculated
+    sources:
+      calculated: 7.849199999999999e-05
+  Dd:
+    value: 0.10366359899967188
+    winner: calculated
+    sources:
+      calculated: 0.10366359899967188
+  EBP:
+    value: 90.0
+    winner: calculated
+    sources:
+      calculated: 90.0

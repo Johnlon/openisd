@@ -16,90 +16,101 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.129 differs from calculated=0.111711 (de'
 community: null
 fetched_sku: 293-172
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-172--ciare-csd154-22-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Ciare-CSD154-22-15-High-Power-Subwoofer-Dual-2-Ohm-293-172
+  datasheet: https://www.parts-express.com/pedocs/specs/293-172--ciare-csd154-22-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013
-  Qts:  # total Q factor
-    value: 0.33
-    winner: vendor_page
-    sources:
-      vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Sd:  # effective piston area (m²)
-    value: 0.075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.075
-  Fs:  # free air resonance (Hz)
-    value: 31.0
-    winner: vendor_page
-    sources:
-      vendor_page: 31.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.959085241194631
-    winner: vendor_page
-    sources:
-      vendor_page: 6.959085241194631
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.184
-    winner: vendor_page
-    sources:
-      vendor_page: 0.184
-  Qms:  # mechanical Q factor
-    value: 5.15
-    winner: vendor_page
-    sources:
-      vendor_page: 5.15
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00014
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
-  Qes:  # electrical Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Pe:  # rated power input (W)
-    value: 500.0
-    winner: vendor_page
-    sources:
-      vendor_page: 500.0
-  BL:  # force factor (T·m)
-    value: 18.4
-    winner: vendor_page
-    sources:
-      vendor_page: 18.4
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 95.5
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 95.5
-  Le:  # voice coil inductance (H)
-    value: 0.00093
-    winner: vendor_page
+      datasheet: 95.5
+  Fs:  # free air resonance (Hz)
+    value: 31.0
+    winner: datasheet
     sources:
-      vendor_page: 0.00093
+      datasheet: 31.0
+      vendor_page: 31.0
+  Qes:  # electrical Q factor
+    value: 0.35
+    winner: datasheet
+    sources:
+      datasheet: 0.35
+      vendor_page: 0.35
+  Qms:  # mechanical Q factor
+    value: 5.15
+    winner: datasheet
+    sources:
+      datasheet: 5.15
+      vendor_page: 5.15
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.184
+    winner: datasheet
+    sources:
+      datasheet: 0.184
+      vendor_page: 0.184
+  BL:  # force factor (T·m)
+    value: 18.4
+    winner: datasheet
+    sources:
+      datasheet: 18.4
+      vendor_page: 18.4
+  Qts:  # total Q factor
+    value: 0.33
+    winner: datasheet
+    sources:
+      datasheet: 0.33
+      vendor_page: 0.33
   Vas:  # equivalent acoustic volume (m³)
     value: 0.129
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.129
+      datasheet: 0.129
+      vendor_page: 0.129124608
+  Le:  # voice coil inductance (H)
+    value: 0.00093
+    winner: datasheet
+    sources:
+      datasheet: 0.00093
+      vendor_page: 0.00093
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
+    winner: datasheet
+    sources:
+      datasheet: 3.3
+      vendor_page: 3.3
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00014
+    winner: datasheet
+    sources:
+      datasheet: 0.00014
+  Sd:  # effective piston area (m²)
+    value: 0.075
+    winner: datasheet
+    sources:
+      datasheet: 0.075
+      vendor_page: 0.075
+  Xmax:  # one-way linear excursion (m)
+    value: 0.013
+    winner: datasheet
+    sources:
+      datasheet: 0.013
+      vendor_page: 0.013
+  Vd:
+    value: 0.000975
+    winner: calculated
+    sources:
+      calculated: 0.000975
+  Dd:
+    value: 0.30901936161855165
+    winner: calculated
+    sources:
+      calculated: 0.30901936161855165
+  EBP:
+    value: 88.57142857142858
+    winner: calculated
+    sources:
+      calculated: 88.57142857142858

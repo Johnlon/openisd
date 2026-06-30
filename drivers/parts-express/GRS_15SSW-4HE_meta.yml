@@ -21,96 +21,91 @@ dq_issue: null
 community: null
 fetched_sku: 292-822
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/Spec Sheets/292-822--grs-15ssw-4he-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/GRS-15SSW-4HE-15-Paper-Cone-Rubber-Surround-High-Excursion-Super-Subwoofer-4-Ohm-292-822
+  datasheet: https://www.parts-express.com/pedocs/specs/Spec Sheets/292-822--grs-15ssw-4he-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0123
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0123
   Qts:  # total Q factor
     value: 0.49
     winner: vendor_page
     sources:
       vendor_page: 0.49
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Sd:  # effective piston area (m²)
-    value: 0.08194
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08194
   Fs:  # free air resonance (Hz)
     value: 20.7
     winner: vendor_page
     sources:
       vendor_page: 20.7
-  Rms:  # mechanical resistance (kg/s)
-    value: 8.644397516785862
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.196518592
     winner: vendor_page
     sources:
-      vendor_page: 8.644397516785862
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.2838
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2838
-  Qms:  # mechanical Q factor
-    value: 4.27
-    winner: vendor_page
-    sources:
-      vendor_page: 4.27
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00020999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00020999999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.196518592
   Qes:  # electrical Q factor
     value: 0.55
     winner: vendor_page
     sources:
       vendor_page: 0.55
-  Pe:  # rated power input (W)
-    value: 300.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0123
     winner: vendor_page
     sources:
-      vendor_page: 300.0
-  BL:  # force factor (T·m)
-    value: 16.6
+      vendor_page: 0.0123
+  Qms:  # mechanical Q factor
+    value: 4.27
     winner: vendor_page
     sources:
-      vendor_page: 16.6
+      vendor_page: 4.27
   Le:  # voice coil inductance (H)
     value: 0.0037
     winner: vendor_page
     sources:
       vendor_page: 0.0037
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.19651859200000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.2
     winner: vendor_page
     sources:
-      vendor_page: 0.19651859200000002
+      vendor_page: 4.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.2838
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2838
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00021
+  Sd:  # effective piston area (m²)
+    value: 0.08194
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08194
+  BL:  # force factor (T·m)
+    value: 16.6
+    winner: vendor_page
+    sources:
+      vendor_page: 16.6
   freq_low_hz:  # published lower frequency limit (Hz)
-    value: 15.0
+    value: 20.0
     winner: vendor_page
     sources:
-      vendor_page: 15.0
+      vendor_page: 20.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 300.0
     winner: vendor_page
     sources:
       vendor_page: 300.0
+  Vd:
+    value: 0.001007862
+    winner: calculated
+    sources:
+      calculated: 0.001007862
+  Dd:
+    value: 0.32300038435828404
+    winner: calculated
+    sources:
+      calculated: 0.32300038435828404
+  EBP:
+    value: 37.63636363636363
+    winner: calculated
+    sources:
+      calculated: 37.63636363636363

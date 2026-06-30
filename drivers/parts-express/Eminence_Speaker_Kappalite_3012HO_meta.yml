@@ -20,81 +20,81 @@ dq_issue: null
 community: null
 fetched_sku: 290-589
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Eminence-KAPPALITE-3012HO-Neo-12-Driver-290-589
+  datasheet: https://www.parts-express.com/pedocs/specs/290-589--eminence-kappalite-3012ho-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0062
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0062
   Qts:  # total Q factor
     value: 0.32
     winner: vendor_page
     sources:
       vendor_page: 0.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Sd:  # effective piston area (m²)
-    value: 0.053239999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.053239999999999996
   Fs:  # free air resonance (Hz)
     value: 52.0
     winner: vendor_page
     sources:
       vendor_page: 52.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.8302866377529092
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.080986048
     winner: vendor_page
     sources:
-      vendor_page: 1.8302866377529092
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.047
-    winner: vendor_page
-    sources:
-      vendor_page: 0.047
-  Qms:  # mechanical Q factor
-    value: 8.39
-    winner: vendor_page
-    sources:
-      vendor_page: 8.39
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.080986048
   Qes:  # electrical Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Pe:  # rated power input (W)
-    value: 400.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0062
     winner: vendor_page
     sources:
-      vendor_page: 400.0
-  BL:  # force factor (T·m)
-    value: 15.9
+      vendor_page: 0.0062
+  Qms:  # mechanical Q factor
+    value: 8.39
     winner: vendor_page
     sources:
-      vendor_page: 15.9
+      vendor_page: 8.39
   Le:  # voice coil inductance (H)
     value: 0.00057
     winner: vendor_page
     sources:
       vendor_page: 0.00057
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.08098604799999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 0.08098604799999999
+      vendor_page: 5.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.047
+    winner: vendor_page
+    sources:
+      vendor_page: 0.047
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Sd:  # effective piston area (m²)
+    value: 0.05324
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05324
+  BL:  # force factor (T·m)
+    value: 15.9
+    winner: vendor_page
+    sources:
+      vendor_page: 15.9
+  Vd:
+    value: 0.00033008800000000003
+    winner: calculated
+    sources:
+      calculated: 0.00033008800000000003
+  Dd:
+    value: 0.2603598919989407
+    winner: calculated
+    sources:
+      calculated: 0.2603598919989407
+  EBP:
+    value: 157.57575757575756
+    winner: calculated
+    sources:
+      calculated: 157.57575757575756

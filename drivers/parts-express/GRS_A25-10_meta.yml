@@ -23,93 +23,88 @@ fetched_sku: 292-468
 _sources:
   vendor_page: https://www.parts-express.com/GRS-A25-10-10-Paper-Cone-Replacement-for-Dynaco-A25-292-468
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0045
   Qts:  # total Q factor
     value: 0.37
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Sd:  # effective piston area (m²)
-    value: 0.0346
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0346
   Fs:  # free air resonance (Hz)
     value: 30.0
     winner: vendor_page
     sources:
       vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.7397518948332893
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7397518948332893
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0496
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0496
-  Qms:  # mechanical Q factor
-    value: 2.5
-    winner: vendor_page
-    sources:
-      vendor_page: 2.5
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00055
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Pe:  # rated power input (W)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  BL:  # force factor (T·m)
-    value: 12.0
-    winner: vendor_page
-    sources:
-      vendor_page: 12.0
-  Le:  # voice coil inductance (H)
-    value: 0.0017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017
   Vas:  # equivalent acoustic volume (m³)
     value: 0.09061376
     winner: vendor_page
     sources:
       vendor_page: 0.09061376
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 70.0
+  Qes:  # electrical Q factor
+    value: 0.43
     winner: vendor_page
     sources:
-      vendor_page: 70.0
+      vendor_page: 0.43
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0045
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0045
+  Qms:  # mechanical Q factor
+    value: 2.5
+    winner: vendor_page
+    sources:
+      vendor_page: 2.5
+  Le:  # voice coil inductance (H)
+    value: 0.0017
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0017
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
+    winner: vendor_page
+    sources:
+      vendor_page: 6.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0496
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0496
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00055
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00055
+  Sd:  # effective piston area (m²)
+    value: 0.0346
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0346
+  BL:  # force factor (T·m)
+    value: 12.0
+    winner: vendor_page
+    sources:
+      vendor_page: 12.0
   freq_low_hz:  # published lower frequency limit (Hz)
-    value: 25.0
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 25.0
+      vendor_page: 50.0
   freq_high_hz:  # published upper frequency limit (Hz)
     value: 4500.0
     winner: vendor_page
     sources:
       vendor_page: 4500.0
+  Vd:
+    value: 0.0001557
+    winner: calculated
+    sources:
+      calculated: 0.0001557
+  Dd:
+    value: 0.20989065783840077
+    winner: calculated
+    sources:
+      calculated: 0.20989065783840077
+  EBP:
+    value: 69.76744186046511
+    winner: calculated
+    sources:
+      calculated: 69.76744186046511

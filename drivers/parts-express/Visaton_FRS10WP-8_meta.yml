@@ -16,44 +16,34 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qts'' stored=0.98 differs from calculated=1.04381 (deps'
 community: null
 fetched_sku: 292-616
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-616--visaton-frs-10-wp-8-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Visaton-FRS10WP-8-4-Full-Range-Saltwater-Resistant-Driver-8-Ohm-Black-292-616
+  datasheet: https://www.parts-express.com/pedocs/specs/292-616--visaton-frs-10-wp-8-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
   Qts:  # total Q factor
     value: 0.98
     winner: vendor_page
     sources:
       vendor_page: 0.98
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.4
-    winner: vendor_page
-    sources:
-      vendor_page: 6.4
-  Sd:  # effective piston area (m²)
-    value: 0.007559999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007559999999999999
   Fs:  # free air resonance (Hz)
     value: 190.0
     winner: vendor_page
     sources:
       vendor_page: 190.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.471238898038469
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001897226
     winner: vendor_page
     sources:
-      vendor_page: 0.471238898038469
-  Mms:  # moving mass incl. air load (kg)
+      vendor_page: 0.001897226
+  Qes:  # electrical Q factor
+    value: 1.21
+    winner: vendor_page
+    sources:
+      vendor_page: 1.21
+  Xmax:  # one-way linear excursion (m)
     value: 0.003
     winner: vendor_page
     sources:
@@ -63,48 +53,48 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 7.6
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00023400000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023400000000000002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 1.21
-    winner: vendor_page
-    sources:
-      vendor_page: 1.21
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
-    sources:
-      vendor_page: 25.0
-  BL:  # force factor (T·m)
-    value: 4.52
-    winner: vendor_page
-    sources:
-      vendor_page: 4.52
   Le:  # voice coil inductance (H)
     value: 0.0004
     winner: vendor_page
     sources:
       vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0018972256
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.4
     winner: vendor_page
     sources:
-      vendor_page: 0.0018972256
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 90.0
+      vendor_page: 6.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.003
     winner: vendor_page
     sources:
-      vendor_page: 90.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 19000.0
+      vendor_page: 0.003
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000234
     winner: vendor_page
     sources:
-      vendor_page: 19000.0
+      vendor_page: 0.000234
+  Sd:  # effective piston area (m²)
+    value: 0.00756
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00756
+  BL:  # force factor (T·m)
+    value: 4.52
+    winner: vendor_page
+    sources:
+      vendor_page: 4.52
+  Vd:
+    value: 2.268e-05
+    winner: calculated
+    sources:
+      calculated: 2.268e-05
+  Dd:
+    value: 0.0981106057375951
+    winner: calculated
+    sources:
+      calculated: 0.0981106057375951
+  EBP:
+    value: 157.02479338842977
+    winner: calculated
+    sources:
+      calculated: 157.02479338842977

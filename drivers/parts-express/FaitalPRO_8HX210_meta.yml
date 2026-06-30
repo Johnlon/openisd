@@ -17,89 +17,84 @@ reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.246922 differs from calculated=18.2005 ('
 community: null
 fetched_sku: 294-1088
 _sources:
   vendor_page: https://www.parts-express.com/FaitalPRO-8HX210-8-Coaxial-Speaker-8-Ohm-294-1088
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.013800000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013800000000000002
   Qts:  # total Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Sd:  # effective piston area (m²)
-    value: 0.1213
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1213
   Fs:  # free air resonance (Hz)
     value: 34.0
     winner: vendor_page
     sources:
       vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.727123407494194
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.246922496
     winner: vendor_page
     sources:
-      vendor_page: 5.727123407494194
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.18230000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18230000000000002
-  Qms:  # mechanical Q factor
-    value: 6.8
-    winner: vendor_page
-    sources:
-      vendor_page: 6.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00872
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00872
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.246922496
   Qes:  # electrical Q factor
     value: 0.43
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Pe:  # rated power input (W)
-    value: 1000.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0138
     winner: vendor_page
     sources:
-      vendor_page: 1000.0
-  BL:  # force factor (T·m)
-    value: 24.0
+      vendor_page: 0.0138
+  Qms:  # mechanical Q factor
+    value: 6.8
     winner: vendor_page
     sources:
-      vendor_page: 24.0
+      vendor_page: 6.8
   Le:  # voice coil inductance (H)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.24692249600000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
     winner: vendor_page
     sources:
-      vendor_page: 0.24692249600000002
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 94.0
+      vendor_page: 6.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1823
     winner: vendor_page
     sources:
-      vendor_page: 94.0
+      vendor_page: 0.1823
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00872
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00872
+  Sd:  # effective piston area (m²)
+    value: 0.1213
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1213
+  BL:  # force factor (T·m)
+    value: 24.0
+    winner: vendor_page
+    sources:
+      vendor_page: 24.0
+  Vd:
+    value: 0.00167394
+    winner: calculated
+    sources:
+      calculated: 0.00167394
+  Dd:
+    value: 0.3929935836325769
+    winner: calculated
+    sources:
+      calculated: 0.3929935836325769
+  EBP:
+    value: 79.06976744186046
+    winner: calculated
+    sources:
+      calculated: 79.06976744186046

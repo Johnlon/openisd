@@ -1,0 +1,96 @@
+D4400Ph-Ndv2 sJ-IEVZ
+
+Professional Compression Driver
+
+cw Iico
+
+BRAZHtI.L
+
+- 4" Voice coil and 2” exit
+
+- 400 Watts continuos program power
+- 109 dB Sensitivity
+
+- Phenolic diaphragm
+
+Exit Throat Diameter 2" (50 mm)
+Nominal Impedance 8 Ohm
+
+Nominal Power Handling 200 Watts
+
+Continuous Program Power (RMS) 400 Watts
+
+Peak Power 800 Watts
+
+Sensitivity 2.83V at Im* 109 dB
+
+Recommended High Pass Crossover** 700 Hz***
+**for Full Power Handling ***12 db/oct Crossover
+
+Frequency Response at -10dB 450 - 7,500Hz
+Voice Coil Diameter 4" (101.6 mm)
+
+Voice Coil Wire CCAW
+Voice Coil Former Material Kapton®
+
+6.10"(155 mm)
+
+7)
+z
+fo)
+=
+<x
+©
+=
+[S)
+re)
+Oo.
+7)
+I
+<x
+[a
+Lu
+z
+Lu
+©
+
+Diaphragm Material Phenolic
+
+Flux Density 1.95 T
+Magnet Material Neodymium
+
+Overall Diameter 6.10" (155 mm)
+Overall Depth 3.25" (82.5 mm)
+Mounting Bolt Circle M6 x 4 4" (102 mm)
+Net Weight 8.81 lbs (4.0 kg)
+Shipping Weight 9.25 lbs (4.2 kg)
+
+Carton Dimensions W x LxH 6.5" x 6.5" x 4.72"
+(165 x 165 x 120 mm)
+
+EXTRA INFO
+3.25"(82.5mm)
+
+Impedance Curve - Free Air Frequency Response Measured at 2.83V/1m
+
+40 CLI 120
+
+Ohm dBSPL
+
+32 106
+
+24 92
+
+16 786
+
+0 50
+5 10 20 50 100 200 Hz 500 1k 2k 5k 10k 20k 200 500 41k 2k 5k 10k Hz 20k
+
+PRV AUDIO USA (USA and Export)
+
+*Frequency Response and Impedance curves Measured on WG14-50CR POMPANO BEACH, FL
+
+support@)prvaudio.com
+www.prvaudio.com
+
+PRV Audio strives to manufacture the best drivers in the Professional Loudspeaker industry. Specifications are subject to change due to continuous product improvement - Rev: 07/23

@@ -20,91 +20,82 @@ dq_issue: null
 community: null
 fetched_sku: 292-806
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/GRS-12PT-8-12-Paper-Cone-Prosound-Woofer-3-Voice-Coil-8-Ohm-292-806
+  datasheet: https://www.parts-express.com/pedocs/specs/292-806--grs-12pt-8-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
   Qts:  # total Q factor
     value: 0.39
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.6
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6
-  Sd:  # effective piston area (m²)
-    value: 0.05309
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05309
   Fs:  # free air resonance (Hz)
     value: 35.0
     winner: vendor_page
     sources:
       vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3267387156895738
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3267387156895738
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.073
-    winner: vendor_page
-    sources:
-      vendor_page: 0.073
-  Qms:  # mechanical Q factor
-    value: 12.1
-    winner: vendor_page
-    sources:
-      vendor_page: 12.1
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00028000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00028000000000000003
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  BL:  # force factor (T·m)
-    value: 17.4
-    winner: vendor_page
-    sources:
-      vendor_page: 17.4
-  Le:  # voice coil inductance (H)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
   Vas:  # equivalent acoustic volume (m³)
     value: 0.112134528
     winner: vendor_page
     sources:
       vendor_page: 0.112134528
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 12.0
+  Qes:  # electrical Q factor
+    value: 0.4
     winner: vendor_page
     sources:
-      vendor_page: 12.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 8.0
+      vendor_page: 0.4
+  BL:  # force factor (T·m)
+    value: 17.4
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 17.4
+  Qms:  # mechanical Q factor
+    value: 12.1
+    winner: vendor_page
+    sources:
+      vendor_page: 12.1
+  Le:  # voice coil inductance (H)
+    value: 0.0019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0019
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.6
+    winner: vendor_page
+    sources:
+      vendor_page: 7.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.073
+    winner: vendor_page
+    sources:
+      vendor_page: 0.073
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00028
+  Sd:  # effective piston area (m²)
+    value: 0.05309
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05309
+  Xmax:  # one-way linear excursion (m)
+    value: 0.001
+    winner: datasheet
+    sources:
+      datasheet: 0.001
+      vendor_page: 0.0068
+  Vd:
+    value: 5.309e-05
+    winner: calculated
+    sources:
+      calculated: 5.309e-05
+  Dd:
+    value: 0.25999286034425984
+    winner: calculated
+    sources:
+      calculated: 0.25999286034425984
+  EBP:
+    value: 87.5
+    winner: calculated
+    sources:
+      calculated: 87.5

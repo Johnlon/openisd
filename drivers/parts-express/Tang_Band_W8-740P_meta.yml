@@ -17,85 +17,100 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny; tweeter_fs
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 2.2e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-854
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854
+  datasheet: https://www.parts-express.com/pedocs/specs/264-854--tang-band-w8-740p-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0121
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 30.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0121
+      datasheet: 30.0
+      vendor_page: 30.0
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: datasheet
+    sources:
+      datasheet: 0.31
+      vendor_page: 0.31
+  Qms:  # mechanical Q factor
+    value: 3.69
+    winner: datasheet
+    sources:
+      datasheet: 3.69
+      vendor_page: 3.69
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.026
+    winner: datasheet
+    sources:
+      datasheet: 0.026
+      vendor_page: 0.09426
+  BL:  # force factor (T·m)
+    value: 13.66
+    winner: datasheet
+    sources:
+      datasheet: 13.66
+      vendor_page: 13.66
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
   Qts:  # total Q factor
     value: 0.28
+    winner: datasheet
+    sources:
+      datasheet: 0.28
+      vendor_page: 0.28
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02003
+    winner: datasheet
+    sources:
+      datasheet: 0.02003
+      vendor_page: 0.020104928
+  Le:  # voice coil inductance (H)
+    value: 0.00084
     winner: vendor_page
     sources:
-      vendor_page: 0.28
+      vendor_page: 0.00084
   Re:  # DC voice coil resistance (Ω)
     value: 3.2
     winner: vendor_page
     sources:
       vendor_page: 3.2
-  Sd:  # effective piston area (m²)
-    value: 2.2e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2e-06
-  Fs:  # free air resonance (Hz)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.815065423209332
-    winner: vendor_page
-    sources:
-      vendor_page: 4.815065423209332
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.026
-  Qms:  # mechanical Q factor
-    value: 3.69
-    winner: vendor_page
-    sources:
-      vendor_page: 3.69
   Cms:  # mechanical compliance (m/N)
     value: 0.000291402
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.000291402
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
+      datasheet: 0.000291402
+      vendor_page: 0.00029
+  Sd:  # effective piston area (m²)
+    value: 2.2e-06
+    winner: datasheet
     sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.31
-    winner: vendor_page
+      datasheet: 2.2e-06
+      vendor_page: 0.022
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0121
+    winner: datasheet
     sources:
-      vendor_page: 0.31
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
+      datasheet: 0.0121
+      vendor_page: 0.0121
+  Vd:
+    value: 2.662e-08
+    winner: calculated
     sources:
-      vendor_page: 120.0
-  BL:  # force factor (T·m)
-    value: 13.66
-    winner: vendor_page
+      calculated: 2.662e-08
+  Dd:
+    value: 0.0016736567743768011
+    winner: calculated
     sources:
-      vendor_page: 13.66
-  Le:  # voice coil inductance (H)
-    value: 0.0008399999999999999
-    winner: vendor_page
+      calculated: 0.0016736567743768011
+  EBP:
+    value: 96.7741935483871
+    winner: calculated
     sources:
-      vendor_page: 0.0008399999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02003
+      calculated: 96.7741935483871

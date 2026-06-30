@@ -23,78 +23,78 @@ fetched_sku: 296-442
 _sources:
   vendor_page: https://www.parts-express.com/Aurum-Cantus-AC130-50CK-5-1-4-Midwoofer-296-442
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.006
-    winner: vendor_page
-    sources:
-      vendor_page: 0.006
   Qts:  # total Q factor
     value: 0.21
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Sd:  # effective piston area (m²)
-    value: 0.0095
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0095
   Fs:  # free air resonance (Hz)
     value: 37.0
     winner: vendor_page
     sources:
       vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.909377103764667
-    winner: vendor_page
-    sources:
-      vendor_page: 0.909377103764667
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0124
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0124
-  Qms:  # mechanical Q factor
-    value: 3.17
-    winner: vendor_page
-    sources:
-      vendor_page: 3.17
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00173
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00173
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.23
-    winner: vendor_page
-    sources:
-      vendor_page: 0.23
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
-  BL:  # force factor (T·m)
-    value: 9.1
-    winner: vendor_page
-    sources:
-      vendor_page: 9.1
-  Le:  # voice coil inductance (H)
-    value: 0.00067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00067
   Vas:  # equivalent acoustic volume (m³)
     value: 0.022087104
     winner: vendor_page
     sources:
       vendor_page: 0.022087104
+  Qes:  # electrical Q factor
+    value: 0.23
+    winner: vendor_page
+    sources:
+      vendor_page: 0.23
+  Xmax:  # one-way linear excursion (m)
+    value: 0.006
+    winner: vendor_page
+    sources:
+      vendor_page: 0.006
+  Qms:  # mechanical Q factor
+    value: 3.17
+    winner: vendor_page
+    sources:
+      vendor_page: 3.17
+  Le:  # voice coil inductance (H)
+    value: 0.00067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00067
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0124
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0124
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00173
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00173
+  Sd:  # effective piston area (m²)
+    value: 0.0095
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0095
+  BL:  # force factor (T·m)
+    value: 9.1
+    winner: vendor_page
+    sources:
+      vendor_page: 9.1
+  Vd:
+    value: 5.7e-05
+    winner: calculated
+    sources:
+      calculated: 5.7e-05
+  Dd:
+    value: 0.10998079684646792
+    winner: calculated
+    sources:
+      calculated: 0.10998079684646792
+  EBP:
+    value: 160.86956521739128
+    winner: calculated
+    sources:
+      calculated: 160.86956521739128

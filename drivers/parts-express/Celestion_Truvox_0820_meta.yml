@@ -23,78 +23,78 @@ fetched_sku: 294-2512
 _sources:
   vendor_page: https://www.parts-express.com/Celestion-Truvox-0820-8-Midbass-Woofer-8-Ohm-294-2512
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.39
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.06
-    winner: vendor_page
-    sources:
-      vendor_page: 6.06
-  Sd:  # effective piston area (m²)
-    value: 0.022698
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022698
   Fs:  # free air resonance (Hz)
     value: 74.1
     winner: vendor_page
     sources:
       vendor_page: 74.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.439440477363027
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.017273248
     winner: vendor_page
     sources:
-      vendor_page: 1.439440477363027
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.019489999999999997
-    winner: vendor_page
-    sources:
-      vendor_page: 0.019489999999999997
-  Qms:  # mechanical Q factor
-    value: 6.304
-    winner: vendor_page
-    sources:
-      vendor_page: 6.304
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00023999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023999999999999998
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.017273248
   Qes:  # electrical Q factor
     value: 0.417
     winner: vendor_page
     sources:
       vendor_page: 0.417
-  Pe:  # rated power input (W)
-    value: 250.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 250.0
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 6.304
+    winner: vendor_page
+    sources:
+      vendor_page: 6.304
+  Le:  # voice coil inductance (H)
+    value: 0.000543
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000543
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.06
+    winner: vendor_page
+    sources:
+      vendor_page: 6.06
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01949
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01949
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00024
+  Sd:  # effective piston area (m²)
+    value: 0.022698
+    winner: vendor_page
+    sources:
+      vendor_page: 0.022698
   BL:  # force factor (T·m)
     value: 1.51
     winner: vendor_page
     sources:
       vendor_page: 1.51
-  Le:  # voice coil inductance (H)
-    value: 0.0005430000000000001
-    winner: vendor_page
+  Vd:
+    value: 0.00011349
+    winner: calculated
     sources:
-      vendor_page: 0.0005430000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.017273247999999998
-    winner: vendor_page
+      calculated: 0.00011349
+  Dd:
+    value: 0.16999997407764134
+    winner: calculated
     sources:
-      vendor_page: 0.017273247999999998
+      calculated: 0.16999997407764134
+  EBP:
+    value: 177.6978417266187
+    winner: calculated
+    sources:
+      calculated: 177.6978417266187

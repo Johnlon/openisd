@@ -16,85 +16,85 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.146964 differs from calculated=0.138398 '
 community: null
 fetched_sku: 295-534
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-534--dayton-audio-DSA315-8-specifications.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-DSA315-8-12-Designer-Series-Aluminum-Cone-Woofer-295-534
+  datasheet: https://www.parts-express.com/pedocs/specs/295-534--dayton-audio-DSA315-8-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0055
   Qts:  # total Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Sd:  # effective piston area (m²)
-    value: 0.05067
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05067
   Fs:  # free air resonance (Hz)
     value: 24.23
     winner: vendor_page
     sources:
       vendor_page: 24.23
-  Rms:  # mechanical resistance (kg/s)
-    value: 9.110329469420071
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.146964192
     winner: vendor_page
     sources:
-      vendor_page: 9.110329469420071
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.11309999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.11309999999999999
-  Qms:  # mechanical Q factor
-    value: 1.89
-    winner: vendor_page
-    sources:
-      vendor_page: 1.89
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00038
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.146964192
   Qes:  # electrical Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 120.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0055
     winner: vendor_page
     sources:
-      vendor_page: 120.0
-  BL:  # force factor (T·m)
-    value: 16.1
+      vendor_page: 0.0055
+  Qms:  # mechanical Q factor
+    value: 1.89
     winner: vendor_page
     sources:
-      vendor_page: 16.1
+      vendor_page: 1.89
   Le:  # voice coil inductance (H)
     value: 0.00111
     winner: vendor_page
     sources:
       vendor_page: 0.00111
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.14696419200000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 0.14696419200000002
+      vendor_page: 6.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1131
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00038
+  Sd:  # effective piston area (m²)
+    value: 0.05067
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05067
+  BL:  # force factor (T·m)
+    value: 16.1
+    winner: vendor_page
+    sources:
+      vendor_page: 16.1
+  Vd:
+    value: 0.000278685
+    winner: calculated
+    sources:
+      calculated: 0.000278685
+  Dd:
+    value: 0.2539981254492456
+    winner: calculated
+    sources:
+      calculated: 0.2539981254492456
+  EBP:
+    value: 60.574999999999996
+    winner: calculated
+    sources:
+      calculated: 60.574999999999996

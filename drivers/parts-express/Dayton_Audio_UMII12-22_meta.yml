@@ -20,89 +20,80 @@ dq_issue: null
 community: null
 fetched_sku: 295-712
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-712--dayton-audio-UMII12-22-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-UMII12-22-ULTIMAX-II-12-700W-RMS-DVC-Subwoofer-2-Ohm-Per-Coil-295-712
+  datasheet: https://www.parts-express.com/pedocs/specs/295-712--dayton-audio-UMII12-22-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022
-  Qts:  # total Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.2
-    winner: vendor_page
-    sources:
-      vendor_page: 4.2
-  Sd:  # effective piston area (m²)
-    value: 0.0528
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0528
   Fs:  # free air resonance (Hz)
     value: 31.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 31.0
       vendor_page: 31.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 13.386611896278254
-    winner: vendor_page
-    sources:
-      vendor_page: 13.386611896278254
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.189
-    winner: vendor_page
-    sources:
-      vendor_page: 0.189
-  Qms:  # mechanical Q factor
-    value: 2.75
-    winner: vendor_page
-    sources:
-      vendor_page: 2.75
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000133
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000133
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.71
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.71
       vendor_page: 0.71
-  Pe:  # rated power input (W)
-    value: 800.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 2.75
+    winner: datasheet
     sources:
-      vendor_page: 800.0
+      datasheet: 2.75
+      vendor_page: 2.75
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.189
+    winner: datasheet
+    sources:
+      datasheet: 0.189
+      vendor_page: 0.189
   BL:  # force factor (T·m)
     value: 14.8
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 14.8
       vendor_page: 14.8
+  Qts:  # total Q factor
+    value: 0.56
+    winner: datasheet
+    sources:
+      datasheet: 0.56
+      vendor_page: 0.56
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.053
+    winner: datasheet
+    sources:
+      datasheet: 0.053
+      vendor_page: 0.052952416
   Le:  # voice coil inductance (H)
     value: 0.00066
     winner: vendor_page
     sources:
       vendor_page: 0.00066
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.053
-    winner: vendor_page
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.2
+    winner: datasheet
     sources:
-      vendor_page: 0.053
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 800.0
-    winner: vendor_page
+      datasheet: 4.2
+      vendor_page: 4.2
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000133
+    winner: datasheet
     sources:
-      vendor_page: 800.0
+      datasheet: 0.000133
+      vendor_page: 0.000133
+  Sd:  # effective piston area (m²)
+    value: 0.0528
+    winner: datasheet
+    sources:
+      datasheet: 0.0528
+      vendor_page: 0.0528
+  Xmax:  # one-way linear excursion (m)
+    value: 0.022
+    winner: datasheet
+    sources:
+      datasheet: 0.022
+      vendor_page: 0.022
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 20.0
     winner: vendor_page
@@ -113,3 +104,18 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 500.0
+  Vd:
+    value: 0.0011615999999999998
+    winner: calculated
+    sources:
+      calculated: 0.0011615999999999998
+  Dd:
+    value: 0.25928179257714296
+    winner: calculated
+    sources:
+      calculated: 0.25928179257714296
+  EBP:
+    value: 43.66197183098592
+    winner: calculated
+    sources:
+      calculated: 43.66197183098592

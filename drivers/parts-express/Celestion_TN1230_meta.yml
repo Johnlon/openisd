@@ -21,86 +21,106 @@ dq_issue: null
 community: null
 fetched_sku: 294-1976
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-TN1230-12-Professional-Neodymium-Woofer-350W-294-1976
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1976--tn1230-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0005
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 97.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0005
-  Qts:  # total Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.09
-    winner: vendor_page
-    sources:
-      vendor_page: 6.09
-  Sd:  # effective piston area (m²)
-    value: 0.053093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.053093
+      datasheet: 97.0
   Fs:  # free air resonance (Hz)
     value: 46.6
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 46.6
       vendor_page: 46.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.45
-    winner: vendor_page
-    sources:
-      vendor_page: 4.45
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.07242
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07242
-  Qms:  # mechanical Q factor
-    value: 4.76
-    winner: vendor_page
-    sources:
-      vendor_page: 4.76
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.37
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.37
       vendor_page: 0.37
   Pe:  # rated power input (W)
     value: 350.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 350.0
+      datasheet: 350.0
+  Qms:  # mechanical Q factor
+    value: 4.76
+    winner: datasheet
+    sources:
+      datasheet: 4.76
+      vendor_page: 4.76
+  Rms:  # mechanical resistance (kg/s)
+    value: 4.45
+    winner: datasheet
+    sources:
+      datasheet: 4.45
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.07242
+    winner: datasheet
+    sources:
+      datasheet: 0.07242
+      vendor_page: 0.07242
   BL:  # force factor (T·m)
     value: 18.55
     winner: vendor_page
     sources:
       vendor_page: 18.55
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.35
+    winner: datasheet
     sources:
-      vendor_page: 97.0
+      datasheet: 0.35
+      vendor_page: 0.35
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06433
+    winner: datasheet
+    sources:
+      datasheet: 0.06433
+      vendor_page: 0.06512864
   Le:  # voice coil inductance (H)
     value: 0.00099
     winner: vendor_page
     sources:
       vendor_page: 0.00099
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06433
-    winner: vendor_page
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.09
+    winner: datasheet
     sources:
-      vendor_page: 0.06433
+      datasheet: 6.09
+      vendor_page: 6.09
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00016
+    winner: datasheet
+    sources:
+      datasheet: 0.00016
+      vendor_page: 0.00016
+  Sd:  # effective piston area (m²)
+    value: 0.053093
+    winner: datasheet
+    sources:
+      datasheet: 0.053093
+      vendor_page: 0.053093
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0005
+    winner: datasheet
+    sources:
+      datasheet: 0.0005
+      vendor_page: 0.00375
+  Vd:
+    value: 2.65465e-05
+    winner: calculated
+    sources:
+      calculated: 2.65465e-05
+  Dd:
+    value: 0.2600002060549645
+    winner: calculated
+    sources:
+      calculated: 0.2600002060549645
+  EBP:
+    value: 125.94594594594595
+    winner: calculated
+    sources:
+      calculated: 125.94594594594595

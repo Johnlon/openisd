@@ -21,81 +21,96 @@ dq_issue: null
 community: null
 fetched_sku: 294-1082
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1082--faitalpro-5hx140-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/FaitalPRO-5HX140-5-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1082
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1082--faitalpro-5hx140-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0050999999999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0050999999999999995
-  Qts:  # total Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
   Fs:  # free air resonance (Hz)
     value: 100.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 100.0
       vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0075
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0075
-  Qms:  # mechanical Q factor
-    value: 4.8
-    winner: vendor_page
-    sources:
-      vendor_page: 4.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.45
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.45
       vendor_page: 0.45
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 4.8
+    winner: datasheet
     sources:
-      vendor_page: 120.0
+      datasheet: 4.8
+      vendor_page: 4.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.0
+    winner: datasheet
+    sources:
+      datasheet: 1.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0075
+    winner: datasheet
+    sources:
+      datasheet: 0.0075
+      vendor_page: 0.0075
   BL:  # force factor (T·m)
     value: 8.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 8.0
       vendor_page: 8.0
-  Le:  # voice coil inductance (H)
-    value: 0.00029
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.41
+    winner: datasheet
     sources:
-      vendor_page: 0.00029
+      datasheet: 0.41
+      vendor_page: 0.41
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0034
+    winner: datasheet
+    sources:
+      datasheet: 0.0034
+      vendor_page: 0.003398016
+  Le:  # voice coil inductance (H)
+    value: 0.00029
+    winner: datasheet
+    sources:
+      datasheet: 0.00029
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
+    winner: datasheet
+    sources:
+      datasheet: 5.9
+      vendor_page: 6.0
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00034
+    winner: datasheet
+    sources:
+      datasheet: 0.00034
+      vendor_page: 0.00034
+  Sd:  # effective piston area (m²)
+    value: 0.0085
+    winner: datasheet
+    sources:
+      datasheet: 0.0085
+      vendor_page: 0.0085
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0051
     winner: vendor_page
     sources:
-      vendor_page: 0.0034
+      vendor_page: 0.0051
+  Vd:
+    value: 4.335e-05
+    winner: calculated
+    sources:
+      calculated: 4.335e-05
+  Dd:
+    value: 0.10403141895720198
+    winner: calculated
+    sources:
+      calculated: 0.10403141895720198
+  EBP:
+    value: 222.22222222222223
+    winner: calculated
+    sources:
+      calculated: 222.22222222222223

@@ -22,86 +22,97 @@ dq_issue: null
 community: null
 fetched_sku: 294-1085
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1085--faitalpro-10hx240-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/FaitalPRO-10HX240-10-Neodymium-Professional-Coaxial-Driver-8-Ohm-294-1085
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1085--faitalpro-10hx240-spec-sheet.pdf
 specs:
+  Fs:  # free air resonance (Hz)
+    value: 65.0
+    winner: datasheet
+    sources:
+      datasheet: 65.0
+      vendor_page: 65.0
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: datasheet
+    sources:
+      datasheet: 0.3
+      vendor_page: 0.3
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: datasheet
+    sources:
+      datasheet: 3.3
+      vendor_page: 3.3
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.9
+    winner: datasheet
+    sources:
+      datasheet: 3.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0316
+    winner: datasheet
+    sources:
+      datasheet: 0.0316
+      vendor_page: 0.0316
+  BL:  # force factor (T·m)
+    value: 15.5
+    winner: datasheet
+    sources:
+      datasheet: 15.5
+      vendor_page: 15.5
+  Qts:  # total Q factor
+    value: 0.28
+    winner: datasheet
+    sources:
+      datasheet: 0.28
+      vendor_page: 0.28
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0318
+    winner: datasheet
+    sources:
+      datasheet: 0.0318
+      vendor_page: 0.031714816
+  Le:  # voice coil inductance (H)
+    value: 0.00045
+    winner: datasheet
+    sources:
+      datasheet: 0.00045
+      vendor_page: 0.00045
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
+    winner: datasheet
+    sources:
+      datasheet: 5.3
+      vendor_page: 5.3
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00019
+    winner: datasheet
+    sources:
+      datasheet: 0.00019
+      vendor_page: 0.00019
+  Sd:  # effective piston area (m²)
+    value: 0.0347
+    winner: datasheet
+    sources:
+      datasheet: 0.0347
+      vendor_page: 0.0347
   Xmax:  # one-way linear excursion (m)
     value: 0.00737
     winner: vendor_page
     sources:
       vendor_page: 0.00737
-  Qts:  # total Q factor
-    value: 0.28
-    winner: vendor_page
+  Vd:
+    value: 0.000255739
+    winner: calculated
     sources:
-      vendor_page: 0.28
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
+      calculated: 0.000255739
+  Dd:
+    value: 0.21019374919894776
+    winner: calculated
     sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.0347
-    winner: vendor_page
+      calculated: 0.21019374919894776
+  EBP:
+    value: 216.66666666666669
+    winner: calculated
     sources:
-      vendor_page: 0.0347
-  Fs:  # free air resonance (Hz)
-    value: 65.0
-    winner: vendor_page
-    sources:
-      vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0316
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0316
-  Qms:  # mechanical Q factor
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  BL:  # force factor (T·m)
-    value: 15.5
-    winner: vendor_page
-    sources:
-      vendor_page: 15.5
-  Le:  # voice coil inductance (H)
-    value: 0.00045
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00045
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0318
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0318
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 96.0
-    winner: vendor_page
-    sources:
-      vendor_page: 96.0
+      calculated: 216.66666666666669

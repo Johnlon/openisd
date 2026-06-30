@@ -16,80 +16,91 @@ reviewed_by: null
 driver_type: tweeter
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=2e-06 differs from calculated=1.92136e-06 '
 community: null
 fetched_sku: 264-1440
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1440--tymphany-bc25sc08-08-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.000717
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000717
   Qts:  # total Q factor
     value: 1.4
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Sd:  # effective piston area (m²)
-    value: 0.000661
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000661
+      datasheet: 1.4
+      vendor_page: 1.28
   Fs:  # free air resonance (Hz)
     value: 1700.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1700.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000289
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000289
-  Qms:  # mechanical Q factor
-    value: 4.42
-    winner: vendor_page
-    sources:
-      vendor_page: 4.42
-  Cms:  # mechanical compliance (m/N)
-    value: 3.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 2.03
-    winner: vendor_page
-    sources:
-      vendor_page: 2.03
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  BL:  # force factor (T·m)
-    value: 3.15
-    winner: vendor_page
-    sources:
-      vendor_page: 3.15
-  Le:  # voice coil inductance (H)
-    value: 4.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.6e-05
+      datasheet: 1700.0
+      vendor_page: 1731.0
   Vas:  # equivalent acoustic volume (m³)
     value: 2.0e-06
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 2.0e-06
+      datasheet: 2.0e-06
+  Qes:  # electrical Q factor
+    value: 2.03
+    winner: datasheet
+    sources:
+      datasheet: 2.03
+      vendor_page: 1.83
+  Xmax:  # one-way linear excursion (m)
+    value: 0.000717
+    winner: datasheet
+    sources:
+      datasheet: 0.000717
+  Qms:  # mechanical Q factor
+    value: 4.42
+    winner: datasheet
+    sources:
+      datasheet: 4.42
+      vendor_page: 4.23
+  Le:  # voice coil inductance (H)
+    value: 4.6e-05
+    winner: datasheet
+    sources:
+      datasheet: 4.6e-05
+      vendor_page: 3.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
+    winner: datasheet
+    sources:
+      datasheet: 6.6
+      vendor_page: 6.57
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000289
+    winner: datasheet
+    sources:
+      datasheet: 0.000289
+  Cms:  # mechanical compliance (m/N)
+    value: 3.1e-05
+    winner: datasheet
+    sources:
+      datasheet: 3.1e-05
+  Sd:  # effective piston area (m²)
+    value: 0.000661
+    winner: datasheet
+    sources:
+      datasheet: 0.000661
+  BL:  # force factor (T·m)
+    value: 3.15
+    winner: datasheet
+    sources:
+      datasheet: 3.15
+  Vd:
+    value: 4.73937e-07
+    winner: calculated
+    sources:
+      calculated: 4.73937e-07
+  Dd:
+    value: 0.029010538413996086
+    winner: calculated
+    sources:
+      calculated: 0.029010538413996086
+  EBP:
+    value: 837.4384236453203
+    winner: calculated
+    sources:
+      calculated: 837.4384236453203

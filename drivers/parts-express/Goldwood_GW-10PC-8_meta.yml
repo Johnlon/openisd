@@ -24,78 +24,78 @@ fetched_sku: 290-324
 _sources:
   vendor_page: https://www.parts-express.com/Goldwood-GW-10PC-8-10-Heavy-Duty-Woofer-8-Ohm-290-324
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.47
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.23
-    winner: vendor_page
-    sources:
-      vendor_page: 7.23
-  Sd:  # effective piston area (m²)
-    value: 0.03449
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03449
   Fs:  # free air resonance (Hz)
     value: 47.89
     winner: vendor_page
     sources:
       vendor_page: 47.89
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.5835226297487757
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03114848
     winner: vendor_page
     sources:
-      vendor_page: 3.5835226297487757
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05776
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05776
-  Qms:  # mechanical Q factor
-    value: 4.85
-    winner: vendor_page
-    sources:
-      vendor_page: 4.85
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00019
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.03114848
   Qes:  # electrical Q factor
     value: 0.53
     winner: vendor_page
     sources:
       vendor_page: 0.53
-  Pe:  # rated power input (W)
-    value: 140.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 140.0
-  BL:  # force factor (T·m)
-    value: 15.47
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 4.85
     winner: vendor_page
     sources:
-      vendor_page: 15.47
+      vendor_page: 4.85
   Le:  # voice coil inductance (H)
     value: 0.00186
     winner: vendor_page
     sources:
       vendor_page: 0.00186
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.031148480000000003
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.23
     winner: vendor_page
     sources:
-      vendor_page: 0.031148480000000003
+      vendor_page: 7.23
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05776
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05776
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00019
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00019
+  Sd:  # effective piston area (m²)
+    value: 0.03449
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03449
+  BL:  # force factor (T·m)
+    value: 15.47
+    winner: vendor_page
+    sources:
+      vendor_page: 15.47
+  Vd:
+    value: 0.00017245
+    winner: calculated
+    sources:
+      calculated: 0.00017245
+  Dd:
+    value: 0.20955675101965998
+    winner: calculated
+    sources:
+      calculated: 0.20955675101965998
+  EBP:
+    value: 90.35849056603773
+    winner: calculated
+    sources:
+      calculated: 90.35849056603773

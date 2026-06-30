@@ -16,79 +16,20 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Le'' = 31.0 above maximum 0.1 H; schema:WDR: ''Vas'' stored=0.141867
+  differs from calculated=1.42709 ('
 community: null
 fetched_sku: 253-075
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-075--12br70-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-12BR70-12-Subwoofer-8-Ohm-253-075
+  datasheet: https://www.parts-express.com/pedocs/specs/253-075--12br70-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.5
     winner: vendor_page
     sources:
       vendor_page: 0.5
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Sd:  # effective piston area (m²)
-    value: 0.054
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054
   Fs:  # free air resonance (Hz)
-    value: 31.0
-    winner: vendor_page
-    sources:
-      vendor_page: 31.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.32758243396977205
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32758243396977205
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0074
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0074
-  Qms:  # mechanical Q factor
-    value: 4.4
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0034500000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0034500000000000004
-  Znom:  # nominal impedance (Ω)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Pe:  # rated power input (W)
-    value: 125.0
-    winner: vendor_page
-    sources:
-      vendor_page: 125.0
-  BL:  # force factor (T·m)
-    value: 12.1
-    winner: vendor_page
-    sources:
-      vendor_page: 12.1
-  Le:  # voice coil inductance (H)
     value: 31.0
     winner: vendor_page
     sources:
@@ -98,3 +39,70 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.141867168
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  BL:  # force factor (T·m)
+    value: 12.1
+    winner: vendor_page
+    sources:
+      vendor_page: 12.1
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: vendor_page
+    sources:
+      vendor_page: 4.4
+  Le:  # voice coil inductance (H)
+    value: 31.0
+    winner: datasheet
+    sources:
+      datasheet: 31.0
+      vendor_page: 0.0008
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0074
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0074
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00345
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00345
+  Sd:  # effective piston area (m²)
+    value: 0.054
+    winner: vendor_page
+    sources:
+      vendor_page: 0.054
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.008
+  Znom:  # nominal impedance (Ω)
+    value: 35.0
+    winner: datasheet
+    sources:
+      datasheet: 35.0
+  Vd:
+    value: 0.000216
+    winner: calculated
+    sources:
+      calculated: 0.000216
+  Dd:
+    value: 0.26221162334209897
+    winner: calculated
+    sources:
+      calculated: 0.26221162334209897
+  EBP:
+    value: 55.357142857142854
+    winner: calculated
+    sources:
+      calculated: 55.357142857142854

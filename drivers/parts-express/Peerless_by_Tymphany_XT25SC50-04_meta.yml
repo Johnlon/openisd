@@ -21,76 +21,87 @@ dq_issue: null
 community: null
 fetched_sku: 264-1021
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1021--xt25sc50-04-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-by-Tymphany-XT25SC50-04-1-Silk-Diaphragm-Neo-Ring-Radiator-Tweeter-264-1021
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1021--xt25sc50-04-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.000867
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000867
   Qts:  # total Q factor
     value: 0.97
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.97
       vendor_page: 0.97
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Sd:  # effective piston area (m²)
-    value: 0.000707
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000707
   Fs:  # free air resonance (Hz)
     value: 820.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 820.0
       vendor_page: 820.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00034
-  Qms:  # mechanical Q factor
-    value: 9.28
-    winner: vendor_page
-    sources:
-      vendor_page: 9.28
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 1.09
-    winner: vendor_page
-    sources:
-      vendor_page: 1.09
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
-  BL:  # force factor (T·m)
-    value: 2.26
-    winner: vendor_page
-    sources:
-      vendor_page: 2.26
-  Le:  # voice coil inductance (H)
-    value: 2.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1e-05
   Vas:  # equivalent acoustic volume (m³)
     value: 8.0e-06
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 8.0e-06
+      datasheet: 8.0e-06
+  Qes:  # electrical Q factor
+    value: 1.09
+    winner: datasheet
+    sources:
+      datasheet: 1.09
+      vendor_page: 1.09
+  Xmax:  # one-way linear excursion (m)
+    value: 0.000867
+    winner: datasheet
+    sources:
+      datasheet: 0.000867
+  Qms:  # mechanical Q factor
+    value: 9.28
+    winner: datasheet
+    sources:
+      datasheet: 9.28
+      vendor_page: 9.28
+  Le:  # voice coil inductance (H)
+    value: 2.1e-05
+    winner: datasheet
+    sources:
+      datasheet: 2.1e-05
+      vendor_page: 2.1e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: datasheet
+    sources:
+      datasheet: 3.2
+      vendor_page: 3.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00034
+    winner: datasheet
+    sources:
+      datasheet: 0.00034
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00011
+    winner: datasheet
+    sources:
+      datasheet: 0.00011
+  Sd:  # effective piston area (m²)
+    value: 0.000707
+    winner: datasheet
+    sources:
+      datasheet: 0.000707
+  BL:  # force factor (T·m)
+    value: 2.26
+    winner: datasheet
+    sources:
+      datasheet: 2.26
+  Vd:
+    value: 6.12969e-07
+    winner: calculated
+    sources:
+      calculated: 6.12969e-07
+  Dd:
+    value: 0.030003005818213614
+    winner: calculated
+    sources:
+      calculated: 0.030003005818213614
+  EBP:
+    value: 752.2935779816513
+    winner: calculated
+    sources:
+      calculated: 752.2935779816513

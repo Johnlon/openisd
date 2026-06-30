@@ -22,76 +22,102 @@ dq_issue: null
 community: null
 fetched_sku: 264-1404
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-FSL-0818R01-08-Professional-8-Midbass-Woofer-Drive-264-1404
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1404--fsl-0818r01-08-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00435
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00435
-  Qts:  # total Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Sd:  # effective piston area (m²)
-    value: 0.0222
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0222
   Fs:  # free air resonance (Hz)
     value: 74.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 74.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0205
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0205
-  Qms:  # mechanical Q factor
-    value: 3.53
-    winner: vendor_page
-    sources:
-      vendor_page: 3.53
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      datasheet: 74.0
+      vendor_page: 73.9
   Qes:  # electrical Q factor
     value: 0.418
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.418
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
+      datasheet: 0.418
+      vendor_page: 0.4
+  Qms:  # mechanical Q factor
+    value: 3.53
+    winner: datasheet
     sources:
-      vendor_page: 250.0
+      datasheet: 3.53
+      vendor_page: 3.03
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0205
+    winner: datasheet
+    sources:
+      datasheet: 0.0205
   BL:  # force factor (T·m)
     value: 11.3
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 11.3
-  Le:  # voice coil inductance (H)
-    value: 0.000571
-    winner: vendor_page
+      datasheet: 11.3
+      vendor_page: 11.49
+  Qts:  # total Q factor
+    value: 0.37
+    winner: datasheet
     sources:
-      vendor_page: 0.000571
+      datasheet: 0.37
+      vendor_page: 0.35
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0159
+    winner: datasheet
+    sources:
+      datasheet: 0.0159
+      vendor_page: 0.015007904
+  Le:  # voice coil inductance (H)
+    value: 0.000571
+    winner: datasheet
+    sources:
+      datasheet: 0.000571
+      vendor_page: 0.00048
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
+    winner: datasheet
+    sources:
+      datasheet: 5.6
+      vendor_page: 5.56
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00023
+    winner: datasheet
+    sources:
+      datasheet: 0.00023
+      vendor_page: 0.000229
+  Sd:  # effective piston area (m²)
+    value: 0.0222
+    winner: datasheet
+    sources:
+      datasheet: 0.0222
+      vendor_page: 0.02177
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00435
+    winner: datasheet
+    sources:
+      datasheet: 0.00435
+      vendor_page: 0.0022
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 0.0159
+      vendor_page: 70.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 700.0
+    winner: vendor_page
+    sources:
+      vendor_page: 700.0
+  Vd:
+    value: 9.656999999999999e-05
+    winner: calculated
+    sources:
+      calculated: 9.656999999999999e-05
+  Dd:
+    value: 0.16812470934731935
+    winner: calculated
+    sources:
+      calculated: 0.16812470934731935
+  EBP:
+    value: 177.0334928229665
+    winner: calculated
+    sources:
+      calculated: 177.0334928229665

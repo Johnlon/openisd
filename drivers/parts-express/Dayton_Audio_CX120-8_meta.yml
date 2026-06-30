@@ -20,81 +20,91 @@ dq_issue: null
 community: null
 fetched_sku: 295-384
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-384--dayton-audio-cx120-8-coaxial-driver-with-1-inch-tweeter-specifications.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-CX120-8-4-Coaxial-Driver-with-3-4-Silk-Dome-Tweeter-8-Ohm-295-384
+  datasheet: https://www.parts-express.com/pedocs/specs/295-384--dayton-audio-cx120-8-coaxial-driver-with-1-inch-tweeter-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
   Qts:  # total Q factor
     value: 0.48
     winner: vendor_page
     sources:
       vendor_page: 0.48
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.22
-    winner: vendor_page
-    sources:
-      vendor_page: 6.22
-  Sd:  # effective piston area (m²)
-    value: 0.005251
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005251
   Fs:  # free air resonance (Hz)
     value: 87.5
     winner: vendor_page
     sources:
       vendor_page: 87.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9169319734612423
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.003001581
     winner: vendor_page
     sources:
-      vendor_page: 0.9169319734612423
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0048200000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0048200000000000005
-  Qms:  # mechanical Q factor
-    value: 2.89
-    winner: vendor_page
-    sources:
-      vendor_page: 2.89
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0007650000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007650000000000001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.003001581
   Qes:  # electrical Q factor
     value: 0.57
     winner: vendor_page
     sources:
       vendor_page: 0.57
-  Pe:  # rated power input (W)
-    value: 40.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
     winner: vendor_page
     sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 5.08
+      vendor_page: 0.003
+  Qms:  # mechanical Q factor
+    value: 2.89
     winner: vendor_page
     sources:
-      vendor_page: 5.08
+      vendor_page: 2.89
   Le:  # voice coil inductance (H)
     value: 0.00063
     winner: vendor_page
     sources:
       vendor_page: 0.00063
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0030015808
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.22
     winner: vendor_page
     sources:
-      vendor_page: 0.0030015808
+      vendor_page: 6.22
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00482
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00482
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000765
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000765
+  Sd:  # effective piston area (m²)
+    value: 0.005251
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005251
+  BL:  # force factor (T·m)
+    value: 5.08
+    winner: vendor_page
+    sources:
+      vendor_page: 5.08
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 90.0
+    winner: vendor_page
+    sources:
+      vendor_page: 90.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 5500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5500.0
+  Vd:
+    value: 1.5753e-05
+    winner: calculated
+    sources:
+      calculated: 1.5753e-05
+  Dd:
+    value: 0.08176662429992043
+    winner: calculated
+    sources:
+      calculated: 0.08176662429992043
+  EBP:
+    value: 153.50877192982458
+    winner: calculated
+    sources:
+      calculated: 153.50877192982458

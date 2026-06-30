@@ -24,78 +24,78 @@ fetched_sku: 295-415
 _sources:
   vendor_page: https://www.parts-express.com/Dayton-Audio-TCP115-4-4-Treated-Paper-Cone-Midbass-Woofer-4-Ohm-295-415
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.35
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Sd:  # effective piston area (m²)
-    value: 0.00503
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00503
   Fs:  # free air resonance (Hz)
     value: 53.8
     winner: vendor_page
     sources:
       vendor_page: 53.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0657803051942647
-    winner: vendor_page
-    sources:
-      vendor_page: 1.0657803051942647
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0099
-  Qms:  # mechanical Q factor
-    value: 3.14
-    winner: vendor_page
-    sources:
-      vendor_page: 3.14
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00088
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
-    sources:
-      vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Le:  # voice coil inductance (H)
-    value: 0.0009699999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0009699999999999999
   Vas:  # equivalent acoustic volume (m³)
     value: 0.003114848
     winner: vendor_page
     sources:
       vendor_page: 0.003114848
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: vendor_page
+    sources:
+      vendor_page: 0.4
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004
+  Qms:  # mechanical Q factor
+    value: 3.14
+    winner: vendor_page
+    sources:
+      vendor_page: 3.14
+  Le:  # voice coil inductance (H)
+    value: 0.00097
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00097
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0099
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00088
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00088
+  Sd:  # effective piston area (m²)
+    value: 0.00503
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00503
+  BL:  # force factor (T·m)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Vd:
+    value: 2.012e-05
+    winner: calculated
+    sources:
+      calculated: 2.012e-05
+  Dd:
+    value: 0.0800274634735968
+    winner: calculated
+    sources:
+      calculated: 0.0800274634735968
+  EBP:
+    value: 134.49999999999997
+    winner: calculated
+    sources:
+      calculated: 134.49999999999997

@@ -16,90 +16,86 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Cms'' = 0.131 above maximum 0.1 m/N;
+  schema:WDR: ''Sd'' = 9.2e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 294-493
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493
+  datasheet: https://www.parts-express.com/pedocs/specs/294-493--jbl-15pwx-8r-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 1.05
     winner: vendor_page
     sources:
       vendor_page: 1.05
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.26
-    winner: vendor_page
-    sources:
-      vendor_page: 6.26
-  Sd:  # effective piston area (m²)
-    value: 0.092
-    winner: vendor_page
-    sources:
-      vendor_page: 0.092
   Fs:  # free air resonance (Hz)
     value: 51.5
     winner: vendor_page
     sources:
       vendor_page: 51.5
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1772540741056463
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1772540741056463
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0732
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0732
-  Qms:  # mechanical Q factor
-    value: 20.12
-    winner: vendor_page
-    sources:
-      vendor_page: 20.12
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 1.11
-    winner: vendor_page
-    sources:
-      vendor_page: 1.11
-  Pe:  # rated power input (W)
-    value: 350.0
-    winner: vendor_page
-    sources:
-      vendor_page: 350.0
-  BL:  # force factor (T·m)
-    value: 11.58
-    winner: vendor_page
-    sources:
-      vendor_page: 11.58
-  Le:  # voice coil inductance (H)
-    value: 0.00108
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00108
   Vas:  # equivalent acoustic volume (m³)
     value: 0.157724576
     winner: vendor_page
     sources:
       vendor_page: 0.157724576
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 15.0
+  Qes:  # electrical Q factor
+    value: 1.11
     winner: vendor_page
     sources:
-      vendor_page: 15.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 8.0
+      vendor_page: 1.11
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 8.0
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 20.12
+    winner: vendor_page
+    sources:
+      vendor_page: 20.12
+  Le:  # voice coil inductance (H)
+    value: 0.00108
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00108
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.26
+    winner: vendor_page
+    sources:
+      vendor_page: 6.26
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0732
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0732
+  Cms:  # mechanical compliance (m/N)
+    value: 0.131
+    winner: vendor_page
+    sources:
+      vendor_page: 0.131
+  Sd:  # effective piston area (m²)
+    value: 9.2e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 9.2e-06
+  BL:  # force factor (T·m)
+    value: 11.58
+    winner: vendor_page
+    sources:
+      vendor_page: 11.58
+  Vd:
+    value: 4.6e-08
+    winner: calculated
+    sources:
+      calculated: 4.6e-08
+  Dd:
+    value: 0.0034225434710991615
+    winner: calculated
+    sources:
+      calculated: 0.0034225434710991615
+  EBP:
+    value: 46.39639639639639
+    winner: calculated
+    sources:
+      calculated: 46.39639639639639

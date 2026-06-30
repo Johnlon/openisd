@@ -17,84 +17,85 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Cms'' = 0.429 above maximum 0.1 m/N;
+  schema:WDR: ''Sd'' = 1.35e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 253-033
 _sources:
   vendor_page: https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-8-Ohm-253-033
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.26
     winner: vendor_page
     sources:
       vendor_page: 0.26
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.9
-    winner: vendor_page
-    sources:
-      vendor_page: 4.9
-  Sd:  # effective piston area (m²)
-    value: 0.0135
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0135
   Fs:  # free air resonance (Hz)
     value: 58.0
     winner: vendor_page
     sources:
       vendor_page: 58.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0013467871114954506
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0013467871114954506
-  Mms:  # moving mass incl. air load (kg)
-    value: 1.7e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7e-05
-  Qms:  # mechanical Q factor
-    value: 4.6
-    winner: vendor_page
-    sources:
-      vendor_page: 4.6
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 10.5
-    winner: vendor_page
-    sources:
-      vendor_page: 10.5
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
   Vas:  # equivalent acoustic volume (m³)
     value: 0.011043552
     winner: vendor_page
     sources:
       vendor_page: 0.011043552
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 93.0
+  Qes:  # electrical Q factor
+    value: 0.27
     winner: vendor_page
     sources:
-      vendor_page: 93.0
+      vendor_page: 0.27
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 4.6
+    winner: vendor_page
+    sources:
+      vendor_page: 4.6
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.9
+    winner: vendor_page
+    sources:
+      vendor_page: 4.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 1.7e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.7e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.429
+    winner: vendor_page
+    sources:
+      vendor_page: 0.429
+  Sd:  # effective piston area (m²)
+    value: 1.35e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 1.35e-06
+  BL:  # force factor (T·m)
+    value: 10.5
+    winner: vendor_page
+    sources:
+      vendor_page: 10.5
+  Vd:
+    value: 6.75e-09
+    winner: calculated
+    sources:
+      calculated: 6.75e-09
+  Dd:
+    value: 0.001311058116710495
+    winner: calculated
+    sources:
+      calculated: 0.001311058116710495
+  EBP:
+    value: 214.8148148148148
+    winner: calculated
+    sources:
+      calculated: 214.8148148148148

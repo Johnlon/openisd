@@ -24,83 +24,78 @@ fetched_sku: 253-050
 _sources:
   vendor_page: https://www.parts-express.com/Beyma-18LEX1200Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-050
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011
   Qts:  # total Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.1255
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1255
   Fs:  # free air resonance (Hz)
     value: 36.0
     winner: vendor_page
     sources:
       vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.150360936852571
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.218888864
     winner: vendor_page
     sources:
-      vendor_page: 4.150360936852571
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.2
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2
-  Qms:  # mechanical Q factor
-    value: 10.9
-    winner: vendor_page
-    sources:
-      vendor_page: 10.9
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.218888864
   Qes:  # electrical Q factor
     value: 0.35
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Pe:  # rated power input (W)
-    value: 1200.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.011
     winner: vendor_page
     sources:
-      vendor_page: 1200.0
-  BL:  # force factor (T·m)
-    value: 26.4
+      vendor_page: 0.011
+  Qms:  # mechanical Q factor
+    value: 10.9
     winner: vendor_page
     sources:
-      vendor_page: 26.4
+      vendor_page: 10.9
   Le:  # voice coil inductance (H)
     value: 0.0017
     winner: vendor_page
     sources:
       vendor_page: 0.0017
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.21888886400000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 0.21888886400000002
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 98.0
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.2
     winner: vendor_page
     sources:
-      vendor_page: 98.0
+      vendor_page: 0.2
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0001
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0001
+  Sd:  # effective piston area (m²)
+    value: 0.1255
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1255
+  BL:  # force factor (T·m)
+    value: 26.4
+    winner: vendor_page
+    sources:
+      vendor_page: 26.4
+  Vd:
+    value: 0.0013805
+    winner: calculated
+    sources:
+      calculated: 0.0013805
+  Dd:
+    value: 0.3997393686694656
+    winner: calculated
+    sources:
+      calculated: 0.3997393686694656
+  EBP:
+    value: 102.85714285714286
+    winner: calculated
+    sources:
+      calculated: 102.85714285714286

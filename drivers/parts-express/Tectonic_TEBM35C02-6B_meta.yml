@@ -16,95 +16,85 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.000161406 differs from calculated=0.0001'
 community: null
 fetched_sku: 297-2174
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-2174--tectonic-tebm35c02-6b-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Tectonic-TEBM35C02-6B-1-3-4-BMR-Full-Range-Headphone-Driver-6-Ohms-297-2174
+  datasheet: https://www.parts-express.com/pedocs/specs/297-2174--tectonic-tebm35c02-6b-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0025
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0025
   Qts:  # total Q factor
     value: 0.93
     winner: vendor_page
     sources:
       vendor_page: 0.93
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Sd:  # effective piston area (m²)
-    value: 0.001104
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001104
   Fs:  # free air resonance (Hz)
     value: 156.0
     winner: vendor_page
     sources:
       vendor_page: 156.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.2781280013319952
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000161406
     winner: vendor_page
     sources:
-      vendor_page: 0.2781280013319952
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00124
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00124
-  Qms:  # mechanical Q factor
-    value: 4.37
-    winner: vendor_page
-    sources:
-      vendor_page: 4.37
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000839
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000839
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
+      vendor_page: 0.000161406
   Qes:  # electrical Q factor
     value: 1.19
     winner: vendor_page
     sources:
       vendor_page: 1.19
-  Pe:  # rated power input (W)
-    value: 2.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0025
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 0.0025
+  Qms:  # mechanical Q factor
+    value: 4.37
+    winner: vendor_page
+    sources:
+      vendor_page: 4.37
+  Le:  # voice coil inductance (H)
+    value: 9.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
+    winner: vendor_page
+    sources:
+      vendor_page: 5.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00124
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00124
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000839
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000839
+  Sd:  # effective piston area (m²)
+    value: 0.001104
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001104
   BL:  # force factor (T·m)
     value: 2.39
     winner: vendor_page
     sources:
       vendor_page: 2.39
-  Le:  # voice coil inductance (H)
-    value: 8.999999999999999e-05
-    winner: vendor_page
+  Vd:
+    value: 2.76e-06
+    winner: calculated
     sources:
-      vendor_page: 8.999999999999999e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00016140576000000002
-    winner: vendor_page
+      calculated: 2.76e-06
+  Dd:
+    value: 0.037492085263260824
+    winner: calculated
     sources:
-      vendor_page: 0.00016140576000000002
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 35.0
-    winner: vendor_page
+      calculated: 0.037492085263260824
+  EBP:
+    value: 131.09243697478993
+    winner: calculated
     sources:
-      vendor_page: 35.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 0.0
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0
+      calculated: 131.09243697478993

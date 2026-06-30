@@ -1,0 +1,26 @@
+RT1.3WE
+
+G4
+
+Specifications
+
+General Data
+
+Nominal Power Handling (Pnom)(W) 10
+
+Max Power Handling (Pmax)(W) 30
+
+Sensitivity (2.83v/1m)(dB) 92
+
+Weight (M)(Kg) 0.2
+Electrical Data
+
+Nominal Impedance (Z)(Q) 6
+
+DC (Re)(Q) 5.4
+
+Voice Coil and Magnet Parameters
+Magnet Former Neodymium
+
+— % ¥ 4 ¢ #.8 2 8@ ee #
+

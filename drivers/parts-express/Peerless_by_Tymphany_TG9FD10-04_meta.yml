@@ -16,85 +16,88 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00141584 differs from calculated=0.00130'
 community: null
 fetched_sku: 264-1064
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1064--tymphany-tg9fd10-04-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
   Qts:  # total Q factor
     value: 0.83
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.83
       vendor_page: 0.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Sd:  # effective piston area (m²)
-    value: 0.0036299999999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0036299999999999995
   Fs:  # free air resonance (Hz)
     value: 113.0
     winner: vendor_page
     sources:
       vendor_page: 113.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.66976660979432
-    winner: vendor_page
-    sources:
-      vendor_page: 0.66976660979432
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00283
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00283
-  Qms:  # mechanical Q factor
-    value: 3.04
-    winner: vendor_page
-    sources:
-      vendor_page: 3.04
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 1.14
-    winner: vendor_page
-    sources:
-      vendor_page: 1.14
-  Pe:  # rated power input (W)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  BL:  # force factor (T·m)
-    value: 2.4
-    winner: vendor_page
-    sources:
-      vendor_page: 2.4
-  Le:  # voice coil inductance (H)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
   Vas:  # equivalent acoustic volume (m³)
     value: 0.00141584
     winner: vendor_page
     sources:
       vendor_page: 0.00141584
+  Qes:  # electrical Q factor
+    value: 1.14
+    winner: datasheet
+    sources:
+      datasheet: 1.14
+      vendor_page: 1.14
+  BL:  # force factor (T·m)
+    value: 2.4
+    winner: vendor_page
+    sources:
+      vendor_page: 2.4
+  Qms:  # mechanical Q factor
+    value: 3.04
+    winner: datasheet
+    sources:
+      datasheet: 3.04
+      vendor_page: 3.0
+  Le:  # voice coil inductance (H)
+    value: 7.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00283
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00283
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0007
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0007
+  Sd:  # effective piston area (m²)
+    value: 0.00363
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00363
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
+  Vd:
+    value: 9.438e-06
+    winner: calculated
+    sources:
+      calculated: 9.438e-06
+  Dd:
+    value: 0.06798425955608137
+    winner: calculated
+    sources:
+      calculated: 0.06798425955608137
+  EBP:
+    value: 99.12280701754386
+    winner: calculated
+    sources:
+      calculated: 99.12280701754386

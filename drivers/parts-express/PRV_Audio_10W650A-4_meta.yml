@@ -16,100 +16,96 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0413425 differs from calculated=10.0729 '
 community: null
 fetched_sku: 294-2894
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2894--prv-audio-10w650a-4-specifications.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-10W650A-4-10-Alto-Series-Professional-Woofer-4-Ohm-294-2894
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2894--prv-audio-10w650a-4-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.39
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Sd:  # effective piston area (m²)
-    value: 0.0415
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0415
   Fs:  # free air resonance (Hz)
     value: 66.88
     winner: vendor_page
     sources:
       vendor_page: 66.88
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8655422055813348
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.041342528
     winner: vendor_page
     sources:
-      vendor_page: 0.8655422055813348
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.033100000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033100000000000004
-  Qms:  # mechanical Q factor
-    value: 16.07
-    winner: vendor_page
-    sources:
-      vendor_page: 16.07
-  Cms:  # mechanical compliance (m/N)
-    value: 0.04123
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04123
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.041342528
   Qes:  # electrical Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 325.0
-    winner: vendor_page
-    sources:
-      vendor_page: 325.0
   BL:  # force factor (T·m)
     value: 11.23
     winner: vendor_page
     sources:
       vendor_page: 11.23
+  Qms:  # mechanical Q factor
+    value: 16.07
+    winner: vendor_page
+    sources:
+      vendor_page: 16.07
   Le:  # voice coil inductance (H)
     value: 0.00057
     winner: vendor_page
     sources:
       vendor_page: 0.00057
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.041342527999999996
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 0.041342527999999996
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
+      vendor_page: 3.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0331
     winner: vendor_page
     sources:
-      vendor_page: 97.0
+      vendor_page: 0.0331
+  Cms:  # mechanical compliance (m/N)
+    value: 0.04123
+    winner: datasheet
+    sources:
+      datasheet: 0.04123
+      vendor_page: 0.00017
+  Sd:  # effective piston area (m²)
+    value: 0.0415
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0415
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 75.0
     winner: vendor_page
     sources:
       vendor_page: 75.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 5.0
+    value: 5500.0
     winner: vendor_page
     sources:
-      vendor_page: 5.0
+      vendor_page: 5500.0
+  Vd:
+    value: 0.00016600000000000002
+    winner: calculated
+    sources:
+      calculated: 0.00016600000000000002
+  Dd:
+    value: 0.2298683125324351
+    winner: calculated
+    sources:
+      calculated: 0.2298683125324351
+  EBP:
+    value: 167.2
+    winner: calculated
+    sources:
+      calculated: 167.2

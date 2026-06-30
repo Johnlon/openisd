@@ -16,95 +16,99 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny; tweeter_fs
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 5.7e-07 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-881
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-881--tang-band-w4-1757sb-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W4-1757SB-4-Aluminum-Cone-Driver-264-881
+  datasheet: https://www.parts-express.com/pedocs/specs/264-881--tang-band-w4-1757sb-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Qts:  # total Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.6
-    winner: vendor_page
-    sources:
-      vendor_page: 5.6
-  Sd:  # effective piston area (m²)
-    value: 5.7e-07
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7e-07
   Fs:  # free air resonance (Hz)
     value: 75.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 75.0
       vendor_page: 75.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5170852265883614
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5170852265883614
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.099
-  Qms:  # mechanical Q factor
-    value: 1.55
-    winner: vendor_page
-    sources:
-      vendor_page: 1.55
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000907479
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000907479
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
   Qes:  # electrical Q factor
     value: 0.65
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.65
       vendor_page: 0.65
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 1.55
+    winner: datasheet
     sources:
-      vendor_page: 30.0
+      datasheet: 1.55
+      vendor_page: 1.55
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.099
+    winner: datasheet
+    sources:
+      datasheet: 0.099
+      vendor_page: 0.00499
   BL:  # force factor (T·m)
     value: 4.51
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 4.51
       vendor_page: 4.51
+  Znom:  # nominal impedance (Ω)
+    value: 6.0
+    winner: datasheet
+    sources:
+      datasheet: 6.0
+  Qts:  # total Q factor
+    value: 0.46
+    winner: datasheet
+    sources:
+      datasheet: 0.46
+      vendor_page: 0.46
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00419
+    winner: datasheet
+    sources:
+      datasheet: 0.00419
+      vendor_page: 0.00424752
   Le:  # voice coil inductance (H)
     value: 2.0e-05
     winner: vendor_page
     sources:
       vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00419
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.6
     winner: vendor_page
     sources:
-      vendor_page: 0.00419
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 2019.1
+      vendor_page: 5.6
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000907479
+    winner: datasheet
+    sources:
+      datasheet: 0.000907479
+      vendor_page: 0.00091
+  Sd:  # effective piston area (m²)
+    value: 5.7e-07
+    winner: datasheet
+    sources:
+      datasheet: 5.7e-07
+      vendor_page: 0.0057
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
     winner: vendor_page
     sources:
-      vendor_page: 2019.1
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 264.0
-    winner: vendor_page
+      vendor_page: 0.003
+  Vd:
+    value: 1.71e-09
+    winner: calculated
     sources:
-      vendor_page: 264.0
+      calculated: 1.71e-09
+  Dd:
+    value: 0.0008519075891779828
+    winner: calculated
+    sources:
+      calculated: 0.0008519075891779828
+  EBP:
+    value: 115.38461538461539
+    winner: calculated
+    sources:
+      calculated: 115.38461538461539

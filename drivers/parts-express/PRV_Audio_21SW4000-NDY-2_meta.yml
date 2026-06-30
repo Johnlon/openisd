@@ -17,85 +17,87 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+dq_issue: 'Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms; schema:WDR: ''Cms''
+  = 0.2847 above maximum 0.1 m/N'
 community: null
 fetched_sku: 294-2765
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2765--prv-audio-21sw4000-ndy-2-specifications.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2765--prv-audio-21sw4000-ndy-2-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
   Qts:  # total Q factor
     value: 0.28
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.8
-    winner: vendor_page
-    sources:
-      vendor_page: 1.8
-  Sd:  # effective piston area (m²)
-    value: 0.1924
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1924
   Fs:  # free air resonance (Hz)
     value: 30.8
     winner: vendor_page
     sources:
       vendor_page: 30.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.612183464610598
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.28458384
     winner: vendor_page
     sources:
-      vendor_page: 7.612183464610598
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.485
-    winner: vendor_page
-    sources:
-      vendor_page: 0.485
-  Qms:  # mechanical Q factor
-    value: 12.33
-    winner: vendor_page
-    sources:
-      vendor_page: 12.33
-  Cms:  # mechanical compliance (m/N)
-    value: 0.2847
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2847
-  Znom:  # nominal impedance (Ω)
-    value: 2.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0
+      vendor_page: 0.28458384
   Qes:  # electrical Q factor
     value: 0.28
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
   BL:  # force factor (T·m)
     value: 24.36
     winner: vendor_page
     sources:
       vendor_page: 24.36
+  Qms:  # mechanical Q factor
+    value: 12.33
+    winner: vendor_page
+    sources:
+      vendor_page: 12.33
   Le:  # voice coil inductance (H)
     value: 0.00114
     winner: vendor_page
     sources:
       vendor_page: 0.00114
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.28458384000000003
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.8
     winner: vendor_page
     sources:
-      vendor_page: 0.28458384000000003
+      vendor_page: 1.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.485
+    winner: vendor_page
+    sources:
+      vendor_page: 0.485
+  Cms:  # mechanical compliance (m/N)
+    value: 0.2847
+    winner: datasheet
+    sources:
+      datasheet: 0.2847
+      vendor_page: 5.5e-05
+  Sd:  # effective piston area (m²)
+    value: 0.1924
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1924
+  Xmax:  # one-way linear excursion (m)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Vd:
+    value: 0.0028859999999999997
+    winner: calculated
+    sources:
+      calculated: 0.0028859999999999997
+  Dd:
+    value: 0.4949457428921329
+    winner: calculated
+    sources:
+      calculated: 0.4949457428921329
+  EBP:
+    value: 109.99999999999999
+    winner: calculated
+    sources:
+      calculated: 109.99999999999999

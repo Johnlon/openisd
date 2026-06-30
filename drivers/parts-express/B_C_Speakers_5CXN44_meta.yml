@@ -23,88 +23,88 @@ fetched_sku: 294-6049
 _sources:
   vendor_page: https://www.parts-express.com/B-C-5CXN44-5-Professional-Coaxial-Speaker-80-X-80-8-Ohm-294-6049
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0055
   Qts:  # total Q factor
     value: 0.45
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.7
-    winner: vendor_page
-    sources:
-      vendor_page: 4.7
-  Sd:  # effective piston area (m²)
-    value: 0.0095
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0095
   Fs:  # free air resonance (Hz)
     value: 70.0
     winner: vendor_page
     sources:
       vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6872233929727671
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00424752
     winner: vendor_page
     sources:
-      vendor_page: 0.6872233929727671
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  Qms:  # mechanical Q factor
-    value: 9.6
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000345
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000345
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.00424752
   Qes:  # electrical Q factor
     value: 0.47
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Pe:  # rated power input (W)
-    value: 300.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0055
     winner: vendor_page
     sources:
-      vendor_page: 300.0
-  BL:  # force factor (T·m)
-    value: 8.1
+      vendor_page: 0.0055
+  Qms:  # mechanical Q factor
+    value: 9.6
     winner: vendor_page
     sources:
-      vendor_page: 8.1
+      vendor_page: 9.6
   Le:  # voice coil inductance (H)
     value: 0.00037
     winner: vendor_page
     sources:
       vendor_page: 0.00037
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.004247519999999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.7
     winner: vendor_page
     sources:
-      vendor_page: 0.004247519999999999
+      vendor_page: 4.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000345
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000345
+  Sd:  # effective piston area (m²)
+    value: 0.0095
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0095
+  BL:  # force factor (T·m)
+    value: 8.1
+    winner: vendor_page
+    sources:
+      vendor_page: 8.1
   freq_low_hz:  # published lower frequency limit (Hz)
-    value: 101.0
+    value: 70.0
     winner: vendor_page
     sources:
-      vendor_page: 101.0
+      vendor_page: 70.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 2.83
+    value: 5000.0
     winner: vendor_page
     sources:
-      vendor_page: 2.83
+      vendor_page: 5000.0
+  Vd:
+    value: 5.2249999999999996e-05
+    winner: calculated
+    sources:
+      calculated: 5.2249999999999996e-05
+  Dd:
+    value: 0.10998079684646792
+    winner: calculated
+    sources:
+      calculated: 0.10998079684646792
+  EBP:
+    value: 148.93617021276597
+    winner: calculated
+    sources:
+      calculated: 148.93617021276597

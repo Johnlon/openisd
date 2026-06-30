@@ -16,85 +16,114 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.002 differs from calculated=1.87786e-05 '
 community: null
 fetched_sku: 297-024
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-024--morel-integra-424-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Morel-Integra-424-Hybrid-Series-4-Point-Source-Coaxial-Full-Range-297-024
+  datasheet: https://www.parts-express.com/pedocs/specs/297-024--morel-integra-424-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Qts:  # total Q factor
-    value: 1.53
-    winner: vendor_page
-    sources:
-      vendor_page: 1.53
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Sd:  # effective piston area (m²)
-    value: 0.000615
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000615
   Fs:  # free air resonance (Hz)
     value: 1100.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.52
-    winner: vendor_page
-    sources:
-      vendor_page: 1.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qms:  # mechanical Q factor
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00035
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      datasheet: 1100.0
+      vendor_page: 120.0
   Qes:  # electrical Q factor
     value: 2.73
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 2.73
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
+      datasheet: 2.73
+      vendor_page: 0.6
+  Qms:  # mechanical Q factor
+    value: 3.5
+    winner: datasheet
     sources:
-      vendor_page: 60.0
+      datasheet: 3.5
+      vendor_page: 2.47
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.52
+    winner: datasheet
+    sources:
+      datasheet: 1.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.005
+    winner: datasheet
+    sources:
+      datasheet: 0.005
+      vendor_page: 0.005
   BL:  # force factor (T·m)
     value: 4.32
     winner: vendor_page
     sources:
       vendor_page: 4.32
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
+  Qts:  # total Q factor
+    value: 1.53
+    winner: datasheet
+    sources:
+      datasheet: 1.53
+      vendor_page: 0.48
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.002
+    winner: datasheet
+    sources:
+      datasheet: 0.002
+      vendor_page: 0.001982176
   Le:  # voice coil inductance (H)
     value: 0.00015
     winner: vendor_page
     sources:
       vendor_page: 0.00015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.002
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
+    winner: datasheet
+    sources:
+      datasheet: 3.5
+      vendor_page: 3.0
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00035
+    winner: datasheet
+    sources:
+      datasheet: 0.00035
+      vendor_page: 0.00247
+  Sd:  # effective piston area (m²)
+    value: 0.000615
+    winner: datasheet
+    sources:
+      datasheet: 0.000615
+      vendor_page: 0.0063
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
     winner: vendor_page
     sources:
-      vendor_page: 0.002
+      vendor_page: 0.003
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 6500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6500.0
+  Vd:
+    value: 1.845e-06
+    winner: calculated
+    sources:
+      calculated: 1.845e-06
+  Dd:
+    value: 0.027982893345973446
+    winner: calculated
+    sources:
+      calculated: 0.027982893345973446
+  EBP:
+    value: 402.9304029304029
+    winner: calculated
+    sources:
+      calculated: 402.9304029304029

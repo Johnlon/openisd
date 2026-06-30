@@ -17,85 +17,85 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.107604 differs from calculated=15.5549 ('
 community: null
 fetched_sku: 294-671
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-671--bc-15pzb100-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/B-C-15PZB100-15-Woofer-294-671
+  datasheet: https://www.parts-express.com/pedocs/specs/294-671--bc-15pzb100-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008
   Qts:  # total Q factor
     value: 0.29
     winner: vendor_page
     sources:
       vendor_page: 0.29
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Sd:  # effective piston area (m²)
-    value: 0.0855
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0855
   Fs:  # free air resonance (Hz)
     value: 39.0
     winner: vendor_page
     sources:
       vendor_page: 39.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.805663223833937
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.10760384
     winner: vendor_page
     sources:
-      vendor_page: 5.805663223833937
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.154
-    winner: vendor_page
-    sources:
-      vendor_page: 0.154
-  Qms:  # mechanical Q factor
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Cms:  # mechanical compliance (m/N)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.10760384
   Qes:  # electrical Q factor
     value: 0.3
     winner: vendor_page
     sources:
       vendor_page: 0.3
-  Pe:  # rated power input (W)
-    value: 1400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1400.0
   BL:  # force factor (T·m)
     value: 25.8
     winner: vendor_page
     sources:
       vendor_page: 25.8
+  Qms:  # mechanical Q factor
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
   Le:  # voice coil inductance (H)
     value: 0.002
     winner: vendor_page
     sources:
       vendor_page: 0.002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.10760383999999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 0.10760383999999999
+      vendor_page: 5.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.154
+    winner: vendor_page
+    sources:
+      vendor_page: 0.154
+  Cms:  # mechanical compliance (m/N)
+    value: 0.015
+    winner: datasheet
+    sources:
+      datasheet: 0.015
+  Sd:  # effective piston area (m²)
+    value: 0.0855
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0855
+  Xmax:  # one-way linear excursion (m)
+    value: 0.008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.008
+  Vd:
+    value: 0.000684
+    winner: calculated
+    sources:
+      calculated: 0.000684
+  Dd:
+    value: 0.3299423905394038
+    winner: calculated
+    sources:
+      calculated: 0.3299423905394038
+  EBP:
+    value: 130.0
+    winner: calculated
+    sources:
+      calculated: 130.0

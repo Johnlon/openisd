@@ -22,78 +22,78 @@ fetched_sku: 294-1324
 _sources:
   vendor_page: https://www.parts-express.com/FaitalPRO-10PR320-10-Professional-Neodymium-Woofer-16-Ohm-294-1324
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0072699999999999996
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0072699999999999996
   Qts:  # total Q factor
     value: 0.38
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 11.3
-    winner: vendor_page
-    sources:
-      vendor_page: 11.3
-  Sd:  # effective piston area (m²)
-    value: 0.0321
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0321
   Fs:  # free air resonance (Hz)
     value: 50.0
     winner: vendor_page
     sources:
       vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.198712520018699
-    winner: vendor_page
-    sources:
-      vendor_page: 3.198712520018699
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.033600000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033600000000000005
-  Qms:  # mechanical Q factor
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
-    winner: vendor_page
-    sources:
-      vendor_page: 16.0
-  Qes:  # electrical Q factor
-    value: 0.43
-    winner: vendor_page
-    sources:
-      vendor_page: 0.43
-  Pe:  # rated power input (W)
-    value: 300.0
-    winner: vendor_page
-    sources:
-      vendor_page: 300.0
-  BL:  # force factor (T·m)
-    value: 16.7
-    winner: vendor_page
-    sources:
-      vendor_page: 16.7
-  Le:  # voice coil inductance (H)
-    value: 0.00098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00098
   Vas:  # equivalent acoustic volume (m³)
     value: 0.044174208
     winner: vendor_page
     sources:
       vendor_page: 0.044174208
+  Qes:  # electrical Q factor
+    value: 0.43
+    winner: vendor_page
+    sources:
+      vendor_page: 0.43
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00727
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00727
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Le:  # voice coil inductance (H)
+    value: 0.00098
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00098
+  Re:  # DC voice coil resistance (Ω)
+    value: 11.3
+    winner: vendor_page
+    sources:
+      vendor_page: 11.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0336
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0336
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Sd:  # effective piston area (m²)
+    value: 0.0321
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0321
+  BL:  # force factor (T·m)
+    value: 16.7
+    winner: vendor_page
+    sources:
+      vendor_page: 16.7
+  Vd:
+    value: 0.00023336699999999998
+    winner: calculated
+    sources:
+      calculated: 0.00023336699999999998
+  Dd:
+    value: 0.20216574731145412
+    winner: calculated
+    sources:
+      calculated: 0.20216574731145412
+  EBP:
+    value: 116.27906976744187
+    winner: calculated
+    sources:
+      calculated: 116.27906976744187

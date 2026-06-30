@@ -1,0 +1,41 @@
+Specifications ' Mounting Information
+
+Throat Diameter 1" Two M6 holes 180° on 76 mm (3 in) diameter
+Nominal Impedance 1609 Three M6 holes 120° on 57 mm (2.2 in) diameter
+Minimum Impedance 10.80
+Frequency Response Power Handling Overall Diameter 120 mm
+me: Alp (1.6 -20kHz) Depth 62 mm
+a a LAL Nominal ? ; 60 W Net Weight 2.2 kg
+stosE Continuous Program 120 W
+: Sensitivity (1W/1m) 4 109 dB
+ose Frequency Range 1-18 kHz
+t +90 Recommended Crossover ° 1.6 kHz
+a J Voice Coil Diameter 44 mm
++90 Winding Material Aluminium
++75E Inductance 0.1 mH
+70° 600 700 1k 2k ak 4k~=C«*S KOCK 7k Bk 10k 20k Diaphragm Material Polyimide
+“ Flux Density 1.85 T
+Impedance
+200 +90 (1) Driver mounted on B&C ME 45 horn
+
+(2) 2 hours test made with continuous pink noise signal (6 dB
+100 crest factor) within the specified range. Power calculated on
++60 rated minimum impedance.
+
+50 (3) Power on Continuous Program is defined as 3 dB greater
++80 than the Nominal rating.
+
+(4) Applied RMS Voltage is setto 4V for 16 ohms Nominal
+* *° Impedance. Average SPL from 1600 to 18000 Hz
+
+Lier 30 (5) 12 dB/oct. or higher slope high-pass filter.
+
+60
+
+=Zzxro
+amo
+
+200 500 1k 2k 5k 10k 20k
+
+_ 23/11/2004
+

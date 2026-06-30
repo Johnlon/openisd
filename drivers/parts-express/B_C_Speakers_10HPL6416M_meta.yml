@@ -23,78 +23,78 @@ fetched_sku: 294-5931
 _sources:
   vendor_page: https://www.parts-express.com/B-C-10HPL64-16-10-Neodymium-Woofer-294-5931
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.36
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Re:  # DC voice coil resistance (Ω)
-    value: 10.37
-    winner: vendor_page
-    sources:
-      vendor_page: 10.37
-  Sd:  # effective piston area (m²)
-    value: 0.032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032
   Fs:  # free air resonance (Hz)
     value: 64.0
     winner: vendor_page
     sources:
       vendor_page: 64.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.3251518221895466
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.030298976
     winner: vendor_page
     sources:
-      vendor_page: 2.3251518221895466
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0292
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0292
-  Qms:  # mechanical Q factor
-    value: 5.05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.05
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000211
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000211
-  Znom:  # nominal impedance (Ω)
-    value: 16.0
-    winner: vendor_page
-    sources:
-      vendor_page: 16.0
+      vendor_page: 0.030298976
   Qes:  # electrical Q factor
     value: 0.39
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Pe:  # rated power input (W)
-    value: 400.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
     winner: vendor_page
     sources:
-      vendor_page: 400.0
-  BL:  # force factor (T·m)
-    value: 17.7
+      vendor_page: 0.004
+  Qms:  # mechanical Q factor
+    value: 5.05
     winner: vendor_page
     sources:
-      vendor_page: 17.7
+      vendor_page: 5.05
   Le:  # voice coil inductance (H)
     value: 0.00063
     winner: vendor_page
     sources:
       vendor_page: 0.00063
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.030298976000000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 10.37
     winner: vendor_page
     sources:
-      vendor_page: 0.030298976000000002
+      vendor_page: 10.37
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0292
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0292
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000211
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000211
+  Sd:  # effective piston area (m²)
+    value: 0.032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.032
+  BL:  # force factor (T·m)
+    value: 17.7
+    winner: vendor_page
+    sources:
+      vendor_page: 17.7
+  Vd:
+    value: 0.000128
+    winner: calculated
+    sources:
+      calculated: 0.000128
+  Dd:
+    value: 0.20185060176161282
+    winner: calculated
+    sources:
+      calculated: 0.20185060176161282
+  EBP:
+    value: 164.1025641025641
+    winner: calculated
+    sources:
+      calculated: 164.1025641025641

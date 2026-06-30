@@ -22,78 +22,78 @@ fetched_sku: 297-136
 _sources:
   vendor_page: https://www.parts-express.com/Morel-MW-1058-Classic-Series-10-Paper-Carbon-Fiber-Cone-Subwoofer-297-136
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.01
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01
   Qts:  # total Q factor
     value: 0.47
     winner: vendor_page
     sources:
       vendor_page: 0.47
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.033710000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.033710000000000004
   Fs:  # free air resonance (Hz)
     value: 33.0
     winner: vendor_page
     sources:
       vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 11.85562415758168
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.03256432
     winner: vendor_page
     sources:
-      vendor_page: 11.85562415758168
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.1155
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1155
-  Qms:  # mechanical Q factor
-    value: 2.02
-    winner: vendor_page
-    sources:
-      vendor_page: 2.02
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000202
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000202
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.03256432
   Qes:  # electrical Q factor
     value: 0.61
     winner: vendor_page
     sources:
       vendor_page: 0.61
-  Pe:  # rated power input (W)
-    value: 500.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.01
     winner: vendor_page
     sources:
-      vendor_page: 500.0
-  BL:  # force factor (T·m)
-    value: 15.18
+      vendor_page: 0.01
+  Qms:  # mechanical Q factor
+    value: 2.02
     winner: vendor_page
     sources:
-      vendor_page: 15.18
+      vendor_page: 2.02
   Le:  # voice coil inductance (H)
     value: 0.00198
     winner: vendor_page
     sources:
       vendor_page: 0.00198
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.032564319999999994
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
     winner: vendor_page
     sources:
-      vendor_page: 0.032564319999999994
+      vendor_page: 5.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.1155
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1155
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000202
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000202
+  Sd:  # effective piston area (m²)
+    value: 0.03371
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03371
+  BL:  # force factor (T·m)
+    value: 15.18
+    winner: vendor_page
+    sources:
+      vendor_page: 15.18
+  Vd:
+    value: 0.00033709999999999995
+    winner: calculated
+    sources:
+      calculated: 0.00033709999999999995
+  Dd:
+    value: 0.20717361089922223
+    winner: calculated
+    sources:
+      calculated: 0.20717361089922223
+  EBP:
+    value: 54.09836065573771
+    winner: calculated
+    sources:
+      calculated: 54.09836065573771

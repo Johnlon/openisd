@@ -20,81 +20,103 @@ dq_issue: null
 community: null
 fetched_sku: 292-856
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-856--grs-4smp-8-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/GRS-4-Woofer-Surface-Mount-Poly-Cone-8-Ohm-4SMP-8-292-856
+  datasheet: https://www.parts-express.com/pedocs/specs/292-856--grs-4smp-8-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
-  Qts:  # total Q factor
-    value: 0.65
-    winner: vendor_page
-    sources:
-      vendor_page: 0.65
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Sd:  # effective piston area (m²)
-    value: 0.0054
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0054
   Fs:  # free air resonance (Hz)
     value: 63.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 63.0
       vendor_page: 63.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8708494835750907
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8708494835750907
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0066
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0066
-  Qms:  # mechanical Q factor
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00097
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00097
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.83
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.83
       vendor_page: 0.83
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 3.0
+    winner: datasheet
     sources:
-      vendor_page: 30.0
+      datasheet: 3.0
+      vendor_page: 3.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0066
+    winner: datasheet
+    sources:
+      datasheet: 0.0066
+      vendor_page: 0.0066
   BL:  # force factor (T·m)
     value: 4.2
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 4.2
       vendor_page: 4.2
-  Le:  # voice coil inductance (H)
-    value: 0.00058
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.65
+    winner: datasheet
     sources:
-      vendor_page: 0.00058
+      datasheet: 0.65
+      vendor_page: 0.65
   Vas:  # equivalent acoustic volume (m³)
     value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.003992669
+  Le:  # voice coil inductance (H)
+    value: 0.00058
+    winner: datasheet
+    sources:
+      datasheet: 0.00058
+      vendor_page: 0.00058
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
+    winner: datasheet
+    sources:
+      datasheet: 5.5
+      vendor_page: 5.5
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00097
+    winner: datasheet
+    sources:
+      datasheet: 0.00097
+      vendor_page: 0.00097
+  Sd:  # effective piston area (m²)
+    value: 0.0054
+    winner: datasheet
+    sources:
+      datasheet: 0.0054
+      vendor_page: 0.0054
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.004
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 50.0
     winner: vendor_page
     sources:
-      vendor_page: 0.004
+      vendor_page: 50.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 6000.0
+    winner: vendor_page
+    sources:
+      vendor_page: 6000.0
+  Vd:
+    value: 2.1600000000000003e-05
+    winner: calculated
+    sources:
+      calculated: 2.1600000000000003e-05
+  Dd:
+    value: 0.08291859587312052
+    winner: calculated
+    sources:
+      calculated: 0.08291859587312052
+  EBP:
+    value: 75.90361445783132
+    winner: calculated
+    sources:
+      calculated: 75.90361445783132

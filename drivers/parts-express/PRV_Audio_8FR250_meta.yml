@@ -23,88 +23,78 @@ fetched_sku: 294-2898
 _sources:
   vendor_page: https://www.parts-express.com/PRV-Audio-8FR250-8-Full-Range-Speaker-294-2898
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
   Qts:  # total Q factor
     value: 1.02
     winner: vendor_page
     sources:
       vendor_page: 1.02
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Sd:  # effective piston area (m²)
-    value: 0.0227
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0227
   Fs:  # free air resonance (Hz)
     value: 75.6
     winner: vendor_page
     sources:
       vendor_page: 75.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5064059799816383
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.021209283
     winner: vendor_page
     sources:
-      vendor_page: 0.5064059799816383
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
-  Qms:  # mechanical Q factor
-    value: 14.07
-    winner: vendor_page
-    sources:
-      vendor_page: 14.07
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000294
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000294
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.021209283
   Qes:  # electrical Q factor
     value: 1.1
     winner: vendor_page
     sources:
       vendor_page: 1.1
-  Pe:  # rated power input (W)
-    value: 125.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.002
     winner: vendor_page
     sources:
-      vendor_page: 125.0
-  BL:  # force factor (T·m)
-    value: 6.53
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 14.07
     winner: vendor_page
     sources:
-      vendor_page: 6.53
+      vendor_page: 14.07
   Le:  # voice coil inductance (H)
     value: 0.000275
     winner: vendor_page
     sources:
       vendor_page: 0.000275
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.021209283199999998
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
     winner: vendor_page
     sources:
-      vendor_page: 0.021209283199999998
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 50.0
+      vendor_page: 6.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.015
     winner: vendor_page
     sources:
-      vendor_page: 50.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 18.0
+      vendor_page: 0.015
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000294
     winner: vendor_page
     sources:
-      vendor_page: 18.0
+      vendor_page: 0.000294
+  Sd:  # effective piston area (m²)
+    value: 0.0227
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0227
+  BL:  # force factor (T·m)
+    value: 6.53
+    winner: vendor_page
+    sources:
+      vendor_page: 6.53
+  Vd:
+    value: 4.5400000000000006e-05
+    winner: calculated
+    sources:
+      calculated: 4.5400000000000006e-05
+  Dd:
+    value: 0.17000746355818674
+    winner: calculated
+    sources:
+      calculated: 0.17000746355818674
+  EBP:
+    value: 68.72727272727272
+    winner: calculated
+    sources:
+      calculated: 68.72727272727272

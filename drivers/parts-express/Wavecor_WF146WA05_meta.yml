@@ -22,78 +22,78 @@ fetched_sku: 298-1168
 _sources:
   vendor_page: https://www.parts-express.com/Wavecor-WF146WA05-5-3-4-Glass-Fiber-Cone-Mid-Woofer-4-Ohm-298-1168
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
   Qts:  # total Q factor
     value: 0.39
     winner: vendor_page
     sources:
       vendor_page: 0.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.2
-    winner: vendor_page
-    sources:
-      vendor_page: 3.2
-  Sd:  # effective piston area (m²)
-    value: 0.0093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0093
   Fs:  # free air resonance (Hz)
     value: 41.0
     winner: vendor_page
     sources:
       vendor_page: 41.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3926990816987242
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3926990816987242
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0125
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0125
-  Qms:  # mechanical Q factor
-    value: 8.2
-    winner: vendor_page
-    sources:
-      vendor_page: 8.2
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00122
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00122
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Pe:  # rated power input (W)
-    value: 55.0
-    winner: vendor_page
-    sources:
-      vendor_page: 55.0
-  BL:  # force factor (T·m)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Le:  # voice coil inductance (H)
-    value: 0.00023999999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023999999999999998
   Vas:  # equivalent acoustic volume (m³)
     value: 0.015007904
     winner: vendor_page
     sources:
       vendor_page: 0.015007904
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Qms:  # mechanical Q factor
+    value: 8.2
+    winner: vendor_page
+    sources:
+      vendor_page: 8.2
+  Le:  # voice coil inductance (H)
+    value: 0.00024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00024
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.2
+    winner: vendor_page
+    sources:
+      vendor_page: 3.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0125
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0125
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00122
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00122
+  Sd:  # effective piston area (m²)
+    value: 0.0093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0093
+  BL:  # force factor (T·m)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Vd:
+    value: 2.7899999999999997e-05
+    winner: calculated
+    sources:
+      calculated: 2.7899999999999997e-05
+  Dd:
+    value: 0.10881694613449237
+    winner: calculated
+    sources:
+      calculated: 0.10881694613449237
+  EBP:
+    value: 100.0
+    winner: calculated
+    sources:
+      calculated: 100.0

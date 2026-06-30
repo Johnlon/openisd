@@ -17,90 +17,83 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qts'' stored=0.39 differs from calculated=0.402408 (dep'
 community: null
 fetched_sku: 297-445
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
   vendor_page: https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445
+  datasheet: https://www.parts-express.com/pedocs/specs/297-445-hi-vi-f8-specifications-45089.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.39
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Sd:  # effective piston area (m²)
-    value: 0.0214
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0214
+      datasheet: 0.39
+      vendor_page: 0.4
   Fs:  # free air resonance (Hz)
     value: 36.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 36.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5054298554463192
-    winner: vendor_page
+      datasheet: 36.0
+      vendor_page: 37.0
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0369
+    winner: datasheet
     sources:
-      vendor_page: 1.5054298554463192
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0305
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0305
-  Qms:  # mechanical Q factor
-    value: 4.71
-    winner: vendor_page
-    sources:
-      vendor_page: 4.71
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0005899999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005899999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      datasheet: 0.0369
+      vendor_page: 0.038794016
   Qes:  # electrical Q factor
     value: 0.44
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Pe:  # rated power input (W)
-    value: 60.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 60.0
+      vendor_page: 0.005
+  Qms:  # mechanical Q factor
+    value: 4.71
+    winner: vendor_page
+    sources:
+      vendor_page: 4.71
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0305
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0305
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00059
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00059
+  Sd:  # effective piston area (m²)
+    value: 0.0214
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0214
   BL:  # force factor (T·m)
     value: 10.1
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 10.1
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0369
-    winner: vendor_page
+      datasheet: 10.1
+  Vd:
+    value: 0.000107
+    winner: calculated
     sources:
-      vendor_page: 0.0369
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 1.7
-    winner: vendor_page
+      calculated: 0.000107
+  Dd:
+    value: 0.1650676414605009
+    winner: calculated
     sources:
-      vendor_page: 1.7
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 70.0
-    winner: vendor_page
+      calculated: 0.1650676414605009
+  EBP:
+    value: 81.81818181818181
+    winner: calculated
     sources:
-      vendor_page: 70.0
+      calculated: 81.81818181818181

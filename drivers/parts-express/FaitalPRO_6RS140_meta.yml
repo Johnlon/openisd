@@ -23,88 +23,78 @@ fetched_sku: 294-1321
 _sources:
   vendor_page: https://www.parts-express.com/FaitalPRO-6RS140-6-Professional-Neodymium-Midbass-8-Ohm-294-1321
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0056
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0056
   Qts:  # total Q factor
     value: 0.27
     winner: vendor_page
     sources:
       vendor_page: 0.27
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.01226
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01226
   Fs:  # free air resonance (Hz)
     value: 65.0
     winner: vendor_page
     sources:
       vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.1266401240459947
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1266401240459947
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.016
-  Qms:  # mechanical Q factor
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00037
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.28
-    winner: vendor_page
-    sources:
-      vendor_page: 0.28
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 11.0
-    winner: vendor_page
-    sources:
-      vendor_page: 11.0
-  Le:  # voice coil inductance (H)
-    value: 0.00028000000000000003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00028000000000000003
   Vas:  # equivalent acoustic volume (m³)
     value: 0.007928704
     winner: vendor_page
     sources:
       vendor_page: 0.007928704
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 60.0
+  Qes:  # electrical Q factor
+    value: 0.28
     winner: vendor_page
     sources:
-      vendor_page: 60.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 6.0
+      vendor_page: 0.28
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0056
     winner: vendor_page
     sources:
-      vendor_page: 6.0
+      vendor_page: 0.0056
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Le:  # voice coil inductance (H)
+    value: 0.00028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00028
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.016
+    winner: vendor_page
+    sources:
+      vendor_page: 0.016
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00037
+  Sd:  # effective piston area (m²)
+    value: 0.01226
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01226
+  BL:  # force factor (T·m)
+    value: 11.0
+    winner: vendor_page
+    sources:
+      vendor_page: 11.0
+  Vd:
+    value: 6.8656e-05
+    winner: calculated
+    sources:
+      calculated: 6.8656e-05
+  Dd:
+    value: 0.12493965270662911
+    winner: calculated
+    sources:
+      calculated: 0.12493965270662911
+  EBP:
+    value: 232.1428571428571
+    winner: calculated
+    sources:
+      calculated: 232.1428571428571

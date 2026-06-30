@@ -16,85 +16,99 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny; tweeter_fs
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 2.2e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-9006
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006
+  datasheet: https://www.parts-express.com/pedocs/specs/264-9006--tang-band-w8-2282-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: datasheet
     sources:
-      vendor_page: 0.005
+      datasheet: 35.0
+      vendor_page: 35.0
+  Qes:  # electrical Q factor
+    value: 0.75
+    winner: datasheet
+    sources:
+      datasheet: 0.75
+      vendor_page: 0.75
+  Qms:  # mechanical Q factor
+    value: 5.52
+    winner: datasheet
+    sources:
+      datasheet: 5.52
+      vendor_page: 5.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: datasheet
+    sources:
+      datasheet: 0.002
+      vendor_page: 0.1082
+  BL:  # force factor (T·m)
+    value: 10.76
+    winner: datasheet
+    sources:
+      datasheet: 10.76
+      vendor_page: 10.76
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
   Qts:  # total Q factor
     value: 0.66
+    winner: datasheet
+    sources:
+      datasheet: 0.66
+      vendor_page: 0.66
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01293
+    winner: datasheet
+    sources:
+      datasheet: 0.01293
+      vendor_page: 0.013025728
+  Le:  # voice coil inductance (H)
+    value: 0.00154
     winner: vendor_page
     sources:
-      vendor_page: 0.66
+      vendor_page: 0.00154
   Re:  # DC voice coil resistance (Ω)
     value: 3.6
     winner: vendor_page
     sources:
       vendor_page: 3.6
-  Sd:  # effective piston area (m²)
-    value: 2.2e-06
-    winner: vendor_page
-    sources:
-      vendor_page: 2.2e-06
-  Fs:  # free air resonance (Hz)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 4.310583833023387
-    winner: vendor_page
-    sources:
-      vendor_page: 4.310583833023387
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Qms:  # mechanical Q factor
-    value: 5.52
-    winner: vendor_page
-    sources:
-      vendor_page: 5.52
   Cms:  # mechanical compliance (m/N)
     value: 0.00018819
+    winner: datasheet
+    sources:
+      datasheet: 0.00018819
+      vendor_page: 0.18819
+  Sd:  # effective piston area (m²)
+    value: 2.2e-06
+    winner: datasheet
+    sources:
+      datasheet: 2.2e-06
+      vendor_page: 0.022
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
     winner: vendor_page
     sources:
-      vendor_page: 0.00018819
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
+      vendor_page: 0.005
+  Vd:
+    value: 1.1000000000000001e-08
+    winner: calculated
     sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.75
-    winner: vendor_page
+      calculated: 1.1000000000000001e-08
+  Dd:
+    value: 0.0016736567743768011
+    winner: calculated
     sources:
-      vendor_page: 0.75
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
+      calculated: 0.0016736567743768011
+  EBP:
+    value: 46.666666666666664
+    winner: calculated
     sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 10.76
-    winner: vendor_page
-    sources:
-      vendor_page: 10.76
-  Le:  # voice coil inductance (H)
-    value: 0.0015400000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015400000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01293
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01293
+      calculated: 46.666666666666664

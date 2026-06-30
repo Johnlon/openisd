@@ -22,83 +22,88 @@ fetched_sku: 295-730
 _sources:
   vendor_page: https://www.parts-express.com/Dayton-Audio-SS10-22-10-Signature-Series-DVC-Subwoofer-2-Ohm-per-Coil-295-730
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021
   Qts:  # total Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 4.4
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4
-  Sd:  # effective piston area (m²)
-    value: 0.03445
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03445
   Fs:  # free air resonance (Hz)
     value: 34.0
     winner: vendor_page
     sources:
       vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 10.119235284194493
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.020586314
     winner: vendor_page
     sources:
-      vendor_page: 10.119235284194493
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.18
-    winner: vendor_page
-    sources:
-      vendor_page: 0.18
-  Qms:  # mechanical Q factor
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000122
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000122
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.020586314
   Qes:  # electrical Q factor
     value: 0.45
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Pe:  # rated power input (W)
-    value: 700.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.021
     winner: vendor_page
     sources:
-      vendor_page: 700.0
-  BL:  # force factor (T·m)
-    value: 19.5
+      vendor_page: 0.021
+  Qms:  # mechanical Q factor
+    value: 3.8
     winner: vendor_page
     sources:
-      vendor_page: 19.5
+      vendor_page: 3.8
   Le:  # voice coil inductance (H)
     value: 0.0016
     winner: vendor_page
     sources:
       vendor_page: 0.0016
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0205863136
+  Re:  # DC voice coil resistance (Ω)
+    value: 4.4
     winner: vendor_page
     sources:
-      vendor_page: 0.0205863136
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 700.0
+      vendor_page: 4.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.18
     winner: vendor_page
     sources:
-      vendor_page: 700.0
+      vendor_page: 0.18
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000122
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000122
+  Sd:  # effective piston area (m²)
+    value: 0.03445
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03445
+  BL:  # force factor (T·m)
+    value: 19.5
+    winner: vendor_page
+    sources:
+      vendor_page: 19.5
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 500.0
+  Vd:
+    value: 0.00072345
+    winner: calculated
+    sources:
+      calculated: 0.00072345
+  Dd:
+    value: 0.2094351983696302
+    winner: calculated
+    sources:
+      calculated: 0.2094351983696302
+  EBP:
+    value: 75.55555555555556
+    winner: calculated
+    sources:
+      calculated: 75.55555555555556

@@ -16,85 +16,85 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00113267 differs from calculated=0.00099'
 community: null
 fetched_sku: 290-4018
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018
+  datasheet: https://www.parts-express.com/pedocs/specs/290-4018--eminence-alpha-3-32-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
   Qts:  # total Q factor
     value: 0.74
     winner: vendor_page
     sources:
       vendor_page: 0.74
-  Re:  # DC voice coil resistance (Ω)
-    value: 22.4
-    winner: vendor_page
-    sources:
-      vendor_page: 22.4
-  Sd:  # effective piston area (m²)
-    value: 0.00286
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00286
   Fs:  # free air resonance (Hz)
     value: 117.0
     winner: vendor_page
     sources:
       vendor_page: 117.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.25047110083134977
-    winner: vendor_page
-    sources:
-      vendor_page: 0.25047110083134977
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
-  Qms:  # mechanical Q factor
-    value: 5.87
-    winner: vendor_page
-    sources:
-      vendor_page: 5.87
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  Znom:  # nominal impedance (Ω)
-    value: 32.0
-    winner: vendor_page
-    sources:
-      vendor_page: 32.0
-  Qes:  # electrical Q factor
-    value: 0.85
-    winner: vendor_page
-    sources:
-      vendor_page: 0.85
-  Pe:  # rated power input (W)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
-  BL:  # force factor (T·m)
-    value: 6.46
-    winner: vendor_page
-    sources:
-      vendor_page: 6.46
-  Le:  # voice coil inductance (H)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
   Vas:  # equivalent acoustic volume (m³)
     value: 0.001132672
     winner: vendor_page
     sources:
       vendor_page: 0.001132672
+  Qes:  # electrical Q factor
+    value: 0.85
+    winner: vendor_page
+    sources:
+      vendor_page: 0.85
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
+  Qms:  # mechanical Q factor
+    value: 5.87
+    winner: vendor_page
+    sources:
+      vendor_page: 5.87
+  Le:  # voice coil inductance (H)
+    value: 0.00023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00023
+  Re:  # DC voice coil resistance (Ω)
+    value: 22.4
+    winner: vendor_page
+    sources:
+      vendor_page: 22.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00086
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00086
+  Sd:  # effective piston area (m²)
+    value: 0.00286
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00286
+  BL:  # force factor (T·m)
+    value: 6.46
+    winner: vendor_page
+    sources:
+      vendor_page: 6.46
+  Vd:
+    value: 7.436e-06
+    winner: calculated
+    sources:
+      calculated: 7.436e-06
+  Dd:
+    value: 0.060344553175432206
+    winner: calculated
+    sources:
+      calculated: 0.060344553175432206
+  EBP:
+    value: 137.64705882352942
+    winner: calculated
+    sources:
+      calculated: 137.64705882352942

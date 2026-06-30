@@ -22,81 +22,99 @@ dq_issue: null
 community: null
 fetched_sku: 297-110
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Morel-TiCW-1258Ft-Titanium-Series-12-Subwoofer-8-Ohm-297-110
+  datasheet: https://www.parts-express.com/pedocs/specs/297-110--morel-ticw-1258ft-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0105
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0105
-  Qts:  # total Q factor
-    value: 0.27
-    winner: vendor_page
-    sources:
-      vendor_page: 0.27
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Sd:  # effective piston area (m²)
-    value: 0.0415
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0415
   Fs:  # free air resonance (Hz)
     value: 18.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 18.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.39
-    winner: vendor_page
-    sources:
-      vendor_page: 3.39
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.101
-    winner: vendor_page
-    sources:
-      vendor_page: 0.101
-  Qms:  # mechanical Q factor
-    value: 3.35
-    winner: vendor_page
-    sources:
-      vendor_page: 3.35
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00077
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      datasheet: 18.0
+      vendor_page: 19.0
   Qes:  # electrical Q factor
     value: 0.29
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.29
-  Pe:  # rated power input (W)
-    value: 600.0
-    winner: vendor_page
+      datasheet: 0.29
+      vendor_page: 0.38
+  Qms:  # mechanical Q factor
+    value: 3.35
+    winner: datasheet
     sources:
-      vendor_page: 600.0
+      datasheet: 3.35
+      vendor_page: 4.03
+  Rms:  # mechanical resistance (kg/s)
+    value: 3.39
+    winner: datasheet
+    sources:
+      datasheet: 3.39
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.101
+    winner: datasheet
+    sources:
+      datasheet: 0.101
+      vendor_page: 0.11
   BL:  # force factor (T·m)
     value: 15.25
     winner: vendor_page
     sources:
       vendor_page: 15.25
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.27
+    winner: datasheet
+    sources:
+      datasheet: 0.27
+      vendor_page: 0.34
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.191
+    winner: datasheet
+    sources:
+      datasheet: 0.191
+      vendor_page: 0.170467136
   Le:  # voice coil inductance (H)
     value: 0.00062
     winner: vendor_page
     sources:
       vendor_page: 0.00062
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.191
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.2
+    winner: datasheet
+    sources:
+      datasheet: 7.2
+      vendor_page: 6.4
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00077
+    winner: datasheet
+    sources:
+      datasheet: 0.00077
+  Sd:  # effective piston area (m²)
+    value: 0.0415
+    winner: datasheet
+    sources:
+      datasheet: 0.0415
+      vendor_page: 0.0437
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0105
     winner: vendor_page
     sources:
-      vendor_page: 0.191
+      vendor_page: 0.0105
+  Vd:
+    value: 0.00043575000000000005
+    winner: calculated
+    sources:
+      calculated: 0.00043575000000000005
+  Dd:
+    value: 0.2298683125324351
+    winner: calculated
+    sources:
+      calculated: 0.2298683125324351
+  EBP:
+    value: 62.06896551724138
+    winner: calculated
+    sources:
+      calculated: 62.06896551724138

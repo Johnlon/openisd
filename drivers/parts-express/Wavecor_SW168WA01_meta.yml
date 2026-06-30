@@ -20,81 +20,100 @@ dq_issue: null
 community: null
 fetched_sku: 298-1052
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/298-1052--wavecor-sw168wa01-specifications.pdf
   vendor_page: https://www.parts-express.com/Wavecor-SW168WA01-6-1-2-Balanced-Drive-Paper-Cone-Subwoofer-4-Ohm-298-1052
+  datasheet: https://www.parts-express.com/pedocs/specs/298-1052--wavecor-sw168wa01-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007
-  Qts:  # total Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0
-  Sd:  # effective piston area (m²)
-    value: 0.0127
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0127
   Fs:  # free air resonance (Hz)
     value: 43.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 43.0
       vendor_page: 43.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.86
-    winner: vendor_page
-    sources:
-      vendor_page: 0.86
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0325
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0325
-  Qms:  # mechanical Q factor
-    value: 10.2
-    winner: vendor_page
-    sources:
-      vendor_page: 10.2
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00042
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00042
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.47
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.47
       vendor_page: 0.47
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 10.2
+    winner: datasheet
     sources:
-      vendor_page: 100.0
+      datasheet: 10.2
+      vendor_page: 10.2
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.86
+    winner: datasheet
+    sources:
+      datasheet: 0.86
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0325
+    winner: datasheet
+    sources:
+      datasheet: 0.0325
+      vendor_page: 0.0325
   BL:  # force factor (T·m)
     value: 7.5
     winner: vendor_page
     sources:
       vendor_page: 7.5
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
+  Qts:  # total Q factor
+    value: 0.45
+    winner: datasheet
+    sources:
+      datasheet: 0.45
+      vendor_page: 0.45
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0096
+    winner: datasheet
+    sources:
+      datasheet: 0.0096
+      vendor_page: 0.009627712
   Le:  # voice coil inductance (H)
     value: 0.0013
     winner: vendor_page
     sources:
       vendor_page: 0.0013
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0096
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.0
     winner: vendor_page
     sources:
-      vendor_page: 0.0096
+      vendor_page: 3.0
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00042
+    winner: datasheet
+    sources:
+      datasheet: 0.00042
+      vendor_page: 0.00042
+  Sd:  # effective piston area (m²)
+    value: 0.0127
+    winner: datasheet
+    sources:
+      datasheet: 0.0127
+      vendor_page: 0.0127
+  Xmax:  # one-way linear excursion (m)
+    value: 0.007
+    winner: datasheet
+    sources:
+      datasheet: 0.007
+      vendor_page: 0.007
+  Vd:
+    value: 8.889999999999999e-05
+    winner: calculated
+    sources:
+      calculated: 8.889999999999999e-05
+  Dd:
+    value: 0.12716187407449045
+    winner: calculated
+    sources:
+      calculated: 0.12716187407449045
+  EBP:
+    value: 91.48936170212767
+    winner: calculated
+    sources:
+      calculated: 91.48936170212767

@@ -16,85 +16,96 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Cms'' = 6.5e-07 below minimum 1e-06 m/N'
 community: null
 fetched_sku: 296-458
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/296-458-aurum-cantus-ac50075c2c-specifications.pdf
   vendor_page: https://www.parts-express.com/Aurum-Cantus-AC300-75C2C-12-Woofer-296-458
+  datasheet: https://www.parts-express.com/pedocs/specs/296-458-aurum-cantus-ac50075c2c-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
-  Qts:  # total Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.0
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0
-  Sd:  # effective piston area (m²)
-    value: 0.05
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05
   Fs:  # free air resonance (Hz)
     value: 22.0
     winner: vendor_page
     sources:
       vendor_page: 22.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.3756140961425345
-    winner: vendor_page
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: datasheet
     sources:
-      vendor_page: 5.3756140961425345
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.084
-    winner: vendor_page
-    sources:
-      vendor_page: 0.084
+      datasheet: 0.42
+      vendor_page: 0.42
   Qms:  # mechanical Q factor
     value: 2.16
     winner: vendor_page
     sources:
       vendor_page: 2.16
-  Cms:  # mechanical compliance (m/N)
-    value: 6.5e-07
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.084
     winner: vendor_page
     sources:
-      vendor_page: 6.5e-07
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.42
-    winner: vendor_page
-    sources:
-      vendor_page: 0.42
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
+      vendor_page: 0.084
   BL:  # force factor (T·m)
     value: 13.2
+    winner: datasheet
+    sources:
+      datasheet: 13.2
+      vendor_page: 13.2
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.35
+    winner: datasheet
+    sources:
+      datasheet: 0.35
+      vendor_page: 0.35
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.231914592
     winner: vendor_page
     sources:
-      vendor_page: 13.2
+      vendor_page: 0.231914592
   Le:  # voice coil inductance (H)
     value: 0.00131
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.00131
       vendor_page: 0.00131
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.23191459199999997
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.0
+    winner: datasheet
+    sources:
+      datasheet: 7.0
+      vendor_page: 7.0
+  Cms:  # mechanical compliance (m/N)
+    value: 6.5e-07
+    winner: datasheet
+    sources:
+      datasheet: 6.5e-07
+      vendor_page: 0.00065
+  Sd:  # effective piston area (m²)
+    value: 0.05
     winner: vendor_page
     sources:
-      vendor_page: 0.23191459199999997
+      vendor_page: 0.05
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Vd:
+    value: 0.00042500000000000003
+    winner: calculated
+    sources:
+      calculated: 0.00042500000000000003
+  Dd:
+    value: 0.252313252202016
+    winner: calculated
+    sources:
+      calculated: 0.252313252202016
+  EBP:
+    value: 52.38095238095238
+    winner: calculated
+    sources:
+      calculated: 52.38095238095238

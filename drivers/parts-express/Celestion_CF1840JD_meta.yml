@@ -16,84 +16,84 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.154893 differs from calculated=0.164177 '
 community: null
 fetched_sku: 294-2102
 _sources:
   vendor_page: https://www.parts-express.com/Celestion-CF1840JD-18-1200-Watt-Professional-Woofer-294-2102
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.01
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01
   Qts:  # total Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.29
-    winner: vendor_page
-    sources:
-      vendor_page: 5.29
-  Sd:  # effective piston area (m²)
-    value: 0.1134
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1134
   Fs:  # free air resonance (Hz)
     value: 37.0
     winner: vendor_page
     sources:
       vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 11.565374364734819
-    winner: vendor_page
-    sources:
-      vendor_page: 11.565374364734819
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.2174
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2174
-  Qms:  # mechanical Q factor
-    value: 4.37
-    winner: vendor_page
-    sources:
-      vendor_page: 4.37
-  Cms:  # mechanical compliance (m/N)
-    value: 8.999999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.999999999999999e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Pe:  # rated power input (W)
-    value: 1200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1200.0
-  BL:  # force factor (T·m)
-    value: 24.76
-    winner: vendor_page
-    sources:
-      vendor_page: 24.76
-  Le:  # voice coil inductance (H)
-    value: 0.00116
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00116
   Vas:  # equivalent acoustic volume (m³)
     value: 0.154892896
     winner: vendor_page
     sources:
       vendor_page: 0.154892896
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: vendor_page
+    sources:
+      vendor_page: 0.44
+  Xmax:  # one-way linear excursion (m)
+    value: 0.01
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01
+  Qms:  # mechanical Q factor
+    value: 4.37
+    winner: vendor_page
+    sources:
+      vendor_page: 4.37
+  Le:  # voice coil inductance (H)
+    value: 0.00116
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00116
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.29
+    winner: vendor_page
+    sources:
+      vendor_page: 5.29
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.2174
+    winner: vendor_page
+    sources:
+      vendor_page: 0.2174
+  Cms:  # mechanical compliance (m/N)
+    value: 9.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 9.0e-05
+  Sd:  # effective piston area (m²)
+    value: 0.1134
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1134
+  BL:  # force factor (T·m)
+    value: 24.76
+    winner: vendor_page
+    sources:
+      vendor_page: 24.76
+  Vd:
+    value: 0.001134
+    winner: calculated
+    sources:
+      calculated: 0.001134
+  Dd:
+    value: 0.3799807421080277
+    winner: calculated
+    sources:
+      calculated: 0.3799807421080277
+  EBP:
+    value: 84.0909090909091
+    winner: calculated
+    sources:
+      calculated: 84.0909090909091

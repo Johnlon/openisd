@@ -16,90 +16,98 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny
+dq_issue: 'Sd_tiny; schema:WDR: ''Sd'' = 4.5e-08 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-923
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923
+  datasheet: https://www.parts-express.com/pedocs/specs/264-923--tang-band-w1-1931s-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0012
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 170.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0012
+      datasheet: 170.0
+      vendor_page: 170.0
+  Qes:  # electrical Q factor
+    value: 0.54
+    winner: datasheet
+    sources:
+      datasheet: 0.54
+      vendor_page: 0.54
+  Qms:  # mechanical Q factor
+    value: 3.11
+    winner: datasheet
+    sources:
+      datasheet: 3.11
+      vendor_page: 3.11
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.087
+    winner: datasheet
+    sources:
+      datasheet: 0.087
+  BL:  # force factor (T·m)
+    value: 2.6
+    winner: datasheet
+    sources:
+      datasheet: 2.6
+      vendor_page: 2.6
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
   Qts:  # total Q factor
     value: 0.46
+    winner: datasheet
+    sources:
+      datasheet: 0.46
+      vendor_page: 0.46
+  Vas:  # equivalent acoustic volume (m³)
+    value: 2.0e-05
+    winner: datasheet
+    sources:
+      datasheet: 2.0e-05
+      vendor_page: 1.9822e-05
+  Le:  # voice coil inductance (H)
+    value: 6.0e-05
     winner: vendor_page
     sources:
-      vendor_page: 0.46
+      vendor_page: 6.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 3.6
     winner: vendor_page
     sources:
       vendor_page: 3.6
-  Sd:  # effective piston area (m²)
-    value: 4.5e-08
-    winner: vendor_page
-    sources:
-      vendor_page: 4.5e-08
-  Fs:  # free air resonance (Hz)
-    value: 170.0
-    winner: vendor_page
-    sources:
-      vendor_page: 170.0
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.087
-    winner: vendor_page
-    sources:
-      vendor_page: 0.087
-  Qms:  # mechanical Q factor
-    value: 3.11
-    winner: vendor_page
-    sources:
-      vendor_page: 3.11
   Cms:  # mechanical compliance (m/N)
     value: 0.00085343
+    winner: datasheet
+    sources:
+      datasheet: 0.00085343
+      vendor_page: 0.00085
+  Sd:  # effective piston area (m²)
+    value: 4.5e-08
+    winner: datasheet
+    sources:
+      datasheet: 4.5e-08
+      vendor_page: 0.00045
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0012
     winner: vendor_page
     sources:
-      vendor_page: 0.00085343
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
+      vendor_page: 0.0012
+  Vd:
+    value: 5.3999999999999994e-11
+    winner: calculated
     sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.54
-    winner: vendor_page
+      calculated: 5.3999999999999994e-11
+  Dd:
+    value: 0.0002393653682408596
+    winner: calculated
     sources:
-      vendor_page: 0.54
-  Pe:  # rated power input (W)
-    value: 2.0
-    winner: vendor_page
+      calculated: 0.0002393653682408596
+  EBP:
+    value: 314.8148148148148
+    winner: calculated
     sources:
-      vendor_page: 2.0
-  BL:  # force factor (T·m)
-    value: 2.6
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 2.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.0e-05
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 0.0
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0
+      calculated: 314.8148148148148

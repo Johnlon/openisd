@@ -21,40 +21,30 @@ dq_issue: null
 community: null
 fetched_sku: 295-380
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-380--dayton-audio-rs75-4-specification-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-RS75-4-3-Reference-Full-Range-Driver-4-Ohm-295-380
+  datasheet: https://www.parts-express.com/pedocs/specs/295-380--dayton-audio-rs75-4-specification-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0011
   Qts:  # total Q factor
     value: 0.83
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Sd:  # effective piston area (m²)
-    value: 0.0012
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012
   Fs:  # free air resonance (Hz)
     value: 177.0
     winner: vendor_page
     sources:
       vendor_page: 177.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.21238475335206003
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000141584
     winner: vendor_page
     sources:
-      vendor_page: 0.21238475335206003
-  Mms:  # moving mass incl. air load (kg)
+      vendor_page: 0.000141584
+  Qes:  # electrical Q factor
+    value: 0.97
+    winner: vendor_page
+    sources:
+      vendor_page: 0.97
+  Xmax:  # one-way linear excursion (m)
     value: 0.0011
     winner: vendor_page
     sources:
@@ -64,33 +54,43 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 5.76
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0011
   Cms:  # mechanical compliance (m/N)
-    value: 0.0007199999999999999
+    value: 0.00072
     winner: vendor_page
     sources:
-      vendor_page: 0.0007199999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
+      vendor_page: 0.00072
+  Sd:  # effective piston area (m²)
+    value: 0.0012
     winner: vendor_page
     sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.97
-    winner: vendor_page
-    sources:
-      vendor_page: 0.97
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
+      vendor_page: 0.0012
   BL:  # force factor (T·m)
     value: 2.01
     winner: vendor_page
     sources:
       vendor_page: 2.01
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.000141584
-    winner: vendor_page
+  Vd:
+    value: 1.32e-06
+    winner: calculated
     sources:
-      vendor_page: 0.000141584
+      calculated: 1.32e-06
+  Dd:
+    value: 0.039088200952233594
+    winner: calculated
+    sources:
+      calculated: 0.039088200952233594
+  EBP:
+    value: 182.4742268041237
+    winner: calculated
+    sources:
+      calculated: 182.4742268041237

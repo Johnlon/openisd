@@ -21,81 +21,81 @@ dq_issue: null
 community: null
 fetched_sku: 292-638
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-638--visaton-fr-7-4-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Visaton-FR7-4-2-1-2-Full-Range-Driver-4-Ohm-292-638
+  datasheet: https://www.parts-express.com/pedocs/specs/292-638--visaton-fr-7-4-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001
   Qts:  # total Q factor
     value: 2.39
     winner: vendor_page
     sources:
       vendor_page: 2.39
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Sd:  # effective piston area (m²)
-    value: 0.0022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0022
   Fs:  # free air resonance (Hz)
     value: 220.0
     winner: vendor_page
     sources:
       vendor_page: 220.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.17175822303541133
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.000410594
     winner: vendor_page
     sources:
-      vendor_page: 0.17175822303541133
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000876
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000876
-  Qms:  # mechanical Q factor
-    value: 7.05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.05
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0005899999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005899999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.000410594
   Qes:  # electrical Q factor
     value: 3.61
     winner: vendor_page
     sources:
       vendor_page: 3.61
-  Pe:  # rated power input (W)
-    value: 5.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.001
     winner: vendor_page
     sources:
-      vendor_page: 5.0
-  BL:  # force factor (T·m)
-    value: 1.1
+      vendor_page: 0.001
+  Qms:  # mechanical Q factor
+    value: 7.05
     winner: vendor_page
     sources:
-      vendor_page: 1.1
+      vendor_page: 7.05
   Le:  # voice coil inductance (H)
     value: 0.0001
     winner: vendor_page
     sources:
       vendor_page: 0.0001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0004105936
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 0.0004105936
+      vendor_page: 3.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000876
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000876
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00059
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00059
+  Sd:  # effective piston area (m²)
+    value: 0.0022
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0022
+  BL:  # force factor (T·m)
+    value: 1.1
+    winner: vendor_page
+    sources:
+      vendor_page: 1.1
+  Vd:
+    value: 2.2e-06
+    winner: calculated
+    sources:
+      calculated: 2.2e-06
+  Dd:
+    value: 0.05292567428401227
+    winner: calculated
+    sources:
+      calculated: 0.05292567428401227
+  EBP:
+    value: 60.94182825484765
+    winner: calculated
+    sources:
+      calculated: 60.94182825484765

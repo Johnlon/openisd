@@ -20,81 +20,105 @@ dq_issue: null
 community: null
 fetched_sku: 294-2070
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2070--tf1020-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-TF1020-10-Professional-Speaker-150W-294-2070
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2070--tf1020-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qts:  # total Q factor
-    value: 0.323
-    winner: vendor_page
-    sources:
-      vendor_page: 0.323
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.45
-    winner: vendor_page
-    sources:
-      vendor_page: 5.45
-  Sd:  # effective piston area (m²)
-    value: 0.03466
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03466
   Fs:  # free air resonance (Hz)
     value: 69.4
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 69.4
       vendor_page: 69.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.52
-    winner: vendor_page
-    sources:
-      vendor_page: 5.52
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0311
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0311
-  Qms:  # mechanical Q factor
-    value: 2.454
-    winner: vendor_page
-    sources:
-      vendor_page: 2.454
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00017
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00017
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.372
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.372
+      datasheet: 0.372
+      vendor_page: 0.37
   Pe:  # rated power input (W)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
+      datasheet: 1.0
+  Qms:  # mechanical Q factor
+    value: 2.454
+    winner: datasheet
+    sources:
+      datasheet: 2.454
+      vendor_page: 2.45
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.52
+    winner: datasheet
+    sources:
+      datasheet: 5.52
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0311
+    winner: datasheet
+    sources:
+      datasheet: 0.0311
+      vendor_page: 0.0311
   BL:  # force factor (T·m)
     value: 14.1
     winner: vendor_page
     sources:
       vendor_page: 14.1
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.323
+    winner: datasheet
+    sources:
+      datasheet: 0.323
+      vendor_page: 0.32
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02875
+    winner: datasheet
+    sources:
+      datasheet: 0.02875
+      vendor_page: 0.028883136
   Le:  # voice coil inductance (H)
     value: 0.0006
     winner: vendor_page
     sources:
       vendor_page: 0.0006
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.02875
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.45
+    winner: datasheet
+    sources:
+      datasheet: 5.45
+      vendor_page: 5.45
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00017
+    winner: datasheet
+    sources:
+      datasheet: 0.00017
+      vendor_page: 0.00017
+  Sd:  # effective piston area (m²)
+    value: 0.03466
     winner: vendor_page
     sources:
-      vendor_page: 0.02875
+      vendor_page: 0.03466
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: datasheet
+    sources:
+      datasheet: 0.005
+      vendor_page: 0.002
+  Vd:
+    value: 0.0001733
+    winner: calculated
+    sources:
+      calculated: 0.0001733
+  Dd:
+    value: 0.21007256513052994
+    winner: calculated
+    sources:
+      calculated: 0.21007256513052994
+  EBP:
+    value: 186.55913978494624
+    winner: calculated
+    sources:
+      calculated: 186.55913978494624

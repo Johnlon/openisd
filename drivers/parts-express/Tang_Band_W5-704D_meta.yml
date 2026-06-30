@@ -20,91 +20,94 @@ dq_issue: null
 community: null
 fetched_sku: 264-850
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-850-tang-band-w5-704d-specifications-45673.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W5-704D-5-1-4-Woofer-264-850
+  datasheet: https://www.parts-express.com/pedocs/specs/264-850-tang-band-w5-704d-specifications-45673.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0033
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 55.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0033
+      datasheet: 55.0
+      vendor_page: 55.0
+  Qes:  # electrical Q factor
+    value: 0.46
+    winner: datasheet
+    sources:
+      datasheet: 0.46
+      vendor_page: 0.46
+  Qms:  # mechanical Q factor
+    value: 2.07
+    winner: datasheet
+    sources:
+      datasheet: 2.07
+      vendor_page: 2.07
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.098
+    winner: datasheet
+    sources:
+      datasheet: 0.098
+      vendor_page: 0.00798
+  BL:  # force factor (T·m)
+    value: 6.17
+    winner: datasheet
+    sources:
+      datasheet: 6.17
+      vendor_page: 6.17
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
   Qts:  # total Q factor
     value: 0.38
+    winner: datasheet
+    sources:
+      datasheet: 0.38
+      vendor_page: 0.38
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01157
+    winner: datasheet
+    sources:
+      datasheet: 0.01157
+      vendor_page: 0.011609888
+  Le:  # voice coil inductance (H)
+    value: 6.0e-05
     winner: vendor_page
     sources:
-      vendor_page: 0.38
+      vendor_page: 6.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 6.0
     winner: vendor_page
     sources:
       vendor_page: 6.0
-  Sd:  # effective piston area (m²)
-    value: 0.0094
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0094
-  Fs:  # free air resonance (Hz)
-    value: 55.0
-    winner: vendor_page
-    sources:
-      vendor_page: 55.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3322174064353243
-    winner: vendor_page
-    sources:
-      vendor_page: 1.3322174064353243
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.098
-  Qms:  # mechanical Q factor
-    value: 2.07
-    winner: vendor_page
-    sources:
-      vendor_page: 2.07
   Cms:  # mechanical compliance (m/N)
     value: 0.00092
     winner: vendor_page
     sources:
       vendor_page: 0.00092
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
+  Sd:  # effective piston area (m²)
+    value: 0.0094
+    winner: datasheet
+    sources:
+      datasheet: 0.0094
+      vendor_page: 0.0094
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0033
     winner: vendor_page
     sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.46
-    winner: vendor_page
+      vendor_page: 0.0033
+  Vd:
+    value: 3.102e-05
+    winner: calculated
     sources:
-      vendor_page: 0.46
-  Pe:  # rated power input (W)
-    value: 28.0
-    winner: vendor_page
+      calculated: 3.102e-05
+  Dd:
+    value: 0.1094004191971426
+    winner: calculated
     sources:
-      vendor_page: 28.0
-  BL:  # force factor (T·m)
-    value: 6.17
-    winner: vendor_page
+      calculated: 0.1094004191971426
+  EBP:
+    value: 119.56521739130434
+    winner: calculated
     sources:
-      vendor_page: 6.17
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9999999999999995e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01157
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01157
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 2019.1
-    winner: vendor_page
-    sources:
-      vendor_page: 2019.1
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 264.0
-    winner: vendor_page
-    sources:
-      vendor_page: 264.0
+      calculated: 119.56521739130434

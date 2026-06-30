@@ -1,0 +1,124 @@
+Ke
+
+Hi-Vi RESEARCH® »
+
+it could be your solution for perfect High frequency reproduction
+
+Se) (> iN
+
+RT1IcC A
+
+\ WW IFN
+_
+
+isodynamic tweeter
+
+89.5
+
+4-04
+
+108
+
+180
+= 135
+= ery
+a3
+°
+sett -43
+ao} -s0
+ae — - 135
+29398 ak Frequency Sk 1¢k Cr ak nee)
+
+ohms Dew
+10.0) : 108
++ |
+E Ee E a seal
+
+mm |
+
+| 3.0] se
+i as
+Le °
+-as
+-90
+ery
+
+L Jiiijit 5
+Frequency Sk 10 Cry wax 18?
+
+Why do we call the RT1C-A Isodynamic?
+
+Contrary to a conventional electrodynamic driver, this
+transducer has a driving force distributed evenly over
+the whole area of the vibrating element.
+
+What is special about the RT1C-A?
+
+The key element of the RT1C-A is the membrane, which
+consists of Kapton® film with a pattern of Aluminum
+conductors. The conductors cover about 90% of the
+whole vibrating area. The membrane assembly is
+placed precisely between two rows of Neodymium bar
+magnets. An Aluminum mounting flange, with flared |
+wave-guide, controls the frequency response and direc-
+tivity of the tweeter. The clamped membrane area is
+connected to the front metal plate. This, combined with
+a special heat conductive compound, provides effective
+cooling of the aluminum conductors. This tweeter is
+magnetically shielded and is an extremely flat driver. Its
+depth is only 18 mm including the mounting flange.
+
+The RT1C-A has resistive impedance in the audio fre-
+quency range. This unique feature provides a friendly
+load for any amplifier and facilitates easy crossover
+design. Unlike other drivers, the RT1C-A has an essen-
+tially linear phase response that provides time coherent
+reproduction resulting in accurate musical rhythm and
+imaging. The vibrating element of the RT1C-A is almost
+weightless compared to that of a dome tweeter. As a
+result it provides an immediate and precise response to
+any transients in the original signal. The RT1C-A has
+an exceptional ability to reveal the dynamics of instru-
+ments with complex high frequency spectra
+
+Unlike conventional tweeters and electrostatic speakers,
+the RT1C-A has an extremely wide sound dispersion in
+the horizontal plane. The radiating area of the tweeter is _
+50 x 13 mm, where 13 mm defines the horizontal dimen-
+sion. At the same time, contrary to other dynamic tweet-
+ers, the RT1C-A has well-controlled dispersion in the
+vertical plane. This feature helps to avoid disturbing
+floor and ceiling reflections, increasing imaging accura-
+cy. With this tweeter there is no need to manipulate the
+network or use multiple units to achieve the restricted
+vertical directivity necessary for home theater applica-
+tions.
+
+When considering all of the properties of the RT1C-A, it
+becomes clear why many critical listeners among audio-
+philes highly prize planar transducers. They possess
+unsurpassed clarity, transparency and the ability to
+deliver every tiniest musical detail.
+
+Since the RT1C-A has exceptional ability to reveal the
+dynamics of instruments and sonic resolution, it is rec-
+ommended to match it with drivers having similar prop-
+erties in order to maximize the overall integrity of a
+speaker system.
+
+~_RT1C_A SPECIFICATIONS
+
+a
+
+Nominal Impedance (Q) 5
+Nominal Power Handling (W) 15
+
+Max Power Handling (W) - T 30 “|
+| Sensitivity (2.83v/1m) (dB) 94
+Weight (kg) a | 020
+‘Magnet System | Neodymium
+
+Recommended Crossover Frequency
+
+>3000 Hz
+

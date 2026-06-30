@@ -17,85 +17,94 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Le'' = 47.0 above maximum 0.1 H; schema:WDR:
+  ''Cms'' = 0.152 above maximum 0.1 m/N; schema:WDR: ''Sd'' = 5.5e-06 below minimum
+  1e-05 m²'
 community: null
 fetched_sku: 253-007
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-007--12p80ndv2-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007
+  datasheet: https://www.parts-express.com/pedocs/specs/253-007--12p80ndv2-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.19
     winner: vendor_page
     sources:
       vendor_page: 0.19
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Sd:  # effective piston area (m²)
-    value: 0.055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.055
   Fs:  # free air resonance (Hz)
     value: 47.0
     winner: vendor_page
     sources:
       vendor_page: 47.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.004202484326609731
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.06512864
     winner: vendor_page
     sources:
-      vendor_page: 0.004202484326609731
-  Mms:  # moving mass incl. air load (kg)
-    value: 7.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4e-05
-  Qms:  # mechanical Q factor
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Znom:  # nominal impedance (Ω)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
+      vendor_page: 0.06512864
   Qes:  # electrical Q factor
     value: 0.2
     winner: vendor_page
     sources:
       vendor_page: 0.2
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
   BL:  # force factor (T·m)
     value: 23.7
     winner: vendor_page
     sources:
       vendor_page: 23.7
+  Qms:  # mechanical Q factor
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
   Le:  # voice coil inductance (H)
     value: 47.0
+    winner: datasheet
+    sources:
+      datasheet: 47.0
+      vendor_page: 0.0009
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
     winner: vendor_page
     sources:
-      vendor_page: 47.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06512863999999999
+      vendor_page: 5.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 7.4e-05
     winner: vendor_page
     sources:
-      vendor_page: 0.06512863999999999
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 100.0
+      vendor_page: 7.4e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.152
     winner: vendor_page
     sources:
-      vendor_page: 100.0
+      vendor_page: 0.152
+  Sd:  # effective piston area (m²)
+    value: 5.5e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.0075
+  Znom:  # nominal impedance (Ω)
+    value: 50.0
+    winner: datasheet
+    sources:
+      datasheet: 50.0
+  Vd:
+    value: 2.2e-08
+    winner: calculated
+    sources:
+      calculated: 2.2e-08
+  Dd:
+    value: 0.0026462837142006137
+    winner: calculated
+    sources:
+      calculated: 0.0026462837142006137
+  EBP:
+    value: 235.0
+    winner: calculated
+    sources:
+      calculated: 235.0

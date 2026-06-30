@@ -16,95 +16,89 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Le'' = 85.0 above maximum 0.1 H; schema:WDR:
+  ''Cms'' = 0.25 above maximum 0.1 m/N; schema:WDR: ''Sd'' = 1.4e-06 below minimum
+  1e-05 m²'
 community: null
 fetched_sku: 253-002
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-002--6g40nd-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002
+  datasheet: https://www.parts-express.com/pedocs/specs/253-002--6g40nd-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Sd:  # effective piston area (m²)
-    value: 0.014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.014
   Fs:  # free air resonance (Hz)
     value: 85.0
     winner: vendor_page
     sources:
       vendor_page: 85.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0020208082474442455
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00699425
     winner: vendor_page
     sources:
-      vendor_page: 0.0020208082474442455
-  Mms:  # moving mass incl. air load (kg)
-    value: 1.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.4e-05
-  Qms:  # mechanical Q factor
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.00699425
   Qes:  # electrical Q factor
     value: 0.36
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Pe:  # rated power input (W)
-    value: 170.0
-    winner: vendor_page
-    sources:
-      vendor_page: 170.0
   BL:  # force factor (T·m)
     value: 11.2
     winner: vendor_page
     sources:
       vendor_page: 11.2
+  Qms:  # mechanical Q factor
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
   Le:  # voice coil inductance (H)
     value: 85.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 85.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0069942495999999995
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0069942495999999995
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 170.0
-    winner: vendor_page
-    sources:
-      vendor_page: 170.0
-  freq_low_hz:  # published lower frequency limit (Hz)
+      datasheet: 85.0
+      vendor_page: 0.0002
+  Re:  # DC voice coil resistance (Ω)
     value: 6.0
     winner: vendor_page
     sources:
       vendor_page: 6.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 40.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 1.4e-05
     winner: vendor_page
     sources:
-      vendor_page: 40.0
+      vendor_page: 1.4e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.25
+    winner: vendor_page
+    sources:
+      vendor_page: 0.25
+  Sd:  # effective piston area (m²)
+    value: 1.4e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 1.4e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.003
+  Vd:
+    value: 5.6e-09
+    winner: calculated
+    sources:
+      calculated: 5.6e-09
+  Dd:
+    value: 0.001335116235624909
+    winner: calculated
+    sources:
+      calculated: 0.001335116235624909
+  EBP:
+    value: 236.11111111111111
+    winner: calculated
+    sources:
+      calculated: 236.11111111111111

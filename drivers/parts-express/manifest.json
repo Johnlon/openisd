@@ -1,8 +1,8 @@
 {
   "scraped": {
     "276-402": {
-      "file": "Aurum_Cantus_G2.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "296-412": {
       "file": "Aurum_Cantus_AC-180F1.wdr",
@@ -53,108 +53,108 @@
       "status": "ok"
     },
     "294-571": {
-      "file": "B_C_Speakers_12NW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-660": {
-      "file": "B_C_Speakers_12PE32.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-658": {
-      "file": "B_C_Speakers_10MD26.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-575": {
-      "file": "B_C_Speakers_18SW115.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-574": {
-      "file": "B_C_Speakers_18NW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-572": {
-      "file": "B_C_Speakers_15NW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-652": {
-      "file": "B_C_Speakers_8PE21-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5995": {
-      "file": "B_C_Speakers_14NDL88.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6038": {
       "file": "B_C_Speakers_15CXN88.wdr",
       "status": "ok"
     },
     "294-579": {
-      "file": "B_C_Speakers_15HCX76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-578": {
-      "file": "B_C_Speakers_15CXN76.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-577": {
-      "file": "B_C_Speakers_12HCX76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5766": {
-      "file": "B_C_Speakers_8FCX51.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5763": {
-      "file": "B_C_Speakers_8CX21.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5764": {
-      "file": "B_C_Speakers_8CXN51.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-651": {
-      "file": "B_C_Speakers_6MD38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-650": {
-      "file": "B_C_Speakers_6PEV13.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-645": {
-      "file": "B_C_Speakers_6MDN44.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6048": {
-      "file": "B_C_Speakers_4CXN36.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5770": {
-      "file": "B_C_Speakers_12FCX76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5767": {
-      "file": "B_C_Speakers_10FCX64.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5949": {
-      "file": "B_C_Speakers_12CLX64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5791": {
       "file": "B_C_Speakers_12CXN88.wdr",
       "status": "schema_fail"
     },
     "294-656": {
-      "file": "B_C_Speakers_10PS26.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-677": {
       "file": "B_C_Speakers_18PZB100.wdr",
       "status": "schema_fail"
     },
     "294-675": {
-      "file": "B_C_Speakers_18PS76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-673": {
       "file": "B_C_Speakers_15PS100.wdr",
@@ -169,164 +169,164 @@
       "status": "schema_fail"
     },
     "294-663": {
-      "file": "B_C_Speakers_12PLB76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-659": {
-      "file": "B_C_Speakers_10PLB76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5900": {
-      "file": "B_C_Speakers_5MDN38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5901": {
-      "file": "B_C_Speakers_5NDL38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5964": {
       "file": "B_C_Speakers_14CXN88.wdr",
       "status": "ok"
     },
     "294-5962": {
-      "file": "B_C_Speakers_10CXN64-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-698": {
-      "file": "B_C_Speakers_15BG100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-697": {
-      "file": "B_C_Speakers_12BG100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5993": {
-      "file": "B_C_Speakers_15TBX100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-696": {
-      "file": "B_C_Speakers_8BG51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-695": {
-      "file": "B_C_Speakers_12CL76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-694": {
-      "file": "B_C_Speakers_12CL64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-693": {
-      "file": "B_C_Speakers_10CL51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-683": {
-      "file": "B_C_Speakers_15NDL76.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-681": {
-      "file": "B_C_Speakers_12NW76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-680": {
-      "file": "B_C_Speakers_12HPL76.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-679": {
-      "file": "B_C_Speakers_10NW64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-678": {
-      "file": "B_C_Speakers_10HPL648M.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-649": {
-      "file": "B_C_Speakers_8NDL51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-648": {
-      "file": "B_C_Speakers_8MDN51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6012": {
-      "file": "B_C_Speakers_8NDL64.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5996": {
-      "file": "B_C_Speakers_15NDL88.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5994": {
-      "file": "B_C_Speakers_12NDL88.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-570": {
-      "file": "B_C_Speakers_12NDL76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6049": {
       "file": "B_C_Speakers_5CXN44.wdr",
       "status": "ok"
     },
     "294-6471": {
-      "file": "B_C_Speakers_10BG76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6470": {
-      "file": "B_C_Speakers_10BG76-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-692": {
       "file": "B_C_Speakers_12BG76.wdr",
       "status": "ok"
     },
     "294-5911": {
-      "file": "B_C_Speakers_8FG51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6013": {
-      "file": "B_C_Speakers_8NDL64-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6015": {
-      "file": "B_C_Speakers_8MBX51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6020": {
-      "file": "B_C_Speakers_21SW152.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-654": {
-      "file": "B_C_Speakers_8PS21-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5917": {
-      "file": "B_C_Speakers_8PS21-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5956": {
-      "file": "B_C_Speakers_12NDL76-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5931": {
       "file": "B_C_Speakers_10HPL6416M.wdr",
       "status": "ok"
     },
     "294-5914": {
-      "file": "B_C_Speakers_8NDL51-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5913": {
-      "file": "B_C_Speakers_8MDN51-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-689": {
-      "file": "B_C_Speakers_21SW152-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5946": {
-      "file": "B_C_Speakers_8NSM64-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6032": {
       "file": "B_C_Speakers_21DS115-4.wdr",
@@ -337,188 +337,188 @@
       "status": "ok"
     },
     "294-676": {
-      "file": "B_C_Speakers_18TBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-670": {
-      "file": "B_C_Speakers_15TBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-569": {
-      "file": "B_C_Speakers_12TBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6050": {
-      "file": "B_C_Speakers_10NW76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6022": {
-      "file": "B_C_Speakers_18RBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6009": {
-      "file": "B_C_Speakers_18TBX100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6003": {
-      "file": "B_C_Speakers_18PS100.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5986": {
-      "file": "B_C_Speakers_15PLB76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6007": {
-      "file": "B_C_Speakers_18TBW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5991": {
-      "file": "B_C_Speakers_15TBW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5981": {
-      "file": "B_C_Speakers_15FW76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5951": {
-      "file": "B_C_Speakers_12FW76.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5902": {
-      "file": "B_C_Speakers_6MD38-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6024": {
-      "file": "B_C_Speakers_18RBX100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6016": {
-      "file": "B_C_Speakers_10MBX64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6000": {
-      "file": "B_C_Speakers_18NBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5992": {
-      "file": "B_C_Speakers_15TBW100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5988": {
-      "file": "B_C_Speakers_15SW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5987": {
-      "file": "B_C_Speakers_15PS100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5985": {
-      "file": "B_C_Speakers_15NW76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5954": {
-      "file": "B_C_Speakers_12NBX100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5980": {
-      "file": "B_C_Speakers_15CL76.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-646": {
-      "file": "B_C_Speakers_6NDL38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6008": {
       "file": "B_C_Speakers_18TBW100-4.wdr",
       "status": "ok"
     },
     "294-6005": {
-      "file": "B_C_Speakers_18SW100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5989": {
       "file": "B_C_Speakers_15SW115.wdr",
       "status": "schema_fail"
     },
     "294-5903": {
-      "file": "B_C_Speakers_6MDN44-16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5938": {
-      "file": "B_C_Speakers_4NDF34-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5972": {
-      "file": "B_C_Speakers_18DS100-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6006": {
-      "file": "B_C_Speakers_18SW115-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6002": {
-      "file": "B_C_Speakers_18NW100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6001": {
-      "file": "B_C_Speakers_18NBX100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5990": {
       "file": "B_C_Speakers_15SW115-4.wdr",
       "status": "schema_fail"
     },
     "294-5953": {
-      "file": "B_C_Speakers_12MH32.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6481": {
-      "file": "B_C_Speakers_15DS100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6480": {
-      "file": "B_C_Speakers_15DS100.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5944": {
-      "file": "B_C_Speakers_6NSM51-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5970": {
-      "file": "B_C_Speakers_18DS100-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6058": {
-      "file": "B_C_Speakers_15DS115.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6056": {
-      "file": "B_C_Speakers_15DS115.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-6028": {
       "file": "B_C_Speakers_18DS115-4.wdr",
       "status": "ok"
     },
     "294-6026": {
-      "file": "B_C_Speakers_18DS115.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5761": {
-      "file": "B_C_Speakers_6FHX51.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-5762": {
-      "file": "B_C_Speakers_6HCX51.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-5940": {
-      "file": "B_C_Speakers_5NSM38-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-647": {
-      "file": "B_C_Speakers_6NDL44.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2070": {
       "file": "Celestion_TF1020.wdr",
@@ -529,8 +529,8 @@
       "status": "ok"
     },
     "294-2054": {
-      "file": "Celestion_TF0615MR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2078": {
       "file": "Celestion_TF1225.wdr",
@@ -561,24 +561,24 @@
       "status": "ok"
     },
     "292-595": {
-      "file": "Visaton_R10S-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7825": {
-      "file": "Visaton_R_10_S_TE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1354": {
       "file": "FaitalPRO_4FE42.wdr",
       "status": "schema_fail"
     },
     "294-3324": {
-      "file": "Timpano_Audio_TPT-MD8-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-602": {
-      "file": "Visaton_R10SC-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2050": {
       "file": "Celestion_TF0510.wdr",
@@ -613,20 +613,20 @@
       "status": "ok"
     },
     "292-596": {
-      "file": "Visaton_R10S-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1356": {
       "file": "FaitalPRO_4FE42.wdr",
       "status": "ok"
     },
     "292-7826": {
-      "file": "Visaton_R_10_ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-484": {
-      "file": "HiVi_M4N-B.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3536": {
       "file": "PRV_Audio_8MR500SEAL_PRO.wdr",
@@ -637,20 +637,20 @@
       "status": "schema_fail"
     },
     "292-7813": {
-      "file": "Visaton_R_10_S_TE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2999": {
       "file": "PRV_Audio_8MB450_v2.wdr",
       "status": "ok"
     },
     "292-597": {
-      "file": "Visaton_R10SC.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3332": {
-      "file": "Timpano_Audio_TPT-MD12_PRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3407": {
       "file": "PRV_Audio_12MR2000X-NDY.wdr",
@@ -658,7 +658,7 @@
     },
     "253-040": {
       "file": "Beyma_12MI100.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "294-3143": {
       "file": "PRV_Audio_8MR500-4_BULLET.wdr",
@@ -673,8 +673,8 @@
       "status": "schema_fail"
     },
     "294-3328": {
-      "file": "Timpano_Audio_TPT-MD12.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2014": {
       "file": "Celestion_FTR18-4080FD.wdr",
@@ -685,8 +685,8 @@
       "status": "schema_fail"
     },
     "294-8050": {
-      "file": "DS18_PRO-SM8.2.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3405": {
       "file": "PRV_Audio_12MR2000X_v2.wdr",
@@ -697,12 +697,12 @@
       "status": "schema_fail"
     },
     "294-8054": {
-      "file": "DS18_PRO-M8.2NEO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7837": {
-      "file": "Visaton_FR_87.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3141": {
       "file": "PRV_Audio_8MR400B-4_SLIM.wdr",
@@ -745,28 +745,28 @@
       "status": "schema_fail"
     },
     "294-8052": {
-      "file": "DS18_PRO-M6.2NEO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7827": {
-      "file": "Visaton_FRS_7_A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3500": {
       "file": "PRV_Audio_6CX380-4_SLIM.wdr",
       "status": "ok"
     },
     "292-7839": {
-      "file": "Visaton_SC_4.9_FL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3502": {
       "file": "PRV_Audio_6MR600X-NDY.wdr",
       "status": "ok"
     },
     "294-3528": {
-      "file": "PRV_Audio_6MR400SEAL_PRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3408": {
       "file": "PRV_Audio_6MR600X-NDY-4.wdr",
@@ -781,8 +781,8 @@
       "status": "ok"
     },
     "294-1121": {
-      "file": "FaitalPRO_4FE32.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-639": {
       "file": "Dayton_Audio_8MB200N-8.wdr",
@@ -797,8 +797,8 @@
       "status": "schema_fail"
     },
     "277-110": {
-      "file": "Beston_RT001A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "253-019": {
       "file": "Beyma_14MC700ND.wdr",
@@ -806,11 +806,11 @@
     },
     "253-027": {
       "file": "Beyma_8CMV2.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-099": {
       "file": "Beyma_8CX300Fe.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-057": {
       "file": "Beyma_21QLEX1600FE.wdr",
@@ -818,19 +818,19 @@
     },
     "253-038": {
       "file": "Beyma_8MI100.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-003": {
       "file": "Beyma_8G40.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-089": {
-      "file": "Beyma_T25S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "253-088": {
-      "file": "Beyma_T25M.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "253-098": {
       "file": "Beyma_8CFX260Nd.wdr",
@@ -838,11 +838,11 @@
     },
     "253-011": {
       "file": "Beyma_8MC500Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-010": {
       "file": "Beyma_8MC300Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-053": {
       "file": "Beyma_21LEX1600Nd.wdr",
@@ -873,8 +873,8 @@
       "status": "schema_fail"
     },
     "253-059": {
-      "file": "Beyma_10WR300.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "253-016": {
       "file": "Beyma_15MC500.wdr",
@@ -890,7 +890,7 @@
     },
     "253-036": {
       "file": "Beyma_8P300Fe_N.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-086": {
       "file": "Beyma_8NMFW.wdr",
@@ -934,7 +934,7 @@
     },
     "253-043": {
       "file": "Beyma_15LEX1000Fe.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-041": {
       "file": "Beyma_12LEX1000Fe.wdr",
@@ -942,11 +942,11 @@
     },
     "253-022": {
       "file": "Beyma_15MCB700.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-021": {
       "file": "Beyma_12MCB700.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-005": {
       "file": "Beyma_12G40.wdr",
@@ -954,7 +954,7 @@
     },
     "253-004": {
       "file": "Beyma_10G40.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-017": {
       "file": "Beyma_15MC700Nd.wdr",
@@ -962,15 +962,15 @@
     },
     "253-015": {
       "file": "Beyma_12MC700Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-013": {
       "file": "Beyma_10MC700Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-008": {
       "file": "Beyma_15P80Fe_N.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-006": {
       "file": "Beyma_12P80Fe_V2.wdr",
@@ -978,7 +978,7 @@
     },
     "253-052": {
       "file": "Beyma_18LEX1600Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-050": {
       "file": "Beyma_18LEX1200Nd.wdr",
@@ -986,7 +986,7 @@
     },
     "253-048": {
       "file": "Beyma_18LEX1000Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-046": {
       "file": "Beyma_15LEX1600Nd.wdr",
@@ -998,11 +998,11 @@
     },
     "253-042": {
       "file": "Beyma_12LEX1300Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-009": {
       "file": "Beyma_15P80Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-007": {
       "file": "Beyma_12P80Nd_V2.wdr",
@@ -1030,15 +1030,15 @@
     },
     "253-031": {
       "file": "Beyma_5P200Fe.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-001": {
-      "file": "Beyma_5G40Nd_N.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "253-032": {
       "file": "Beyma_5P200Nd.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-026": {
       "file": "Beyma_6CMV2.wdr",
@@ -1050,7 +1050,7 @@
     },
     "253-037": {
       "file": "Beyma_6MI100.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-034": {
       "file": "Beyma_6P200Fe.wdr",
@@ -1058,7 +1058,7 @@
     },
     "253-033": {
       "file": "Beyma_6P200Fe.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "253-002": {
       "file": "Beyma_6G40Nd.wdr",
@@ -1169,8 +1169,8 @@
       "status": "ok"
     },
     "294-1970": {
-      "file": "Celestion_CF1025BMB.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2507": {
       "file": "Celestion_PULSE_XL_12.20.wdr",
@@ -1205,120 +1205,120 @@
       "status": "ok"
     },
     "293-180": {
-      "file": "Ciare_PWA8.50.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-107": {
-      "file": "Ciare_CXPA-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-100": {
-      "file": "Ciare_CT250.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-148": {
-      "file": "Ciare_12.00SW-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-203": {
-      "file": "Ciare_8A250M-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-209": {
-      "file": "Ciare_10A500W-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-140": {
-      "file": "Ciare_HW251.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-116": {
-      "file": "Ciare_CME250.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-114": {
-      "file": "Ciare_CME200.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-192": {
-      "file": "Ciare_HT200.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-186": {
-      "file": "Ciare_PWA12.64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-184": {
-      "file": "Ciare_PWA10.64.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-182": {
-      "file": "Ciare_PWA10.50.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-178": {
-      "file": "Ciare_PWA6.38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-162": {
-      "file": "Ciare_HSG200-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-104": {
-      "file": "Ciare_CT440.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-130": {
-      "file": "Ciare_HM500.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-207": {
-      "file": "Ciare_8A250MS-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-144": {
-      "file": "Ciare_CW261SPL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-110": {
       "file": "Ciare_CMR200.wdr",
       "status": "schema_fail"
     },
     "293-134": {
-      "file": "Ciare_CMI320ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-135": {
-      "file": "Ciare_HWG130.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-211": {
-      "file": "Ciare_12A500W-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-210": {
-      "file": "Ciare_12A500W-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-208": {
-      "file": "Ciare_10A500W-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-202": {
-      "file": "Ciare_8A250M-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-190": {
-      "file": "Ciare_PWA15.75.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-188": {
-      "file": "Ciare_PWA12.75.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-176": {
-      "file": "Ciare_PWA5.38.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-174": {
       "file": "Ciare_CSD184-22.wdr",
@@ -1333,108 +1333,108 @@
       "status": "schema_fail"
     },
     "293-168": {
-      "file": "Ciare_18.00SW-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-166": {
-      "file": "Ciare_15.00SW-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-164": {
-      "file": "Ciare_12.00SW-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-206": {
-      "file": "Ciare_8A250MS-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-106": {
-      "file": "Ciare_PCXPA-6.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-112": {
-      "file": "Ciare_CME160.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-124": {
-      "file": "Ciare_HWG160-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-118": {
-      "file": "Ciare_CMI160ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-108": {
       "file": "Ciare_CMR160.wdr",
       "status": "ok"
     },
     "293-201": {
-      "file": "Ciare_6A200M-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-200": {
-      "file": "Ciare_6A200M-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-205": {
-      "file": "Ciare_6A200MS-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-204": {
-      "file": "Ciare_6A200MS-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-3007": {
-      "file": "CSS_LD25X.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-3002": {
       "file": "CSS_LDW7.wdr",
       "status": "ok"
     },
     "290-3006": {
-      "file": "CSS_SDX12.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-085": {
-      "file": "Dayton_Audio_PT2C-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-070": {
-      "file": "Dayton_Audio_DC28F-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-025": {
-      "file": "Dayton_Audio_ND16FA-6.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-594": {
-      "file": "Dayton_Audio_DMA70-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-592": {
-      "file": "Dayton_Audio_DMA45-PR.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "290-209": {
-      "file": "Dayton_Audio_ND90-PR.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "290-205": {
-      "file": "Dayton_Audio_ND65-PR.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-076": {
-      "file": "Dayton_Audio_DC28FT-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-075": {
-      "file": "Dayton_Audio_DC28FS-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-040": {
-      "file": "Dayton_Audio_ND28F-6.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-488": {
       "file": "Dayton_Audio_SD315A-88.wdr",
@@ -1461,8 +1461,8 @@
       "status": "ok"
     },
     "295-354": {
-      "file": "Dayton_Audio_RS150-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-325": {
       "file": "Dayton_Audio_DC380-8.wdr",
@@ -1473,16 +1473,16 @@
       "status": "schema_fail"
     },
     "295-315": {
-      "file": "Dayton_Audio_DC250-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-310": {
       "file": "Dayton_Audio_DC200-8.wdr",
       "status": "schema_fail"
     },
     "285-117": {
-      "file": "Dayton_Audio_CE40P-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-152": {
       "file": "Dayton_Audio_PC68-8.wdr",
@@ -1493,8 +1493,8 @@
       "status": "schema_fail"
     },
     "295-015": {
-      "file": "Dayton_Audio_PA165-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-335": {
       "file": "Dayton_Audio_DA175-8.wdr",
@@ -1509,88 +1509,88 @@
       "status": "ok"
     },
     "275-083": {
-      "file": "Dayton_Audio_PTMini-6.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-045": {
-      "file": "Dayton_Audio_DC25T-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-030": {
-      "file": "Dayton_Audio_ND20FA-6.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-880": {
       "file": "Dayton_Audio_W3-1053SC.wdr",
       "status": "ok"
     },
     "295-737": {
-      "file": "Dayton_Audio_SS18-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-735": {
-      "file": "Dayton_Audio_SS15-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-733": {
-      "file": "Dayton_Audio_SS12-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-731": {
-      "file": "Dayton_Audio_SS10-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-729": {
-      "file": "Dayton_Audio_SS8-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-597": {
-      "file": "Dayton_Audio_DMA105-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-595": {
-      "file": "Dayton_Audio_DMA80-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-593": {
-      "file": "Dayton_Audio_DMA58-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-493": {
-      "file": "Dayton_Audio_DS115-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-491": {
-      "file": "Dayton_Audio_DS90-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-213": {
-      "file": "Dayton_Audio_ND105-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-496": {
-      "file": "Dayton_Audio_DS315-PR.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-494": {
-      "file": "Dayton_Audio_DS270-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-492": {
-      "file": "Dayton_Audio_DS215-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-352": {
       "file": "Dayton_Audio_RS100-8.wdr",
       "status": "ok"
     },
     "285-020": {
-      "file": "Dayton_Audio_RS52AN-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-059": {
-      "file": "Dayton_Audio_ND25FA-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-660": {
       "file": "Dayton_Audio_PCS115-4.wdr",
@@ -1621,12 +1621,12 @@
       "status": "ok"
     },
     "275-144": {
-      "file": "Dayton_Audio_RST28F-4_1-1_8__Reference_Series_Fabric_Dome_Tweeter_with_Truncated_Faceplate.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-134": {
-      "file": "Dayton_Audio_RST28A-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-160": {
       "file": "Dayton_Audio_PC105-8.wdr",
@@ -1661,28 +1661,28 @@
       "status": "ok"
     },
     "275-094": {
-      "file": "Dayton_Audio_AMTPRO-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-092": {
-      "file": "Dayton_Audio_AMT2-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "285-131": {
-      "file": "Dayton_Audio_CE38MB-32.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-057": {
-      "file": "Dayton_Audio_ND25TA-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-035": {
-      "file": "Dayton_Audio_ND20FB-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-420": {
-      "file": "Dayton_Audio_TIT400C-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-459": {
       "file": "Dayton_Audio_RSS210HO-8.wdr",
@@ -1693,48 +1693,48 @@
       "status": "schema_fail"
     },
     "285-135": {
-      "file": "Dayton_Audio_CE30MB-16B.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-378": {
       "file": "Dayton_Audio_RS100-4.wdr",
       "status": "ok"
     },
     "295-554": {
-      "file": "Dayton_Audio_DSA315-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-552": {
-      "file": "Dayton_Audio_DSA270-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-549": {
-      "file": "Dayton_Audio_DSA215-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-544": {
-      "file": "Dayton_Audio_DSA115-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-542": {
-      "file": "Dayton_Audio_DSA90-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-506": {
-      "file": "Dayton_Audio_RSS460-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-504": {
-      "file": "Dayton_Audio_RSS390-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-502": {
-      "file": "Dayton_Audio_RSS315-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-500": {
-      "file": "Dayton_Audio_RSS265-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-346": {
       "file": "Dayton_Audio_PS220-8.wdr",
@@ -1745,28 +1745,28 @@
       "status": "schema_fail"
     },
     "275-106": {
-      "file": "Dayton_Audio_ND16FA-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-519": {
       "file": "Dayton_Audio_ND64-16.wdr",
       "status": "schema_fail"
     },
     "295-010": {
-      "file": "Dayton_Audio_PA130-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-093": {
-      "file": "Dayton_Audio_AMT3-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-648": {
       "file": "Dayton_Audio_15LF500-8.wdr",
       "status": "ok"
     },
     "295-495": {
-      "file": "Dayton_Audio_DS135-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-415": {
       "file": "Dayton_Audio_TCP115-4.wdr",
@@ -1797,8 +1797,8 @@
       "status": "ok"
     },
     "295-202": {
-      "file": "Dayton_Audio_DCS255-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-200": {
       "file": "Dayton_Audio_DCS205-4.wdr",
@@ -1837,32 +1837,32 @@
       "status": "ok"
     },
     "285-129": {
-      "file": "Dayton_Audio_CE38M-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "285-113": {
-      "file": "Dayton_Audio_CE30P-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "285-103": {
-      "file": "Dayton_Audio_CE32A-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "285-101": {
-      "file": "Dayton_Audio_CE32A-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-636": {
-      "file": "Dayton_Audio_MB820-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-141": {
-      "file": "Dayton_Audio_RST28F-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-131": {
-      "file": "Dayton_Audio_RST28A-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-349": {
       "file": "Dayton_Audio_PS95-8.wdr",
@@ -1881,8 +1881,8 @@
       "status": "ok"
     },
     "275-022": {
-      "file": "Dayton_Audio_TD25F-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-573": {
       "file": "Dayton_Audio_RS150P-8A.wdr",
@@ -1917,20 +1917,20 @@
       "status": "ok"
     },
     "275-104": {
-      "file": "Dayton_Audio_ND13FA-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-020": {
-      "file": "Dayton_Audio_TD20F-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-330": {
       "file": "Dayton_Audio_DA135-8.wdr",
       "status": "ok"
     },
     "295-309": {
-      "file": "Dayton_Audio_DC160-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-307": {
       "file": "Dayton_Audio_DC130B-4.wdr",
@@ -1957,12 +1957,12 @@
       "status": "ok"
     },
     "295-546": {
-      "file": "Dayton_Audio_DSA135-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-472": {
-      "file": "Dayton_Audio_RSS460HO-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-469": {
       "file": "Dayton_Audio_RSS390HO-4.wdr",
@@ -2029,20 +2029,20 @@
       "status": "schema_fail"
     },
     "275-021": {
-      "file": "Dayton_Audio_TD24F-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "285-411": {
-      "file": "Dayton_Audio_CF50N-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-337": {
       "file": "Dayton_Audio_RS75-8.wdr",
       "status": "ok"
     },
     "285-022": {
-      "file": "Dayton_Audio_RS52FN-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-380": {
       "file": "Dayton_Audio_RS75-4.wdr",
@@ -2053,16 +2053,16 @@
       "status": "ok"
     },
     "290-217": {
-      "file": "Dayton_Audio_ND140-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-498": {
-      "file": "Dayton_Audio_DS175-PR.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "275-411": {
-      "file": "Dayton_Audio_CF18N-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-370": {
       "file": "Dayton_Audio_RS125-4.wdr",
@@ -2081,12 +2081,12 @@
       "status": "schema_fail"
     },
     "295-581": {
-      "file": "Dayton_Audio_DMA45-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-580": {
-      "file": "Dayton_Audio_DMA45-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-520": {
       "file": "Dayton_Audio_ND64-4.wdr",
@@ -2117,16 +2117,16 @@
       "status": "ok"
     },
     "275-053": {
-      "file": "Dayton_Audio_ND25FN-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-528": {
       "file": "Dayton_Audio_DSA175-8.wdr",
       "status": "schema_fail"
     },
     "275-051": {
-      "file": "Dayton_Audio_ND25FW-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-371": {
       "file": "Dayton_Audio_RS125P-4.wdr",
@@ -2181,12 +2181,12 @@
       "status": "ok"
     },
     "295-637": {
-      "file": "Dayton_Audio_MB1025-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-548": {
-      "file": "Dayton_Audio_DSA175-PR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-416": {
       "file": "Dayton_Audio_TCP115-8.wdr",
@@ -2201,16 +2201,16 @@
       "status": "schema_fail"
     },
     "285-115": {
-      "file": "Dayton_Audio_CE40-28P-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "285-410": {
-      "file": "Dayton_Audio_CF50N-4MP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-410": {
-      "file": "Dayton_Audio_CF18N-4MP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-198": {
       "file": "Dayton_Audio_DCS165-4.wdr",
@@ -2229,12 +2229,12 @@
       "status": "schema_fail"
     },
     "295-583": {
-      "file": "Dayton_Audio_DMA58-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-582": {
-      "file": "Dayton_Audio_DMA58-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-522": {
       "file": "Dayton_Audio_DSA90-8.wdr",
@@ -2245,8 +2245,8 @@
       "status": "schema_fail"
     },
     "285-119": {
-      "file": "Dayton_Audio_CE70-30P-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "295-168": {
       "file": "Dayton_Audio_MX15-22.wdr",
@@ -2313,8 +2313,8 @@
       "status": "schema_fail"
     },
     "285-145": {
-      "file": "Dayton_Audio_CE140-30S-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "295-744": {
       "file": "Dayton_Audio_MX6-22.wdr",
@@ -2393,16 +2393,16 @@
       "status": "schema_fail"
     },
     "299-2255": {
-      "file": "Factory_Buyouts_LA6-CBMR.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-502": {
-      "file": "EPIQUE_by_Dayton_Audio_EC30MP-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "275-500": {
-      "file": "EPIQUE_by_Dayton_Audio_EC30-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1090": {
       "file": "FaitalPRO_21XL3000.wdr",
@@ -2453,8 +2453,8 @@
       "status": "ok"
     },
     "294-1123": {
-      "file": "FaitalPRO_4FE35.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-1105": {
       "file": "FaitalPRO_3FE25.wdr",
@@ -2473,8 +2473,8 @@
       "status": "ok"
     },
     "294-1102": {
-      "file": "FaitalPRO_3FE22.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-1083": {
       "file": "FaitalPRO_8HX150.wdr",
@@ -2513,16 +2513,16 @@
       "status": "ok"
     },
     "294-1338": {
-      "file": "FaitalPRO_10RS430.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1336": {
       "file": "FaitalPRO_12FE400.wdr",
       "status": "ok"
     },
     "294-1334": {
-      "file": "FaitalPRO_12FE330.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1332": {
       "file": "FaitalPRO_12RS430.wdr",
@@ -2669,8 +2669,8 @@
       "status": "ok"
     },
     "294-1124": {
-      "file": "FaitalPRO_4FE35.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-1104": {
       "file": "FaitalPRO_3FE25.wdr",
@@ -2697,8 +2697,8 @@
       "status": "schema_fail"
     },
     "294-1100": {
-      "file": "FaitalPRO_3FE22.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-1150": {
       "file": "FaitalPRO_6FE100.wdr",
@@ -2725,40 +2725,40 @@
       "status": "ok"
     },
     "270-018": {
-      "file": "Goldwood_GT-25.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-378": {
-      "file": "Goldwood_GW-8004_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "270-170": {
-      "file": "Goldwood_GT-302.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-373": {
       "file": "Goldwood_GW-4028_S.wdr",
       "status": "schema_fail"
     },
     "270-182": {
-      "file": "Goldwood_GT-525.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "270-176": {
-      "file": "Goldwood_GT-510.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "270-180": {
-      "file": "Goldwood_GT-520.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "270-175": {
-      "file": "Goldwood_GT-302_S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "280-012": {
-      "file": "Goldwood_GM-35.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-390": {
       "file": "Goldwood_GW-1038P_A.wdr",
@@ -2785,12 +2785,12 @@
       "status": "schema_fail"
     },
     "270-155": {
-      "file": "Goldwood_GT-324.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "270-150": {
-      "file": "Goldwood_GT-322.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-345": {
       "file": "Goldwood_GW-215_8.wdr",
@@ -2817,8 +2817,8 @@
       "status": "ok"
     },
     "270-160": {
-      "file": "Goldwood_GT-336.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-377": {
       "file": "Goldwood_GW-5028_S.wdr",
@@ -2885,12 +2885,12 @@
       "status": "ok"
     },
     "280-105": {
-      "file": "Goldwood_GM-65_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "280-100": {
-      "file": "Goldwood_GM-65_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-351": {
       "file": "Goldwood_GW-6024.wdr",
@@ -2901,8 +2901,8 @@
       "status": "schema_fail"
     },
     "280-110": {
-      "file": "Goldwood_GM-85_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-376": {
       "file": "Goldwood_GW-205_8S.wdr",
@@ -2933,120 +2933,120 @@
       "status": "ok"
     },
     "280-115": {
-      "file": "Goldwood_GM-85_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-428": {
       "file": "GRS_8PR-8.wdr",
       "status": "ok"
     },
     "292-422": {
-      "file": "GRS_12PR-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-421": {
       "file": "GRS_10PR-8.wdr",
       "status": "ok"
     },
     "292-415": {
-      "file": "GRS_15PF-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-412": {
-      "file": "GRS_12PF-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-410": {
-      "file": "GRS_10PF-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-408": {
-      "file": "GRS_8PF-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-404": {
-      "file": "GRS_4PF-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-434": {
-      "file": "GRS_4FR-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-432": {
-      "file": "GRS_5SBM-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-802": {
-      "file": "GRS_8PT-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-916": {
-      "file": "GRS_12SFPC-B.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-914": {
-      "file": "GRS_12SFPC-W.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-912": {
-      "file": "GRS_10SFPC-B.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "290-910": {
-      "file": "GRS_10SFPC-W.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-462": {
-      "file": "GRS_1TD1-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-438": {
-      "file": "GRS_1TM-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-868": {
-      "file": "GRS_8SMP-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-854": {
-      "file": "GRS_4SMP-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-569": {
-      "file": "GRS_10S-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "272-252": {
-      "file": "GRS_NRT50-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "272-250": {
-      "file": "GRS_NRT25-8.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-484": {
-      "file": "GRS_12SW-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-482": {
-      "file": "GRS_10SW-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-480": {
-      "file": "GRS_8SW-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-464": {
-      "file": "GRS_1TD2-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-818": {
-      "file": "GRS_10SW-4HE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-816": {
-      "file": "GRS_8SW-4HE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-850": {
       "file": "GRS_S115V-LF-8.wdr",
@@ -3061,8 +3061,8 @@
       "status": "ok"
     },
     "292-436": {
-      "file": "GRS_3FR-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-468": {
       "file": "GRS_A25-10.wdr",
@@ -3149,20 +3149,20 @@
       "status": "ok"
     },
     "292-431": {
-      "file": "GRS_5SBM1-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-408": {
-      "file": "HiVi_TN25.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-415": {
-      "file": "HiVi_DMN-A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-418": {
-      "file": "HiVi_Q2R.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-450": {
       "file": "HiVi_F10.wdr",
@@ -3173,20 +3173,20 @@
       "status": "schema_fail"
     },
     "297-716": {
-      "file": "HiVi_DMB-A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-480": {
-      "file": "HiVi_E8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-446": {
-      "file": "HiVi_M8N-1.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-416": {
-      "file": "HiVi_SD1.1-A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-435": {
       "file": "HiVi_F5.wdr",
@@ -3217,8 +3217,8 @@
       "status": "schema_fail"
     },
     "297-490": {
-      "file": "HiVi_M8N-1B.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-488": {
       "file": "HiVi_M6N-B.wdr",
@@ -3229,16 +3229,16 @@
       "status": "schema_fail"
     },
     "297-432": {
-      "file": "HiVi_B2S.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-440": {
-      "file": "HiVi_F6.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-436": {
-      "file": "HiVi_M5N.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-428": {
       "file": "HiVi_B3N.wdr",
@@ -3249,8 +3249,8 @@
       "status": "schema_fail"
     },
     "297-414": {
-      "file": "HiVi_TN28-B.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-427": {
       "file": "HiVi_B3S.wdr",
@@ -3261,40 +3261,40 @@
       "status": "schema_fail"
     },
     "297-464": {
-      "file": "HiVi_T20-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-470": {
-      "file": "HiVi_DM-7500.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-472": {
-      "file": "HiVi_D5.4-II.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-478": {
-      "file": "HiVi_E6.5.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-474": {
-      "file": "HiVi_C6.5.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-476": {
-      "file": "HiVi_C8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-494": {
       "file": "Selenium_8PWX-8R.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-480": {
-      "file": "Selenium_8PW-PRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-493": {
       "file": "Selenium_15PWX-8R.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-492": {
       "file": "Selenium_12PWX-8R.wdr",
@@ -3305,52 +3305,52 @@
       "status": "schema_fail"
     },
     "264-479": {
-      "file": "Selenium_12MPRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-478": {
-      "file": "Selenium_10MPRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-816": {
-      "file": "Lavoce_SAF214.50.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-812": {
-      "file": "Lavoce_WAF124.01.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-808": {
-      "file": "Lavoce_WSF102.00.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-806": {
-      "file": "Lavoce_WSF081.82.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-800": {
-      "file": "Lavoce_WSF030.70.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-810": {
-      "file": "Lavoce_WXF15.400.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-796": {
-      "file": "Lavoce_WSN041.00.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-716": {
       "file": "Lavoce_WAF102.50.wdr",
       "status": "ok"
     },
     "293-794": {
-      "file": "Lavoce_CSF082.00K.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-818": {
-      "file": "Lavoce_SAN214.50-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-788": {
       "file": "Lavoce_SSF122.50L.wdr",
@@ -3365,24 +3365,24 @@
       "status": "ok"
     },
     "293-802": {
-      "file": "Lavoce_WSF051.02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-732": {
       "file": "Lavoce_SAN214.50.wdr",
       "status": "ok"
     },
     "293-715": {
-      "file": "Lavoce_WAN082.50.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-714": {
       "file": "Lavoce_WAF082.00.wdr",
       "status": "schema_fail"
     },
     "293-790": {
-      "file": "Lavoce_CSF051.21.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-748": {
       "file": "Lavoce_MAF082.00.wdr",
@@ -3437,8 +3437,8 @@
       "status": "ok"
     },
     "293-710": {
-      "file": "Lavoce_WSF041.00.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-782": {
       "file": "Lavoce_WAN153.01.wdr",
@@ -3453,8 +3453,8 @@
       "status": "ok"
     },
     "293-738": {
-      "file": "Lavoce_TN100.70.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-711": {
       "file": "Lavoce_FSN041.00.wdr",
@@ -3485,12 +3485,12 @@
       "status": "schema_fail"
     },
     "293-712": {
-      "file": "Lavoce_WAF061.80.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "293-739": {
-      "file": "Lavoce_TN131.00.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "293-746": {
       "file": "Lavoce_MAF061.50.wdr",
@@ -3501,44 +3501,44 @@
       "status": "schema_fail"
     },
     "293-792": {
-      "file": "Lavoce_CSF061.21.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "287-030": {
-      "file": "Morel_EM_1308.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "287-020": {
-      "file": "Morel_MDM_55.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-074": {
-      "file": "Morel_ET_448.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-035": {
-      "file": "Morel_MDT_39.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-010": {
-      "file": "Morel_MDT_29.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-045": {
       "file": "Morel_MW_1075.wdr",
       "status": "ok"
     },
     "287-025": {
-      "file": "Morel_CAM_558.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-082": {
-      "file": "Morel_CAT_308.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-080": {
-      "file": "Morel_CAT_298.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-130": {
       "file": "Morel_Ultimate_UW_1058.wdr",
@@ -3549,28 +3549,28 @@
       "status": "ok"
     },
     "277-086": {
-      "file": "Morel_CAT_408.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-084": {
-      "file": "Morel_CAT_378.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-062": {
-      "file": "Morel_MDT_22T.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-114": {
       "file": "Morel_Supreme_SCW_636.wdr",
       "status": "schema_fail"
     },
     "277-070": {
-      "file": "Morel_ET_338.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-060": {
-      "file": "Morel_MDT_12.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-086": {
       "file": "Morel_CAW_938.wdr",
@@ -3581,12 +3581,12 @@
       "status": "ok"
     },
     "277-072": {
-      "file": "Morel_ET_338-104.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "277-096": {
-      "file": "Morel_ST_1108.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-082": {
       "file": "Morel_CAW_538.wdr",
@@ -3601,8 +3601,8 @@
       "status": "ok"
     },
     "277-102": {
-      "file": "Morel_TSCT1044.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-140": {
       "file": "Morel_MW_1258.wdr",
@@ -3633,40 +3633,40 @@
       "status": "schema_fail"
     },
     "297-002": {
-      "file": "Morel_MSW_424D.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-103": {
-      "file": "Morel_TiW_638Nd.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-101": {
-      "file": "Morel_TiW_638Ft.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-100": {
-      "file": "Morel_TiW_634Ft.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-026": {
       "file": "Morel_Integra_524.wdr",
       "status": "schema_fail"
     },
     "297-105": {
-      "file": "Morel_TiCW_638Nd.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-004": {
-      "file": "Morel_MSW_538.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1060": {
-      "file": "Peerless_by_Tymphany_SDS-P830878.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1678": {
-      "file": "Peerless_by_Tymphany_DA32TX00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1052": {
       "file": "Peerless_by_Tymphany_NE85W-04.wdr",
@@ -3681,76 +3681,76 @@
       "status": "schema_fail"
     },
     "264-500": {
-      "file": "Peerless_by_Tymphany_D19TD05-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1108": {
       "file": "Peerless_by_Tymphany_XLS-P830452.wdr",
       "status": "ok"
     },
     "264-1006": {
-      "file": "Peerless_by_Tymphany_NE19VTS-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1002": {
-      "file": "Peerless_by_Tymphany_OX20SC00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1064": {
       "file": "Peerless_by_Tymphany_TG9FD10-04.wdr",
       "status": "schema_fail"
     },
     "264-1062": {
-      "file": "Peerless_by_Tymphany_TC9FD18-08.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-1676": {
-      "file": "Peerless_by_Tymphany_DA25TX00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1058": {
       "file": "Peerless_by_Tymphany_NE95W-04.wdr",
       "status": "ok"
     },
     "264-1046": {
-      "file": "Peerless_by_Tymphany_NE65W-04.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-1040": {
-      "file": "Peerless_by_Tymphany_BC25TG15-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1034": {
-      "file": "Peerless_by_Tymphany_NE25VTS-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1028": {
-      "file": "Peerless_by_Tymphany_BC25SC06-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1024": {
-      "file": "Peerless_by_Tymphany_BC25SC55-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1022": {
-      "file": "Peerless_by_Tymphany_D27TG35-06.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1020": {
-      "file": "Peerless_by_Tymphany_DX25TG59-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1182": {
-      "file": "Peerless_by_Tymphany_PLS-65F25AL02-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1044": {
       "file": "Peerless_by_Tymphany_PLS-P830970.wdr",
       "status": "schema_fail"
     },
     "264-1056": {
-      "file": "Peerless_by_Tymphany_PLS-P830986.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-1054": {
       "file": "Peerless_by_Tymphany_PLS-P830987.wdr",
@@ -3769,16 +3769,16 @@
       "status": "ok"
     },
     "264-1016": {
-      "file": "Peerless_by_Tymphany_XT25TG30-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1014": {
       "file": "Peerless_by_Tymphany_XT25SC90-04.wdr",
       "status": "ok"
     },
     "264-1012": {
-      "file": "Peerless_by_Tymphany_XT25BG60-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1684": {
       "file": "Peerless_by_Tymphany_GBS-85N25PR07-04.wdr",
@@ -3805,12 +3805,12 @@
       "status": "ok"
     },
     "264-1656": {
-      "file": "Peerless_by_Tymphany_TC8FD05-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1524": {
-      "file": "Peerless_by_Tymphany_OC16SC04-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1512": {
       "file": "Peerless_by_Tymphany_NE123W-04.wdr",
@@ -3821,8 +3821,8 @@
       "status": "ok"
     },
     "264-1522": {
-      "file": "Peerless_by_Tymphany_OC16SC00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1065": {
       "file": "Peerless_by_Tymphany_SDS-P830855.wdr",
@@ -3833,8 +3833,8 @@
       "status": "ok"
     },
     "264-1560": {
-      "file": "Peerless_by_Tymphany_PMT-37N28AL01-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1404": {
       "file": "Peerless_by_Tymphany_FSL-0818R01-08.wdr",
@@ -3842,7 +3842,7 @@
     },
     "264-1540": {
       "file": "Peerless_by_Tymphany_PLS-65F25AL01-04.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1484": {
       "file": "Peerless_by_Tymphany_GBS-115N25AL01-04.wdr",
@@ -3853,48 +3853,48 @@
       "status": "ok"
     },
     "264-1474": {
-      "file": "Peerless_by_Tymphany_DX20BF00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1472": {
-      "file": "Peerless_by_Tymphany_DX20BF00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1122": {
-      "file": "Peerless_by_Tymphany_OT19NC00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1454": {
       "file": "Peerless_by_Tymphany_D26NC56-06.wdr",
       "status": "schema_fail"
     },
     "264-1442": {
-      "file": "Peerless_by_Tymphany_BC25TG15-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1440": {
       "file": "Peerless_by_Tymphany_BC25SC08-08.wdr",
       "status": "schema_fail"
     },
     "264-1478": {
-      "file": "Peerless_by_Tymphany_DX25BG60-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1460": {
-      "file": "Peerless_by_Tymphany_DA25BG08-06.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1620": {
-      "file": "Peerless_by_Tymphany_TC5FB00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1616": {
-      "file": "Peerless_by_Tymphany_TC55FD00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1626": {
-      "file": "Peerless_by_Tymphany_TC5FC07-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1622": {
       "file": "Peerless_by_Tymphany_TC5FC00-04.wdr",
@@ -3914,23 +3914,23 @@
     },
     "264-1650": {
       "file": "Peerless_by_Tymphany_XXLS-P835037.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1646": {
       "file": "Peerless_by_Tymphany_XXLS-P830845.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1520": {
-      "file": "Peerless_by_Tymphany_NE315W-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1518": {
       "file": "Peerless_by_Tymphany_NE265W-08.wdr",
       "status": "ok"
     },
     "264-1642": {
-      "file": "Peerless_by_Tymphany_XT25SC40-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1009": {
       "file": "Peerless_by_Tymphany_OX32SC00-08.wdr",
@@ -3953,8 +3953,8 @@
       "status": "ok"
     },
     "264-1430": {
-      "file": "Peerless_by_Tymphany_ANC-50N25AL04-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1134": {
       "file": "Peerless_by_Tymphany_NE180W-08.wdr",
@@ -3962,31 +3962,31 @@
     },
     "264-1632": {
       "file": "Peerless_by_Tymphany_TG9FD10-08.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1648": {
       "file": "Peerless_by_Tymphany_XXLS-P835016.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1386": {
-      "file": "Peerless_by_Tymphany_H26TG45-06.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1381": {
       "file": "Peerless_by_Tymphany_H25TG05-08.wdr",
       "status": "schema_fail"
     },
     "264-1145": {
-      "file": "Peerless_by_Tymphany_TC8FD00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1094": {
       "file": "Peerless_by_Tymphany_HDS-P830883.wdr",
       "status": "ok"
     },
     "264-1092": {
-      "file": "Peerless_by_Tymphany_HDS-P830875.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1090": {
       "file": "Peerless_by_Tymphany_HDS-P830874.wdr",
@@ -4018,31 +4018,31 @@
     },
     "264-1644": {
       "file": "Peerless_by_Tymphany_XXLS-300F50AL01-04.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1612": {
-      "file": "Peerless_by_Tymphany_TA6FD00-08.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1610": {
-      "file": "Peerless_by_Tymphany_TA6FD00-04.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-1410": {
       "file": "Peerless_by_Tymphany_FSL-1220R02-08s.wdr",
       "status": "ok"
     },
     "264-1126": {
-      "file": "Peerless_by_Tymphany_TC6FD00-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1017": {
       "file": "Peerless_by_Tymphany_TC7FD24-04.wdr",
       "status": "ok"
     },
     "264-1390": {
-      "file": "Peerless_by_Tymphany_BC25SC08-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1154": {
       "file": "Peerless_by_Tymphany_PMT-40N25AL01-04.wdr",
@@ -4054,15 +4054,15 @@
     },
     "264-1596": {
       "file": "Peerless_by_Tymphany_SLS-135F32CP01-04.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1592": {
       "file": "Peerless_by_Tymphany_SDS-160F25CP01-08.wdr",
-      "status": "ok"
+      "status": "schema_fail"
     },
     "264-1486": {
-      "file": "Peerless_by_Tymphany_GBS-135F25AL02-04.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-1132": {
       "file": "Peerless_by_Tymphany_NE149W-08.wdr",
@@ -4173,8 +4173,8 @@
       "status": "ok"
     },
     "294-3526": {
-      "file": "PRV_Audio_6MR250SEAL.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-2982": {
       "file": "PRV_Audio_18SW3600.wdr",
@@ -4245,28 +4245,28 @@
       "status": "ok"
     },
     "294-3546": {
-      "file": "PRV_Audio_12MR1000_PRO.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3412": {
       "file": "PRV_Audio_10MB1000FT.wdr",
       "status": "schema_fail"
     },
     "294-2957": {
-      "file": "PRV_Audio_12MB1000FT.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2949": {
-      "file": "PRV_Audio_6MB550FT.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2988": {
       "file": "PRV_Audio_10MB800FT.wdr",
       "status": "ok"
     },
     "294-3416": {
-      "file": "PRV_Audio_12MB1000FT-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3406": {
       "file": "PRV_Audio_6MB550FT-4.wdr",
@@ -4277,68 +4277,68 @@
       "status": "schema_fail"
     },
     "294-2705": {
-      "file": "PRV_Audio_5MR450-NDY.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-2704": {
-      "file": "PRV_Audio_5MR450-NDY-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-2761": {
       "file": "PRV_Audio_69MR500PhP-4.wdr",
       "status": "schema_fail"
     },
     "267-8042": {
-      "file": "PRV_Audio_MT10W1200-NDY-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3410": {
-      "file": "PRV_Audio_8MB700FT-NDY-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2707": {
-      "file": "PRV_Audio_6MR500-NDY.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-2706": {
-      "file": "PRV_Audio_6MR500-NDY-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "267-8032": {
-      "file": "PRV_Audio_MT8MR400CF-NDY-4_SLIM.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3524": {
-      "file": "PRV_Audio_6MB400.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "267-8052": {
-      "file": "PRV_Audio_MT2.7TWB-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "267-8050": {
-      "file": "PRV_Audio_MT2.2TWC-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "267-8048": {
-      "file": "PRV_Audio_MT2.2TWB-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "267-8036": {
       "file": "PRV_Audio_MT6CX580-NDY-4.wdr",
       "status": "ok"
     },
     "294-2984": {
-      "file": "PRV_Audio_6MR200A.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "294-3167": {
-      "file": "PRV_Audio_6MR200A-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "267-8034": {
-      "file": "PRV_Audio_MT6MR600CF-NDY-2.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-3535": {
       "file": "PRV_Audio_6MR400CF-4.wdr",
@@ -4349,40 +4349,40 @@
       "status": "ok"
     },
     "290-270": {
-      "file": "Pyramid_WX65X.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-422": {
       "file": "Selenium_6W4P.wdr",
       "status": "schema_fail"
     },
     "264-470": {
-      "file": "Selenium_8WP_300.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-475": {
-      "file": "Selenium_18SW3P.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-474": {
-      "file": "Selenium_18WP_600.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-473": {
-      "file": "Selenium_15WP_550.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-472": {
-      "file": "Selenium_12WP_500.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-471": {
-      "file": "Selenium_10WP_350.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-8016": {
-      "file": "Tang_Band_20-2240S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-854": {
       "file": "Tang_Band_W8-740P.wdr",
@@ -4405,16 +4405,16 @@
       "status": "schema_fail"
     },
     "264-855": {
-      "file": "Tang_Band_50-1426SE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-911": {
       "file": "Tang_Band_W3-881SJF.wdr",
       "status": "schema_fail"
     },
     "264-903": {
-      "file": "Tang_Band_W4-1879.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-902": {
       "file": "Tang_Band_W3-1878.wdr",
@@ -4429,8 +4429,8 @@
       "status": "schema_fail"
     },
     "264-865": {
-      "file": "Tang_Band_25-1719S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-844": {
       "file": "Tang_Band_W3-1364SA.wdr",
@@ -4445,8 +4445,8 @@
       "status": "schema_fail"
     },
     "264-841": {
-      "file": "Tang_Band_13-1761S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-9004": {
       "file": "Tang_Band_W8-2314.wdr",
@@ -4485,20 +4485,20 @@
       "status": "schema_fail"
     },
     "264-805": {
-      "file": "Tang_Band_W2-803SM.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-872": {
       "file": "Tang_Band_W4-1720.wdr",
       "status": "ok"
     },
     "264-803": {
-      "file": "Tang_Band_W2-2243S.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-921": {
-      "file": "Tang_Band_W0-2008S.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-885": {
       "file": "Tang_Band_W2-1803S.wdr",
@@ -4565,8 +4565,8 @@
       "status": "schema_fail"
     },
     "264-818": {
-      "file": "Tang_Band_W1-2396S.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-957": {
       "file": "Tang_Band_W4-2142.wdr",
@@ -4581,12 +4581,12 @@
       "status": "schema_fail"
     },
     "264-817": {
-      "file": "Tang_Band_W4-2417.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-816": {
-      "file": "Tang_Band_W4-2414.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "264-964": {
       "file": "Tang_Band_W6-2090.wdr",
@@ -4601,8 +4601,8 @@
       "status": "schema_fail"
     },
     "264-801": {
-      "file": "Tang_Band_25-2234S.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-954": {
       "file": "Tang_Band_W6-2100.wdr",
@@ -4613,16 +4613,16 @@
       "status": "schema_fail"
     },
     "264-8014": {
-      "file": "Tang_Band_25-2234SE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "264-8012": {
-      "file": "Tang_Band_25-2234SD.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "297-2164": {
-      "file": "Tectonic_TEBM65C20F-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-2156": {
       "file": "Tectonic_TEBM65C20F-8.wdr",
@@ -4633,204 +4633,204 @@
       "status": "schema_fail"
     },
     "297-2166": {
-      "file": "Tectonic_TEBM36S05-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "297-216": {
-      "file": "Tectonic_TEBM35C10-4.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "294-4114": {
-      "file": "Timpano_Audio_TPT-T2500-12_D2.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7844": {
-      "file": "Visaton_KT_100_V.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-584": {
-      "file": "Visaton_W200_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-515": {
-      "file": "Visaton_W_100_C_-_4_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-513": {
       "file": "Visaton_FR10-8.wdr",
       "status": "ok"
     },
     "292-7809": {
-      "file": "Visaton_TIW_200_XS.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7808": {
-      "file": "Visaton_GF_200.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7805": {
-      "file": "Visaton_AL_200.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-756": {
-      "file": "Visaton_FR10HM-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-684": {
-      "file": "Visaton_WS20E-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-556": {
-      "file": "Visaton_DT_94_-_8_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-754": {
-      "file": "Visaton_FR10HMP-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7834": {
-      "file": "Visaton_PAW_46.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7833": {
-      "file": "Visaton_PAW_38.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-588": {
-      "file": "Visaton_W300_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-586": {
-      "file": "Visaton_W250_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-543": {
-      "file": "Visaton_K50.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-572": {
-      "file": "Visaton_W200S_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7800": {
-      "file": "Visaton_TW_6_NG.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-638": {
       "file": "Visaton_FR_7_-_4.wdr",
       "status": "ok"
     },
     "292-517": {
-      "file": "Visaton_W_100_C_-_8_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-676": {
-      "file": "Visaton_DTW72.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7804": {
-      "file": "Visaton_GS_20_SC.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-700": {
-      "file": "Visaton_FR10-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-540": {
-      "file": "Visaton_K50WP_-_16.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-716": {
-      "file": "Visaton_K64WP-50.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7831": {
-      "file": "Visaton_PAM_25.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7829": {
-      "file": "Visaton_K_28_GI.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-7828": {
-      "file": "Visaton_K_23_SQ.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-548": {
-      "file": "Visaton_BG20_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7832": {
-      "file": "Visaton_PAW_30_ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7814": {
-      "file": "Visaton_FRW_10_N.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7810": {
-      "file": "Visaton_TIW_250_XS.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7803": {
-      "file": "Visaton_G_25_FFL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7802": {
-      "file": "Visaton_G_25_FFL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7801": {
-      "file": "Visaton_DSM_50_FFL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-688": {
-      "file": "Visaton_DSM25FFL.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-552": {
-      "file": "Visaton_SC5_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-742": {
-      "file": "Visaton_HX10-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-618": {
-      "file": "Visaton_K_28.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7817": {
-      "file": "Visaton_FRS_10_WP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-617": {
-      "file": "Visaton_FRS_10_WP_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7836": {
-      "file": "Visaton_FR_77.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7821": {
-      "file": "Visaton_FRWS_5.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7820": {
-      "file": "Visaton_FRWS_5.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7811": {
-      "file": "Visaton_TIW_300.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-758": {
-      "file": "Visaton_FR10HM-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-686": {
-      "file": "Visaton_WS20E-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-662": {
       "file": "Visaton_B100.wdr",
@@ -4841,372 +4841,372 @@
       "status": "ok"
     },
     "292-656": {
-      "file": "Visaton_FR8TA.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-598": {
-      "file": "Visaton_WS25.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-536": {
-      "file": "Visaton_FRS_5-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-660": {
       "file": "Visaton_B80.wdr",
       "status": "ok"
     },
     "292-714": {
-      "file": "Visaton_FR58-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-696": {
-      "file": "Visaton_FRS7W-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-640": {
-      "file": "Visaton_FRS5X-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-591": {
-      "file": "Visaton_SL87WPM-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-590": {
-      "file": "Visaton_SL87WPM_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-554": {
-      "file": "Visaton_DT94_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-524": {
-      "file": "Visaton_FRS8_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-522": {
-      "file": "Visaton_FRS8_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-762": {
-      "file": "Visaton_SC10N-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-624": {
-      "file": "Visaton_FR_8_WP_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7842": {
-      "file": "Visaton_MR_130.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-7830": {
-      "file": "Visaton_PAM_13.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-710": {
-      "file": "Visaton_SL87XA-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-708": {
-      "file": "Visaton_SL87XA-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-698": {
-      "file": "Visaton_FRS7S-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7815": {
-      "file": "Visaton_R_10_SC_Spezial.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-576": {
-      "file": "Visaton_W250S_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-574": {
-      "file": "Visaton_W250S_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-570": {
-      "file": "Visaton_W200S_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-560": {
-      "file": "Visaton_W100S_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7846": {
-      "file": "Visaton_FR_8_WP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7818": {
-      "file": "Visaton_FR_8_WP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-625": {
-      "file": "Visaton_FR_8_WP-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-644": {
-      "file": "Visaton_BG13P.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7838": {
-      "file": "Visaton_F_8_SC.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-692": {
       "file": "Visaton_FRS8M.wdr",
       "status": "schema_fail"
     },
     "292-690": {
-      "file": "Visaton_FR8JS.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-538": {
-      "file": "Visaton_K50WP_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-518": {
-      "file": "Visaton_FR13-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-694": {
-      "file": "Visaton_FR8-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7843": {
-      "file": "Visaton_W_150_X.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7807": {
-      "file": "Visaton_AL_130_M.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-592": {
-      "file": "Visaton_SC_4.7_ND.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-501": {
-      "file": "Visaton_G_25_NDWG_-_8_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7819": {
-      "file": "Visaton_FRWS_4_ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-615": {
-      "file": "Visaton_SL_87_ND.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-712": {
-      "file": "Visaton_FRS10WP-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-616": {
       "file": "Visaton_FRS10WP-8.wdr",
       "status": "schema_fail"
     },
     "292-636": {
-      "file": "Visaton_PL_5_RV_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-634": {
-      "file": "Visaton_FR_58_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-519": {
-      "file": "Visaton_W_150_X_-_4_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-678": {
-      "file": "Visaton_WS13E.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-564": {
-      "file": "Visaton_W130S_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-562": {
-      "file": "Visaton_W130S_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7841": {
-      "file": "Visaton_TW_70.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-612": {
-      "file": "Visaton_BF45-4_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-610": {
-      "file": "Visaton_BF32-8_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-594": {
-      "file": "Visaton_M_10.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7824": {
-      "file": "Visaton_SL_70_NDV.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7812": {
-      "file": "Visaton_FRS_7_XWP.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-655": {
-      "file": "Visaton_BF37.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-614": {
-      "file": "Visaton_SL87_FE.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7823": {
-      "file": "Visaton_BF_37.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-650": {
-      "file": "Visaton_FRWS_5_R.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-530": {
-      "file": "Visaton_FRS7_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-528": {
-      "file": "Visaton_FRS7_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-680": {
-      "file": "Visaton_WS17E-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-764": {
-      "file": "Visaton_SC13-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-702": {
-      "file": "Visaton_SL713-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-706": {
-      "file": "Visaton_FR12-8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-704": {
-      "file": "Visaton_FR12-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-534": {
-      "file": "Visaton_K64WP_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-505": {
-      "file": "Visaton_FR_131.30_-_8_Ohm.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-582": {
-      "file": "Visaton_W170_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-653": {
-      "file": "Visaton_SC_5.9_OM-4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-599": {
-      "file": "Visaton_WS-17E.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7806": {
-      "file": "Visaton_AL_170.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-551": {
       "file": "Visaton_SC_5.9.wdr",
       "status": "ok"
     },
     "292-553": {
-      "file": "Visaton_SC_5.9_ND.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-7840": {
-      "file": "Visaton_SC_5.9_ND.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "292-568": {
-      "file": "Visaton_W170S_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-566": {
-      "file": "Visaton_W170S_-_4.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-7845": {
-      "file": "Visaton_FR_6_5.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "292-546": {
-      "file": "Visaton_BG17_-_8.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-2106": {
-      "file": "Wavecor_TW030WA02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1220": {
-      "file": "Wavecor_TW030WA22.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1219": {
-      "file": "Wavecor_TW030WA21.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1240": {
-      "file": "Wavecor_WF275BD02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1239": {
-      "file": "Wavecor_WF275BD01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1238": {
-      "file": "Wavecor_WF211PA02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1237": {
-      "file": "Wavecor_WF211PA01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1226": {
-      "file": "Wavecor_WF095WA02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1225": {
-      "file": "Wavecor_WF095WA01.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1070": {
       "file": "Wavecor_SW259WA02.wdr",
       "status": "ok"
     },
     "298-1224": {
-      "file": "Wavecor_TW045WA02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1223": {
-      "file": "Wavecor_TW045WA01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1218": {
-      "file": "Wavecor_TW022WA10.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1217": {
-      "file": "Wavecor_TW022WA09.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1166": {
       "file": "Wavecor_WF146WA02.wdr",
@@ -5225,36 +5225,36 @@
       "status": "ok"
     },
     "298-1064": {
-      "file": "Wavecor_SW223BD02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1222": {
-      "file": "Wavecor_TW030WA24.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1221": {
-      "file": "Wavecor_TW030WA23.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1112": {
-      "file": "Wavecor_TW030WA07.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1054": {
-      "file": "Wavecor_SW178WA01.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1228": {
-      "file": "Wavecor_WF120BD12.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1227": {
-      "file": "Wavecor_WF120BD11.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-2002": {
-      "file": "Wavecor_FR040WA02.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1170": {
       "file": "Wavecor_WF146WA06.wdr",
@@ -5265,56 +5265,56 @@
       "status": "ok"
     },
     "298-1072": {
-      "file": "Wavecor_SW270WA01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1062": {
-      "file": "Wavecor_SW215WA02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1060": {
       "file": "Wavecor_SW215WA01.wdr",
       "status": "ok"
     },
     "298-1048": {
-      "file": "Wavecor_SW146WA01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1044": {
-      "file": "Wavecor_SW118WA01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1110": {
-      "file": "Wavecor_TW030WA06.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1234": {
-      "file": "Wavecor_WF182BD14.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1233": {
-      "file": "Wavecor_WF182BD13.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1230": {
-      "file": "Wavecor_WF152BD10.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1229": {
-      "file": "Wavecor_WF152BD09.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1078": {
       "file": "Wavecor_SW280WA01.wdr",
       "status": "ok"
     },
     "298-1122": {
-      "file": "Wavecor_TW030WA12.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1120": {
-      "file": "Wavecor_TW030WA11.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1058": {
       "file": "Wavecor_SW182BD04.wdr",
@@ -5325,20 +5325,20 @@
       "status": "ok"
     },
     "298-1126": {
-      "file": "Wavecor_TW030WA14.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1124": {
-      "file": "Wavecor_TW030WA13.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1214": {
-      "file": "Wavecor_WF223BD02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1212": {
-      "file": "Wavecor_WF223BD01.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1148": {
       "file": "Wavecor_WF120BD05.wdr",
@@ -5353,36 +5353,36 @@
       "status": "ok"
     },
     "298-1236": {
-      "file": "Wavecor_WF182BD18.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1235": {
-      "file": "Wavecor_WF182BD17.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1232": {
-      "file": "Wavecor_WF152BD14.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1231": {
-      "file": "Wavecor_WF152BD13.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1206": {
-      "file": "Wavecor_WF182BD10.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1190": {
       "file": "Wavecor_WF168WA02.wdr",
       "status": "ok"
     },
     "298-1186": {
-      "file": "Wavecor_WF166TU02.wdr",
-      "status": "ok"
+      "file": null,
+      "status": "skipped"
     },
     "298-1162": {
-      "file": "Wavecor_WF132TU02.wdr",
-      "status": "schema_fail"
+      "file": null,
+      "status": "skipped"
     },
     "298-1194": {
       "file": "Wavecor_WF168WA06.wdr",
@@ -5395,6 +5395,898 @@
     "298-1210": {
       "file": "Wavecor_WF182BD12.wdr",
       "status": "ok"
+    },
+    "276-420": {
+      "file": null,
+      "status": "skipped"
+    },
+    "276-412": {
+      "file": null,
+      "status": "skipped"
+    },
+    "276-410": {
+      "file": null,
+      "status": "skipped"
+    },
+    "276-400": {
+      "file": null,
+      "status": "skipped"
+    },
+    "276-440": {
+      "file": null,
+      "status": "skipped"
+    },
+    "276-446": {
+      "file": null,
+      "status": "skipped"
+    },
+    "277-112": {
+      "file": null,
+      "status": "skipped"
+    },
+    "277-116": {
+      "file": null,
+      "status": "skipped"
+    },
+    "277-114": {
+      "file": null,
+      "status": "skipped"
+    },
+    "277-118": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-155": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-127": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-126": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-136": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-123": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-122": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-143": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-141": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-139": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-137": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-144": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-142": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-140": {
+      "file": null,
+      "status": "skipped"
+    },
+    "253-138": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-105": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-128": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-126": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2128": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2124": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2132": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2120": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2142": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2503": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2501": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2121": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1962": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2154": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2140": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2502": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2110": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2505": {
+      "file": null,
+      "status": "skipped"
+    },
+    "290-5634": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1076": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1080": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1000": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1362": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1075": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1081": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1079": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1077": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1360": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1045": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1378": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1055": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1054": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1026": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1011": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1358": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1023": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-1052": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-206": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-204": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-202": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-200": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6472": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-580": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5848": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-607": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-601": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6068": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5813": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6476": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6042": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5828": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6474": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6072": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6066": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5907": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5816": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-615": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-613": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-582": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5814": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-585": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6082": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6064": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5847": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-605": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-602": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-600": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5809": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6462": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-608": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6044": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-5815": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-609": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6464": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-6060": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-4104": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2769": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-8056": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-011": {
+      "file": null,
+      "status": "skipped"
+    },
+    "280-062": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-041": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-450": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-055": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-437": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-446": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-442": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-057": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-128": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-126": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-454": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-122": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-124": {
+      "file": null,
+      "status": "skipped"
+    },
+    "272-130": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-469": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-444": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-440": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-852": {
+      "file": null,
+      "status": "skipped"
+    },
+    "297-421": {
+      "file": null,
+      "status": "skipped"
+    },
+    "297-407": {
+      "file": null,
+      "status": "skipped"
+    },
+    "297-406": {
+      "file": null,
+      "status": "skipped"
+    },
+    "297-400": {
+      "file": null,
+      "status": "skipped"
+    },
+    "267-8108": {
+      "file": null,
+      "status": "skipped"
+    },
+    "267-8104": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-826": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-824": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-822": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-774": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-770": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-776": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-772": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-768": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-736": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-737": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-771": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-778": {
+      "file": null,
+      "status": "skipped"
+    },
+    "293-758": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-1001": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-1466": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-125": {
+      "file": null,
+      "status": "skipped"
+    },
+    "270-102": {
+      "file": null,
+      "status": "skipped"
+    },
+    "244-3226": {
+      "file": null,
+      "status": "skipped"
+    },
+    "244-3222": {
+      "file": null,
+      "status": "skipped"
+    },
+    "244-3438": {
+      "file": null,
+      "status": "skipped"
+    },
+    "244-3218": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-349": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-450": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-348": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-487": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-488": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-455": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-204": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-485": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-270": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-484": {
+      "file": null,
+      "status": "skipped"
+    },
+    "264-849": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3084": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3083": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3081": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3388": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3354": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3348": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3360": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3352": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3358": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3386": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3552": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3510": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3440": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3434": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2808": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3432": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3430": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3548": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3442": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3550": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3016": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3012": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3512": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3089": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3514": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3446": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3147": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2809": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3010": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3448": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3444": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2943": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2804": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3450": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2792": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3508": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2995": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2853": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2850": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2800": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2793": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2833": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2828": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2959": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2827": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2851": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-2832": {
+      "file": null,
+      "status": "skipped"
+    },
+    "294-3537": {
+      "file": null,
+      "status": "skipped"
+    },
+    "298-1092": {
+      "file": null,
+      "status": "skipped"
+    },
+    "298-1090": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-668": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-649": {
+      "file": null,
+      "status": "skipped"
+    },
+    "292-760": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-403": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-195": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-401": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-402": {
+      "file": null,
+      "status": "skipped"
+    },
+    "295-499": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-087": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-115": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-114": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-096": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-095": {
+      "file": null,
+      "status": "skipped"
+    },
+    "275-404": {
+      "file": null,
+      "status": "skipped"
+    },
+    "285-412": {
+      "file": null,
+      "status": "skipped"
     }
   }
 }

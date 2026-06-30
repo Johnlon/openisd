@@ -20,76 +20,77 @@ dq_issue: null
 community: null
 fetched_sku: 297-428
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
   vendor_page: https://www.parts-express.com/HiVi-B3N-3-Aluminum-Driver-Round-Frame-297-428
+  datasheet: https://www.parts-express.com/pedocs/specs/297-428-hi-vi-b3n-specifications-44339.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
   Qts:  # total Q factor
     value: 0.86
     winner: vendor_page
     sources:
       vendor_page: 0.86
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Sd:  # effective piston area (m²)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
   Fs:  # free air resonance (Hz)
     value: 77.0
     winner: vendor_page
     sources:
       vendor_page: 77.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.34557519189487723
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34557519189487723
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0032
-  Qms:  # mechanical Q factor
-    value: 4.48
-    winner: vendor_page
-    sources:
-      vendor_page: 4.48
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00132
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00132
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 1.07
-    winner: vendor_page
-    sources:
-      vendor_page: 1.07
-  Pe:  # rated power input (W)
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  BL:  # force factor (T·m)
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
   Vas:  # equivalent acoustic volume (m³)
     value: 0.001699008
     winner: vendor_page
     sources:
       vendor_page: 0.001699008
+  Qes:  # electrical Q factor
+    value: 1.07
+    winner: vendor_page
+    sources:
+      vendor_page: 1.07
+  BL:  # force factor (T·m)
+    value: 3.1
+    winner: vendor_page
+    sources:
+      vendor_page: 3.1
+  Qms:  # mechanical Q factor
+    value: 4.48
+    winner: vendor_page
+    sources:
+      vendor_page: 4.48
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0032
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00132
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00132
+  Sd:  # effective piston area (m²)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
+    winner: datasheet
+    sources:
+      datasheet: 0.003
+      vendor_page: 0.003
+  Vd:
+    value: 9.0e-06
+    winner: calculated
+    sources:
+      calculated: 9.0e-06
+  Dd:
+    value: 0.06180387232371033
+    winner: calculated
+    sources:
+      calculated: 0.06180387232371033
+  EBP:
+    value: 71.96261682242991
+    winner: calculated
+    sources:
+      calculated: 71.96261682242991

@@ -16,63 +16,19 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qes'' = 6.16 above maximum 5.0 —'
 community: null
 fetched_sku: 285-147
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147
+  datasheet: https://www.parts-express.com/pedocs/specs/285-147--dayton-audio-ce28mb-8-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0001
-  Qts:  # total Q factor
-    value: 1.63
-    winner: vendor_page
-    sources:
-      vendor_page: 1.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 7.54
-    winner: vendor_page
-    sources:
-      vendor_page: 7.54
-  Sd:  # effective piston area (m²)
-    value: 0.000452
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000452
   Fs:  # free air resonance (Hz)
     value: 623.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 623.0
       vendor_page: 623.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.15340312019569402
-    winner: vendor_page
-    sources:
-      vendor_page: 0.15340312019569402
-  Mms:  # moving mass incl. air load (kg)
-    value: 8.7e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.7e-05
-  Qms:  # mechanical Q factor
-    value: 2.22
-    winner: vendor_page
-    sources:
-      vendor_page: 2.22
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000748
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000748
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 6.16
     winner: vendor_page
@@ -80,21 +36,81 @@ specs:
       vendor_page: 6.16
   Pe:  # rated power input (W)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
+      datasheet: 1.0
+  Qms:  # mechanical Q factor
+    value: 2.22
+    winner: datasheet
+    sources:
+      datasheet: 2.22
+      vendor_page: 2.22
+  Mms:  # moving mass incl. air load (kg)
+    value: 8.7e-05
+    winner: datasheet
+    sources:
+      datasheet: 8.7e-05
+      vendor_page: 8.7e-05
   BL:  # force factor (T·m)
     value: 0.642
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.642
       vendor_page: 0.642
-  Le:  # voice coil inductance (H)
-    value: 0.00045
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 1.63
+    winner: datasheet
     sources:
-      vendor_page: 0.00045
+      datasheet: 1.63
+      vendor_page: 1.63
   Vas:  # equivalent acoustic volume (m³)
     value: 2.15e-05
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 2.15e-05
+      datasheet: 2.15e-05
+      vendor_page: 0.000226534
+  Le:  # voice coil inductance (H)
+    value: 0.00045
+    winner: datasheet
+    sources:
+      datasheet: 0.00045
+      vendor_page: 0.00045
+  Re:  # DC voice coil resistance (Ω)
+    value: 7.54
+    winner: datasheet
+    sources:
+      datasheet: 7.54
+      vendor_page: 7.54
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000748
+    winner: datasheet
+    sources:
+      datasheet: 0.000748
+      vendor_page: 0.000748
+  Sd:  # effective piston area (m²)
+    value: 0.000452
+    winner: datasheet
+    sources:
+      datasheet: 0.000452
+      vendor_page: 0.000452
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0001
+    winner: datasheet
+    sources:
+      datasheet: 0.0001
+      vendor_page: 0.0001
+  Vd:
+    value: 4.52e-08
+    winner: calculated
+    sources:
+      calculated: 4.52e-08
+  Dd:
+    value: 0.02398967015655475
+    winner: calculated
+    sources:
+      calculated: 0.02398967015655475
+  EBP:
+    value: 101.13636363636364
+    winner: calculated
+    sources:
+      calculated: 101.13636363636364

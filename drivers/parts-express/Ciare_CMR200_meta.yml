@@ -16,100 +16,112 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0088 differs from calculated=0.00992758 '
 community: null
 fetched_sku: 293-110
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-110--ciare-cmr200-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Ciare-CMR200-8-Full-Range-Driver-293-110
+  datasheet: https://www.parts-express.com/pedocs/specs/293-110--ciare-cmr200-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0038
-  Qts:  # total Q factor
-    value: 0.46
-    winner: vendor_page
-    sources:
-      vendor_page: 0.46
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.41
-    winner: vendor_page
-    sources:
-      vendor_page: 3.41
-  Sd:  # effective piston area (m²)
-    value: 0.0216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0216
-  Fs:  # free air resonance (Hz)
-    value: 94.0
-    winner: vendor_page
-    sources:
-      vendor_page: 94.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.917536239311259
-    winner: vendor_page
-    sources:
-      vendor_page: 2.917536239311259
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01887
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01887
-  Qms:  # mechanical Q factor
-    value: 3.82
-    winner: vendor_page
-    sources:
-      vendor_page: 3.82
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00015
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.52
-    winner: vendor_page
-    sources:
-      vendor_page: 0.52
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  BL:  # force factor (T·m)
-    value: 8.55
-    winner: vendor_page
-    sources:
-      vendor_page: 8.55
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 96.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 96.0
-  Le:  # voice coil inductance (H)
-    value: 0.00042
-    winner: vendor_page
+      datasheet: 96.0
+  Fs:  # free air resonance (Hz)
+    value: 94.0
+    winner: datasheet
     sources:
-      vendor_page: 0.00042
+      datasheet: 94.0
+      vendor_page: 94.0
+  Qes:  # electrical Q factor
+    value: 0.52
+    winner: datasheet
+    sources:
+      datasheet: 0.52
+      vendor_page: 0.52
+  Qms:  # mechanical Q factor
+    value: 3.82
+    winner: datasheet
+    sources:
+      datasheet: 3.82
+      vendor_page: 3.82
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01887
+    winner: datasheet
+    sources:
+      datasheet: 0.01887
+      vendor_page: 0.01887
+  BL:  # force factor (T·m)
+    value: 8.55
+    winner: datasheet
+    sources:
+      datasheet: 8.55
+      vendor_page: 8.55
+  Qts:  # total Q factor
+    value: 0.46
+    winner: datasheet
+    sources:
+      datasheet: 0.46
+      vendor_page: 0.46
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0088
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.0088
+      datasheet: 0.0088
+      vendor_page: 0.008778208
+  Le:  # voice coil inductance (H)
+    value: 0.00042
+    winner: datasheet
+    sources:
+      datasheet: 0.00042
+      vendor_page: 0.00042
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.41
+    winner: datasheet
+    sources:
+      datasheet: 3.41
+      vendor_page: 3.41
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00015
+    winner: datasheet
+    sources:
+      datasheet: 0.00015
+      vendor_page: 0.00015
+  Sd:  # effective piston area (m²)
+    value: 0.0216
+    winner: datasheet
+    sources:
+      datasheet: 0.0216
+      vendor_page: 0.0216
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0038
+    winner: datasheet
+    sources:
+      datasheet: 0.0038
+      vendor_page: 0.0038
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 55.0
     winner: vendor_page
     sources:
       vendor_page: 55.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 7.0
+    value: 7000.0
     winner: vendor_page
     sources:
-      vendor_page: 7.0
+      vendor_page: 7000.0
+  Vd:
+    value: 8.208e-05
+    winner: calculated
+    sources:
+      calculated: 8.208e-05
+  Dd:
+    value: 0.16583719174624104
+    winner: calculated
+    sources:
+      calculated: 0.16583719174624104
+  EBP:
+    value: 180.76923076923077
+    winner: calculated
+    sources:
+      calculated: 180.76923076923077

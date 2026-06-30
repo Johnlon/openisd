@@ -16,85 +16,86 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0152911 differs from calculated=1.14754 '
 community: null
 fetched_sku: 294-2761
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2761--prv-audio-69mr500-php-4-specifications.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-69MR500PhP-4-6-x-9-Midrange-Loudspeaker-4-Ohm-294-2761
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2761--prv-audio-69mr500-php-4-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00287
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00287
   Qts:  # total Q factor
     value: 0.65
     winner: vendor_page
     sources:
       vendor_page: 0.65
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Sd:  # effective piston area (m²)
-    value: 0.0231
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0231
   Fs:  # free air resonance (Hz)
     value: 91.74
     winner: vendor_page
     sources:
       vendor_page: 91.74
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.5991514535486248
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.015291072
     winner: vendor_page
     sources:
-      vendor_page: 0.5991514535486248
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.01476
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01476
-  Qms:  # mechanical Q factor
-    value: 14.2
-    winner: vendor_page
-    sources:
-      vendor_page: 14.2
-  Cms:  # mechanical compliance (m/N)
-    value: 0.01516
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01516
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.015291072
   Qes:  # electrical Q factor
     value: 0.68
     winner: vendor_page
     sources:
       vendor_page: 0.68
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
   BL:  # force factor (T·m)
     value: 6.8
     winner: vendor_page
     sources:
       vendor_page: 6.8
+  Qms:  # mechanical Q factor
+    value: 14.2
+    winner: vendor_page
+    sources:
+      vendor_page: 14.2
   Le:  # voice coil inductance (H)
-    value: 0.00014000000000000001
+    value: 0.00014
     winner: vendor_page
     sources:
-      vendor_page: 0.00014000000000000001
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.015291072000000001
+      vendor_page: 0.00014
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 0.015291072000000001
+      vendor_page: 3.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.01476
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01476
+  Cms:  # mechanical compliance (m/N)
+    value: 0.01516
+    winner: datasheet
+    sources:
+      datasheet: 0.01516
+      vendor_page: 0.000204
+  Sd:  # effective piston area (m²)
+    value: 0.0231
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0231
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00287
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00287
+  Vd:
+    value: 6.6297e-05
+    winner: calculated
+    sources:
+      calculated: 6.6297e-05
+  Dd:
+    value: 0.1714987856615383
+    winner: calculated
+    sources:
+      calculated: 0.1714987856615383
+  EBP:
+    value: 134.91176470588235
+    winner: calculated
+    sources:
+      calculated: 134.91176470588235

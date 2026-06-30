@@ -21,86 +21,105 @@ dq_issue: null
 community: null
 fetched_sku: 294-2014
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-FTR18-4080FD-18-Professional-Speaker-1000W-294-2014
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2014--ftr18-4080fd-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
-  Qts:  # total Q factor
-    value: 0.286
-    winner: vendor_page
-    sources:
-      vendor_page: 0.286
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.62
-    winner: vendor_page
-    sources:
-      vendor_page: 5.62
-  Sd:  # effective piston area (m²)
-    value: 0.11341199999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.11341199999999999
   Fs:  # free air resonance (Hz)
     value: 25.2
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 25.2
       vendor_page: 25.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.92
-    winner: vendor_page
-    sources:
-      vendor_page: 5.92
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.177812
-    winner: vendor_page
-    sources:
-      vendor_page: 0.177812
-  Qms:  # mechanical Q factor
-    value: 4.75
-    winner: vendor_page
-    sources:
-      vendor_page: 4.75
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00023
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.304
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.304
+      datasheet: 0.304
+      vendor_page: 0.3
   Pe:  # rated power input (W)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
+      datasheet: 1.0
+  Qms:  # mechanical Q factor
+    value: 4.75
+    winner: datasheet
+    sources:
+      datasheet: 4.75
+      vendor_page: 4.75
+  Rms:  # mechanical resistance (kg/s)
+    value: 5.92
+    winner: datasheet
+    sources:
+      datasheet: 5.92
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.177812
+    winner: datasheet
+    sources:
+      datasheet: 0.177812
+      vendor_page: 0.1778
   BL:  # force factor (T·m)
     value: 22.81
     winner: vendor_page
     sources:
       vendor_page: 22.81
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.286
+    winner: datasheet
+    sources:
+      datasheet: 0.286
+      vendor_page: 0.28
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.40872
+    winner: datasheet
+    sources:
+      datasheet: 0.40872
+      vendor_page: 0.408611424
   Le:  # voice coil inductance (H)
     value: 0.0015
     winner: vendor_page
     sources:
       vendor_page: 0.0015
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.40872
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.62
+    winner: datasheet
+    sources:
+      datasheet: 5.62
+      vendor_page: 5.6
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00023
+    winner: datasheet
+    sources:
+      datasheet: 0.00023
+      vendor_page: 0.00023
+  Sd:  # effective piston area (m²)
+    value: 0.113412
     winner: vendor_page
     sources:
-      vendor_page: 0.40872
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
-    winner: vendor_page
+      vendor_page: 0.113412
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
     sources:
-      vendor_page: 97.0
+      datasheet: 0.004
+      vendor_page: 0.006
+  Vd:
+    value: 0.000453648
+    winner: calculated
+    sources:
+      calculated: 0.000453648
+  Dd:
+    value: 0.3800008463773525
+    winner: calculated
+    sources:
+      calculated: 0.3800008463773525
+  EBP:
+    value: 82.89473684210526
+    winner: calculated
+    sources:
+      calculated: 82.89473684210526

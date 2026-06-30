@@ -21,96 +21,106 @@ dq_issue: Vas_tiny_for_driver
 community: null
 fetched_sku: 294-1968
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1968--cf0820m-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-CF0820M-8-Professional-Midrange-Driver-8-Ohm-294-1968
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1968--cf0820m-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0005
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 98.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0005
-  Qts:  # total Q factor
-    value: 0.567
-    winner: vendor_page
-    sources:
-      vendor_page: 0.567
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.39
-    winner: vendor_page
-    sources:
-      vendor_page: 5.39
-  Sd:  # effective piston area (m²)
-    value: 0.022698
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022698
+      datasheet: 98.0
   Fs:  # free air resonance (Hz)
     value: 202.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 202.0
       vendor_page: 202.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 15.21
-    winner: vendor_page
-    sources:
-      vendor_page: 15.21
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.02138
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02138
-  Qms:  # mechanical Q factor
-    value: 1.784
-    winner: vendor_page
-    sources:
-      vendor_page: 1.784
-  Cms:  # mechanical compliance (m/N)
-    value: 3.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 3.0e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.831
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.831
       vendor_page: 0.831
   Pe:  # rated power input (W)
     value: 250.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 250.0
+      datasheet: 250.0
+  Qms:  # mechanical Q factor
+    value: 1.784
+    winner: datasheet
+    sources:
+      datasheet: 1.784
+      vendor_page: 1.784
+  Rms:  # mechanical resistance (kg/s)
+    value: 15.21
+    winner: datasheet
+    sources:
+      datasheet: 15.21
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.02138
+    winner: datasheet
+    sources:
+      datasheet: 0.02138
+      vendor_page: 0.02138
   BL:  # force factor (T·m)
     value: 13.27
     winner: vendor_page
     sources:
       vendor_page: 13.27
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 98.0
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.567
+    winner: datasheet
     sources:
-      vendor_page: 98.0
-  Le:  # voice coil inductance (H)
-    value: 0.00011999999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011999999999999999
+      datasheet: 0.567
+      vendor_page: 0.567
   Vas:  # equivalent acoustic volume (m³)
     value: 0.00212
+    winner: datasheet
+    sources:
+      datasheet: 0.00212
+      vendor_page: 0.001982176
+  Le:  # voice coil inductance (H)
+    value: 0.00012
     winner: vendor_page
     sources:
-      vendor_page: 0.00212
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 250.0
-    winner: vendor_page
+      vendor_page: 0.00012
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.39
+    winner: datasheet
     sources:
-      vendor_page: 250.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 5.0
-    winner: vendor_page
+      datasheet: 5.39
+      vendor_page: 5.39
+  Cms:  # mechanical compliance (m/N)
+    value: 3.0e-05
+    winner: datasheet
     sources:
-      vendor_page: 5.0
+      datasheet: 3.0e-05
+      vendor_page: 3.0e-05
+  Sd:  # effective piston area (m²)
+    value: 0.022698
+    winner: datasheet
+    sources:
+      datasheet: 0.022698
+      vendor_page: 0.022698
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0005
+    winner: datasheet
+    sources:
+      datasheet: 0.0005
+      vendor_page: 0.0015
+  Vd:
+    value: 1.1349e-05
+    winner: calculated
+    sources:
+      calculated: 1.1349e-05
+  Dd:
+    value: 0.16999997407764134
+    winner: calculated
+    sources:
+      calculated: 0.16999997407764134
+  EBP:
+    value: 243.0806257521059
+    winner: calculated
+    sources:
+      calculated: 243.0806257521059

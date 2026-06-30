@@ -16,90 +16,109 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0437 differs from calculated=0.00440471 '
 community: null
 fetched_sku: 294-2000
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2000--ftr12-3070c-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qts:  # total Q factor
-    value: 0.32
-    winner: vendor_page
-    sources:
-      vendor_page: 0.32
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.59
-    winner: vendor_page
-    sources:
-      vendor_page: 5.59
-  Sd:  # effective piston area (m²)
-    value: 0.05313
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05313
   Fs:  # free air resonance (Hz)
     value: 65.1
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 65.1
       vendor_page: 65.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.96
-    winner: vendor_page
-    sources:
-      vendor_page: 7.96
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.054611
-    winner: vendor_page
-    sources:
-      vendor_page: 0.054611
-  Qms:  # mechanical Q factor
-    value: 2.804
-    winner: vendor_page
-    sources:
-      vendor_page: 2.804
-  Cms:  # mechanical compliance (m/N)
-    value: 1.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 1.1e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.36
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.36
       vendor_page: 0.36
   Pe:  # rated power input (W)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
+      datasheet: 1.0
+  Qms:  # mechanical Q factor
+    value: 2.804
+    winner: datasheet
+    sources:
+      datasheet: 2.804
+      vendor_page: 2.8
+  Rms:  # mechanical resistance (kg/s)
+    value: 7.96
+    winner: datasheet
+    sources:
+      datasheet: 7.96
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.054611
+    winner: datasheet
+    sources:
+      datasheet: 0.054611
+      vendor_page: 0.05461
   BL:  # force factor (T·m)
     value: 18.58
     winner: vendor_page
     sources:
       vendor_page: 18.58
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.32
+    winner: datasheet
+    sources:
+      datasheet: 0.32
+      vendor_page: 0.32
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0437
+    winner: datasheet
+    sources:
+      datasheet: 0.0437
+      vendor_page: 0.043607872
   Le:  # voice coil inductance (H)
     value: 0.00109
     winner: vendor_page
     sources:
       vendor_page: 0.00109
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0437
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.59
+    winner: datasheet
+    sources:
+      datasheet: 5.59
+      vendor_page: 5.59
+  Cms:  # mechanical compliance (m/N)
+    value: 1.1e-05
+    winner: datasheet
+    sources:
+      datasheet: 1.1e-05
+      vendor_page: 1.0e-05
+  Sd:  # effective piston area (m²)
+    value: 0.05313
     winner: vendor_page
     sources:
-      vendor_page: 0.0437
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 96.0
-    winner: vendor_page
+      vendor_page: 0.05313
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: datasheet
     sources:
-      vendor_page: 96.0
+      datasheet: 0.005
+      vendor_page: 0.003
+  Vd:
+    value: 0.00026565
+    winner: calculated
+    sources:
+      calculated: 0.00026565
+  Dd:
+    value: 0.2600907860955078
+    winner: calculated
+    sources:
+      calculated: 0.2600907860955078
+  EBP:
+    value: 180.83333333333331
+    winner: calculated
+    sources:
+      calculated: 180.83333333333331

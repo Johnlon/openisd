@@ -21,81 +21,84 @@ dq_issue: null
 community: null
 fetched_sku: 264-1132
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-1132--tymphany-ne149w-08-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Peerless-NE149W-08-5-1-4-Fiber-Cone-Woofer-Speaker-8-Ohm-264-1132
+  datasheet: https://www.parts-express.com/pedocs/specs/264-1132--tymphany-ne149w-08-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.38
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.38
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Sd:  # effective piston area (m²)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
   Fs:  # free air resonance (Hz)
     value: 54.0
     winner: vendor_page
     sources:
       vendor_page: 54.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.42670423294911913
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00849504
     winner: vendor_page
     sources:
-      vendor_page: 0.42670423294911913
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0103
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0103
-  Qms:  # mechanical Q factor
-    value: 8.19
-    winner: vendor_page
-    sources:
-      vendor_page: 8.19
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0008399999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008399999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.00849504
   Qes:  # electrical Q factor
     value: 0.4
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.4
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 60.0
-    winner: vendor_page
-    sources:
-      vendor_page: 60.0
   BL:  # force factor (T·m)
     value: 7.42
     winner: vendor_page
     sources:
       vendor_page: 7.42
+  Qms:  # mechanical Q factor
+    value: 8.19
+    winner: datasheet
+    sources:
+      datasheet: 8.19
+      vendor_page: 8.19
   Le:  # voice coil inductance (H)
     value: 8.0e-05
     winner: vendor_page
     sources:
       vendor_page: 8.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.008495039999999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 0.008495039999999999
+      vendor_page: 6.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0103
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0103
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00084
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00084
+  Sd:  # effective piston area (m²)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.005
+  Vd:
+    value: 4.25e-05
+    winner: calculated
+    sources:
+      calculated: 4.25e-05
+  Dd:
+    value: 0.10403141895720198
+    winner: calculated
+    sources:
+      calculated: 0.10403141895720198
+  EBP:
+    value: 135.0
+    winner: calculated
+    sources:
+      calculated: 135.0

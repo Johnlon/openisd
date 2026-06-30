@@ -24,78 +24,78 @@ fetched_sku: 293-748
 _sources:
   vendor_page: https://www.parts-express.com/LaVoce-MAF082.00-8-Professional-Midrange-Driver-8-Ohm-293-748
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
   Qts:  # total Q factor
     value: 0.18
     winner: vendor_page
     sources:
       vendor_page: 0.18
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Sd:  # effective piston area (m²)
-    value: 0.0214
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0214
   Fs:  # free air resonance (Hz)
     value: 77.0
     winner: vendor_page
     sources:
       vendor_page: 77.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.701659910434085
-    winner: vendor_page
-    sources:
-      vendor_page: 1.701659910434085
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.020399999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.020399999999999998
-  Qms:  # mechanical Q factor
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.19
-    winner: vendor_page
-    sources:
-      vendor_page: 0.19
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 17.36
-    winner: vendor_page
-    sources:
-      vendor_page: 17.36
-  Le:  # voice coil inductance (H)
-    value: 0.0005200000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005200000000000001
   Vas:  # equivalent acoustic volume (m³)
     value: 0.01274256
     winner: vendor_page
     sources:
       vendor_page: 0.01274256
+  Qes:  # electrical Q factor
+    value: 0.19
+    winner: vendor_page
+    sources:
+      vendor_page: 0.19
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0026
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0026
+  Qms:  # mechanical Q factor
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Le:  # voice coil inductance (H)
+    value: 0.00052
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00052
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: vendor_page
+    sources:
+      vendor_page: 5.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0204
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0204
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0002
+  Sd:  # effective piston area (m²)
+    value: 0.0214
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0214
+  BL:  # force factor (T·m)
+    value: 17.36
+    winner: vendor_page
+    sources:
+      vendor_page: 17.36
+  Vd:
+    value: 5.5639999999999996e-05
+    winner: calculated
+    sources:
+      calculated: 5.5639999999999996e-05
+  Dd:
+    value: 0.1650676414605009
+    winner: calculated
+    sources:
+      calculated: 0.1650676414605009
+  EBP:
+    value: 405.2631578947368
+    winner: calculated
+    sources:
+      calculated: 405.2631578947368

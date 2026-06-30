@@ -16,99 +16,84 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00062297 differs from calculated=0.00069'
 community: null
 fetched_sku: 294-3400
 _sources:
   vendor_page: https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0014
   Qts:  # total Q factor
     value: 0.77
     winner: vendor_page
     sources:
       vendor_page: 0.77
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Sd:  # effective piston area (m²)
-    value: 0.0033200000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0033200000000000005
   Fs:  # free air resonance (Hz)
     value: 153.2
     winner: vendor_page
     sources:
       vendor_page: 153.2
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.7395806602161205
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00062297
     winner: vendor_page
     sources:
-      vendor_page: 0.7395806602161205
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00262
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00262
-  Qms:  # mechanical Q factor
-    value: 3.41
-    winner: vendor_page
-    sources:
-      vendor_page: 3.41
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000443
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000443
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.00062297
   Qes:  # electrical Q factor
     value: 0.99
     winner: vendor_page
     sources:
       vendor_page: 0.99
-  Pe:  # rated power input (W)
-    value: 40.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0014
     winner: vendor_page
     sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 2.93
+      vendor_page: 0.0014
+  Qms:  # mechanical Q factor
+    value: 3.41
     winner: vendor_page
     sources:
-      vendor_page: 2.93
+      vendor_page: 3.41
   Le:  # voice coil inductance (H)
     value: 1.0e-05
     winner: vendor_page
     sources:
       vendor_page: 1.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0006229696
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
     winner: vendor_page
     sources:
-      vendor_page: 0.0006229696
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 120.0
+      vendor_page: 3.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00262
     winner: vendor_page
     sources:
-      vendor_page: 120.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 20.0
+      vendor_page: 0.00262
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000443
     winner: vendor_page
     sources:
-      vendor_page: 20.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 91.0
+      vendor_page: 0.000443
+  Sd:  # effective piston area (m²)
+    value: 0.00332
     winner: vendor_page
     sources:
-      vendor_page: 91.0
+      vendor_page: 0.00332
+  BL:  # force factor (T·m)
+    value: 2.93
+    winner: vendor_page
+    sources:
+      vendor_page: 2.93
+  Vd:
+    value: 4.648e-06
+    winner: calculated
+    sources:
+      calculated: 4.648e-06
+  Dd:
+    value: 0.0650165770286374
+    winner: calculated
+    sources:
+      calculated: 0.0650165770286374
+  EBP:
+    value: 154.74747474747474
+    winner: calculated
+    sources:
+      calculated: 154.74747474747474

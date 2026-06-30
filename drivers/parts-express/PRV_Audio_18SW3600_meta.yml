@@ -16,63 +16,28 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Cms'' = 0.1993 above maximum 0.1 m/N'
 community: null
 fetched_sku: 294-2982
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2982--prv-audio-18sw3600-datasheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2982--prv-audio-18sw3600-datasheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.01325
-    winner: vendor_page
-    sources:
-      vendor_page: 0.01325
   Qts:  # total Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Sd:  # effective piston area (m²)
-    value: 0.134
-    winner: vendor_page
-    sources:
-      vendor_page: 0.134
   Fs:  # free air resonance (Hz)
     value: 35.4
     winner: vendor_page
     sources:
       vendor_page: 35.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.860569399173855
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.199350272
     winner: vendor_page
     sources:
-      vendor_page: 5.860569399173855
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.254
-    winner: vendor_page
-    sources:
-      vendor_page: 0.254
-  Qms:  # mechanical Q factor
-    value: 9.64
-    winner: vendor_page
-    sources:
-      vendor_page: 9.64
-  Cms:  # mechanical compliance (m/N)
-    value: 0.1993
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1993
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.199350272
   Qes:  # electrical Q factor
     value: 0.42
     winner: vendor_page
@@ -83,13 +48,54 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 27.11
+  Qms:  # mechanical Q factor
+    value: 9.64
+    winner: vendor_page
+    sources:
+      vendor_page: 9.64
   Le:  # voice coil inductance (H)
-    value: 0.0030600000000000002
+    value: 0.00306
     winner: vendor_page
     sources:
-      vendor_page: 0.0030600000000000002
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.199350272
+      vendor_page: 0.00306
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
     winner: vendor_page
     sources:
-      vendor_page: 0.199350272
+      vendor_page: 5.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.254
+    winner: vendor_page
+    sources:
+      vendor_page: 0.254
+  Cms:  # mechanical compliance (m/N)
+    value: 0.1993
+    winner: datasheet
+    sources:
+      datasheet: 0.1993
+      vendor_page: 7.9e-05
+  Sd:  # effective piston area (m²)
+    value: 0.134
+    winner: vendor_page
+    sources:
+      vendor_page: 0.134
+  Xmax:  # one-way linear excursion (m)
+    value: 0.01325
+    winner: vendor_page
+    sources:
+      vendor_page: 0.01325
+  Vd:
+    value: 0.0017755
+    winner: calculated
+    sources:
+      calculated: 0.0017755
+  Dd:
+    value: 0.41305459565838487
+    winner: calculated
+    sources:
+      calculated: 0.41305459565838487
+  EBP:
+    value: 84.28571428571429
+    winner: calculated
+    sources:
+      calculated: 84.28571428571429

@@ -22,88 +22,78 @@ fetched_sku: 294-2082
 _sources:
   vendor_page: https://www.parts-express.com/Celestion-K12H-200TC-12-200-Watt-Full-Range-Professional-Wo-294-2082
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
   Qts:  # total Q factor
     value: 0.37
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.81
-    winner: vendor_page
-    sources:
-      vendor_page: 5.81
-  Sd:  # effective piston area (m²)
-    value: 0.053029999999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.053029999999999994
   Fs:  # free air resonance (Hz)
     value: 62.3
     winner: vendor_page
     sources:
       vendor_page: 62.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.6717214210481375
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.063995968
     winner: vendor_page
     sources:
-      vendor_page: 5.6717214210481375
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.04057
-    winner: vendor_page
-    sources:
-      vendor_page: 0.04057
-  Qms:  # mechanical Q factor
-    value: 2.8
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00016
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00016
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.063995968
   Qes:  # electrical Q factor
     value: 0.43
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Pe:  # rated power input (W)
-    value: 200.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.002
     winner: vendor_page
     sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 14.63
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 2.8
     winner: vendor_page
     sources:
-      vendor_page: 14.63
+      vendor_page: 2.8
   Le:  # voice coil inductance (H)
     value: 0.00063
     winner: vendor_page
     sources:
       vendor_page: 0.00063
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.06399596799999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.81
     winner: vendor_page
     sources:
-      vendor_page: 0.06399596799999999
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 12.0
+      vendor_page: 5.81
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.04057
     winner: vendor_page
     sources:
-      vendor_page: 12.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 2019.1
+      vendor_page: 0.04057
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00016
     winner: vendor_page
     sources:
-      vendor_page: 2019.1
+      vendor_page: 0.00016
+  Sd:  # effective piston area (m²)
+    value: 0.05303
+    winner: vendor_page
+    sources:
+      vendor_page: 0.05303
+  BL:  # force factor (T·m)
+    value: 14.63
+    winner: vendor_page
+    sources:
+      vendor_page: 14.63
+  Vd:
+    value: 0.00010606
+    winner: calculated
+    sources:
+      calculated: 0.00010606
+  Dd:
+    value: 0.25984590252167855
+    winner: calculated
+    sources:
+      calculated: 0.25984590252167855
+  EBP:
+    value: 144.88372093023256
+    winner: calculated
+    sources:
+      calculated: 144.88372093023256

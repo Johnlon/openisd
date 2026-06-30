@@ -22,81 +22,81 @@ dq_issue: null
 community: null
 fetched_sku: 294-6030
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-6030--bc-21ds115-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/B-C-21DS115-21-Professional-Neodymium-Subwoofer-8-Ohm-294-6030
+  datasheet: https://www.parts-express.com/pedocs/specs/294-6030--bc-21ds115-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.015
   Qts:  # total Q factor
     value: 0.23
     winner: vendor_page
     sources:
       vendor_page: 0.23
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Sd:  # effective piston area (m²)
-    value: 0.168
-    winner: vendor_page
-    sources:
-      vendor_page: 0.168
   Fs:  # free air resonance (Hz)
     value: 30.0
     winner: vendor_page
     sources:
       vendor_page: 30.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 7.671769260066275
-    winner: vendor_page
-    sources:
-      vendor_page: 7.671769260066275
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.407
-    winner: vendor_page
-    sources:
-      vendor_page: 0.407
-  Qms:  # mechanical Q factor
-    value: 10.0
-    winner: vendor_page
-    sources:
-      vendor_page: 10.0
-  Cms:  # mechanical compliance (m/N)
-    value: 6.92e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 6.92e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.24
-    winner: vendor_page
-    sources:
-      vendor_page: 0.24
-  Pe:  # rated power input (W)
-    value: 3400.0
-    winner: vendor_page
-    sources:
-      vendor_page: 3400.0
-  BL:  # force factor (T·m)
-    value: 40.8
-    winner: vendor_page
-    sources:
-      vendor_page: 40.8
-  Le:  # voice coil inductance (H)
-    value: 0.0046
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0046
   Vas:  # equivalent acoustic volume (m³)
     value: 0.2690096
     winner: vendor_page
     sources:
       vendor_page: 0.2690096
+  Qes:  # electrical Q factor
+    value: 0.24
+    winner: vendor_page
+    sources:
+      vendor_page: 0.24
+  Xmax:  # one-way linear excursion (m)
+    value: 0.015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.015
+  Qms:  # mechanical Q factor
+    value: 10.0
+    winner: vendor_page
+    sources:
+      vendor_page: 10.0
+  Le:  # voice coil inductance (H)
+    value: 0.0046
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0046
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
+    winner: vendor_page
+    sources:
+      vendor_page: 5.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.407
+    winner: vendor_page
+    sources:
+      vendor_page: 0.407
+  Cms:  # mechanical compliance (m/N)
+    value: 6.92e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.92e-05
+  Sd:  # effective piston area (m²)
+    value: 0.168
+    winner: vendor_page
+    sources:
+      vendor_page: 0.168
+  BL:  # force factor (T·m)
+    value: 40.8
+    winner: vendor_page
+    sources:
+      vendor_page: 40.8
+  Vd:
+    value: 0.00252
+    winner: calculated
+    sources:
+      calculated: 0.00252
+  Dd:
+    value: 0.4624978308224887
+    winner: calculated
+    sources:
+      calculated: 0.4624978308224887
+  EBP:
+    value: 125.0
+    winner: calculated
+    sources:
+      calculated: 125.0

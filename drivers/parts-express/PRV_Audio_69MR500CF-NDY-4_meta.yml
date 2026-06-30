@@ -20,59 +20,15 @@ dq_issue: null
 community: null
 fetched_sku: 294-3504
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-3504--prv-audio-69mr500cf-ndy-4-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-69MR500CF-NDY-4-6x9-Neodymium-Midrange-Speaker-Pair-294-3504
+  datasheet: https://www.parts-express.com/pedocs/specs/294-3504--prv-audio-69mr500cf-ndy-4-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00325
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00325
-  Qts:  # total Q factor
-    value: 0.35
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: vendor_page
-    sources:
-      vendor_page: 3.4
-  Sd:  # effective piston area (m²)
-    value: 0.0216
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0216
   Fs:  # free air resonance (Hz)
     value: 91.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 91.0
       vendor_page: 91.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8079278139391314
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8079278139391314
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.034
-    winner: vendor_page
-    sources:
-      vendor_page: 0.034
-  Qms:  # mechanical Q factor
-    value: 15.81
-    winner: vendor_page
-    sources:
-      vendor_page: 15.81
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000136
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000136
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.36
     winner: vendor_page
@@ -80,36 +36,88 @@ specs:
       vendor_page: 0.36
   Pe:  # rated power input (W)
     value: 250.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 250.0
+      datasheet: 250.0
+  Qms:  # mechanical Q factor
+    value: 15.81
+    winner: datasheet
+    sources:
+      datasheet: 15.81
+      vendor_page: 15.81
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.034
+    winner: datasheet
+    sources:
+      datasheet: 0.034
+      vendor_page: 0.02234
   BL:  # force factor (T·m)
     value: 10.92
+    winner: datasheet
+    sources:
+      datasheet: 10.92
+      vendor_page: 10.92
+  Qts:  # total Q factor
+    value: 0.35
     winner: vendor_page
     sources:
-      vendor_page: 10.92
+      vendor_page: 0.35
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00895
+    winner: datasheet
+    sources:
+      datasheet: 0.00895
+      vendor_page: 0.008948109
   Le:  # voice coil inductance (H)
     value: 5.0e-05
     winner: vendor_page
     sources:
       vendor_page: 5.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00895
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.4
+    winner: datasheet
+    sources:
+      datasheet: 3.4
+      vendor_page: 3.4
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000136
+    winner: datasheet
+    sources:
+      datasheet: 0.000136
+      vendor_page: 0.000136
+  Sd:  # effective piston area (m²)
+    value: 0.0216
     winner: vendor_page
     sources:
-      vendor_page: 0.00895
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 250.0
-    winner: vendor_page
+      vendor_page: 0.0216
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00325
+    winner: datasheet
     sources:
-      vendor_page: 250.0
+      datasheet: 0.00325
+      vendor_page: 0.00325
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 100.0
     winner: vendor_page
     sources:
       vendor_page: 100.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 13.0
+    value: 13000.0
     winner: vendor_page
     sources:
-      vendor_page: 13.0
+      vendor_page: 13000.0
+  Vd:
+    value: 7.02e-05
+    winner: calculated
+    sources:
+      calculated: 7.02e-05
+  Dd:
+    value: 0.16583719174624104
+    winner: calculated
+    sources:
+      calculated: 0.16583719174624104
+  EBP:
+    value: 252.7777777777778
+    winner: calculated
+    sources:
+      calculated: 252.7777777777778

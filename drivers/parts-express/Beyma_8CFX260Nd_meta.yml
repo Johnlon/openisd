@@ -17,74 +17,21 @@ reviewed_by: null
 driver_type: fullrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; schema:WDR: ''Le'' = 100.0 above maximum 0.1 H; schema:WDR: ''Cms''
+  = 0.119 above maximum 0.1 m/N; schema:WDR: ''Sd'' = 2.2e-06 below minimum 1e-05
+  m²'
 community: null
 fetched_sku: 253-098
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-098--8cfx260nd-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-8CFX260Nd-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-098
+  datasheet: https://www.parts-express.com/pedocs/specs/253-098--8cfx260nd-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.35
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Sd:  # effective piston area (m²)
-    value: 0.022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.022
   Fs:  # free air resonance (Hz)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0027488935718910697
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0027488935718910697
-  Mms:  # moving mass incl. air load (kg)
-    value: 2.1000000000000002e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.1000000000000002e-05
-  Qms:  # mechanical Q factor
-    value: 4.8
-    winner: vendor_page
-    sources:
-      vendor_page: 4.8
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.37
-    winner: vendor_page
-    sources:
-      vendor_page: 0.37
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  BL:  # force factor (T·m)
-    value: 13.5
-    winner: vendor_page
-    sources:
-      vendor_page: 13.5
-  Le:  # voice coil inductance (H)
     value: 100.0
     winner: vendor_page
     sources:
@@ -94,3 +41,65 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.007928704
+  Qes:  # electrical Q factor
+    value: 0.37
+    winner: vendor_page
+    sources:
+      vendor_page: 0.37
+  BL:  # force factor (T·m)
+    value: 13.5
+    winner: vendor_page
+    sources:
+      vendor_page: 13.5
+  Qms:  # mechanical Q factor
+    value: 4.8
+    winner: vendor_page
+    sources:
+      vendor_page: 4.8
+  Le:  # voice coil inductance (H)
+    value: 100.0
+    winner: datasheet
+    sources:
+      datasheet: 100.0
+      vendor_page: 0.00023
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.2
+    winner: vendor_page
+    sources:
+      vendor_page: 5.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 2.1e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 2.1e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.119
+    winner: vendor_page
+    sources:
+      vendor_page: 0.119
+  Sd:  # effective piston area (m²)
+    value: 2.2e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 2.2e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: datasheet
+    sources:
+      datasheet: 0.005
+      vendor_page: 0.006
+  Vd:
+    value: 1.1000000000000001e-08
+    winner: calculated
+    sources:
+      calculated: 1.1000000000000001e-08
+  Dd:
+    value: 0.0016736567743768011
+    winner: calculated
+    sources:
+      calculated: 0.0016736567743768011
+  EBP:
+    value: 270.27027027027026
+    winner: calculated
+    sources:
+      calculated: 270.27027027027026

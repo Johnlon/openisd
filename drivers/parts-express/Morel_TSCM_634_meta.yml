@@ -16,85 +16,105 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qts'' stored=0.53 differs from calculated=0.494802 (dep;
+  schema:WDR: ''Vas'' stored=0.0133 differs from calculated=0.0172758 ('
 community: null
 fetched_sku: 297-106
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106
+  datasheet: https://www.parts-express.com/pedocs/specs/297-106--morel-tscm-634-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00525
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00525
-  Qts:  # total Q factor
-    value: 0.53
-    winner: vendor_page
-    sources:
-      vendor_page: 0.53
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Sd:  # effective piston area (m²)
-    value: 0.0119
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0119
   Fs:  # free air resonance (Hz)
     value: 49.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 49.0
       vendor_page: 49.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.55
-    winner: vendor_page
-    sources:
-      vendor_page: 0.55
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0153
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0153
-  Qms:  # mechanical Q factor
-    value: 4.25
-    winner: vendor_page
-    sources:
-      vendor_page: 4.25
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00086
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00086
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.56
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.56
       vendor_page: 0.56
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 4.25
+    winner: datasheet
     sources:
-      vendor_page: 150.0
+      datasheet: 4.25
+      vendor_page: 4.25
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.55
+    winner: datasheet
+    sources:
+      datasheet: 0.55
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0153
+    winner: datasheet
+    sources:
+      datasheet: 0.0153
+      vendor_page: 0.0153
   BL:  # force factor (T·m)
     value: 5.09
     winner: vendor_page
     sources:
       vendor_page: 5.09
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
+  Qts:  # total Q factor
+    value: 0.53
+    winner: datasheet
+    sources:
+      datasheet: 0.53
+      vendor_page: 0.53
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0133
+    winner: datasheet
+    sources:
+      datasheet: 0.0133
+      vendor_page: 0.013308896
   Le:  # voice coil inductance (H)
     value: 0.00011
     winner: vendor_page
     sources:
       vendor_page: 0.00011
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0133
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.3
+    winner: datasheet
+    sources:
+      datasheet: 3.3
+      vendor_page: 3.3
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00086
+    winner: datasheet
+    sources:
+      datasheet: 0.00086
+      vendor_page: 0.00086
+  Sd:  # effective piston area (m²)
+    value: 0.0119
+    winner: datasheet
+    sources:
+      datasheet: 0.0119
+      vendor_page: 0.0119
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00525
     winner: vendor_page
     sources:
-      vendor_page: 0.0133
+      vendor_page: 0.00525
+  Vd:
+    value: 6.247500000000001e-05
+    winner: calculated
+    sources:
+      calculated: 6.247500000000001e-05
+  Dd:
+    value: 0.12309163489997377
+    winner: calculated
+    sources:
+      calculated: 0.12309163489997377
+  EBP:
+    value: 87.49999999999999
+    winner: calculated
+    sources:
+      calculated: 87.49999999999999

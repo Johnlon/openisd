@@ -16,74 +16,21 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Le'' = 51.0 above maximum 0.1 H; schema:WDR:
+  ''Cms'' = 0.11 above maximum 0.1 m/N; schema:WDR: ''Sd'' = 7e-06 below minimum 1e-05
+  m²'
 community: null
 fetched_sku: 253-019
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-019--14mc700nd-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019
+  datasheet: https://www.parts-express.com/pedocs/specs/253-019--14mc700nd-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.28
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.07
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07
   Fs:  # free air resonance (Hz)
-    value: 51.0
-    winner: vendor_page
-    sources:
-      vendor_page: 51.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.008350924471905958
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008350924471905958
-  Mms:  # moving mass incl. air load (kg)
-    value: 8.599999999999999e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 8.599999999999999e-05
-  Qms:  # mechanical Q factor
-    value: 3.3
-    winner: vendor_page
-    sources:
-      vendor_page: 3.3
-  Znom:  # nominal impedance (Ω)
-    value: 55.0
-    winner: vendor_page
-    sources:
-      vendor_page: 55.0
-  Qes:  # electrical Q factor
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Pe:  # rated power input (W)
-    value: 700.0
-    winner: vendor_page
-    sources:
-      vendor_page: 700.0
-  BL:  # force factor (T·m)
-    value: 22.0
-    winner: vendor_page
-    sources:
-      vendor_page: 22.0
-  Le:  # voice coil inductance (H)
     value: 51.0
     winner: vendor_page
     sources:
@@ -93,3 +40,70 @@ specs:
     winner: vendor_page
     sources:
       vendor_page: 0.0778712
+  Qes:  # electrical Q factor
+    value: 0.3
+    winner: vendor_page
+    sources:
+      vendor_page: 0.3
+  BL:  # force factor (T·m)
+    value: 22.0
+    winner: vendor_page
+    sources:
+      vendor_page: 22.0
+  Qms:  # mechanical Q factor
+    value: 3.3
+    winner: vendor_page
+    sources:
+      vendor_page: 3.3
+  Le:  # voice coil inductance (H)
+    value: 51.0
+    winner: datasheet
+    sources:
+      datasheet: 51.0
+      vendor_page: 0.001
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 8.6e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.6e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.11
+    winner: vendor_page
+    sources:
+      vendor_page: 0.11
+  Sd:  # effective piston area (m²)
+    value: 7.0e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.007
+  Znom:  # nominal impedance (Ω)
+    value: 55.0
+    winner: datasheet
+    sources:
+      datasheet: 55.0
+  Vd:
+    value: 2.8e-08
+    winner: calculated
+    sources:
+      calculated: 2.8e-08
+  Dd:
+    value: 0.0029854106607209233
+    winner: calculated
+    sources:
+      calculated: 0.0029854106607209233
+  EBP:
+    value: 170.0
+    winner: calculated
+    sources:
+      calculated: 170.0

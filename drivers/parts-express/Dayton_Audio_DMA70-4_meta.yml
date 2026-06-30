@@ -16,85 +16,85 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.000566336 differs from calculated=0.0005'
 community: null
 fetched_sku: 295-584
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584
+  datasheet: https://www.parts-express.com/pedocs/specs/295-584--dayton-audio-dma70-4-specification-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.002
   Qts:  # total Q factor
     value: 0.44
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.98
-    winner: vendor_page
-    sources:
-      vendor_page: 3.98
-  Sd:  # effective piston area (m²)
-    value: 0.00229
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00229
   Fs:  # free air resonance (Hz)
     value: 113.0
     winner: vendor_page
     sources:
       vendor_page: 113.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.9745097211723632
-    winner: vendor_page
-    sources:
-      vendor_page: 0.9745097211723632
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Qms:  # mechanical Q factor
-    value: 2.04
-    winner: vendor_page
-    sources:
-      vendor_page: 2.04
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0007099999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007099999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.56
-    winner: vendor_page
-    sources:
-      vendor_page: 0.56
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  BL:  # force factor (T·m)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Le:  # voice coil inductance (H)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
   Vas:  # equivalent acoustic volume (m³)
     value: 0.000566336
     winner: vendor_page
     sources:
       vendor_page: 0.000566336
+  Qes:  # electrical Q factor
+    value: 0.56
+    winner: vendor_page
+    sources:
+      vendor_page: 0.56
+  Xmax:  # one-way linear excursion (m)
+    value: 0.002
+    winner: vendor_page
+    sources:
+      vendor_page: 0.002
+  Qms:  # mechanical Q factor
+    value: 2.04
+    winner: vendor_page
+    sources:
+      vendor_page: 2.04
+  Le:  # voice coil inductance (H)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.98
+    winner: vendor_page
+    sources:
+      vendor_page: 3.98
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00071
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00071
+  Sd:  # effective piston area (m²)
+    value: 0.00229
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00229
+  BL:  # force factor (T·m)
+    value: 3.7
+    winner: vendor_page
+    sources:
+      vendor_page: 3.7
+  Vd:
+    value: 4.58e-06
+    winner: calculated
+    sources:
+      calculated: 4.58e-06
+  Dd:
+    value: 0.05399739398752057
+    winner: calculated
+    sources:
+      calculated: 0.05399739398752057
+  EBP:
+    value: 201.78571428571428
+    winner: calculated
+    sources:
+      calculated: 201.78571428571428

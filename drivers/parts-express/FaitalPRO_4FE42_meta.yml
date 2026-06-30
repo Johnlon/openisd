@@ -20,86 +20,107 @@ dq_issue: null
 community: null
 fetched_sku: 294-1356
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1356--faitalpro-4fe42-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/FaitalPRO-4FE42-4-Neodymium-Full-Range-Speaker-8-Ohm-294-1356
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1356--faitalpro-4fe42-spec-sheet.pdf
 specs:
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 94.0
+    winner: datasheet
+    sources:
+      datasheet: 94.0
+  Fs:  # free air resonance (Hz)
+    value: 110.0
+    winner: datasheet
+    sources:
+      datasheet: 110.0
+      vendor_page: 110.0
+  Qes:  # electrical Q factor
+    value: 0.5
+    winner: datasheet
+    sources:
+      datasheet: 0.5
+      vendor_page: 0.5
+  Qms:  # mechanical Q factor
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+      vendor_page: 8.0
+  Rms:  # mechanical resistance (kg/s)
+    value: 0.3
+    winner: datasheet
+    sources:
+      datasheet: 0.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.004
+  BL:  # force factor (T·m)
+    value: 6.0
+    winner: datasheet
+    sources:
+      datasheet: 6.0
+      vendor_page: 6.0
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.47
+    winner: datasheet
+    sources:
+      datasheet: 0.47
+      vendor_page: 0.47
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0019
+    winner: datasheet
+    sources:
+      datasheet: 0.0019
+      vendor_page: 0.001982176
+  Le:  # voice coil inductance (H)
+    value: 7.0e-05
+    winner: datasheet
+    sources:
+      datasheet: 7.0e-05
+      vendor_page: 7.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
+    winner: datasheet
+    sources:
+      datasheet: 5.4
+      vendor_page: 5.4
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00052
+    winner: datasheet
+    sources:
+      datasheet: 0.00052
+      vendor_page: 0.00052
+  Sd:  # effective piston area (m²)
+    value: 0.00509
+    winner: datasheet
+    sources:
+      datasheet: 0.00509
+      vendor_page: 0.00509
   Xmax:  # one-way linear excursion (m)
     value: 0.00283
     winner: vendor_page
     sources:
       vendor_page: 0.00283
-  Qts:  # total Q factor
-    value: 0.47
-    winner: vendor_page
+  Vd:
+    value: 1.44047e-05
+    winner: calculated
     sources:
-      vendor_page: 0.47
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
+      calculated: 1.44047e-05
+  Dd:
+    value: 0.08050334951231519
+    winner: calculated
     sources:
-      vendor_page: 5.4
-  Sd:  # effective piston area (m²)
-    value: 0.00509
-    winner: vendor_page
+      calculated: 0.08050334951231519
+  EBP:
+    value: 220.0
+    winner: calculated
     sources:
-      vendor_page: 0.00509
-  Fs:  # free air resonance (Hz)
-    value: 110.0
-    winner: vendor_page
-    sources:
-      vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.3
-    winner: vendor_page
-    sources:
-      vendor_page: 0.3
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
-  Qms:  # mechanical Q factor
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00052
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00052
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.5
-    winner: vendor_page
-    sources:
-      vendor_page: 0.5
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 94.0
-    winner: vendor_page
-    sources:
-      vendor_page: 94.0
-  Le:  # voice coil inductance (H)
-    value: 7.0e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0019
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0019
+      calculated: 220.0

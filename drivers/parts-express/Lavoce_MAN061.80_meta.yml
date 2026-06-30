@@ -17,85 +17,93 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.00198218 differs from calculated=0.00186'
 community: null
 fetched_sku: 293-713
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-713--lavoce-man061.80-specifications.pdf
   vendor_page: https://www.parts-express.com/LaVoce-MAN061.80-6-1-2-Neodymium-Midrange-Woofer-8-Ohm-293-713
+  datasheet: https://www.parts-express.com/pedocs/specs/293-713--lavoce-man061.80-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Qts:  # total Q factor
-    value: 0.54
-    winner: vendor_page
-    sources:
-      vendor_page: 0.54
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Sd:  # effective piston area (m²)
-    value: 0.0137
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0137
   Fs:  # free air resonance (Hz)
     value: 170.0
     winner: vendor_page
     sources:
       vendor_page: 170.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 3.0857421175259745
-    winner: vendor_page
+  Qes:  # electrical Q factor
+    value: 0.6
+    winner: datasheet
     sources:
-      vendor_page: 3.0857421175259745
+      datasheet: 0.6
+      vendor_page: 0.6
+  Qms:  # mechanical Q factor
+    value: 4.5
+    winner: datasheet
+    sources:
+      datasheet: 4.5
+      vendor_page: 4.5
   Mms:  # moving mass incl. air load (kg)
     value: 0.013
     winner: vendor_page
     sources:
       vendor_page: 0.013
-  Qms:  # mechanical Q factor
-    value: 4.5
-    winner: vendor_page
-    sources:
-      vendor_page: 4.5
-  Cms:  # mechanical compliance (m/N)
-    value: 7.000000000000001e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 7.000000000000001e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.6
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6
-  Pe:  # rated power input (W)
-    value: 150.0
-    winner: vendor_page
-    sources:
-      vendor_page: 150.0
   BL:  # force factor (T·m)
     value: 11.0
     winner: vendor_page
     sources:
       vendor_page: 11.0
-  Le:  # voice coil inductance (H)
-    value: 8.0e-05
-    winner: vendor_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
     sources:
-      vendor_page: 8.0e-05
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.54
+    winner: datasheet
+    sources:
+      datasheet: 0.54
+      vendor_page: 0.54
   Vas:  # equivalent acoustic volume (m³)
     value: 0.001982176
     winner: vendor_page
     sources:
       vendor_page: 0.001982176
+  Le:  # voice coil inductance (H)
+    value: 8.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 8.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5
+  Cms:  # mechanical compliance (m/N)
+    value: 7.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 7.0e-05
+  Sd:  # effective piston area (m²)
+    value: 0.0137
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0137
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Vd:
+    value: 4.11e-05
+    winner: calculated
+    sources:
+      calculated: 4.11e-05
+  Dd:
+    value: 0.13207339536360732
+    winner: calculated
+    sources:
+      calculated: 0.13207339536360732
+  EBP:
+    value: 283.33333333333337
+    winner: calculated
+    sources:
+      calculated: 283.33333333333337

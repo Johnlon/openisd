@@ -22,78 +22,78 @@ fetched_sku: 298-1070
 _sources:
   vendor_page: https://www.parts-express.com/Wavecor-SW259WA02-10-1-4-Aluminum-Cone-Subwoofer-8-Ohm-298-1070
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0115
   Qts:  # total Q factor
     value: 0.43
     winner: vendor_page
     sources:
       vendor_page: 0.43
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Sd:  # effective piston area (m²)
-    value: 0.0312
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0312
   Fs:  # free air resonance (Hz)
     value: 24.0
     winner: vendor_page
     sources:
       vendor_page: 24.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.6778759637200698
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039926688
     winner: vendor_page
     sources:
-      vendor_page: 1.6778759637200698
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.158
-    winner: vendor_page
-    sources:
-      vendor_page: 0.158
-  Qms:  # mechanical Q factor
-    value: 14.2
-    winner: vendor_page
-    sources:
-      vendor_page: 14.2
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00029
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00029
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.039926688
   Qes:  # electrical Q factor
     value: 0.44
     winner: vendor_page
     sources:
       vendor_page: 0.44
-  Pe:  # rated power input (W)
-    value: 200.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0115
     winner: vendor_page
     sources:
-      vendor_page: 200.0
-  BL:  # force factor (T·m)
-    value: 18.6
+      vendor_page: 0.0115
+  Qms:  # mechanical Q factor
+    value: 14.2
     winner: vendor_page
     sources:
-      vendor_page: 18.6
+      vendor_page: 14.2
   Le:  # voice coil inductance (H)
     value: 0.0023
     winner: vendor_page
     sources:
       vendor_page: 0.0023
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039926687999999995
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
     winner: vendor_page
     sources:
-      vendor_page: 0.039926687999999995
+      vendor_page: 6.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.158
+    winner: vendor_page
+    sources:
+      vendor_page: 0.158
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00029
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00029
+  Sd:  # effective piston area (m²)
+    value: 0.0312
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0312
+  BL:  # force factor (T·m)
+    value: 18.6
+    winner: vendor_page
+    sources:
+      vendor_page: 18.6
+  Vd:
+    value: 0.0003588
+    winner: calculated
+    sources:
+      calculated: 0.0003588
+  Dd:
+    value: 0.19931149940667517
+    winner: calculated
+    sources:
+      calculated: 0.19931149940667517
+  EBP:
+    value: 54.54545454545455
+    winner: calculated
+    sources:
+      calculated: 54.54545454545455

@@ -17,84 +17,84 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 8.8e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 253-054
 _sources:
   vendor_page: https://www.parts-express.com/Beyma-15QLEX1600Fe-QLEX-Series-15-Subwoofer-8-Ohm-253-054
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.013
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013
   Qts:  # total Q factor
     value: 0.21
     winner: vendor_page
     sources:
       vendor_page: 0.21
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.088
   Fs:  # free air resonance (Hz)
     value: 33.0
     winner: vendor_page
     sources:
       vendor_page: 33.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.008359628451552269
-    winner: vendor_page
-    sources:
-      vendor_page: 0.008359628451552269
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000254
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000254
-  Qms:  # mechanical Q factor
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Cms:  # mechanical compliance (m/N)
-    value: 0.093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.093
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.22
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
-  BL:  # force factor (T·m)
-    value: 35.6
-    winner: vendor_page
-    sources:
-      vendor_page: 35.6
-  Le:  # voice coil inductance (H)
-    value: 0.0037
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0037
   Vas:  # equivalent acoustic volume (m³)
     value: 0.10194048
     winner: vendor_page
     sources:
       vendor_page: 0.10194048
+  Qes:  # electrical Q factor
+    value: 0.22
+    winner: vendor_page
+    sources:
+      vendor_page: 0.22
+  Xmax:  # one-way linear excursion (m)
+    value: 0.013
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013
+  Qms:  # mechanical Q factor
+    value: 6.3
+    winner: vendor_page
+    sources:
+      vendor_page: 6.3
+  Le:  # voice coil inductance (H)
+    value: 0.0037
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0037
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
+    winner: vendor_page
+    sources:
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000254
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000254
+  Cms:  # mechanical compliance (m/N)
+    value: 0.093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.093
+  Sd:  # effective piston area (m²)
+    value: 8.8e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 8.8e-06
+  BL:  # force factor (T·m)
+    value: 35.6
+    winner: vendor_page
+    sources:
+      vendor_page: 35.6
+  Vd:
+    value: 1.144e-07
+    winner: calculated
+    sources:
+      calculated: 1.144e-07
+  Dd:
+    value: 0.0033473135487536022
+    winner: calculated
+    sources:
+      calculated: 0.0033473135487536022
+  EBP:
+    value: 150.0
+    winner: calculated
+    sources:
+      calculated: 150.0

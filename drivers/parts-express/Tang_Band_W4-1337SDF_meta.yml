@@ -17,85 +17,99 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny; tweeter_fs
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 5.7e-07 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-916
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-916-tang-band-w4-1337sdf-specifications.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W4-1337SDF-4-Titanium-Full-Range-Speaker-264-916
+  datasheet: https://www.parts-express.com/pedocs/specs/264-916-tang-band-w4-1337sdf-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0025
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 70.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0025
+      datasheet: 70.0
+      vendor_page: 70.0
+  Qes:  # electrical Q factor
+    value: 0.4
+    winner: datasheet
+    sources:
+      datasheet: 0.4
+      vendor_page: 0.4
+  Qms:  # mechanical Q factor
+    value: 2.04
+    winner: datasheet
+    sources:
+      datasheet: 2.04
+      vendor_page: 2.04
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.099
+    winner: datasheet
+    sources:
+      datasheet: 0.099
+      vendor_page: 0.00399
+  BL:  # force factor (T·m)
+    value: 5.32
+    winner: datasheet
+    sources:
+      datasheet: 5.32
+      vendor_page: 5.32
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
   Qts:  # total Q factor
     value: 0.34
+    winner: datasheet
+    sources:
+      datasheet: 0.34
+      vendor_page: 0.34
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00561
+    winner: datasheet
+    sources:
+      datasheet: 0.00561
+      vendor_page: 0.00566336
+  Le:  # voice coil inductance (H)
+    value: 3.0e-05
     winner: vendor_page
     sources:
-      vendor_page: 0.34
+      vendor_page: 3.0e-05
   Re:  # DC voice coil resistance (Ω)
     value: 6.3
     winner: vendor_page
     sources:
       vendor_page: 6.3
-  Sd:  # effective piston area (m²)
-    value: 5.7e-07
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7e-07
-  Fs:  # free air resonance (Hz)
-    value: 70.0
-    winner: vendor_page
-    sources:
-      vendor_page: 70.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8602419883800287
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8602419883800287
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.099
-  Qms:  # mechanical Q factor
-    value: 2.04
-    winner: vendor_page
-    sources:
-      vendor_page: 2.04
   Cms:  # mechanical compliance (m/N)
     value: 0.001216
+    winner: datasheet
+    sources:
+      datasheet: 0.001216
+      vendor_page: 0.00121
+  Sd:  # effective piston area (m²)
+    value: 5.7e-07
+    winner: datasheet
+    sources:
+      datasheet: 5.7e-07
+      vendor_page: 0.0057
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0025
     winner: vendor_page
     sources:
-      vendor_page: 0.001216
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
+      vendor_page: 0.0025
+  Vd:
+    value: 1.4250000000000001e-09
+    winner: calculated
     sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.4
-    winner: vendor_page
+      calculated: 1.4250000000000001e-09
+  Dd:
+    value: 0.0008519075891779828
+    winner: calculated
     sources:
-      vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 25.0
-    winner: vendor_page
+      calculated: 0.0008519075891779828
+  EBP:
+    value: 175.0
+    winner: calculated
     sources:
-      vendor_page: 25.0
-  BL:  # force factor (T·m)
-    value: 5.32
-    winner: vendor_page
-    sources:
-      vendor_page: 5.32
-  Le:  # voice coil inductance (H)
-    value: 2.9999999999999997e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 2.9999999999999997e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00561
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00561
+      calculated: 175.0

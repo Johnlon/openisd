@@ -25163,3 +25163,2010 @@
          reason=Sd absent, zero, or invalid — scraper artifact
 [16:32:01] DONE problems=1458 items_processed=1349
 
+[04:11:23] RUN 2026-06-30T04:11:23.275033 scraper=scrape_pe collection=parts-express
+[04:15:50] PROBLEM field=schema item=296-458 url=https://www.parts-express.com/Aurum-Cantus-AC300-75C2C-12-Woofer-296-458 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 6.5e-07 below minimum 1e-06 m/N
+[04:15:50] PROBLEM field=Sd_tiny item=253-019 url=https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-019 url=https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-019 url=https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 51.0 above maximum 0.1 H
+[04:15:50] PROBLEM field=schema item=253-019 url=https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.11 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-019 url=https://www.parts-express.com/Beyma-14MC700Nd-14-Subwoofer-8-Ohm-253-019 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 7e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-027 url=https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-027 url=https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-027 url=https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.213 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-027 url=https://www.parts-express.com/Beyma-8CMV2-8-Woofer-8-Ohm-253-027 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-099 url=https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-099 url=https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-099 url=https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.158 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-099 url=https://www.parts-express.com/Beyma-8CX300Fe-8-Coaxial-Loudspeaker-816-Ohm-253-099 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-057 url=https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-057 url=https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-057 url=https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 30.0 above maximum 0.1 H
+[04:15:50] PROBLEM field=schema item=253-057 url=https://www.parts-express.com/Beyma-21QLEX1600Fe-QLEX-Series-21-Subwoofer-8-Ohm-253-057 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.308936 differs from calculated=3.07097e-06 (deps: roo=1.20095, c=343.684, Sd=1.734e-05, Cms=0.072)
+[04:15:50] PROBLEM field=Sd_tiny item=253-038 url=https://www.parts-express.com/Beyma-8MI100-MI100-Series-8-Midrange-8-Ohm-253-038 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-038 url=https://www.parts-express.com/Beyma-8MI100-MI100-Series-8-Midrange-8-Ohm-253-038 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-038 url=https://www.parts-express.com/Beyma-8MI100-MI100-Series-8-Midrange-8-Ohm-253-038 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.175 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-038 url=https://www.parts-express.com/Beyma-8MI100-MI100-Series-8-Midrange-8-Ohm-253-038 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-003 url=https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-003 url=https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-003 url=https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.246 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-003 url=https://www.parts-express.com/Beyma-8G40-G40-Series-8-Woofer-8-Ohm-253-003 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-098 url=https://www.parts-express.com/Beyma-8CFX260Nd-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-098 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-098 url=https://www.parts-express.com/Beyma-8CFX260Nd-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-098 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 100.0 above maximum 0.1 H
+[04:15:50] PROBLEM field=schema item=253-098 url=https://www.parts-express.com/Beyma-8CFX260Nd-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-098 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.119 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-098 url=https://www.parts-express.com/Beyma-8CFX260Nd-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-098 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-011 url=https://www.parts-express.com/Beyma-8MC500Nd-MC-Series-8-Neo-Woofer-8-ohm-253-011 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-011 url=https://www.parts-express.com/Beyma-8MC500Nd-MC-Series-8-Neo-Woofer-8-ohm-253-011 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-011 url=https://www.parts-express.com/Beyma-8MC500Nd-MC-Series-8-Neo-Woofer-8-ohm-253-011 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.231 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-011 url=https://www.parts-express.com/Beyma-8MC500Nd-MC-Series-8-Neo-Woofer-8-ohm-253-011 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:50] PROBLEM field=Sd_tiny item=253-010 url=https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=tweeter_fs item=253-010 url=https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:50] PROBLEM field=schema item=253-010 url=https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.262 above maximum 0.1 m/N
+[04:15:50] PROBLEM field=schema item=253-010 url=https://www.parts-express.com/Beyma-8MC300Nd-MC-Series-8-Neo-Woofer-8-Ohm-253-010 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-053 url=https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-053 url=https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-053 url=https://www.parts-express.com/Beyma-21LEX1600Nd-LEX-Series-21-Neo-Subwoofer-8-Ohm-253-053 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.304972 differs from calculated=3.07097e-06 (deps: roo=1.20095, c=343.684, Sd=1.734e-05, Cms=0.072)
+[04:15:51] PROBLEM field=schema item=253-075 url=https://www.parts-express.com/Beyma-12BR70-12-Subwoofer-8-Ohm-253-075 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 31.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-075 url=https://www.parts-express.com/Beyma-12BR70-12-Subwoofer-8-Ohm-253-075 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.141867 differs from calculated=1.42709 (deps: roo=1.20095, c=343.684, Sd=0.054, Cms=0.00345)
+[04:15:51] PROBLEM field=Sd_tiny item=253-030 url=https://www.parts-express.com/Beyma-15CMV2-15-Subwoofer-8-Ohm-253-030 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-030 url=https://www.parts-express.com/Beyma-15CMV2-15-Subwoofer-8-Ohm-253-030 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-030 url=https://www.parts-express.com/Beyma-15CMV2-15-Subwoofer-8-Ohm-253-030 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 106.0 above maximum 2.0 kg
+[04:15:51] PROBLEM field=schema item=253-030 url=https://www.parts-express.com/Beyma-15CMV2-15-Subwoofer-8-Ohm-253-030 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-028 url=https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-028 url=https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-028 url=https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.216 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-028 url=https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 42.0 above maximum 2.0 kg
+[04:15:51] PROBLEM field=schema item=253-028 url=https://www.parts-express.com/Beyma-10CMV2-10-Woofer-8-Ohm-253-028 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-100 url=https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-100 url=https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-100 url=https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 61.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-100 url=https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.335 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-100 url=https://www.parts-express.com/Beyma-8CX300Nd-N-8-Coaxial-Neo-Loudspeaker-88-Ohm-253-100 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-061 url=https://www.parts-express.com/Beyma-15WR400-WR-Series-15-Subwoofer-8-Ohm-253-061 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-061 url=https://www.parts-express.com/Beyma-15WR400-WR-Series-15-Subwoofer-8-Ohm-253-061 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-061 url=https://www.parts-express.com/Beyma-15WR400-WR-Series-15-Subwoofer-8-Ohm-253-061 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 36.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-061 url=https://www.parts-express.com/Beyma-15WR400-WR-Series-15-Subwoofer-8-Ohm-253-061 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.215 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-061 url=https://www.parts-express.com/Beyma-15WR400-WR-Series-15-Subwoofer-8-Ohm-253-061 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-060 url=https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-060 url=https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-060 url=https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 42.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-060 url=https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.228 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-060 url=https://www.parts-express.com/Beyma-12WR400-WR-Series-12-Subwoofer-8-Ohm-253-060 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.3e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-016 url=https://www.parts-express.com/Beyma-15MC500-MC-Series-15-Subwoofer-8-Ohm-253-016 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-016 url=https://www.parts-express.com/Beyma-15MC500-MC-Series-15-Subwoofer-8-Ohm-253-016 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-016 url=https://www.parts-express.com/Beyma-15MC500-MC-Series-15-Subwoofer-8-Ohm-253-016 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 46.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-016 url=https://www.parts-express.com/Beyma-15MC500-MC-Series-15-Subwoofer-8-Ohm-253-016 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.122 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-016 url=https://www.parts-express.com/Beyma-15MC500-MC-Series-15-Subwoofer-8-Ohm-253-016 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-014 url=https://www.parts-express.com/Beyma-12MC500-MC-Series-12-Subwoofer-8-Ohm-253-014 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-014 url=https://www.parts-express.com/Beyma-12MC500-MC-Series-12-Subwoofer-8-Ohm-253-014 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-014 url=https://www.parts-express.com/Beyma-12MC500-MC-Series-12-Subwoofer-8-Ohm-253-014 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 57.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-014 url=https://www.parts-express.com/Beyma-12MC500-MC-Series-12-Subwoofer-8-Ohm-253-014 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.132 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-014 url=https://www.parts-express.com/Beyma-12MC500-MC-Series-12-Subwoofer-8-Ohm-253-014 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-012 url=https://www.parts-express.com/Beyma-10MC500-MC-Series-10-Woofer-8-Ohm-253-012 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-012 url=https://www.parts-express.com/Beyma-10MC500-MC-Series-10-Woofer-8-Ohm-253-012 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-012 url=https://www.parts-express.com/Beyma-10MC500-MC-Series-10-Woofer-8-Ohm-253-012 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 65.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-012 url=https://www.parts-express.com/Beyma-10MC500-MC-Series-10-Woofer-8-Ohm-253-012 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.136 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-012 url=https://www.parts-express.com/Beyma-10MC500-MC-Series-10-Woofer-8-Ohm-253-012 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-036 url=https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-036 url=https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-036 url=https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.362 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-036 url=https://www.parts-express.com/Beyma-8P300Fe-N-P200-Series-8-Midbass-Woofer-8-Ohm-253-036 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=Qts_impossible item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qts item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qes item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qms item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 37.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.376 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.27e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=schema item=253-086 url=https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.37 differs from calculated=0.343719 (deps: Qms=7.6, Qes=0.36)
+[04:15:51] PROBLEM field=Sd_tiny item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=Qts_impossible item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qts item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qes item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qms item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 31.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-056 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-4-Ohm-253-056 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.177263 differs from calculated=1.7874e-06 (deps: roo=1.20095, c=343.684, Sd=1.255e-05, Cms=0.08)
+[04:15:51] PROBLEM field=Sd_tiny item=253-055 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-8-Ohm-253-055 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-055 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-8-Ohm-253-055 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-055 url=https://www.parts-express.com/Beyma-18QLEX1600Fe-QLEX-Series-18-Subwoofer-8-Ohm-253-055 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.195103 differs from calculated=1.96614e-06 (deps: roo=1.20095, c=343.684, Sd=1.255e-05, Cms=0.088)
+[04:15:51] PROBLEM field=Sd_tiny item=253-054 url=https://www.parts-express.com/Beyma-15QLEX1600Fe-QLEX-Series-15-Subwoofer-8-Ohm-253-054 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-054 url=https://www.parts-express.com/Beyma-15QLEX1600Fe-QLEX-Series-15-Subwoofer-8-Ohm-253-054 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-054 url=https://www.parts-express.com/Beyma-15QLEX1600Fe-QLEX-Series-15-Subwoofer-8-Ohm-253-054 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-092 url=https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-092 url=https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-092 url=https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.668 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-092 url=https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 4.4e-06 below minimum 1e-05 kg
+[04:15:51] PROBLEM field=schema item=253-092 url=https://www.parts-express.com/Beyma-4FR40-4-Full-Range-Loudspeaker-8-Ohm-253-092 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-07 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-091 url=https://www.parts-express.com/Beyma-3FR30V2-3-Full-Range-Loudspeaker-8-Ohm-253-091 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-091 url=https://www.parts-express.com/Beyma-3FR30V2-3-Full-Range-Loudspeaker-8-Ohm-253-091 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.624 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-091 url=https://www.parts-express.com/Beyma-3FR30V2-3-Full-Range-Loudspeaker-8-Ohm-253-091 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 2.3e-06 below minimum 1e-05 kg
+[04:15:51] PROBLEM field=schema item=253-091 url=https://www.parts-express.com/Beyma-3FR30V2-3-Full-Range-Loudspeaker-8-Ohm-253-091 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3e-07 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-051 url=https://www.parts-express.com/Beyma-18LEX1600Fe-LEX-Series-18-Subwoofer-8-Ohm-253-051 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-051 url=https://www.parts-express.com/Beyma-18LEX1600Fe-LEX-Series-18-Subwoofer-8-Ohm-253-051 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-051 url=https://www.parts-express.com/Beyma-18LEX1600Fe-LEX-Series-18-Subwoofer-8-Ohm-253-051 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 34.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-051 url=https://www.parts-express.com/Beyma-18LEX1600Fe-LEX-Series-18-Subwoofer-8-Ohm-253-051 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.188024 differs from calculated=1.89911e-06 (deps: roo=1.20095, c=343.684, Sd=1.255e-05, Cms=0.085)
+[04:15:51] PROBLEM field=schema item=253-049 url=https://www.parts-express.com/Beyma-18LEX1200Fe-LEX-Series-18-Subwoofer-8-Ohm-253-049 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 32.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=Sd_tiny item=253-047 url=https://www.parts-express.com/Beyma-18LEX1000Fe-LEX-Series-18-Subwoofer-8-Ohm-253-047 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-047 url=https://www.parts-express.com/Beyma-18LEX1000Fe-LEX-Series-18-Subwoofer-8-Ohm-253-047 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-047 url=https://www.parts-express.com/Beyma-18LEX1000Fe-LEX-Series-18-Subwoofer-8-Ohm-253-047 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.250037 differs from calculated=1.27352e-07 (deps: roo=1.20095, c=343.684, Sd=1.255e-05, Cms=0.0057)
+[04:15:51] PROBLEM field=Sd_tiny item=253-045 url=https://www.parts-express.com/Beyma-15LEX1600Fe-LEX-Series-15-Subwoofer-8-Ohm-253-045 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-045 url=https://www.parts-express.com/Beyma-15LEX1600Fe-LEX-Series-15-Subwoofer-8-Ohm-253-045 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-045 url=https://www.parts-express.com/Beyma-15LEX1600Fe-LEX-Series-15-Subwoofer-8-Ohm-253-045 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-043 url=https://www.parts-express.com/Beyma-15LEX1000Fe-LEX-Series-15-Subwoofer-8-Ohm-253-043 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-043 url=https://www.parts-express.com/Beyma-15LEX1000Fe-LEX-Series-15-Subwoofer-8-Ohm-253-043 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-043 url=https://www.parts-express.com/Beyma-15LEX1000Fe-LEX-Series-15-Subwoofer-8-Ohm-253-043 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.106 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-043 url=https://www.parts-express.com/Beyma-15LEX1000Fe-LEX-Series-15-Subwoofer-8-Ohm-253-043 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-041 url=https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-041 url=https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-041 url=https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 49.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-041 url=https://www.parts-express.com/Beyma-12LEX1000Fe-LEX-Series-12-Subwoofer-8-Ohm-253-041 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-022 url=https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-022 url=https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-022 url=https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.135 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-022 url=https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-021 url=https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-021 url=https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-021 url=https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.139 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-021 url=https://www.parts-express.com/Beyma-12MCB700-MCB-Series-12-Subwoofer-8-Ohm-253-021 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=Qts_impossible item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qts item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qes item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=suspect:Qms item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 44.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.206 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-005 url=https://www.parts-express.com/Beyma-12G40-G40-Series-12-Subwoofer-8-Ohm-253-005 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.3e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-004 url=https://www.parts-express.com/Beyma-10G40-G40-Series-10-Subwoofer-8-Ohm-253-004 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-004 url=https://www.parts-express.com/Beyma-10G40-G40-Series-10-Subwoofer-8-Ohm-253-004 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-004 url=https://www.parts-express.com/Beyma-10G40-G40-Series-10-Subwoofer-8-Ohm-253-004 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.241 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-004 url=https://www.parts-express.com/Beyma-10G40-G40-Series-10-Subwoofer-8-Ohm-253-004 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-017 url=https://www.parts-express.com/Beyma-15MC700Nd-MC-Series-15-Neo-Subwoofer-8-Ohm-253-017 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-017 url=https://www.parts-express.com/Beyma-15MC700Nd-MC-Series-15-Neo-Subwoofer-8-Ohm-253-017 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-017 url=https://www.parts-express.com/Beyma-15MC700Nd-MC-Series-15-Neo-Subwoofer-8-Ohm-253-017 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-015 url=https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-015 url=https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-015 url=https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.136 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-015 url=https://www.parts-express.com/Beyma-12MC700Nd-MC-Series-12-Neo-Subwoofer-8-Ohm-253-015 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-013 url=https://www.parts-express.com/Beyma-10MC700Nd-MC-Series-10-Neo-Woofer-8-Ohm-253-013 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-013 url=https://www.parts-express.com/Beyma-10MC700Nd-MC-Series-10-Neo-Woofer-8-Ohm-253-013 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-013 url=https://www.parts-express.com/Beyma-10MC700Nd-MC-Series-10-Neo-Woofer-8-Ohm-253-013 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.115 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-013 url=https://www.parts-express.com/Beyma-10MC700Nd-MC-Series-10-Neo-Woofer-8-Ohm-253-013 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-008 url=https://www.parts-express.com/Beyma-15P80Fe-N-P80-Series-15-Subwoofer-8-Ohm-253-008 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-008 url=https://www.parts-express.com/Beyma-15P80Fe-N-P80-Series-15-Subwoofer-8-Ohm-253-008 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-008 url=https://www.parts-express.com/Beyma-15P80Fe-N-P80-Series-15-Subwoofer-8-Ohm-253-008 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.279 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-008 url=https://www.parts-express.com/Beyma-15P80Fe-N-P80-Series-15-Subwoofer-8-Ohm-253-008 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-006 url=https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-006 url=https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-006 url=https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 48.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-006 url=https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.143 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-006 url=https://www.parts-express.com/Beyma-12P80Fe-V2-P80-Series-12-Subwoofer-8-Ohm-253-006 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-040 url=https://www.parts-express.com/Beyma-12MI100-MI100-Series-12-Midrange-Speaker-8-Ohm-253-040 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-040 url=https://www.parts-express.com/Beyma-12MI100-MI100-Series-12-Midrange-Speaker-8-Ohm-253-040 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-040 url=https://www.parts-express.com/Beyma-12MI100-MI100-Series-12-Midrange-Speaker-8-Ohm-253-040 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.163 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-040 url=https://www.parts-express.com/Beyma-12MI100-MI100-Series-12-Midrange-Speaker-8-Ohm-253-040 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.3e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-039 url=https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-039 url=https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-039 url=https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 50.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-039 url=https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.266 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-039 url=https://www.parts-express.com/Beyma-10MI100-MI100-Series-10-Midrange-Speaker-8-Ohm-253-039 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-052 url=https://www.parts-express.com/Beyma-18LEX1600Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-052 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-052 url=https://www.parts-express.com/Beyma-18LEX1600Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-052 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-052 url=https://www.parts-express.com/Beyma-18LEX1600Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-052 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.104 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=Sd_tiny item=253-048 url=https://www.parts-express.com/Beyma-18LEX1000Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-048 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-048 url=https://www.parts-express.com/Beyma-18LEX1000Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-048 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-048 url=https://www.parts-express.com/Beyma-18LEX1000Nd-LEX-Series-18-Neo-Subwoofer-8-Ohm-253-048 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.117 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=Sd_tiny item=253-046 url=https://www.parts-express.com/Beyma-15LEX1600Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-046 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-046 url=https://www.parts-express.com/Beyma-15LEX1600Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-046 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-046 url=https://www.parts-express.com/Beyma-15LEX1600Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-046 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-044 url=https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-044 url=https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-044 url=https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 41.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-044 url=https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.103 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-044 url=https://www.parts-express.com/Beyma-15LEX1000Nd-LEX-Series-15-Neo-Subwoofer-8-Ohm-253-044 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-042 url=https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-042 url=https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-042 url=https://www.parts-express.com/Beyma-12LEX1300Nd-LEX-Series-12-Neo-Subwoofer-8-Ohm-253-042 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-009 url=https://www.parts-express.com/Beyma-15P80Nd-P80-Series-15-Neo-Subwoofer-8-Ohm-253-009 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-009 url=https://www.parts-express.com/Beyma-15P80Nd-P80-Series-15-Neo-Subwoofer-8-Ohm-253-009 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-009 url=https://www.parts-express.com/Beyma-15P80Nd-P80-Series-15-Neo-Subwoofer-8-Ohm-253-009 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.168 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-009 url=https://www.parts-express.com/Beyma-15P80Nd-P80-Series-15-Neo-Subwoofer-8-Ohm-253-009 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-007 url=https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-007 url=https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-007 url=https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 47.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-007 url=https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.152 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-007 url=https://www.parts-express.com/Beyma-12P80Nd-V2-P80-Series-12-Neo-Subwoofer-8-Ohm-253-007 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-025 url=https://www.parts-express.com/Beyma-15MCS500-MCS-Series-15-Midbass-Driver-8-Ohm-253-025 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-025 url=https://www.parts-express.com/Beyma-15MCS500-MCS-Series-15-Midbass-Driver-8-Ohm-253-025 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-025 url=https://www.parts-express.com/Beyma-15MCS500-MCS-Series-15-Midbass-Driver-8-Ohm-253-025 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 46.0 above maximum 0.1 H
+[04:15:51] PROBLEM field=schema item=253-025 url=https://www.parts-express.com/Beyma-15MCS500-MCS-Series-15-Midbass-Driver-8-Ohm-253-025 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.122 above maximum 0.1 m/N
+[04:15:51] PROBLEM field=schema item=253-025 url=https://www.parts-express.com/Beyma-15MCS500-MCS-Series-15-Midbass-Driver-8-Ohm-253-025 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 8.8e-06 below minimum 1e-05 m²
+[04:15:51] PROBLEM field=Sd_tiny item=253-024 url=https://www.parts-express.com/Beyma-12MCS500-MCS-Series-12-Midbass-Driver-8-Ohm-253-024 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=tweeter_fs item=253-024 url=https://www.parts-express.com/Beyma-12MCS500-MCS-Series-12-Midbass-Driver-8-Ohm-253-024 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:51] PROBLEM field=schema item=253-024 url=https://www.parts-express.com/Beyma-12MCS500-MCS-Series-12-Midbass-Driver-8-Ohm-253-024 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 57.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-024 url=https://www.parts-express.com/Beyma-12MCS500-MCS-Series-12-Midbass-Driver-8-Ohm-253-024 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.132 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-024 url=https://www.parts-express.com/Beyma-12MCS500-MCS-Series-12-Midbass-Driver-8-Ohm-253-024 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.5e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-023 url=https://www.parts-express.com/Beyma-10MCS500-MCS-Series-10-Subwoofer-8-Ohm-253-023 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-023 url=https://www.parts-express.com/Beyma-10MCS500-MCS-Series-10-Subwoofer-8-Ohm-253-023 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-023 url=https://www.parts-express.com/Beyma-10MCS500-MCS-Series-10-Subwoofer-8-Ohm-253-023 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 65.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-023 url=https://www.parts-express.com/Beyma-10MCS500-MCS-Series-10-Subwoofer-8-Ohm-253-023 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.136 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-023 url=https://www.parts-express.com/Beyma-10MCS500-MCS-Series-10-Subwoofer-8-Ohm-253-023 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.5e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-020 url=https://www.parts-express.com/Beyma-10MCB700-MCB-Series-10-Midbass-Woofer-8-Ohm-253-020 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-020 url=https://www.parts-express.com/Beyma-10MCB700-MCB-Series-10-Midbass-Woofer-8-Ohm-253-020 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-020 url=https://www.parts-express.com/Beyma-10MCB700-MCB-Series-10-Midbass-Woofer-8-Ohm-253-020 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.5e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-087 url=https://www.parts-express.com/Beyma-10NMFS-NMF-Series-10-Carbon-Fiber-Cone-Woofer-8-Ohm-253-087 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-087 url=https://www.parts-express.com/Beyma-10NMFS-NMF-Series-10-Carbon-Fiber-Cone-Woofer-8-Ohm-253-087 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-087 url=https://www.parts-express.com/Beyma-10NMFS-NMF-Series-10-Carbon-Fiber-Cone-Woofer-8-Ohm-253-087 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 35.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-087 url=https://www.parts-express.com/Beyma-10NMFS-NMF-Series-10-Carbon-Fiber-Cone-Woofer-8-Ohm-253-087 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.233 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-087 url=https://www.parts-express.com/Beyma-10NMFS-NMF-Series-10-Carbon-Fiber-Cone-Woofer-8-Ohm-253-087 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.7e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-031 url=https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-031 url=https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-031 url=https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.451 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-031 url=https://www.parts-express.com/Beyma-5P200Fe-P200-Series-5-Midbass-Woofer-8-Ohm-253-031 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.5e-07 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-032 url=https://www.parts-express.com/Beyma-5P200Nd-P200-Series-5-Midbass-Neo-Woofer-8-Ohm-253-032 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-032 url=https://www.parts-express.com/Beyma-5P200Nd-P200-Series-5-Midbass-Neo-Woofer-8-Ohm-253-032 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-032 url=https://www.parts-express.com/Beyma-5P200Nd-P200-Series-5-Midbass-Neo-Woofer-8-Ohm-253-032 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.355 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-032 url=https://www.parts-express.com/Beyma-5P200Nd-P200-Series-5-Midbass-Neo-Woofer-8-Ohm-253-032 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.5e-07 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-026 url=https://www.parts-express.com/Beyma-6CMV2-6.5-Woofer-8-Ohm-253-026 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-026 url=https://www.parts-express.com/Beyma-6CMV2-6.5-Woofer-8-Ohm-253-026 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-026 url=https://www.parts-express.com/Beyma-6CMV2-6.5-Woofer-8-Ohm-253-026 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 13.0 above maximum 2.0 kg
+[04:15:52] PROBLEM field=schema item=253-026 url=https://www.parts-express.com/Beyma-6CMV2-6.5-Woofer-8-Ohm-253-026 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-018 url=https://www.parts-express.com/Beyma-6MCF200Nd-6.5-Midbass-Woofer-8-Ohm-253-018 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-018 url=https://www.parts-express.com/Beyma-6MCF200Nd-6.5-Midbass-Woofer-8-Ohm-253-018 offset=0
+         raw_value=None
+         reason=WDR: 'Mms' = 15.0 above maximum 2.0 kg
+[04:15:52] PROBLEM field=schema item=253-018 url=https://www.parts-express.com/Beyma-6MCF200Nd-6.5-Midbass-Woofer-8-Ohm-253-018 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-037 url=https://www.parts-express.com/Beyma-6MI100-MI100-Series-6.5-Midrange-8-Ohm-253-037 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-037 url=https://www.parts-express.com/Beyma-6MI100-MI100-Series-6.5-Midrange-8-Ohm-253-037 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.119 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-037 url=https://www.parts-express.com/Beyma-6MI100-MI100-Series-6.5-Midrange-8-Ohm-253-037 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-034 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-034 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-034 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 66.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-034 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.343 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-034 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-16-Ohm-253-034 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.35e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-033 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-8-Ohm-253-033 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-033 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-8-Ohm-253-033 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-033 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-8-Ohm-253-033 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.429 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-033 url=https://www.parts-express.com/Beyma-6P200Fe-P200-Series-6.5-Midbass-Woofer-8-Ohm-253-033 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.35e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-002 url=https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-002 url=https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-002 url=https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 85.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-002 url=https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.25 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-002 url=https://www.parts-express.com/Beyma-6G40Nd-G40-Series-6.5-Midbass-Speaker-8-Ohm-253-002 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-035 url=https://www.parts-express.com/Beyma-6P200Nd-P200-Series-6.5-Midbass-Neo-Woofer-8-Ohm-253-035 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-035 url=https://www.parts-express.com/Beyma-6P200Nd-P200-Series-6.5-Midbass-Neo-Woofer-8-Ohm-253-035 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-035 url=https://www.parts-express.com/Beyma-6P200Nd-P200-Series-6.5-Midbass-Neo-Woofer-8-Ohm-253-035 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 56.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-035 url=https://www.parts-express.com/Beyma-6P200Nd-P200-Series-6.5-Midbass-Neo-Woofer-8-Ohm-253-035 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.468 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-035 url=https://www.parts-express.com/Beyma-6P200Nd-P200-Series-6.5-Midbass-Neo-Woofer-8-Ohm-253-035 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.35e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=Sd_tiny item=253-085 url=https://www.parts-express.com/Beyma-6NMFW-NMF-Series-6.5-Carbon-Fiber-Cone-Woofer-8-Ohm-253-085 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=tweeter_fs item=253-085 url=https://www.parts-express.com/Beyma-6NMFW-NMF-Series-6.5-Carbon-Fiber-Cone-Woofer-8-Ohm-253-085 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=253-085 url=https://www.parts-express.com/Beyma-6NMFW-NMF-Series-6.5-Carbon-Fiber-Cone-Woofer-8-Ohm-253-085 offset=0
+         raw_value=None
+         reason=WDR: 'Le' = 40.0 above maximum 0.1 H
+[04:15:52] PROBLEM field=schema item=253-085 url=https://www.parts-express.com/Beyma-6NMFW-NMF-Series-6.5-Carbon-Fiber-Cone-Woofer-8-Ohm-253-085 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.342 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=schema item=253-085 url=https://www.parts-express.com/Beyma-6NMFW-NMF-Series-6.5-Carbon-Fiber-Cone-Woofer-8-Ohm-253-085 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.54e-06 below minimum 1e-05 m²
+[04:15:52] PROBLEM field=schema item=295-642 url=https://www.parts-express.com/Dayton-Audio-12MB400N-8-12-Professional-Neodymium-Mid-Bass-295-642 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.127992 differs from calculated=0.112069 (deps: roo=1.20095, c=343.684, Sd=0.049456, Cms=0.000323)
+[04:15:52] PROBLEM field=schema item=295-639 url=https://www.parts-express.com/Dayton-Audio-8MB200N-8-8-Professional-Neodymium-Mid-Bass-295-639 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0088 differs from calculated=0.00784846 (deps: roo=1.20095, c=343.684, Sd=0.020096, Cms=0.000137)
+[04:15:52] PROBLEM field=schema item=295-641 url=https://www.parts-express.com/Dayton-Audio-18SW1200F-8-18-Professional-Subwoofer-295-641 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.287699 differs from calculated=0.265553 (deps: roo=1.20095, c=343.684, Sd=0.12, Cms=0.00013)
+[04:15:52] PROBLEM field=schema item=293-110 url=https://www.parts-express.com/Ciare-CMR200-8-Full-Range-Driver-293-110 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0088 differs from calculated=0.00992758 (deps: roo=1.20095, c=343.684, Sd=0.0216, Cms=0.00015)
+[04:15:52] PROBLEM field=schema item=293-174 url=https://www.parts-express.com/Ciare-CSD184-22-18-High-Power-Subwoofer-Dual-2-Ohm-293-174 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.141 differs from calculated=0.121027 (deps: roo=1.20095, c=343.684, Sd=0.1104, Cms=7e-05)
+[04:15:52] PROBLEM field=schema item=293-172 url=https://www.parts-express.com/Ciare-CSD154-22-15-High-Power-Subwoofer-Dual-2-Ohm-293-172 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.129 differs from calculated=0.111711 (deps: roo=1.20095, c=343.684, Sd=0.075, Cms=0.00014)
+[04:15:52] PROBLEM field=schema item=293-170 url=https://www.parts-express.com/Ciare-CSD124-22-12-High-Power-Subwoofer-Dual-2-Ohm-293-170 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.054 differs from calculated=0.047878 (deps: roo=1.20095, c=343.684, Sd=0.0491, Cms=0.00014)
+[04:15:52] PROBLEM field=schema item=294-2046 url=https://www.parts-express.com/Celestion-AN2775-2-3-4-Full-Range-Compact-Array-Driver-294-2046 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.621 above maximum 0.1 m/N
+[04:15:52] PROBLEM field=Vas_tiny_for_driver item=294-1968 url=https://www.parts-express.com/Celestion-CF0820M-8-Professional-Midrange-Driver-8-Ohm-294-1968 offset=0
+         raw_value='Vas_tiny_for_driver'
+         reason=DQ check failure
+[04:15:52] PROBLEM field=schema item=294-2096 url=https://www.parts-express.com/Celestion-FTX0820-8-Coaxial-Full-Range-Professional-Driver-294-2096 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0212376 differs from calculated=0.0174123 (deps: roo=1.20095, c=343.684, Sd=0.02271, Cms=0.000238)
+[04:15:52] PROBLEM field=schema item=294-2048 url=https://www.parts-express.com/Celestion-AN3510-3-Full-Range-Compact-Array-Driver-294-2048 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00109224 (deps: roo=1.20095, c=343.684, Sd=0.003848, Cms=0.00052)
+[04:15:52] PROBLEM field=schema item=294-2044 url=https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000159332 (deps: roo=1.20095, c=343.684, Sd=0.001249, Cms=0.00072)
+[04:15:52] PROBLEM field=schema item=294-2000 url=https://www.parts-express.com/Celestion-FTR12-3070C-12-Professional-Speaker-350W-294-2000 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0437 differs from calculated=0.00440471 (deps: roo=1.20095, c=343.684, Sd=0.05313, Cms=1.1e-05)
+[04:15:52] PROBLEM field=schema item=294-2050 url=https://www.parts-express.com/Celestion-TF0510-5-Professional-Speaker-30W-294-2050 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.658 differs from calculated=0.580397 (deps: Qms=2.376, Qes=0.768)
+[04:15:52] PROBLEM field=schema item=294-2050 url=https://www.parts-express.com/Celestion-TF0510-5-Professional-Speaker-30W-294-2050 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00738 differs from calculated=0.00193097 (deps: roo=1.20095, c=343.684, Sd=0.007866, Cms=0.00022)
+[04:15:52] PROBLEM field=schema item=294-1974 url=https://www.parts-express.com/Celestion-TFX0515-5-Coaxial-Full-Range-Professional-Driver-294-1974 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0254851 differs from calculated=0.00254636 (deps: roo=1.20095, c=343.684, Sd=0.007854, Cms=0.000291)
+[04:15:52] PROBLEM field=schema item=294-2102 url=https://www.parts-express.com/Celestion-CF1840JD-18-1200-Watt-Professional-Woofer-294-2102 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.154893 differs from calculated=0.164177 (deps: roo=1.20095, c=343.684, Sd=0.1134, Cms=9e-05)
+[04:15:53] PROBLEM field=schema item=294-2511 url=https://www.parts-express.com/Celestion-Truvox-0615-6.5-Midbass-Woofer-8-Ohm-294-2511 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00736237 differs from calculated=0.0100958 (deps: roo=1.20095, c=343.684, Sd=0.015454, Cms=0.000298)
+[04:15:53] PROBLEM field=schema item=290-593 url=https://www.parts-express.com/Eminence-Deltalite-II-2512-Neo-12-Driver-290-593 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.41 differs from calculated=0.393436 (deps: Qms=3.13, Qes=0.45)
+[04:15:53] PROBLEM field=schema item=290-4018 url=https://www.parts-express.com/Eminence-ALPHA-3-32-3-Full-Range-Speaker-32-Ohm-290-4018 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.000997873 (deps: roo=1.20095, c=343.684, Sd=0.00286, Cms=0.00086)
+[04:15:53] PROBLEM field=schema item=290-661 url=https://www.parts-express.com/Eminence-Alpha-6CBMRA-6-1-2-Ferrite-Sealed-Back-Midrange-Sp-290-661 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=1.87524e-06 (deps: roo=1.20095, c=343.684, Sd=0.000813, Cms=2e-05)
+[04:15:53] PROBLEM field=schema item=290-662 url=https://www.parts-express.com/Eminence-Beta-6A-6-1-2-High-Power-Midbass-Woofer-290-662 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00339802 differs from calculated=0.00359049 (deps: roo=1.20095, c=343.684, Sd=0.01299, Cms=0.00015)
+[04:15:53] PROBLEM field=schema item=290-542 url=https://www.parts-express.com/Eminence-LA6-CBMR-6-1-2-Sealed-Back-Mid-Line-Array-Series-290-542 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000251305 (deps: roo=1.20095, c=343.684, Sd=0.01331, Cms=1e-05)
+[04:15:53] PROBLEM field=Qts_impossible item=294-1090 url=https://www.parts-express.com/FaitalPRO-21XL3000-21-Neodymium-Subwoofer-8-Ohm-294-1090 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qts item=294-1090 url=https://www.parts-express.com/FaitalPRO-21XL3000-21-Neodymium-Subwoofer-8-Ohm-294-1090 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qes item=294-1090 url=https://www.parts-express.com/FaitalPRO-21XL3000-21-Neodymium-Subwoofer-8-Ohm-294-1090 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qms item=294-1090 url=https://www.parts-express.com/FaitalPRO-21XL3000-21-Neodymium-Subwoofer-8-Ohm-294-1090 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=schema item=294-1090 url=https://www.parts-express.com/FaitalPRO-21XL3000-21-Neodymium-Subwoofer-8-Ohm-294-1090 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.2846 differs from calculated=0.30202 (deps: roo=1.20095, c=343.684, Sd=0.1744, Cms=7e-05)
+[04:15:53] PROBLEM field=schema item=294-1088 url=https://www.parts-express.com/FaitalPRO-8HX210-8-Coaxial-Speaker-8-Ohm-294-1088 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.246922 differs from calculated=18.2005 (deps: roo=1.20095, c=343.684, Sd=0.1213, Cms=0.00872)
+[04:15:53] PROBLEM field=schema item=294-1354 url=https://www.parts-express.com/FaitalPRO-4FE42-4-Neodymium-Full-Range-Speaker-4-Ohm-294-1354 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00169901 differs from calculated=0.00180084 (deps: roo=1.20095, c=343.684, Sd=0.00509, Cms=0.00049)
+[04:15:53] PROBLEM field=schema item=294-1105 url=https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-16-Ohm-294-1105 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0013 differs from calculated=0.00135942 (deps: roo=1.20095, c=343.684, Sd=0.0033, Cms=0.00088)
+[04:15:53] PROBLEM field=schema item=294-1069 url=https://www.parts-express.com/FaitalPRO-18HW1070-18-Professional-Subwoofer-8-Ohm-294-1069 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.1959 differs from calculated=0.208377 (deps: roo=1.20095, c=343.684, Sd=0.1212, Cms=0.0001)
+[04:15:53] PROBLEM field=schema item=294-1306 url=https://www.parts-express.com/FaitalPRO-18HP1030-18-Professional-Subwoofer-4-Ohm-294-1306 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.1506 differs from calculated=0.143373 (deps: roo=1.20095, c=343.684, Sd=0.1124, Cms=8e-05)
+[04:15:53] PROBLEM field=Qts_impossible item=294-1274 url=https://www.parts-express.com/FaitalPRO-15FH510-15-Professional-Woofer-8-Ohm-294-1274 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qts item=294-1274 url=https://www.parts-express.com/FaitalPRO-15FH510-15-Professional-Woofer-8-Ohm-294-1274 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qes item=294-1274 url=https://www.parts-express.com/FaitalPRO-15FH510-15-Professional-Woofer-8-Ohm-294-1274 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:53] PROBLEM field=suspect:Qms item=294-1274 url=https://www.parts-express.com/FaitalPRO-15FH510-15-Professional-Woofer-8-Ohm-294-1274 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=schema item=294-1192 url=https://www.parts-express.com/FaitalPRO-6HX150-6-Neodymium-Coaxial-Driver-8-Ohm-294-1192 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0056 differs from calculated=0.0047947 (deps: roo=1.20095, c=343.684, Sd=0.013, Cms=0.0002)
+[04:15:54] PROBLEM field=schema item=294-1104 url=https://www.parts-express.com/FaitalPRO-3FE25-3-Professional-Woofer-8-Ohm-294-1104 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.7 differs from calculated=0.669388 (deps: Qms=4.1, Qes=0.8)
+[04:15:54] PROBLEM field=schema item=294-1101 url=https://www.parts-express.com/FaitalPRO-3FE22-3-Neodymium-Professional-Woofer-8-Ohm-294-1101 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.47 differs from calculated=0.454545 (deps: Qms=5, Qes=0.5)
+[04:15:54] PROBLEM field=schema item=294-1380 url=https://www.parts-express.com/FaitalPRO-5PR120-5-Professional-Neodymium-Midrange-8-Ohm-294-1380 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0042 differs from calculated=0.00444496 (deps: roo=1.20095, c=343.684, Sd=0.01022, Cms=0.0003)
+[04:15:54] PROBLEM field=schema item=295-640 url=https://www.parts-express.com/Dayton-Audio-10MB250N-8-10-Professional-Neodymium-Mid-Bass-295-640 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.04349 differs from calculated=0.0406131 (deps: roo=1.20095, c=343.684, Sd=0.033312, Cms=0.000258)
+[04:15:54] PROBLEM field=schema item=294-5791 url=https://www.parts-express.com/B-C-12CXN88-12-Professional-Coaxial-Speaker-8-Ohm-294-5791 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0588989 differs from calculated=2.45061 (deps: roo=1.20095, c=343.684, Sd=0.0522, Cms=0.00634)
+[04:15:54] PROBLEM field=schema item=294-677 url=https://www.parts-express.com/B-C-18PZB100-18-Woofer-294-677 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.297326 differs from calculated=32.8355 (deps: roo=1.20095, c=343.684, Sd=0.1134, Cms=0.018)
+[04:15:54] PROBLEM field=schema item=294-673 url=https://www.parts-express.com/B-C-15PS100-15-Woofer-294-673 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.150079 differs from calculated=15.5549 (deps: roo=1.20095, c=343.684, Sd=0.0855, Cms=0.015)
+[04:15:54] PROBLEM field=schema item=294-671 url=https://www.parts-express.com/B-C-15PZB100-15-Woofer-294-671 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.107604 differs from calculated=15.5549 (deps: roo=1.20095, c=343.684, Sd=0.0855, Cms=0.015)
+[04:15:54] PROBLEM field=schema item=294-665 url=https://www.parts-express.com/B-C-12PS100-12-Woofer-294-665 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0453069 differs from calculated=4.79971 (deps: roo=1.20095, c=343.684, Sd=0.0531, Cms=0.012)
+[04:15:54] PROBLEM field=Qts_impossible item=294-6032 url=https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qts item=294-6032 url=https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qes item=294-6032 url=https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qms item=294-6032 url=https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=schema item=294-6032 url=https://www.parts-express.com/B-C-21DS115-4-21-Professional-Neodymium-Subwoofer-4-Ohm-294-6032 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.21 differs from calculated=0.196429 (deps: Qms=11, Qes=0.2)
+[04:15:54] PROBLEM field=schema item=294-5989 url=https://www.parts-express.com/B-C-15SW115-15-Professional-Neodymium-Subwoofer-8-Ohm-294-5989 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.110436 differs from calculated=62.2197 (deps: roo=1.20095, c=343.684, Sd=0.0855, Cms=0.06)
+[04:15:54] PROBLEM field=schema item=294-5990 url=https://www.parts-express.com/B-C-15SW115-4-15-Professional-Neodymium-Subwoofer-4-Ohm-294-5990 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.104772 differs from calculated=62.2197 (deps: roo=1.20095, c=343.684, Sd=0.0855, Cms=0.06)
+[04:15:54] PROBLEM field=schema item=295-430 url=https://www.parts-express.com/Dayton-Audio-DS215-8-8-Designer-Series-Woofer-295-430 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0430415 differs from calculated=0.045558 (deps: roo=1.20095, c=343.684, Sd=0.02112, Cms=0.00072)
+[04:15:54] PROBLEM field=Qts_impossible item=294-3403 url=https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qts item=294-3403 url=https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qes item=294-3403 url=https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=suspect:Qms item=294-3403 url=https://www.parts-express.com/PRV-Audio-12MR1200X-X-Series-12-Midrange-Speaker-8-Ohm-294-3403 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:54] PROBLEM field=schema item=294-3536 url=https://www.parts-express.com/PRV-Audio-8MR500SEAL-PRO-8-Sealed-Professional-Midrange-Speaker-8-Ohm-294-3536 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0274956 differs from calculated=0.00098869 (deps: roo=1.20095, c=343.684, Sd=0.0241, Cms=1.2e-05)
+[04:15:54] PROBLEM field=schema item=294-6014 url=https://www.parts-express.com/B-C-6MBX44-6.5-Professional-Neodymium-Woofer-8-Ohm-294-6014 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00396435 differs from calculated=0.00420186 (deps: roo=1.20095, c=343.684, Sd=0.0132, Cms=0.00017)
+[04:15:54] PROBLEM field=schema item=294-3143 url=https://www.parts-express.com/PRV-Audio-8MR500-4-BULLET-8-Midrange-Speaker-4-Ohm-294-3143 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.02081 differs from calculated=0.0296607 (deps: roo=1.20095, c=343.684, Sd=0.0241, Cms=0.00036)
+[04:15:55] PROBLEM field=schema item=295-426 url=https://www.parts-express.com/Dayton-Audio-DS135-8-5-Designer-Series-Woofer-295-426 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00727742 differs from calculated=0.00766145 (deps: roo=1.20095, c=343.684, Sd=0.00754, Cms=0.00095)
+[04:15:55] PROBLEM field=Qts_impossible item=294-3405 url=https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qts item=294-3405 url=https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qes item=294-3405 url=https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qms item=294-3405 url=https://www.parts-express.com/PRV-Audio-12MR2000X-v2-X-Series-12-Midrange-Speaker-8-Ohm-294-3405 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=schema item=294-2888 url=https://www.parts-express.com/PRV-Audio-10FR300-10-Professional-Full-Range-Speaker-8-Ohm-294-2888 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0472891 differs from calculated=10.438 (deps: roo=1.20095, c=343.684, Sd=0.0394, Cms=0.0474)
+[04:15:55] PROBLEM field=schema item=294-3400 url=https://www.parts-express.com/PRV-Audio-3MR40-NDY-4-3-Neodymium-Midrange-Speaker-4-Ohms-294-3400 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00062297 differs from calculated=0.000692667 (deps: roo=1.20095, c=343.684, Sd=0.00332, Cms=0.000443)
+[04:15:55] PROBLEM field=schema item=294-3139 url=https://www.parts-express.com/PRV-Audio-6MR500CF-NDY-4-6-Midrange-Neodymium-Speaker-Pair-4-Ohm-294-3139 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00509702 differs from calculated=0.149101 (deps: roo=1.20095, c=343.684, Sd=0.0143, Cms=0.00514)
+[04:15:55] PROBLEM field=schema item=294-3133 url=https://www.parts-express.com/PRV-Audio-69MR500-4-BULLET-6-x-9-Midrange-Speaker-4-Ohms-294-3133 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00518197 differs from calculated=0.344818 (deps: roo=1.20095, c=343.684, Sd=0.0216, Cms=0.00521)
+[04:15:55] PROBLEM field=Qts_impossible item=294-3502 url=https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qts item=294-3502 url=https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qes item=294-3502 url=https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qms item=294-3502 url=https://www.parts-express.com/PRV-Audio-6MR600X-NDY-6.5-Neodymium-Midrange-Speaker-294-3502 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=schema item=294-3408 url=https://www.parts-express.com/PRV-Audio-6MR600X-NDY-4-6-X-Series-Neodymium-Midrange-Speaker-4-Ohm-294-3408 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.19 differs from calculated=0.19686 (deps: Qms=12.54, Qes=0.2)
+[04:15:55] PROBLEM field=schema item=290-373 url=https://www.parts-express.com/Goldwood-GW-4028-S-4-Woofer-Shielded-290-373 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00212024 (deps: roo=1.20095, c=343.684, Sd=0.00495, Cms=0.00061)
+[04:15:55] PROBLEM field=schema item=290-355 url=https://www.parts-express.com/Goldwood-GW-8028-8-Butyl-Surround-Woofer-8-Ohm-290-355 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0436079 differs from calculated=0.0493034 (deps: roo=1.20095, c=343.684, Sd=0.02182, Cms=0.00073)
+[04:15:55] PROBLEM field=schema item=290-370 url=https://www.parts-express.com/Goldwood-GW-204-4S-4-Shielded-Poly-Woofer-4-Ohm-290-370 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.000975187 (deps: roo=1.20095, c=343.684, Sd=0.005352, Cms=0.00024)
+[04:15:55] PROBLEM field=schema item=290-365 url=https://www.parts-express.com/Goldwood-GW-1248-12-Butyl-Surround-Woofer-8-Ohm-290-365 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=1 differs from calculated=0.932609 (deps: Qms=3.3, Qes=1.3)
+[04:15:55] PROBLEM field=schema item=290-338 url=https://www.parts-express.com/Goldwood-GW-15PC-8-15-Heavy-Duty-Woofer-8-Ohm-290-338 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.152911 differs from calculated=0.144376 (deps: roo=1.20095, c=343.684, Sd=0.082372, Cms=0.00015)
+[04:15:55] PROBLEM field=Qts_impossible item=290-305 url=https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qts item=290-305 url=https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qes item=290-305 url=https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=suspect:Qms item=290-305 url=https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:55] PROBLEM field=schema item=290-305 url=https://www.parts-express.com/Goldwood-GW-206-8-6-1-2-OEM-Woofer-8-Ohm-290-305 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.75 differs from calculated=0.61413 (deps: Qms=3.39, Qes=0.75)
+[04:15:55] PROBLEM field=schema item=290-350 url=https://www.parts-express.com/Goldwood-GW-6028-6-1-2-Butyl-Surround-Woofer-8-Ohm-290-350 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0116099 differs from calculated=0.0123952 (deps: roo=1.20095, c=343.684, Sd=0.013635, Cms=0.00047)
+[04:15:55] PROBLEM field=schema item=290-307 url=https://www.parts-express.com/Goldwood-GW-6PC-4-6-1-2-Heavy-Duty-Woofer-4-Ohm-290-307 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00991088 differs from calculated=0.00924129 (deps: roo=1.20095, c=343.684, Sd=0.013643, Cms=0.00035)
+[04:15:55] PROBLEM field=schema item=290-302 url=https://www.parts-express.com/Goldwood-GW-S525-8-5-1-4-Poly-Cone-Woofer-8-Ohm-290-302 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00368118 differs from calculated=0.00384237 (deps: roo=1.20095, c=343.684, Sd=0.008229, Cms=0.0004)
+[04:15:55] PROBLEM field=schema item=292-405 url=https://www.parts-express.com/GRS-5PF-8-5-1-4-Paper-Cone-Foam-Surround-Woofer-292-405 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.00128351 (deps: roo=1.20095, c=343.684, Sd=0.00752, Cms=0.00016)
+[04:15:55] PROBLEM field=schema item=292-461 url=https://www.parts-express.com/GRS-6LPSW-4-6-1-2-Low-Profile-Subwoofer-4-Ohm-292-461 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0076 differs from calculated=0.00473807 (deps: roo=1.20095, c=343.684, Sd=0.01038, Cms=0.00031)
+[04:15:55] PROBLEM field=schema item=292-862 url=https://www.parts-express.com/GRS-6-1-2-Woofer-Surface-Mount-Poly-Cone-4-Ohm-6SMP-4-292-862 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.015 differs from calculated=0.0157425 (deps: roo=1.20095, c=343.684, Sd=0.0136, Cms=0.0006)
+[04:15:55] PROBLEM field=schema item=292-858 url=https://www.parts-express.com/GRS-5-1-4-Woofer-Surface-Mount-Poly-Cone-4-Ohm-5SMP-4-292-858 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.006 differs from calculated=0.00571959 (deps: roo=1.20095, c=343.684, Sd=0.008, Cms=0.00063)
+[04:15:55] PROBLEM field=schema item=297-445 url=https://www.parts-express.com/HiVi-F8-8-Bass-Midrange-297-445 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.39 differs from calculated=0.402408 (deps: Qms=4.71, Qes=0.44)
+[04:15:55] PROBLEM field=schema item=297-435 url=https://www.parts-express.com/HiVi-F5-5-Bass-Midrange-297-435 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.908 above maximum 0.1 m/N
+[04:15:56] PROBLEM field=schema item=297-434 url=https://www.parts-express.com/HiVi-M4N-4-Aluminum-Magnesium-Midbass-297-434 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00453069 differs from calculated=0.00510042 (deps: roo=1.20095, c=343.684, Sd=0.0053, Cms=0.00128)
+[04:15:56] PROBLEM field=schema item=297-433 url=https://www.parts-express.com/HiVi-M3N-3-Aluminum-Magnesium-Midbass-297-433 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.8 differs from calculated=0.827151 (deps: Qms=4.2, Qes=1.03)
+[04:15:56] PROBLEM field=schema item=297-433 url=https://www.parts-express.com/HiVi-M3N-3-Aluminum-Magnesium-Midbass-297-433 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.00104689 (deps: roo=1.20095, c=343.684, Sd=0.003, Cms=0.00082)
+[04:15:56] PROBLEM field=schema item=297-411 url=https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.56 differs from calculated=0.537723 (deps: Qms=2.57, Qes=0.68)
+[04:15:56] PROBLEM field=schema item=297-411 url=https://www.parts-express.com/HiVi-B1S-1-Shielded-Aluminum-Mid-Tweeter-297-411 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=4e-05 differs from calculated=3.74852e-05 (deps: roo=1.20095, c=343.684, Sd=0.0005, Cms=0.001057)
+[04:15:56] PROBLEM field=schema item=297-429 url=https://www.parts-express.com/HiVi-B4N-4-Aluminum-Midbass-Round-Frame-297-429 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.52 differs from calculated=0.542577 (deps: Qms=3.91, Qes=0.63)
+[04:15:56] PROBLEM field=Sd_tiny item=297-714 url=https://www.parts-express.com/HiVi-C3N-III-3-Paper-Cone-Full-Range-Driver-297-714 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=297-714 url=https://www.parts-express.com/HiVi-C3N-III-3-Paper-Cone-Full-Range-Driver-297-714 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3e-07 below minimum 1e-05 m²
+[04:15:56] PROBLEM field=Fs_low item=297-482 url=https://www.parts-express.com/HiVi-M3N-B-3-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-482 offset=0
+         raw_value='Fs_low'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=297-482 url=https://www.parts-express.com/HiVi-M3N-B-3-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-482 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0015 differs from calculated=0.00104689 (deps: roo=1.20095, c=343.684, Sd=0.003, Cms=0.00082)
+[04:15:56] PROBLEM field=schema item=297-427 url=https://www.parts-express.com/HiVi-B3S-3-Shielded-Aluminum-Driver-Square-Frame-297-427 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.00126393 (deps: roo=1.20095, c=343.684, Sd=0.003, Cms=0.00099)
+[04:15:56] PROBLEM field=schema item=297-486 url=https://www.parts-express.com/HiVi-M5N-B-5-Damped-Aluminum-Magnesium-Cone-Woofer-297-486 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0113 differs from calculated=0.0118107 (deps: roo=1.20095, c=343.684, Sd=0.0087, Cms=0.0011)
+[04:15:56] PROBLEM field=Sd_tiny item=294-494 url=https://www.parts-express.com/JBL-Selenium-8PWX-8R-8-Professional-Woofer-8-Ohm-294-494 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=tweeter_fs item=294-494 url=https://www.parts-express.com/JBL-Selenium-8PWX-8R-8-Professional-Woofer-8-Ohm-294-494 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=294-494 url=https://www.parts-express.com/JBL-Selenium-8PWX-8R-8-Professional-Woofer-8-Ohm-294-494 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.195 above maximum 0.1 m/N
+[04:15:56] PROBLEM field=schema item=294-494 url=https://www.parts-express.com/JBL-Selenium-8PWX-8R-8-Professional-Woofer-8-Ohm-294-494 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.5e-06 below minimum 1e-05 m²
+[04:15:56] PROBLEM field=Sd_tiny item=294-493 url=https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=tweeter_fs item=294-493 url=https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=294-493 url=https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.131 above maximum 0.1 m/N
+[04:15:56] PROBLEM field=schema item=294-493 url=https://www.parts-express.com/JBL-Selenium-15PWX-8R-15-Professional-Woofer-8-Ohm-294-493 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.2e-06 below minimum 1e-05 m²
+[04:15:56] PROBLEM field=Sd_tiny item=264-492 url=https://www.parts-express.com/JBL-Selenium-12PWX-8R-12-Professional-Woofer-8-ohm-264-492 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=tweeter_fs item=264-492 url=https://www.parts-express.com/JBL-Selenium-12PWX-8R-12-Professional-Woofer-8-ohm-264-492 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=264-492 url=https://www.parts-express.com/JBL-Selenium-12PWX-8R-12-Professional-Woofer-8-ohm-264-492 offset=0
+         raw_value=None
+         reason=WDR: 'Qms' = 123.0 above maximum 50.0 —
+[04:15:56] PROBLEM field=schema item=264-492 url=https://www.parts-express.com/JBL-Selenium-12PWX-8R-12-Professional-Woofer-8-ohm-264-492 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.4e-06 below minimum 1e-05 m²
+[04:15:56] PROBLEM field=Sd_tiny item=264-491 url=https://www.parts-express.com/JBL-Selenium-10PWX-8R-10-Professional-Woofer-8-Ohm-264-491 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=tweeter_fs item=264-491 url=https://www.parts-express.com/JBL-Selenium-10PWX-8R-10-Professional-Woofer-8-Ohm-264-491 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:56] PROBLEM field=schema item=264-491 url=https://www.parts-express.com/JBL-Selenium-10PWX-8R-10-Professional-Woofer-8-Ohm-264-491 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.5e-06 below minimum 1e-05 m²
+[04:15:56] PROBLEM field=schema item=293-714 url=https://www.parts-express.com/LaVoce-WAF082.00-8-Woofer-8-Ohm-293-714 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0118931 differs from calculated=0.0124264 (deps: roo=1.20095, c=343.684, Sd=0.0227, Cms=0.00017)
+[04:15:56] PROBLEM field=schema item=293-730 url=https://www.parts-express.com/LaVoce-SAF184.03-18-Subwoofer-8-Ohm-293-730 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.24494 differs from calculated=0.234158 (deps: roo=1.20095, c=343.684, Sd=0.1225, Cms=0.00011)
+[04:15:56] PROBLEM field=schema item=293-727 url=https://www.parts-express.com/LaVoce-SAF184.01-18-Subwoofer-8-Ohm-293-727 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.220871 differs from calculated=0.209968 (deps: roo=1.20095, c=343.684, Sd=0.116, Cms=0.00011)
+[04:15:56] PROBLEM field=schema item=293-725 url=https://www.parts-express.com/LaVoce-WAF154.00-15-Subwoofer-8-Ohm-293-725 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.103073 differs from calculated=0.0977239 (deps: roo=1.20095, c=343.684, Sd=0.083, Cms=0.0001)
+[04:15:56] PROBLEM field=schema item=293-722 url=https://www.parts-express.com/LaVoce-WAF154.02-15-Subwoofer-8-Ohm-293-722 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.131107 differs from calculated=0.0977239 (deps: roo=1.20095, c=343.684, Sd=0.083, Cms=0.0001)
+[04:15:56] PROBLEM field=schema item=293-731 url=https://www.parts-express.com/LaVoce-SAN184.03-18-Subwoofer-8-Ohm-293-731 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.15999 differs from calculated=0.14901 (deps: roo=1.20095, c=343.684, Sd=0.1225, Cms=7e-05)
+[04:15:56] PROBLEM field=schema item=293-724 url=https://www.parts-express.com/LaVoce-WAN154.01-15-Neodymium-Subwoofer-8-Ohm-293-724 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0841009 differs from calculated=0.0684067 (deps: roo=1.20095, c=343.684, Sd=0.083, Cms=7e-05)
+[04:15:56] PROBLEM field=schema item=293-719 url=https://www.parts-express.com/LaVoce-WAN123.00-12-Neodymium-Woofer-8-Ohm-293-719 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0730573 differs from calculated=0.0679959 (deps: roo=1.20095, c=343.684, Sd=0.0531, Cms=0.00017)
+[04:15:56] PROBLEM field=schema item=293-718 url=https://www.parts-express.com/LaVoce-WAF123.01-12-Woofer-8-Ohm-293-718 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0419089 differs from calculated=0.0399976 (deps: roo=1.20095, c=343.684, Sd=0.0531, Cms=0.0001)
+[04:15:56] PROBLEM field=schema item=293-752 url=https://www.parts-express.com/LaVoce-SAF184.50-18-Professional-Subwoofer-Driver-8-Ohm-293-752 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.161972 differs from calculated=0.170297 (deps: roo=1.20095, c=343.684, Sd=0.1225, Cms=8e-05)
+[04:15:56] PROBLEM field=schema item=293-711 url=https://www.parts-express.com/LaVoce-FSN041.00-4-Neodymium-Full-Range-Woofer-8-Ohm-293-711 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00169901 differs from calculated=0.00186142 (deps: roo=1.20095, c=343.684, Sd=0.0054, Cms=0.00045)
+[04:15:56] PROBLEM field=schema item=293-709 url=https://www.parts-express.com/LaVoce-FSF041.00-4-Full-Range-Woofer-8-Ohm-293-709 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00210961 (deps: roo=1.20095, c=343.684, Sd=0.0054, Cms=0.00051)
+[04:15:56] PROBLEM field=schema item=293-706 url=https://www.parts-express.com/LaVoce-FSN030.71-3-Neodymium-Full-Range-Woofer-8-Ohm-293-706 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.00123523 (deps: roo=1.20095, c=343.684, Sd=0.00332, Cms=0.00079)
+[04:15:56] PROBLEM field=schema item=293-704 url=https://www.parts-express.com/LaVoce-FSN021.00-2-Neodymium-Full-Range-Woofer-8-Ohm-293-704 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000204839 (deps: roo=1.20095, c=343.684, Sd=0.0019, Cms=0.0004)
+[04:15:56] PROBLEM field=schema item=293-703 url=https://www.parts-express.com/LaVoce-FSN020.72-2-Neodymium-Full-Range-Woofer-8-Ohm-293-703 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000171792 (deps: roo=1.20095, c=343.684, Sd=0.00174, Cms=0.0004)
+[04:15:56] PROBLEM field=schema item=293-713 url=https://www.parts-express.com/LaVoce-MAN061.80-6-1-2-Neodymium-Midrange-Woofer-8-Ohm-293-713 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00186373 (deps: roo=1.20095, c=343.684, Sd=0.0137, Cms=7e-05)
+[04:15:56] PROBLEM field=schema item=297-114 url=https://www.parts-express.com/Morel-Supreme-SCW-636-6-Woofer-297-114 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0185 differs from calculated=0.0194654 (deps: roo=1.20095, c=343.684, Sd=0.0119, Cms=0.000969)
+[04:15:56] PROBLEM field=schema item=297-086 url=https://www.parts-express.com/Morel-CAW938-9-Cast-Frame-Woofer-297-086 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.07 differs from calculated=0.0730016 (deps: roo=1.20095, c=343.684, Sd=0.0219, Cms=0.001073)
+[04:15:56] PROBLEM field=schema item=297-028 url=https://www.parts-express.com/Morel-Integra-624-Hybrid-Series-6-Point-Source-Coaxial-Full-Range-297-028 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.01535 differs from calculated=4.13129e-05 (deps: roo=1.20095, c=343.684, Sd=0.000615, Cms=0.00077)
+[04:15:56] PROBLEM field=schema item=297-024 url=https://www.parts-express.com/Morel-Integra-424-Hybrid-Series-4-Point-Source-Coaxial-Full-Range-297-024 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.002 differs from calculated=1.87786e-05 (deps: roo=1.20095, c=343.684, Sd=0.000615, Cms=0.00035)
+[04:15:56] PROBLEM field=schema item=297-106 url=https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.53 differs from calculated=0.494802 (deps: Qms=4.25, Qes=0.56)
+[04:15:56] PROBLEM field=schema item=297-106 url=https://www.parts-express.com/Morel-TSCM-634-Titanium-Supreme-Series-6-Midrange-4-Ohm-297-106 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0133 differs from calculated=0.0172758 (deps: roo=1.20095, c=343.684, Sd=0.0119, Cms=0.00086)
+[04:15:56] PROBLEM field=schema item=297-026 url=https://www.parts-express.com/Morel-Integra-524-Hybrid-Series-5-Point-Source-Coaxial-Full-Range-297-026 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.01293 differs from calculated=5.258e-05 (deps: roo=1.20095, c=343.684, Sd=0.000615, Cms=0.00098)
+[04:15:56] PROBLEM field=schema item=264-1052 url=https://www.parts-express.com/Peerless-NE85W-04-2-1-2-Full-Range-Woofer-264-1052 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000849504 differs from calculated=0.000741332 (deps: roo=1.20095, c=343.684, Sd=0.00221, Cms=0.00107)
+[04:15:56] PROBLEM field=schema item=264-1050 url=https://www.parts-express.com/Peerless-830985-2-1-2-Full-Range-Woofer-264-1050 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=0.000871954 (deps: roo=1.20095, c=343.684, Sd=0.0022, Cms=0.00127)
+[04:15:56] PROBLEM field=schema item=264-1048 url=https://www.parts-express.com/Peerless-830984-2-1-2-Full-Range-Woofer-264-1048 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000849504 differs from calculated=0.000713101 (deps: roo=1.20095, c=343.684, Sd=0.00222, Cms=0.00102)
+[04:15:56] PROBLEM field=schema item=264-1064 url=https://www.parts-express.com/Peerless-TG9FD10-04-3-1-2-Glass-Fiber-Cone-Full-Range-264-1064 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.00130845 (deps: roo=1.20095, c=343.684, Sd=0.00363, Cms=0.0007)
+[04:15:56] PROBLEM field=schema item=264-1044 url=https://www.parts-express.com/Peerless-830970-2-Full-Range-Woofer-264-1044 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000182199 (deps: roo=1.20095, c=343.684, Sd=0.0013, Cms=0.00076)
+[04:15:56] PROBLEM field=schema item=264-1054 url=https://www.parts-express.com/Peerless-830987-3-Full-Range-Woofer-264-1054 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.00105723 (deps: roo=1.20095, c=343.684, Sd=0.00273, Cms=0.001)
+[04:15:56] PROBLEM field=schema item=264-1042 url=https://www.parts-express.com/Peerless-830983-2-Full-Range-Woofer-264-1042 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000163871 (deps: roo=1.20095, c=343.684, Sd=0.00152, Cms=0.0005)
+[04:15:56] PROBLEM field=schema item=264-1118 url=https://www.parts-express.com/Peerless-830669-12-Paper-Cone-SLS-Subwoofer-264-1118 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.28 above maximum 0.1 m/N
+[04:15:56] PROBLEM field=schema item=264-1512 url=https://www.parts-express.com/Peerless-NE123W-04-4-Paper-Cone-NE-Woofer-4-Ohm-264-1512 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000679603 differs from calculated=0.00676748 (deps: roo=1.20095, c=343.684, Sd=0.00541, Cms=0.00163)
+[04:15:56] PROBLEM field=schema item=264-1065 url=https://www.parts-express.com/Peerless-SDS-Series-830855-4-Woofer-8-Ohm-264-1065 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00311485 differs from calculated=0.33127 (deps: roo=1.20095, c=343.684, Sd=0.00503, Cms=0.0923)
+[04:15:56] PROBLEM field=schema item=264-1540 url=https://www.parts-express.com/Peerless-PLS-65F25AL01-04-2-1-2-Full-Range-Driver-4-Ohm-264-1540 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.9546 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1484 url=https://www.parts-express.com/Peerless-GBS-115N25AL01-04-4-1-2-Aluminum-Dome-Woofer-4-Ohm-264-1484 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0178396 differs from calculated=0.00180196 (deps: roo=1.20095, c=343.684, Sd=0.00548, Cms=0.000423)
+[04:15:57] PROBLEM field=schema item=264-1454 url=https://www.parts-express.com/Peerless-D26NC56-06-1-Fabric-Dome-Tweeter-6-Ohm-264-1454 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=3e-06 differs from calculated=2.62352e-06 (deps: roo=1.20095, c=343.684, Sd=0.000707, Cms=3.7e-05)
+[04:15:57] PROBLEM field=schema item=264-1440 url=https://www.parts-express.com/Peerless-BC25SC08-08-1-Fabric-Dome-Tweeter-8-Ohm-264-1440 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=2e-06 differs from calculated=1.92136e-06 (deps: roo=1.20095, c=343.684, Sd=0.000661, Cms=3.1e-05)
+[04:15:57] PROBLEM field=schema item=264-1622 url=https://www.parts-express.com/Peerless-TC5FC00-04-1-1-2-Paper-Cone-Full-Range-Driver-4-Ohm-264-1622 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=9.23459e-06 (deps: roo=1.20095, c=343.684, Sd=0.00078, Cms=0.000107)
+[04:15:57] PROBLEM field=schema item=264-1358 url=https://www.parts-express.com/Peerless-TC9FD00-04-3-1-2-Full-Range-Line-Array-Driver-4-Oh-264-1358 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000849504 differs from calculated=0.000743945 (deps: roo=1.20095, c=343.684, Sd=0.00363, Cms=0.000398)
+[04:15:57] PROBLEM field=schema item=264-1144 url=https://www.parts-express.com/Peerless-TC7FD00-04-2-1-2-Full-Range-Paper-Cone-Driver-4-O-264-1144 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=0.000519626 (deps: roo=1.20095, c=343.684, Sd=0.00221, Cms=0.00075)
+[04:15:57] PROBLEM field=schema item=264-1650 url=https://www.parts-express.com/Peerless-XXLS-P835037-10-Paper-Cone-Subwoofer-4-Ohm-264-1650 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.3379 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1646 url=https://www.parts-express.com/Peerless-XXLS-P830845-12-Nomex-Cone-Subwoofer-8-Ohm-264-1646 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.353 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1632 url=https://www.parts-express.com/Peerless-TG9FD10-08-3-1-2-Glass-Fiber-Cone-Full-Range-Driver-8-Ohm-264-1632 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.5028 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1648 url=https://www.parts-express.com/Peerless-XXLS-P835016-10-Black-Aluminum-Cone-Subwoofer-4-Ohm-264-1648 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.365 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1381 url=https://www.parts-express.com/Peerless-H25TG05-08-1-Titanium-Dome-Tweeter-with-Waveguide-264-1381 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=1e-06 differs from calculated=7.76029e-07 (deps: roo=1.20095, c=343.684, Sd=0.000523, Cms=2e-05)
+[04:15:57] PROBLEM field=schema item=264-1644 url=https://www.parts-express.com/Peerless-XXLS-300F50AL01-04-12-Black-Aluminum-Cone-Subwoofer-4-Ohm-264-1644 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.366 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1154 url=https://www.parts-express.com/Peerless-40N25AL01-1-1-4-Aluminum-Dome-Micro-Full-Range-Speaker-264-1154 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.0041635 (deps: roo=1.20095, c=343.684, Sd=0.0008, Cms=0.04586)
+[04:15:57] PROBLEM field=schema item=264-1596 url=https://www.parts-express.com/Peerless-SLS-135F32CP01-04-5-1-4-Paper-Cone-Woofer-4-Ohm-264-1596 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.628 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1592 url=https://www.parts-express.com/Peerless-SDS-160F25CP01-08-6-1-2-Paper-Cone-Woofer-8-Ohm-264-1592 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 1.1014 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=Vas_huge item=264-1500 url=https://www.parts-express.com/Peerless-HDS-P830933-5-1-4-Paper-Cone-HDS-Woofer-8-Ohm-264-1500 offset=0
+         raw_value='Vas_huge'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-1500 url=https://www.parts-express.com/Peerless-HDS-P830933-5-1-4-Paper-Cone-HDS-Woofer-8-Ohm-264-1500 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.66 above maximum 0.1 m/N
+[04:15:57] PROBLEM field=schema item=264-1500 url=https://www.parts-express.com/Peerless-HDS-P830933-5-1-4-Paper-Cone-HDS-Woofer-8-Ohm-264-1500 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' = 18.689088 above maximum 1.0 m³
+[04:15:57] PROBLEM field=schema item=264-1148 url=https://www.parts-express.com/Peerless-830946-6-1-2-Paper-Cone-Woofer-Speaker-4-Ohm-264-1148 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0113267 differs from calculated=0.010169 (deps: roo=1.20095, c=343.684, Sd=0.01235, Cms=0.00047)
+[04:15:57] PROBLEM field=schema item=295-587 url=https://www.parts-express.com/Dayton-Audio-DMA80-8-3-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-587 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00113267 differs from calculated=0.00135326 (deps: roo=1.20095, c=343.684, Sd=0.00312, Cms=0.00098)
+[04:15:57] PROBLEM field=schema item=295-586 url=https://www.parts-express.com/Dayton-Audio-DMA80-4-3-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-586 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.00132564 (deps: roo=1.20095, c=343.684, Sd=0.00312, Cms=0.00096)
+[04:15:57] PROBLEM field=schema item=295-585 url=https://www.parts-express.com/Dayton-Audio-DMA70-8-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-8-Ohm-295-585 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=0.000543048 (deps: roo=1.20095, c=343.684, Sd=0.00229, Cms=0.00073)
+[04:15:57] PROBLEM field=schema item=295-584 url=https://www.parts-express.com/Dayton-Audio-DMA70-4-2-1-2-Dual-Magnet-Aluminum-Cone-Full-Range-Driver-4-Ohm-295-584 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=0.00052817 (deps: roo=1.20095, c=343.684, Sd=0.00229, Cms=0.00071)
+[04:15:57] PROBLEM field=schema item=264-422 url=https://www.parts-express.com/Selenium-6W4P-6-Woofer-264-422 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0079287 differs from calculated=0.0257128 (deps: roo=1.20095, c=343.684, Sd=0.0238, Cms=0.00032)
+[04:15:57] PROBLEM field=Sd_tiny item=264-854 url=https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-854 url=https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-854 url=https://www.parts-express.com/Tang-Band-W8-740P-8-Subwoofer-264-854 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-833 url=https://www.parts-express.com/Tang-Band-W8-1363SB-8-Subwoofer-264-833 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-833 url=https://www.parts-express.com/Tang-Band-W8-1363SB-8-Subwoofer-264-833 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-833 url=https://www.parts-express.com/Tang-Band-W8-1363SB-8-Subwoofer-264-833 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-909 url=https://www.parts-express.com/Tang-Band-W3-1876S-3-Mini-Subwoofer-264-909 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-909 url=https://www.parts-express.com/Tang-Band-W3-1876S-3-Mini-Subwoofer-264-909 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-909 url=https://www.parts-express.com/Tang-Band-W3-1876S-3-Mini-Subwoofer-264-909 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.7e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-820 url=https://www.parts-express.com/Tang-Band-W4-656SC-4-Shielded-Driver-264-820 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-820 url=https://www.parts-express.com/Tang-Band-W4-656SC-4-Shielded-Driver-264-820 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-820 url=https://www.parts-express.com/Tang-Band-W4-656SC-4-Shielded-Driver-264-820 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.7e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-828 url=https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-828 url=https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-828 url=https://www.parts-express.com/Tang-Band-W4-1052SD-4-Driver-4-Ohm-264-828 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.7e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-911 url=https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-911 url=https://www.parts-express.com/Tang-Band-W3-881SJF-3-Full-Range-Speaker-264-911 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-902 url=https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-902 url=https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-902 url=https://www.parts-express.com/Tang-Band-W3-1878-3-Full-Range-Driver-264-902 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-888 url=https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-888 url=https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-888 url=https://www.parts-express.com/Tang-Band-W3-1797S-3-Neodymium-Midrange-Driver-264-888 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-881 url=https://www.parts-express.com/Tang-Band-W4-1757SB-4-Aluminum-Cone-Driver-264-881 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-881 url=https://www.parts-express.com/Tang-Band-W4-1757SB-4-Aluminum-Cone-Driver-264-881 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-881 url=https://www.parts-express.com/Tang-Band-W4-1757SB-4-Aluminum-Cone-Driver-264-881 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.7e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-844 url=https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-844 url=https://www.parts-express.com/Tang-Band-W3-1364SA-3-Bamboo-Cone-Driver-264-844 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-808 url=https://www.parts-express.com/Tang-Band-W2-852SH-2-Shielded-Speaker-Driver-264-808 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-808 url=https://www.parts-express.com/Tang-Band-W2-852SH-2-Shielded-Speaker-Driver-264-808 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.3e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-825 url=https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-825 url=https://www.parts-express.com/Tang-Band-W1-2121S-1-3-4-Aluminum-Full-Range-Neodymium-Driv-264-825 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9e-08 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-9004 url=https://www.parts-express.com/Tang-Band-W8-2314-8-Coaxial-Full-Range-Woofer-264-9004 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-9004 url=https://www.parts-express.com/Tang-Band-W8-2314-8-Coaxial-Full-Range-Woofer-264-9004 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-9004 url=https://www.parts-express.com/Tang-Band-W8-2314-8-Coaxial-Full-Range-Woofer-264-9004 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-925 url=https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-925 url=https://www.parts-express.com/Tang-Band-W1-2025SA-1-Neodymium-Full-Range-Driver-264-925 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 6e-08 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-924 url=https://www.parts-express.com/Tang-Band-W1-1942S-1-Neodymium-Full-Range-Driver-264-924 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-924 url=https://www.parts-express.com/Tang-Band-W1-1942S-1-Neodymium-Full-Range-Driver-264-924 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9e-08 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-923 url=https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-923 url=https://www.parts-express.com/Tang-Band-W1-1931S-1-Neodymium-Full-Range-Driver-264-923 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 4.5e-08 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-916 url=https://www.parts-express.com/Tang-Band-W4-1337SDF-4-Titanium-Full-Range-Speaker-264-916 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-916 url=https://www.parts-express.com/Tang-Band-W4-1337SDF-4-Titanium-Full-Range-Speaker-264-916 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-916 url=https://www.parts-express.com/Tang-Band-W4-1337SDF-4-Titanium-Full-Range-Speaker-264-916 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.7e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-894 url=https://www.parts-express.com/Tang-Band-W8-1808-8-Neodymium-Full-Range-Driver-264-894 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-894 url=https://www.parts-express.com/Tang-Band-W8-1808-8-Neodymium-Full-Range-Driver-264-894 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-894 url=https://www.parts-express.com/Tang-Band-W8-1808-8-Neodymium-Full-Range-Driver-264-894 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-893 url=https://www.parts-express.com/Tang-Band-W8-1772-8-Neodymium-Full-Range-Driver-264-893 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-893 url=https://www.parts-express.com/Tang-Band-W8-1772-8-Neodymium-Full-Range-Driver-264-893 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-893 url=https://www.parts-express.com/Tang-Band-W8-1772-8-Neodymium-Full-Range-Driver-264-893 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-882 url=https://www.parts-express.com/Tang-Band-W1-1815SA-1-Neodymium-Full-Range-Driver-264-882 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-882 url=https://www.parts-express.com/Tang-Band-W1-1815SA-1-Neodymium-Full-Range-Driver-264-882 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 7.5e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-812 url=https://www.parts-express.com/Tang-Band-W3-881SJ-3-Cast-Frame-Neodymium-Driver-264-812 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-812 url=https://www.parts-express.com/Tang-Band-W3-881SJ-3-Cast-Frame-Neodymium-Driver-264-812 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-885 url=https://www.parts-express.com/Tang-Band-W2-1803S-2-Neodymium-Poly-Full-Range-Driver-264-885 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-885 url=https://www.parts-express.com/Tang-Band-W2-1803S-2-Neodymium-Poly-Full-Range-Driver-264-885 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.3e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-839 url=https://www.parts-express.com/Tang-Band-W2-2136S-2-Aluminum-Full-Range-Neodymium-Driver-264-839 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-839 url=https://www.parts-express.com/Tang-Band-W2-2136S-2-Aluminum-Full-Range-Neodymium-Driver-264-839 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.5e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-918 url=https://www.parts-express.com/Tang-Band-W5-1611SAF-5-Full-Range-Speaker-264-918 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-918 url=https://www.parts-express.com/Tang-Band-W5-1611SAF-5-Full-Range-Speaker-264-918 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-918 url=https://www.parts-express.com/Tang-Band-W5-1611SAF-5-Full-Range-Speaker-264-918 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.4e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-832 url=https://www.parts-express.com/Tang-Band-W6-1139SI-6-1-2-Subwoofer-264-832 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-832 url=https://www.parts-express.com/Tang-Band-W6-1139SI-6-1-2-Subwoofer-264-832 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-832 url=https://www.parts-express.com/Tang-Band-W6-1139SI-6-1-2-Subwoofer-264-832 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-949 url=https://www.parts-express.com/Tang-Band-W3-2108-3-RBM-Micro-Subwoofer-4-Ohm-264-949 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-949 url=https://www.parts-express.com/Tang-Band-W3-2108-3-RBM-Micro-Subwoofer-4-Ohm-264-949 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-949 url=https://www.parts-express.com/Tang-Band-W3-2108-3-RBM-Micro-Subwoofer-4-Ohm-264-949 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 4.4e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-982 url=https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-982 url=https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-982 url=https://www.parts-express.com/Tang-Band-W4-2356-4-Off-Axis-Poly-Cone-Full-Range-264-982 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-831 url=https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-831 url=https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-831 url=https://www.parts-express.com/Tang-Band-W5-1138SM-5-1-4-Neodymium-Subwoofer-264-831 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.4e-07 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-960 url=https://www.parts-express.com/Tang-Band-W8-2145-8-Paper-Cone-Full-Range-Driver-8-Ohm-264-960 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-960 url=https://www.parts-express.com/Tang-Band-W8-2145-8-Paper-Cone-Full-Range-Driver-8-Ohm-264-960 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-960 url=https://www.parts-express.com/Tang-Band-W8-2145-8-Paper-Cone-Full-Range-Driver-8-Ohm-264-960 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=schema item=264-937 url=https://www.parts-express.com/Tang-Band-W6-2253S-6-1-2-Low-Profile-Subwoofer-264-937 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00634296 differs from calculated=0.00681429 (deps: roo=1.20095, c=343.684, Sd=0.011, Cms=0.000397)
+[04:15:57] PROBLEM field=Sd_tiny item=264-9006 url=https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-9006 url=https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-9006 url=https://www.parts-express.com/Tang-Band-W8-2282-8-Low-Profile-Subwoofer-4-Ohm-264-9006 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-9002 url=https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-9002 url=https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-9002 url=https://www.parts-express.com/Tang-Band-W6-2313-6-1-2-Coaxial-Full-Range-Woofer-264-9002 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-859 url=https://www.parts-express.com/Tang-Band-W8-2096B-8-Underhung-Midbass-Driver-4-Ohm-264-859 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-859 url=https://www.parts-express.com/Tang-Band-W8-2096B-8-Underhung-Midbass-Driver-4-Ohm-264-859 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-859 url=https://www.parts-express.com/Tang-Band-W8-2096B-8-Underhung-Midbass-Driver-4-Ohm-264-859 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.2e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-919 url=https://www.parts-express.com/Tang-Band-W6-1139SIF-6-1-2-Paper-Cone-Subwoofer-Speaker-264-919 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-919 url=https://www.parts-express.com/Tang-Band-W6-1139SIF-6-1-2-Paper-Cone-Subwoofer-Speaker-264-919 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-919 url=https://www.parts-express.com/Tang-Band-W6-1139SIF-6-1-2-Paper-Cone-Subwoofer-Speaker-264-919 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-06 below minimum 1e-05 m²
+[04:15:57] PROBLEM field=Sd_tiny item=264-917 url=https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=tweeter_fs item=264-917 url=https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:57] PROBLEM field=schema item=264-917 url=https://www.parts-express.com/Tang-Band-W5-1138SMF-5-1-4-Paper-Cone-Subwoofer-Speaker-264-917 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 9.4e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-957 url=https://www.parts-express.com/Tang-Band-W4-2142-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-957 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-957 url=https://www.parts-express.com/Tang-Band-W4-2142-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-957 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-957 url=https://www.parts-express.com/Tang-Band-W4-2142-4-Paper-Cone-Full-Range-Driver-8-Ohm-264-957 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 5.7e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-956 url=https://www.parts-express.com/Tang-Band-W3-2141-3-Paper-Cone-Full-Range-Driver-8-Ohm-264-956 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-956 url=https://www.parts-express.com/Tang-Band-W3-2141-3-Paper-Cone-Full-Range-Driver-8-Ohm-264-956 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-956 url=https://www.parts-express.com/Tang-Band-W3-2141-3-Paper-Cone-Full-Range-Driver-8-Ohm-264-956 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 3.2e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-953 url=https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-953 url=https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-953 url=https://www.parts-express.com/Tang-Band-W5-2053-5-RBM-Subwoofer-264-953 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 7.5e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-964 url=https://www.parts-express.com/Tang-Band-W6-2090-6-1-2-Extreme-Conditions-Full-Range-Driver-2-Ohm-264-964 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-964 url=https://www.parts-express.com/Tang-Band-W6-2090-6-1-2-Extreme-Conditions-Full-Range-Driver-2-Ohm-264-964 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-964 url=https://www.parts-express.com/Tang-Band-W6-2090-6-1-2-Extreme-Conditions-Full-Range-Driver-2-Ohm-264-964 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.4e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-952 url=https://www.parts-express.com/Tang-Band-W4-2089-4.5-RBM-Mini-Subwoofer-264-952 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-952 url=https://www.parts-express.com/Tang-Band-W4-2089-4.5-RBM-Mini-Subwoofer-264-952 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-952 url=https://www.parts-express.com/Tang-Band-W4-2089-4.5-RBM-Mini-Subwoofer-264-952 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 7.5e-07 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-954 url=https://www.parts-express.com/Tang-Band-W6-2100-6-1-2-RBM-Flat-Panel-Subwoofer-4-Ohm-264-954 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=tweeter_fs item=264-954 url=https://www.parts-express.com/Tang-Band-W6-2100-6-1-2-RBM-Flat-Panel-Subwoofer-4-Ohm-264-954 offset=0
+         raw_value='tweeter_fs'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-954 url=https://www.parts-express.com/Tang-Band-W6-2100-6-1-2-RBM-Flat-Panel-Subwoofer-4-Ohm-264-954 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 1.76e-06 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=Sd_tiny item=264-978 url=https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978 offset=0
+         raw_value='Sd_tiny'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=Qms_low item=264-978 url=https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978 offset=0
+         raw_value='Qms_low'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=264-978 url=https://www.parts-express.com/Tang-Band-W2-2360S-2-Low-Profile-Poly-Cone-Full-Range-Neodymium-Driver-4-Ohm-264-978 offset=0
+         raw_value=None
+         reason=WDR: 'Sd' = 2.5e-08 below minimum 1e-05 m²
+[04:15:58] PROBLEM field=schema item=297-2174 url=https://www.parts-express.com/Tectonic-TEBM35C02-6B-1-3-4-BMR-Full-Range-Headphone-Driver-6-Ohms-297-2174 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000161406 differs from calculated=0.000145059 (deps: roo=1.20095, c=343.684, Sd=0.001104, Cms=0.000839)
+[04:15:58] PROBLEM field=Qts_impossible item=294-2956 url=https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qts item=294-2956 url=https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qes item=294-2956 url=https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qms item=294-2956 url=https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=294-2956 url=https://www.parts-express.com/PRV-Audio-10MR2000-NDY-10-Neodymium-Pro-Audio-Woofer-294-2956 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.21 differs from calculated=0.1848 (deps: Qms=1.54, Qes=0.21)
+[04:15:58] PROBLEM field=schema item=294-3532 url=https://www.parts-express.com/PRV-Audio-8MR400-8-Midrange-Woofer-294-3532 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0202182 differs from calculated=1.41432 (deps: roo=1.20095, c=343.684, Sd=0.0222, Cms=0.02023)
+[04:15:58] PROBLEM field=schema item=294-3007 url=https://www.parts-express.com/PRV-Audio-15SW2000-15-Pro-Audio-Subwoofer-8-Ohm-294-3007 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0614475 differs from calculated=71.962 (deps: roo=1.20095, c=343.684, Sd=0.0908, Cms=0.06153)
+[04:15:58] PROBLEM field=schema item=294-3534 url=https://www.parts-express.com/PRV-Audio-8MB500-8-Midbass-Woofer-294-3534 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0193687 differs from calculated=1.59673 (deps: roo=1.20095, c=343.684, Sd=0.0241, Cms=0.01938)
+[04:15:58] PROBLEM field=schema item=294-2733 url=https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733 offset=0
+         raw_value=None
+         reason=WDR: 'Rms' = 2000.0 above maximum 200.0 kg/s
+[04:15:58] PROBLEM field=schema item=294-2733 url=https://www.parts-express.com/PRV-Audio-12MR2000-12-Pro-Audio-Midrange-Woofer-8-Ohm-294-2733 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0523861 differs from calculated=24.4612 (deps: roo=1.20095, c=343.684, Sd=0.0573, Cms=0.05252)
+[04:15:58] PROBLEM field=schema item=294-2760 url=https://www.parts-express.com/PRV-Audio-4MR60-4-4-Full-Range-4-Ohm-294-2760 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00339802 differs from calculated=0.0150249 (deps: roo=1.20095, c=343.684, Sd=0.0057, Cms=0.00326)
+[04:15:58] PROBLEM field=schema item=294-2955 url=https://www.parts-express.com/PRV-Audio-10W1000-NDY-4-10-Neodymium-Pro-Audio-Woofer-4-Ohm-294-2955 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0464396 differs from calculated=9.49632 (deps: roo=1.20095, c=343.684, Sd=0.038, Cms=0.04636)
+[04:15:58] PROBLEM field=Qts_impossible item=294-2765 url=https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qts item=294-2765 url=https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qes item=294-2765 url=https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=suspect:Qms item=294-2765 url=https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:15:58] PROBLEM field=schema item=294-2765 url=https://www.parts-express.com/PRV-Audio-21SW4000-NDY-2-21-Professional-Subwoofer-2-Ohm-294-2765 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.2847 above maximum 0.1 m/N
+[04:15:58] PROBLEM field=schema item=294-3001 url=https://www.parts-express.com/PRV-Audio-8MB450-4-v2-8-Pro-Audio-Midbass-Speaker-4-Ohm-294-3001 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0169901 differs from calculated=1.40229 (deps: roo=1.20095, c=343.684, Sd=0.0241, Cms=0.01702)
+[04:15:58] PROBLEM field=schema item=294-3420 url=https://www.parts-express.com/PRV-Audio-18SW2400-18-Subwoofer-8-Ohm-294-3420 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.1928 above maximum 0.1 m/N
+[04:15:58] PROBLEM field=schema item=294-3402 url=https://www.parts-express.com/PRV-Audio-4MR60-NDY-4-4-Neodymium-Midrange-Speaker-4-Ohms-294-3402 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0283168 differs from calculated=0.0124082 (deps: roo=1.20095, c=343.684, Sd=0.00554, Cms=0.00285)
+[04:15:58] PROBLEM field=schema item=294-3582 url=https://www.parts-express.com/PRV-Audio-RS10-SUBD4-RS-Series-10-Subwoofer-DVC-4x4-Ohm-294-3582 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00821187 differs from calculated=1.26983 (deps: roo=1.20095, c=343.684, Sd=0.033, Cms=0.00822)
+[04:15:58] PROBLEM field=schema item=294-3581 url=https://www.parts-express.com/PRV-Audio-RS8-SUBD4-RS-Series-8-Subwoofer-DVC-4x4-Ohm-294-3581 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00368118 differs from calculated=0.217208 (deps: roo=1.20095, c=343.684, Sd=0.0201, Cms=0.00379)
+[04:15:58] PROBLEM field=schema item=294-2743 url=https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.2061 above maximum 0.1 m/N
+[04:15:58] PROBLEM field=schema item=294-2743 url=https://www.parts-express.com/PRV-Audio-15W1000v2-15-Professional-Woofer-8-Ohm-294-2743 offset=0
+         raw_value=None
+         reason=WDR: 'Rms' = 1000.0 above maximum 200.0 kg/s
+[04:15:58] PROBLEM field=schema item=294-3540 url=https://www.parts-express.com/PRV-Audio-8MB700FT-8-Midbass-Speaker-294-3540 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0199917 differs from calculated=1.75903 (deps: roo=1.20095, c=343.684, Sd=0.0249, Cms=0.02)
+[04:15:58] PROBLEM field=schema item=294-3538 url=https://www.parts-express.com/PRV-Audio-8MR600X-NDY-8-Neodymium-Midrange-Speaker-8-Ohm-294-3538 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0125727 differs from calculated=0.960509 (deps: roo=1.20095, c=343.684, Sd=0.0232, Cms=0.01258)
+[04:15:58] PROBLEM field=schema item=294-2982 url=https://www.parts-express.com/PRV-Audio-18SW3600-18-Professional-Subwoofer-Driver-8-Ohm-294-2982 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.1993 above maximum 0.1 m/N
+[04:15:58] PROBLEM field=schema item=294-3533 url=https://www.parts-express.com/PRV-Audio-8MR450CF-4-Moto-Series-8-Carbon-Fiber-Midrange-Loudspeaker-4-Ohm-294-3533 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0175564 differs from calculated=1.28138 (deps: roo=1.20095, c=343.684, Sd=0.0227, Cms=0.01753)
+[04:15:58] PROBLEM field=schema item=294-3240 url=https://www.parts-express.com/PRV-Audio-15SW2000-4-15-Cast-Frame-Subwoofer-4-Ohm-294-3240 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0843841 differs from calculated=104.704 (deps: roo=1.20095, c=343.684, Sd=0.0935, Cms=0.08443)
+[04:15:58] PROBLEM field=schema item=294-2742 url=https://www.parts-express.com/PRV-Audio-15W1600-15-High-Power-PA-Woofer-8-Ohm-294-2742 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0920296 differs from calculated=125.251 (deps: roo=1.20095, c=343.684, Sd=0.0984, Cms=0.09119)
+[04:15:58] PROBLEM field=schema item=294-2740 url=https://www.parts-express.com/PRV-Audio-15W700-15-High-Power-PA-Woofer-8-Ohm-294-2740 offset=0
+         raw_value=None
+         reason=WDR: 'Cms' = 0.3081 above maximum 0.1 m/N
+[04:15:58] PROBLEM field=schema item=294-2740 url=https://www.parts-express.com/PRV-Audio-15W700-15-High-Power-PA-Woofer-8-Ohm-294-2740 offset=0
+         raw_value=None
+         reason=WDR: 'Rms' = 700.0 above maximum 200.0 kg/s
+[04:15:58] PROBLEM field=schema item=294-3057 url=https://www.parts-express.com/PRV-Audio-6MB200-V2-6-Midbass-Woofer-8-Ohm-294-3057 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00424752 differs from calculated=0.138943 (deps: roo=1.20095, c=343.684, Sd=0.0154, Cms=0.00413)
+[04:15:58] PROBLEM field=schema item=294-2748 url=https://www.parts-express.com/PRV-Audio-12MR2000-NDY-12-Neodymium-Professional-Midrange-8-Ohm-294-2748 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0481386 differs from calculated=22.4306 (deps: roo=1.20095, c=343.684, Sd=0.0573, Cms=0.04816)
+[04:15:58] PROBLEM field=schema item=294-2773 url=https://www.parts-express.com/PRV-Audio-8MB700FT-NDY-8-Neodymium-Speaker-8-Ohms-294-2773 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0186891 differs from calculated=1.65261 (deps: roo=1.20095, c=343.684, Sd=0.0249, Cms=0.01879)
+[04:15:58] PROBLEM field=schema item=294-2953 url=https://www.parts-express.com/PRV-Audio-8MR600X-4-8-Pro-Audio-Midrange-Speaker-4-Ohm-294-2953 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0195386 differs from calculated=1.61898 (deps: roo=1.20095, c=343.684, Sd=0.0241, Cms=0.01965)
+[04:15:58] PROBLEM field=schema item=294-3055 url=https://www.parts-express.com/PRV-Audio-6MB200-4-V2-6-Midbass-Woofer-4-Ohm-294-3055 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00396435 differs from calculated=0.13356 (deps: roo=1.20095, c=343.684, Sd=0.0154, Cms=0.00397)
+[04:15:58] PROBLEM field=schema item=294-3542 url=https://www.parts-express.com/PRV-Audio-10MR650A-4-10-Midrange-Woofer-4-Ohm-294-3542 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.043891 differs from calculated=9.88698 (deps: roo=1.20095, c=343.684, Sd=0.0398, Cms=0.044)
+[04:15:58] PROBLEM field=schema item=294-2894 url=https://www.parts-express.com/PRV-Audio-10W650A-4-10-Alto-Series-Professional-Woofer-4-Ohm-294-2894 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0413425 differs from calculated=10.0729 (deps: roo=1.20095, c=343.684, Sd=0.0415, Cms=0.04123)
+[04:15:58] PROBLEM field=schema item=294-3412 url=https://www.parts-express.com/PRV-Audio-10MB1000FT-10-Forte-Series-Speaker-8-Ohm-294-3412 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.01025 differs from calculated=0.0327742 (deps: roo=1.20095, c=343.684, Sd=0.038, Cms=0.00016)
+[04:15:58] PROBLEM field=schema item=294-3406 url=https://www.parts-express.com/PRV-Audio-6MB550FT-4-6-Forte-Series-Professional-Audio-Midrange-Speaker-4-Ohm-294-3406 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0065695 differs from calculated=0.191162 (deps: roo=1.20095, c=343.684, Sd=0.0143, Cms=0.00659)
+[04:15:58] PROBLEM field=schema item=294-2768 url=https://www.parts-express.com/PRV-Audio-10MR650A-NDY-10-Shallow-Midrange-Speaker-8-Ohm-294-2768 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0407762 differs from calculated=8.33693 (deps: roo=1.20095, c=343.684, Sd=0.038, Cms=0.0407)
+[04:15:58] PROBLEM field=schema item=294-2761 url=https://www.parts-express.com/PRV-Audio-69MR500PhP-4-6-x-9-Midrange-Loudspeaker-4-Ohm-294-2761 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0152911 differs from calculated=1.14754 (deps: roo=1.20095, c=343.684, Sd=0.0231, Cms=0.01516)
+[04:15:58] PROBLEM field=schema item=294-3535 url=https://www.parts-express.com/PRV-Audio-6MR400CF-4-Moto-Series-6.5-Carbon-Fiber-Neodymium-Midrange-Loudspeaker-4-Ohm-294-3535 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00410594 differs from calculated=0.13118 (deps: roo=1.20095, c=343.684, Sd=0.015, Cms=0.00411)
+[04:15:58] PROBLEM field=schema item=295-635 url=https://www.parts-express.com/Dayton-Audio-MB620-8-6.5-Professional-High-Power-Midbass-Driver-8-Ohm-295-635 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.55 differs from calculated=0.593818 (deps: Qms=4.26, Qes=0.69)
+[04:15:59] PROBLEM field=schema item=292-662 url=https://www.parts-express.com/Visaton-B100-4-HiFi-Full-Range-Driver-6-Ohm-292-662 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00525604 differs from calculated=0.00584162 (deps: roo=1.20095, c=343.684, Sd=0.00541, Cms=0.001407)
+[04:15:59] PROBLEM field=schema item=292-692 url=https://www.parts-express.com/Visaton-FRS8M-3.3-Paper-Cone-Full-Range-Driver-8-Ohm-292-722 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0109869 differs from calculated=0.00109875 (deps: roo=1.20095, c=343.684, Sd=0.0029, Cms=0.000921)
+[04:15:59] PROBLEM field=schema item=292-616 url=https://www.parts-express.com/Visaton-FRS10WP-8-4-Full-Range-Saltwater-Resistant-Driver-8-Ohm-Black-292-616 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.98 differs from calculated=1.04381 (deps: Qms=7.6, Qes=1.21)
+[04:15:59] PROBLEM field=Fs_low item=292-551 url=https://www.parts-express.com/Visaton-SC-5.9-2-x-3.5-Shielded-Fullrange-Driver-8-Ohm-292-551 offset=0
+         raw_value='Fs_low'
+         reason=DQ check failure
+[04:15:59] PROBLEM field=schema item=285-147 url=https://www.parts-express.com/Dayton-Audio-CE28MB-8-1.1-Mylar-Full-Range-Driver-285-147 offset=0
+         raw_value=None
+         reason=WDR: 'Qes' = 6.16 above maximum 5.0 —
+[04:15:59] PROBLEM field=schema item=295-320 url=https://www.parts-express.com/Dayton-Audio-DC300-8-12-Classic-Woofer-295-320 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.181511 differs from calculated=0.16941 (deps: roo=1.20095, c=343.684, Sd=0.04988, Cms=0.00048)
+[04:15:59] PROBLEM field=schema item=295-310 url=https://www.parts-express.com/Dayton-Audio-DC200-8-8-Classic-Woofer-295-310 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.04559 differs from calculated=0.0487218 (deps: roo=1.20095, c=343.684, Sd=0.02112, Cms=0.00077)
+[04:15:59] PROBLEM field=schema item=295-152 url=https://www.parts-express.com/Dayton-Audio-PC68-8-2-1-2-Full-Range-Poly-Cone-Driver-295-152 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.000669431 (deps: roo=1.20095, c=343.684, Sd=0.00212, Cms=0.00105)
+[04:15:59] PROBLEM field=schema item=295-150 url=https://www.parts-express.com/Dayton-Audio-PC68-4-2-1-2-Full-Range-Poly-Cone-Driver-295-150 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000566336 differs from calculated=0.000682182 (deps: roo=1.20095, c=343.684, Sd=0.00212, Cms=0.00107)
+[04:15:59] PROBLEM field=schema item=295-463 url=https://www.parts-express.com/Dayton-Audio-RSS265HO-44-10-Reference-Series-HO-DVC-Subwoofer-295-463 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0348297 differs from calculated=0.0369734 (deps: roo=1.20095, c=343.684, Sd=0.03523, Cms=0.00021)
+[04:15:59] PROBLEM field=schema item=295-369 url=https://www.parts-express.com/Dayton-Audio-RS100P-4-4-Reference-Paper-Midwoofer-4-Ohm-295-369 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00177575 (deps: roo=1.20095, c=343.684, Sd=0.00363, Cms=0.00095)
+[04:15:59] PROBLEM field=schema item=295-025 url=https://www.parts-express.com/Dayton-Audio-PA200-8-8-Pro-Woofer-Speaker-295-025 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0283168 differs from calculated=0.0251186 (deps: roo=1.20095, c=343.684, Sd=0.02104, Cms=0.0004)
+[04:15:59] PROBLEM field=model_mpn item=275-144 url=https://www.parts-express.com/Dayton-Audio-RST28-1-1-8-Reference-Series-Fabric-Done-Tweeter-and-Truncated-Faceplate-275-144 offset=0
+         raw_value=''
+         reason=mpn absent; fell back to storedisplayname2
+[04:15:59] PROBLEM field=schema item=295-156 url=https://www.parts-express.com/Dayton-Audio-PC83-8-3-Full-Range-Poly-Cone-Driver-295-156 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00169901 differs from calculated=0.00181128 (deps: roo=1.20095, c=343.684, Sd=0.00302, Cms=0.0014)
+[04:15:59] PROBLEM field=schema item=295-154 url=https://www.parts-express.com/Dayton-Audio-PC83-4-3-Full-Range-Poly-Cone-Driver-295-154 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00198218 differs from calculated=0.00190185 (deps: roo=1.20095, c=343.684, Sd=0.00302, Cms=0.00147)
+[04:15:59] PROBLEM field=schema item=295-534 url=https://www.parts-express.com/Dayton-Audio-DSA315-8-12-Designer-Series-Aluminum-Cone-Woofer-295-534 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.146964 differs from calculated=0.138398 (deps: roo=1.20095, c=343.684, Sd=0.05067, Cms=0.00038)
+[04:15:59] PROBLEM field=schema item=295-345 url=https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0628633 differs from calculated=0.0585934 (deps: roo=1.20095, c=343.684, Sd=0.02053, Cms=0.00098)
+[04:15:59] PROBLEM field=schema item=295-336 url=https://www.parts-express.com/Dayton-Audio-RS75T-8-3-Reference-Full-Range-Driver-Truncate-295-336 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000140947 (deps: roo=1.20095, c=343.684, Sd=0.0012, Cms=0.00069)
+[04:15:59] PROBLEM field=schema item=295-519 url=https://www.parts-express.com/Dayton-Audio-ND64-16-2-1-2-Aluminum-Magnesium-Cone-Full-Range-Driver-16-Ohm-295-519 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00053 differs from calculated=0.00056961 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.00165)
+[04:15:59] PROBLEM field=Qts_impossible item=295-034 url=https://www.parts-express.com/Dayton-Audio-PA380-8-15-Pro-Woofer-295-034 offset=0
+         raw_value='Qts_impossible'
+         reason=DQ check failure
+[04:15:59] PROBLEM field=suspect:Qts item=295-034 url=https://www.parts-express.com/Dayton-Audio-PA380-8-15-Pro-Woofer-295-034 offset=0
+         raw_value='suspect:Qts'
+         reason=DQ check failure
+[04:15:59] PROBLEM field=suspect:Qes item=295-034 url=https://www.parts-express.com/Dayton-Audio-PA380-8-15-Pro-Woofer-295-034 offset=0
+         raw_value='suspect:Qes'
+         reason=DQ check failure
+[04:15:59] PROBLEM field=suspect:Qms item=295-034 url=https://www.parts-express.com/Dayton-Audio-PA380-8-15-Pro-Woofer-295-034 offset=0
+         raw_value='suspect:Qms'
+         reason=DQ check failure
+[04:16:00] PROBLEM field=schema item=295-644 url=https://www.parts-express.com/Dayton-Audio-18SW1200N-8-18-Professional-Neodymium-295-644 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.2536 differs from calculated=0.232869 (deps: roo=1.20095, c=343.684, Sd=0.12, Cms=0.000114)
+[04:16:00] PROBLEM field=schema item=295-349 url=https://www.parts-express.com/Dayton-Audio-PS95-8-3-1-2-Point-Source-Full-Range-Driver-8-295-349 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000849504 differs from calculated=0.000897521 (deps: roo=1.20095, c=343.684, Sd=0.00283, Cms=0.00079)
+[04:16:00] PROBLEM field=schema item=290-212 url=https://www.parts-express.com/Dayton-Audio-ND105-4-4-Aluminum-Cone-Midbass-Driver-4-Ohm-290-212 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00195386 differs from calculated=0.00206929 (deps: roo=1.20095, c=343.684, Sd=0.00515, Cms=0.00055)
+[04:16:00] PROBLEM field=schema item=295-359 url=https://www.parts-express.com/Dayton-Audio-RS100P-8-4-Reference-Paper-Midwoofer-8-Ohm-295-359 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00169901 differs from calculated=0.00194453 (deps: roo=1.20095, c=343.684, Sd=0.00374, Cms=0.00098)
+[04:16:00] PROBLEM field=schema item=295-303 url=https://www.parts-express.com/Dayton-Audio-DC130A-8-5-1-4-Classic-Woofer-Speaker-295-303 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0138752 differs from calculated=0.0114263 (deps: roo=1.20095, c=343.684, Sd=0.00916, Cms=0.00096)
+[04:16:00] PROBLEM field=schema item=295-301 url=https://www.parts-express.com/Dayton-Audio-DC130BS-8-5-1-4-Classic-Shielded-Woofer-295-301 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00877821 differs from calculated=0.0134497 (deps: roo=1.20095, c=343.684, Sd=0.00916, Cms=0.00113)
+[04:16:00] PROBLEM field=schema item=295-466 url=https://www.parts-express.com/Dayton-Audio-RSS315HO-4-12-Reference-Series-HO-Subwoofer-4-Ohm-295-466 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0535188 differs from calculated=0.0563695 (deps: roo=1.20095, c=343.684, Sd=0.05147, Cms=0.00015)
+[04:16:00] PROBLEM field=schema item=295-460 url=https://www.parts-express.com/Dayton-Audio-RSS265HF-4-10-Reference-Series-HF-Subwoofer-4-Ohm-295-460 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0538019 differs from calculated=0.057627 (deps: roo=1.20095, c=343.684, Sd=0.03563, Cms=0.00032)
+[04:16:00] PROBLEM field=schema item=295-456 url=https://www.parts-express.com/Dayton-Audio-RSS210HF-4-8-Reference-Series-HF-Subwoofer-4-Ohm-295-456 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0237861 differs from calculated=0.025173 (deps: roo=1.20095, c=343.684, Sd=0.0219, Cms=0.00037)
+[04:16:00] PROBLEM field=schema item=290-224 url=https://www.parts-express.com/Dayton-Audio-ND91-4-3-1-2-Aluminum-Cone-Full-Range-Driver-4-290-224 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00141584 differs from calculated=0.00125853 (deps: roo=1.20095, c=343.684, Sd=0.00304, Cms=0.00096)
+[04:16:00] PROBLEM field=schema item=290-210 url=https://www.parts-express.com/Dayton-Audio-ND90-8-3-1-2-Aluminum-Cone-Full-Range-Driver-8-290-210 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00175564 differs from calculated=0.00168467 (deps: roo=1.20095, c=343.684, Sd=0.00312, Cms=0.00122)
+[04:16:00] PROBLEM field=schema item=290-204 url=https://www.parts-express.com/Dayton-Audio-ND65-4-2-1-2-Aluminum-Cone-Full-Range-Driver-290-204 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000849504 differs from calculated=0.000434975 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.00126)
+[04:16:01] PROBLEM field=schema item=295-520 url=https://www.parts-express.com/Dayton-Audio-ND64-4-2-1-2-Aluminum-Magnesium-Cone-Full-Range-Driver-4-Ohm-295-520 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000424752 differs from calculated=0.000321053 (deps: roo=1.20095, c=343.684, Sd=0.00156, Cms=0.00093)
+[04:16:01] PROBLEM field=schema item=295-643 url=https://www.parts-express.com/Dayton-Audio-15MB500N-8-15-Professional-Neodymium-Mid-Bass-295-643 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.1547 differs from calculated=0.143669 (deps: roo=1.20095, c=343.684, Sd=0.084453, Cms=0.000142)
+[04:16:01] PROBLEM field=schema item=295-528 url=https://www.parts-express.com/Dayton-Audio-DSA175-8-6-1-2-Designer-Series-Aluminum-Cone-Woofer-295-528 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0186891 differs from calculated=0.0166825 (deps: roo=1.20095, c=343.684, Sd=0.01287, Cms=0.00071)
+[04:16:01] PROBLEM field=schema item=295-371 url=https://www.parts-express.com/Dayton-Audio-RS125P-4-5-Reference-Paper-Woofer-4-Ohm-295-371 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00396435 differs from calculated=0.00423643 (deps: roo=1.20095, c=343.684, Sd=0.005411, Cms=0.00102)
+[04:16:02] PROBLEM field=schema item=295-344 url=https://www.parts-express.com/Dayton-Audio-PS180-8-6-1-2-Point-Source-Full-Range-Neo-Driv-295-344 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0283168 differs from calculated=0.0262286 (deps: roo=1.20095, c=343.684, Sd=0.01327, Cms=0.00105)
+[04:16:02] PROBLEM field=schema item=290-214 url=https://www.parts-express.com/Dayton-Audio-ND105-8-4-Aluminum-Cone-Midbass-Driver-8-Ohm-290-214 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00294495 differs from calculated=0.00316037 (deps: roo=1.20095, c=343.684, Sd=0.00515, Cms=0.00084)
+[04:16:03] PROBLEM field=schema item=295-198 url=https://www.parts-express.com/Dayton-Audio-DCS165-4-6-1-2-Classic-Subwoofer-4-Ohm-295-198 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.0118931 differs from calculated=0.0110293 (deps: roo=1.20095, c=343.684, Sd=0.01247, Cms=0.0005)
+[04:16:03] PROBLEM field=schema item=295-168 url=https://www.parts-express.com/Dayton-Audio-MX15-22-15-Max-X-High-Excursion-DVC-Subwoofer-2-Ohms-Per-Coil-295-168 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.4 differs from calculated=0.415264 (deps: Qms=4.27, Qes=0.46)
+[04:16:03] PROBLEM field=schema item=295-168 url=https://www.parts-express.com/Dayton-Audio-MX15-22-15-Max-X-High-Excursion-DVC-Subwoofer-2-Ohms-Per-Coil-295-168 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.146 differs from calculated=0.152539 (deps: roo=1.20095, c=343.684, Sd=0.08198, Cms=0.00016)
+[04:16:03] PROBLEM field=schema item=295-166 url=https://www.parts-express.com/Dayton-Audio-MX12-22-12-Max-X-High-Excursion-DVC-Subwoofer-2-Ohms-Per-Coil-295-166 offset=0
+         raw_value=None
+         reason=WDR: 'Qts' stored=0.4 differs from calculated=0.415264 (deps: Qms=4.27, Qes=0.46)
+[04:16:03] PROBLEM field=schema item=295-166 url=https://www.parts-express.com/Dayton-Audio-MX12-22-12-Max-X-High-Excursion-DVC-Subwoofer-2-Ohms-Per-Coil-295-166 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.146 differs from calculated=0.152539 (deps: roo=1.20095, c=343.684, Sd=0.08198, Cms=0.00016)
+[04:16:03] PROBLEM field=schema item=290-218 url=https://www.parts-express.com/Dayton-Audio-ND140-8-5-1-4-Aluminum-Cone-Midbass-Driver-8-O-290-218 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.00764554 differs from calculated=0.00808526 (deps: roo=1.20095, c=343.684, Sd=0.00866, Cms=0.00076)
+[04:16:03] PROBLEM field=schema item=290-216 url=https://www.parts-express.com/Dayton-Audio-ND140-4-5-1-4-Aluminum-Cone-Midbass-Driver-290-216 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.010194 differs from calculated=0.00755334 (deps: roo=1.20095, c=343.684, Sd=0.00866, Cms=0.00071)
+[04:16:03] PROBLEM field=schema item=295-246 url=https://www.parts-express.com/Dayton-Audio-HARB252-8-1-x-5-Dual-Motor-High-Aspect-Ratio-295-246 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.000283168 differs from calculated=0.000191348 (deps: roo=1.20095, c=343.684, Sd=0.002103, Cms=0.000305)
+[04:16:03] PROBLEM field=schema item=295-050 url=https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050 offset=0
+         raw_value=None
+         reason=WDR: 'Vas' stored=0.444007 differs from calculated=0.469717 (deps: roo=1.20095, c=343.684, Sd=0.1735, Cms=0.00011)
+[04:16:03] DONE problems=668 items_processed=1572
+

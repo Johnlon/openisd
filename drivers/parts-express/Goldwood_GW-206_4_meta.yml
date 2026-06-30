@@ -21,86 +21,86 @@ dq_issue: null
 community: null
 fetched_sku: 290-300
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-300-goldwood-gw-2064-specifications.pdf
   vendor_page: https://www.parts-express.com/Goldwood-GW-206-4-6-1-2-OEM-Woofer-4-Ohm-290-300
+  datasheet: https://www.parts-express.com/pedocs/specs/290-300-goldwood-gw-2064-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0035
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 90.9
+    winner: datasheet
     sources:
-      vendor_page: 0.0035
+      datasheet: 90.9
   Qts:  # total Q factor
     value: 0.61
     winner: vendor_page
     sources:
       vendor_page: 0.61
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.7
-    winner: vendor_page
-    sources:
-      vendor_page: 3.7
-  Sd:  # effective piston area (m²)
-    value: 0.013635
-    winner: vendor_page
-    sources:
-      vendor_page: 0.013635
   Fs:  # free air resonance (Hz)
     value: 58.9
     winner: vendor_page
     sources:
       vendor_page: 58.9
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3877985547232912
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013308896
     winner: vendor_page
     sources:
-      vendor_page: 1.3877985547232912
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0144
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0144
-  Qms:  # mechanical Q factor
-    value: 3.84
-    winner: vendor_page
-    sources:
-      vendor_page: 3.84
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00051
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00051
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.013308896
   Qes:  # electrical Q factor
     value: 0.73
     winner: vendor_page
     sources:
       vendor_page: 0.73
-  Pe:  # rated power input (W)
-    value: 90.0
-    winner: vendor_page
-    sources:
-      vendor_page: 90.0
   BL:  # force factor (T·m)
     value: 5.19
     winner: vendor_page
     sources:
       vendor_page: 5.19
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 90.9
+  Qms:  # mechanical Q factor
+    value: 3.84
     winner: vendor_page
     sources:
-      vendor_page: 90.9
+      vendor_page: 3.84
   Le:  # voice coil inductance (H)
     value: 0.0004
     winner: vendor_page
     sources:
       vendor_page: 0.0004
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013308895999999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.7
     winner: vendor_page
     sources:
-      vendor_page: 0.013308895999999999
+      vendor_page: 3.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0144
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0144
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00051
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00051
+  Sd:  # effective piston area (m²)
+    value: 0.013635
+    winner: vendor_page
+    sources:
+      vendor_page: 0.013635
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0035
+  Vd:
+    value: 4.77225e-05
+    winner: calculated
+    sources:
+      calculated: 4.77225e-05
+  Dd:
+    value: 0.1317597100500147
+    winner: calculated
+    sources:
+      calculated: 0.1317597100500147
+  EBP:
+    value: 80.68493150684931
+    winner: calculated
+    sources:
+      calculated: 80.68493150684931

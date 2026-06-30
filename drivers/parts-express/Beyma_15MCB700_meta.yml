@@ -16,84 +16,85 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Cms'' = 0.135 above maximum 0.1 m/N;
+  schema:WDR: ''Sd'' = 8.8e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 253-022
 _sources:
   vendor_page: https://www.parts-express.com/Beyma-15MCB700-MCB-Series-15-Subwoofer-8-Ohm-253-022
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007
   Qts:  # total Q factor
     value: 0.34
     winner: vendor_page
     sources:
       vendor_page: 0.34
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.088
-    winner: vendor_page
-    sources:
-      vendor_page: 0.088
   Fs:  # free air resonance (Hz)
     value: 44.0
     winner: vendor_page
     sources:
       vendor_page: 44.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.004914847173616031
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.148096864
     winner: vendor_page
     sources:
-      vendor_page: 0.004914847173616031
-  Mms:  # moving mass incl. air load (kg)
-    value: 9.6e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 9.6e-05
-  Qms:  # mechanical Q factor
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.148096864
   Qes:  # electrical Q factor
     value: 0.36
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Pe:  # rated power input (W)
-    value: 700.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.007
     winner: vendor_page
     sources:
-      vendor_page: 700.0
-  BL:  # force factor (T·m)
-    value: 20.0
+      vendor_page: 0.007
+  Qms:  # mechanical Q factor
+    value: 5.4
     winner: vendor_page
     sources:
-      vendor_page: 20.0
+      vendor_page: 5.4
   Le:  # voice coil inductance (H)
     value: 0.0009
     winner: vendor_page
     sources:
       vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.14809686400000002
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 0.14809686400000002
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 99.0
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 9.6e-05
     winner: vendor_page
     sources:
-      vendor_page: 99.0
+      vendor_page: 9.6e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.135
+    winner: vendor_page
+    sources:
+      vendor_page: 0.135
+  Sd:  # effective piston area (m²)
+    value: 8.8e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 8.8e-06
+  BL:  # force factor (T·m)
+    value: 20.0
+    winner: vendor_page
+    sources:
+      vendor_page: 20.0
+  Vd:
+    value: 6.160000000000001e-08
+    winner: calculated
+    sources:
+      calculated: 6.160000000000001e-08
+  Dd:
+    value: 0.0033473135487536022
+    winner: calculated
+    sources:
+      calculated: 0.0033473135487536022
+  EBP:
+    value: 122.22222222222223
+    winner: calculated
+    sources:
+      calculated: 122.22222222222223

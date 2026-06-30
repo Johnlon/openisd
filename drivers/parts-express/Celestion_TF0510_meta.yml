@@ -16,85 +16,110 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qts'' stored=0.658 differs from calculated=0.580397 (de;
+  schema:WDR: ''Vas'' stored=0.00738 differs from calculated=0.00193097'
 community: null
 fetched_sku: 294-2050
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2050--tf0510-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-TF0510-5-Professional-Speaker-30W-294-2050
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2050--tf0510-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
-  Qts:  # total Q factor
-    value: 0.658
-    winner: vendor_page
-    sources:
-      vendor_page: 0.658
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.32
-    winner: vendor_page
-    sources:
-      vendor_page: 6.32
-  Sd:  # effective piston area (m²)
-    value: 0.007866
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007866
   Fs:  # free air resonance (Hz)
     value: 128.1
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 128.1
       vendor_page: 128.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.38
-    winner: vendor_page
-    sources:
-      vendor_page: 2.38
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00702
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00702
-  Qms:  # mechanical Q factor
-    value: 2.376
-    winner: vendor_page
-    sources:
-      vendor_page: 2.376
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00022
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.768
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.768
+      datasheet: 0.768
+      vendor_page: 0.77
   Pe:  # rated power input (W)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
+      datasheet: 1.0
+  Qms:  # mechanical Q factor
+    value: 2.376
+    winner: datasheet
+    sources:
+      datasheet: 2.376
+      vendor_page: 2.38
+  Rms:  # mechanical resistance (kg/s)
+    value: 2.38
+    winner: datasheet
+    sources:
+      datasheet: 2.38
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00702
+    winner: datasheet
+    sources:
+      datasheet: 0.00702
+      vendor_page: 0.00702
   BL:  # force factor (T·m)
     value: 6.82
     winner: vendor_page
     sources:
       vendor_page: 6.82
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.658
+    winner: datasheet
+    sources:
+      datasheet: 0.658
+      vendor_page: 0.66
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.00738
+    winner: datasheet
+    sources:
+      datasheet: 0.00738
+      vendor_page: 0.007362368
   Le:  # voice coil inductance (H)
     value: 0.00033
     winner: vendor_page
     sources:
       vendor_page: 0.00033
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.00738
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.32
+    winner: datasheet
+    sources:
+      datasheet: 6.32
+      vendor_page: 6.32
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00022
+    winner: datasheet
+    sources:
+      datasheet: 0.00022
+      vendor_page: 0.00022
+  Sd:  # effective piston area (m²)
+    value: 0.007866
     winner: vendor_page
     sources:
-      vendor_page: 0.00738
+      vendor_page: 0.007866
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: datasheet
+    sources:
+      datasheet: 0.005
+      vendor_page: 0.0011
+  Vd:
+    value: 3.933e-05
+    winner: calculated
+    sources:
+      calculated: 3.933e-05
+  Dd:
+    value: 0.10007648204691644
+    winner: calculated
+    sources:
+      calculated: 0.10007648204691644
+  EBP:
+    value: 166.796875
+    winner: calculated
+    sources:
+      calculated: 166.796875

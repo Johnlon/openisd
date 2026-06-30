@@ -22,78 +22,78 @@ fetched_sku: 294-1323
 _sources:
   vendor_page: https://www.parts-express.com/FaitalPRO-10RS350-10-Professional-Woofer-8-Ohm-294-1323
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00737
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00737
   Qts:  # total Q factor
     value: 0.37
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.0322
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0322
   Fs:  # free air resonance (Hz)
     value: 40.0
     winner: vendor_page
     sources:
       vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.8515994855661195
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.039360352
     winner: vendor_page
     sources:
-      vendor_page: 2.8515994855661195
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.059
-    winner: vendor_page
-    sources:
-      vendor_page: 0.059
-  Qms:  # mechanical Q factor
-    value: 5.2
-    winner: vendor_page
-    sources:
-      vendor_page: 5.2
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00027
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00027
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.039360352
   Qes:  # electrical Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 300.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00737
     winner: vendor_page
     sources:
-      vendor_page: 300.0
-  BL:  # force factor (T·m)
-    value: 14.0
+      vendor_page: 0.00737
+  Qms:  # mechanical Q factor
+    value: 5.2
     winner: vendor_page
     sources:
-      vendor_page: 14.0
+      vendor_page: 5.2
   Le:  # voice coil inductance (H)
     value: 0.00095
     winner: vendor_page
     sources:
       vendor_page: 0.00095
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.039360351999999994
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 0.039360351999999994
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.059
+    winner: vendor_page
+    sources:
+      vendor_page: 0.059
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00027
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00027
+  Sd:  # effective piston area (m²)
+    value: 0.0322
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0322
+  BL:  # force factor (T·m)
+    value: 14.0
+    winner: vendor_page
+    sources:
+      vendor_page: 14.0
+  Vd:
+    value: 0.000237314
+    winner: calculated
+    sources:
+      calculated: 0.000237314
+  Dd:
+    value: 0.20248040236149334
+    winner: calculated
+    sources:
+      calculated: 0.20248040236149334
+  EBP:
+    value: 100.0
+    winner: calculated
+    sources:
+      calculated: 100.0

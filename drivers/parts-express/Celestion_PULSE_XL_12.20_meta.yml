@@ -20,86 +20,106 @@ dq_issue: null
 community: null
 fetched_sku: 294-2507
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-12.20-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-PULSE-XL-12.20-12-500-Watt-Professional-Woofer-8-Ohm-294-2507
+  datasheet: https://www.parts-express.com/pedocs/specs/celestion-pulse-xl-12.20-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00825
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 94.0
+    winner: datasheet
     sources:
-      vendor_page: 0.00825
-  Qts:  # total Q factor
-    value: 0.503
-    winner: vendor_page
-    sources:
-      vendor_page: 0.503
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.8
-    winner: vendor_page
-    sources:
-      vendor_page: 5.8
-  Sd:  # effective piston area (m²)
-    value: 0.05309
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05309
+      datasheet: 94.0
   Fs:  # free air resonance (Hz)
     value: 35.1
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 35.1
       vendor_page: 35.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.939
-    winner: vendor_page
-    sources:
-      vendor_page: 1.939
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.05355
-    winner: vendor_page
-    sources:
-      vendor_page: 0.05355
-  Qms:  # mechanical Q factor
-    value: 6.087
-    winner: vendor_page
-    sources:
-      vendor_page: 6.087
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000384
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000384
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.548
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.548
       vendor_page: 0.548
   Pe:  # rated power input (W)
     value: 500.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 500.0
+      datasheet: 500.0
+  Qms:  # mechanical Q factor
+    value: 6.087
+    winner: datasheet
+    sources:
+      datasheet: 6.087
+      vendor_page: 6.087
+  Rms:  # mechanical resistance (kg/s)
+    value: 1.939
+    winner: datasheet
+    sources:
+      datasheet: 1.939
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.05355
+    winner: datasheet
+    sources:
+      datasheet: 0.05355
+      vendor_page: 0.05355
   BL:  # force factor (T·m)
     value: 11.21
     winner: vendor_page
     sources:
       vendor_page: 11.21
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 94.0
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.503
+    winner: datasheet
     sources:
-      vendor_page: 94.0
+      datasheet: 0.503
+      vendor_page: 0.503
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1533
+    winner: datasheet
+    sources:
+      datasheet: 0.1533
+      vendor_page: 0.15291072
   Le:  # voice coil inductance (H)
     value: 0.00031
     winner: vendor_page
     sources:
       vendor_page: 0.00031
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1533
-    winner: vendor_page
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.8
+    winner: datasheet
     sources:
-      vendor_page: 0.1533
+      datasheet: 5.8
+      vendor_page: 5.8
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000384
+    winner: datasheet
+    sources:
+      datasheet: 0.000384
+      vendor_page: 0.000384
+  Sd:  # effective piston area (m²)
+    value: 0.05309
+    winner: datasheet
+    sources:
+      datasheet: 0.05309
+      vendor_page: 0.05309
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00825
+    winner: datasheet
+    sources:
+      datasheet: 0.00825
+      vendor_page: 0.00825
+  Vd:
+    value: 0.0004379925
+    winner: calculated
+    sources:
+      calculated: 0.0004379925
+  Dd:
+    value: 0.25999286034425984
+    winner: calculated
+    sources:
+      calculated: 0.25999286034425984
+  EBP:
+    value: 64.05109489051095
+    winner: calculated
+    sources:
+      calculated: 64.05109489051095

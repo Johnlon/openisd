@@ -16,90 +16,93 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Le'' = 34.0 above maximum 0.1 H; schema:WDR:
+  ''Vas'' stored=0.188024 differs from calculated=1.89911e-'
 community: null
 fetched_sku: 253-051
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-051--18lex1600fe-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-18LEX1600Fe-LEX-Series-18-Subwoofer-8-Ohm-253-051
+  datasheet: https://www.parts-express.com/pedocs/specs/253-051--18lex1600fe-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004
   Qts:  # total Q factor
     value: 0.38
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.1255
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1255
   Fs:  # free air resonance (Hz)
     value: 34.0
     winner: vendor_page
     sources:
       vendor_page: 34.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.007274909690799284
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.188023552
     winner: vendor_page
     sources:
-      vendor_page: 0.007274909690799284
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.000252
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000252
-  Qms:  # mechanical Q factor
-    value: 7.4
-    winner: vendor_page
-    sources:
-      vendor_page: 7.4
-  Cms:  # mechanical compliance (m/N)
-    value: 0.085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.085
-  Znom:  # nominal impedance (Ω)
-    value: 35.0
-    winner: vendor_page
-    sources:
-      vendor_page: 35.0
+      vendor_page: 0.188023552
   Qes:  # electrical Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 1600.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1600.0
   BL:  # force factor (T·m)
     value: 26.9
     winner: vendor_page
     sources:
       vendor_page: 26.9
+  Qms:  # mechanical Q factor
+    value: 7.4
+    winner: vendor_page
+    sources:
+      vendor_page: 7.4
   Le:  # voice coil inductance (H)
     value: 34.0
+    winner: datasheet
+    sources:
+      datasheet: 34.0
+      vendor_page: 0.0017
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 34.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.18802355199999998
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.000252
     winner: vendor_page
     sources:
-      vendor_page: 0.18802355199999998
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
+      vendor_page: 0.000252
+  Cms:  # mechanical compliance (m/N)
+    value: 0.085
     winner: vendor_page
     sources:
-      vendor_page: 97.0
+      vendor_page: 0.085
+  Sd:  # effective piston area (m²)
+    value: 1.255e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 1.255e-05
+  Xmax:  # one-way linear excursion (m)
+    value: 0.004
+    winner: datasheet
+    sources:
+      datasheet: 0.004
+      vendor_page: 0.013
+  Znom:  # nominal impedance (Ω)
+    value: 35.0
+    winner: datasheet
+    sources:
+      datasheet: 35.0
+  Vd:
+    value: 5.02e-08
+    winner: calculated
+    sources:
+      calculated: 5.02e-08
+  Dd:
+    value: 0.003997393686694656
+    winner: calculated
+    sources:
+      calculated: 0.003997393686694656
+  EBP:
+    value: 85.0
+    winner: calculated
+    sources:
+      calculated: 85.0

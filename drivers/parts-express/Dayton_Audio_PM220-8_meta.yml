@@ -16,84 +16,84 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0628633 differs from calculated=0.058593'
 community: null
 fetched_sku: 295-345
 _sources:
   vendor_page: https://www.parts-express.com/Dayton-Audio-PM220-8-8-Wideband-Midbass-Neo-Driver-295-345
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0046
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0046
   Qts:  # total Q factor
     value: 0.38
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Sd:  # effective piston area (m²)
-    value: 0.02053
-    winner: vendor_page
-    sources:
-      vendor_page: 0.02053
   Fs:  # free air resonance (Hz)
     value: 49.1
     winner: vendor_page
     sources:
       vendor_page: 49.1
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.6498025718175077
-    winner: vendor_page
-    sources:
-      vendor_page: 0.6498025718175077
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0107
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0107
-  Qms:  # mechanical Q factor
-    value: 5.08
-    winner: vendor_page
-    sources:
-      vendor_page: 5.08
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00098
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00098
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.41
-    winner: vendor_page
-    sources:
-      vendor_page: 0.41
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 7.21
-    winner: vendor_page
-    sources:
-      vendor_page: 7.21
-  Le:  # voice coil inductance (H)
-    value: 0.0008
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0008
   Vas:  # equivalent acoustic volume (m³)
     value: 0.062863296
     winner: vendor_page
     sources:
       vendor_page: 0.062863296
+  Qes:  # electrical Q factor
+    value: 0.41
+    winner: vendor_page
+    sources:
+      vendor_page: 0.41
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0046
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0046
+  Qms:  # mechanical Q factor
+    value: 5.08
+    winner: vendor_page
+    sources:
+      vendor_page: 5.08
+  Le:  # voice coil inductance (H)
+    value: 0.0008
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0008
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: vendor_page
+    sources:
+      vendor_page: 6.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0107
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0107
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00098
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00098
+  Sd:  # effective piston area (m²)
+    value: 0.02053
+    winner: vendor_page
+    sources:
+      vendor_page: 0.02053
+  BL:  # force factor (T·m)
+    value: 7.21
+    winner: vendor_page
+    sources:
+      vendor_page: 7.21
+  Vd:
+    value: 9.443799999999999e-05
+    winner: calculated
+    sources:
+      calculated: 9.443799999999999e-05
+  Dd:
+    value: 0.16167748097188084
+    winner: calculated
+    sources:
+      calculated: 0.16167748097188084
+  EBP:
+    value: 119.75609756097562
+    winner: calculated
+    sources:
+      calculated: 119.75609756097562

@@ -22,83 +22,78 @@ fetched_sku: 294-1971
 _sources:
   vendor_page: https://www.parts-express.com/Celestion-CF1230BMB-12-Extended-Excursion-Midbass-Driver-8-Ohm-294-1971
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007
   Qts:  # total Q factor
     value: 0.381
     winner: vendor_page
     sources:
       vendor_page: 0.381
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.84
-    winner: vendor_page
-    sources:
-      vendor_page: 5.84
-  Sd:  # effective piston area (m²)
-    value: 0.053092999999999994
-    winner: vendor_page
-    sources:
-      vendor_page: 0.053092999999999994
   Fs:  # free air resonance (Hz)
     value: 43.4
     winner: vendor_page
     sources:
       vendor_page: 43.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.416433234000501
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.060597952
     winner: vendor_page
     sources:
-      vendor_page: 5.416433234000501
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.08841
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08841
-  Qms:  # mechanical Q factor
-    value: 4.451
-    winner: vendor_page
-    sources:
-      vendor_page: 4.451
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000152
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000152
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.060597952
   Qes:  # electrical Q factor
     value: 0.417
     winner: vendor_page
     sources:
       vendor_page: 0.417
-  Pe:  # rated power input (W)
-    value: 350.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.007
     winner: vendor_page
     sources:
-      vendor_page: 350.0
-  BL:  # force factor (T·m)
-    value: 18.38
+      vendor_page: 0.007
+  Qms:  # mechanical Q factor
+    value: 4.451
     winner: vendor_page
     sources:
-      vendor_page: 18.38
+      vendor_page: 4.451
   Le:  # voice coil inductance (H)
     value: 0.000713
     winner: vendor_page
     sources:
       vendor_page: 0.000713
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.060597952000000004
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.84
     winner: vendor_page
     sources:
-      vendor_page: 0.060597952000000004
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 96.0
+      vendor_page: 5.84
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.08841
     winner: vendor_page
     sources:
-      vendor_page: 96.0
+      vendor_page: 0.08841
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000152
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000152
+  Sd:  # effective piston area (m²)
+    value: 0.053093
+    winner: vendor_page
+    sources:
+      vendor_page: 0.053093
+  BL:  # force factor (T·m)
+    value: 18.38
+    winner: vendor_page
+    sources:
+      vendor_page: 18.38
+  Vd:
+    value: 0.000371651
+    winner: calculated
+    sources:
+      calculated: 0.000371651
+  Dd:
+    value: 0.2600002060549645
+    winner: calculated
+    sources:
+      calculated: 0.2600002060549645
+  EBP:
+    value: 104.07673860911271
+    winner: calculated
+    sources:
+      calculated: 104.07673860911271

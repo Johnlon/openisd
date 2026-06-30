@@ -16,85 +16,93 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.000283168 differs from calculated=0.0001'
 community: null
 fetched_sku: 293-703
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-703--lavoce-fsn020.72-specifications.pdf
   vendor_page: https://www.parts-express.com/LaVoce-FSN020.72-2-Neodymium-Full-Range-Woofer-8-Ohm-293-703
+  datasheet: https://www.parts-express.com/pedocs/specs/293-703--lavoce-fsn020.72-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0024
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0024
-  Qts:  # total Q factor
-    value: 0.92
-    winner: vendor_page
-    sources:
-      vendor_page: 0.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.2
-    winner: vendor_page
-    sources:
-      vendor_page: 6.2
-  Sd:  # effective piston area (m²)
-    value: 0.0017399999999999998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0017399999999999998
   Fs:  # free air resonance (Hz)
     value: 210.0
     winner: vendor_page
     sources:
       vendor_page: 210.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.41983101825245417
-    winner: vendor_page
+  Qes:  # electrical Q factor
+    value: 1.16
+    winner: datasheet
     sources:
-      vendor_page: 0.41983101825245417
+      datasheet: 1.16
+      vendor_page: 1.16
+  Qms:  # mechanical Q factor
+    value: 4.4
+    winner: datasheet
+    sources:
+      datasheet: 4.4
+      vendor_page: 4.4
   Mms:  # moving mass incl. air load (kg)
     value: 0.0014
     winner: vendor_page
     sources:
       vendor_page: 0.0014
-  Qms:  # mechanical Q factor
-    value: 4.4
-    winner: vendor_page
-    sources:
-      vendor_page: 4.4
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 1.16
-    winner: vendor_page
-    sources:
-      vendor_page: 1.16
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
-    sources:
-      vendor_page: 15.0
   BL:  # force factor (T·m)
     value: 3.2
     winner: vendor_page
     sources:
       vendor_page: 3.2
-  Le:  # voice coil inductance (H)
-    value: 5.9999999999999995e-05
-    winner: vendor_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
     sources:
-      vendor_page: 5.9999999999999995e-05
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.92
+    winner: datasheet
+    sources:
+      datasheet: 0.92
+      vendor_page: 0.92
   Vas:  # equivalent acoustic volume (m³)
     value: 0.000283168
     winner: vendor_page
     sources:
       vendor_page: 0.000283168
+  Le:  # voice coil inductance (H)
+    value: 6.0e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 6.0e-05
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.2
+    winner: vendor_page
+    sources:
+      vendor_page: 6.2
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Sd:  # effective piston area (m²)
+    value: 0.00174
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00174
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0024
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0024
+  Vd:
+    value: 4.1759999999999995e-06
+    winner: calculated
+    sources:
+      calculated: 4.1759999999999995e-06
+  Dd:
+    value: 0.047068426868115985
+    winner: calculated
+    sources:
+      calculated: 0.047068426868115985
+  EBP:
+    value: 181.0344827586207
+    winner: calculated
+    sources:
+      calculated: 181.0344827586207

@@ -20,86 +20,106 @@ dq_issue: null
 community: null
 fetched_sku: 294-1996
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Celestion-PowerProX18-18-Professional-Subwoofer-294-1996
+  datasheet: https://www.parts-express.com/pedocs/specs/294-1996--powerprox-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0005
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 97.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0005
-  Qts:  # total Q factor
-    value: 0.379
-    winner: vendor_page
-    sources:
-      vendor_page: 0.379
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Sd:  # effective piston area (m²)
-    value: 0.121
-    winner: vendor_page
-    sources:
-      vendor_page: 0.121
+      datasheet: 97.0
   Fs:  # free air resonance (Hz)
     value: 34.8
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 34.8
       vendor_page: 34.8
-  Rms:  # mechanical resistance (kg/s)
-    value: 15.96
-    winner: vendor_page
-    sources:
-      vendor_page: 15.96
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.22998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.22998
-  Qms:  # mechanical Q factor
-    value: 3.147
-    winner: vendor_page
-    sources:
-      vendor_page: 3.147
-  Cms:  # mechanical compliance (m/N)
-    value: 9.1e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 9.1e-05
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.431
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.431
       vendor_page: 0.431
   Pe:  # rated power input (W)
     value: 1200.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1200.0
+      datasheet: 1200.0
+  Qms:  # mechanical Q factor
+    value: 3.147
+    winner: datasheet
+    sources:
+      datasheet: 3.147
+      vendor_page: 3.147
+  Rms:  # mechanical resistance (kg/s)
+    value: 15.96
+    winner: datasheet
+    sources:
+      datasheet: 15.96
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.22998
+    winner: datasheet
+    sources:
+      datasheet: 0.22998
+      vendor_page: 0.22998
   BL:  # force factor (T·m)
     value: 24.38
     winner: vendor_page
     sources:
       vendor_page: 24.38
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 97.0
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.379
+    winner: datasheet
     sources:
-      vendor_page: 97.0
+      datasheet: 0.379
+      vendor_page: 0.379
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.1889
+    winner: datasheet
+    sources:
+      datasheet: 0.1889
+      vendor_page: 0.188873056
   Le:  # voice coil inductance (H)
     value: 0.00161
     winner: vendor_page
     sources:
       vendor_page: 0.00161
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.1889
-    winner: vendor_page
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
+    winner: datasheet
     sources:
-      vendor_page: 0.1889
+      datasheet: 5.1
+      vendor_page: 5.1
+  Cms:  # mechanical compliance (m/N)
+    value: 9.1e-05
+    winner: datasheet
+    sources:
+      datasheet: 9.1e-05
+      vendor_page: 9.1e-05
+  Sd:  # effective piston area (m²)
+    value: 0.121
+    winner: datasheet
+    sources:
+      datasheet: 0.121
+      vendor_page: 0.01876
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0005
+    winner: datasheet
+    sources:
+      datasheet: 0.0005
+      vendor_page: 0.0093
+  Vd:
+    value: 6.05e-05
+    winner: calculated
+    sources:
+      calculated: 6.05e-05
+  Dd:
+    value: 0.3925073055536097
+    winner: calculated
+    sources:
+      calculated: 0.3925073055536097
+  EBP:
+    value: 80.74245939675174
+    winner: calculated
+    sources:
+      calculated: 80.74245939675174

@@ -16,85 +16,93 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Fs_low
+dq_issue: 'Fs_low; schema:WDR: ''Vas'' stored=0.0015 differs from calculated=0.00104689 '
 community: null
 fetched_sku: 297-482
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/297-482--hivi-m3n-b-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/HiVi-M3N-B-3-Damped-Aluminum-Magnesium-Cone-Full-Range-Driver-8-Ohms-297-482
+  datasheet: https://www.parts-express.com/pedocs/specs/297-482--hivi-m3n-b-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
+  SPL:  # sensitivity (dB, 2.83 V/1 m)
+    value: 82.0
+    winner: datasheet
     sources:
-      vendor_page: 0.003
-  Qts:  # total Q factor
-    value: 0.8
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.5
-    winner: vendor_page
-    sources:
-      vendor_page: 6.5
-  Sd:  # effective piston area (m²)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
+      datasheet: 82.0
   Fs:  # free air resonance (Hz)
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 1.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.35395277230445
-    winner: vendor_page
-    sources:
-      vendor_page: 0.35395277230445
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0026
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0026
-  Qms:  # mechanical Q factor
-    value: 3.57
-    winner: vendor_page
-    sources:
-      vendor_page: 3.57
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00082
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00082
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      datasheet: 1.0
+      vendor_page: 91.0
   Qes:  # electrical Q factor
     value: 1.03
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 1.03
       vendor_page: 1.03
-  Pe:  # rated power input (W)
-    value: 15.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 3.57
+    winner: datasheet
     sources:
-      vendor_page: 15.0
+      datasheet: 3.57
+      vendor_page: 4.2
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0026
+    winner: datasheet
+    sources:
+      datasheet: 0.0026
+      vendor_page: 0.0026
   BL:  # force factor (T·m)
     value: 3.0
     winner: vendor_page
     sources:
       vendor_page: 3.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 82.0
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.8
+    winner: datasheet
     sources:
-      vendor_page: 82.0
+      datasheet: 0.8
+      vendor_page: 0.8
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0015
+    winner: datasheet
+    sources:
+      datasheet: 0.0015
+      vendor_page: 0.00141584
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.5
+    winner: datasheet
+    sources:
+      datasheet: 6.5
+      vendor_page: 6.5
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00082
     winner: vendor_page
     sources:
-      vendor_page: 0.0015
+      vendor_page: 0.00082
+  Sd:  # effective piston area (m²)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
+    winner: datasheet
+    sources:
+      datasheet: 0.003
+      vendor_page: 0.003
+  Vd:
+    value: 9.0e-06
+    winner: calculated
+    sources:
+      calculated: 9.0e-06
+  Dd:
+    value: 0.06180387232371033
+    winner: calculated
+    sources:
+      calculated: 0.06180387232371033
+  EBP:
+    value: 0.970873786407767
+    winner: calculated
+    sources:
+      calculated: 0.970873786407767

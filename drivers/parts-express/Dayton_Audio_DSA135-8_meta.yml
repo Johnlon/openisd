@@ -22,78 +22,78 @@ fetched_sku: 295-526
 _sources:
   vendor_page: https://www.parts-express.com/Dayton-Audio-DSA135-8-5-Designer-Series-Aluminum-Cone-Woofer-295-526
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004900000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004900000000000001
   Qts:  # total Q factor
     value: 0.38
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.007540000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007540000000000001
   Fs:  # free air resonance (Hz)
     value: 51.81
     winner: vendor_page
     sources:
       vendor_page: 51.81
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.5159570550329688
-    winner: vendor_page
-    sources:
-      vendor_page: 1.5159570550329688
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0095
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0095
-  Qms:  # mechanical Q factor
-    value: 2.04
-    winner: vendor_page
-    sources:
-      vendor_page: 2.04
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00099
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.47
-    winner: vendor_page
-    sources:
-      vendor_page: 0.47
-  Pe:  # rated power input (W)
-    value: 50.0
-    winner: vendor_page
-    sources:
-      vendor_page: 50.0
-  BL:  # force factor (T·m)
-    value: 6.22
-    winner: vendor_page
-    sources:
-      vendor_page: 6.22
-  Le:  # voice coil inductance (H)
-    value: 0.00078
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00078
   Vas:  # equivalent acoustic volume (m³)
     value: 0.007928704
     winner: vendor_page
     sources:
       vendor_page: 0.007928704
+  Qes:  # electrical Q factor
+    value: 0.47
+    winner: vendor_page
+    sources:
+      vendor_page: 0.47
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0049
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0049
+  Qms:  # mechanical Q factor
+    value: 2.04
+    winner: vendor_page
+    sources:
+      vendor_page: 2.04
+  Le:  # voice coil inductance (H)
+    value: 0.00078
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00078
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0095
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0095
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00099
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00099
+  Sd:  # effective piston area (m²)
+    value: 0.00754
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00754
+  BL:  # force factor (T·m)
+    value: 6.22
+    winner: vendor_page
+    sources:
+      vendor_page: 6.22
+  Vd:
+    value: 3.6945999999999995e-05
+    winner: calculated
+    sources:
+      calculated: 3.6945999999999995e-05
+  Dd:
+    value: 0.09798074385971524
+    winner: calculated
+    sources:
+      calculated: 0.09798074385971524
+  EBP:
+    value: 110.2340425531915
+    winner: calculated
+    sources:
+      calculated: 110.2340425531915

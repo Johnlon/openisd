@@ -21,87 +21,82 @@ dq_issue: null
 community: null
 fetched_sku: 295-054
 _sources:
+  vendor_page: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
   datasheet: https://www.parts-express.com/pedocs/specs/295-054--dayton-audio-hts545he-4
     spec-sheet-5vc.pdf
-  vendor_page: https://www.parts-express.com/Dayton-Audio-HTS545HE-4-21-Kraken-High-Excursion-Subwoofer-with-5-Voice-Coil-4-Ohm-295-054
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.021
-    winner: vendor_page
-    sources:
-      vendor_page: 0.021
   Qts:  # total Q factor
     value: 0.28
     winner: vendor_page
     sources:
       vendor_page: 0.28
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.8
-    winner: vendor_page
-    sources:
-      vendor_page: 3.8
-  Sd:  # effective piston area (m²)
-    value: 0.1525
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1525
   Fs:  # free air resonance (Hz)
     value: 26.3
     winner: vendor_page
     sources:
       vendor_page: 26.3
-  Rms:  # mechanical resistance (kg/s)
-    value: 14.140189232820813
-    winner: vendor_page
-    sources:
-      vendor_page: 14.140189232820813
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.676
-    winner: vendor_page
-    sources:
-      vendor_page: 0.676
-  Qms:  # mechanical Q factor
-    value: 7.9
-    winner: vendor_page
-    sources:
-      vendor_page: 7.9
-  Cms:  # mechanical compliance (m/N)
-    value: 5.4e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4e-05
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.29
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29
-  Pe:  # rated power input (W)
-    value: 2000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 2000.0
-  BL:  # force factor (T·m)
-    value: 38.3
-    winner: vendor_page
-    sources:
-      vendor_page: 38.3
-  Le:  # voice coil inductance (H)
-    value: 0.0085
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0085
   Vas:  # equivalent acoustic volume (m³)
     value: 0.178962176
     winner: vendor_page
     sources:
       vendor_page: 0.178962176
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 2.0
+  Qes:  # electrical Q factor
+    value: 0.29
     winner: vendor_page
     sources:
-      vendor_page: 2.0
+      vendor_page: 0.29
+  Xmax:  # one-way linear excursion (m)
+    value: 0.021
+    winner: vendor_page
+    sources:
+      vendor_page: 0.021
+  Qms:  # mechanical Q factor
+    value: 7.9
+    winner: vendor_page
+    sources:
+      vendor_page: 7.9
+  Le:  # voice coil inductance (H)
+    value: 0.0085
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0085
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.8
+    winner: vendor_page
+    sources:
+      vendor_page: 3.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.676
+    winner: vendor_page
+    sources:
+      vendor_page: 0.676
+  Cms:  # mechanical compliance (m/N)
+    value: 5.4e-05
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4e-05
+  Sd:  # effective piston area (m²)
+    value: 0.1525
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1525
+  BL:  # force factor (T·m)
+    value: 38.3
+    winner: vendor_page
+    sources:
+      vendor_page: 38.3
+  Vd:
+    value: 0.0032025
+    winner: calculated
+    sources:
+      calculated: 0.0032025
+  Dd:
+    value: 0.4406461512053774
+    winner: calculated
+    sources:
+      calculated: 0.4406461512053774
+  EBP:
+    value: 90.68965517241381
+    winner: calculated
+    sources:
+      calculated: 90.68965517241381

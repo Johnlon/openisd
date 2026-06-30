@@ -20,76 +20,76 @@ dq_issue: null
 community: null
 fetched_sku: 292-660
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-660--visaton-b80-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Visaton-B80-3.3-HiFi-Full-Range-Driver-8-Ohm-292-660
+  datasheet: https://www.parts-express.com/pedocs/specs/292-660--visaton-b80-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0022
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0022
   Qts:  # total Q factor
     value: 0.63
     winner: vendor_page
     sources:
       vendor_page: 0.63
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.6
-    winner: vendor_page
-    sources:
-      vendor_page: 6.6
-  Sd:  # effective piston area (m²)
-    value: 0.004117
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004117
   Fs:  # free air resonance (Hz)
     value: 110.0
     winner: vendor_page
     sources:
       vendor_page: 110.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.29635851066023167
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.001800948
     winner: vendor_page
     sources:
-      vendor_page: 0.29635851066023167
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0028
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0028
-  Qms:  # mechanical Q factor
-    value: 6.53
-    winner: vendor_page
-    sources:
-      vendor_page: 6.53
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000748
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000748
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.001800948
   Qes:  # electrical Q factor
     value: 0.69
     winner: vendor_page
     sources:
       vendor_page: 0.69
-  Pe:  # rated power input (W)
-    value: 30.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0022
     winner: vendor_page
     sources:
-      vendor_page: 30.0
+      vendor_page: 0.0022
+  Qms:  # mechanical Q factor
+    value: 6.53
+    winner: vendor_page
+    sources:
+      vendor_page: 6.53
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.6
+    winner: vendor_page
+    sources:
+      vendor_page: 6.6
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0028
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0028
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000748
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000748
+  Sd:  # effective piston area (m²)
+    value: 0.004117
+    winner: vendor_page
+    sources:
+      vendor_page: 0.004117
   BL:  # force factor (T·m)
     value: 4.15
     winner: vendor_page
     sources:
       vendor_page: 4.15
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0018009484800000002
-    winner: vendor_page
+  Vd:
+    value: 9.0574e-06
+    winner: calculated
     sources:
-      vendor_page: 0.0018009484800000002
+      calculated: 9.0574e-06
+  Dd:
+    value: 0.07240115472611376
+    winner: calculated
+    sources:
+      calculated: 0.07240115472611376
+  EBP:
+    value: 159.42028985507247
+    winner: calculated
+    sources:
+      calculated: 159.42028985507247

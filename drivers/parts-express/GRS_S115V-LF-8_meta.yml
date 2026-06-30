@@ -22,78 +22,78 @@ fetched_sku: 292-850
 _sources:
   vendor_page: https://www.parts-express.com/GRS-S115V-LF-8-Replacement-15-Woofer-for-Yamaha-Club-Series-S115V-Speakers-292-850
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00325
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00325
   Qts:  # total Q factor
     value: 0.394
     winner: vendor_page
     sources:
       vendor_page: 0.394
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.152
-    winner: vendor_page
-    sources:
-      vendor_page: 6.152
-  Sd:  # effective piston area (m²)
-    value: 0.08296
-    winner: vendor_page
-    sources:
-      vendor_page: 0.08296
   Fs:  # free air resonance (Hz)
     value: 37.35
     winner: vendor_page
     sources:
       vendor_page: 37.35
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2219271682803496
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.243099728
     winner: vendor_page
     sources:
-      vendor_page: 1.2219271682803496
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.073
-    winner: vendor_page
-    sources:
-      vendor_page: 0.073
-  Qms:  # mechanical Q factor
-    value: 14.02
-    winner: vendor_page
-    sources:
-      vendor_page: 14.02
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000249
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000249
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.243099728
   Qes:  # electrical Q factor
     value: 0.405
     winner: vendor_page
     sources:
       vendor_page: 0.405
-  Pe:  # rated power input (W)
-    value: 350.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00325
     winner: vendor_page
     sources:
-      vendor_page: 350.0
-  BL:  # force factor (T·m)
-    value: 16.12
+      vendor_page: 0.00325
+  Qms:  # mechanical Q factor
+    value: 14.02
     winner: vendor_page
     sources:
-      vendor_page: 16.12
+      vendor_page: 14.02
   Le:  # voice coil inductance (H)
     value: 0.001044
     winner: vendor_page
     sources:
       vendor_page: 0.001044
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.24309972800000001
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.152
     winner: vendor_page
     sources:
-      vendor_page: 0.24309972800000001
+      vendor_page: 6.152
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.073
+    winner: vendor_page
+    sources:
+      vendor_page: 0.073
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000249
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000249
+  Sd:  # effective piston area (m²)
+    value: 0.08296
+    winner: vendor_page
+    sources:
+      vendor_page: 0.08296
+  BL:  # force factor (T·m)
+    value: 16.12
+    winner: vendor_page
+    sources:
+      vendor_page: 16.12
+  Vd:
+    value: 0.00026962
+    winner: calculated
+    sources:
+      calculated: 0.00026962
+  Dd:
+    value: 0.32500454247783844
+    winner: calculated
+    sources:
+      calculated: 0.32500454247783844
+  EBP:
+    value: 92.22222222222221
+    winner: calculated
+    sources:
+      calculated: 92.22222222222221

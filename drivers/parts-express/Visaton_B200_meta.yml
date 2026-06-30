@@ -23,88 +23,78 @@ fetched_sku: 292-664
 _sources:
   vendor_page: https://www.parts-express.com/Visaton-B200-8-HiFi-Full-Range-Driver-6-Ohm-292-664
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0035
   Qts:  # total Q factor
     value: 0.76
     winner: vendor_page
     sources:
       vendor_page: 0.76
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.0
-    winner: vendor_page
-    sources:
-      vendor_page: 5.0
-  Sd:  # effective piston area (m²)
-    value: 0.0214
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0214
   Fs:  # free air resonance (Hz)
     value: 40.0
     winner: vendor_page
     sources:
       vendor_page: 40.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.29056923709006904
-    winner: vendor_page
-    sources:
-      vendor_page: 0.29056923709006904
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009699999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009699999999999999
-  Qms:  # mechanical Q factor
-    value: 8.39
-    winner: vendor_page
-    sources:
-      vendor_page: 8.39
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00163
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00163
-  Znom:  # nominal impedance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Qes:  # electrical Q factor
-    value: 0.83
-    winner: vendor_page
-    sources:
-      vendor_page: 0.83
-  Pe:  # rated power input (W)
-    value: 40.0
-    winner: vendor_page
-    sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Le:  # voice coil inductance (H)
-    value: 0.0005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0005
   Vas:  # equivalent acoustic volume (m³)
     value: 0.10194048
     winner: vendor_page
     sources:
       vendor_page: 0.10194048
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 18.0
+  Qes:  # electrical Q factor
+    value: 0.83
     winner: vendor_page
     sources:
-      vendor_page: 18.0
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 0.0
+      vendor_page: 0.83
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0035
     winner: vendor_page
     sources:
-      vendor_page: 0.0
+      vendor_page: 0.0035
+  Qms:  # mechanical Q factor
+    value: 8.39
+    winner: vendor_page
+    sources:
+      vendor_page: 8.39
+  Le:  # voice coil inductance (H)
+    value: 0.0005
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0005
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.0
+    winner: vendor_page
+    sources:
+      vendor_page: 5.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0097
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0097
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00163
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00163
+  Sd:  # effective piston area (m²)
+    value: 0.0214
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0214
+  BL:  # force factor (T·m)
+    value: 3.9
+    winner: vendor_page
+    sources:
+      vendor_page: 3.9
+  Vd:
+    value: 7.489999999999999e-05
+    winner: calculated
+    sources:
+      calculated: 7.489999999999999e-05
+  Dd:
+    value: 0.1650676414605009
+    winner: calculated
+    sources:
+      calculated: 0.1650676414605009
+  EBP:
+    value: 48.19277108433735
+    winner: calculated
+    sources:
+      calculated: 48.19277108433735

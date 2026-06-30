@@ -20,81 +20,103 @@ dq_issue: null
 community: null
 fetched_sku: 292-874
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/292-874--grs-12smp-4-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/GRS-12-Woofer-Surface-Mount-Poly-Cone-4-Ohm-12SMP-4-292-874
+  datasheet: https://www.parts-express.com/pedocs/specs/292-874--grs-12smp-4-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0055
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0055
-  Qts:  # total Q factor
-    value: 0.51
-    winner: vendor_page
-    sources:
-      vendor_page: 0.51
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.9
-    winner: vendor_page
-    sources:
-      vendor_page: 3.9
-  Sd:  # effective piston area (m²)
-    value: 0.0516
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0516
   Fs:  # free air resonance (Hz)
     value: 28.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 28.0
       vendor_page: 28.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.277875658030852
-    winner: vendor_page
-    sources:
-      vendor_page: 5.277875658030852
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.093
-    winner: vendor_page
-    sources:
-      vendor_page: 0.093
-  Qms:  # mechanical Q factor
-    value: 3.1
-    winner: vendor_page
-    sources:
-      vendor_page: 3.1
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00035
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 0.61
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.61
       vendor_page: 0.61
-  Pe:  # rated power input (W)
-    value: 90.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 3.1
+    winner: datasheet
     sources:
-      vendor_page: 90.0
+      datasheet: 3.1
+      vendor_page: 3.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.093
+    winner: datasheet
+    sources:
+      datasheet: 0.093
+      vendor_page: 0.093
   BL:  # force factor (T·m)
     value: 10.2
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 10.2
       vendor_page: 10.2
-  Le:  # voice coil inductance (H)
-    value: 0.00041
-    winner: vendor_page
+  Qts:  # total Q factor
+    value: 0.51
+    winner: datasheet
     sources:
-      vendor_page: 0.00041
+      datasheet: 0.51
+      vendor_page: 0.51
   Vas:  # equivalent acoustic volume (m³)
     value: 0.132
+    winner: datasheet
+    sources:
+      datasheet: 0.132
+      vendor_page: 0.13308896
+  Le:  # voice coil inductance (H)
+    value: 0.00041
+    winner: datasheet
+    sources:
+      datasheet: 0.00041
+      vendor_page: 0.00041
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.9
+    winner: datasheet
+    sources:
+      datasheet: 3.9
+      vendor_page: 3.9
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00035
+    winner: datasheet
+    sources:
+      datasheet: 0.00035
+      vendor_page: 0.00035
+  Sd:  # effective piston area (m²)
+    value: 0.0516
+    winner: datasheet
+    sources:
+      datasheet: 0.0516
+      vendor_page: 0.0516
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0055
+    winner: datasheet
+    sources:
+      datasheet: 0.0055
+      vendor_page: 0.0055
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 20.0
     winner: vendor_page
     sources:
-      vendor_page: 0.132
+      vendor_page: 20.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 1500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 1500.0
+  Vd:
+    value: 0.00028379999999999996
+    winner: calculated
+    sources:
+      calculated: 0.00028379999999999996
+  Dd:
+    value: 0.2563184747698347
+    winner: calculated
+    sources:
+      calculated: 0.2563184747698347
+  EBP:
+    value: 45.90163934426229
+    winner: calculated
+    sources:
+      calculated: 45.90163934426229

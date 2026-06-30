@@ -16,84 +16,95 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Vas_huge
+dq_issue: 'Vas_huge; schema:WDR: ''Cms'' = 0.66 above maximum 0.1 m/N; schema:WDR:
+  ''Vas'' = 18.689088 above maximum 1.0 m³'
 community: null
 fetched_sku: 264-1500
 _sources:
   vendor_page: https://www.parts-express.com/Peerless-HDS-P830933-5-1-4-Paper-Cone-HDS-Woofer-8-Ohm-264-1500
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.00556
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00556
   Qts:  # total Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.0
-    winner: vendor_page
-    sources:
-      vendor_page: 6.0
-  Sd:  # effective piston area (m²)
-    value: 0.00883
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00883
   Fs:  # free air resonance (Hz)
     value: 65.0
     winner: vendor_page
     sources:
       vendor_page: 65.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8311128048555929
+  Vas:  # equivalent acoustic volume (m³)
+    value: 18.689088
     winner: vendor_page
     sources:
-      vendor_page: 0.8311128048555929
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.009300000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.009300000000000001
-  Qms:  # mechanical Q factor
-    value: 4.57
-    winner: vendor_page
-    sources:
-      vendor_page: 4.57
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 18.689088
   Qes:  # electrical Q factor
     value: 0.434
     winner: vendor_page
     sources:
       vendor_page: 0.434
-  Pe:  # rated power input (W)
-    value: 40.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.00556
     winner: vendor_page
     sources:
-      vendor_page: 40.0
-  BL:  # force factor (T·m)
-    value: 7.22
+      vendor_page: 0.00556
+  Qms:  # mechanical Q factor
+    value: 4.57
     winner: vendor_page
     sources:
-      vendor_page: 7.22
+      vendor_page: 4.57
   Le:  # voice coil inductance (H)
     value: 0.000402
     winner: vendor_page
     sources:
       vendor_page: 0.000402
-  Vas:  # equivalent acoustic volume (m³)
-    value: 18.689087999999998
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.0
     winner: vendor_page
     sources:
-      vendor_page: 18.689087999999998
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 88.1
+      vendor_page: 6.0
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0093
     winner: vendor_page
     sources:
-      vendor_page: 88.1
+      vendor_page: 0.0093
+  Cms:  # mechanical compliance (m/N)
+    value: 0.66
+    winner: vendor_page
+    sources:
+      vendor_page: 0.66
+  Sd:  # effective piston area (m²)
+    value: 0.00883
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00883
+  BL:  # force factor (T·m)
+    value: 7.22
+    winner: vendor_page
+    sources:
+      vendor_page: 7.22
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 100.0
+    winner: vendor_page
+    sources:
+      vendor_page: 100.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 2500.0
+    winner: vendor_page
+    sources:
+      vendor_page: 2500.0
+  Vd:
+    value: 4.9094799999999996e-05
+    winner: calculated
+    sources:
+      calculated: 4.9094799999999996e-05
+  Dd:
+    value: 0.10603162349040726
+    winner: calculated
+    sources:
+      calculated: 0.10603162349040726
+  EBP:
+    value: 149.76958525345623
+    winner: calculated
+    sources:
+      calculated: 149.76958525345623

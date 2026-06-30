@@ -17,89 +17,84 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 3.5e-06 below minimum 1e-05 m²'
 community: null
 fetched_sku: 253-020
 _sources:
   vendor_page: https://www.parts-express.com/Beyma-10MCB700-MCB-Series-10-Midbass-Woofer-8-Ohm-253-020
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.007
-    winner: vendor_page
-    sources:
-      vendor_page: 0.007
   Qts:  # total Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.3
-    winner: vendor_page
-    sources:
-      vendor_page: 5.3
-  Sd:  # effective piston area (m²)
-    value: 0.035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.035
   Fs:  # free air resonance (Hz)
     value: 75.0
     winner: vendor_page
     sources:
       vendor_page: 75.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.005289416202472611
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.013308896
     winner: vendor_page
     sources:
-      vendor_page: 0.005289416202472611
-  Mms:  # moving mass incl. air load (kg)
-    value: 5.5e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5e-05
-  Qms:  # mechanical Q factor
-    value: 4.9
-    winner: vendor_page
-    sources:
-      vendor_page: 4.9
-  Cms:  # mechanical compliance (m/N)
-    value: 0.076
-    winner: vendor_page
-    sources:
-      vendor_page: 0.076
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.013308896
   Qes:  # electrical Q factor
     value: 0.35
     winner: vendor_page
     sources:
       vendor_page: 0.35
-  Pe:  # rated power input (W)
-    value: 700.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.007
     winner: vendor_page
     sources:
-      vendor_page: 700.0
-  BL:  # force factor (T·m)
-    value: 20.1
+      vendor_page: 0.007
+  Qms:  # mechanical Q factor
+    value: 4.9
     winner: vendor_page
     sources:
-      vendor_page: 20.1
+      vendor_page: 4.9
   Le:  # voice coil inductance (H)
     value: 0.0009
     winner: vendor_page
     sources:
       vendor_page: 0.0009
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.013308895999999999
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.3
     winner: vendor_page
     sources:
-      vendor_page: 0.013308895999999999
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 96.0
+      vendor_page: 5.3
+  Mms:  # moving mass incl. air load (kg)
+    value: 5.5e-05
     winner: vendor_page
     sources:
-      vendor_page: 96.0
+      vendor_page: 5.5e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.076
+    winner: vendor_page
+    sources:
+      vendor_page: 0.076
+  Sd:  # effective piston area (m²)
+    value: 3.5e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5e-06
+  BL:  # force factor (T·m)
+    value: 20.1
+    winner: vendor_page
+    sources:
+      vendor_page: 20.1
+  Vd:
+    value: 2.45e-08
+    winner: calculated
+    sources:
+      calculated: 2.45e-08
+  Dd:
+    value: 0.002111004122822376
+    winner: calculated
+    sources:
+      calculated: 0.002111004122822376
+  EBP:
+    value: 214.2857142857143
+    winner: calculated
+    sources:
+      calculated: 214.2857142857143

@@ -16,79 +16,79 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.000283168 differs from calculated=0.0001'
 community: null
 fetched_sku: 294-2044
 _sources:
   vendor_page: https://www.parts-express.com/Celestion-AN2075-2-Full-Range-Compact-Array-Driver-294-2044
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0015
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0015
   Qts:  # total Q factor
     value: 0.84
     winner: vendor_page
     sources:
       vendor_page: 0.84
-  Re:  # DC voice coil resistance (Ω)
-    value: 0.84
-    winner: vendor_page
-    sources:
-      vendor_page: 0.84
-  Sd:  # effective piston area (m²)
-    value: 0.0012490000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0012490000000000001
   Fs:  # free air resonance (Hz)
     value: 153.4
     winner: vendor_page
     sources:
       vendor_page: 153.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.2719929039622745
-    winner: vendor_page
-    sources:
-      vendor_page: 0.2719929039622745
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.00149
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00149
-  Qms:  # mechanical Q factor
-    value: 5.28
-    winner: vendor_page
-    sources:
-      vendor_page: 5.28
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0007199999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0007199999999999999
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.998
-    winner: vendor_page
-    sources:
-      vendor_page: 0.998
-  Pe:  # rated power input (W)
-    value: 20.0
-    winner: vendor_page
-    sources:
-      vendor_page: 20.0
-  BL:  # force factor (T·m)
-    value: 2.71
-    winner: vendor_page
-    sources:
-      vendor_page: 2.71
   Vas:  # equivalent acoustic volume (m³)
     value: 0.000283168
     winner: vendor_page
     sources:
       vendor_page: 0.000283168
+  Qes:  # electrical Q factor
+    value: 0.998
+    winner: vendor_page
+    sources:
+      vendor_page: 0.998
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0015
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0015
+  Qms:  # mechanical Q factor
+    value: 5.28
+    winner: vendor_page
+    sources:
+      vendor_page: 5.28
+  Re:  # DC voice coil resistance (Ω)
+    value: 0.84
+    winner: vendor_page
+    sources:
+      vendor_page: 0.84
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00149
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00149
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00072
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00072
+  Sd:  # effective piston area (m²)
+    value: 0.001249
+    winner: vendor_page
+    sources:
+      vendor_page: 0.001249
+  BL:  # force factor (T·m)
+    value: 2.71
+    winner: vendor_page
+    sources:
+      vendor_page: 2.71
+  Vd:
+    value: 1.8735e-06
+    winner: calculated
+    sources:
+      calculated: 1.8735e-06
+  Dd:
+    value: 0.039878267156111716
+    winner: calculated
+    sources:
+      calculated: 0.039878267156111716
+  EBP:
+    value: 153.7074148296593
+    winner: calculated
+    sources:
+      calculated: 153.7074148296593

@@ -16,100 +16,85 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.444007 differs from calculated=0.469717 '
 community: null
 fetched_sku: 295-050
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-PSS555-8-21-Pro-Subwoofer-with-4.5-Voice-Coil-8-Ohm-295-050
+  datasheet: https://www.parts-express.com/pedocs/specs/295-050--dayton-audio-pss555-8-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.011
   Qts:  # total Q factor
     value: 0.33
     winner: vendor_page
     sources:
       vendor_page: 0.33
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.4
-    winner: vendor_page
-    sources:
-      vendor_page: 5.4
-  Sd:  # effective piston area (m²)
-    value: 0.1735
-    winner: vendor_page
-    sources:
-      vendor_page: 0.1735
   Fs:  # free air resonance (Hz)
     value: 27.6
     winner: vendor_page
     sources:
       vendor_page: 27.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.121441960289485
-    winner: vendor_page
-    sources:
-      vendor_page: 5.121441960289485
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.316
-    winner: vendor_page
-    sources:
-      vendor_page: 0.316
-  Qms:  # mechanical Q factor
-    value: 10.7
-    winner: vendor_page
-    sources:
-      vendor_page: 10.7
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00011
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00011
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.34
-    winner: vendor_page
-    sources:
-      vendor_page: 0.34
-  Pe:  # rated power input (W)
-    value: 1000.0
-    winner: vendor_page
-    sources:
-      vendor_page: 1000.0
-  BL:  # force factor (T·m)
-    value: 29.7
-    winner: vendor_page
-    sources:
-      vendor_page: 29.7
-  Le:  # voice coil inductance (H)
-    value: 0.0018
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0018
   Vas:  # equivalent acoustic volume (m³)
     value: 0.444007424
     winner: vendor_page
     sources:
       vendor_page: 0.444007424
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 2019.1
+  Qes:  # electrical Q factor
+    value: 0.34
     winner: vendor_page
     sources:
-      vendor_page: 2019.1
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 295.0
+      vendor_page: 0.34
+  Xmax:  # one-way linear excursion (m)
+    value: 0.011
     winner: vendor_page
     sources:
-      vendor_page: 295.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 1.0
+      vendor_page: 0.011
+  Qms:  # mechanical Q factor
+    value: 10.7
     winner: vendor_page
     sources:
-      vendor_page: 1.0
+      vendor_page: 10.7
+  Le:  # voice coil inductance (H)
+    value: 0.0018
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0018
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.4
+    winner: vendor_page
+    sources:
+      vendor_page: 5.4
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.316
+    winner: vendor_page
+    sources:
+      vendor_page: 0.316
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00011
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00011
+  Sd:  # effective piston area (m²)
+    value: 0.1735
+    winner: vendor_page
+    sources:
+      vendor_page: 0.1735
+  BL:  # force factor (T·m)
+    value: 29.7
+    winner: vendor_page
+    sources:
+      vendor_page: 29.7
+  Vd:
+    value: 0.0019084999999999998
+    winner: calculated
+    sources:
+      calculated: 0.0019084999999999998
+  Dd:
+    value: 0.47000751165438914
+    winner: calculated
+    sources:
+      calculated: 0.47000751165438914
+  EBP:
+    value: 81.17647058823529
+    winner: calculated
+    sources:
+      calculated: 81.17647058823529

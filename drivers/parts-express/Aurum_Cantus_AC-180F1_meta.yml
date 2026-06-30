@@ -20,91 +20,97 @@ dq_issue: null
 community: null
 fetched_sku: 296-412
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/296-412-aurum-cantus-ac-180f1-specifications-45626.pdf
   vendor_page: https://www.parts-express.com/Aurum-Cantus-AC-180F1-7-Woofer-296-412
+  datasheet: https://www.parts-express.com/pedocs/specs/296-412-aurum-cantus-ac-180f1-specifications-45626.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.006
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 32.0
+    winner: datasheet
     sources:
-      vendor_page: 0.006
+      datasheet: 32.0
+      vendor_page: 32.0
+  Qes:  # electrical Q factor
+    value: 0.36
+    winner: datasheet
+    sources:
+      datasheet: 0.36
+      vendor_page: 0.36
+  Qms:  # mechanical Q factor
+    value: 3.05
+    winner: datasheet
+    sources:
+      datasheet: 3.05
+      vendor_page: 3.05
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0154
+    winner: datasheet
+    sources:
+      datasheet: 0.0154
+      vendor_page: 0.0154
+  BL:  # force factor (T·m)
+    value: 7.2
+    winner: datasheet
+    sources:
+      datasheet: 7.2
+      vendor_page: 7.2
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
   Qts:  # total Q factor
     value: 0.32
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.32
       vendor_page: 0.32
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.076
+    winner: datasheet
+    sources:
+      datasheet: 0.076
+      vendor_page: 0.075889024
+  Le:  # voice coil inductance (H)
+    value: 0.00048
+    winner: datasheet
+    sources:
+      datasheet: 0.00048
+      vendor_page: 0.00048
   Re:  # DC voice coil resistance (Ω)
     value: 7.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 7.0
       vendor_page: 7.0
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00189
+    winner: datasheet
+    sources:
+      datasheet: 0.00189
+      vendor_page: 0.00189
   Sd:  # effective piston area (m²)
     value: 0.0168
     winner: vendor_page
     sources:
       vendor_page: 0.0168
-  Fs:  # free air resonance (Hz)
-    value: 32.0
-    winner: vendor_page
+  Xmax:  # one-way linear excursion (m)
+    value: 0.006
+    winner: datasheet
     sources:
-      vendor_page: 32.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.0151979407797052
-    winner: vendor_page
+      datasheet: 0.006
+      vendor_page: 0.006
+  Vd:
+    value: 0.0001008
+    winner: calculated
     sources:
-      vendor_page: 1.0151979407797052
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0154
-    winner: vendor_page
+      calculated: 0.0001008
+  Dd:
+    value: 0.14625465582862904
+    winner: calculated
     sources:
-      vendor_page: 0.0154
-  Qms:  # mechanical Q factor
-    value: 3.05
-    winner: vendor_page
+      calculated: 0.14625465582862904
+  EBP:
+    value: 88.88888888888889
+    winner: calculated
     sources:
-      vendor_page: 3.05
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00189
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00189
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.36
-    winner: vendor_page
-    sources:
-      vendor_page: 0.36
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  BL:  # force factor (T·m)
-    value: 7.2
-    winner: vendor_page
-    sources:
-      vendor_page: 7.2
-  Le:  # voice coil inductance (H)
-    value: 0.00048
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00048
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.076
-    winner: vendor_page
-    sources:
-      vendor_page: 0.076
-  freq_low_hz:  # published lower frequency limit (Hz)
-    value: 2019.1
-    winner: vendor_page
-    sources:
-      vendor_page: 2019.1
-  freq_high_hz:  # published upper frequency limit (Hz)
-    value: 296.0
-    winner: vendor_page
-    sources:
-      vendor_page: 296.0
+      calculated: 88.88888888888889

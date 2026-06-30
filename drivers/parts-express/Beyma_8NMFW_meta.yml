@@ -16,85 +16,95 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms
+dq_issue: 'Sd_tiny; Qts_impossible; suspect:Qts; suspect:Qes; suspect:Qms; tweeter_fs;
+  schema:WDR: ''Le'' = 37.0 above maximum 0.1 H; schema:WDR: ''Cms'' = 0.376 above
+  maximum 0.1 m/N; schema:WDR: ''Sd'' = 2.27e-06 below minimum 1e-05 m²; schema:WDR:
+  ''Qts'' stored=0.37 differs from calculated=0.343719 (dep'
 community: null
 fetched_sku: 253-086
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/253-086--8nmfw-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Beyma-8NMFW-NMF-Series-8-Carbon-Fiber-Cone-Woofer-8-Ohm-253-086
+  datasheet: https://www.parts-express.com/pedocs/specs/253-086--8nmfw-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.005
   Qts:  # total Q factor
     value: 0.37
     winner: vendor_page
     sources:
       vendor_page: 0.37
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: vendor_page
-    sources:
-      vendor_page: 5.7
-  Sd:  # effective piston area (m²)
-    value: 0.0227
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0227
   Fs:  # free air resonance (Hz)
     value: 37.0
     winner: vendor_page
     sources:
       vendor_page: 37.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.0014682811980988087
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.02690096
     winner: vendor_page
     sources:
-      vendor_page: 0.0014682811980988087
-  Mms:  # moving mass incl. air load (kg)
-    value: 4.8e-05
-    winner: vendor_page
-    sources:
-      vendor_page: 4.8e-05
-  Qms:  # mechanical Q factor
-    value: 7.6
-    winner: vendor_page
-    sources:
-      vendor_page: 7.6
-  Znom:  # nominal impedance (Ω)
-    value: 30.0
-    winner: vendor_page
-    sources:
-      vendor_page: 30.0
+      vendor_page: 0.02690096
   Qes:  # electrical Q factor
     value: 0.36
     winner: vendor_page
     sources:
       vendor_page: 0.36
-  Pe:  # rated power input (W)
-    value: 200.0
-    winner: vendor_page
-    sources:
-      vendor_page: 200.0
   BL:  # force factor (T·m)
     value: 13.4
     winner: vendor_page
     sources:
       vendor_page: 13.4
+  Qms:  # mechanical Q factor
+    value: 7.6
+    winner: vendor_page
+    sources:
+      vendor_page: 7.6
   Le:  # voice coil inductance (H)
     value: 37.0
+    winner: datasheet
+    sources:
+      datasheet: 37.0
+      vendor_page: 0.0011
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
     winner: vendor_page
     sources:
-      vendor_page: 37.0
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.026900959999999998
+      vendor_page: 5.7
+  Mms:  # moving mass incl. air load (kg)
+    value: 4.8e-05
     winner: vendor_page
     sources:
-      vendor_page: 0.026900959999999998
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 90.0
+      vendor_page: 4.8e-05
+  Cms:  # mechanical compliance (m/N)
+    value: 0.376
     winner: vendor_page
     sources:
-      vendor_page: 90.0
+      vendor_page: 0.376
+  Sd:  # effective piston area (m²)
+    value: 2.27e-06
+    winner: vendor_page
+    sources:
+      vendor_page: 2.27e-06
+  Xmax:  # one-way linear excursion (m)
+    value: 0.005
+    winner: datasheet
+    sources:
+      datasheet: 0.005
+      vendor_page: 0.009
+  Znom:  # nominal impedance (Ω)
+    value: 30.0
+    winner: datasheet
+    sources:
+      datasheet: 30.0
+  Vd:
+    value: 1.1349999999999999e-08
+    winner: calculated
+    sources:
+      calculated: 1.1349999999999999e-08
+  Dd:
+    value: 0.0017000746355818673
+    winner: calculated
+    sources:
+      calculated: 0.0017000746355818673
+  EBP:
+    value: 102.77777777777779
+    winner: calculated
+    sources:
+      calculated: 102.77777777777779

@@ -21,86 +21,103 @@ dq_issue: null
 community: null
 fetched_sku: 267-8044
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/267-8044--prv-audio-mt8sw800-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-MT8SW800-D4-Moto-Series-8-Shallow-Subwoofer-DVC-4x4-Ohm-267-8044
+  datasheet: https://www.parts-express.com/pedocs/specs/267-8044--prv-audio-mt8sw800-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.014
-    winner: vendor_page
-    sources:
-      vendor_page: 0.014
-  Qts:  # total Q factor
-    value: 0.92
-    winner: vendor_page
-    sources:
-      vendor_page: 0.92
-  Re:  # DC voice coil resistance (Ω)
-    value: 1.7
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7
-  Sd:  # effective piston area (m²)
-    value: 0.0213
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0213
   Fs:  # free air resonance (Hz)
     value: 45.15
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 45.15
       vendor_page: 45.15
-  Rms:  # mechanical resistance (kg/s)
-    value: 2.6375928631170633
-    winner: vendor_page
-    sources:
-      vendor_page: 2.6375928631170633
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.09623
-    winner: vendor_page
-    sources:
-      vendor_page: 0.09623
-  Qms:  # mechanical Q factor
-    value: 10.35
-    winner: vendor_page
-    sources:
-      vendor_page: 10.35
-  Cms:  # mechanical compliance (m/N)
-    value: 0.000129
-    winner: vendor_page
-    sources:
-      vendor_page: 0.000129
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
   Qes:  # electrical Q factor
     value: 1.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 1.0
       vendor_page: 1.0
   Pe:  # rated power input (W)
     value: 400.0
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 400.0
+      datasheet: 400.0
+  Qms:  # mechanical Q factor
+    value: 10.35
+    winner: datasheet
+    sources:
+      datasheet: 10.35
+      vendor_page: 10.35
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.09623
+    winner: datasheet
+    sources:
+      datasheet: 0.09623
+      vendor_page: 0.09623
   BL:  # force factor (T·m)
     value: 6.78
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 6.78
       vendor_page: 6.78
-  Le:  # voice coil inductance (H)
-    value: 0.00118
-    winner: vendor_page
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
     sources:
-      vendor_page: 0.00118
+      datasheet: 4.0
+  Qts:  # total Q factor
+    value: 0.92
+    winner: datasheet
+    sources:
+      datasheet: 0.92
+      vendor_page: 0.92
   Vas:  # equivalent acoustic volume (m³)
     value: 0.008441
-    winner: vendor_page
+    winner: datasheet
     sources:
-      vendor_page: 0.008441
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 400.0
-    winner: vendor_page
+      datasheet: 0.008441
+      vendor_page: 0.008211872
+  Le:  # voice coil inductance (H)
+    value: 0.00118
+    winner: datasheet
     sources:
-      vendor_page: 400.0
+      datasheet: 0.00118
+      vendor_page: 0.00118
+  Re:  # DC voice coil resistance (Ω)
+    value: 1.7
+    winner: datasheet
+    sources:
+      datasheet: 1.7
+      vendor_page: 1.7
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000129
+    winner: datasheet
+    sources:
+      datasheet: 0.000129
+      vendor_page: 0.000129
+  Sd:  # effective piston area (m²)
+    value: 0.0213
+    winner: datasheet
+    sources:
+      datasheet: 0.0213
+      vendor_page: 0.0213
+  Xmax:  # one-way linear excursion (m)
+    value: 0.014
+    winner: datasheet
+    sources:
+      datasheet: 0.014
+      vendor_page: 0.014
+  Vd:
+    value: 0.0002982
+    winner: calculated
+    sources:
+      calculated: 0.0002982
+  Dd:
+    value: 0.1646815177937675
+    winner: calculated
+    sources:
+      calculated: 0.1646815177937675
+  EBP:
+    value: 45.15
+    winner: calculated
+    sources:
+      calculated: 45.15

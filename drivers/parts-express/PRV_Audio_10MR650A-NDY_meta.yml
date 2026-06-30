@@ -17,100 +17,96 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0407762 differs from calculated=8.33693 '
 community: null
 fetched_sku: 294-2768
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/294-2768--prv-audio-10mr650a-ndy-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/PRV-Audio-10MR650A-NDY-10-Shallow-Midrange-Speaker-8-Ohm-294-2768
+  datasheet: https://www.parts-express.com/pedocs/specs/294-2768--prv-audio-10mr650a-ndy-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0035
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0035
   Qts:  # total Q factor
     value: 0.38
     winner: vendor_page
     sources:
       vendor_page: 0.38
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.1
-    winner: vendor_page
-    sources:
-      vendor_page: 5.1
-  Sd:  # effective piston area (m²)
-    value: 0.038
-    winner: vendor_page
-    sources:
-      vendor_page: 0.038
   Fs:  # free air resonance (Hz)
     value: 62.4
     winner: vendor_page
     sources:
       vendor_page: 62.4
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2356169505900803
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.040776192
     winner: vendor_page
     sources:
-      vendor_page: 1.2356169505900803
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.032240000000000005
-    winner: vendor_page
-    sources:
-      vendor_page: 0.032240000000000005
-  Qms:  # mechanical Q factor
-    value: 10.23
-    winner: vendor_page
-    sources:
-      vendor_page: 10.23
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0407
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0407
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
+      vendor_page: 0.040776192
   Qes:  # electrical Q factor
     value: 0.4
     winner: vendor_page
     sources:
       vendor_page: 0.4
-  Pe:  # rated power input (W)
-    value: 650.0
-    winner: vendor_page
-    sources:
-      vendor_page: 650.0
   BL:  # force factor (T·m)
     value: 12.74
     winner: vendor_page
     sources:
       vendor_page: 12.74
+  Qms:  # mechanical Q factor
+    value: 10.23
+    winner: vendor_page
+    sources:
+      vendor_page: 10.23
   Le:  # voice coil inductance (H)
     value: 0.00039
     winner: vendor_page
     sources:
       vendor_page: 0.00039
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.040776191999999996
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.1
     winner: vendor_page
     sources:
-      vendor_page: 0.040776191999999996
+      vendor_page: 5.1
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.03224
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03224
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0407
+    winner: datasheet
+    sources:
+      datasheet: 0.0407
+      vendor_page: 0.000202
+  Sd:  # effective piston area (m²)
+    value: 0.038
+    winner: vendor_page
+    sources:
+      vendor_page: 0.038
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0035
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0035
   freq_low_hz:  # published lower frequency limit (Hz)
     value: 70.0
     winner: vendor_page
     sources:
       vendor_page: 70.0
   freq_high_hz:  # published upper frequency limit (Hz)
-    value: 6.0
+    value: 6500.0
     winner: vendor_page
     sources:
-      vendor_page: 6.0
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 2.83
-    winner: vendor_page
+      vendor_page: 6500.0
+  Vd:
+    value: 0.000133
+    winner: calculated
     sources:
-      vendor_page: 2.83
+      calculated: 0.000133
+  Dd:
+    value: 0.21996159369293583
+    winner: calculated
+    sources:
+      calculated: 0.21996159369293583
+  EBP:
+    value: 156.0
+    winner: calculated
+    sources:
+      calculated: 156.0

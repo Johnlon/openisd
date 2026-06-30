@@ -1,0 +1,109 @@
+beyma J)
+
+PROFESSIONAL LOUDSPEAKERS
+www.beyma.com
+
+KEY FEATURES
+
+e Next generation high performance 1” (25,4 mm) exit
+compression driver
+
+e Deplocex® Patent Pending Technology for improved
+thermal disipation, low power compression losses and
+high power handling
+
+e 1,5” (38,1 mm) Copper Clad Aluminum voice coil with
+Kapton former
+
+e 140 W program power above 1,8 kHz
+
+e Sensitivity: 110 dB (1W/ 1m)
+
+CD-151Fe/PK
+
+COMPRESSION DRIVER
+
+Preliminary Data Sheet
+
+VPEQ® Patent Pending Technology for linear frequency
+response
+
+Exclusive High Temperature Polymer annular ring desing
+optimized with F.E.M for linear and extended response with
+minimized resonances
+
+Copper shorting cap for reduced distortion, linear inductance
+and increased output
+
+F.E.M. optimized ceramic magnetic circuit
+
+TECHNICAL SPECIFICATIONS
+
+Throat diameter 25,4 mm 1in
+Rated impedance 80
+Minimum impedance 5,30
+D.C. resistance 450
+Power capacity ' 70 Wags above 1,8 kHz
+Program power? 140 W above 1,8 kHz
+Sensitivity * 110dB 1W/1m@Zn
+
+coupled to TD-164
+
+Notes:
+
+1 The power capaticty is determined according to AES2-1984 (r2003) standard.
+2 Program power is defined as the transducer’s ability to handle normal music program material.
+
+3 Sensitivity was measured at 1m distance, on axis, with 1W input, averaged in the range 2 - 7 kHz
+
+Frequency range 0,9 - 20 kHz
+Recommended crossover 1,8 kHz or higher
+
+(12 dB/oct min.)
+Voice coil diameter 38,1 mm 1,5 in
+Flux density 1,6T
+BI factor 6 N/A
+
+Acustica Beyma SL - PI. Moncada II, C/ Pont Sec, 1C - 46113 Moncada, Valencia (Spain) - Tel. +34 96 130 13 75 - beyma@beyma.com
+120 4 r 50
+- 45
+
+100 -
+- 40
++ 35
+
+80 -
+- 30
+a 60 - . 25
+- 20
+
+40 +
+- 15
+- 10
+BE 5
+
+1k
+
+Note: On axis frequency response measured coupled
+to TD-164 horn in anechoic chamber, 1W / 1m
+
+Overall diameter 102 mm 4,01 in
+Depth 44,4 mm 1,75 in
+Mounting Three M5 threaded holes, 120° apart
+
+on 57 mm (2,24 in) diameter circle
+
+Two M5 threaded holes, 180° apart
+
+on 76,2 mm (3 in) diameter circle
+
+Net weight 1,3 kg 2,8 Ib
+Shipping weight 1,4 kg 3 Ib
+
+[Hz]
+
+f102
+
+[0]
+
+01/23

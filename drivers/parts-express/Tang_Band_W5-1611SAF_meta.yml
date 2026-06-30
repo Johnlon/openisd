@@ -16,85 +16,99 @@ reviewed_by: null
 driver_type: midrange
 nominal_size_cm: null
 obsolete: null
-dq_issue: Sd_tiny; tweeter_fs
+dq_issue: 'Sd_tiny; tweeter_fs; schema:WDR: ''Sd'' = 9.4e-07 below minimum 1e-05 m²'
 community: null
 fetched_sku: 264-918
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-918-tang-band-w5-1611saf-specifications.pdf
   vendor_page: https://www.parts-express.com/Tang-Band-W5-1611SAF-5-Full-Range-Speaker-264-918
+  datasheet: https://www.parts-express.com/pedocs/specs/264-918-tang-band-w5-1611saf-specifications.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.003
-  Qts:  # total Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Re:  # DC voice coil resistance (Ω)
-    value: 6.3
-    winner: vendor_page
-    sources:
-      vendor_page: 6.3
-  Sd:  # effective piston area (m²)
-    value: 9.4e-07
-    winner: vendor_page
-    sources:
-      vendor_page: 9.4e-07
   Fs:  # free air resonance (Hz)
     value: 60.0
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 60.0
       vendor_page: 60.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 0.8064917140715513
-    winner: vendor_page
-    sources:
-      vendor_page: 0.8064917140715513
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.099
-    winner: vendor_page
-    sources:
-      vendor_page: 0.099
-  Qms:  # mechanical Q factor
-    value: 2.8
-    winner: vendor_page
-    sources:
-      vendor_page: 2.8
-  Cms:  # mechanical compliance (m/N)
-    value: 0.001307
-    winner: vendor_page
-    sources:
-      vendor_page: 0.001307
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.52
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.52
       vendor_page: 0.52
-  Pe:  # rated power input (W)
-    value: 28.0
-    winner: vendor_page
+  Qms:  # mechanical Q factor
+    value: 2.8
+    winner: datasheet
     sources:
-      vendor_page: 28.0
+      datasheet: 2.8
+      vendor_page: 2.8
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.099
+    winner: datasheet
+    sources:
+      datasheet: 0.099
+      vendor_page: 0.00599
   BL:  # force factor (T·m)
     value: 5.53
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 5.53
       vendor_page: 5.53
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.44
+    winner: datasheet
+    sources:
+      datasheet: 0.44
+      vendor_page: 0.44
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.01169
+    winner: datasheet
+    sources:
+      datasheet: 0.01169
+      vendor_page: 0.011609888
   Le:  # voice coil inductance (H)
     value: 2.0e-05
     winner: vendor_page
     sources:
       vendor_page: 2.0e-05
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.01169
+  Re:  # DC voice coil resistance (Ω)
+    value: 6.3
     winner: vendor_page
     sources:
-      vendor_page: 0.01169
+      vendor_page: 6.3
+  Cms:  # mechanical compliance (m/N)
+    value: 0.001307
+    winner: datasheet
+    sources:
+      datasheet: 0.001307
+      vendor_page: 0.00131
+  Sd:  # effective piston area (m²)
+    value: 9.4e-07
+    winner: datasheet
+    sources:
+      datasheet: 9.4e-07
+      vendor_page: 0.0094
+  Xmax:  # one-way linear excursion (m)
+    value: 0.003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.003
+  Vd:
+    value: 2.82e-09
+    winner: calculated
+    sources:
+      calculated: 2.82e-09
+  Dd:
+    value: 0.0010940041919714262
+    winner: calculated
+    sources:
+      calculated: 0.0010940041919714262
+  EBP:
+    value: 115.38461538461539
+    winner: calculated
+    sources:
+      calculated: 115.38461538461539

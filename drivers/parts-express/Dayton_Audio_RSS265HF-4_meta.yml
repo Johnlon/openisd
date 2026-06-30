@@ -16,85 +16,85 @@ reviewed_by: null
 driver_type: subwoofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0538019 differs from calculated=0.057627'
 community: null
 fetched_sku: 295-460
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-460-dayton-audio-rss265hf-4-specifications-46172.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-RSS265HF-4-10-Reference-Series-HF-Subwoofer-4-Ohm-295-460
+  datasheet: https://www.parts-express.com/pedocs/specs/295-460-dayton-audio-rss265hf-4-specifications-46172.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0123
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0123
   Qts:  # total Q factor
     value: 0.45
     winner: vendor_page
     sources:
       vendor_page: 0.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: vendor_page
-    sources:
-      vendor_page: 3.5
-  Sd:  # effective piston area (m²)
-    value: 0.03563
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03563
   Fs:  # free air resonance (Hz)
     value: 25.6
     winner: vendor_page
     sources:
       vendor_page: 25.6
-  Rms:  # mechanical resistance (kg/s)
-    value: 6.307825249560683
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.05380192
     winner: vendor_page
     sources:
-      vendor_page: 6.307825249560683
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.12
-    winner: vendor_page
-    sources:
-      vendor_page: 0.12
-  Qms:  # mechanical Q factor
-    value: 3.06
-    winner: vendor_page
-    sources:
-      vendor_page: 3.06
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
+      vendor_page: 0.05380192
   Qes:  # electrical Q factor
     value: 0.53
     winner: vendor_page
     sources:
       vendor_page: 0.53
-  Pe:  # rated power input (W)
-    value: 350.0
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0123
     winner: vendor_page
     sources:
-      vendor_page: 350.0
+      vendor_page: 0.0123
+  Qms:  # mechanical Q factor
+    value: 3.06
+    winner: vendor_page
+    sources:
+      vendor_page: 3.06
+  Le:  # voice coil inductance (H)
+    value: 0.00096
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00096
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
+    winner: vendor_page
+    sources:
+      vendor_page: 3.5
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.12
+    winner: vendor_page
+    sources:
+      vendor_page: 0.12
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Sd:  # effective piston area (m²)
+    value: 0.03563
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03563
   BL:  # force factor (T·m)
     value: 11.43
     winner: vendor_page
     sources:
       vendor_page: 11.43
-  Le:  # voice coil inductance (H)
-    value: 0.0009599999999999999
-    winner: vendor_page
+  Vd:
+    value: 0.00043824900000000004
+    winner: calculated
     sources:
-      vendor_page: 0.0009599999999999999
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.053801919999999996
-    winner: vendor_page
+      calculated: 0.00043824900000000004
+  Dd:
+    value: 0.21299184251729888
+    winner: calculated
     sources:
-      vendor_page: 0.053801919999999996
+      calculated: 0.21299184251729888
+  EBP:
+    value: 48.301886792452834
+    winner: calculated
+    sources:
+      calculated: 48.301886792452834

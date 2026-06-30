@@ -21,86 +21,103 @@ dq_issue: null
 community: null
 fetched_sku: 295-658
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
   vendor_page: https://www.parts-express.com/Dayton-Audio-SIG270-4-10-Signature-Series-Woofer-4-Ohm-295-658
+  datasheet: https://www.parts-express.com/pedocs/specs/295-658--dayton-audio-sig270-4-specification-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0065
-    winner: vendor_page
+  Fs:  # free air resonance (Hz)
+    value: 35.0
+    winner: datasheet
     sources:
-      vendor_page: 0.0065
+      datasheet: 35.0
+      vendor_page: 35.0
+  Qes:  # electrical Q factor
+    value: 0.44
+    winner: datasheet
+    sources:
+      datasheet: 0.44
+      vendor_page: 0.44
+  Qms:  # mechanical Q factor
+    value: 10.25
+    winner: datasheet
+    sources:
+      datasheet: 10.25
+      vendor_page: 10.25
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.064
+    winner: datasheet
+    sources:
+      datasheet: 0.064
+      vendor_page: 0.064
+  BL:  # force factor (T·m)
+    value: 11.2
+    winner: datasheet
+    sources:
+      datasheet: 11.2
+      vendor_page: 11.2
   Qts:  # total Q factor
     value: 0.42
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.42
       vendor_page: 0.42
+  Vas:  # equivalent acoustic volume (m³)
+    value: 0.0586
+    winner: datasheet
+    sources:
+      datasheet: 0.0586
+      vendor_page: 0.058615776
+  Le:  # voice coil inductance (H)
+    value: 0.00079
+    winner: datasheet
+    sources:
+      datasheet: 0.00079
+      vendor_page: 0.00079
   Re:  # DC voice coil resistance (Ω)
     value: 3.9
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 3.9
       vendor_page: 3.9
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00032
+    winner: datasheet
+    sources:
+      datasheet: 0.00032
+      vendor_page: 0.00032
   Sd:  # effective piston area (m²)
     value: 0.03615
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.03615
       vendor_page: 0.03615
-  Fs:  # free air resonance (Hz)
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0065
+    winner: datasheet
+    sources:
+      datasheet: 0.0065
+      vendor_page: 0.0065
+  freq_low_hz:  # published lower frequency limit (Hz)
     value: 35.0
     winner: vendor_page
     sources:
       vendor_page: 35.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.3731058622519292
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 2500.0
     winner: vendor_page
     sources:
-      vendor_page: 1.3731058622519292
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.064
-    winner: vendor_page
+      vendor_page: 2500.0
+  Vd:
+    value: 0.000234975
+    winner: calculated
     sources:
-      vendor_page: 0.064
-  Qms:  # mechanical Q factor
-    value: 10.25
-    winner: vendor_page
+      calculated: 0.000234975
+  Dd:
+    value: 0.2145404613171514
+    winner: calculated
     sources:
-      vendor_page: 10.25
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00032
-    winner: vendor_page
+      calculated: 0.2145404613171514
+  EBP:
+    value: 79.54545454545455
+    winner: calculated
     sources:
-      vendor_page: 0.00032
-  Znom:  # nominal impedance (Ω)
-    value: 4.0
-    winner: vendor_page
-    sources:
-      vendor_page: 4.0
-  Qes:  # electrical Q factor
-    value: 0.44
-    winner: vendor_page
-    sources:
-      vendor_page: 0.44
-  Pe:  # rated power input (W)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
-  BL:  # force factor (T·m)
-    value: 11.2
-    winner: vendor_page
-    sources:
-      vendor_page: 11.2
-  Le:  # voice coil inductance (H)
-    value: 0.00079
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00079
-  Vas:  # equivalent acoustic volume (m³)
-    value: 0.0586
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0586
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 120.0
-    winner: vendor_page
-    sources:
-      vendor_page: 120.0
+      calculated: 79.54545454545455

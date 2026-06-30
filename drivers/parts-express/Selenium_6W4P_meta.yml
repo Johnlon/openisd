@@ -16,85 +16,85 @@ reviewed_by: null
 driver_type: woofer
 nominal_size_cm: null
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.0079287 differs from calculated=0.025712'
 community: null
 fetched_sku: 264-422
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/264-422-6w4p-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Selenium-6W4P-6-Woofer-264-422
+  datasheet: https://www.parts-express.com/pedocs/specs/264-422-6w4p-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0023
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0023
   Qts:  # total Q factor
     value: 0.83
     winner: vendor_page
     sources:
       vendor_page: 0.83
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: vendor_page
-    sources:
-      vendor_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.0238
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0238
   Fs:  # free air resonance (Hz)
     value: 76.0
     winner: vendor_page
     sources:
       vendor_page: 76.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.2044960012748445
-    winner: vendor_page
-    sources:
-      vendor_page: 1.2044960012748445
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.0169
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0169
-  Qms:  # mechanical Q factor
-    value: 6.7
-    winner: vendor_page
-    sources:
-      vendor_page: 6.7
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00032
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00032
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.95
-    winner: vendor_page
-    sources:
-      vendor_page: 0.95
-  Pe:  # rated power input (W)
-    value: 100.0
-    winner: vendor_page
-    sources:
-      vendor_page: 100.0
-  BL:  # force factor (T·m)
-    value: 6.34
-    winner: vendor_page
-    sources:
-      vendor_page: 6.34
-  Le:  # voice coil inductance (H)
-    value: 0.00057
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00057
   Vas:  # equivalent acoustic volume (m³)
     value: 0.007928704
     winner: vendor_page
     sources:
       vendor_page: 0.007928704
+  Qes:  # electrical Q factor
+    value: 0.95
+    winner: vendor_page
+    sources:
+      vendor_page: 0.95
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0023
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0023
+  Qms:  # mechanical Q factor
+    value: 6.7
+    winner: vendor_page
+    sources:
+      vendor_page: 6.7
+  Le:  # voice coil inductance (H)
+    value: 0.00057
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00057
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
+    winner: vendor_page
+    sources:
+      vendor_page: 5.9
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0169
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0169
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00032
+    winner: vendor_page
+    sources:
+      vendor_page: 0.00032
+  Sd:  # effective piston area (m²)
+    value: 0.0238
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0238
+  BL:  # force factor (T·m)
+    value: 6.34
+    winner: vendor_page
+    sources:
+      vendor_page: 6.34
+  Vd:
+    value: 5.474e-05
+    winner: calculated
+    sources:
+      calculated: 5.474e-05
+  Dd:
+    value: 0.17407785949022028
+    winner: calculated
+    sources:
+      calculated: 0.17407785949022028
+  EBP:
+    value: 80.0
+    winner: calculated
+    sources:
+      calculated: 80.0

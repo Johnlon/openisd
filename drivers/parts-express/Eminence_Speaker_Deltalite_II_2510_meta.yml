@@ -20,81 +20,81 @@ dq_issue: null
 community: null
 fetched_sku: 290-591
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/290-591--eminence-deltalite-2510-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Eminence-Deltalite-II-2510-Neo-10-Driver-290-591
+  datasheet: https://www.parts-express.com/pedocs/specs/290-591--eminence-deltalite-2510-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.004200000000000001
-    winner: vendor_page
-    sources:
-      vendor_page: 0.004200000000000001
   Qts:  # total Q factor
     value: 0.42
     winner: vendor_page
     sources:
       vendor_page: 0.42
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.06
-    winner: vendor_page
-    sources:
-      vendor_page: 5.06
-  Sd:  # effective piston area (m²)
-    value: 0.03501
-    winner: vendor_page
-    sources:
-      vendor_page: 0.03501
   Fs:  # free air resonance (Hz)
     value: 53.0
     winner: vendor_page
     sources:
       vendor_page: 53.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 1.7922349756416773
-    winner: vendor_page
-    sources:
-      vendor_page: 1.7922349756416773
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.031
-    winner: vendor_page
-    sources:
-      vendor_page: 0.031
-  Qms:  # mechanical Q factor
-    value: 5.76
-    winner: vendor_page
-    sources:
-      vendor_page: 5.76
-  Cms:  # mechanical compliance (m/N)
-    value: 0.0003
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0003
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
-  Qes:  # electrical Q factor
-    value: 0.45
-    winner: vendor_page
-    sources:
-      vendor_page: 0.45
-  Pe:  # rated power input (W)
-    value: 250.0
-    winner: vendor_page
-    sources:
-      vendor_page: 250.0
-  BL:  # force factor (T·m)
-    value: 10.6
-    winner: vendor_page
-    sources:
-      vendor_page: 10.6
-  Le:  # voice coil inductance (H)
-    value: 0.0004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0004
   Vas:  # equivalent acoustic volume (m³)
     value: 0.05238608
     winner: vendor_page
     sources:
       vendor_page: 0.05238608
+  Qes:  # electrical Q factor
+    value: 0.45
+    winner: vendor_page
+    sources:
+      vendor_page: 0.45
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0042
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0042
+  Qms:  # mechanical Q factor
+    value: 5.76
+    winner: vendor_page
+    sources:
+      vendor_page: 5.76
+  Le:  # voice coil inductance (H)
+    value: 0.0004
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0004
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.06
+    winner: vendor_page
+    sources:
+      vendor_page: 5.06
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.031
+    winner: vendor_page
+    sources:
+      vendor_page: 0.031
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0003
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0003
+  Sd:  # effective piston area (m²)
+    value: 0.03501
+    winner: vendor_page
+    sources:
+      vendor_page: 0.03501
+  BL:  # force factor (T·m)
+    value: 10.6
+    winner: vendor_page
+    sources:
+      vendor_page: 10.6
+  Vd:
+    value: 0.00014704199999999998
+    winner: calculated
+    sources:
+      calculated: 0.00014704199999999998
+  Dd:
+    value: 0.21113056733021404
+    winner: calculated
+    sources:
+      calculated: 0.21113056733021404
+  EBP:
+    value: 117.77777777777777
+    winner: calculated
+    sources:
+      calculated: 117.77777777777777

@@ -1,0 +1,128 @@
+Hi-Vi RESEARCH®
+
+it could be your solution for perfect High frequency reproduction
+
+Air fm
+RIT2ZC a’
+
+isodynamic tweeter
+
+18 9 R6 6-04 9162
+
+~
+n
+-
+tt
+aaa; ~
++ | 135
+PNA
+
++ as se
+and 30° off-axis }—1 as
+
+t
+e
+
+| t
+| 4—] -se
+4 -aas
+ia we rex 88
+
+[ome - bes
+10.0P — 7 see
+= == ae oe
+
+= mi 435
+
+5S ale CE BE f
+3.8 ube Py
+
+a (es be |
+T Py
+
+}
+
+Le += °
+| + -a3
+| es 4 -se
+|
+
+Bk 335
+
+°-1 390 ik Frequeney Sk 1¢k uz wax 288
+
+Why do we call the RT2C-A Isodynamic?
+
+Contrary to a conventional dynamic driver, this transduc-
+er has a driving force distributed evenly over the whole
+area of the vibrating element.
+
+What is special about the RT2C-A?
+
+The key element of the RT2C-A is the membrane, which
+consists of Kapton® film with a pattern of Aluminum
+conductors. The conductors cover about 90% of the
+whole vibrating area. The membrane assembly is
+placed precisely between two rows of Neodymium and
+Barium Ferrite bar magnets. This tweeter has a larger
+membrane area than the RT1C-A, providing higher
+power handling and substantially extended low-end cut-
+off frequency. The Aluminum mounting flange, with
+flared wave-guide, controls the frequency response and
+directivity of the tweeter. The clamped membrane area
+is connected to the more massive front metal plate.
+This, combined with a special heat conductive com-
+pound, provides effective cooling of the aluminum con-
+ductors, dramatically increasing the dynamic range of
+the RT2C-A. This tweeter is magnetically shielded and
+is an extremely flat driver. Its depth is only 27 mm
+including the mounting flange.
+
+The RT2C-A has resistive impedance in the audio fre-
+quency range. This unique feature provides a friendly
+load for any amplifier and facilitates easy crossover
+design. Unlike other drivers, the RT2C-A has an essen-
+tially linear phase response that provides time coherent
+reproduction resulting in accurate musical rhythm and
+imaging. The vibrating element of the RT2C-A is almost
+weightless compared to that of a dome tweeter. As a
+result it provides an immediate and precise response to
+any transients in the original signal. The RT2C-A has
+an exceptional ability to reveal the dynamics of instru-
+ments with complex high frequency spectra.
+
+Unlike conventional tweeters and electrostatic speakers,
+the RT2C-A has an extremely wide sound dispersion in
+the horizontal plane. At the same time, contrary to other
+dynamic tweeters, the RT2C-A has well-controlled dis-
+persion in the vertical plane. This feature helps to avoid
+disturbing floor and ceiling reflections, increasing imag-
+ing accuracy. With this tweeter there is no need to
+manipulate the network or use multiple units to achieve
+the restricted vertical directivity necessary for home the-
+ater applications.
+
+When considering all of the properties of the RT2C-A, it
+becomes clear why many critical listeners among audio-
+philes highly prize planar transducers. They possess
+unsurpassed clarity, transparency and the ability to
+deliver every tiniest musical detail.
+
+Since the RT2C-A has exceptional ability to reveal the
+dynamics of instruments and sonic resolution, it is rec-
+ommended to match it with drivers having similar prop-
+erties in order to maximize the overall integrity of a
+speaker system.
+
+RT2C_A SPECIFICATIONS
+
+Nominal Impedance (Q) 8
+|Nominal Power Handling (Ww) 30
+
+Max Power Handling (W) Oe | 60
+
+| Sensitivity (2.83v/1m) (dB) 94
+Weight (kg) 0.50 |
+Magnet System Neodymium |
+[Recommended Crossover Frequency >1 700 Hz
+

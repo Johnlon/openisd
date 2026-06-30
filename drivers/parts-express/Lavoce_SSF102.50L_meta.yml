@@ -20,86 +20,89 @@ dq_issue: null
 community: null
 fetched_sku: 293-786
 _sources:
-  datasheet: https://www.parts-express.com/pedocs/specs/293-786--lavoce-ssf102.50l-spec-sheet.pdf
   vendor_page: https://www.parts-express.com/Lavoce-SSF102.50L-10-Paper-Cone-Subwoofer-293-786
+  datasheet: https://www.parts-express.com/pedocs/specs/293-786--lavoce-ssf102.50l-spec-sheet.pdf
 specs:
-  Xmax:  # one-way linear excursion (m)
-    value: 0.0115
-    winner: vendor_page
-    sources:
-      vendor_page: 0.0115
-  Qts:  # total Q factor
-    value: 0.48
-    winner: vendor_page
-    sources:
-      vendor_page: 0.48
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.5
-    winner: vendor_page
-    sources:
-      vendor_page: 5.5
-  Sd:  # effective piston area (m²)
-    value: 0.036305000000000004
-    winner: vendor_page
-    sources:
-      vendor_page: 0.036305000000000004
   Fs:  # free air resonance (Hz)
     value: 50.0
     winner: vendor_page
     sources:
       vendor_page: 50.0
-  Rms:  # mechanical resistance (kg/s)
-    value: 5.046729783132896
-    winner: vendor_page
-    sources:
-      vendor_page: 5.046729783132896
-  Mms:  # moving mass incl. air load (kg)
-    value: 0.07501999999999999
-    winner: vendor_page
-    sources:
-      vendor_page: 0.07501999999999999
-  Qms:  # mechanical Q factor
-    value: 4.67
-    winner: vendor_page
-    sources:
-      vendor_page: 4.67
-  Cms:  # mechanical compliance (m/N)
-    value: 0.00013700000000000002
-    winner: vendor_page
-    sources:
-      vendor_page: 0.00013700000000000002
-  Znom:  # nominal impedance (Ω)
-    value: 8.0
-    winner: vendor_page
-    sources:
-      vendor_page: 8.0
   Qes:  # electrical Q factor
     value: 0.53
-    winner: vendor_page
+    winner: datasheet
     sources:
+      datasheet: 0.53
       vendor_page: 0.53
-  Pe:  # rated power input (W)
-    value: 400.0
+  Qms:  # mechanical Q factor
+    value: 4.67
+    winner: datasheet
+    sources:
+      datasheet: 4.67
+      vendor_page: 4.67
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.07502
     winner: vendor_page
     sources:
-      vendor_page: 400.0
+      vendor_page: 0.07502
   BL:  # force factor (T·m)
     value: 15.54
     winner: vendor_page
     sources:
       vendor_page: 15.54
-  Le:  # voice coil inductance (H)
-    value: 0.00122
-    winner: vendor_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
     sources:
-      vendor_page: 0.00122
+      datasheet: 8.0
+  Qts:  # total Q factor
+    value: 0.48
+    winner: datasheet
+    sources:
+      datasheet: 0.48
+      vendor_page: 0.48
   Vas:  # equivalent acoustic volume (m³)
     value: 0.02548512
     winner: vendor_page
     sources:
       vendor_page: 0.02548512
-  SPL:  # sensitivity (dB, 2.83 V/1 m)
-    value: 91.5
+  Le:  # voice coil inductance (H)
+    value: 0.00122
     winner: vendor_page
     sources:
-      vendor_page: 91.5
+      vendor_page: 0.00122
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.5
+    winner: vendor_page
+    sources:
+      vendor_page: 5.5
+  Cms:  # mechanical compliance (m/N)
+    value: 0.000137
+    winner: vendor_page
+    sources:
+      vendor_page: 0.000137
+  Sd:  # effective piston area (m²)
+    value: 0.036305
+    winner: vendor_page
+    sources:
+      vendor_page: 0.036305
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0115
+    winner: vendor_page
+    sources:
+      vendor_page: 0.0115
+  Vd:
+    value: 0.00041750749999999997
+    winner: calculated
+    sources:
+      calculated: 0.00041750749999999997
+  Dd:
+    value: 0.214999910864191
+    winner: calculated
+    sources:
+      calculated: 0.214999910864191
+  EBP:
+    value: 94.33962264150944
+    winner: calculated
+    sources:
+      calculated: 94.33962264150944
