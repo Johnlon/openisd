@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Kill all processes on the project's reserved port range (4000-4005).
 # Escalation chain per port:
-#   1. Find Windows PID via netstat, map to POSIX PID via ps -W, bash kill -9
-#   2. taskkill /PID /F /T  (Windows tree-kill)
-#   3. taskkill /IM node.exe /F /T  (image-name nuke all node)
+#   1. tskill <winpid>  — most reliable: Terminal Services kill, works on orphaned PPID=0 processes
+#   2. bash kill -9 via MSYS2 PID from ps -W (only when PPID != 0)
+#   3. taskkill /PID /F /T  — Windows tree-kill (MSYS_NO_PATHCONV=1 to stop Git Bash mangling /F /PID)
+#   4. taskkill /IM node.exe /F  — image-name nuke all node
 # Loops until netstat confirms port is free or 10 attempts exhausted.
 # Pass explicit ports to override: scripts/kill-http.sh 4000 4001
 set -euo pipefail
@@ -45,14 +46,20 @@ _kill_port() {
     local posix_pid
     posix_pid=$(_posix_pid_for_winpid "$winpid")
 
-    # Step 1: bash kill -9 via POSIX PID (most reliable in Git Bash)
-    if [ -n "$posix_pid" ] && [ "$attempt" -le 3 ]; then
+    # Step 1: tskill — Terminal Services kill; works on orphaned PPID=0 processes
+    # that taskkill and bash kill cannot touch. Takes the bare Windows PID with no flags.
+    tskill "$winpid" > /dev/null 2>&1 \
+      && echo "  [attempt $attempt] tskill $winpid" \
+      || true
+
+    # Step 2: bash kill -9 via MSYS2 PID (only when PPID != 0 — real MSYS2 handle)
+    if [ -n "$posix_pid" ]; then
       kill -9 "$posix_pid" 2>/dev/null \
-        && echo "  [attempt $attempt] kill -9 POSIX PID $posix_pid (WinPID $winpid)" \
-        || echo "  [attempt $attempt] kill -9 failed for POSIX PID $posix_pid"
+        && echo "  [attempt $attempt] kill -9 MSYS2 PID $posix_pid (WinPID $winpid)" \
+        || true
     fi
 
-    # Step 2: taskkill tree-kill by Windows PID
+    # Step 3: taskkill tree-kill by Windows PID
     # MSYS_NO_PATHCONV=1 prevents Git Bash converting /F /PID /T as POSIX paths
     if [ "$attempt" -le 4 ]; then
       MSYS_NO_PATHCONV=1 taskkill /PID "$winpid" /F /T > /dev/null 2>&1 \
@@ -61,12 +68,11 @@ _kill_port() {
     fi
   done
 
-  # Step 3+: nuke all node.exe by image name
+  # Step 4+: nuke all node.exe by image name
   if [ "$attempt" -ge 5 ]; then
     echo "  [attempt $attempt] escalating — taskkill /IM node.exe /F"
     MSYS_NO_PATHCONV=1 taskkill /IM node.exe /F > /dev/null 2>&1 || true
-    # Also try kill -9 on all POSIX node PIDs
-    ps -W 2>/dev/null | awk '/node/{if ($1 < 1000000) print $1}' \
+    ps -W 2>/dev/null | awk '/node/ && $2 != 0 {print $1}' \
       | xargs -r kill -9 2>/dev/null || true
   fi
 }
