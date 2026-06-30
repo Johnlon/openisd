@@ -298,8 +298,9 @@ def main():
     total_files = len(all_wdr)
 
     for i, (coll_path, wdr_path) in enumerate(all_wdr, 1):
-        if i % 100 == 0 or i == total_files:
-            print(f"  {i}/{total_files}  {coll_path.name}/{wdr_path.name}", flush=True)
+        msg = f"  {i}/{total_files}  {coll_path.name}/{wdr_path.name}"
+        sys.stdout.write(f"\r{msg:<80}")
+        sys.stdout.flush()
         fields = parse_fields(wdr_path.read_text(encoding="utf-8", errors="replace"))
         sidecar_path = wdr_path.with_name(wdr_path.stem + "_meta.yml")
         sidecar = {}
@@ -310,6 +311,8 @@ def main():
                 pass
         for rule_id, desc, detail in check_fields(fields):
             issues.append((coll_path.name, wdr_path.name, rule_id, desc, detail, fields, sidecar))
+
+    print()  # end the in-place progress line
 
     url_status = {}
     if args.check_urls:
