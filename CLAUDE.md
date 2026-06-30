@@ -1,5 +1,22 @@
 # Claude Code rules for this project
 
+## Branch model — hard rule
+
+**`dev` is the working branch. All development, scraping, and feature work happens on `dev`.**
+
+**`main` is the release branch. It is reserved exclusively for production releases.**
+
+**AI must never commit to or push `main` directly** except through the approved release workflow:
+- `/release-drivers` skill (driver data releases)
+- Any future release skill added to `.claude/skills/`
+- Explicit human instruction in the current conversation that names `main` specifically
+
+**At the start of every conversation, check the current branch.** If on `main` accidentally, switch to `dev` immediately before doing any work. Never assume it is safe to work on `main`.
+
+**Permitted on `main` without explicit instruction:** nothing. Read-only inspection (e.g. `git log`, `git diff`) is fine; any write, commit, or push requires the release workflow or explicit per-conversation authorisation.
+
+---
+
 ## AI-locked files
 
 Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected from modification. These files define critical rules or transformations that must remain stable and auditable.
@@ -30,12 +47,37 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 - Always use the **Bash** tool for shell commands. Never use PowerShell.
 
+## AI role — build tools, don't perform ad-hoc tasks
+
+**The role of AI is to create reusable tools for routine tasks, not to perform those tasks ad-hoc each time.**
+
+When a task recurs (killing ports, cleaning build artefacts, resetting state, etc.) the correct response is:
+
+1. Write a script in `scripts/` that performs the task cleanly and generally.
+2. Run the script.
+3. Document it here so future AI sessions use the script rather than reinventing it.
+
+**Never write an inline one-liner when a reusable script already exists or should exist.** Check `scripts/` first. If a script for the task does not exist, create it before running it.
+
+**This principle does NOT apply to driver data files.** Scripts that touch, patch, normalise, backfill, or otherwise modify files in `drivers/` are banned regardless of how reusable they are — see "No normalisation or fix-it scripts" below. Driver data is maintained exclusively by the scrapers.
+
+**Available utility scripts:**
+
+- `scripts/kill-port.sh <port> [port …]` — kill all processes listening on the given port(s) on Windows.
+
+## Port range — hard rule
+
+**This project uses ports 4000–4005 only. NEVER use a port outside this range — not for any reason.**
+
+- **Reserved ports:** 4000 = dev/preview server, 4001 = Playwright webServer, 4002–4005 = experiments.
+- **Before starting any server:** run `bash scripts/kill-port.sh` to clear the range. Never reach for `taskkill` ad-hoc.
+- **If a port outside 4000–4005 is suggested by a tool or auto-incremented by Vite:** stop, run `bash scripts/kill-port.sh`, and restart on 4000. Never accept drift.
+
 ## Dev server — hard rules
 
-- **Always start with `npm run dev -- --port 8000`** (not `npx vite`, not `node .bin/vite`). The `predev` script bundles drivers and runs lint first; bypassing it produces a stale bundle.
-- **After starting the server, verify the page loads before telling the user to check it.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/` and confirm 200. If it returns an error or the server log shows a compile error, fix the error first — never hand off a broken URL.
-- **One port only — 8000.** Never start a second server on another port without killing 8000 first. If 8000 is occupied, kill the occupying process (`taskkill /PID <pid> /F`), then start fresh.
-- **Unregister any stale service worker before handing off to the user.** After starting the dev server, use the browser automation tools to run: `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:8000`. Do this silently — never ask the user to touch DevTools. The SW only gets registered from a production build (`npm run build`); in pure dev sessions it is absent, but if one is present it will serve stale compiled JS and make source changes invisible.
+- **Always start with `npm run dev -- --port 4000`** (not `npx vite`, not `node .bin/vite`). The `predev` script bundles drivers and runs lint first; bypassing it produces a stale bundle.
+- **After starting the server, verify the page loads before telling the user to check it.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/` and confirm 200. If it returns an error or the server log shows a compile error, fix the error first — never hand off a broken URL.
+- **Unregister any stale service worker before handing off to the user.** After starting the dev server, use the browser automation tools to run: `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4000`. Do this silently — never ask the user to touch DevTools. The SW only gets registered from a production build (`npm run build`); in pure dev sessions it is absent, but if one is present it will serve stale compiled JS and make source changes invisible.
 
 ## Post-deploy / post-build test — hard rule
 
