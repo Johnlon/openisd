@@ -39,28 +39,15 @@ fi
 echo "  All $PASS checks passed — starting server"
 echo "========================================"
 
-# Kill project port range
-for port in $(seq 4000 4005); do
-  pids=$(netstat -ano | awk "/:${port}[[:space:]].*LISTENING/{print \$5}" | sort -u)
-  for pid in $pids; do
-    cmd /c "taskkill /PID $pid /F" > /dev/null 2>&1 && echo "killed PID $pid on port $port" || true
-  done
-done
+# Kill project port range and wait until port 4000 is confirmed free
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$SCRIPT_DIR/kill-http.sh"
 
-# Verify port 4000 is actually free before starting — kills are async on Windows
-echo "Verifying port 4000 is clear..."
-for i in $(seq 1 15); do
-  still=$(netstat -ano 2>/dev/null | awk "/:4000[[:space:]].*LISTENING/{print 1; exit}")
-  if [ -z "$still" ]; then
-    echo "Port 4000 is free."
-    break
-  fi
-  if [ "$i" = "15" ]; then
-    echo "ERROR: Port 4000 still occupied after 30s — aborting"
-    exit 1
-  fi
-  sleep 2
-done
+# Final confirmation that 4000 is truly free before Vite tries to bind
+still=$(netstat -ano 2>/dev/null | awk "/:4000[[:space:]].*LISTENING/{print 1; exit}")
+if [ -n "$still" ]; then
+  echo "WARNING: port 4000 may still be occupied — starting anyway (will fail loudly if so)"
+fi
 
 echo ""
 npm run dev -- --port 4000 --strictPort &
