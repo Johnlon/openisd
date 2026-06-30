@@ -1,0 +1,7 @@
+[04:14:38] PROBLEM field=pdf_no_fields item=R3004/602005 url=https://www.scan-speak.dk/datasheet/pdf/r3004-602005.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1608
+[04:14:41] PROBLEM field=missing_ts item=R3004/602005 url=https://www.scan-speak.dk/product/r3004-602005/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:14:41] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']

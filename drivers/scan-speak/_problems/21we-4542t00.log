@@ -1,0 +1,4 @@
+[04:20:09] PROBLEM field=html_pdf_mismatch item=21WE/4542T00 url=https://www.scan-speak.dk/product/21we-4542t00/ offset=0
+         raw_value='Vas: HTML=0.054 PDF=0.541 (902% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:20:14] DONE problems=1

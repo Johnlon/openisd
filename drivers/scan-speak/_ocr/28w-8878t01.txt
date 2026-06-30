@@ -1,0 +1,57 @@
+\, SCANSPEAK Revelator
+28 cm Woofer 28W/8878T01
+
+T-S Parameters:
+
+Resonance frequency [fs] 22 Hz
+Mechanical Q factor [Qms] 5.81
+Electrical Q factor [Qes] 0.33
+Total Q factor [Qts] 0.31
+Force factor [BI] 14.9 Tm
+Mechanical resistance [Rms] 2.0 kg/s
+Moving mass [Mms] 84g
+Compliance [Cms] 0.62 mm/N
+18 Effective diaph. diameter [D] 215 mm
+tT Plich diam. 2266 Effective piston area [Sd] 363 cm?
+| i = Equivalent volume [Vas] 1161
+; Sensitivity (2,83V/1m) 88.5 dB
+3 3 g Mechanical Data:
+a 3 2 Voice coil diameter 75 mm
+S 8. % Voice coil height 23 mm
+v Voice coil layers 2
+\ ‘ | Gap height 8mm
+! U! 010.9 "Fr Linear excursion +7.5mm
+D 6,3 +0,1 (x7) Max mech. excursion + 28 mm
+Unit weight 7.5 kg
+Cabinet Displacement Volume 2.23 |
+Key Features:
+Paper sandwich cone Electrical Data:
+Spider with balanced tinsel leads Nominal impedance [Zn] 8Q
+3" Voice coil, Titanium former, paper reinforced Minimum impedance [Zmin] 7.49
+Patented Symmetrical Drive motor Maximum impedance [Zo] 136.2
+Long linear excursion DC resistance [Re] 6.32
+Stiff and strong die cast aluminium chassis Voice coil inductance [Le] 0.55 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: —_fs-1000 Hz 100h RMS noise test (IEC 18.4) 200 W
+Cabinet volume - closed box: — Vbox=31 ltr, f(-3dB)=48 Hz Long-term max power (IEC 18.2) 500 W
+Cabinet volume - vented box: Vbox=57 ltr, fo=27 Hz, f(-3dB)=30 Hz X-over: 2. order LP Butterworth, 200 Hz
+
+SPL [dB]
+100
+
+95
+
+. [Ze —=
+. Ay, pe
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

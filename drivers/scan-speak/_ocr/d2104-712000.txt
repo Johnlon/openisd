@@ -1,0 +1,107 @@
+\, SCANSPEAK
+
+Revelator
+
+19 mm Dome Tweeter
+
+D92 +0,2
+
+Key Features:
+
+Patented Symmetrical Drive (SD-2) motor
+Neodymium ring magnet system with double vent.
+High frequency extension beyond 40kHz
+
+Coated textile diaphragm w. large roll Surround
+Back chamber with high consistency felt pads
+Anodized Machined Alu Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 3500-30000 Hz
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box: N.a.
+
+SPL [dB]
+100
+
+Pitch diam.
+82,5 +0,2
+
+D2104/712000
+
+T-S Parameters:
+Resonance frequency [fs] 500 Hz
+Mechanical Q factor [Qms] 2.3
+
+Electrical Q factor [Qes] 0.48
+Total Q factor [Qts] 0.40
+Force factor [BI] 2.0 Tm
+Mechanical resistance [Rms] 0.3 kg/s
+Moving mass [Mms] 0.22 g
+Compliance [Cms] 0.46 mm/N
+Effective diaph. diameter [D] 24mm
+Effective piston area [Sd] 4.5 cm2
+Equivalent volume [Vas] 0.01 |
+Sensitivity (2,83V/1m) 92 dB
+Mechanical Data:
+
+Voice coil diameter 19.3 mm
+Voice coil height 1.8 mm
+Voice coil layers 2
+
+Gap height 4mm
+Linear excursion +0.5mm
+Max mech. excursion +1.5mm
+Unit weight 0.33 kg
+Cabinet Displacement Volume 0.09 |
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 3.5Q
+Maximum impedance [Zo] 11.3.Q
+DC resistance [Re] 2.8 Q
+Voice coil inductance [Le] 0.02 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 50 W
+Long-term max power (IEC 18.2) 120 W
+
+X-over: 2. order HP Butterworth, 4 kHz
+
+95
+
+85
+
+90 ae
+Sp SSE :
+
+80 =
+
+| 64.0
+75
+
+[ VU | 320
+
+70
+
+r 160
+65
+60 8a
+55
+
+40a
+50
+
+100 1000 10000 50000
+
+mem On-axis
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+Frequency [Hz]
+ee Impedance
+
+Datasheet updated: January 7, 2021.

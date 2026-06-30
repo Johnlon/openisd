@@ -2,55 +2,124 @@ source: https://www.scan-speak.dk/product/16w-4531g06/
 manu_page_url: https://www.scan-speak.dk/product/16w-4531g06/
 vendor_page_url: null
 datasheet_url: https://www.scan-speak.dk/datasheet/pdf/16w-4531g06.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/16w-4531g06.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/16w-4531g06.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/16w-4531g06.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
-corrections: null
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,Sd,Vas,Xmax,Znom.'
+corrections: '''Qts'' stored=0.59 differs from calculated=0.584111 (deps: Qms=5.08,
+  Qes=0.66)'
 reviewed_by: null
-driver_type: woofer
+driver_type: midwoofer
+nominal_size_cm: 16.0
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
 _sources:
   datasheet: https://www.scan-speak.dk/datasheet/pdf/16w-4531g06.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/16w-4531g06.pdf
   manu_page: https://www.scan-speak.dk/product/16w-4531g06/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 0.00028
+    winner: datasheet
+    sources:
+      datasheet: 0.00028
+  Qms:  # mechanical Q factor
+    value: 5.08
+    winner: datasheet
+    sources:
+      datasheet: 5.08
   Qts:  # total Q factor
     value: 0.59
     winner: manu_page
     sources:
+      datasheet: 0.59
       manu_page: 0.59
-  Re:  # DC voice coil resistance (Ω)
-    value: 3.5
-    winner: manu_page
-    sources:
-      manu_page: 3.5
-  Sd:  # effective piston area (m²)
-    value: 0.0123
-    winner: manu_page
-    sources:
-      manu_page: 0.0123
-  Fs:  # free air resonance (Hz)
-    value: 51.0
-    winner: manu_page
-    sources:
-      manu_page: 51.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 5.2
     winner: manu_page
     sources:
+      datasheet: 5.18
       manu_page: 5.2
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 51.0
+    winner: manu_page
+    sources:
+      datasheet: 51.0
+      manu_page: 51.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: manu_page
     sources:
       manu_page: 88.0
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.0123
+    winner: manu_page
+    sources:
+      datasheet: 0.0123
+      manu_page: 0.0123
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0126
     winner: manu_page
     sources:
+      datasheet: 0.0126
       manu_page: 0.0126
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0163
+    winner: datasheet
+    sources:
+      datasheet: 0.0163
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00059
+    winner: datasheet
+    sources:
+      datasheet: 0.00059
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0065
+    winner: datasheet
+    sources:
+      datasheet: 0.0065
+  Re:  # DC voice coil resistance (Ω)
+    value: 3.5
+    winner: manu_page
+    sources:
+      datasheet: 3.46
+      manu_page: 3.5
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.66
+    winner: datasheet
+    sources:
+      datasheet: 0.66
+  Vd:
+    value: 7.994999999999999e-05
+    winner: calculated
+    sources:
+      calculated: 7.994999999999999e-05
+  Dd:
+    value: 0.12514330345744634
+    winner: calculated
+    sources:
+      calculated: 0.12514330345744634
+  EBP:
+    value: 77.27272727272727
+    winner: calculated
+    sources:
+      calculated: 77.27272727272727

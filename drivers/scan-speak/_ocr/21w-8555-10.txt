@@ -1,0 +1,71 @@
+\, SCANSPEAK Classic
+
+21 cm Woofer 21W/8555-10
+
+T-S Parameters:
+
+Resonance frequency [fs] 20 Hz
+Mechanical Q factor [Qms] 4.50
+Electrical Q factor [Qes] 0.33
+Total Q factor [Qts] 0.31
+Force factor [BI] 8.2 Tm
+Mechanical resistance [Rms] 0.89 kg/s
+Moving mass [Mms] 32g
+. . om Compliance [Cms] 1.98 mm/N
+fitch diam 2135 __ Effective diaph. diameter [D] 167 mm
+—s— Effective piston area [Sd] 220 cm2
+
+Equivalent volume [Vas] 134 |
+Sensitivity (2,83V/1m) 87 dB
+
+Mechanical Data:
+
+Voice coil diameter 42 mm
+Voice coil height 19 mm
+Voice coil layers 2
+
+Gap height 6mm
+Linear excursion +6.5mm
+Max mech. excursion + 12mm
+Unit weight 2.2 kg
+Cabinet Displacement Volume 0.64 |
+
+Key Features:
+Patented Symmetrical Drive Motor Design SD-1 Electrical Data:
+Die Cast Alu. Chassis
+
+Nominal impedance [Zn] 8Q
+Low-Loss linear suspension Minimum impedance [Zmin] 6.42
+Air Dried Paper/Carbon Fibre Cone Maximum impedance [Zo] 80.5 Q
+Low Damping SBR Rubber Surround DC resistance [Re] 5.59
+42mm Voice Coil Voice coil inductance [Le] 0.4 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-2500 Hz 100h RMS noise test (IEC 18.4) 100 W
+Cabinet volume - closed box: — Vbox=36 Itr, f(-3dB)=43 Hz Long-term max power (IEC 18.2) 160 W
+Cabinet volume - vented box: Vbox=65 Itr, fb=25 Hz, f(-3dB)=27 Hz X-over: None
+
+SPL [dB]
+100
+
+95
+
+*° La
+[RG PSI
+pe
+
+fF 320
+70
+
+\
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.
+

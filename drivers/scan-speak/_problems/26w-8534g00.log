@@ -1,0 +1,4 @@
+[04:18:45] PROBLEM field=schema_fail item=26W/8534G00 url=https://www.scan-speak.dk/product/26w-8534g00/ offset=0
+         raw_value="WDR: 'Vas' stored=0.15 differs from calculated=0.165084 (deps: roo=1.20095, c=343.684, Sd=0.035, Cms=0.00095)"
+         reason=File failed strict schema validation
+[04:18:45] SCHEMA_FAIL errors=1

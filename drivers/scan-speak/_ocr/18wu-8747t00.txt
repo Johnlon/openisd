@@ -1,0 +1,59 @@
+\, SCANSPEAK lIluminator
+18 cm Woofer 1 8WU/8747T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 36 Hz
+Mechanical Q factor [Qms] 3.72
+Electrical Q factor [Qes] 0.43
+Total Q factor [Qts] 0.38
+Force factor [BI] 7.4Tm
+Mechanical resistance [Rms] 1.1 kg/s
+Moving mass [Mms] 18g
+li 1.1 N
+SF 104.8 - _ Picth diam. 172,50 Compliance [Cms] mm/
+-= 120° (x3) Effective diaph. diameter [D] 140 mm
+I L — S Effective piston area [Sd] 154 cm2
+a 13 | VILA . . Equivalent volume [Vas] 36.2 |
+. \ TL Sensitivity (2,83V/1m) 85.5 dB
+a 3 i \ Mechanical Data:
+z & 6 | | | | Voice coil diameter 42 mm
+pad ww
+S 5 \ Voice coil height 8mm
+WN Voice coil layers 4
+S Gap height 20 mm
+E ! S—=—= Linear excursion +9mm
+' 94,20 910 , Max mech. excursion + 16mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.45 |
+Key Features:
+Under-Hung Neodymium Motor Design Electrical Data:
+Patented Symmetrical Drive (SD-3) Nominal impedance [Zn] 8Q
+Black Anodized Alu. Cone Minimum impedance [Zmin] 7.3.2
+Exceptionally Long Linear Excursion Maximum impedance [Zo] 51.792
+Low-Loss linear suspension DC resistance [Re] 5.8 Q
+Patented Design Voice coil inductance [Le] 0.6 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-4000 Hz 100h RMS noise test (IEC 18.4) 70 W
+Cabinet volume - closed box: Vbox=17 ltr, f(-3dB)=64 Hz Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: Vbox=35 Itr, fb=36 Hz, f(-3dB)=37 Hz X-over: None
+SPL [dB]
+100
+95
+90
+85 f~
+80
+; 6440
+75
+\ pF 32Q
+70
+65 \ r 160
+60 8a
+55 ;4Q
+80 10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

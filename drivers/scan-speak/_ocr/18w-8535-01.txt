@@ -1,0 +1,125 @@
+\, SCANSPEAK
+
+Classic
+
+18 cm Midwoofer
+
+158,4 +0,5
+
+—
+
+Key Features:
+
+Patented Symmetrical Drive Motor Design
+
+Pitch diam © 171
+
+\ 03,5 £0,2(x6)
+
+Coated Air Dried Paper/Carbon Fibre Cone
+
+38mm Voice Coil
+Low-Loss linear suspension
+
+Low Damping SBR Rubber Surround
+
+Aluminium Chassis
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-3500 Hz
+Vbox=32 ltr, f(-3dB)=44 Hz
+Vbox=67 ltr, fb=25 Hz, f(-3dB)=25 Hz
+
+18W/8535-01
+
+T-S Parameters:
+
+Resonance frequency [fs] 25 Hz
+Mechanical Q factor [Qms] 2.1
+Electrical Q factor [Qes] 0.46
+Total Q factor [Qts] 0.38
+Force factor [BI] 5.9Tm
+Mechanical resistance [Rms] 1.33 kg/s
+Moving mass [Mms] 17.2g
+Compliance [Cms] 2.30 mm/N
+Effective diaph. diameter [D] 136 mm
+Effective piston area [Sd] 145 cm2
+Equivalent volume [Vas] 68.9 |
+Sensitivity (2,83V/1m) 87 dB
+Mechanical Data:
+
+Voice coil diameter 38 mm
+Voice coil height 15mm
+Voice coil layers 2
+
+Gap height 5 mm
+Linear excursion +5mm
+Max mech. excursion + 10mm
+Unit weight 1.1 kg
+Cabinet Displacement Volume 0.33 |
+Electrical Data:
+
+Nominal impedance [Zn] 8Q
+Minimum impedance [Zmin] 6.8 Q
+Maximum impedance [Zo] 322
+
+DC resistance [Re] 5.85 Q
+Voice coil inductance [Le] 0.33 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 70 W
+Long-term max power (IEC 18.2) 170 W
+
+X-over: None
+
+95
+
+a aa
+
+: Pave
+80
+
+Jv
+
+75
+
+; 6440
+
+70
+
+fF 320
+
+wl 7%
+
+——- L169
+
+55
+
+8a
+
+| 40
+
+10
+
+mem On-axis m= 30° off-axis
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+50000
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.

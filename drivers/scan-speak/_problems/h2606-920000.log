@@ -1,0 +1,7 @@
+[04:11:11] PROBLEM field=pdf_no_fields item=H2606/920000 url=https://www.scan-speak.dk/datasheet/pdf/h2606-920000.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1675
+[04:11:12] PROBLEM field=missing_ts item=H2606/920000 url=https://www.scan-speak.dk/product/h2606-920000/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Vas', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:11:12] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Vas', 'Xmax']

@@ -1,0 +1,167 @@
+\, SCANSPEAK
+
+30 cm Subwoofer
+
+65 | 144,3 _
+5 || 80 |
+_—_l
+is 5
++ L
+Fs] WU LU 538
+© -—N
+f=) \ — a
+A 1
+
+Key Features:
+
+56mm Peak Excursion, 25mm Linear
+
+High Output 89dB @ 2,83V
+Low Resonance Freq. 17Hz
+
+Anodized Alu Cone, Fibre Glass Dust Cap
+
+Magnet System w. Alu Ring
+
+Die cast Alu Chassis vented below spider
+
+(295,5
+
+Pitch diam.
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-1500 Hz
+
+Vbox=67 ltr, f(-3dB)=34 Hz
+Vbox=132 ltr, fb=20 Hz, f(-3dB)=20 Hz
+
+Automotive
+30W/4558T06
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+Voice coil diameter
+Voice coil height
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+17 Hz
+5.01
+0.34
+0.32
+
+10.5 Tm
+2.88 kg/s
+135g
+0.65 mm/N
+244 mm
+466 cm2
+197 |
+
+89 dB
+
+51mm
+33 mm
+
+8 mm
+
++ 12.5 mm
++ 28 mm
+6.3 kg
+1.50 |
+
+4Q
+3.3.2
+40.9 Q
+2.6 Q
+0.83 mH
+
+150 W
+350 W
+
+95
+
+. Eas Tae Ye
+
+80
+
+75
+
+aN
+
+; 6440
+pF 320
+70
+/ fF 160
+65 yi
+60 c= 8a
+55
+r+ 4Q
+
+10
+
+100
+
+1000
+
+mem On-axis m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+50000
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.
+

@@ -1,0 +1,62 @@
+\, SCANSPEAK Discovery
+10 cm Fullrange 10F/8414G10
+
+T-S Parameters:
+
+Resonance frequency [fs] 100 Hz
+Mechanical Q factor [Qms] 2.44
+Electrical Q factor [Qes] 0.65
+Total Q factor [Qts] 0.51
+Force factor [BI] 4.27 Tm
+Mechanical resistance [Rms] 0.76 kg/s
+Moving mass [Mms] 2.93 g
+Compliance [Cms] 0.86 mm/N
+Effective diaph. diameter [D] 68 mm
+Effective piston area [Sd] 36 cm2
+Equivalent volume [Vas] 1.57 |
+Sensitivity (2,83V/1m) 86 dB
+a Mechanical Data:
+Ws Voice coil diameter 20 mm
+Ds Voice coil height 8.7 mm
+S Voice coil layers 2
+Gap height 4mm
+Linear excursion + 2.3mm
+Max mech. excursion +7.5mm
+Unit weight 0.16 kg
+Cabinet Displacement Volume 0.03 |
+Key Features:
+Wide Frequency Range Electrical Data:
+Vented Alu. Chassis, SBR Rubber Surround Nominal impedance [Zn] 8Q
+Compact Neo magnet Motor Minimum impedance [Zmin] 6.8.2
+High Sensitivity 86dB/2,83V Maximum impedance [Zo] 28.42
+Copper Cap on Pole Piece DC resistance [Re] 6.3. Q
+Coated NRSC Fibre Glass Cone (patent) Voice coil inductance [Le] 0.11 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 130-10000 Hz 100h RMS noise test (IEC 18.4) 10 W
+Cabinet volume - closed box: — Vbox=2 Itr, f(-3dB)=132 Hz Long-term max power (IEC 18.2) 20 W
+Cabinet volume - vented box: Vbox=4 Itr, fo=65 Hz, f(-3dB)=62 Hz X-over: None
+
+SPL [dB]
+100
+
+95
+
+85
+
+80
+
++ 6440
+75
++ 320
+70
+Ss + 16Q
+60 F 8Q
+55
+r+4Q
+50
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

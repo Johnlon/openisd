@@ -1,0 +1,133 @@
+\, SCANSPEAK
+
+Discovery
+
+30 cm Passive
+
+0
+(308,25 -0,50
+
+Key Features:
+
+80
+"6,50
+
+D277 -0,50
+
++0,30
+O§ -0,20(x8)
+
+Optimized for 30W/4558T00
+Adjustable Weight for Optimum Fres
+Rigid Black Aluminium Cone
+
+Coated Sandwich Fibre Glass Dust Cap
+Die cast Alu Chassis
+
+Pitch diam 295,50
+
+Recommendations (please see Tech Note):
+Operating frequency range: N.a.
+Cabinet volume - closed box: _N.a.
+Cabinet volume - vented box: N.a.
+
+30W/0-00-00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+9.5 Hz
+
+-mm
+-mm
+
+-mm
++-mm
++ 28 mm
+1.4 kg
+0.64 |
+
+SPL [dB]
+
+100
+95
+90
+85
+80
+
+; 6440
+75
+
+fF 320
+70
+
+fF 160
+65
+60 8a
+88 r+ 4Q
+50
+
+10
+
+mem On-axis m= 30° off-axis
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+50000
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.

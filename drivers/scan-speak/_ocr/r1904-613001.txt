@@ -1,0 +1,68 @@
+\, SCANSPEAK Discovery
+19 mm Dome Tweeter R1904/613001
+
+T-S Parameters:
+
+Resonance frequency [fs] 1000 Hz
+Mechanical Q factor [Qms] 8.03
+Electrical Q factor [Qes] 2.02
+Total Q factor [Qts] 1.61
+Force factor [Bl] 1.47
+Mechanical resistance [Rms] 0.18 kg/s
+Moving mass [Mms] 0.23 g
+2% Compliance [Cms] 0.11 mm/N
+8 12 3 Effective diaph. diameter [D] 22 mm
+~ fo Q Effective piston area [Sd] 3.8 cm2
+Equivalent volume [Vas] 0.002 |
+q S| | Sf Sensitivity (2,83V/1m) 87 dB
+8 \
+2. | aa Mechanical Data:
+Voice coil diameter 19 mm
+a Voice coil height 1.8 mm
+Voice coil layers 2
+> Gap height 2mm
+1 y Linear excursion + 0.1 mm
+Max mech. excursion + 1.6mm
+_ Unit weight 0.05 kg
+Cabinet Displacement Volume 0.01 |
+Key Features:
+3/4" Ring Dome tweeter Electrical Data:
+Optimized for Car use Nominal impedance [Zn] 4Q
+Compact mounting dimentions Minimum impedance [Zmin] 3.39
+Wedge House for dashboard mounting Maximum impedance [Zo] 13.42
+Flange and Nut for doorpanel mounting DC resistance [Re] 2.79
+. Voice coil inductance [Le] 0.02 mH
+Recommendations (please see Tech Note):
+Operating frequency range: 3500-20000 Hz Power Handling:
+Cabinet volume - closed box: _N.a. 100h RMS noise test (IEC 18.4) 40 W
+Cabinet volume - vented box: N.a. Long-term max power (IEC 18.2) -W
+
+X-over: 2. order HP Butterworth, 3 kHz
+
+SPL [dB]
+100
+
+95
+
+85
+
+80
+
+; 6440
+
+75
+\y lo
+70
+fF 160
+65 Y
+
+60 V BQ
+55
+NK 4a
+
+100 1000 10000 50000
+Frequency [Hz]
+
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

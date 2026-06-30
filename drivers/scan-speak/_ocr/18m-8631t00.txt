@@ -1,0 +1,71 @@
+\, SCANSPEAK Revelator
+18 cm Midrange 18M/8631T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 65 Hz
+Mechanical Q factor [Qms] 5.24
+Electrical Q factor [Qes] 0.82
+Total Q factor [Qts] 0.71
+Force factor [BI] 6.5 Tm
+Mechanical resistance [Rms] 1.11 kg/s
+Moving mass [Mms] 14.2g
+. Pitch diam @ 170 _ Compliance [Cms] 0.42 mm/N
+7 - 2 5,30 +0,10(x5) Effective diaph. diameter [D] 138 mm
+i “Ty — Effective piston area [Sd] 154 cm2
+F ; Equivalent volume [Vas] 141
+} | Sensitivity (2,83V/1m) 89 dB
+3 o8 Mechanical Data:
+8 53 Voice coil diameter 38 mm
+8 : Voice coil height 10.9 mm
+| Voice coil layers 2
+Gap height 5 mm
+I F ' Linear excursion +3mm
+Max mech. excursion + 14.5 mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.47 |
+Key Features:
+Patented Symmetrical Drive motor design Electrical Data:
+Sliced Cone (Control Cone Breakups) Nominal impedance [Zn] 8Q
+Low-loss Linear Suspension Minimum impedance [Zmin] 6.3.2
+High Sensitivity 89dB @ 2,83V Maximum impedance [Zo] 39.72
+Coated Foam Surround DC resistance [Re] 6.0 Q
+Rigid Titanium Voice Coil Former Voice coil inductance [Le] 0.22 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: _ 70-6000 Hz 100h RMS noise test (IEC 18.4) 120 W
+Cabinet volume - closed box: — Vbox=3 Itr, f(-3dB)=154 Hz Long-term max power (IEC 18.2) 250 W
+Cabinet volume - vented box: —N.a. X-over: 2. order HP Butterworth, 100 Hz
+
+SPL [dB]
+100
+
+95
+
+20 ~~ Pe ES
+= ate/
+
+85
+
+7 \ \
+
+; A \ me
+
+r 320
+
+7O 7
+kK + 160
+
+6s NO N
+60 8Q
+55
+
+r+ 4Q
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

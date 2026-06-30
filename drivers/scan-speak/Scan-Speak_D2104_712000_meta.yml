@@ -2,55 +2,134 @@ source: https://www.scan-speak.dk/product/d2104-712000/
 manu_page_url: https://www.scan-speak.dk/product/d2104-712000/
 vendor_page_url: null
 datasheet_url: https://www.scan-speak.dk/datasheet/pdf/d2104-712000.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/d2104-712000.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/d2104-712000.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/d2104-712000.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,SPL,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
 driver_type: tweeter
+nominal_size_cm: 1.9
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=1e-05 differs from calculated=1.32138e-05 '
 community: null
 fetched_sku: null
 _sources:
   datasheet: https://www.scan-speak.dk/datasheet/pdf/d2104-712000.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/d2104-712000.pdf
   manu_page: https://www.scan-speak.dk/product/d2104-712000/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 2.0e-05
+    winner: datasheet
+    sources:
+      datasheet: 2.0e-05
+  Qms:  # mechanical Q factor
+    value: 2.3
+    winner: datasheet
+    sources:
+      datasheet: 2.3
   Qts:  # total Q factor
     value: 0.4
     winner: manu_page
     sources:
+      datasheet: 0.4
       manu_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 2.8
-    winner: manu_page
-    sources:
-      manu_page: 2.8
-  Sd:  # effective piston area (m²)
-    value: 0.00045
-    winner: manu_page
-    sources:
-      manu_page: 0.00045
-  Fs:  # free air resonance (Hz)
-    value: 500.0
-    winner: manu_page
-    sources:
-      manu_page: 500.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 2.0
     winner: manu_page
     sources:
+      datasheet: 2.0
       manu_page: 2.0
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 4.0
+    winner: datasheet
+    sources:
+      datasheet: 4.0
+  Fs:  # free air resonance (Hz)
+    value: 500.0
+    winner: manu_page
+    sources:
+      datasheet: 500.0
+      manu_page: 500.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 92.0
     winner: manu_page
     sources:
+      datasheet: 92.0
       manu_page: 92.0
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.00045
+    winner: manu_page
+    sources:
+      datasheet: 0.00045
+      manu_page: 0.00045
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 1.0e-05
     winner: manu_page
     sources:
+      datasheet: 1.0e-05
       manu_page: 1.0e-05
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.00022
+    winner: datasheet
+    sources:
+      datasheet: 0.00022
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00046
+    winner: datasheet
+    sources:
+      datasheet: 0.00046
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0005
+    winner: datasheet
+    sources:
+      datasheet: 0.0005
+  Re:  # DC voice coil resistance (Ω)
+    value: 2.8
+    winner: manu_page
+    sources:
+      datasheet: 2.8
+      manu_page: 2.8
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.48
+    winner: datasheet
+    sources:
+      datasheet: 0.48
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 3500.0
+    winner: datasheet
+    sources:
+      datasheet: 3500.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 30000.0
+    winner: datasheet
+    sources:
+      datasheet: 30000.0
+  Vd:
+    value: 2.25e-07
+    winner: calculated
+    sources:
+      calculated: 2.25e-07
+  Dd:
+    value: 0.02393653682408596
+    winner: calculated
+    sources:
+      calculated: 0.02393653682408596
+  EBP:
+    value: 1041.6666666666667
+    winner: calculated
+    sources:
+      calculated: 1041.6666666666667

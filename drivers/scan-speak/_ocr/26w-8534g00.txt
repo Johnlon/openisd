@@ -1,0 +1,69 @@
+l, SCANSPEAK Discovery
+26 cm Woofer 26W/8534G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 23 Hz
+Mechanical Q factor [Qms] 9.12
+Electrical Q factor [Qes] 0.42
+Total Q factor [Qts] 0.40
+Force factor [BI] 10.1 Tm
+Mechanical resistance [Rms] 0.80 kg/s
+Moving mass [Mms] 50.5 g
+100,35 Pitch diam. $258 Compliance [Cms] 0.95 mm/N
+_ 7} 56 Effective diaph. diameter [D] 211 mm
+Effective piston area [Sd] 350 cm2
+Equivalent volume [Vas] 150 |
+Sensitivity (2,83V/1m) 89 dB
+= 2
+a a Mechanical Data:
+= 8 Voice coil diameter 38 mm
+a S Voice coil height 18 mm
+Voice coil layers 2
+Gap height 6 mm
+Linear excursion +6mm
+- Max mech. excursion + 12 mm
+Unit weight 2.9 kg
+Cabinet Displacement Volume 0.73 |
+Key Features:
+Black Anodized Alu Cone Electrical Data:
+Coated Fibre Glass Dust Cap Nominal impedance [Zn] 8Q
+Magnet System w. Alu Ring Minimum impedance [Zmin] 6.4 Q
+Die cast Alu Chassis vented below spider Maximum impedance [Zo] 1179
+Low Resonance Freq. 23Hz DC resistance [Re] 5.72
+. Voice coil inductance [Le] 0.96 mH
+Recommendations (please see Tech Note):
+Operating frequency range: fs-1500 Hz Power Handling:
+Cabinet volume - closed box: — Vbox=82 ltr, f(-3dB)=39 Hz 100h RMS noise test (IEC 18.4) 80 W
+Cabinet volume - vented box: Vbox=173 Itr, fob=22 Hz, f(-3dB)=22 Hz Long-term max power (IEC 18.2) 150 W
+X-over: None
+
+SPL [dB]
+100
+
+95
+90
+85 oe
+80
+
+| 64a
+75
+
+| 320
+70
+
+r 160
+65
+60 8a
+55
+
+4a
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: November 1, 2021.
+

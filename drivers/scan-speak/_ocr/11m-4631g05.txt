@@ -1,0 +1,68 @@
+\, SCANSPEAK Automotive
+11 cm Midrange 11M/4631G05
+
+T-S Parameters:
+
+Resonance frequency [fs] 68 Hz
+Mechanical Q factor [Qms] 4.54
+Electrical Q factor [Qes] 0.33
+Total Q factor [Qts] 0.31
+Force factor [BI] 5.5 Tm
+Mechanical resistance [Rms] 0.67 kg/s
+Moving mass [Mms] 7.1g
+Compliance [Cms] 0.77 mm/N
+eal Effective diaph. diameter [D] 80 mm
+~~ Effective piston area [Sd] 50 cm2
+f Equivalent volume [Vas] 2.7 |
+9 Sensitivity (2,83V/1m) 90 dB
+s —
+a S Mechanical Data:
+uw Fy E Voice coil diameter 38 mm
+-| © > Voice coil height 10 mm
+So o Voice coil layers 2
+= a Gap height 4mm
+! Linear excursion +3mm
+(0 4,2(x3) Max mech. excursion + 7mm
+Unit weight 0.6 kg
+Cabinet Displacement Volume 0.08 |
+Key Features:
+Sliced Paper Cone Electrical Data:
+Compact Neodymium Magnet System Nominal impedance [Zn] 4Q
+Low-Loss Linear Suspension Minimum impedance [Zmin] 3.6.2
+Robust Alu Chassis Maximum impedance [Zo] 43.Q
+High Grade Neo Magnet DC resistance [Re] 3.39
+Protective Magnet Cup with Grill over Pole Vent Voice coil inductance [Le] 0.06 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 85-10000 Hz 100h RMS noise test (IEC 18.4) 40 W
+Cabinet volume - closed box:  Vbox=0.8 ltr, f(-3dB)=142 Hz Long-term max power (IEC 18.2) 70 W
+Cabinet volume - vented box: Vbox=1.5 Itr, fo=81 Hz, f(-3dB)=88 Hz X-over: 2. order HP Butterworth, 200 Hz
+
+SPL [dB]
+100
+
+95
+
+. yA ‘\
+
+¥
+
+| 64.9
+75
+
+| 320
+70 V
+
+L160
+65 nS
+60 8Q
+55
+
+L4a
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

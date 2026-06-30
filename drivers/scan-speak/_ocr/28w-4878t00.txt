@@ -1,0 +1,70 @@
+\, SCANSPEAK Revelator
+28 cm Subwoofer 28W/4878T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 18 Hz
+Mechanical Q factor [Qms] 5.6
+Electrical Q factor [Qes] 0.32
+Total Q factor [Qts] 0.3
+Force factor [BI] 11.2 Tm
+Mechanical resistance [Rms] 2.3 kg/s
+Moving mass [Mms] 114.5g
+1 Compliance [Cms] 0.68 mm/N
+5 5] = 139.6 - en Effective diaph. diameter [D] 215 mm
+“TR 74 = __ Piteh diam. ° 265 Effective piston area [Sd] 363 cm2
+1 i Equivalent volume [Vas] 127 |
+ie Sensitivity (2,83V/1m) 88 dB
+F 3 g Mechanical Data:
+gf g ey Voice coil diameter 75 mm
+Ss a % Voice coil height 36 mm
+Voice coil layers 2
+! j Gap height 8mm
+! Linear excursion +14mm
+6,3 £0,1 (x7) Max mech. excursion + 26 mm
+Unit weight 7.5 kg
+Cabinet Displacement Volume 2.23 |
+Key Features:
+Paper sandwich cone Electrical Data:
+Patented Symmetrical Drive motor Nominal impedance [Zn] 4Q
+Spider with balanced tinsel leads Minimum impedance [Zmin] 3.80
+Extreme linear excursion (+/-14 mm) Maximum impedance [Zo] 53.Q
+3" Voice coil, Titanium former and paper reinforced DC resistance [Re] 3.10
+Stiff and strong die cast aluminium chassis Voice coil inductance [Le] 0.5 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: —_—fs-1000 Hz 100h RMS noise test (IEC 18.4) 200 W
+Cabinet volume - closed box: — Vbox=35 Itr, f(-3dB)=39 Hz Long-term max power (IEC 18.2) 500 W
+Cabinet volume - vented box: Vbox=65 Itr, fob=23 Hz, f(-3dB)=24 Hz X-over: 2. order LP Butterworth, 200 Hz
+
+SPL [dB]
+100
+
+95
+
+90
+85 PAN L\
+Ii SS
+
+80
+
+| 64.9
+75
+
+| 320
+70
+
+L160
+65 J
+60 8Q
+55
+
+L4a
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: July 15, 2022.
+

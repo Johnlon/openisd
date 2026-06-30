@@ -1,0 +1,75 @@
+\, SCANSPEAK
+
+Discovery
+
+15 cm Midwoofer
+
+15W/8434G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 45 Hz
+Mechanical Q factor [Qms] 3.74
+Electrical Q factor [Qes] 0.27
+Total Q factor [Qts] 0.25
+Force factor [BI] 7.3 Tm
+Mechanical resistance [Rms] 0.66 kg/s
+Moving mass [Mms] 8.61 g
+Compliance [Cms] 1.43 mm/N
+Effective diaph. diameter [D] 101 mm
+Effective piston area [Sd] 80 cm2
+Equivalent volume [Vas] 12.8 |
+lo Sensitivity (2,83V/1m) 87 dB
+g
+2 Mechanical Data:
+= Voice coil diameter 32 mm
+S Voice coil height 13.4 mm
+Voice coil layers 2
+Gap height 5 mm
+Linear excursion + 4.2 mm
+Max mech. excursion +8mm
+Unit weight 1.2 kg
+Cabinet Displacement Volume 0.23 |
+Key Features:
+Coated NRSC Fibre Glass Cone Electrical Data:
+Magnet System w. Alu Ring Nominal impedance [Zn] 8Q
+Low Damping SBR Rubber Surround Minimum impedance [Zmin] 719
+Die cast Alu Chassis vented below spider Maximum impedance [Zo] 84.72
+: DC resistance [Re] 5.7Q
+SSCA TEE Tn (please see Tech Note): Vetea call ndudienes [Le] 0.8 mH
+Operating frequency range: fs-8000 Hz
+Cabinet volume - closed box: _N.a. Power Handling:
+Cabinet volume - vented box: N.a. 100h RMS noise test (IEC 18.4) 60 W
+Long-term max power (IEC 18.2) 120 W
+
+X-over: None
+
+SPL [dB]
+100
+
+95
+90
+85
+80
+
+| 64.0
+75
+
+| 320
+70
+
+r 160
+65
+60 8a
+55
+
+| 40
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: September 1, 2022.
+

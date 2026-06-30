@@ -1,0 +1,71 @@
+l, SCANSPEAK Revelator
+15 cm Midwoofer 15W/4531G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 40 Hz
+Mechanical Q factor [Qms] 4.60
+Electrical Q factor [Qes] 0.34
+Total Q factor [Qts] 0.32
+Force factor [BI] 5.7 Tm
+Mechanical resistance [Rms] 0.70 kg/s
+Moving mass [Mms] 13g
+Compliance [Cms] 1.25 mm/N
+15 n Effective diaph. diameter [D] 110 mm
+Effective piston area [Sd] 95 cm2
+| i, —_— Equivalent volume [Vas] 15.8 |
+a Sensitivity (2,83V/1m) 87 dB
+: Sy of = Mechanical Data:
+g as) § Voice coil diameter 38 mm
+I . 5 Voice coil height 17.5 mm
+a * Voice coil layers 2
+Pej Io Gap height 5mm
+| \ Linear excursion +6.5mm
+Max mech. excursion +9mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.36 |
+
+Key Features:
+Patented Symmetrical Drive motor design Electrical Data:
+Sliced Cone (Controls Cone Breakups)
+
+Nominal impedance [Zn] 4Q
+Low-Loss linear suspension Minimum impedance [Zmin] 4.4Q
+Low Damping SBR Rubber Surround Maximum impedance [Zo] 4.29
+Die cast Alu Chassis vented below spider DC resistance [Re] 3.49
+Large Ferrite Magnet System Voice coil inductance [Le] 0.25 mH
+
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-6000 Hz 100h RMS noise test (IEC 18.4) 60 W
+
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 180 W
+Cabinet volume - vented box: Vbox=10 Itr, fob=47 Hz, f(-3dB)=49 Hz X-over: None
+
+SPL [dB]
+100
+
+95
+
+90 anX
+
+os paper Sais
+AL SN
+
+70
+65 IS
+60
+
+55
+
+fF 160
+
+8a
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mms 30° off-axis mmm 60° off-axis ees Impedance
+
+www.scan-speak.dk Datasheet updated: August 13, 2021.

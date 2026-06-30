@@ -1,0 +1,64 @@
+lL, SCANSPEAK Illuminator
+26 mm Dome Tweeter R3004/662000
+
+T-S Parameters:
+
+Resonance frequency [fs] 520 Hz
+Mechanical Q factor [Qms] 3.27
+Electrical Q factor [Qes] 0.56
+Total Q factor [Qts] 0.48
+Force factor [BI] 2.3 Tm
+Mechanical resistance [Rms] 0.30 kg/s
+Moving mass [Mms] 0.3g
+_ Pitch diam. 092 _ Compliance [Cms] 0.31 mm/N
+30 Effective diaph. diameter [D] 27 mm
+r 5,70 Effective piston area [Sd] 5.6 cm2
+tr Equivalent volume [Vas] 0.01 |
+pen , Sensitivity (2,83V/1m) 90.5 dB
+“I \\
+S C\ 8 Mechanical Data:
+o A g Voice coil diameter 26 mm
+69 ( Hey Voice coil height 2.0 mm
+ys Voice coil layers 2
+- Ww, Gap height 2.5mm
+\ SS Linear excursion + 0.2 mm
+24,2 £0,1(xé6) Max mech. excursion + 1.6mm
+Unit weight 0.3 kg
+Cabinet Displacement Volume 0.12 |
+Key Features:
+1" Ring Dome Diaphragm Electrical Data:
+Patented Phase Plug Design Nominal impedance [Zn] 49
+Patented Symmetrical Drive (SD-2) motor Minimum impedance [Zmin] 3.99
+AirCirc Motor Design w. 6 Neo magnets Maximum impedance [Zo] 20.6 Q
+Diffraction Damping Rubber Front DC resistance [Re] 39
+Die Cast Rubber Painted Alu Face Plate Voice coil inductance [Le] 0.03 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 2500-20000 Hz 100h RMS noise test (IEC 18.4) 90 W
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: —N.a. X-over: 2. order HP Butterworth, 2.5 kHz
+
+SPL [dB]
+100
+
+95
+
+. ZO =e
+ers ==
+
+; 6440
+
+fF 160
+65 / \
+60 8a
+
+55
+
+| 40
+
+100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

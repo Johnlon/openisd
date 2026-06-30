@@ -1,0 +1,161 @@
+\, SCANSPEAK
+
+Discovery
+
+16 cm Midwoofer
+
+Key Features:
+
+Optimized for Car Use
+EURO-DIN mounting flange
+Aluminium Die cast Basket
+Shallow mounting dimention
+
+Black Coated NRSC Fibre Glass Cone
+
+Low Loss Suspension, with Rubber Surround
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+100
+
+95
+
+85
+
+80
+
+75
+
+70
+
+65
+
+55
+
+SPL [dB]
+
+fs-4000 Hz
+
+Vbox=23 ltr, f(-3dB)=74 Hz
+Vbox=44 ltr, fb=42 Hz, f(-3dB)=37 Hz
+
+16W/4434G00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+55 Hz
+3.06
+0.56
+0.48
+
+4.8 Tm
+1.41 kg/s
+12.5g
+0.67 mm/N
+131 mm
+138 cm2
+17.91
+90.5 dB
+
+32 mm
+12 mm
+
+4mm
++4mm
++8mm
+0.6 kg
+0.20 |
+
+4Q
+
+3.8. Q
+19.4Q
+39
+0.35 mH
+
+40 W
+
+aS
+
+al + 640
+r 320
+TX + 160
+NX 8a
+
+c= A
+r+ 4Q
+
+10
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

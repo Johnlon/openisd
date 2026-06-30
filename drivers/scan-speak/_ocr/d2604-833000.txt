@@ -1,0 +1,177 @@
+\, SCANSPEAK
+
+Discovery
+
+26 mm Dome Tweeter
+
+(2 104,2
+
+Key Features:
+
+High sensitivity - 93dB
+
+55
+
+104 +0,20
+
+Extended Frequency to Above 40KHz
+Low Resonance Frequency - 475Hz
+
+Low Distortion
+Wide Dispersion
+
+Textile Diaphragm, wide Surround
+
+Pitch diam. 92
+72
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+
+Cabinet volume - closed box: _N.a.
+Cabinet volume - vented box: N.a.
+
+SPL [dB]
+100
+
+2500-20000 Hz
+
+5x 04,2 40,2
+
+D2604/833000
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+Long-term max power (IEC 18.2)
+
+475 Hz
+2.55
+0.71
+0.55
+
+2.2 Tm
+0.49 kg/s
+0.42 g
+0.27 mm/N
+32 mm
+
+8 cm2
+0.02 |
+
+93 dB
+
+26 mm
+2mm
+
+2.5 mm
+
++ 0.3 mm
++ 1.6mm
+0.8 kg
+0.18 |
+
+4Q
+
+3.8. Q
+12.9Q
+2.8 Q
+0.04 mH
+
+100 W
+240 W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+85
+
+a
+
+75
+
+80 a
+
+; 6440
+
+Vv fF 320
+
+70
+
+65
+
+fF 160
+
+™
+
+8a
+
+55
+
+| 40
+
+100
+
+mem On-axis
+
+1000
+
+www.scan-speak.dk
+
+m= 30° off-axis m= 60° off-axis
+
+10000
+
+ee Impedance
+
+50000
+
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.

@@ -1,0 +1,122 @@
+\, SCANSPEAK
+
+Ellipticor
+
+21 cm Midwoofer
+
+7.6 97,4
+
+I
+I i : —-—=- ;
+2 a | \
+3] 5 yon ‘|S | }
+/ \ Vay
+J \ \ GY Li
+! * ——
+! ~ aa
+
+4,5 10,5 (x6) 60°(xé6)
+
+Pitch diam. © 211 +0,3
+
+Key Features:
+
+Elliptic voice coil
+
+Very low mechanical losses
+
+High sensitivity (SPL)
+
+AirCirc optimized magnetsystem
+
+Exceptionally low distortion
+
+Flexible appearence with replaceable decor ring
+
+Recommendations (please see Tech Note):
+Operating frequency range: fs-6000 Hz
+
+Cabinet volume - closed box: —Vbox=12 ltr, f(-3dB)=88 Hz
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+Vbox=21 Itr, fb=50 Hz, f(-3dB)=57 Hz
+
+21WE/4542T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 38 Hz
+Mechanical Q factor [Qms] 5.43
+Electrical Q factor [Qes] 0.30
+Total Q factor [Qts] 0.28
+Force factor [BI] 8.2 Tm
+Mechanical resistance [Rms] 1.1 kg/s
+Moving mass [Mms] 25g
+Compliance [Cms] 0.70 mm/N
+Effective diaph. diameter [D] 172 mm
+Effective piston area [Sd] 233 cm2
+Equivalent volume [Vas] 541
+Sensitivity (2,83V/1m) 93.5 dB
+Mechanical Data:
+
+Voice coil diameter 35/45 mm
+Voice coil height 19.5 mm
+Voice coil layers 2
+
+Gap height 5 mm
+Linear excursion + 7.2mm
+Max mech. excursion + 12mm
+Unit weight 1.8 kg
+Cabinet Displacement Volume 0.49 |
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 4.32
+Maximum impedance [Zo] 57 Q
+
+DC resistance [Re] 3.42
+Voice coil inductance [Le] 0.1 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 50 W
+Long-term max power (IEC 18.2) 100 W
+
+X-over: None
+
+95
+
+85
+
+80 7
+
+; 6440
+75
+
+fF 320
+70
+
+fF 160
+65 J Ni
+60 8a
+55
+
+r+ 4Q
+50
+
+10 100 1000 10000 50000
+
+mem On-axis
+
+m= 30° off-axis
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+Frequency [Hz]
+ee Impedance
+
+Datasheet updated: May 18, 2020.

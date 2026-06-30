@@ -1,0 +1,100 @@
+\, SCANSPEAK
+
+Illuminator
+
+26 mm Dome Tweeter
+
+29
+5,70_ _ Pitch diam. “92 +0,2
+i oy
+¢ SOF )
+) R pf}
+7, Fy
+4,20 -0,1(X6)
+
+Key Features:
+
+1" Textile Dome Diaphragm
+
+Large Roll Surround f. Wide Dispersion
+Patented Symmetrical Drive (SD-2) motor
+AirCirc Motor Design w. 6 Neo magnets
+Diffraction Damping Rubber Front
+
+Die Cast Rubber Painted Alu Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 2500-30000 Hz
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box: N.a.
+
+D3004/662000
+
+T-S Parameters:
+
+Resonance frequency [fs] 500 Hz
+Mechanical Q factor [Qms] 3.79
+Electrical Q factor [Qes] 0.62
+Total Q factor [Qts] 0.54
+Force factor [BI] 2.3 Tm
+Mechanical resistance [Rms] 0.29 kg/s
+Moving mass [Mms] 0.35 g
+Compliance [Cms] 0.29 mm/N
+Effective diaph. diameter [D] 30 mm
+Effective piston area [Sd] 7 cm2
+Equivalent volume [Vas] 0.02 |
+Sensitivity (2,83V/1m) 91.5 dB
+Mechanical Data:
+
+Voice coil diameter 26 mm
+Voice coil height 2.0 mm
+Voice coil layers 2
+
+Gap height 2.5mm
+Linear excursion + 0.2 mm
+Max mech. excursion + 1.6mm
+Unit weight 0.3 kg
+Cabinet Displacement Volume 0.12 |
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 3.9Q
+Maximum impedance [Zo] 21.22
+DC resistance [Re] 3Q
+
+Voice coil inductance [Le] 0.03 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 90 W
+Long-term max power (IEC 18.2) 150 W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+SPL [4B]
+100
+95
+85
+80
+Lo | 64a
+75
+| 320
+70
+Lyn L160
+60 8a
+88 40a
+50
+
+100 1000
+
+wm On-axis meme 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000 50000
+
+Frequency [Hz]
+wees Impedance
+
+Datasheet updated: October 7, 2021.
+

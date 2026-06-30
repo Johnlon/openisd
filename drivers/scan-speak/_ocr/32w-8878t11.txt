@@ -1,0 +1,178 @@
+\, SCANSPEAK
+
+Revelator
+
+32 cm Woofer
+
+(320 +0,4
+
+1594
+76
++
+
+1 I
+‘NI wo
+5 fo}
+
+psp oF
+| 34 £
+Ho NN fed
+
+!
+
+Key Features:
+
+92 dB Sensitivity @ 2,83V/1m
+
+Paper sandwich cone
+
+Coated foam Surround
+
+Patented Symmetrical Drive motor
+Powerful motor with dual ferrite magnets
+3" Voice coil, Titanium former and paper reinforced
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+100
+
+95
+
+85
+
+80
+
+75
+
+70
+
+65
+
+60
+
+55
+
+fs-1500 Hz
+Vbox=40.5 ltr, f(-3dB)=54 Hz
+Vbox=64.5 Itr, fo=31 Hz, f(-3dB)=37 Hz
+
+32W/8878T 11
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+21 Hz
+3.8
+0.28
+0.26
+16.5 Tm
+3.3 kg/s
+95.5g
+0.6 mm/N
+260 mm
+526 cm2
+235 |
+91.5 dB
+
+75mm
+23 mm
+
+8mm
++ 7.5mm
++ 28 mm
+9.8 kg
+3.22 |
+
+8Q
+7.2.Q
+
+6.1Q
+0.6 mH
+
+350 W
+700 W
+
+L\J>
+
+a ene er
+VY \ 7
+! he
+ye '
+= ”
+
+10
+
+100
+
+wm On-axis
+
+meme 30° off-axis
+
+1000
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+wees Impedance
+
+Datasheet updated: July 15, 2022.
+
+50000
+
+Frequency [Hz]
+

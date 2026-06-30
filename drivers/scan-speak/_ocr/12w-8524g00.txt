@@ -1,0 +1,146 @@
+\, SCANSPEAK
+
+Discovery
+
+12 cm Midwoofer
+
+124,7 0,3
+
+Key Features:
+Wide Operating Frequency Range
+
+Suitable for 2-way or 3-way (as midrange)
+
+2100 +0,50
+
+Coated NRSC Fibre Glass Cone (patent)
+Low Damping SBR Rubber Surround
+
+Die cast Alu Chassis vented below spider
+
+Pitch diam. (113
+
+2 5,3 £0,1(x4)
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box:
+
+100
+
+SPL [dB]
+
+fs-5000 Hz
+
+Vbox=4.5 Itr, fo=62 Hz, f(-3dB)=68 Hz
+
+12W/8524G00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+52 Hz
+3.42
+0.35
+0.32
+5.4Tm
+0.54 kg/s
+5.6g
+1.67 mm/N
+86 mm
+59 cm2
+8.2 |
+
+86 dB
+
+25 mm
+10 mm
+
+4mm
++3mm
++9mm
+1 kg
+0.12 |
+
+8
+6.6 Q
+48.2 Q
+5.7Q
+0.6 mH
+
+40 W
+70 W
+
+. aff soa
+wo [ v0
+. we
+
+10
+
+100
+
+mem On-axis m= 30° off-axis
+
+www.scan-speak.dk
+
+1000 10000
+
+== 60° off-axis ee Impedance
+
+50000
+
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.

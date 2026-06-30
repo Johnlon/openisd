@@ -1,0 +1,4 @@
+[04:16:48] PROBLEM field=schema_fail item=18W/8545-01 url=https://www.scan-speak.dk/product/18w-8545-01/ offset=0
+         raw_value="WDR: 'Qts' stored=0.2 differs from calculated=0.192655 (deps: Qms=1.55, Qes=0.22)"
+         reason=File failed strict schema validation
+[04:16:48] SCHEMA_FAIL errors=1

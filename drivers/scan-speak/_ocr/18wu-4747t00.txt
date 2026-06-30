@@ -1,0 +1,61 @@
+\, SCANSPEAK lIluminator
+18 cm Woofer 1 8WU/4747T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 36 Hz
+Mechanical Q factor [Qms] 3.72
+Electrical Q factor [Qes] 0.39
+Total Q factor [Qts] 0.35
+Force factor [BI] 5.9Tm
+Mechanical resistance [Rms] 1.1 kg/s
+Moving mass [Mms] 18.1g
+_ 1048 _ nicth diam. 172.50 Compliance [Cms] 1.1 mm/N
+6 7 120° (x3) : “| Effective diaph. diameter [D] 140 mm
+ro L — ~ Effective piston area [Sd] 154 cm2
+“ 1 CA Equivalent volume [Vas] 36 |
+Sensitivity (2,83V/1m) 87.5 dB
+a 2 Mechanical Data:
+3 < Voice coil diameter 42 mm
+3 5 Voice coil height 8mm
+Voice coil layers 4
+Gap height 20 mm
+! Linear excursion +9mm
+' Max mech. excursion + 16mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.45 |
+Key Features:
+Under-Hung Neodymium Motor Design Electrical Data:
+Patented Symmetrical Drive (SD-3) Nominal impedance [Zn] 4Q
+Black Anodized Alu. Cone Minimum impedance [Zmin] 459
+Exceptionally Long Linear Excursion Maximum impedance [Zo] 32.62
+Low-Loss linear suspension DC resistance [Re] 3.39
+Patented Design Voice coil inductance [Le] 0.4 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-4000 Hz 100h RMS noise test (IEC 18.4) 70 W
+Cabinet volume - closed box: — Vbox=15 Itr, f(-3dB)=67 Hz Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: Vbox=30 ltr, fo=38 Hz, f(-3dB)=39 Hz X-over: None
+
+— Ta
+pe Hh
+
+. za
+
+. a Uy je
+
+° AN .
+
+. aa~ so
+\\
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

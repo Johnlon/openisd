@@ -1,0 +1,52 @@
+26 mm Dome Tweeter D2904/710002
+T-S Parameters:
+Resonance frequency [fs] 520 Hz
+Mechanical Q factor [Qms] 3.50
+Electrical Q factor [Qes] 0.50
+Total Q factor [Qts] 0.44
+Force factor [Bl] 2.8 Tm
+Mechanical resistance [Rms] 0.37 kg/s
+Moving mass [Mms] 0.4g
+Compliance [Cms] 0.23 mm/N
+Effective diaph. diameter [D] 30 mm
+Effective piston area [Sd] 7 cm2
+sane 8.10 Equivalent volume [Vas] 0.02 |
+Bs Ne . or Sensitivity (2,83V/1m) 94.5 dB
+~~ 90° A IS i x
+a OS S 3 5 ry c
+res g \@o¢€ Mechanical Data:
+Wy 4 = Af 8 Voice coil diameter 26 mm
+- yy & Voice coil height 2.0 mm
+- 1 Voice coil layers 2
+104,2 24,2 40,1 (x6) Gap height 2.5 mm
+Linear excursion + 0.25 mm
+Max mech. excursion + 1.6mm
+Unit weight 0.4 kg
+Cabinet Displacement Volume 0.12 |
+Key Features:
+1" Coated Textile Diaphragm Electrical Data:
+Large Roll Surround f. Wide Dispersion Nominal impedance [Zn] 49
+Patented Symmetrical Drive (SD-2) motor Minimum impedance [Zmin] 3.72
+Large Ring Neo Magnet f. High Output Maximum impedance [Zo] 24.0
+Non Resonant Alu Rear Chamber DC resistance [Re] 39
+Silver Anodized Machined Alu Face Plate Voice coil inductance [Le] 0.01 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 2500-25000 Hz 100h RMS noise test (IEC 18.4) 90 W
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: _N.a. X-over: 2. order HP Butterworth, 2.5 kHz
+SPL [dB]
+100
+“ = Sane ee
+as a
+80 \
+; 6440
+75
+65 L~ | + 160
+60 =e NS 8aQ
+55 ;4Q
+50
+100 1000 10000 50000
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

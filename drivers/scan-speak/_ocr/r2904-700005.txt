@@ -1,0 +1,112 @@
+\, SCANSPEAK
+
+Revelator
+
+26 mm Dome Tweeter
+
+i
+i i
+i \ £
+oO Lo 2
+o [Ln
+2 8 <
+ee | 1
+
+Key Features:
+
+1" Ring Dome Diaphragm
+
+Patented Phase Plug Design
+
+Patented Symmetrical Drive (SD-2) motor
+Large Ring Neo Magnet f. High Output
+Non Resonant Alu Rear Chamber
+
+Black Anodized Machined Alu Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 2500-30000 Hz
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box: N.a.
+
+SPL [dB]
+100
+
+(4,2 £0,1(x6)
+
+R2904/700005
+
+T-S Parameters:
+
+Resonance frequency [fs] 520 Hz
+Mechanical Q factor [Qms] 2.90
+Electrical Q factor [Qes] 0.38
+Total Q factor [Qts] 0.33
+Force factor [BI] 2.8 Tm
+Mechanical resistance [Rms] 0.34 kg/s
+Moving mass [Mms] 0.3g
+Compliance [Cms] 0.31 mm/N
+Effective diaph. diameter [D] 27 mm
+Effective piston area [Sd] 5.6 cm2
+Equivalent volume [Vas] 0.01 |
+Sensitivity (2,83V/1m) 94.5 dB
+Mechanical Data:
+
+Voice coil diameter 26 mm
+Voice coil height 2.0 mm
+Voice coil layers 2
+
+Gap height 2.5 mm
+Linear excursion + 0.25 mm
+Max mech. excursion + 1.6mm
+Unit weight 0.4 kg
+Cabinet Displacement Volume 0.12 |
+
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 3.7Q
+Maximum impedance [Zo] 26.2 Q
+DC resistance [Re] 3Q
+
+Voice coil inductance [Le] 0.01 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 160 W
+Long-term max power (IEC 18.2) 210 W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+85
+
+80
+
+75
+
+. L
+
+fF 160
+
+55
+
+8a
+
+| 40
+
+100 1000
+
+mem On-axis
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000 50000
+
+Frequency [Hz]
+ee Impedance
+
+Datasheet updated: January 7, 2021.

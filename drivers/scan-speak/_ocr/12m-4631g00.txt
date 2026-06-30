@@ -1,0 +1,59 @@
+\, SCANSPEAK Revelator
+12 cm Midrange 12M/4631G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 75 Hz
+Mechanical Q factor [Qms] 5.57
+Electrical Q factor [Qes] 0.35
+Total Q factor [Qts] 0.33
+. \ Force factor [BI] 5.3 Tm
+ae Mechanical resistance [Rms] 0.55 kg/s
+ee Moving mass [Mms] 6.5g
+8 469 Compliance [Cms] 0.69 mm/N
+TT 1 _ Pitch diam. © 103,2 | Effective diaph. diameter [D] 79 mm
+Effective piston area [Sd] 49 cm2
+| Equivalent volume [Vas] 2.3 |
+=. Sensitivity (2,83V/1m) 89 dB
+6 ;
+° _¢ Mechanical Data:
+y ~° x Voice coil diameter 38 mm
+- Voice coil height 10 mm
+alli? ! Voice coil layers 2
+ond | NS ; Gap height 4mm
+— So Linear excursion + 3mm
+4,2 -0,1(x3) Max mech. excursion + 7mm
+Unit weight 0.6 kg
+Cabinet Displacement Volume 0.14 |
+Key Features:
+Excellent Midrange reproduction Electrical Data:
+Sliced Cone (Controls Cone Breakups) Nominal impedance [Zn] 4Q
+Low-Loss Linear Suspension Minimum impedance [Zmin] 3.8.2
+High Output 89dB @ 2,83V Maximum impedance [Zo] 54.1.9
+Compact Neodymium Magnet System DC resistance [Re] 3.29
+. Voice coil inductance [Le] 0.22 mH
+Recommendations (please see Tech Note):
+Operating frequency range: 85-10000 Hz Power Handling:
+Cabinet volume - closed box: Vbox=0.8 ltr, f(-3dB)=147 Hz 100h RMS noise test (IEC 18.4) 40 W
+Cabinet volume - vented box: Vbox=1.6 Itr, fo=84 Hz, f(-3dB)=88 Hz Long-term max power (IEC 18.2) 70 W
+
+X-over: 2. order HP Butterworth, 200 Hz
+
+SPL [dB]
+100
+
+95
+
+; NA
+
+: [V eee -
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

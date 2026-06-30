@@ -1,0 +1,163 @@
+\, SCANSPEAK
+
+Revelator
+
+32 cm Subwoofer
+
+150,60
+
+62,20.
+
+(2320 +0,4
+200,50
+D290,5 +0,5
+
+Key Features:
+
+Paper sandwich cone with Patented foam filling
+
+305
+
+Pitch diam.
+
+Extreme linear excursion (+/-14 mm)
+
+Patented Symmetrical Drive motor
+
+3" Voice coil, Titanium former and paper reinforced
+
+Spider with balanced woven in tinsel leads
+Stiff and strong die cast aluminium chassis
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+fs-2000 Hz
+Vbox=67 ltr, f(-3dB)=36 Hz
+Vbox=129 ltr, fo=20 Hz, f(-3dB)=21 Hz
+
+32W/4878T00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+18 Hz
+
+0.33
+
+0.32
+
+12.5 Tm
+2.42 kg/s
+150 g
+
+0.52 mm/N
+260 mm
+526 cm2
+203.9 |
+
+90 dB
+
+75mm
+36 mm
+
+8mm
++ 14mm
++ 28 mm
+7.5 kg
+2.65 |
+
+4Q
+42
+692
+3.19
+0.5 mH
+
+200 W
+550 W
+
+SPL [dB]
+100
+95
+90 pa BS
+os Le
+80
+75
+y pF 32Q
+70
+\ | 169
+65 7 iS
+60 ; 8Q
+55
+40a
+
+10
+
+100
+
+1000
+
+wm On-axis meme 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+wees Impedance
+
+50000
+Frequency [Hz]
+
+Datasheet updated: July 15, 2022.
+

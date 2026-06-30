@@ -1,0 +1,55 @@
+\, SCANSPEAK Ellipticor
+18 cm Midwoofer 18WE/4542T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 46 Hz
+Mechanical Q factor [Qms] 5.62
+Electrical Q factor [Qes] 0.26
+Total Q factor [Qts] 0.25
+Force factor [BI] 8.1 Tm
+Mechanical resistance [Rms] 0.9 kg/s
+Moving mass [Mms] 17.59
+8 87 _ Compliance [Cms] 0.68 mm/N
+mm = Effective diaph. diameter [D] 130 mm
+| SS Effective piston area [Sd] 133 cm2
+Equivalent volume [Vas] 17.2 |
+Sensitivity (2,83V/1m) 92.5 dB
+8 fet | : |} Lal Mechanical Data:
+8 iy a\\ an I} Voice coil diameter 35/45 mm
+Voice coil height 19.5 mm
+Voice coil layers 2
+| Gap height 5mm
+i pasion ns) atu Linear excursion + 7.2mm
+Le Pitch diam. 7169 40,3 | Max mech. excursion +12mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.32 |
+Key Features:
+Elliptic voice coil Electrical Data:
+AirCirc optimized magnetsystem Nominal impedance [Zn] 4Q
+Very low mechanical losses Minimum impedance [Zmin] 4.1Q
+Exceptionally low distortion Maximum impedance [Zo] 76Q
+High sensitivity (SPL) DC resistance [Re] 3.49
+Flexible appearence with replaceable decor ring Voice coil inductance [Le] 0.1 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-6000 Hz 100h RMS noise test (IEC 18.4) 50 W
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 100 W
+Cabinet volume - vented box: N.a. X-over: None
+
+SPL [dB]
+100
+
+0s 7 ion
+- DAN “\
+: AL )
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

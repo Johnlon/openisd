@@ -1,0 +1,62 @@
+\, SCANSPEAK Revelator
+32 cm Woofer 32W/8878T01
+
+T-S Parameters:
+
+Resonance frequency [fs] 19 Hz
+Mechanical Q factor [Qms] 5.69
+Electrical Q factor [Qes] 0.35
+Total Q factor [Qts] 0.33
+Force factor [BI] 15.6 Tm
+Mechanical resistance [Rms] 2.4 kg/s
+Moving mass [Mms] 114.8g
+Compliance [Cms] 0.60 mm/N
+Effective diaph. diameter [D] 260 mm
+; ; Effective piston area [Sd] 526 cm2
+j Equivalent volume [Vas] 234 |
+Sensitivity (2,83V/1m) 89 dB
+2 8
+2 re) < Mechanical Data:
+g ° § Voice coil diameter 75 mm
+€ 3 £ Voice coil height 23 mm
+= Voice coil layers 2
+Gap height 8mm
+1 ' ! Z 40:15) ~ 66,3 40,1(x9) Linear excursion + 7.5 mm
+ad Max mech. excursion + 28 mm
+Unit weight 7.5 kg
+Cabinet Displacement Volume 2.65 |
+Key Features:
+Paper sandwich cone with Patented foam filling Electrical Data:
+Patented Symmetrical Drive motor Nominal impedance [Zn] 8Q
+Spider with balanced woven in tinsel leads Minimum impedance [Zmin] 7.29
+Long linear excursion (+/- 7.5 mm) Maximum impedance [Zo] 56.8 Q
+3" Voice coil, Titanium former and paper reinforced DC resistance [Re] 6.12
+Stiff and strong die cast aluminium chassis Voice coil inductance [Le] 0.68 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: —_—fs-1500 Hz 100h RMS noise test (IEC 18.4) 150 W
+Cabinet volume - closed box: = Vbox=74 Itr, f(-3dB)=39 Hz Long-term max power (IEC 18.2) 400 W
+Cabinet volume - vented box: Vbox=141 Itr, fo=22 Hz, f(-3dB)=24 Hz X-over: None
+
+SPL [dB]
+100
+95
+90
+85
+80
+; 6440
+75
+fF 320
+70
+fF 160
+65
+60 8a
+55
+r+ 4Q
+50
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: July 15, 2022.
+

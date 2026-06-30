@@ -1,0 +1,155 @@
+\, SCANSPEAK
+
+Discovery
+
+5 cm Fullrange
+
+_ 33,1 . ____ Pitch diam. ~ 60,5 .
+_ _ 3,1 40,1
+i
+= —_ i
+—=/
+a — wn
+Fi Fi
+nN " oO i
+bd a oO
+A |
+—_ a
+!
+
+3,20 £0,10(x4)
+
+Key Features:
+
+Powerful Neo Ring Motor, Symmetric Drive
+
+Large Pole Piece Vent, Low Distortion
+
+1" Voice Coil, Ti Former, European Soft Parts
+Wide Frequency Range
+
+Hard Paper Cone, Foam Surround, Long Excursion
+Extended Copper Cap on Pole Piece
+
+Recommendations (please see Tech Note):
+
+Operating frequency range: 100-10000 Hz
+
+Cabinet volume - closed box: Vbox=2.3 ltr, f(-3dB)=103 Hz
+
+Cabinet volume - vented box: Vbox=2.3 Itr, fo=58 Hz, f(-3dB)=48 Hz
+
+SPL [dB]
+100
+
+5F/8422T01
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+93 Hz
+5.17
+0.69
+0.61
+3.07 Tm
+0.21 kg/s
+1.86 g
+1.58 mm/N
+44 mm
+15.2 cm2
+0.50 |
+
+80 dB
+
+26 mm
+6 mm
+
+2mm
++2mm
++5mm
+0.127 kg
+0.02 |
+
+8
+6.19
+43.1Q
+6.0 Q
+0.07 mH
+
+10 W
+20 W
+
+95
+
+85
+
+80 Seeeeer aac
+75
+
++ 64.9
+oy + 329
+70
+r 160
+60 7 8Q
+55
+f~ -4Q
+50
+10 100 1000 10000 50000
+
+mem On-axis m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+Frequency [Hz]

@@ -1,0 +1,131 @@
+\, SCANSPEAK
+
+Discovery
+
+Car Speaker Set
+
+Key Features:
+
+Midwoofers with EURO-DIN mounting chassis
+Very power full Neo magnet motor system
+2-Way Crossovers with tweeter protection
+
+Alu Die cast Chassis
+
+Shallow Mounting Dimensions
+Patented NRSC Fibre Glass Cone
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+165,5
+
+2.5-20 kHz / 40-4000 Hz
+Vbox=23 ltr, f(-3dB)=74 Hz
+Vbox=44 ltr, fb=42 Hz, f(-3dB)=37 Hz
+
+Pitch diam.  156,5
+
+—— On Axis 30deg +—— 60deg 30 deg Horizontal
+
+www.scan-speak.dk
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: 2nd order - 3000 Hz
+
+~- 42 ~
+oo
+a wt
+‘Lon
+Se. >
+!
+) 39
+
+Datasheet updated: May 18, 2020.
+
+820013
+
+1000/55 Hz
+8.03/3.06
+2.02/0.56
+1.61/0.48
+1.4/4.8 Tm
+0.18/1.41 kg/s
+0.23/12.5 g
+0.1/0.67 mm/N
+22/132 mm
+3.8/138 cm2
+0.002/17.9 |
+90 dB
+
+19/32 mm
+1.8/12 mm
+2/2
+
+2/4 mm
+
++ 0.1/4 mm
++ 1.6/8 mm
+0.05/0.6 kg
+- |
+
+4Q
+
+3.3/3.8 Q
+13.4/19.4 Q
+2.7/3 Q
+0.02/0.35 mH
+
+100 W
+200 W

@@ -2,55 +2,124 @@ source: https://www.scan-speak.dk/product/18w-8424g00/
 manu_page_url: https://www.scan-speak.dk/product/18w-8424g00/
 vendor_page_url: null
 datasheet_url: https://www.scan-speak.dk/datasheet/pdf/18w-8424g00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/18w-8424g00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/18w-8424g00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/18w-8424g00.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,SPL,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-driver_type: woofer
+driver_type: midwoofer
+nominal_size_cm: 18.0
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
 _sources:
   datasheet: https://www.scan-speak.dk/datasheet/pdf/18w-8424g00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/18w-8424g00.pdf
   manu_page: https://www.scan-speak.dk/product/18w-8424g00/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 0.00069
+    winner: datasheet
+    sources:
+      datasheet: 0.00069
+  Qms:  # mechanical Q factor
+    value: 4.04
+    winner: datasheet
+    sources:
+      datasheet: 4.04
   Qts:  # total Q factor
     value: 0.45
     winner: manu_page
     sources:
+      datasheet: 0.45
       manu_page: 0.45
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: manu_page
-    sources:
-      manu_page: 5.7
-  Sd:  # effective piston area (m²)
-    value: 0.0137
-    winner: manu_page
-    sources:
-      manu_page: 0.0137
-  Fs:  # free air resonance (Hz)
-    value: 54.0
-    winner: manu_page
-    sources:
-      manu_page: 54.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 6.6
     winner: manu_page
     sources:
+      datasheet: 6.6
       manu_page: 6.6
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 54.0
+    winner: manu_page
+    sources:
+      datasheet: 54.0
+      manu_page: 54.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.5
     winner: manu_page
     sources:
+      datasheet: 89.5
       manu_page: 89.5
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.0137
+    winner: manu_page
+    sources:
+      datasheet: 0.0137
+      manu_page: 0.0137
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0203
     winner: manu_page
     sources:
+      datasheet: 0.0203
       manu_page: 0.0203
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0113
+    winner: datasheet
+    sources:
+      datasheet: 0.0113
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00077
+    winner: datasheet
+    sources:
+      datasheet: 0.00077
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0026
+    winner: datasheet
+    sources:
+      datasheet: 0.0026
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
+    winner: manu_page
+    sources:
+      datasheet: 5.7
+      manu_page: 5.7
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.51
+    winner: datasheet
+    sources:
+      datasheet: 0.51
+  Vd:
+    value: 3.562e-05
+    winner: calculated
+    sources:
+      calculated: 3.562e-05
+  Dd:
+    value: 0.13207339536360732
+    winner: calculated
+    sources:
+      calculated: 0.13207339536360732
+  EBP:
+    value: 105.88235294117646
+    winner: calculated
+    sources:
+      calculated: 105.88235294117646

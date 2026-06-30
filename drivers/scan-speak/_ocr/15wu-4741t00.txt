@@ -1,0 +1,55 @@
+\, SCANSPEAK lluminator
+15 cm Midwoofer 15WU/4741T00
+T-S Parameters:
+Resonance frequency [fs] 34 Hz
+Mechanical Q factor [Qms] 3.47
+Electrical Q factor [Qes] 0.25
+Total Q factor [Qts] 0.23
+Force factor [BI] 6Tm
+Mechanical resistance [Rms] 0.80 kg/s
+Moving mass [Mms] 13g
+Compliance [Cms] 1.69 mm/N
+6. 89,75 . Effective diaph. diameter [D] 108 mm
+— _— Effective piston area [Sd] 92 cm2
+| i : S Equivalent volume [Vas] 20.0 |
+1 % Sensitivity (2,83V/1m) 86 dB
+7 gS |
+g 28 § Mechanical Data:
+= ~ q z Voice coil diameter 42 mm
+7 F Voice coil height 8mm
+' Voice coil layers 4
+Gap height 20 mm
+Da2 0 (x6) \. Linear excursion +9mm
+Max mech. excursion + 13mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.35 |
+Key Features:
+Under-Hung Neodymium Motor Design Electrical Data:
+Patented Symmetrical Drive (SD-3) Nominal impedance [Zn] 49
+Patented Sandwich Paper Cone Minimum impedance [Zmin] 4.69
+Exceptionally Long Linear Excursion Maximum impedance [Zo] 47.6Q
+Low-loss linear suspension DC resistance [Re] 3.29
+Patented Design Voice coil inductance [Le] 0.5 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-5000 Hz 100h RMS noise test (IEC 18.4) 80 W
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: Vbox=4.5 Itr, fo=55 Hz, f(-3dB)=65 Hz X-over: None
+SPL [dB]
+100
+95
+°0 L™
+85
+. iz /~
+; 6440
+7 pl fp 1
+pF 32Q
+70
+65 r 160
+60 Z N ; 8Q
+55 ;4Q
+50
+10 100 1000 10000 50000
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

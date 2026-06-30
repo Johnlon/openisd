@@ -1,0 +1,70 @@
+\, SCANSPEAK Illuminator
+12 cm Midrange 12MU/8731T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 66 Hz
+Mechanical Q factor [Qms] 3.63
+Electrical Q factor [Qes] 0.31
+Total Q factor [Qts] 0.29
+Force factor [BI] 6.1 Tm
+Mechanical resistance [Rms] 0.54 kg/s
+Moving mass [Mms] 4.7g
+Compliance [Cms] 1.24 mm/N
+Effective diaph. diameter [D] 86 mm
+— Effective piston area [Sd] 58 cm2
+( i Equivalent volume [Vas] 5.8 |
+~ o Sensitivity (2,83V/1m) 87 dB
+a S Mechanical Data:
+3 3 Voice coil diameter 32 mm
+Voice coil height 6.2 mm
+wu Voice coil layers 4
+_4 Gap height 13 mm
+- 67.80 __Pitch diam. 2111,6 | Linear excursion + 3.4mm
+Max mech. excursion + 11mm
+Unit weight 0.8 kg
+Cabinet Displacement Volume 0.14 |
+
+Key Features:
+Under-Hung Neodymium Motor Design Electrical Data:
+Patented Symmetrical Drive (SD-3)
+
+Nominal impedance [Zn] 8Q
+One Piece Cone-Dust Cap Minimum impedance [Zmin] 7.72
+Low-Loss Linear Suspension Maximum impedance [Zo] 75.0Q
+Very Wide Frequency Response 100-10KHz DC resistance [Re] 5.9Q
+High Output 87dB @ 2,83V Voice coil inductance [Le] 0.13 mH
+
+Recommendations (please see Tech Note): Power Handling:
+
+Operating frequency range: 100-10000 Hz 100h RMS noise test (IEC 18.4) 80 W
+Cabinet volume - closed box: Vbox=1.3 ltr, f(-3dB)=153 Hz Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: Vbox=2.3 ltr, fo=88 Hz, f(-3dB)=99 Hz X-over: 2. order HP Butterworth, 200 Hz
+SPL [dB]
+100
+95
+90
+
+85
+
+80
+
+; 6440
+75
+
+fF 320
+70
+
+fF 160
+65
+
+60 8a
+55
+r+ 4Q
+50
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.

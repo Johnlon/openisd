@@ -1,0 +1,7 @@
+[04:17:16] PROBLEM field=pdf_range_Znom item=18WU/8747T00 url=https://www.scan-speak.dk/datasheet/pdf/18wu-8747t00.pdf offset=0
+         raw_value="extracted=Znom=75 raw='75' range=1–64 Ω pos=307 local=C:\\Users\\johnl\\work\\resonate\\drivers\\scan-speak\\datasheets\\18wu-8747t00.pdf context=…\x11\x11\x12\r31:\x12\x0b*17FiB\x0b*17\x0e\x123\x12\x13\x0bg4h \x0bZ[\x0b\x0e\x0e↵D\x11\x11\x12\r31:\x12\x0bF153\x10)\x0b7\x13\x127\x0bg8*h \x0bbZ\x0b\r\x0eo↵DX-1:79\x12)3\x0b:\x109-\x0e\x12\x0bg]75h <aB k \x0b9↵8\x12)5131:130\x0b;k`\x0c<]n\x0b\x0e= \x0cbB b …"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:17:19] PROBLEM field=missing_ts item=18WU/8747T00 url=https://www.scan-speak.dk/product/18wu-8747t00/ offset=0
+         raw_value="['Cms']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:17:19] SKIP missing_ts=['Cms']

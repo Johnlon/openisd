@@ -1,0 +1,7 @@
+[04:12:23] PROBLEM field=pdf_no_fields item=12W/4524G00 url=https://www.scan-speak.dk/datasheet/pdf/12w-4524g00.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1594
+[04:12:25] PROBLEM field=missing_ts item=12W/4524G00 url=https://www.scan-speak.dk/product/12w-4524g00/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:12:25] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']

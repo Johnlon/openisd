@@ -1,0 +1,124 @@
+\, SCANSPEAK
+
+Ellipticor
+
+38 cm Woofer
+
+7 194%
+al
+_ 159 . “ Senos
+10. _47 sal.
+A
+4 —=
+PY SS
+Yj .
+1
+2 | ~
+5a 23 HHI
+3 23
+3 ~ iy
+QO
+!
+A
+a WA Y
+S ZL
+NS SS . 5 WY
+
+! 5,5(x10)
+~_ 36%(x10) =
+
+Pitch diam. | 368
+
+Key Features:
+
+Elliptical voice coil
+
+AirCirc optimized magnetsystem
+
+Very low mechanical losses
+
+Exceptionally low distortion
+
+High Sensitivity (SPL)
+
+Flexible apperance with replaceable decor ring
+
+Recommendations (please see Tech Note):
+Operating frequency range: fs-1000 Hz
+
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+Vbox=55 ltr, f(-3dB)=76 Hz
+Vbox=75 ltr, fb-=44 Hz, f(-3dB)=53 Hz
+
+38WE/8582T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 26 Hz
+Mechanical Q factor [Qms] 3.78
+Electrical Q factor [Qes] 0.26
+
+Total Q factor [Qts] 0.24
+Force factor [BI] 18.7 Tm
+Mechanical resistance [Rms] 3.7 kg/s
+Moving mass [Mms] 85.5g
+Compliance [Cms] 0.44 mm/N
+Effective diaph. diameter [D] 324 mm
+Effective piston area [Sd] 825 cm2
+Equivalent volume [Vas] 423 |
+Sensitivity (2,83V/1m) 95 dB
+Mechanical Data:
+
+Voice coil diameter 84/68 mm
+Voice coil height 27.5 mm
+Voice coil layers 2
+
+Gap height 7mm
+Linear excursion + 10.2 mm
+Max mech. excursion +15mm
+Unit weight 5.7 kg
+Cabinet Displacement Volume 2.56 |
+Electrical Data:
+
+Nominal impedance [Zn] 8Q
+Minimum impedance [Zmin] 8.19
+Maximum impedance [Zo] 822
+
+DC resistance [Re] 6.42
+Voice coil inductance [Le] 0.8 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 350 W
+Long-term max power (IEC 18.2) 650 W
+
+X-over: 2. order LP Butterworth, 200 Hz
+
+SPL [dB]
+100 $r
+es TV
+80 LX
+J \ l 64.0
+75
+Jf. \ + 320
+70
++ 16Q
+65
+60 8a
+55
+r+4Q
+50
+10 100 1000 50000
+
+wm On-axis
+
+meme 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+Frequency [Hz]
+wees Impedance
+
+Datasheet updated: June 1, 2022.
+

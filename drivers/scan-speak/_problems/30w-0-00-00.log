@@ -1,0 +1,7 @@
+[04:19:03] PROBLEM field=pdf_no_fields item=30W/0-00-00 url=https://www.scan-speak.dk/datasheet/pdf/30w-0-00-00.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1412
+[04:19:04] PROBLEM field=missing_ts item=30W/0-00-00 url=https://www.scan-speak.dk/product/30w-0-00-00/ offset=0
+         raw_value="['BL', 'Cms', 'Mms', 'Qes', 'Qms', 'Qts', 'Re', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:19:04] SKIP missing_ts=['BL', 'Cms', 'Mms', 'Qes', 'Qms', 'Qts', 'Re', 'Xmax']

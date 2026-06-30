@@ -1,0 +1,109 @@
+\, SCANSPEAK
+
+Classic
+
+28 mm Dome Tweeter
+
+3101 _ Pitchdiam 290 _
+3 0 }
++i =
+on i] bn] (ct (¢
+3 vy bo“ =
+— o
+
+Key Features:
+
+1" Aluminium Dome Diaphragm
+
+Wave Guide
+
+Patented Symmetrical Drive (SD) motor
+Low Resonance Rear Chamber
+
+Black Painted Alu Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 2500-20000 Hz
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box: N.a.
+
+SPL [dB]
+100
+
+D2904/980000
+
+T-S Parameters:
+
+Resonance frequency [fs] 500 Hz
+Mechanical Q factor [Qms] 3.09
+Electrical Q factor [Qes] 0.84
+Total Q factor [Qts] 0.66
+Force factor [BI] 2.8 Tm
+Mechanical resistance [Rms] 0.61 kg/s
+Moving mass [Mms] 0.6g
+Compliance [Cms] 0.20 mm/N
+Effective diaph. diameter [D] 33 mm
+Effective piston area [Sd] 8.5 cm2
+Equivalent volume [Vas] 0.02 |
+Sensitivity (2,83V/1m) 88 dB
+Mechanical Data:
+
+Voice coil diameter 28 mm
+Voice coil height 2.5 mm
+Voice coil layers 2
+
+Gap height 2.5 mm
+Linear excursion +0.1 mm
+Max mech. excursion +1.5mm
+Unit weight 0.7 kg
+Cabinet Displacement Volume 0.15 |
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 4.32
+Maximum impedance [Zo] 16.4 Q
+DC resistance [Re] 3.52
+Voice coil inductance [Le] 0.01 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 160 W
+Long-term max power (IEC 18.2) 430 W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+« eI FISEIOROR
+
+80
+FZ fw | 64a
+
+75
+
+| 320
+7O
+
++ 160
+65 TN
+60 8a
+55
+
+baa
+50
+
+100 1000 10000 50000
+
+mem On-axis
+
+m= 30° off-axis
+
+www.scan-speak.dk
+
+m= 60° off-axis
+
+ee Impedance
+
+Frequency [Hz]
+
+Datasheet updated: May 18, 2020.

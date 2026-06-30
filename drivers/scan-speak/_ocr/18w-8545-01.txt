@@ -1,0 +1,75 @@
+\, SCANSPEAK Classic
+
+18 cm Midwoofer 18W/8545-01
+
+T-S Parameters:
+
+Resonance frequency [fs] 25 Hz
+Mechanical Q factor [Qms] 1.55
+Electrical Q factor [Qes] 0.22
+Total Q factor [Qts] 0.20
+Force factor [BI] 8.4 Tm
+Mechanical resistance [Rms] 1.8 kg/s
+Moving mass [Mms] 18g
+Compliance [Cms] 2.3 mm/N
+Effective diaph. diameter [D] 136 mm
+Effective piston area [Sd] 145 cm2
+i Equivalent volume [Vas] 68.6 |
+Sensitivity (2,83V/1m) 88 dB
+2 S
+a 2 Mechanical Data:
+Rn eo Voice coil diameter 42 mm
+a = Voice coil height 19 mm
+- Voice coil layers 2
+1 Gap height 6mm
+~ 03,5 £0,2(x6) Linear excursion + 6.5mm
+Max mech. excursion + 10mm
+Unit weight 2.3 kg
+Cabinet Displacement Volume 0.54 |
+
+Key Features:
+
+Patented Symmetrical Drive Motor Design Electrical Data:
+Coated Air Dried Paper/Carbon Fibre Cone
+
+Nominal impedance [Zn] 8Q
+42mm Voice Coil w. Alu foil Minimum impedance [Zmin] 6.22
+Low-Loss linear suspension Maximum impedance [Zo] 45Q
+Low Damping SBR Rubber Surround DC resistance [Re] 5.79
+Aluminium Chassis Voice coil inductance [Le] 0.39 mH
+
+Recommendations (please see Tech Note): Power Handling:
+
+Operating frequency range: fs-3000 Hz 100h RMS noise test (IEC 18.4) 100 W
+Cabinet volume - closed box: — Vbox=7 Itr, f(-3dB)=84 Hz Long-term max power (IEC 18.2) 120 W
+Cabinet volume - vented box: Vbox=8 Itr, fo=49 Hz, f(-3dB)=64 Hz X-over: None
+SPL [dB]
+
+100
+
+95
+
+90 VA
+
+85 \ LX
+
+75
+
+ZiN
+
+r: | 320
+70
+
+LZ ~ L160
+65
+
+60 8a
+55
+r+ 4Q
+50
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

@@ -1,0 +1,110 @@
+lL, SCANSPEAK
+
+Discovery
+
+26 mm Dome Tweeter
+
+34,8 __ Pitch diam 092
+an ————~
+y Poy 4
+o f |
+3 \
+tb}! !
+! +0,10
+24,200 (xd)
+
+Key Features:
+
+Very low mass soft dome diaphragm
+
+Optimized Magnet System with Double magnets
+Ferrofluid
+
+Fully Vented Motor System for Low compression
+Low resonance Frequency
+
+Black Die-Cast Aluminium Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 3500-20000 Hz
+Cabinet volume - closed box: _N.a.
+
+Cabinet volume - vented box: N.a.
+
+D2608/913000
+
+T-S Parameters:
+
+Resonance frequency [fs] 700 Hz
+Mechanical Q factor [Qms] 0.51
+Electrical Q factor [Qes] 0.65
+Total Q factor [Qts] 0.29
+Force factor [Bl] 2.6 Tm
+Mechanical resistance [Rms] 1.54 kg/s
+Moving mass [Mms] 0.18 g
+Compliance [Cms] 0.29 mm/N
+Effective diaph. diameter [D] 30 mm
+Effective piston area [Sd] 7 cm2
+Equivalent volume [Vas] 0.02 |
+Sensitivity (2,83V/1m) 91.5 dB
+Mechanical Data:
+
+Voice coil diameter 26 mm
+Voice coil height 1.5mm
+Voice coil layers 2
+
+Gap height 2.5 mm
+Linear excursion +0.5mm
+Max mech. excursion +-mm
+Unit weight 0.7 kg
+Cabinet Displacement Volume 0.13 |
+Electrical Data:
+
+Nominal impedance [Zn] 8Q
+Minimum impedance [Zmin] 6.6 Q
+Maximum impedance [Zo] 10.0 Q
+DC resistance [Re] 5.69
+Voice coil inductance [Le] 0.04 mH
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 80 W
+Long-term max power (IEC 18.2) 400 W
+
+X-over: 2. order HP Butterworth, 4 kHz
+
+SPL [dB]
+
+100
+95
+os ae
+80 {
+
+| 64.9
+75
+
+| + 329
+
+70 =
+
+| 169
+65
+60 8Q
+6S +40
+50
+
+100
+
+1000
+
+we On-axis
+
+mmm 30° off-axis mmm 60° off-axis
+
+www.scan-speak.dk
+
+10000 50000
+
+Frequency [Hz]
+ees Impedance
+
+Datasheet updated: March 7, 2024.

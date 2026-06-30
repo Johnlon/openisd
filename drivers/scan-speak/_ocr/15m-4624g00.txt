@@ -1,0 +1,62 @@
+\, SCANSPEAK Discovery
+15 cm Midrange 15M/4624G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 100 Hz
+Mechanical Q factor [Qms] 5.62
+Electrical Q factor [Qes] 0.47
+Total Q factor [Qts] 0.43
+Force factor [BI] 5.3 Tm
+Mechanical resistance [Rms] 0.69 kg/s
+Moving mass [Mms] 6.2g
+Compliance [Cms] 0.41 mm/N
+is Pitch diam. 2 136,5 Effective diaph. diameter [D] 101 mm
+Tt Effective piston area [Sd] 75 cm2
+: Equivalent volume [Vas] 3.7 |
+- Sensitivity (2,83V/1m) 92.5 dB
+wo
+g go Mechanical Data:
++8 = Voice coil diameter 25 mm
+= 8 Voice coil height 8mm
+I Voice coil layers 2
+Gap height 5 mm
+Linear excursion +1.5mm
+_ D5,3 £0,1 (x4 Max mech. excursion + 8mm
+Unit weight 1 kg
+Cabinet Displacement Volume 0.21 |
+Key Features:
+High Output 92,5dB @ 2,83V Electrical Data:
+Phase Plug for Improved Phase Linearity Nominal impedance [Zn] 49
+Coated NRSC Fibre Glass Cone Minimum impedance [Zmin] 419
+Very Low Damping Foam Surround (Coated) Maximum impedance [Zo] 41.59
+Die cast Alu Chassis vented below spider DC resistance [Re] 3.29
+Magnet System w. Alu Ring Voice coil inductance [Le] 0.23 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 150-10000 Hz 100h RMS noise test (IEC 18.4) 75 W
+Cabinet volume - closed box: — Vbox=3 Itr, f(-3dB)=150 Hz Long-term max power (IEC 18.2) 180 W
+Cabinet volume - vented box: Vbox=6 Itr, fb=84 Hz, f(-3dB)=80 Hz X-over: 2. order HP Butterworth, 200 Hz
+
+SPL [dB]
+100
+
+95
+
+; XN SJ
+
+\
+| .
+
+fF 160
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: September 1, 2022.
+

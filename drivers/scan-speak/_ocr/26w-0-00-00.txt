@@ -1,0 +1,65 @@
+\, SCANSPEAK Discovery
+26 cm Passive 26W/0-00-00
+
+T-S Parameters:
+
+Resonance frequency [fs] 11 Hz
+Mechanical Q factor [Qms] 13.7
+Electrical Q factor [Qes] -
+Total Q factor [Qts] -
+
+Force factor [BI] -Tm
+
+Mechanical resistance [Rms] 1.97 kg/s
+
+Moving mass [Mms] 400 g
+
+70,85 Compliance [Cms] 0.55 mm/N
+650 . Pitch diam (256,70 . Effective diaph. diameter [D] 212 mm
+: Effective piston area [Sd] 352 cm2
+Equivalent volume [Vas] 95 |
+Sensitivity (2,83V/1m) - dB
+
+2 8 Mechanical Data:
+fo}
+x ( [le Voice coil diameter -mm
+on ae
+a DH a Voice coil height -mm
+~ aw Voice coil layers -
++030 — Gey eight mm
+D5 -0,20(x8) . a _ J Linear excursion +-mm
+a Max mech. excursion + 28 mm
+Unit weight 1.3 kg
+Cabinet Displacement Volume 0.44 |
+Key Features:
+Optimized for 26W/4558T00 Electrical Data:
+Adjustable Weight for Optimum Fres Nominal impedance [Zn] -Q
+Rigid Black Aluminium Cone Minimum impedance [Zmin] -Q
+Coated Sandwich Fibre Glass Dust Cap Maximum impedance [Zo] -Q
+Die cast Alu Chassis DC resistance [Re] -Q
+. Voice coil inductance [Le] - mH
+Recommendations (please see Tech Note):
+Operating frequency range: N.a. Power Handling:
+Cabinet volume - closed box: _N.a. 100h RMS noise test (IEC 18.4) -W
+Cabinet volume - vented box: N.a. Long-term max power (IEC 18.2) -W
+X-over: None
+SPL [dB]
+100
+95
+90
+85
+80
+; 6440
+75
+pF 32Q
+70
+65 r 160
+60 8a
+55 ;4Q
+50
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

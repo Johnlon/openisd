@@ -1,0 +1,64 @@
+\, SCANSPEAK Discovery
+26 mm Dome Tweeter D2606/922000
+
+T-S Parameters:
+
+Resonance frequency [fs] 850 Hz
+Mechanical Q factor [Qms] 1.22
+Electrical Q factor [Qes] 1.07
+Total Q factor [Qts] 0.57
+moe Force factor [BI] 2.8 Tm
+Mechanical resistance [Rms] 1.44 kg/s
+Moving mass [Mms] 0.33 g
+Compliance [Cms] 0.11 mm/N
+Effective diaph. diameter [D] 30 mm
+- 38,9 _ Pitch diam £94 Effective piston area [Sd] 7.1 cm2
+- 7 104,2 + _ 4.2 Equivalent volume [Vas] 0.01 |
+Lo _ \ t 4 Sensitivity (2,83V/1m) 91.5 dB
+l, /tote cutout 8 | Mechanical Data:
+& ‘129. 3 | Voice coil diameter 26 mm
+NOAA YY - Voice coil height 1.6 mm
+NG | Voice coil layers 2
+O75 4 £0,10(x4) Gap height 2mm
+Linear excursion + 0.2 mm
+Max mech. excursion + 1.6mm
+Unit weight 0.5 kg
+Cabinet Displacement Volume 0.15 |
+Key Features:
+High Performance 1" Tweeter Electrical Data:
+Low Damping Ferrofluid Cooling for High Stability Nominal impedance [Zn] 6Q
+Coated Textile Diaphragm Minimum impedance [Zmin] 5.4Q
+Double chamber Maximum impedance [Zo] 9.8 Q
+Braided tinsel leads DC resistance [Re] 4.6.Q
+Neutral face plate design Voice coil inductance [Le] 0.04 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 2500-20000 Hz 100h RMS noise test (IEC 18.4) 100 W
+Cabinet volume - closed box: Na. Long-term max power (IEC 18.2) 225 W
+Cabinet volume - vented box: — N.a. X-over: 2. order HP Butterworth, 2.5 kHz
+
+SPL [dB]
+100
+
+95
+
+oo porte |
+85 == ==e
+80 = ; 6440
+
+75
+\f | 320
+
+70
+| + 160
+
+65
+
+| 40
+
+100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk Datasheet updated: May 26, 2023.
+

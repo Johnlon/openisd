@@ -1,0 +1,125 @@
+lL, SCANSPEAK
+
+Discovery
+
+26 cm Subwoofer
+
+D269,2 40,3
+()239 40,50
+
+Key Features:
+
++0,30
+25 -0,20 (x8)
+
+56mm Peak Excursion, 25mm Linear
+
+High Output 88dB @ 2,83V
+Low Resonance Freq. 21Hz
+
+Anodized Alu Cone, Fibre Glass Dust Cap
+
+Magnet System w. Alu Ring
+
+Die cast Alu Chassis vented below spider
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-1500 Hz
+
+Vbox=30 ltr, f(-3dB)=43 Hz
+Vbox=57 ltr, fob=25 Hz, f(-3dB)=26 Hz
+
+26W/4558T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 21 Hz
+Mechanical Q factor [Qms] 5.56
+Electrical Q factor [Qes] 0.33
+Total Q factor [Qts] 0.31
+Force factor [BI] 10.5 Tm
+Mechanical resistance [Rms] 2.49 kg/s
+Moving mass [Mms] 105 g
+Compliance [Cms] 0.55 mm/N
+Effective diaph. diameter [D] 212 mm
+Effective piston area [Sd] 352 cm2
+Equivalent volume [Vas] 94.9 |
+Sensitivity (2,83V/1m) 88 dB
+
+Mechanical Data:
+
+Voice coil diameter 51mm
+Voice coil height 33 mm
+Voice coil layers 4
+
+Gap height 8 mm
+Linear excursion + 12.5 mm
+Max mech. excursion + 28 mm
+Unit weight 6.2 kg
+Cabinet Displacement Volume 1.35 |
+
+Electrical Data:
+
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 3.3.Q
+Maximum impedance [Zo] 46.8 Q
+DC resistance [Re] 2.6 Q
+Voice coil inductance [Le] 0.83 mH
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4) 150 W
+Long-term max power (IEC 18.2) 350 W
+X-over: None
+
+95
+
+85
+
+80
+
+75
+
+; 6440
+
+70
+
+fF 320
+
+65
+
+fF 160
+
+; 8Q
+
+55
+
+r+ 4Q
+
+10
+
+100
+
+w= On-axis
+
+1000
+
+meme 30° off-axis mmm 60° off-axis
+
+www.scan-speak.dk
+
+10000 50000
+
+Frequency [Hz]
+ees Impedance
+
+Datasheet updated: November 8, 2023.
+

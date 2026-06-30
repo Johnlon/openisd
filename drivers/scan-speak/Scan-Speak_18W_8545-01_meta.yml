@@ -1,56 +1,135 @@
 source: https://www.scan-speak.dk/product/18w-8545-01/
 manu_page_url: https://www.scan-speak.dk/product/18w-8545-01/
 vendor_page_url: null
-datasheet_url: https://www.scan-speak.dk/datasheet/reviews/18W-8545-01-VoiceCoil_2012-10.pdf
+datasheet_url: https://www.scan-speak.dk/datasheet/pdf/18w-8545-01.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/18w-8545-01.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/18w-8545-01.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/18w-8545-01.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,SPL,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
-driver_type: woofer
+driver_type: midwoofer
+nominal_size_cm: 18.0
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Qts'' stored=0.2 differs from calculated=0.192655 (deps'
 community: null
 fetched_sku: null
 _sources:
-  datasheet: https://www.scan-speak.dk/datasheet/reviews/18W-8545-01-VoiceCoil_2012-10.pdf
+  datasheet: https://www.scan-speak.dk/datasheet/pdf/18w-8545-01.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/18w-8545-01.pdf
   manu_page: https://www.scan-speak.dk/product/18w-8545-01/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 0.00039
+    winner: datasheet
+    sources:
+      datasheet: 0.00039
+  Qms:  # mechanical Q factor
+    value: 1.55
+    winner: datasheet
+    sources:
+      datasheet: 1.55
   Qts:  # total Q factor
     value: 0.2
     winner: manu_page
     sources:
+      datasheet: 0.2
       manu_page: 0.2
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: manu_page
-    sources:
-      manu_page: 5.7
-  Sd:  # effective piston area (m²)
-    value: 0.0145
-    winner: manu_page
-    sources:
-      manu_page: 0.0145
-  Fs:  # free air resonance (Hz)
-    value: 25.0
-    winner: manu_page
-    sources:
-      manu_page: 25.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 8.4
     winner: manu_page
     sources:
+      datasheet: 8.4
       manu_page: 8.4
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 25.0
+    winner: manu_page
+    sources:
+      datasheet: 25.0
+      manu_page: 25.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 88.0
     winner: manu_page
     sources:
+      datasheet: 88.0
       manu_page: 88.0
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.0145
+    winner: manu_page
+    sources:
+      datasheet: 0.0145
+      manu_page: 0.0145
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0686
     winner: manu_page
     sources:
+      datasheet: 0.0686
       manu_page: 0.0686
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.018
+    winner: datasheet
+    sources:
+      datasheet: 0.018
+  Cms:  # mechanical compliance (m/N)
+    value: 0.0023
+    winner: datasheet
+    sources:
+      datasheet: 0.0023
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0065
+    winner: datasheet
+    sources:
+      datasheet: 0.0065
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
+    winner: manu_page
+    sources:
+      datasheet: 5.79
+      manu_page: 5.7
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.22
+    winner: datasheet
+    sources:
+      datasheet: 0.22
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 3.0
+    winner: datasheet
+    sources:
+      datasheet: 3.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 84.0
+    winner: datasheet
+    sources:
+      datasheet: 84.0
+  Vd:
+    value: 9.425e-05
+    winner: calculated
+    sources:
+      calculated: 9.425e-05
+  Dd:
+    value: 0.1358748446131949
+    winner: calculated
+    sources:
+      calculated: 0.1358748446131949
+  EBP:
+    value: 113.63636363636364
+    winner: calculated
+    sources:
+      calculated: 113.63636363636364

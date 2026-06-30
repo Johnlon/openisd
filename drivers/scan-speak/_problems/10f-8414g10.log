@@ -1,0 +1,4 @@
+[04:11:34] PROBLEM field=cad_fetch item=10F/8414G10 url=https://www.scan-speak.dk/datasheet/3d/TYPENUMMER.zip offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:11:34] DONE problems=1

@@ -1,0 +1,165 @@
+\, SCANSPEAK
+
+Revelator
+
+22 cm Woofer
+
+(222 40,25
+
+141,6
+D194,1 +0,5
+
+Key Features:
+
+Patented Symmetrical Drive Motor Design
+
+Rigid Black Anodized Alu Cone
+Low-Loss linear suspension
+Low Damping SBR Rubber Surround
+
+Die cast Alu Chassis vented below spider
+
+Pitch diam. ©210
+
+Ferrite Magnet System w. Rubber Boot
+
+5,2 40,1(x7)
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+100
+
+95
+
+85
+
+80
+
+75
+
+70
+
+65
+
+60
+
+55
+
+fs-3000 Hz
+Vbox=22 ltr, f(-3dB)=52 Hz
+Vbox=39 Itr, fb=30 Hz, f(-3dB)=33 Hz
+
+22W/8857T00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+23 Hz
+4.90
+0.32
+0.30
+
+10.1 Tm
+1.09 kg/s
+37g
+
+1.29 mm/N
+167 mm
+220 cm2
+87.7 |
+
+86 dB
+
+50 mm
+24 mm
+
+6mm
++9mm
++ 14mm
+3.6 kg
+1.04 |
+
+8
+7.2Q
+101 Q
+6.2 Q
+0.35 mH
+
+80 W
+200 W
+
+a Seyi ft
+SEH 8Q
+
+10
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: January 7, 2021.
+
+50000
+Frequency [Hz]

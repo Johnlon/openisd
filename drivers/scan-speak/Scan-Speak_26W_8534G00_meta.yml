@@ -2,55 +2,124 @@ source: https://www.scan-speak.dk/product/26w-8534g00/
 manu_page_url: https://www.scan-speak.dk/product/26w-8534g00/
 vendor_page_url: null
 datasheet_url: https://www.scan-speak.dk/datasheet/pdf/26w-8534g00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/26w-8534g00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/26w-8534g00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/26w-8534g00.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,SPL,Sd,Vas,Xmax,Znom.'
 corrections: null
 reviewed_by: null
 driver_type: woofer
+nominal_size_cm: 26.0
 obsolete: null
-dq_issue: null
+dq_issue: 'schema:WDR: ''Vas'' stored=0.15 differs from calculated=0.165084 (dep'
 community: null
 fetched_sku: null
 _sources:
   datasheet: https://www.scan-speak.dk/datasheet/pdf/26w-8534g00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/26w-8534g00.pdf
   manu_page: https://www.scan-speak.dk/product/26w-8534g00/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 0.00096
+    winner: datasheet
+    sources:
+      datasheet: 0.00096
+  Qms:  # mechanical Q factor
+    value: 9.12
+    winner: datasheet
+    sources:
+      datasheet: 9.12
   Qts:  # total Q factor
     value: 0.4
     winner: manu_page
     sources:
+      datasheet: 0.4
       manu_page: 0.4
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.7
-    winner: manu_page
-    sources:
-      manu_page: 5.7
-  Sd:  # effective piston area (m²)
-    value: 0.035
-    winner: manu_page
-    sources:
-      manu_page: 0.035
-  Fs:  # free air resonance (Hz)
-    value: 23.0
-    winner: manu_page
-    sources:
-      manu_page: 23.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 10.1
     winner: manu_page
     sources:
+      datasheet: 10.1
       manu_page: 10.1
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 23.0
+    winner: manu_page
+    sources:
+      datasheet: 23.0
+      manu_page: 23.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 89.0
     winner: manu_page
     sources:
+      datasheet: 89.0
       manu_page: 89.0
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.035
+    winner: manu_page
+    sources:
+      datasheet: 0.035
+      manu_page: 0.035
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 0.15
     winner: manu_page
     sources:
+      datasheet: 0.15
       manu_page: 0.15
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0505
+    winner: datasheet
+    sources:
+      datasheet: 0.0505
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00095
+    winner: datasheet
+    sources:
+      datasheet: 0.00095
+  Xmax:  # one-way linear excursion (m)
+    value: 0.006
+    winner: datasheet
+    sources:
+      datasheet: 0.006
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.7
+    winner: manu_page
+    sources:
+      datasheet: 5.72
+      manu_page: 5.7
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.42
+    winner: datasheet
+    sources:
+      datasheet: 0.42
+  Vd:
+    value: 0.00021000000000000004
+    winner: calculated
+    sources:
+      calculated: 0.00021000000000000004
+  Dd:
+    value: 0.21110041228223764
+    winner: calculated
+    sources:
+      calculated: 0.21110041228223764
+  EBP:
+    value: 54.761904761904766
+    winner: calculated
+    sources:
+      calculated: 54.761904761904766

@@ -2,55 +2,135 @@ source: https://www.scan-speak.dk/product/12mu-8731t00/
 manu_page_url: https://www.scan-speak.dk/product/12mu-8731t00/
 vendor_page_url: null
 datasheet_url: https://www.scan-speak.dk/datasheet/pdf/12mu-8731t00.pdf
+adv_datasheet_url: https://www.scan-speak.dk/datasheet/adv/12mu-8731t00.pdf
+drawing_url: https://www.scan-speak.dk/datasheet/drw/12mu-8731t00.png
+cad_url: https://www.scan-speak.dk/datasheet/3d/12mu-8731t00.ZIP
 frd_url: null
 zma_url: null
 quality: M
 issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website (scraped 2026-06-28). T/S parameters
-  have not been verified by a human against the datasheet.
-corrections: null
+detail: 'Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
+  T/S extracted from PDF (pdf): BL,Cms,Fs,Le,Mms,Qes,Qms,Qts,Re,Sd,Vas,Xmax,Znom.'
+corrections: '''Qts'' stored=0.29 differs from calculated=0.285609 (deps: Qms=3.63,
+  Qes=0.31); ''Vas'' stored=0.0058 differs from calculated=0.00591728 (deps: roo=1.20095,
+  c=343.684, Sd=0.0058, Cms=0.00124)'
 reviewed_by: null
 driver_type: midrange
+nominal_size_cm: 12.0
 obsolete: null
 dq_issue: null
 community: null
 fetched_sku: null
 _sources:
   datasheet: https://www.scan-speak.dk/datasheet/pdf/12mu-8731t00.pdf
+  adv_datasheet: https://www.scan-speak.dk/datasheet/adv/12mu-8731t00.pdf
   manu_page: https://www.scan-speak.dk/product/12mu-8731t00/
 specs:
+  Le:  # voice coil inductance (H)
+    value: 0.00013
+    winner: datasheet
+    sources:
+      datasheet: 0.00013
+  Qms:  # mechanical Q factor
+    value: 3.63
+    winner: datasheet
+    sources:
+      datasheet: 3.63
   Qts:  # total Q factor
     value: 0.29
     winner: manu_page
     sources:
+      datasheet: 0.29
       manu_page: 0.29
-  Re:  # DC voice coil resistance (Ω)
-    value: 5.9
-    winner: manu_page
-    sources:
-      manu_page: 5.9
-  Sd:  # effective piston area (m²)
-    value: 0.0058
-    winner: manu_page
-    sources:
-      manu_page: 0.0058
-  Fs:  # free air resonance (Hz)
-    value: 66.0
-    winner: manu_page
-    sources:
-      manu_page: 66.0
+    note: Not in datasheet; value from manu_page
   BL:  # force factor (T·m)
     value: 6.1
     winner: manu_page
     sources:
+      datasheet: 6.1
       manu_page: 6.1
+    note: Not in datasheet; value from manu_page
+  Znom:  # nominal impedance (Ω)
+    value: 8.0
+    winner: datasheet
+    sources:
+      datasheet: 8.0
+  Fs:  # free air resonance (Hz)
+    value: 66.0
+    winner: manu_page
+    sources:
+      datasheet: 66.0
+      manu_page: 66.0
+    note: Not in datasheet; value from manu_page
   SPL:  # sensitivity (dB, 2.83 V/1 m)
     value: 87.0
     winner: manu_page
     sources:
       manu_page: 87.0
+    note: Not in datasheet; value from manu_page
+  Sd:  # effective piston area (m²)
+    value: 0.0058
+    winner: manu_page
+    sources:
+      datasheet: 0.0058
+      manu_page: 0.0058
+    note: Not in datasheet; value from manu_page
   Vas:  # equivalent acoustic volume (m³)
     value: 0.0058
     winner: manu_page
     sources:
+      datasheet: 0.0058
       manu_page: 0.0058
+    note: Not in datasheet; value from manu_page
+  Mms:  # moving mass incl. air load (kg)
+    value: 0.0047
+    winner: datasheet
+    sources:
+      datasheet: 0.0047
+  Cms:  # mechanical compliance (m/N)
+    value: 0.00124
+    winner: datasheet
+    sources:
+      datasheet: 0.00124
+  Xmax:  # one-way linear excursion (m)
+    value: 0.0034
+    winner: datasheet
+    sources:
+      datasheet: 0.0034
+  Re:  # DC voice coil resistance (Ω)
+    value: 5.9
+    winner: manu_page
+    sources:
+      datasheet: 5.9
+      manu_page: 5.9
+    note: Not in datasheet; value from manu_page
+  Qes:  # electrical Q factor
+    value: 0.31
+    winner: datasheet
+    sources:
+      datasheet: 0.31
+  freq_low_hz:  # published lower frequency limit (Hz)
+    value: 100.0
+    winner: datasheet
+    sources:
+      datasheet: 100.0
+  freq_high_hz:  # published upper frequency limit (Hz)
+    value: 10000.0
+    winner: datasheet
+    sources:
+      datasheet: 10000.0
+  Vd:
+    value: 1.9719999999999998e-05
+    winner: calculated
+    sources:
+      calculated: 1.9719999999999998e-05
+  Dd:
+    value: 0.08593479713983121
+    winner: calculated
+    sources:
+      calculated: 0.08593479713983121
+  EBP:
+    value: 212.90322580645162
+    winner: calculated
+    sources:
+      calculated: 212.90322580645162

@@ -1,0 +1,177 @@
+lL, SCANSPEAK
+
+Revelator
+
+28 mm Dome Tweeter
+
+7
+
+ttn o
+
+| 2
+
+od : al
+
+iv) ff
+8 | oe E| |-©-
+ps Re |-©
+= q|e 3 \
+
+x=
+
+LY 2
+
+FH. ! i
+
+LL !
+‘
+
+Key Features:
+
+Excellent Sound Reproduction
+
+1" Textile Dome Diaphragm
+
+Patented Symmetrical Drive (SD-2) motor
+Wide Surround Textile Diaphragm
+
+Large Wave Guide Front
+
+Black Anodized Mashined Alu Face Plate
+
+Recommendations (please see Tech Note):
+Operating frequency range: 2500-25000 Hz
+Cabinet volume - closed box: N.a.
+
+Cabinet volume - vented box: _N.a.
+
+SPL [dB]
+100
+
+D2905/990000
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+500 Hz
+4.83
+0.72
+0.63
+
+3.5 Tm
+0.29 kg/s
+0.45 g
+0.23 mm/N
+33 mm
+8.5 cm2
+0.02 |
+
+91 dB
+
+28 mm
+3.3 mm
+
+2.5 mm
+
++ 0.4mm
++1.5mm
+0.8 kg
+0.22 |
+
+69
+5.69
+36.19
+4.7Q
+0.01 mH
+
+225 W
+430 W
+
+X-over: 2. order HP Butterworth, 2.8 kHz
+
+95
+
+\
+
+\- L ea
+
+80
+. ZO
+
+70
+
+fF 320
+
+cs ZL \
+
+fF 160
+
+8a
+
+60
+
+55
+
+100 1000
+
+w= On-axis
+
+meme 30° off-axis mmm 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ees Impedance
+
+Datasheet updated: January 4, 2024.
+
+50000
+Frequency [Hz]
+

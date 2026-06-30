@@ -1,0 +1,7 @@
+[04:24:48] PROBLEM field=html_pdf_mismatch item=15W/8534T00 url=https://www.scan-speak.dk/product/15w-8534t00/ offset=0
+         raw_value='Vas: HTML=0.03 PDF=0.301 (903% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:24:50] PROBLEM field=missing_ts item=15W/8534T00 url=https://www.scan-speak.dk/product/15w-8534t00/ offset=0
+         raw_value="['Mms']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:24:50] SKIP missing_ts=['Mms']

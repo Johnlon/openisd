@@ -1,0 +1,98 @@
+Automotive
+D3004/602006
+
+\, SCANSPEAK
+
+26 mm Dome Tweeter
+
+T-S Parameters:
+
+Resonance frequency [fs] 700 Hz
+Mechanical Q factor [Qms] 4.15
+Electrical Q factor [Qes] 1.60
+Total Q factor [Qts] 1.15
+Force factor [Bl] 1.7Tm
+Mechanical resistance [Rms] 0.4 kg/s
+Moving mass [Mms] 0.35 g
+21,5 Compliance [Cms] 0.15 mm/N
+Z8. 5 Io Effective diaph. diameter [D] 30 mm
+, —— ; Oo Effective piston area [Sd] 7 cm2
+j i Y © IN Equivalent volume [Vas] 0.01 |
+o (fl pE Sensitivity (2,83V/1m) 89 dB
+S ~t y M iN \ Mechanical Data:
+o. 2 E | OX | ' Voice coil diameter 26 mm
+3 2 . < | Voice coil height 2.0 mm
+2 XL Voice coil layers 2
+i "| Wie) “ Y Gap height . 2.5mm
+! 7 Linear excursion + 0.25 mm
+- - 3,3(x3) Max mech. excursion + 1.6mm
+Unit weight 0.15 kg
+Cabinet Displacement Volume 0.03 |
+Key Features:
+1" Textile Dome Diamphragm Electrical Data:
+Large Roll Surround f. Wide Dispersion Nominal impedance [Zn] 4Q
+Patented Symmetrical Drive (SD-2) motor Minimum impedance [Zmin] 3.50
+Sound Transparant Protective Grill Maximum impedance [Zo] 10.89
+Non Resonant Alu Rear Chamber DC resistance [Re] 3Q
+Die Cast Housing & Face Plate Voice coil inductance [Le] 0.02 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 2500-30000 Hz 100h RMS noise test (IEC 18.4) 50 W
+Cabinet volume - closed box: _—_N.a. Long-term max power (IEC 18.2) 130 W
+Cabinet volume - vented box: N.a.
+
+SPL [dB]
+100
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+85
+
+SSIS
+
+80 =
+75
+
+; 6440
+
+nee
+
+70 SA.
+
+65
+
+fF 160
+
+60
+
+55
+
+7X
+
+8a
+
+r+ 4Q
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+
+Frequency [Hz]
+

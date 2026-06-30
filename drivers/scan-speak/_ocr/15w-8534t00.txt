@@ -1,0 +1,72 @@
+\, SCANSPEAK Classic
+
+15 cm Midwoofer 15W/8534T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 32 Hz
+Mechanical Q factor [Qms] 3.6
+Electrical Q factor [Qes] 0.43
+Total Q factor [Qts] 0.39
+Force factor [BI] 5.5 Tm
+Mechanical resistance [Rms] 0.6 kg/s
+Moving mass [Mms] lig
+Compliance [Cms] 2.2 mm/N
+at015= 88 Effective diaph. diameter [D] 112 mm
+} 8 I a —— 3 Effective piston area [Sd] 98 cm2
+f ee ; VA : S Equivalent volume [Vas] 301
+\ Sensitivity (2,83V/1m) 85.5 dB
+e fi Cali & 8 ol 5 Mechanical Data:
+— imi | Voice coil diameter 38 mm
+| \ Voice coil height 15 mm
+L wy, ! \ j Voice coil layers 2
+' — { S KK Y Gap height 5mm
+! 3.5 (x6) ——— Linear excursion +5mm
+- Pitch Diam. 2143 - Max mech. excursion +9mm
+Unit weight 1.2 kg
+Cabinet Displacement Volume 0.26 |
+
+Key Features:
+"Phenomax" cone material Electrical Data:
+Symmetrical drive motor system
+
+Nominal impedance [Zn] 8Q
+38 mm voice coil Minimum impedance [Zmin] 6.6.Q
+Low loss linear rubber suspension Maximum impedance [Zo] 57Q
+Aluminium chassis DC resistance [Re] 5.8
+. Voice coil inductance [Le] 0.26 mH
+Recommendations (please see Tech Note):
+Operating frequency range: fs-5000 Hz Power Handling:
+Cabinet volume - closed box: — Vbox=15 Itr, f(-3dB)=55 Hz 100h RMS noise test (IEC 18.4) 60 W
+Cabinet volume - vented box: Vbox=32 Itr, fb=32 Hz, f(-3dB)=31 Hz Long-term max power (IEC 18.2) 100 W
+X-over: None
+
+SPL [dB]
+100
+
+95
+
+85 A
+
+: A
+"FTN
+7 J <
+
+; 6440
+
+fF 320
+
+fF 160
+
+8a
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 11, 2020.

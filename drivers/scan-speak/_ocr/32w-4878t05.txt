@@ -1,0 +1,181 @@
+\, SCANSPEAK
+
+32 cm Subwoofer
+
+() 320 +0,4
+D258,8
+
+2D 200,5
+
+D290,5 +0,5
+
+Ly
+
+Ho
+Se SES.
+
+Key Features:
+
+) 305
+
+Pitch diam.
+
+Paper sandwich cone with patented foam filling
+
+Extreme long linear excursion (+/-14mm)
+
+Patented Symmetrical Drive motor
+
+3" Voice coil, Titanium former, paper reinforced
+
+Large dustcap w. logo
+Stiff robust die cast alu chassis
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-1000 Hz
+Vbox=59 Itr, f(-3dB)=34 Hz
+Vbox=114 Itr, fob=20 Hz, f(-3dB)=21 Hz
+
+26,3 £0,1(x
+
+Automotive
+32W/4878T05
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+X-over: None
+
+17 Hz
+
+0.33
+
+0.32
+
+12.5 Tm
+2.42 kg/s
+165 g
+
+0.52 mm/N
+260 mm
+526 cm2
+180 |
+
+89 dB
+
+75mm
+36 mm
+
+8 mm
++ 14mm
++ 28 mm
+7.5 kg
+2.65 |
+
+4Q
+4Q
+69 Q
+3.19
+0.5 mH
+
+200 W
+550 W
+
+95
+
+90 fl
+85
+
+80
+
+75
+
+70
+
+| 64.0
+| 320
+r 160
+65 \
+60 — | ras 8a
+55
+| 40
+
+!
+
+10
+
+100
+
+mem On-axis
+
+m= 30° off-axis
+
+1000
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]
+

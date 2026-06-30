@@ -1,0 +1,4 @@
+[04:18:11] PROBLEM field=missing_ts item=26W/0-00-00 url=https://www.scan-speak.dk/product/26w-0-00-00/ offset=0
+         raw_value="['BL', 'Qes', 'Qts', 'Re', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:18:11] SKIP missing_ts=['BL', 'Qes', 'Qts', 'Re', 'Xmax']

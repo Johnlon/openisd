@@ -1,0 +1,10 @@
+[04:23:23] PROBLEM field=pdf_no_fields item=R2604/832000 url=https://www.scan-speak.dk/datasheet/pdf/r2604-832000.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1615
+[04:23:25] PROBLEM field=cad_fetch item=R2604/832000 url=https://www.scan-speak.dk/datasheet/3d/TYPENUMMER.zip offset=0
+         raw_value=None
+         reason=HTTP Error 404: Not Found
+[04:23:25] PROBLEM field=missing_ts item=R2604/832000 url=https://www.scan-speak.dk/product/r2604-832000/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:23:25] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']

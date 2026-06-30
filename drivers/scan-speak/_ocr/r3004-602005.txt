@@ -1,0 +1,172 @@
+\, SCANSPEAK
+
+26 mm Dome Tweeter
+
+21,5
+
+D 62,2 +0,3
+
+Key Features:
+1" Ring Dome Diaphragm
+Patented Phase Plug Design
+
+Pitch diam. 2 53,9
+
+High Power Patented SD-2 magnet system
+
+Sound Transparant Protective Grill
+Non Resonant Alu Rear Chamber
+
+Die Cast Housing & Face Plate
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+2500-25000 Hz
+N.a.
+N.a.
+
+Automotive
+R3004/602005
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+
+100h RMS noise test (IEC 18.4)
+Long-term max power (IEC 18.2)
+
+630 Hz
+3.42
+1.15
+0.86
+2.4Tm
+0.68 kg/s
+0.59 g
+0.11 mm/N
+27 mm
+5.6 cm2
+0.01 |
+
+90 dB
+
+26 mm
+2.0 mm
+
+2.5 mm
+
++ 0.25 mm
++ 1.6mm
+0.15 kg
+0.03 |
+
+4Q
+
+3.8. Q
+15.0 Q
+39
+0.02 mH
+
+50 W
+130 W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+85
+
+80
+
+75
+
+; 6440
+
+fF 320
+
+: =
+
+65
+
+fF 160
+
+60
+
+55
+
+ZX
+
+\
+: L
+
+| 40
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+
+Frequency [Hz]

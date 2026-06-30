@@ -1,0 +1,176 @@
+\, SCANSPEAK
+
+Discovery
+
+26 mm Dome Tweeter
+
+(D104 +0,2
+72
+
+Key Features:
+
+Extended Frequency To Above 40KHz
+Very Low Resonance Frequency - 500Hz
+
+Low Distortion
+
+Dual Ring Radiator diaphragm (Patent)
+
+Wave-guide center plug (Patent)
+Textile Diaphragm
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+2500-30000 Hz
+N.a.
+N.a.
+
+__ Pitch diam 92
+
+2 4,20 £0,20(x5)
+
+R2604/832000
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+Long-term max power (IEC 18.2)
+
+500 Hz
+2.77
+0.52
+0.44
+
+2.3 Tm
+0.34 kg/s
+0.3g
+0.34 mm/N
+26 mm
+5.4 cm2
+0.01 |
+
+90 dB
+
+26 mm
+2.2 mm
+
+2.5 mm
+
++ 0.2 mm
++ 1.6mm
+0.5 kg
+0.11 |
+
+4Q
+3.79
+18.4Q
+2.9Q
+0.02 mH
+
+100 W
+-W
+
+X-over: 2. order HP Butterworth, 2.5 kHz
+
+95
+
+eee SNELL
+
+\— are
+
+- =
+80
+
+—
+
+75
+
+640
+
+i
+
+320
+
+70
+
+160
+
+7 a
+: Z
+
+\
+
+= L
+
+55
+
+| 40
+
+100
+
+1000
+
+mem On-axis
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

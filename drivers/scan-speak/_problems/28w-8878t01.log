@@ -1,0 +1,4 @@
+[04:19:50] PROBLEM field=pdf_range_Vas item=28W/8878T01 url=https://www.scan-speak.dk/datasheet/pdf/28w-8878t01.pdf offset=0
+         raw_value="extracted=Vas=1.161 raw='1161' range=≤ 1000 L (1.0 m³) pos=398 local=C:\\Users\\johnl\\work\\resonate\\drivers\\scan-speak\\datasheets\\28w-8878t01.pdf context=…iston area [Sd] 363 cm?↵| i = Equivalent volume [Vas] 1161↵; Sensitivity (2,83V/1m) 88.5 dB↵3 3 g M…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:19:53] DONE problems=1

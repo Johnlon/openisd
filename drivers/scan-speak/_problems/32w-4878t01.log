@@ -1,0 +1,7 @@
+[04:19:19] PROBLEM field=pdf_no_fields item=32W/4878T01 url=https://www.scan-speak.dk/datasheet/pdf/32w-4878t01.pdf offset=0
+         raw_value=None
+         reason=pass1=0 pass2=0 chars=1685
+[04:19:22] PROBLEM field=missing_ts item=32W/4878T01 url=https://www.scan-speak.dk/product/32w-4878t01/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:19:22] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']

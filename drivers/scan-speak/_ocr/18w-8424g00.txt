@@ -1,0 +1,65 @@
+\, SCANSPEAK Discovery
+18 cm Midwoofer 18W/8424G00
+
+T-S Parameters:
+
+Resonance frequency [fs] 54 Hz
+Mechanical Q factor [Qms] 4.04
+Electrical Q factor [Qes] 0.51
+Total Q factor [Qts] 0.45
+Force factor [Bl] 6.6 Tm
+Mechanical resistance [Rms] 0.95 kg/s
+Moving mass [Mms] 11.3g
+Compliance [Cms] 0.77 mm/N
+Pitch diam. \ 167 al Effective diaph. diameter [D] 132 mm
+Effective piston area [Sd] 137 cm2
+i Equivalent volume [Vas] 20.3 |
+Sensitivity (2,83V/1m) 89.5 dB
+a .
+g 0 | Mechanical Data:
+aq aa \| 3] Voice coil diameter 25 mm
+RQ = J Voice coil height 10.2 mm
+8 Voice coil layers 2
+Gap height 5 mm
+|} ~ ! Linear excursion + 2.6mm
+' 5,3 20,15 (x6) ~ Max mech. excursion +8mm
+Unit weight 1.1 kg
+Cabinet Displacement Volume 0.28 |
+
+Key Features:
+
+Excellent Midrange Performance
+
+Nominal impedance [Zn] 8Q
+Coated NRSC Fibre Glass Cone Minimum impedance [Zmin] 6.42
+Low Damping SBR Rubber Surround Maximum impedance [Zo] 50.92
+Die cast Alu Chassis vented below spider DC resistance [Re] 5.7Q2
+Voice coil inductance [Le] 0.69 mH
+Recommendations (please see Tech Note):
+Operating frequency range: fs-8000 Hz Power Handling:
+Cabinet volume - closed box: _Vbox=16 ltr, f(-3dB)=81 Hz 100h RMS noise test (IEC 18.4) 50 W
+Cabinet volume - vented box: Vbox=3¢4 Itr, fb=44 Hz, f(-3dB)=41 Hz Long-term max power (IEC 18.2) 110 W
+X-over: None
+
+SPL [dB]
+100
+
+95
+
+. ————
+
+80
+al -_
+75
+/ \ r 320
+70 vi
++ 160
+
+60 8a
+88 p> 4Q
+50
+10 100 1000 10000 50000
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.

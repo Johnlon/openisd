@@ -1,0 +1,7 @@
+[04:21:26] PROBLEM field=html_pdf_mismatch item=D3004/660000 url=https://www.scan-speak.dk/product/d3004-660000/ offset=0
+         raw_value='Re: HTML=3 PDF=39 (1200% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:21:27] PROBLEM field=schema_fail item=D3004/660000 url=https://www.scan-speak.dk/product/d3004-660000/ offset=0
+         raw_value="WDR: 'Vas' stored=2e-05 differs from calculated=2.22873e-05 (deps: roo=1.20095, c=343.684, Sd=0.00069, Cms=0.00033)"
+         reason=File failed strict schema validation
+[04:21:27] SCHEMA_FAIL errors=1

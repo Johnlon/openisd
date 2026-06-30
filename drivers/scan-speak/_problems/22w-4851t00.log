@@ -1,0 +1,4 @@
+[04:17:36] PROBLEM field=pdf_range_Re item=22W/4851T00 url=https://www.scan-speak.dk/datasheet/pdf/22w-4851t00.pdf offset=0
+         raw_value="extracted=Re=379 raw='379' range=0.1–64 Ω pos=993 local=C:\\Users\\johnl\\work\\resonate\\drivers\\scan-speak\\datasheets\\22w-4851t00.pdf context=…u Chassis vented below spider DC resistance [Re] 379↵Ferrite Magnet System w. Rubber Boot Voi…"
+         reason=PDF extraction rejected: value outside physical range — likely font-encoding artifact
+[04:17:39] DONE problems=1

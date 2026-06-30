@@ -1,0 +1,164 @@
+\, SCANSPEAK
+
+Discovery
+
+76 mm Dome Midrange
+
+19,44
+
+_2
+| T
+
+i
+
+—
+§ ne
+N 7 no- 2
+4 eo, ff 7
+_— 7
+-
+
+Key Features:
+
+Fast action due to low moving mass
+
+Wide Dispersion
+
+High SPL Output 92dB
+Vented / open rearside
+Internal Ferrite Magnet
+
+Internal grill to prevent dome from being pushed in
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+
+600-6000 Hz
+Vbox=0.5 ltr, f(-3dB)=270 Hz
+Cabinet volume - vented box: N.a.
+
+D7608/920000
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+Long-term max power (IEC 18.2)
+
+300 Hz
+7.15
+2.22
+
+1.73
+
+4.7 Tm
+0.80 kg/s
+3.3g
+0.09 mm/N
+84 mm
+55 cm2
+0.36 |
+
+92 dB
+
+76 mm
+2.9 mm
+
+2mm
++ 0.4mm
++1.5mm
+0.6 kg
+0.14 |
+
+8
+
+6.2 Q
+25.6 Q
+5.7Q
+0.13 mH
+
+80 W
+-W
+
+X-over: 2. order HP Butterworth, 500 Hz
+
+SPL [dB]
+100
+95
+90
+85 = Ni
+80
+Zo y 640
+75
+r 320
+7O
+| + 160
+65
+60 8a
+- re ;4Q
+50
+
+10
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

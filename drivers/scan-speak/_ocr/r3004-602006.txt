@@ -1,0 +1,58 @@
+lL, SCANSPEAK Automotive
+26 mm Dome Tweeter R3004/602006
+
+T-S Parameters:
+
+Resonance frequency [fs] 625 Hz
+Mechanical Q factor [Qms] 5.73
+Electrical Q factor [Qes] 1.43
+Total Q factor [Qts] 1.14
+Force factor [Bl] 1.7Tm
+Mechanical resistance [Rms] 0.24 kg/s
+Moving mass [Mms] 0.35 g
+Compliance [Cms] 0.19 mm/N
+Effective diaph. diameter [D] 27 mm
+Pitch diam. 53.9 Effective piston area [Sd] 5.6 cm2
+Equivalent volume [Vas] 0.01 |
+Sensitivity (2,83V/1m) 87.5 dB
+fo)
+q pS Mechanical Data:
+& < 1 Voice coil diameter 26 mm
+3 ~‘ Voice coil height 2.0 mm
+Voice coil layers 2
+! [ Gap height 2.5 mm
+_ Linear excursion + 0.25 mm
+Max mech. excursion + 1.6mm
+Unit weight 0.15 kg
+Cabinet Displacement Volume 0.03 |
+Key Features:
+1" Ring Dome Diaphragm Electrical Data:
+Patented Phase Plug Design Nominal impedance [Zn] 49
+Patented Symmetrical Drive (SD-2) motor Minimum impedance [Zmin] 3.82
+Sound Transparant Protective Grill Maximum impedance [Zo] 15.02
+Non Resonant Alu Rear Chamber DC resistance [Re] 39
+Die Cast Housing & Face Plate Voice coil inductance [Le] 0.02 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: 2500-20000 Hz 100h RMS noise test (IEC 18.4) 40 W
+Cabinet volume - closed box: _N.a. Long-term max power (IEC 18.2) 100 W
+Cabinet volume - vented box: _N.a. X-over: 2. order HP Butterworth, 2.5 kHz
+
+SPL [dB]
+100
+
+J
+: = aay 7
+
+. Z
+
+| 40
+
+pF 320
+
+100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.
+

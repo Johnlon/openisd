@@ -1,0 +1,97 @@
+Automotive
+16W/4531G06
+
+\, SCANSPEAK
+
+16 cm Midwoofer
+
+T-S Parameters:
+
+Resonance frequency [fs] 51 Hz
+Mechanical Q factor [Qms] 5.08
+Electrical Q factor [Qes] 0.66
+Total Q factor [Qts] 0.59
+Force factor [BI] 5.18 Tm
+Mechanical resistance [Rms] 1.02 kg/s
+Moving mass [Mms] 16.3 g
+Compliance [Cms] 0.59 mm/N
+33 70,7, Effective diaph. diameter [D] 125 mm
+i sf Effective piston area [Sd] 123 cm2
+‘i i Equivalent volume [Vas] 12.6 |
+SS Sensitivity (2,83V/1m) 88 dB
+os . 8 Mechanical Data:
+@ S| 5 Voice coil diameter 38 mm
+8 8 Voice coil height 17.5 mm
+Voice coil layers 2
+Gap height 4mm
+1_|! Linear excursion +6.5 mm
+Max mech. excursion +9.5 mm
+Unit weight 0.8 kg
+Cabinet Displacement Volume 0.20 |
+Key Features:
+Patented Symmetrical Drive Motor Design Electrical Data:
+Low-Loss linear suspension Nominal impedance [Zn] 4Q
+Roboust Die cast Alu Chassis Minimum impedance [Zmin] 3.95 Q
+Sliced Cone (Controls Cone Breakups) Maximum impedance [Zo] 32.639
+Low Damping SBR Rubber Surround DC resistance [Re] 3.46 Q
+Compact powerful Neo magnet Voice coil inductance [Le] 0.28 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-6000 Hz 100h RMS noise test (IEC 18.4) 70 W
+Cabinet volume - closed box: — Vbox=58 Itr, f(-3dB)=56 Hz Long-term max power (IEC 18.2) 125 W
+
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+Vbox=58 ltr, fo=32 Hz, f(-3dB)=26 Hz
+
+X-over: None
+
+95
+
+ws macs
+
+eet eee
+zx
+
+80
+vs [~
+
+; 6440
+
+pF 320
+
+70
+
+65
+
+fF 160
+
+60
+
+8a
+
+55
+
+——————
+
+| 40
+
+10
+
+100
+
+wm On-axis
+
+1000 10000
+
+memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk
+
+50000
+Frequency [Hz]
+
+Datasheet updated: August 9, 2022.
+

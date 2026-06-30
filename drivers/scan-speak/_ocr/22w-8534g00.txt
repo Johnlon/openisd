@@ -1,0 +1,171 @@
+\, SCANSPEAK
+
+Discovery
+
+22 cm Woofer
+
+_ 84,50 _
+_ $20
+i
+Re i
+th Sy °
+bx} NY EI +l
+| | <_LL! °
+q Ay lis
+!
+! 25,30 +0,10(x6)
+
+Key Features:
+
+High Output 89dB @ 2,83V
+Low Resonance Freq. 30Hz
+Coated NRSC Fibre Glass Cone
+Magnet System w. Alu Ring
+
+Low Damping SBR Rubber Surround
+Die cast Alu Chassis vented below spider
+
+Pitch diam.
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-5000 Hz
+Vbox=48 Itr, f(-3dB)=52 Hz
+Vbox=99 Itr, fo=30 Hz, f(-3dB)=29 Hz
+
+212
+
+22W/8534G00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+30 Hz
+4.14
+0.43
+0.39
+
+7.8 Tm
+1.05 kg/s
+23.1g
+1.22 mm/N
+173 mm
+235 cm2
+94.2 |
+
+89 dB
+
+38 mm
+17.5 mm
+
+6mm
++ 5.8mm
++ 12mm
+2.1 kg
+0.55 |
+
+8
+
+6.8 Q
+62.7 Q
+5.99
+0.56 mH
+
+70 W
+120 W
+
+95
+
+. E ee aaa
+
+80 7 Vv
+
+55
+
+iE ne
+75
+
+\ | 320
+70
+
+SL \ | 169
+
+60 8a
+
+40a
+
+10
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

@@ -1,0 +1,164 @@
+\, SCANSPEAK
+
+Discovery
+
+18 cm Midwoofer
+
+as
+
+(179,20 +0,30
+
+Key Features:
+
+High Output 91dB @ 2,83V
+Coated NRSC Fibre Glass Cone
+Magnet System w. Alu Ring
+
+Low Damping SBR Rubber Surround
+Die cast Alu Chassis vented below spider
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-8000 Hz
+
+Vbox=9 Itr, f(-3dB)=86 Hz
+Vbox=18 Itr, fb=49 Hz, f(-3dB)=50 Hz
+
+18W/4434G00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+47 Hz
+7.81
+0.37
+0.35
+
+6.0 Tm
+0.55 kg/s
+14.41 g
+0.79 mm/N
+132 mm
+137 cm2
+20.7 |
+91.5 dB
+
+32 mm
+13.6 mm
+
+5mm
+
++ 4.3 mm
++8mm
+1.3 kg
+0.30 |
+
+4Q
+3.9Q
+66.3 Q
+39
+0.39 mH
+
+55 W
+170 W
+
+95
+
+ya "*N
+
+85
+
+X\
+
+80
+. JV.
+
+; 6440
+
+70
+
+fF 320
+
+fF 160
+
+55
+
+8a
+
+| 40
+
+10
+
+100
+
+mem On-axis
+
+1000
+
+m= 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

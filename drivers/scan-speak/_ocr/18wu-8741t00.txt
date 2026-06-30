@@ -1,0 +1,68 @@
+\, SCANSPEAK lIluminator
+18 cm Midwoofer 18WU/8741 TOO
+
+T-S Parameters:
+Resonance frequency [fs] 35 Hz
+Mechanical Q factor [Qms] 3.78
+Electrical Q factor [Qes] 0.44
+Total Q factor [Qts] 0.39
+Force factor [BI] 7.3 Tm
+ee Mechanical resistance [Rms] 1.1 kg/s
+Moving mass [Mms] 18.5 g
+_ 1048 _ picth diam. 172,50 Compliance [Cms] 1.1 mm/N
+6 r 120° (x3) 7 Effective diaph. diameter [D] 140 mm
+an L — Effective piston area [Sd] 154 cm2
+/ } ZZ WN Equivalent volume [Vas] 37.11
+| Sensitivity (2,83V/1m) 85.5 dB
+I
+& - 3 / Mechanical Data:
+3 : | Voice coil diameter 42 mm
+> 5. Voice coil height 8 mm
+Voice coil layers 4
+Gap height 20 mm
+E ! : Linear excursion +9mm
+' 04,20 “0 xs) “ - Max mech. excursion + 16mm
+Unit weight 1.7 kg
+Cabinet Displacement Volume 0.45 |
+Key Features:
+Under-Hung Neodymium Motor Design Electrical Data:
+Patented Symmetrical Drive (SD-3) Nominal impedance [Zn] 8Q
+Patented Sandwich Paper Cone Minimum impedance [Zmin] 7.32
+Exceptionally Long Linear Excursion Maximum impedance [Zo] 51.39
+Low-Loss linear suspension DC resistance [Re] 5.8 Q
+Patented Design Voice coil inductance [Le] 0.6 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-4000 Hz 100h RMS noise test (IEC 18.4) 70 W
+Cabinet volume - closed box: — Vbox=19 Itr, f(-3dB)=60 Hz Long-term max power (IEC 18.2) 150 W
+Cabinet volume - vented box: Vbox=339 Itr, fb=34 Hz, f(-3dB)=34 Hz X-over: None
+
+SPL [dB]
+100
+
+95
+
+os Neen OA
+; aL ISSN
+° “IX \ ae
+
+V
+
+fF 320
+
+\ | 169
+: No
+60 + 8Q
+
+55
+
+70
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

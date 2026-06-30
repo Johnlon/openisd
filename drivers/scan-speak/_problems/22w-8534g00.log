@@ -1,0 +1,4 @@
+[04:17:45] PROBLEM field=missing_ts item=22W/8534G00 url=https://www.scan-speak.dk/product/22w-8534g00/ offset=0
+         raw_value="['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']"
+         reason=Missing mandatory T/S fields — driver not written
+[04:17:45] SKIP missing_ts=['Cms', 'Mms', 'Qes', 'Qms', 'Xmax']

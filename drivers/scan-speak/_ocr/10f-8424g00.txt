@@ -1,0 +1,158 @@
+\, SCANSPEAK
+
+Discovery
+
+10 cm Fullrange
+
+D9T7,5 +0,2
+278 +0,50
+
+Key Features:
+Very wide Frequency Range
+High Sensitivity 87dB / 2,83V
+
+Coated NRSC Fibre Glass Cone (patent)
+
+SBR Rubber Surround
+
+Compact Size, Neo magnet, Alu. Chassis
+
+Copper Cap on Pole Piece
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+150-12000 Hz
+Vbox=0.9 Itr, f(-3dB)=164 Hz
+
+Vbox=1.9 Itr, fo=93 Hz, f(-3dB)=95 Hz
+
+10F/8424G00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [BI]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+90 Hz
+3.49
+0.41
+0.37
+
+4.8 Tm
+0.45 kg/s
+2.77 g
+1.13 mm/N
+68 mm
+36 cm2
+2.11
+86.5 dB
+
+20 mm
+9.2 mm
+
+4mm
+
++ 2.6mm
++ 7mm
+0.3 kg
+0.05 |
+
+8
+6.59
+55.2 Q
+5.8 Q
+0.13 mH
+
+15 W
+30 W
+
+95
+90 TAN
+85 aeeeen sl eee ee, \
+80
+| 64a
+75
+LX | 320
+70
+SL \ L160
+65
+60 8a
+55
+4a
+50
+
+10
+
+100
+
+mem On-axis
+
+m= 30° off-axis
+
+1000
+
+m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+ee Impedance
+
+Datasheet updated: May 18, 2020.
+
+50000
+Frequency [Hz]

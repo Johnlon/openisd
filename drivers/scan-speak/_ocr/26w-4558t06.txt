@@ -1,0 +1,71 @@
+\, SCANSPEAK
+
+26 cm Subwoofer
+
+Automotive
+26W/4558T06
+
+T-S Parameters:
+
+Resonance frequency [fs] 21 Hz
+Mechanical Q factor [Qms] 5.56
+Electrical Q factor [Qes] 0.33
+Total Q factor [Qts] 0.31
+Force factor [BI] 10.5 Tm
+Mechanical resistance [Rms] 2.49 kg/s
+Moving mass [Mms] 105g
+135 ; Compliance [Cms] 0.55 mm/N
+450.7085 D5 (x8) Effective diaph. diameter [D] 212 mm
+| Effective piston area [Sd] 352 cm2
+Equivalent volume [Vas] 94.9 |
+Sensitivity (2,83V/1m) 88 dB
+3 a Mechanical Data:
+gs 5 g g Voice coil diameter 51 mm
+° oe Voice coil height 33 mm
+S Voice coil layers 4
+* Gap height 8mm
+Linear excursion +12.5mm
+1 u Max mech. excursion + 28 mm
+Unit weight 6.2 kg
+Cabinet Displacement Volume 1.35 |
+Key Features:
+56mm Peak Excursion, 25mm Linear Electrical Data:
+High Output 88dB @ 2,83V Nominal impedance [Zn] 4Q
+Low Resonance Freq. 21Hz Minimum impedance [Zmin] 3.3.2
+Anodized Alu Cone, Fibre Glass Dust Cap Maximum impedance [Zo] 46.8 Q
+Magnet System w. Alu Ring DC resistance [Re] 2.6 Q
+Die cast Alu Chassis vented below spider Voice coil inductance [Le] 0.83 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: _fs-1500 Hz 100h RMS noise test (IEC 18.4) 150 W
+Cabinet volume - closed box: — Vbox=30 Itr, f(-3dB)=43 Hz Long-term max power (IEC 18.2) 350 W
+
+Cabinet volume - vented box: Vbox=57 ltr, fb=25 Hz, f(-3dB)=26 Hz X-over: None
+
+SPL [4B]
+100
+95
+90
+85
+80
+
+| 64.0
+75
+
+| 320
+70
+
+r 160
+65
+60 + 8Q
+55
+
+| 40
+50
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: May 18, 2020.
+

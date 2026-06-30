@@ -1,0 +1,182 @@
+\, SCANSPEAK
+
+Revelator
+
+15 cm Midwoofer
+
+75 71 -
+ron
+I
+ra [| i
+i
+s
+4 Ls wn)
+Fi y) o F
+n / =
+oO S| a
+t qe a
+ay Se
+8
+&
+a I !
+=e !
+rv
+
+Key Features:
+
+Pitch diam & 136,15
+
+Patented Symmetrical Drive Motor Design
+Sliced Cone (Controls Cone Breakups)
+
+Low-Loss linear suspension
+
+Low Damping SBR Rubber Surround
+
+Coated Paper Cone
+Large Ferrite Magnet System
+
+Recommendations (please see Tech Note):
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+fs-6000 Hz
+
+D5,3 £0,1(x5
+
+Vbox=8 Itr, f(-3dB)=67 Hz
+Vbox=17 ltr, fo-=38 Hz, f(-3dB)=38 Hz
+
+15W/8530K00
+
+T-S Parameters:
+Resonance frequency [fs]
+Mechanical Q factor [Qms]
+Electrical Q factor [Qes]
+Total Q factor [Qts]
+
+Force factor [Bl]
+
+Mechanical resistance [Rms]
+Moving mass [Mms]
+Compliance [Cms]
+
+Effective diaph. diameter [D]
+Effective piston area [Sd]
+Equivalent volume [Vas]
+Sensitivity (2,83V/1m)
+
+Mechanical Data:
+
+Voice coil diameter
+
+Voice coil height
+
+Voice coil layers
+
+Gap height
+
+Linear excursion
+
+Max mech. excursion
+
+Unit weight
+
+Cabinet Displacement Volume
+
+Electrical Data:
+
+Nominal impedance [Zn]
+Minimum impedance [Zmin]
+Maximum impedance [Zo]
+DC resistance [Re]
+
+Voice coil inductance [Le]
+
+Power Handling:
+100h RMS noise test (IEC 18.4)
+
+Long-term max power (IEC 18.2)
+
+X-over: None
+
+39 Hz
+
+5
+
+0.43
+0.39
+
+6.6 Tm
+0.64 kg/s
+13g
+1.27 mm/N
+110 mm
+95 cm2
+161
+
+86 dB
+
+38 mm
+18 mm
+
+5mm
++6.5 mm
+9mm
+1.7 kg
+0.36 |
+
+8Q
+6.7Q
+572
+5.85 Q
+0.3 mH
+
+60 W
+110 W
+
+95
+
+85
+
+. al
+
+70
+
+55
+
+| 64.0
+75 7 ¥
+| 320
+L160
+° ==-
+60 8a
+40a
+
+10
+
+100
+
+wm On-axis
+
+1000
+
+meme 30° off-axis m= 60° off-axis
+
+www.scan-speak.dk
+
+10000
+
+wees Impedance
+
+50000
+
+Frequency [Hz]
+
+Datasheet updated: August 13, 2021.
+

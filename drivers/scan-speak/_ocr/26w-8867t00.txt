@@ -1,0 +1,77 @@
+\, SCANSPEAK Revelator
+26 cm Woofer 26W/8867T00
+
+T-S Parameters:
+
+Resonance frequency [fs] 19 Hz
+Mechanical Q factor [Qms] 4.50
+Electrical Q factor [Qes] 0.31
+Total Q factor [Qts] 0.29
+Force factor [BI] 11.2 Tm
+Mechanical resistance [Rms] 1.51 kg/s
+Moving mass [Mms] 57g
+Compliance [Cms] 1.23 mm/N
+are 124,7 _ r en ame "| Effective diaph. diameter [D] 202 mm
+ry Effective piston area [Sd] 320 cm2
+| Equivalent volume [Vas] 176 |
+~ 1 Sensitivity (2,83V/1m) 87 dB
+
+Mechanical Data:
+
+141,6
+228,1 +0,5
+
+4 Voice coil diameter 50 mm
+
+Voice coil height 24 mm
+i | Voice coil layers 2
+Gap height 6mm
+! Linear excursion +9mm
+ro Max mech. excursion + 14mm
+
+Unit weight 3.7 kg
+Cabinet Displacement Volume 1.311
+
+Key Features:
+Patented Symmetrical Drive Motor Design Electrical Data:
+Rigid Black Anodized Alu Cone
+
+Nominal impedance [Zn] 8Q
+Low-Loss linear suspension Minimum impedance [Zmin] 6.8Q
+Die cast Alu Chassis vented below spider DC resistance [Re] 5.8Q
+Ferrite Magnet System w. Rubber Boot Voice coil inductance [Le] 0.4 mH
+Recommendations (please see Tech Note): Power Handling:
+Operating frequency range: fs-2000 Hz 100h RMS noise test (IEC 18.4) 30 W
+Cabinet volume - closed box: — Vbox=40 ltr, f(-3dB)=44 Hz Long-term max power (IEC 18.2) 200 W
+Cabinet volume - vented box: Vbox=70 ltr, fb=25 Hz, f(-3dB)=28 Hz X-over: None
+
+SPL [dB]
+100
+
+95
+
+Ar LNW \
+
+ra
+| 320
+70
+| 160
+° =
+
+60
+
+80
+
+8a
+
+55
+
+| 40
+
+10 100 1000 10000 50000
+
+Frequency [Hz]
+ees On-axis mee 30° off-axis == 60° off-axis ee Impedance
+
+www.scan-speak.dk Datasheet updated: January 7, 2021.
+

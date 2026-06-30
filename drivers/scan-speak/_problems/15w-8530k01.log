@@ -1,0 +1,4 @@
+[04:14:23] PROBLEM field=html_pdf_mismatch item=15W/8530K01 url=https://www.scan-speak.dk/product/15w-8530k01/ offset=0
+         raw_value='Vas: HTML=0.017 PDF=0.171 (906% diff)'
+         reason=HTML and PDF values disagree by >10%
+[04:14:27] DONE problems=1

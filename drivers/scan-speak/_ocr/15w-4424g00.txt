@@ -1,0 +1,117 @@
+\, SCANSPEAK
+
+Discovery
+
+15 cm Midwoofer
+
+60,90
+_—.. 4,80
+
+—
+
+D149,3 £0,5
+
+Key Features:
+High Output 90,5dB @ 2,83V
+
+Excellent Midrange Performance
+
+Coated NRSC Fibre Glass Cone
+
+T-S Parameters:
+
+(25,3 £0,1(x4) /
+
+Low Damping SBR Rubber Surround
+Die cast Alu Chassis vented below spider
+
+Recommendations (please see Tech Note):
+fs-10000 Hz
+
+Operating frequency range:
+Cabinet volume - closed box:
+Cabinet volume - vented box:
+
+SPL [dB]
+100
+
+N.a.
+N.a.
+
+15W/4424G00
+
+Resonance frequency [fs] 46 Hz
+Mechanical Q factor [Qms] 3.26
+Electrical Q factor [Qes] 0.26
+Total Q factor [Qts] 0.24
+Force factor [BI] 5.2 Tm
+Mechanical resistance [Rms] 0.7 kg/s
+Moving mass [Mms] 7.9g
+Pitch diam. © 136,50 Compliance [Cms] 1.51 mm/N
+\ Effective diaph. diameter [D] 101 mm
+Effective piston area [Sd] 80 cm2
+Equivalent volume [Vas] 13.8 |
+Sensitivity (2,83V/1m) 90.5 dB
+Mechanical Data:
+Voice coil diameter 25mm
+Voice coil height 10.5 mm
+Voice coil layers 2
+Gap height 5 mm
+Linear excursion + 2.8mm
+Max mech. excursion +8mm
+Unit weight 1 kg
+Cabinet Displacement Volume 0.20 |
+Electrical Data:
+Nominal impedance [Zn] 4Q
+Minimum impedance [Zmin] 4.12
+Maximum impedance [Zo] 52.1 Q
+DC resistance [Re] 3.12
+Voice coil inductance [Le] 0.37 mH
+Power Handling:
+100h RMS noise test (IEC 18.4) 60 W
+Long-term max power (IEC 18.2) 120 W
+
+X-over: None
+
+95
+
+85
+
+SEeHIS
+
+80
+
+=
+
+; 6440
+
+| fF 320
+
+fF 160
+
+pl
+es
+
+55
+
+8a
+
+| 40
+
+10
+
+100
+
+wm On-axis
+
+1000
+
+memes 30° off-axis m= 60° off-axis wees Impedance
+
+www.scan-speak.dk
+
+10000 50000
+Frequency [Hz]
+
+Datasheet updated: September 1, 2022.
+
