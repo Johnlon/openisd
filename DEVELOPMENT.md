@@ -116,8 +116,8 @@ Always use the project scripts — do not run `npm run dev`, `vite`, or ad-hoc c
 
 ```bash
 bash scripts/start-http.sh    # health checks then dev server at http://localhost:4000
+bash scripts/stop-http.sh     # stop the dev server (kills ports 4000–4005)
 bash scripts/health-check.sh  # lint + unit tests + golden tests + DQ (no server)
-bash scripts/kill-http.sh     # kill all processes on ports 4000–4005
 bash scripts/preview-4000.sh  # serve built dist at http://localhost:4000
 bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
 ```
