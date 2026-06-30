@@ -7,12 +7,12 @@ export default defineConfig({
   use: {
     browserName: 'chromium',
     headless: true,
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:4000',
   },
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npm run dev -- --port 4000',
+    url: 'http://localhost:4000',
     reuseExistingServer: true,
-    timeout: 15000,
+    timeout: 120000,
   },
 });
