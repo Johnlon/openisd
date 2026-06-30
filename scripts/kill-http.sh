@@ -25,9 +25,11 @@ _winpids_on_port() {
     | sort -u
 }
 
-# Map a Windows PID to its POSIX PID via ps -W (column 4 = WINPID, column 1 = POSIX PID)
+# ps -W columns: PID  PPID  PGID  WINPID  TTY  UID  STIME  COMMAND
+# Map Windows PID (col 4) to POSIX PID (col 1), but only if PPID (col 2) != 0.
+# Processes with PPID=0 are native Windows orphans — bash kill can't signal them.
 _posix_pid_for_winpid() {
-  ps -W 2>/dev/null | awk -v wpid="$1" '$4 == wpid {print $1; exit}'
+  ps -W 2>/dev/null | awk -v wpid="$1" '$4 == wpid && $2 != 0 {print $1; exit}'
 }
 
 _kill_port() {
