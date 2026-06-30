@@ -60,7 +60,7 @@ from pathlib import Path
 # ── Import new scraper_lib from this directory ────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
-    run_scraper, parse_number, parse_field_value, fetch, to_wdr, safe_filename,
+    run_scraper, parse_number, fetch, to_wdr, safe_filename,
     write_driver, match_ts_fields,
 )
 
@@ -212,7 +212,7 @@ def _driver_type_from_url(url: str) -> str | None:
     if slug.startswith("sw"):   return "subwoofer"
     if slug.startswith("fr"):   return "fullrange"
     if slug.startswith("mr"):   return "midrange"
-    if slug.startswith("pr"):   return "passive_radiator"
+    if slug.startswith("pr"):   return "pr"
     return None
 
 

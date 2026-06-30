@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_field_value, parse_html_li_ts
+from scraper_lib import run_scraper, parse_number, parse_html_li_ts
 
 VENDOR      = "SB Acoustics"
 SITEMAP_URL = "https://sbacoustics.com/product-sitemap.xml"

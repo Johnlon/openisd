@@ -19,11 +19,28 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_field_value, parse_html_table_ts
+from scraper_lib import run_scraper, parse_number, parse_html_table_ts
 
 VENDOR      = "Scan-Speak"
 SITEMAP_URL = "https://www.scan-speak.dk/sitemap.xml"
 OUT_DIR     = str(Path(__file__).resolve().parent.parent.parent / "drivers" / "scan-speak")
+
+# Explicit map from Scan-Speak "Product Categories" labels (lowercased) to canonical
+# driver_type values. Using raw value_text.lower() would silently produce unrecognised
+# strings (e.g. "midwoofer, automotive") that classifyTypes() cannot handle.
+_SS_CATEGORY_MAP: dict[str, str] = {
+    "tweeter":    "tweeter",
+    "midrange":   "midrange",
+    "woofer":     "woofer",
+    "subwoofer":  "subwoofer",
+    "midwoofer":  "midwoofer",   # Scan-Speak term for mid-bass cone drivers
+    "fullrange":  "fullrange",
+    "full-range": "fullrange",
+    "full range": "fullrange",
+    "passive radiator": "pr",
+    "coaxial":    "coaxial",
+    "coax":       "coaxial",
+}
 
 # HTML field map — Scan-Speak product pages carry a summary T/S table.
 # Labels use &nbsp; prefix and a trailing colon; match on lower-cased fragment.
@@ -65,7 +82,10 @@ def parse_product(html: str, url: str) -> dict | None:
         label = re.sub(r"<[^>]+>", "", cells[0]).replace("&nbsp;", "").strip().lower()
         value_text = re.sub(r"<[^>]+>", "", cells[1]).replace("&nbsp;", "").strip()
         if "product categories" in label:
-            driver_type = value_text.lower()
+            # Use explicit map — raw value_text.lower() can produce compound strings like
+            # "midwoofer, automotive" that classifyTypes() cannot handle.
+            raw = value_text.split(",")[0].strip().lower()
+            driver_type = _SS_CATEGORY_MAP.get(raw, raw)
         elif "product families" in label:
             series = value_text
         elif label.startswith("size"):

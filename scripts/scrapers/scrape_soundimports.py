@@ -29,7 +29,7 @@ import time
 
 # ── Import new scraper_lib from this directory ────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_field_value, fetch, match_ts_fields
+from scraper_lib import run_scraper, parse_number, fetch, match_ts_fields
 
 VENDOR      = "SoundImports"
 SITEMAP_URL = "https://www.soundimports.eu/en/sitemap.xml"
