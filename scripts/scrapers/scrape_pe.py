@@ -2,8 +2,11 @@
 """
 Scrape Parts Express driver catalog → WDR + _meta.yml sidecar pairs.
 
-Fetches T/S data from the Parts Express internal JSON API and writes
-WDR + _meta.yml sidecar pairs to drivers/parts-express/.
+Strategy: API for discovery only (brand/category/itemid/urlcomponent).
+T/S parameters are extracted from the manufacturer's datasheet PDF (primary)
+and the PE product-page HTML Thiele-Small Parameters table (fallback).
+The API's bare-float T/S fields are intentionally ignored — they carry no unit
+information and have systematic errors for several brands (Beyma, JBL, Selenium).
 
 API: GET https://www.parts-express.com/api/items
      ?q={brand}&fieldset=details&offset={N}&limit=50
@@ -33,7 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from scraper_lib import (
     safe_filename, load_manifest, save_manifest,
-    ProblemLog, write_driver,
+    ProblemLog, write_driver, parse_field_value, parse_html_table_ts,
 )
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -87,64 +90,34 @@ def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
 
 
-def _safe(v):
-    """Return float or None."""
-    try:
-        f = float(v)
-        return f if f == f else None   # NaN guard
-    except (TypeError, ValueError):
-        return None
+# PE HTML product pages carry a "Thiele-Small Parameters" table with labeled units.
+# Keys are lower-cased label fragments; values are (WDR key, nominal SI factor).
+# parse_field_value() detects the actual unit in the value string and overrides
+# the nominal factor where needed (e.g. ft³ overrides L→m³, µm/N overrides mm/N).
+_HTML_TS_MAP = {
+    "resonant frequency":           ("Fs",   1.0),    # Hz
+    "dc resistance":                ("Re",   1.0),    # Ω
+    "voice coil inductance":        ("Le",   1e-3),   # mH → H
+    "mechanical q":                 ("Qms",  1.0),
+    "electromagnetic q":            ("Qes",  1.0),
+    "total q":                      ("Qts",  1.0),
+    "compliance equivalent volume": ("Vas",  1e-3),   # L→m³ default; ft³ detected
+    "mechanical compliance":        ("Cms",  1e-3),   # mm/N→m/N default; µm/N detected
+    "bl product":                   ("BL",   1.0),    # T·m
+    "diaphragm mass":               ("Mms",  1e-3),   # g→kg default; kg passthrough detected
+    "maximum linear excursion":     ("Xmax", 1e-3),   # mm → m
+    "surface area of cone":         ("Sd",   1e-4),   # cm²→m² default; m² passthrough detected
+    "sensitivity":                  ("SPL",  1.0),    # dB
+    "power handling":               ("Pe",   1.0),    # W
+    "impedance":                    ("Znom", 1.0),    # Ω
+}
 
 
-def _parse_item(it: dict) -> dict[str, float]:
-    """Map one PE API item dict → fields dict in SI units."""
-    def g(key):
-        return _safe(it.get(key))
-
-    Fs   = g("custitem_pe_resonant_frequency_fs")
-    Qts  = g("custitem_pe_total_q_qts")
-    Qes  = g("custitem_pe_electromagnetic_q_qes")
-    Qms  = g("custitem_pe_mechanical_q_qms")
-    Re   = g("custitem_pe_dc_resistance_re")
-    Znom = g("custitem_pe_impedance")
-    Pe   = g("custitem_pe_power_handling_rms")
-    BL   = g("custitem_pe_bl_product_bl")
-
-    Le_raw = g("custitem_pe_voice_coil_inductance_le")
-    Le = Le_raw / 1000 if Le_raw is not None else None          # mH → H
-
-    Mms_raw = g("custitem_pe_diaphragm_mass_airload")
-    Mms = Mms_raw / 1000 if Mms_raw is not None else None       # g → kg
-
-    Sd_raw = g("custitem_pe_surface_area_of_cone_sd")
-    # PE API is inconsistent: most entries in cm², ~78 entries (JBL Selenium etc.) in m²
-    # Heuristic: if raw value < 1.0 it is already m²; otherwise convert cm² → m²
-    Sd = (Sd_raw if Sd_raw < 1.0 else Sd_raw / 10000) if Sd_raw is not None else None
-
-    Vas_raw = g("custitem_pe_compliance_equiv_volume")
-    Vas = Vas_raw * 0.0283168 if Vas_raw is not None else None  # ft³ → m³
-
-    Xmax_raw = g("custitem_pe_max_linear_excursion")
-    Xmax = Xmax_raw / 1000 if Xmax_raw is not None else None    # mm one-way → m
-
-    # Cms: reject implausible values ≥ 100 mm/N (API bug — kHz parsing error)
-    Cms_raw = g("custitem_pe_mech_comp_suspension")
-    Cms = Cms_raw / 1000 if (Cms_raw is not None and Cms_raw < 100) else None  # mm/N → m/N
-
-    # Rms: derived from T/S identity Qms = 2π·Fs·Mms / Rms
-    Rms = (2 * 3.141592653589793 * Fs * Mms / Qms
-           if (Fs and Mms and Qms) else None)
-
-    fields: dict[str, float] = {}
-    for k, v in [
-        ("Fs", Fs), ("Qts", Qts), ("Qes", Qes), ("Qms", Qms),
-        ("Re", Re), ("Le", Le), ("BL", BL), ("Mms", Mms), ("Cms", Cms),
-        ("Rms", Rms), ("Sd", Sd), ("Vas", Vas), ("Xmax", Xmax),
-        ("Znom", Znom), ("Pe", Pe),
-    ]:
-        if v is not None:
-            fields[k] = v
-    return fields
+def _parse_html_ts(html: str) -> dict[str, float]:
+    return parse_html_table_ts(
+        html, _HTML_TS_MAP,
+        section_pattern=r"Thiele.Small Parameters.*?</table>",
+    )
 
 
 # ── API fetch (top-level so ProcessPoolExecutor can pickle it) ────────────────
@@ -290,7 +263,8 @@ def _enrich_one(args: tuple) -> tuple[str, dict]:
     brand   = it.get("custitem_pe_brand", "")
     url     = f"https://www.parts-express.com/{urlcomp}" if urlcomp else ""
 
-    out = {"pdf_url": None, "pdf_fields": {}, "freq_low_hz": None, "freq_high_hz": None}
+    out = {"pdf_url": None, "pdf_fields": {}, "html_fields": {},
+           "freq_low_hz": None, "freq_high_hz": None}
     if not url:
         return sku, out
 
@@ -300,6 +274,9 @@ def _enrich_one(args: tuple) -> tuple[str, dict]:
     if not html_path.exists():
         return sku, out
     html = html_path.read_text(encoding="utf-8", errors="replace")
+
+    # ── T/S fields from HTML Thiele-Small Parameters table ────────────────────
+    out["html_fields"] = _parse_html_ts(html)
 
     # ── Freq range from HTML specs table ──────────────────────────────────────
     plain = _re.sub(r"<[^>]+>", " ", html)
@@ -411,9 +388,8 @@ def main() -> None:
     drivers = [
         it for it in all_items
         if it.get("custitem_itemcategoryfacet") in INCLUDE_CATS
-        and it.get("custitem_pe_resonant_frequency_fs")
     ]
-    print(f"[{_ts()}] [{VENDOR}] {len(drivers)} with T/S data in driver categories", flush=True)
+    print(f"[{_ts()}] [{VENDOR}] {len(drivers)} items in driver categories", flush=True)
 
     already_scraped = set(manifest.get("scraped", {}).keys())
     to_write = drivers if args.refresh else [
@@ -476,39 +452,20 @@ def main() -> None:
             prob.log("model_mpn", sku, url, it.get("mpn"),
                      "mpn absent; fell back to storedisplayname2")
 
-        api_fields = _parse_item(it)
-        enc        = enrichment.get(sku, {})
-        pdf_fields = enc.get("pdf_fields", {})
-        freq_low   = enc.get("freq_low_hz")
-        freq_high  = enc.get("freq_high_hz")
-        pdf_url    = enc.get("pdf_url")
+        enc         = enrichment.get(sku, {})
+        pdf_fields  = enc.get("pdf_fields", {})
+        html_fields = enc.get("html_fields", {})
+        freq_low    = enc.get("freq_low_hz")
+        freq_high   = enc.get("freq_high_hz")
+        pdf_url     = enc.get("pdf_url")
 
-        # PDF is the primary source for all T/S fields.  API fills gaps only.
-        # Any field present in both is cross-checked; discrepancies beyond tolerance
-        # are logged — PDF value wins.
-        # TODO: apply this PDF-primary principle uniformly across all scrapers.
-        # TODO: compare drivers across collections (PE vs wavecor, PE vs SB Acoustics etc.)
-        #       for consistency, and ultimately to flag or de-duplicate cross-source entries.
-        #       This will also help surface systematic unit bugs (e.g. Cms mm/N vs μm/N).
-        _SOURCE_TOL = {
-            "Fs": 0.05, "Re": 0.03, "BL": 0.05, "Mms": 0.05, "Sd": 0.10,
-            "Vas": 0.10, "Cms": 0.10, "Qts": 0.05, "Qes": 0.05, "Qms": 0.05,
-            "Xmax": 0.10, "Le": 0.10, "Pe": 0.10, "Znom": 0.05, "SPL": 0.02,
-        }
+        # PDF is primary; HTML fills any gaps.
         fields = dict(pdf_fields)
-        for k, v in api_fields.items():
+        for k, v in html_fields.items():
             if v is None:
                 continue
             if k not in fields or fields[k] is None:
                 fields[k] = v
-            else:
-                pdf_v = fields[k]
-                if pdf_v and v:
-                    rel = abs(pdf_v - v) / abs(v)
-                    if rel > _SOURCE_TOL.get(k, 0.05):
-                        prob.log("source_discrepancy", sku, url, None,
-                                 f"{k}: PDF={pdf_v:.4g} vs API={v:.4g} ({rel*100:.1f}% diff)"
-                                 f" — PDF used as primary; API value may indicate unit error")
 
         # freq_low/high go into specs so they get proper provenance tracking;
         # top-level freq_low_hz/freq_high_hz are legacy and not written here.

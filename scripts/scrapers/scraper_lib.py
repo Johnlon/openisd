@@ -69,6 +69,66 @@ DEFAULT_DELAY_S     = _plib.DEFAULT_DELAY_S     # noqa: F401
 HEADERS             = _plib.HEADERS             # noqa: F401
 check_fields        = _dqlib.check_fields       # noqa: F401
 
+
+def parse_html_table_ts(
+    html: str,
+    field_map: dict,
+    section_pattern: str | None = None,
+) -> dict[str, float]:
+    """
+    Extract T/S fields from a 2-column HTML table using a label→(key, factor) map.
+
+    field_map: {lower-cased label fragment: (wdr_key, nominal_SI_factor)}
+    section_pattern: if given, HTML is scoped to the first regex match before parsing,
+                     so only the relevant table section is searched.
+
+    Labels are stripped of HTML tags and &nbsp; before fragment matching.
+    parse_field_value() detects units in the value string and overrides nominal_factor.
+    """
+    import re as _re
+    if section_pattern:
+        m = _re.search(section_pattern, html, _re.S | _re.I)
+        if not m:
+            return {}
+        html = m.group()
+    fields: dict[str, float] = {}
+    for row in _re.findall(r"<tr[^>]*>(.*?)</tr>", html, _re.S | _re.I):
+        cells = _re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, _re.S | _re.I)
+        if len(cells) < 2:
+            continue
+        label = _re.sub(r"<[^>]+>", "", cells[0]).replace("&nbsp;", " ").strip().lower()
+        value_text = _re.sub(r"<[^>]+>", "", cells[1]).replace("&nbsp;", "").strip()
+        for fragment, (key, factor) in field_map.items():
+            if fragment in label and key not in fields:
+                v = parse_field_value(key, value_text, factor)
+                if v is not None:
+                    fields[key] = v
+                break
+    return fields
+
+
+def parse_html_li_ts(html: str, field_map: dict) -> dict[str, float]:
+    """
+    Extract T/S fields from HTML <li> items using a label→(key, factor) map.
+    Used by sites (e.g. SB Acoustics) that present specs as a bullet list rather
+    than a table. Parenthesized qualifiers like "(2.83V/1m)" are stripped before
+    number extraction so they don't confuse parse_field_value().
+    """
+    import re as _re, html as _html
+    fields: dict[str, float] = {}
+    for li_raw in _re.findall(r"<li>(.*?)</li>", html, _re.S | _re.I):
+        text = _html.unescape(_re.sub(r"<[^>]+>", "", li_raw)).strip()
+        tl = text.lower()
+        parse_text = _re.sub(r"\([^)]*\)", " ", text)
+        for fragment, (key, factor) in field_map.items():
+            if fragment in tl and key not in fields:
+                v = parse_field_value(key, parse_text, factor)
+                if v is not None:
+                    fields[key] = v
+                break
+    return fields
+
+
 # pdf_lib is NOT imported at module level here — imported inside each worker process.
 
 # Schema validation — imported at module level (lightweight; no fitz/tesseract dependency).

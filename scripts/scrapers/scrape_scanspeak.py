@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_field_value
+from scraper_lib import run_scraper, parse_number, parse_field_value, parse_html_table_ts
 
 VENDOR      = "Scan-Speak"
 SITEMAP_URL = "https://www.scan-speak.dk/sitemap.xml"
@@ -51,11 +51,12 @@ def parse_product(html: str, url: str) -> dict | None:
     if not name:
         name = url.rstrip("/").split("/")[-1]
 
-    # Scan-Speak uses a two-column <tr><td> spec table for both T/S and metadata.
-    fields: dict[str, float] = {}
-    driver_type    = ""   # from "Product Categories" row (Tweeter / Midrange / Woofer)
-    series         = ""   # from "Product Families" row (Discovery / Revelator / Ellipticor)
-    nominal_size_cm: float | None = None  # from "Size:" row (nominal cone diameter in cm)
+    # Scan-Speak uses a two-column <tr><td> spec table for T/S data and metadata.
+    # T/S extraction via shared helper; metadata rows extracted separately.
+    fields: dict[str, float] = parse_html_table_ts(html, _HTML_FIELD_MAP)
+    driver_type    = ""   # from "Product Categories" row
+    series         = ""   # from "Product Families" row
+    nominal_size_cm: float | None = None  # from "Size:" row
 
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S | re.I):
         cells = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S | re.I)
@@ -63,25 +64,14 @@ def parse_product(html: str, url: str) -> dict | None:
             continue
         label = re.sub(r"<[^>]+>", "", cells[0]).replace("&nbsp;", "").strip().lower()
         value_text = re.sub(r"<[^>]+>", "", cells[1]).replace("&nbsp;", "").strip()
-
         if "product categories" in label:
-            driver_type = value_text.lower()   # "tweeter", "midrange", "woofer"
-            continue
-        if "product families" in label:
-            series = value_text                # "Discovery", "Revelator", "Ellipticor"
-            continue
-        if label.startswith("size"):
+            driver_type = value_text.lower()
+        elif "product families" in label:
+            series = value_text
+        elif label.startswith("size"):
             val = parse_number(value_text)
             if val is not None:
                 nominal_size_cm = val
-            continue
-
-        for fragment, (key, factor) in _HTML_FIELD_MAP.items():
-            if fragment in label and key not in fields:
-                si_val = parse_field_value(key, value_text, factor)
-                if si_val is not None:
-                    fields[key] = si_val
-                break
 
     # Require at minimum Fs from HTML (confirms this is a driver page)
     if not fields.get("Fs"):

@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from scraper_lib import run_scraper, parse_number, parse_field_value
+from scraper_lib import run_scraper, parse_number, parse_field_value, parse_html_li_ts
 
 VENDOR      = "SB Acoustics"
 SITEMAP_URL = "https://sbacoustics.com/product-sitemap.xml"
@@ -59,22 +59,13 @@ def parse_product(html: str, url: str) -> dict | None:
     m = re.search(r"<h1[^>]*>([^<]+)</h1>", html, re.I)
     name = m.group(1).strip() if m else url.rstrip("/").split("/")[-1]
 
-    li_items = re.findall(r"<li>(.*?)</li>", html, re.S | re.I)
-    fields: dict[str, float] = {}
+    fields: dict[str, float] = parse_html_li_ts(html, _HTML_FIELD_MAP)
+    # Non-T/S extra specs (voice coil dia, air gap) — still extracted from <li> items.
     extra_specs: dict[str, float] = {}
-    for li_raw in li_items:
+    for li_raw in re.findall(r"<li>(.*?)</li>", html, re.S | re.I):
         text = html_module.unescape(re.sub(r"<[^>]+>", "", li_raw)).strip()
         tl = text.lower()
-        # Strip parenthesized qualifiers (e.g. "(2.83V/1m)") before number extraction
         parse_text = re.sub(r"\([^)]*\)", " ", text)
-        # T/S fields
-        for fragment, (key, factor) in _HTML_FIELD_MAP.items():
-            if fragment in tl:
-                si_val = parse_field_value(key, parse_text, factor)
-                if si_val is not None:
-                    fields[key] = si_val
-                break
-        # Non-T/S extra specs
         for fragment, spec_key in _EXTRA_SPEC_MAP.items():
             if fragment in tl:
                 val = parse_number(parse_text)
