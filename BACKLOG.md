@@ -85,9 +85,58 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 - [x] [x] **P1** Linkwitz transform (target Fs/Qtc) `[unit]`
 - [x] [ ] **P1** Series / source resistance (amp output + cabling) in the drive model
 - [ ] **P1** Configurable listening distance (replace the fixed 1 m)
-- [ ] **P1** Frequency-range presets (sub / woofer / wide / custom) for the plot range
-- [ ] **P2** Amplifier-load graph — current and VA draw vs frequency
 - [ ] **P2** Amplifier output impedance / damping-factor effect on response
+
+## Charts & graph types
+
+WinISD chart inventory mapped to Resonate status. Box-type scope notes: `[PR]` = passive radiator only · `[BP]` = 4th-order bandpass only · `[EQ]` = only when EQ/Filter is active.
+
+### Universal (all box types)
+
+- [x] [x] SPL `[unit]`
+- [ ] **P1** Transfer function magnitude — same data as SPL, Y axis normalized to 0 dB at passband with −3 dB reference line. Display mode on the SPL chart, not a new engine series. (Verified from WinISD screenshots: same cursor value −9.896 dB at 38 Hz in both charts.)
+- [x] [x] Transfer function phase `[unit]`
+- [x] [x] Group Delay `[unit]`
+- [x] [x] Maximum Power `[unit]`
+- [x] [x] Maximum SPL `[unit]`
+- [x] [x] Cone excursion (driver) `[unit]`
+- [x] [x] Impedance `[unit]`
+- [x] [x] Impedance phase `[unit]`
+- [ ] **P1** Amplifier apparent load power (VA) — V²/Z from existing impedance sweep; no new engine work needed
+- [ ] **P1** MaxSPL: color curve by limiting factor — Xmax-limited segments in design color, Pe-limited in amber. `xlim[]` already returned by `maxCurves`. Implement by (a) attaching `xlim` to the MaxSPL series in `series.js`, (b) two color passes in `canvas.js` series loop, (c) phantom legend entries "Xmax limit" / "Pe limit". Only applies to primary design; compare overlays keep their assigned color. WinISD has no equivalent.
+
+### PR box type only
+
+- [x] [x] Cone excursion (PR) — currently combined with driver on one chart; split display is missing `[unit]`
+- [ ] **P2** Transfer function magnitude (PR) — PR contribution to system response `[PR]`
+- [ ] **P2** Transfer function phase (PR) `[PR]`
+
+### Ported / vented
+
+- [x] [x] Port — Air velocity `[unit]`
+
+### 4th-order bandpass only
+
+- [ ] **P2** Rear port — Air velocity `[BP]`
+- [ ] **P2** Rear port — Gain `[BP]`
+- [ ] **P2** Front port — Air velocity `[BP]`
+- [ ] **P2** Front port — Gain `[BP]`
+- [ ] **P2** Intrachamber Port — Air velocity `[BP]`
+
+### EQ/Filter variants (hidden when no EQ active)
+
+- [ ] **P2** Transfer function magnitude (EQ/Filter) `[EQ]`
+- [ ] **P2** Transfer function phase (EQ/Filter) `[EQ]`
+- [ ] **P2** Group Delay (EQ/Filter) `[EQ]`
+
+### Axis controls & chart UX
+
+- [ ] **P1** Shared X axis range — Hz min/max with log-spaced spinner; all charts react to one X range
+- [ ] **P1** Per-chart Y axis autoscaling — fit to data in current X range; on by default
+- [ ] **P1** "Single chart" toggle — selecting a chart deselects the current one; toggle switch in chart pane header
+- [ ] **P1** Frequency-range presets — sub / woofer / wide / custom shortcuts for the X range
+- [ ] **P2** Draggable / resizable chart panels
+- [ ] **P2** Configurable graph gridlines (3 / 5 / 10 dB) and contrast
 
 ## Enclosure types & box model
 
@@ -154,10 +203,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 ## UX & platform
 
 - [x] [ ] **P1** Save / restore graph layout (which graphs, sizes, positions) — graph selection persisted in localStorage
-- [ ] **P1** ✨ NEW — MaxSPL chart: color curve by limiting factor — Xmax-limited segments in design color, Pe-limited segments in amber. `xlim[]` boolean array is already returned by `maxCurves`. Implement by (a) attaching `xlim` to the MaxSPL series in `series.js`, (b) drawing two color passes in `canvas.js` series loop, (c) phantom legend entries "Xmax limit" / "Pe limit". Only applies to primary design; compare overlays keep their assigned color. When Pe is absent, amber pass draws nothing. WinISD has no equivalent.
-- [ ] **P2** Draggable / resizable graph panels
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path
-- [ ] **P2** Configurable graph gridlines (3 / 5 / 10 dB) and contrast
 - [ ] **P2** Keyboard nudge (arrow keys) on numeric inputs
 - [ ] **P2** Mobile / small-screen layout pass
 

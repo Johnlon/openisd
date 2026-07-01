@@ -906,3 +906,22 @@ affect Re and BL (series doubles both; parallel halves Re), but whether WinISD a
 VCCon to adjust simulation calculations for DVC drivers **has not been verified** in our
 primary-source testing. The save bug (§12) means VCCon=1 in all natively-saved WinISD files
 anyway, so this path is never exercised by normal WinISD users.
+
+## 17. SPL vs Transfer Function Magnitude charts — verified difference
+
+**Source:** Screenshots captured from WinISD 0.7.0.950, project "Epique15 - pr", same cursor position (38.01 Hz, −9.896 dB shown top-right in both).
+
+### Finding
+
+Both charts display the **same underlying data series** (system frequency response). The only difference is Y axis reference:
+
+| Chart                       | Y axis                         | Reference                                          |
+| --------------------------- | ------------------------------ | -------------------------------------------------- |
+| SPL                         | Absolute dB SPL at input power | Driver sensitivity + power offset                  |
+| Transfer function magnitude | Relative dB                    | 0 dB = passband output; −3 dB reference line drawn |
+
+The cursor readout (−9.896 dB at 38.01 Hz) is identical in both screenshots, confirming no separate computation.
+
+### Implication for Resonate
+
+"Transfer function magnitude" is a **display mode on the SPL chart**, not a new engine series. Implementation: subtract the passband SPL reference level from the curve, draw 0 dB and −3 dB dashed reference lines, relabel Y axis from "dB SPL" to "dB".
