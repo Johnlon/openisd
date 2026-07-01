@@ -657,6 +657,83 @@ WinISD's driver editor has 4 tabs: General, Parameters, Advanced parameters, Dim
 
 **Diagram labels:** Basket, Magnet, MagDpt, Outer, Thick, Depth
 
+### 13.1 Field purposes — verified from WinISD help
+
+Source: `research/winisd/help/thielesmall.html` (parameter explanations by Claus
+Futtrup, in WinISD's own help), condensed. "Resonate:" notes record how our engine
+actually uses each field — verified against `packages/engine`.
+
+**Thiele/Small**
+
+- **Fs** — Free-air resonance frequency of the driver. _Resonate: core input; every graph depends on it._
+- **Qes** — Electrical Q (damping); ability to resonate at Fs by electrical means. Lower = more damped.
+- **Qms** — Mechanical Q (damping); ability to resonate at Fs by mechanical means.
+- **Qts** — Total damping = Qms ‖ Qes (parallel coupling). _Enter any 2 of the trio; the third is computed._
+- **Vas** — Volume of air with the same compliance as the suspension (Cms). _Core input._
+
+**Electro-mechanical**
+
+- **Mms** — Moving mass of the vibrating parts including air load.
+- **Cms** — Suspension compliance (inverse of spring stiffness).
+- **Rms** — Mechanical damping (suspension friction + resistive part of the radiation load).
+- **Re** — DC resistance of the voice coil. _Resonate + WinISD power reference: P = V²/Re (see §1); Znom is NOT used._
+- **BL** — Force factor: magnetic flux crossed with wire length in the gap.
+- **Dd** — Diaphragm diameter (= our Cone ⌀; Sd = π·(Dd/2)²).
+- **Le** — Voice-coil inductance. _Resonate: only shapes the impedance plot — circuit.js keeps Le out of the acoustic path._
+- **Sd** — Effective radiating (piston) area. _Core input._
+- **fLe** — Frequency at which Le and KLe were measured (0 = standard Le model).
+- **KLe** — Voice-coil semi-inductance [H·√Hz], Vanderkooy lossy-inductance model.
+
+**Large-signal**
+
+- **Xmax** — Max linear excursion, ≈ |Hc−Hg|/2, peak value. _Resonate: cone-excursion limit + excursion-limited part of Max SPL._
+- **Xlim** — Damage-limit excursion (peak). _WinISD field; not present in our WDR schema._
+- **Hc** — Voice-coil winding height.
+- **Hg** — Magnetic air-gap height.
+- **Vd** — Volume displacement = Sd × Xmax (air moved in the linear range).
+- **Pe** — Thermal-limited continuous power handling. _Resonate: Max power + thermal-limited part of Max SPL._
+
+**Miscellaneous**
+
+- **no (η₀)** — Reference efficiency, %.
+- **Znom** — Nominal impedance. **WinISD's own help: "(not used in simulation)."** _Resonate matches exactly: label-only, written to the WDR, never simulated._
+- **USPL** — Voltage sensitivity [dB/2.83 V]; closer to voltage-amplifier use, rises below 8 Ω.
+- **SPL** — Power sensitivity [dB/W], 1 m, half-space (2π); directly related to η₀.
+- **Voicecoils (numVC)** — Descriptive: number of voice coils (1 normal, 2 = dual-voice-coil).
+
+**Thermal** — WinISD notes these are "not used yet in simulations":
+
+- **AlfaVC** — VC resistance temperature coefficient [1/K]; copper ≈ 0.0039.
+- **R(t)** — Thermal resistance, voice coil → ambient [K/W].
+- **C(t)** — Thermal capacity of the voice-coil assembly [J/K].
+
+**Figure of merit** — all derived/read-only:
+
+- **SPLmaxLF** — Loudness in a closed box/IB at max excursion at 20 Hz, half-space, 1 m.
+- **SPLmax** — Max thermal-limited SPL at max Pe (assumes 3 dB compression), into 2π.
+- **Rme** — Electromagnetic damping [N·s/m]; related to Qes as Rms is to Qms.
+- **gamma** — Acceleration factor (per ampere) [m/(s²·A)].
+- **Mpow** — Motor power factor [N/√W] (= √Rme); impedance-independent.
+- **Mcost** — Motor "cost" factor [N·s/m] (T. L. Clarke extension of Rme).
+- **EBP** — Efficiency-bandwidth product = Fs/Qes [Hz] (sealed < 50, vented > 100).
+- **Gloss** — % of Xmax the cone sags if mounted horizontally (g = 9.80665 m/s²).
+
+**Environment**
+
+- **c** — Speed of sound [m/s]. _Resonate: autofills to 343 m/s (state C), user-overridable._
+- **roo (ρ)** — Air density [kg/m³]. _Resonate: autofills to 1.2 (state C), user-overridable._
+
+**Dimensions**
+
+- **Thick** — Thickness of the basket flange plate.
+- **Depth** — Overall driver depth.
+- **Magnet Depth** — Magnet axial height/depth.
+- **Magnet** — Magnet diameter.
+- **Basket** — Basket diameter = the hole to cut in the baffle.
+- **Outer** — Outer flange diameter = space to reserve on the baffle.
+- **VCd** — Voice-coil diameter.
+- **Dvol** — Driver displacement volume (box volume the driver occupies).
+
 ## 14. Suggested default units — frequency analysis from datasheets
 
 Analysis of 411 driver datasheets identified the most common unit conventions per parameter.
