@@ -11,4 +11,16 @@
 
 - **Driver-field purpose rule (single source of truth):** Every driver-editor field's tooltip lives in exactly one place — the `desc` string of its entry in `PARAMS` (`DriverDefineModal.vue`). Each `desc` **must** state both (a) what the field _is_ and (b) its role in the charts/functionality — either **which graphs it affects** or that it is **descriptive / derived / not simulated**. The "what each graph needs" legend tooltips read from these same `desc` strings (via `tokPurpose`), so there is **no second copy** — never add a parallel field-description map. When adding or changing a field, verify its purpose against `WINISD.md §13.1` **and** the actual engine usage in `packages/engine`, and keep the chart-role clause accurate.
 
+- **Escape dismisses modals rule:** Every modal/overlay closes on the Escape key. Wire it with the `useEscToClose(isOpen, onClose)` composable (`src/composables/useEscToClose.js`) — never hand-roll a per-modal keydown listener. Backdrop-click dismissal is also expected on overlays. (Native `alert()`/`confirm()` dialogs already handle Escape.) A new modal is not done until a browser test presses Escape and asserts it closed (`modal-escape.browser.spec.js`).
+
+- **Number-input spinner rule:** Up/down steppers belong **only** on live what-if controls — inputs that immediately re-render the graphs when nudged (box volume, vent length, losses, input power; these use `NumInput.vue`). **Suppress** the spinner (`::-webkit-*-spin-button { -webkit-appearance:none; margin:0 }`) on every non-reactive numeric input: datasheet-entry fields (the driver editor) and picker/filter bounds (search min/max). A stepper on a field nothing reacts to is noise; a stepper on a live control is a genuine affordance — use it there.
+
+- **Alert-colour reserve rule:** Amber/yellow and red are attention colours — reserve them for genuine alerts: errors and required-but-missing fields (red), warnings (amber). Informational or helper text (hints, legends, "click a graph to…" leads) must be neutral/muted, never amber. Colour that cries wolf stops meaning anything.
+
+- **Filters apply to every list rule:** Any always-visible list section (e.g. "My Drivers") must respect the active search/type/param filters exactly like the main list — no section is exempt. A query that matches nothing must not leave unrelated rows on screen.
+
+- **Authoritative-name display rule:** Show a record's real name from its own data — a driver's Brand + Model from the WDR — never a filename, URL slug, or other derived identifier (those normalise/lowercase/abbreviate and mislead). Fall back to the filename only when the authoritative fields are genuinely absent.
+
+- **Unique list-key rule:** A `v-for` `:key` must be a stable, genuinely unique identifier (e.g. source + path-within-source). Never key on a display name that can legitimately repeat — two dated files of the same driver share one Brand+Model, and colliding keys make Vue reuse the wrong DOM rows (phantom/duplicated entries) and emit a `Duplicate keys found` warning. The browser-test console guardrail (`fixtures.js`) catches this only if a test renders the colliding rows — drive that state (see `driver-search.browser.spec.js`).
+
 Before shipping any UI change: run `npx playwright test` and complete the post-deploy smoke test. See `.claude/context/testing-js-ui.md`.

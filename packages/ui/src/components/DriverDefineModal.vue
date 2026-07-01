@@ -1,8 +1,10 @@
 <script setup>
 import { ref, computed, reactive, watch, nextTick } from 'vue';
+import { useEscToClose } from '../composables/useEscToClose.js';
 
 const props = defineProps({ open: Boolean });
 const emit  = defineEmits(['close', 'apply']);
+useEscToClose(() => props.open, () => emit('close'));
 
 const RHO = 1.2;   // kg/m³
 const C   = 343;   // m/s

@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue';
 import { state, DEFAULT_DRIVER } from '../store.js';
 import HelpTip from './HelpTip.vue';
 import { parseWdr } from '@resonate/engine';
+import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
@@ -259,6 +260,7 @@ async function fetchSource(src) {
           sourceName: src.name,
           sourceUrl:  src.url || '',
           sourceDesc: src.description || '',
+          // _ properties are computed at client runtime from WDR content — not in the bundle JSON
           _Fs: null, _Sd: null, _Re: null, _Znom: null, _Pe: null,
           ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(null, null, nm)),
         };
@@ -516,8 +518,9 @@ watch(() => state.browseOpen, val => {
   if (val) { init(); reloadMyDrivers(); }
   else previewFile.value = null;
 });
-function close() { state.browseOpen = false; }
+function close() { previewFile.value = null; state.browseOpen = false; }
 function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
+useEscToClose(() => state.browseOpen, close);
 async function openDefine() {
   state.browseOpen = false;
   await nextTick();
@@ -599,7 +602,7 @@ async function openDefine() {
           <span class="plabel">Z</span>
           <button v-for="z in ['4','8','16']" :key="z" class="zchip"
                   :class="{ active: selZ.includes(z) }"
-                  :title="`Filter to nominal ${z}Ω impedance — WinISD: Znom`"
+                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (descriptive label only; not used in simulation by WinISD or Resonate)`"
                   @click="toggleZ(z)">{{ z }}Ω</button>
         </div>
         <div class="src-row">
