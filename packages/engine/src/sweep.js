@@ -95,7 +95,7 @@ export function sweep(drv, box, P) {
  */
 export function maxCurves(drv, box, P) {
   const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
-  const Pe   = drv.Pe != null ? drv.Pe * (P.nDrivers || 1) : null;
+  const Pe   = (drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null;
   const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
   const maxspl = [], maxpwr = [], xlim = [];
   for (let i = 0; i < base.fs.length; i++) {

@@ -18,20 +18,20 @@ every antidote from "we try to remember" to "a tool fails the build if we don't.
 
 Backbone (1–5) is the locked **Version B** definition; 6–12 are the additions.
 
-| #   | Shitty trait                           | Antidote (do this)                                               | Enforced by                                             | Resonate today                                                                  |
-| --- | -------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 1   | **Guess-ware** — no enforced rules     | Explicit rules _and_ a machine that checks them                  | Schema validation in the write path; lint; CLAUDE.md    | ⚠ Partial — rules exist; one write path skips validation (§4)                   |
-| 2   | **Unmaintainable** — change ripples    | One source of truth per concern; shared helpers                  | One module per concern; review                          | ✗ Guilty — dual `scraper_lib.py` (§5), dup persistence, dup rolloff             |
-| 3   | **Security-unsafe** — secrets leak     | No secrets in code; audit inputs                                 | Secret-scan in CI (e.g. gitleaks)                       | ✓ Clear — none found; **add the scan** so it stays clear                        |
-| 4   | **Doesn't scale** — no architecture    | Generalise the mechanism; don't bolt on special cases            | Architecture review against `ARCHITECTURE.md`/`PLAN.md` | ◐ Mixed — `src/core` modular & clean; scraper side accretive (§5)               |
-| 5   | **Impossible to debug**                | Timestamped logs, problem logs, tests, fail-loud                 | Script rules; `_problems.log`; test suite               | ⚠ Partial — strong logging mandate, but swallowed errors (§6), seam gaps        |
-| 6   | **Silently wrong** — trusts happy path | Validate inputs; fail fast/loud; no fabricated defaults          | Boundary guards + output finite-check + schema          | ✗ Guilty — scraper corruption (§1–3); engine `NaN`/`Pe=50` (§16–19)             |
-| 7   | **Global mutable vars**                | Read-only/derived state; stable ids; single update path          | Lint (no global mutation); `Object.freeze`              | ◐ Core clear (pure); UI guilty — `nextId` (§9), dual `localStorage`             |
-| 8   | **Side-effecting "transforms"**        | Pure functions; isolate I/O at the edges                         | Keep `src/core` pure (verified); centralise persistence | ◐ Core pure ✓; edges mixed — write-on-keystroke persistence                     |
-| 9   | **No enforcement boundary**            | Enforce architecture with lint/types/freeze — _not_ file count   | ESLint rules; CI                                        | ⚠ Relies on review today; add ESLint arch rules                                 |
-| 10  | **No invariants / no validation**      | Precondition + postcondition guards at the engine boundary       | `assertValid*` + finite-check + unit tests              | ✗ Gap — engine emits `NaN` (§16–18); see todo below                             |
-| 11  | **Lies about its own state**           | Docs reflect reality; delete dead code; comments match behaviour | No-history grep; link-check; review                     | ✗ Guilty — history in docs (§13), false "validates" claim (§4), dead code (§12) |
-| 12  | **Rot & staleness**                    | Content-addressed caches; retry policy; consolidate docs         | Hash/mtime cache keys; markdown link-check CI           | ✗ Guilty — OCR cache (§8), no retry (§7), doc sprawl (§15)                      |
+| #   | Shitty trait                           | Antidote (do this)                                               | Enforced by                                             | Resonate today                                                                                                                                                       |
+| --- | -------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Guess-ware** — no enforced rules     | Explicit rules _and_ a machine that checks them                  | Schema validation in the write path; lint; CLAUDE.md    | ◐ Improving — §4 resolved (validation now in shared write path); not yet locked by a test                                                                            |
+| 2   | **Unmaintainable** — change ripples    | One source of truth per concern; shared helpers                  | One module per concern; review                          | ◐ Improving — §23 resolved (single persistence source); §5 partly resolved (shared via re-export, `scrape_sbacoustics` dedup'd); two `scraper_lib.py` modules remain |
+| 3   | **Security-unsafe** — secrets leak     | No secrets in code; audit inputs                                 | Secret-scan in CI (e.g. gitleaks)                       | ✓ Clear — none found; **add the scan** so it stays clear                                                                                                             |
+| 4   | **Doesn't scale** — no architecture    | Generalise the mechanism; don't bolt on special cases            | Architecture review against `ARCHITECTURE.md`/`PLAN.md` | ◐ Mixed — engine (`packages/engine`) modular & clean; scraper side accretive (§5)                                                                                    |
+| 5   | **Impossible to debug**                | Timestamped logs, problem logs, tests, fail-loud                 | Script rules; `_problems.log`; test suite               | ⚠ Partial — strong logging mandate, but swallowed errors remain (§6)                                                                                                 |
+| 6   | **Silently wrong** — trusts happy path | Validate inputs; fail fast/loud; no fabricated defaults          | Boundary guards + output finite-check + schema          | ◐ Improving — engine §10/§16/§19 resolved; §22 boundary fix in progress; §11/§17/§18 + scraper §1–3 remain                                                           |
+| 7   | **Global mutable vars**                | Read-only/derived state; stable ids; single update path          | Lint (no global mutation); `Object.freeze`              | ✓ Engine pure; §9 resolved (`crypto.randomUUID`); §23 resolved (single persistence source)                                                                           |
+| 8   | **Side-effecting "transforms"**        | Pure functions; isolate I/O at the edges                         | Keep engine pure (verified); centralise persistence     | ◐ Engine pure ✓; edges mixed — write-on-keystroke persistence                                                                                                        |
+| 9   | **No enforcement boundary**            | Enforce architecture with lint/types/freeze — _not_ file count   | ESLint rules; CI                                        | ⚠ Relies on review today; add ESLint arch rules                                                                                                                      |
+| 10  | **No invariants / no validation**      | Precondition + postcondition guards at the engine boundary       | `assertValid*` + finite-check + unit tests              | ◐ Gap narrowing — `parseWdr` guards (§16); `deriveDriver`/live UI path (§22) fix in progress; §11/§17/§18 remain                                                     |
+| 11  | **Lies about its own state**           | Docs reflect reality; delete dead code; comments match behaviour | No-history grep; link-check; review                     | ◐ Improving — §4 (validation real now) & §12 (dead link) resolved; history in docs remains (§13)                                                                     |
+| 12  | **Rot & staleness**                    | Content-addressed caches; retry policy; consolidate docs         | Hash/mtime cache keys; markdown link-check CI           | ✗ Guilty — OCR cache (§8), no retry (§7), doc sprawl (§15), broken cross-refs (§14) all remain                                                                       |
 
 Legend: ✓ clear · ◐ mixed · ⚠ partial · ✗ guilty.
 
@@ -39,9 +39,13 @@ Legend: ✓ clear · ◐ mixed · ⚠ partial · ✗ guilty.
 
 ## Worked example — trait #6/#10: "return a named error, not `NaN`"
 
-The single best illustration of the whole playbook. The engine is pure and
-correct, but it has **no validation boundary**, so incomplete input becomes a
-silent `NaN` and a blank graph (trait #6 + #10). The antidote is two cheap layers:
+The single best illustration of the whole playbook. Several specific `NaN` leaks have
+since been plugged — a missing `Xmax` (§10), a missing `Pe` (§19), and the file-import
+path now rejects incomplete-Q drivers (§16). But the **validation boundary itself still
+does not exist**: the live UI computes `deriveDriver(state.driverRaw)` directly, so
+incomplete input from the editors still becomes a silent `NaN` and a blank graph (§22;
+plus the degenerate cases §11/§17/§18). Point-fixes close individual holes; only a
+boundary closes the class. The antidote is two cheap layers:
 
 - **Precondition** — validate inputs once at the engine entry; throw a clear named
   `EngineError`.

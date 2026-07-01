@@ -1,14 +1,16 @@
 # Welcome to Resonate
 
-Resonate is a currently "shitty" (not my words) vibe coded spike based on the functionality offered by WinIsd.
+Resonate is a browser-based loudspeaker enclosure simulator, inspired by the functionality of WinISD.
 
-WinIsd has been abandoned and is closed source so there is no opportunity to move it forward.
+It started as a quick spike, and it has come a long way since. The physics engine (`src/core/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
+
+WinISD has been abandoned and is closed source so there is no opportunity to move it forward.
 
 The intention of Resonate is to form a collaboration of interested parties to build a modern alternative to WinIsd.
 
 The technical goals include compatibility with WinIsd file formats (and other) and to create a modern intuitive tool that address the numerous complaints on the internet about the WinIsd tool.
 
-The long term goals of Resonate are to build something open source using modern tech and with proper tests and architecture so that it doesn't rot when I drop dead or lose interest, ie to make this not shitty.
+The long term goal of Resonate is to build something open source using modern tech, with proper tests and architecture, so that it doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
 
 **I am looking for a band of the willing to move this thing forward.**
 
