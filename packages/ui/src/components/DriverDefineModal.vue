@@ -239,17 +239,23 @@ function isRequiredMissing(key) {
 //  • sweep.js maxCurves uses Xmax/Pe only for the max-SPL / max-power limits.
 // Core T/S (Fs, a Q pair, Vas, Sd, Re) drive every graph and are required.
 const CHART_DEPS = [
-  { chart: 'All graphs',        need: [{ t: 'Fs' }, { t: 'Qts/Qes/Qms' }, { t: 'Vas' }, { t: 'Sd' }, { t: 'Re' }] },
+  { chart: 'All graphs',        need: [{ t: 'Fs', k: 'Fs', req: true }, { t: 'Qts/Qes/Qms', k: 'Q', req: true }, { t: 'Vas', k: 'Vas', req: true }, { t: 'Sd', k: 'Sd', req: true }, { t: 'Re', k: 'Re', req: true }] },
   { chart: 'Impedance & phase', need: [{ t: 'Le', k: 'Le' }] },
   { chart: 'Cone excursion',    need: [{ t: 'Xmax', k: 'Xmax' }] },
   { chart: 'Maximum SPL',       need: [{ t: 'Xmax', k: 'Xmax' }, { t: 'and/or', sep: true }, { t: 'Pe', k: 'Pe' }] },
   { chart: 'Maximum power',     need: [{ t: 'Pe', k: 'Pe' }] },
 ];
-// green when the optional field is present (graph fully available), yellow when blank.
+function tokPresent(tok) {
+  const si = resolvedSI.value;
+  if (tok.k === 'Q') return ['Qts', 'Qes', 'Qms'].filter(k => si[k] != null).length >= 2;
+  return si[tok.k] != null; // Sd token covers Sd-or-Dia (both resolve to Sd)
+}
+// green = present (graph available); red = required-but-missing; yellow = optional-but-blank.
 function tokClass(tok) {
   if (tok.sep) return 'cd-sep';
   if (!tok.k)  return 'cd-core';
-  return resolvedSI.value[tok.k] != null ? 'cd-on' : 'cd-off';
+  if (tokPresent(tok)) return 'cd-on';
+  return tok.req ? 'cd-req' : 'cd-off';
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────
@@ -678,6 +684,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .cd-core { color: var(--fg); }
 .cd-on   { color: var(--good); font-weight: 600; }
 .cd-off  { color: #d8c176; }
+.cd-req  { color: var(--bad); font-weight: 600; }
 .cd-sep  { color: var(--mut); font-style: italic; }
 .dd-refs { font-size: 10.5px; color: var(--mut); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dd-refs a { color: var(--acc); text-decoration: none; }
