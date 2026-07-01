@@ -371,6 +371,13 @@ function deleteMyDriver(name) {
   try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch {}
   myDrivers.value = list;
 }
+// My Drivers respect the text search too, so a query like "demo" doesn't leave
+// unrelated saved drivers on screen.
+const filteredMyDrivers = computed(() => {
+  const tokens = filterQ.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return myDrivers.value;
+  return myDrivers.value.filter(d => tokens.every(t => (d.name || '').toLowerCase().includes(t)));
+});
 
 // Lightweight WDR parser — returns whatever it finds, never throws
 function parseWdrLoose(content) {
@@ -663,10 +670,10 @@ async function openDefine() {
 
         <!-- ── Driver list ── -->
         <div v-else class="dlist">
-          <!-- My Drivers -->
-          <template v-if="myDrivers.length">
+          <!-- My Drivers (respect the search query) -->
+          <template v-if="filteredMyDrivers.length">
             <div class="dlist-section">My Drivers</div>
-            <div v-for="d in myDrivers" :key="d.name + d._savedAt"
+            <div v-for="d in filteredMyDrivers" :key="d.name + d._savedAt"
                  class="ditem my-ditem"
                  @click="pickFile({ name: d.name, myDriverData: d })">
               <b>{{ d.name }}</b>
