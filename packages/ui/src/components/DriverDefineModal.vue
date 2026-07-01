@@ -12,37 +12,37 @@ const C   = 343;   // m/s
 // optional  = not required for Apply
 // dimOnly   = physical dimension field — no SI conversion, stored as-is in mm or g
 const PARAMS = [
-  // Thiele–Small
+  // Thiele–Small — Fs & Vas on the top row; the interchangeable Q-trio grouped below
   { key: 'Fs',   unit: 'Hz',    sect: 'TS',   label: 'Fs',        desc: 'Free-air resonance — from T/S table on datasheet. WinISD: Fs' },
-  { key: 'Qms',  unit: '',      sect: 'TS',   label: 'Qms',       desc: 'Mechanical Q factor — losses in spider/surround. WinISD: Qms' },
+  { key: 'Vas',  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — from T/S table. WinISD: Vas' },
+  { key: 'Qms',  unit: '',      sect: 'TS',   label: 'Qms',       desc: 'Mechanical Q factor — losses in spider/surround. WinISD: Qms', newRow: true },
   { key: 'Qes',  unit: '',      sect: 'TS',   label: 'Qes',       desc: 'Electrical Q factor — losses in voice coil resistance. WinISD: Qes' },
   { key: 'Qts',  unit: '',      sect: 'TS',   label: 'Qts',       desc: 'Total Q = Qms·Qes / (Qms+Qes). Enter any 2 of the 3 Q values — third is auto-calculated. WinISD: Qts' },
-  { key: 'Vas',  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — from T/S table. WinISD: Vas' },
-  // Piston / Acoustic
+  // Piston / Acoustic — Sd/Dia (interchangeable) + Xmax on one row
   { key: 'Sd',   unit: 'cm²',   sect: 'Piston', label: 'Sd',      desc: 'Effective piston area. Enter Sd or cone Dia — the other is auto-calculated. WinISD: Sd' },
   { key: 'Dia',  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  desc: 'Cone effective diameter → Sd = π·(Dia/2)². Enter Sd or Dia, not both. WinISD: Dia' },
   { key: 'Xmax', unit: 'mm',    sect: 'Piston', label: 'Xmax',    desc: 'Peak linear excursion (one-way). Enables excursion and max-SPL curves. WinISD: Xmax', optional: true },
-  // Electrical
+  // Electrical — Re/Le/Znom on one row
   { key: 'Re',   unit: 'Ω',     sect: 'Electrical', label: 'Re',  desc: 'DC voice coil resistance. Required to calculate Bl. WinISD: Re' },
   { key: 'Le',   unit: 'mH',    sect: 'Electrical', label: 'Le',  desc: 'Voice coil inductance at 1 kHz. Affects impedance shape only. WinISD: Le', optional: true },
   { key: 'Znom', unit: 'Ω',     sect: 'Electrical', label: 'Znom', desc: 'Nominal impedance rating (typically 4, 8, or 16 Ω). Label only — not used in SPL calculation. WinISD: Z', optional: true },
   // Performance
   { key: 'Pe',   unit: 'W',     sect: 'Performance', label: 'Pe', desc: 'Long-term continuous power handling. Enables max-power curves. WinISD: Pe', optional: true },
-  // Derived — always recalculated, never stored in raw
-  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax',                          readOnly: true },
-  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor — √(2π·Fs·Mms·Re / Qes). WinISD: Bl', readOnly: true },
+  // Derived — mechanical trio on top row, motor+displacement next, efficiency pair last
   { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load — 1 / ((2π·Fs)²·Cms). WinISD: Mms', readOnly: true },
   { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance — Vas / (ρc²·Sd²). WinISD: Cms',   readOnly: true },
   { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance — 2π·Fs·Mms / Qms. WinISD: Rms',  readOnly: true },
-  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency — (4π²/c³)·Fs³·Vas/Qes. WinISD: Eff', readOnly: true },
+  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor — √(2π·Fs·Mms·Re / Qes). WinISD: Bl', readOnly: true },
+  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax',                          readOnly: true },
+  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency — (4π²/c³)·Fs³·Vas/Qes. WinISD: Eff', readOnly: true, newRow: true },
   { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). WinISD: SPL', readOnly: true },
-  // Physical dimensions — WinISD Dimensions tab equivalents, stored in mm/g as-is
-  { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange projection above baffle face (mm). WinISD Dimensions: Thick',        optional: true, dimOnly: true },
-  { key: 'depthMm',    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back (mm). WinISD Dimensions: Depth',           optional: true, dimOnly: true },
-  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    desc: 'Magnet assembly axial depth (mm). WinISD Dimensions: Magnet Depth',         optional: true, dimOnly: true },
-  { key: 'magnetMm',   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter (mm). WinISD Dimensions: Magnet',                    optional: true, dimOnly: true },
-  { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket/cone height — surround to spider (mm). WinISD Dimensions: Basket',   optional: true, dimOnly: true },
+  // Physical dimensions — diameters row, axial depths row, misc row
   { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (mm). WinISD Dimensions: Outer',               optional: true, dimOnly: true },
+  { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket/cone height — surround to spider (mm). WinISD Dimensions: Basket',   optional: true, dimOnly: true },
+  { key: 'magnetMm',   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter (mm). WinISD Dimensions: Magnet',                    optional: true, dimOnly: true },
+  { key: 'depthMm',    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back (mm). WinISD Dimensions: Depth',           optional: true, dimOnly: true },
+  { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange projection above baffle face (mm). WinISD Dimensions: Thick',        optional: true, dimOnly: true },
+  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    desc: 'Magnet assembly axial depth (mm). WinISD Dimensions: Magnet Depth',         optional: true, dimOnly: true },
   { key: 'vcDiaMm',    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice coil diameter (mm). WinISD Dimensions: VCd',                          optional: true, dimOnly: true },
   { key: 'weightG',    unit: 'g',  sect: 'Dimensions', label: 'Weight',    desc: 'Driver weight (grams). Reference only.',                                     optional: true, dimOnly: true },
 ];
@@ -65,6 +65,31 @@ const dimExpanded = ref(false);
 
 // entered: key → display-unit string
 const entered = reactive({});
+// Most-recently-edited-first list of keys, used to decide which member of an
+// over-constrained group (Q-trio, Sd/Dia) stays an input vs. reverts to calculated.
+const order = reactive([]);
+
+// Interdependent groups: at most `keep` members may be authoritative inputs at once;
+// any extra (oldest-edited) members revert to their calculated value.
+const CALC_GROUPS = [
+  { keys: ['Qts', 'Qes', 'Qms'], keep: 2 },
+  { keys: ['Sd', 'Dia'],         keep: 1 },
+];
+
+// The set of keys whose entered value is currently authoritative. When a group is
+// over-filled, only its `keep` most-recently-edited members count; the rest fall
+// back to calculated (default-to-calculated behaviour).
+const activeEntered = computed(() => {
+  const active = new Set(Object.keys(entered).filter(k => entered[k] !== ''));
+  for (const g of CALC_GROUPS) {
+    const filled = g.keys.filter(k => active.has(k));
+    if (filled.length > g.keep) {
+      const newest = order.filter(k => filled.includes(k)).slice(0, g.keep);
+      for (const k of filled) if (!newest.includes(k)) active.delete(k);
+    }
+  }
+  return active;
+});
 
 // ── Unit conversions ──────────────────────────────────────────────────────
 function toSI(key, displayStr) {
@@ -122,7 +147,8 @@ function fmtSI(key, si) {
 const resolvedSI = computed(() => {
   const r = {};
 
-  for (const [key, str] of Object.entries(entered)) {
+  for (const key of activeEntered.value) {
+    const str = entered[key];
     if (!str) continue;
     const si = toSI(key, str);
     if (si != null && si > 0) r[key] = si;
@@ -156,21 +182,27 @@ const resolvedSI = computed(() => {
 function stateOf(key) {
   const p = PARAMS.find(x => x.key === key);
   if (p?.readOnly) return resolvedSI.value[key] != null ? 'C' : 'N';
-  if (key in entered && entered[key] !== '') return 'E';
+  if (activeEntered.value.has(key)) return 'E';
   if (resolvedSI.value[key] != null) return 'C';
   return 'N';
 }
 
 function displayVal(key) {
-  if ((key in entered) && entered[key] !== '') return entered[key];
+  if (activeEntered.value.has(key)) return entered[key];
   const si = resolvedSI.value[key];
   return si != null ? fmtSI(key, si) : '';
 }
 
 function onInput(key, e) {
   const val = e.target.value;
-  if (val === '') delete entered[key];
-  else entered[key] = val;
+  const i = order.indexOf(key);
+  if (i >= 0) order.splice(i, 1);
+  if (val === '') {
+    delete entered[key];
+  } else {
+    entered[key] = val;
+    order.unshift(key); // mark as most-recently edited
+  }
 }
 
 // ── Validation ────────────────────────────────────────────────────────────
@@ -196,6 +228,7 @@ const missing = computed(() => {
 function resetAll() {
   drvName.value = ''; drvBrand.value = ''; drvModel.value = ''; drvComment.value = '';
   Object.keys(entered).forEach(k => delete entered[k]);
+  order.splice(0);
 }
 
 function applyDriver() {
@@ -368,26 +401,28 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
                 </svg>
               </div>
 
-              <div v-for="p in PARAMS.filter(x => x.sect === sect.id)" :key="p.key"
-                   class="dd-row"
-                   :class="{ 'row-derived': sect.isDerived }"
-                   :title="p.desc">
-                <span class="dd-lbl">
-                  {{ p.label }}
-                  <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
-                </span>
-                <input v-if="!p.readOnly"
-                       class="dd-val" type="number" step="any"
-                       :class="'input-' + stateOf(p.key)"
-                       :value="displayVal(p.key)"
-                       @input="onInput(p.key, $event)"
-                       @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
-                       :title="p.desc">
-                <span v-else class="dd-ro-val" :class="'ro-' + stateOf(p.key)">
-                  {{ displayVal(p.key) || '–' }}
-                </span>
-                <span class="dd-unit">{{ p.unit }}</span>
-                <span class="dd-badge" :class="'badge-' + stateOf(p.key)">{{ stateOf(p.key) }}</span>
+              <div class="dd-grid">
+                <div v-for="p in PARAMS.filter(x => x.sect === sect.id)" :key="p.key"
+                     class="dd-row"
+                     :class="{ 'row-derived': sect.isDerived, 'dd-newrow': p.newRow }"
+                     :title="p.desc">
+                  <span class="dd-lbl">
+                    {{ p.label }}
+                    <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
+                  </span>
+                  <input v-if="!p.readOnly"
+                         class="dd-val" type="number" step="any"
+                         :class="'input-' + stateOf(p.key)"
+                         :value="displayVal(p.key)"
+                         @input="onInput(p.key, $event)"
+                         @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
+                         :title="p.desc">
+                  <span v-else class="dd-ro-val" :class="'ro-' + stateOf(p.key)">
+                    {{ displayVal(p.key) || '–' }}
+                  </span>
+                  <span class="dd-unit">{{ p.unit }}</span>
+                  <span class="dd-badge" :class="'badge-' + stateOf(p.key)">{{ stateOf(p.key) }}</span>
+                </div>
               </div>
             </template>
           </div>
@@ -441,7 +476,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   display: flex; align-items: center; justify-content: center; z-index: 300;
 }
 .dd-modal {
-  width: min(460px, 96vw);
+  width: min(500px, 96vw);
   display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
   overflow: hidden;
@@ -473,12 +508,12 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .dd-legend { display: flex; gap: 10px; font-size: 10px; color: var(--mut); padding: 0 2px; }
 .leg-e { color: var(--good); font-weight: 700; }
 .leg-c { color: var(--acc); font-style: italic; font-weight: 700; }
-.leg-n { color: var(--mut); }
+.leg-n { color: #d8c176; }
 
 .dd-badge { font-size: 9px; font-weight: 700; text-align: center; padding: 0 2px; }
 .badge-E { color: var(--good); }
 .badge-C { color: var(--acc); }
-.badge-N { color: var(--mut); opacity: 0.5; }
+.badge-N { color: #d8c176; opacity: 0.85; }
 
 .dd-table { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
 
@@ -510,11 +545,23 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .dd-dim-svg { display: block; width: 100%; max-height: 150px; cursor: zoom-in; }
 .dd-dim-expanded .dd-dim-svg { max-height: none; cursor: zoom-out; }
 
+/* Two-column parameter layout (like the WinISD Parameters tab). Each section's
+   rows flow row-major into two equal columns; a vertical divider splits them. */
+.dd-grid {
+  display: grid; grid-template-columns: repeat(3, max-content);
+  justify-content: start; column-gap: 10px;
+}
+/* A field flagged newRow starts a fresh grid row, so related params stay grouped. */
+.dd-newrow { grid-column-start: 1; }
+@media (max-width: 560px) {
+  .dd-grid { grid-template-columns: max-content; }
+  .dd-newrow { grid-column-start: auto; }
+}
+
 .dd-row {
-  display: grid; grid-template-columns: 76px 1fr 48px 22px;
+  display: grid; grid-template-columns: 60px 48px 30px 14px;
   align-items: center; border-bottom: 1px solid var(--line);
 }
-.dd-row:last-child { border-bottom: none; }
 .row-derived { opacity: 0.7; }
 
 .dd-lbl {
@@ -540,7 +587,8 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 /* State-specific input colours */
 .input-E { background: color-mix(in srgb, #3a3 8%, var(--bg)); color: var(--fg); }
 .input-C { background: color-mix(in srgb, var(--acc) 10%, var(--bg)); color: var(--acc); }
-.input-N { background: var(--bg); color: var(--mut); }
+/* Not-entered = a gentle, non-alarming yellow prompt (not red — nothing is wrong yet). */
+.input-N { background: color-mix(in srgb, #e6c24d 9%, var(--bg)); color: #d8c176; }
 
 /* Read-only derived cells */
 .dd-ro-val {
