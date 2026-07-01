@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
-import { state } from '../store.js';
+import { state, DEFAULT_DRIVER } from '../store.js';
 import HelpTip from './HelpTip.vue';
 import { parseWdr } from '@resonate/engine';
 import sourcesJson from '../../../../drivers/sources.json';
@@ -455,6 +455,12 @@ const previewData = computed(() => {
   };
 });
 
+function resetToDemo() {
+  state.driverRaw    = { ...DEFAULT_DRIVER };
+  state.driverSource = { ...DEFAULT_DRIVER };
+  close();
+}
+
 async function loadDriver(f) {
   if (f.myDriverData) {
     state.driverRaw    = { ...f.myDriverData };
@@ -508,6 +514,8 @@ async function openDefine() {
     <div class="modal" v-if="state.browseOpen">
       <h2>
         {{ previewFile ? previewData.name : 'Driver library' }}
+        <button v-if="!previewFile" class="reset-demo-btn" @click="resetToDemo"
+                title="Reset the driver to the built-in demo (Generic 6.5&quot; Woofer)">↺ Reset to demo</button>
         <span class="x" @click="close" title="Close the driver library browser">&times;</span>
       </h2>
       <div class="body">
@@ -729,6 +737,8 @@ async function openDefine() {
 .overlay.on { display:flex; }
 .modal { background:var(--panel2); border:1px solid var(--mut); border-radius:8px; width:620px; max-width:95vw; max-height:80vh; display:flex; flex-direction:column; backdrop-filter:none; isolation:isolate; }
 h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--mut); }
+.reset-demo-btn { margin-left:auto; margin-right:12px; font-size:11px; padding:3px 9px; background:var(--bg); border:1px solid var(--mut); border-radius:4px; color:var(--mut); cursor:pointer; white-space:nowrap; }
+.reset-demo-btn:hover { border-color:var(--acc); color:var(--acc); }
 .x { cursor:pointer; font-size:18px; line-height:1; color:var(--mut); }
 .x:hover { color:var(--fg); }
 .body { display:flex; flex-direction:column; padding:10px; gap:6px; overflow:hidden; }

@@ -1,0 +1,21 @@
+[Driver]
+Brand=Demo
+Model=Generic 6.5" Woofer
+Manufacturer=Resonate
+ProvidedBy=Resonate
+Comment=Generic demo 6.5-inch woofer — the app's default driver. Not a real product; representative T/S values for trying the tool.
+DateAdded=20260701
+DateModified=20260701
+Qts=0.378
+Znom=8
+Fs=37
+Pe=60
+Re=5.6
+Le=0.0007
+Xmax=0.005
+Qms=7
+Qes=0.4
+Sd=0.0133
+Vas=0.03
+numVC=1
+VCCon=1

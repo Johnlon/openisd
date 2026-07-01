@@ -4,6 +4,12 @@
   "description": "Federated driver-data sources. Resonate links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this list (and you can paste any GitHub repo ad hoc). Add a source by opening a PR that appends an entry here.",
   "sources": [
     {
+      "name": "Resonate demos (bundled)",
+      "url": "https://github.com/Johnlon/resonate/tree/main/drivers/demos",
+      "description": "Generic demo drivers shipped with Resonate (a 6.5\" woofer and a 1\" tweeter) — not real products; representative values for trying the tool. The woofer is the app's default driver.",
+      "license": "public domain (Resonate demo data)"
+    },
+    {
       "name": "Matt (mtg90) / AVS Forum (legacy bundled)",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/matt",
       "description": "~430 drivers from the mtg90 AVS Forum collection. See drivers/matt/meta.json for provenance.",

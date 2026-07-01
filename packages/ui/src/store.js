@@ -4,7 +4,9 @@ import { DPAL } from './presets.js';
 
 const STORAGE_KEY = 'resonate_v2';
 
-const DEFAULT_DRIVER = { name: 'Demo 6.5" Driver', Fs:37, Qts:0.38, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
+// The app's default driver on first open (no saved selection) and the target of the
+// "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
+export const DEFAULT_DRIVER = { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
 
 const P_DEFAULTS = {
   Vb:0.030, Vf:0.015, ventD:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
