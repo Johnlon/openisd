@@ -317,8 +317,9 @@ def _enrich_one(args: tuple) -> tuple[str, dict]:
         from pdf_lib import find_ts_fields, full_text
         text = full_text(pdf_path)
         out["pdf_fields"] = find_ts_fields(text, brand, [])
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"WARNING scrape_pe: PDF extraction failed for {pdf_path.name}: {e}",
+              file=_sys.stderr, flush=True)
 
     return sku, out
 

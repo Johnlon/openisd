@@ -25,7 +25,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -264,11 +264,7 @@ def _page_needs_ocr(text: str) -> bool:
     return _garbage_ratio(text) > _GARBAGE_THRESHOLD
 
 
-def _ocr_via_subprocess(
-    pdf_path: Path,
-    page_num: int,
-    warn_fn: Optional[Callable[[str], None]] = None,
-) -> str:
+def _ocr_via_subprocess(pdf_path: Path, page_num: int) -> str:
     """
     OCR one page by calling tesseract.exe directly as a subprocess.
 
@@ -314,8 +310,8 @@ def _ocr_via_subprocess(
     try:
         png_bytes = render_page(pdf_path, page_num, dpi=300)
     except Exception as e:
-        if warn_fn:
-            warn_fn(f"render_page failed page {page_num} of {pdf_path.name}: {e}")
+        print(f"WARNING pdf_lib: render_page failed page {page_num} of {pdf_path.name}: {e}",
+              file=sys.stderr, flush=True)
         return ""
 
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
@@ -332,8 +328,8 @@ def _ocr_via_subprocess(
         )
         return result.stdout
     except Exception as e:
-        if warn_fn:
-            warn_fn(f"tesseract subprocess failed page {page_num} of {pdf_path.name}: {e}")
+        print(f"WARNING pdf_lib: tesseract subprocess failed page {page_num} of {pdf_path.name}: {e}",
+              file=sys.stderr, flush=True)
         return ""
     finally:
         try:
@@ -342,12 +338,8 @@ def _ocr_via_subprocess(
             pass
 
 
-def full_text(
-    pdf_path: Path,
-    ocr_fallback: bool = True,
-    min_native_chars: int = 50,
-    warn_fn: Optional[Callable[[str], None]] = None,
-) -> str:
+def full_text(pdf_path: Path, ocr_fallback: bool = True,
+              min_native_chars: int = 50) -> str:
     """
     Extract complete document text with automatic garbled-page detection.
 
@@ -381,7 +373,7 @@ def full_text(
 
         ran_ocr = True
         # Path A: direct tesseract subprocess — fully independent per worker process
-        ocr_text = _ocr_via_subprocess(pdf_path, page_num, warn_fn=warn_fn)
+        ocr_text = _ocr_via_subprocess(pdf_path, page_num)
 
         # Path B: pytesseract on rasterised PNG (if tesseract not found)
         if not ocr_text.strip() and _OCR_OK:

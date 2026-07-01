@@ -1,12 +1,16 @@
 """
-Unit tests for pdf_lib._ocr_via_subprocess and full_text warn_fn plumbing.
+Unit tests for pdf_lib._ocr_via_subprocess and full_text error logging.
+
+Unexpected OCR failures (render_page crash, tesseract crash) must ALWAYS
+emit a warning to stderr — never silently return empty string with no trace.
 
 Run:  python -m pytest scripts/scrapers/test_pdf_lib.py -v
 """
+import io
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 _SCRAPERS_DIR = Path(__file__).parent.resolve()
 if str(_SCRAPERS_DIR) not in sys.path:
@@ -15,71 +19,43 @@ if str(_SCRAPERS_DIR) not in sys.path:
 import pdf_lib
 
 
-class TestOcrViaSubprocessWarnFn(unittest.TestCase):
-    """_ocr_via_subprocess must call warn_fn instead of silently returning '' on error."""
+class TestOcrViaSubprocessAlwaysLogs(unittest.TestCase):
+    """_ocr_via_subprocess must always write to stderr on unexpected failure."""
 
-    def test_render_page_failure_calls_warn_fn(self):
-        """render_page raises → warn_fn called with a message containing 'render_page'."""
-        warnings = []
+    def test_render_page_failure_logs_to_stderr(self):
+        """render_page raises → message containing 'render_page' always emitted to stderr."""
+        stderr_capture = io.StringIO()
         with patch.object(pdf_lib, "render_page", side_effect=RuntimeError("disk full")):
             with patch.object(pdf_lib, "_TESSERACT_PATH", "/fake/tesseract"):
-                result = pdf_lib._ocr_via_subprocess(
-                    Path("fake.pdf"), page_num=0, warn_fn=warnings.append
-                )
+                with patch("sys.stderr", stderr_capture):
+                    result = pdf_lib._ocr_via_subprocess(Path("fake.pdf"), page_num=0)
         self.assertEqual(result, "")
-        self.assertEqual(len(warnings), 1)
-        self.assertIn("render_page", warnings[0])
-        self.assertIn("disk full", warnings[0])
+        output = stderr_capture.getvalue()
+        self.assertIn("render_page", output)
+        self.assertIn("disk full", output)
 
-    def test_subprocess_failure_calls_warn_fn(self):
-        """subprocess.run raises → warn_fn called with a message containing 'tesseract'."""
+    def test_subprocess_failure_logs_to_stderr(self):
+        """subprocess.run raises → message containing 'tesseract' always emitted to stderr."""
         import subprocess
-        warnings = []
-        fake_png = b"\x89PNG\r\n"
-        with patch.object(pdf_lib, "render_page", return_value=fake_png):
+        stderr_capture = io.StringIO()
+        with patch.object(pdf_lib, "render_page", return_value=b"\x89PNG\r\n"):
             with patch.object(pdf_lib, "_TESSERACT_PATH", "/fake/tesseract"):
                 with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("t", 60)):
-                    result = pdf_lib._ocr_via_subprocess(
-                        Path("fake.pdf"), page_num=2, warn_fn=warnings.append
-                    )
+                    with patch("sys.stderr", stderr_capture):
+                        result = pdf_lib._ocr_via_subprocess(Path("fake.pdf"), page_num=2)
         self.assertEqual(result, "")
-        self.assertEqual(len(warnings), 1)
-        self.assertIn("tesseract", warnings[0].lower())
+        output = stderr_capture.getvalue()
+        self.assertIn("tesseract", output.lower())
 
-    def test_no_warn_fn_still_returns_empty_string(self):
-        """Without warn_fn, failure still returns '' without raising."""
-        with patch.object(pdf_lib, "render_page", side_effect=OSError("boom")):
-            with patch.object(pdf_lib, "_TESSERACT_PATH", "/fake/tesseract"):
+    def test_missing_tesseract_is_silent(self):
+        """_TESSERACT_PATH=None (tesseract not installed) → silent '' with no stderr output.
+        This is a configuration choice, not an error — user opted out of OCR."""
+        stderr_capture = io.StringIO()
+        with patch.object(pdf_lib, "_TESSERACT_PATH", None):
+            with patch("sys.stderr", stderr_capture):
                 result = pdf_lib._ocr_via_subprocess(Path("fake.pdf"), page_num=0)
         self.assertEqual(result, "")
-
-
-class TestFullTextWarnFnPlumbing(unittest.TestCase):
-    """full_text must thread warn_fn down to _ocr_via_subprocess."""
-
-    def test_warn_fn_reaches_ocr_subprocess(self):
-        """full_text(warn_fn=...) passes the callback into _ocr_via_subprocess."""
-        warnings = []
-        dummy_pdf = Path("dummy.pdf")
-
-        with patch.object(pdf_lib, "extract_text", return_value=[""]):
-            with patch.object(pdf_lib, "_page_needs_ocr", return_value=True):
-                with patch.object(pdf_lib, "_OCR_OK", False):
-                    with patch.object(
-                        pdf_lib, "_ocr_via_subprocess",
-                        side_effect=lambda path, page, warn_fn=None: (
-                            warn_fn("synthetic warning") or ""
-                            if warn_fn else ""
-                        )
-                    ) as mock_ocr:
-                        pdf_lib.full_text(dummy_pdf, warn_fn=warnings.append)
-
-        self.assertTrue(
-            mock_ocr.called,
-            "_ocr_via_subprocess was never called — full_text may have taken a cache path"
-        )
-        self.assertEqual(len(warnings), 1)
-        self.assertEqual(warnings[0], "synthetic warning")
+        self.assertEqual(stderr_capture.getvalue(), "")
 
 
 if __name__ == "__main__":

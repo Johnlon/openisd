@@ -562,10 +562,7 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
         if pdf_path:
             extras_log.append("+PDF")
             try:
-                text    = _pdf_local.full_text(
-                    pdf_path,
-                    warn_fn=lambda msg: _prob("pdf_ocr", item_id, datasheet_url, None, msg),
-                )
+                text    = _pdf_local.full_text(pdf_path)
                 _pdf_rejects: list = []
                 pass1   = _pdf_local.find_ts_fields(text, brand=brand, problems=_pdf_rejects)
                 _freq_low_pdf, _freq_high_pdf = _pdf_local.find_freq_range(text)
@@ -625,10 +622,7 @@ def _scrape_one(idx_url: tuple[int, str], cfg: _WorkerConfig) -> _WorkerResult:
         adv_path = _get_or_fetch_pdf(adv_datasheet_url, cfg.pdf_dir, name_suffix="_adv")
         if adv_path:
             try:
-                adv_text    = _pdf_local.full_text(
-                    adv_path,
-                    warn_fn=lambda msg: _prob("adv_pdf_ocr", item_id, adv_datasheet_url, None, msg),
-                )
+                adv_text    = _pdf_local.full_text(adv_path)
                 _adv_rejects: list = []
                 adv_pass1   = _pdf_local.find_ts_fields(adv_text, brand=brand, problems=_adv_rejects)
                 adv_spatial = _pdf_local.extract_text_spatial(adv_path)
