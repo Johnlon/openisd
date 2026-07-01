@@ -329,6 +329,9 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
               </div>
               <div v-if="sect.hint" class="dd-sect-hint">{{ sect.hint }}</div>
 
+              <!-- Dimensions: measures on the left, diagram on the right. Other sections stack normally. -->
+              <div :class="['dd-sect-body', { 'dd-dim-layout': sect.id === 'Dimensions' }]">
+
               <!-- Driver cross-section diagram for Dimensions section -->
               <div v-if="sect.id === 'Dimensions'" class="dd-dim-wrap" :class="{ 'dd-dim-expanded': dimExpanded }">
                 <button class="dd-dim-toggle" @click="dimExpanded = !dimExpanded"
@@ -444,6 +447,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
                         :class="[ 'badge-' + stateOf(p.key), { 'badge-required': isRequiredMissing(p.key) } ]">{{ stateOf(p.key) }}</span>
                 </div>
               </div>
+              </div>
             </template>
           </div>
 
@@ -459,8 +463,10 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
             Still needed: {{ missing.join(' · ') }}
           </div>
 
-          <!-- Which graphs stay disabled because an optional field is blank -->
-          <div v-if="disabledGraphs.length" class="dd-graphgate">
+          <!-- Which graphs stay disabled because an optional field is blank.
+               Only meaningful once the driver itself is valid — before that the
+               required (red) fields block every graph, so the note would mislead. -->
+          <div v-if="canApply && disabledGraphs.length" class="dd-graphgate">
             <span class="dd-gg-hd">Graphs disabled by blank fields:</span>
             <span v-for="d in disabledGraphs" :key="d.graph" class="dd-gg">
               {{ d.graph }} <em>(add {{ d.need }})</em>
@@ -557,6 +563,16 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .dd-sect-hint {
   padding: 2px 8px 3px; background: var(--panel2); border-bottom: 1px solid var(--line);
   font-size: 10px; color: var(--mut); font-style: italic;
+}
+
+/* Dimensions section: measures on the left, diagram on the right. */
+.dd-dim-layout {
+  display: flex; align-items: flex-start; gap: 10px; padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.dd-dim-layout .dd-grid { order: 1; flex: 0 0 auto; grid-template-columns: max-content; }
+.dd-dim-layout .dd-dim-wrap {
+  order: 2; flex: 1 1 auto; min-width: 0; padding: 0; background: none; border-bottom: none;
 }
 
 /* Dimensions cross-section diagram */
