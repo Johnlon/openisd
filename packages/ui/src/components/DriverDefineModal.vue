@@ -180,6 +180,11 @@ const resolvedSI = computed(() => {
     if (r.SPL == null && r.no && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
   }
 
+  // Environment constants autofill to the standard air values used by the calcs
+  // (state C) until the user overrides them; clearing a field reverts to the default.
+  if (r.c   == null) r.c   = C;
+  if (r.roo == null) r.roo = RHO;
+
   return r;
 });
 
@@ -257,7 +262,9 @@ function tokClass(tok) {
 // The "what's needed" expander lives at the top and leads input: pick one or more
 // graphs and every input those graphs require gets a highlighted border.
 const graphHelpOpen  = ref(false);
-const selectedCharts = ref([]);
+// Start with every graph selected so all fields are highlighted; user deselects
+// graphs they don't care about to narrow the highlighted set.
+const selectedCharts = ref(CHART_DEPS.map(c => c.chart));
 function toggleChart(name) {
   const i = selectedCharts.value.indexOf(name);
   if (i >= 0) selectedCharts.value.splice(i, 1);
@@ -277,6 +284,7 @@ const highlightKeys = computed(() => {
 function resetAll() {
   drvName.value = ''; drvBrand.value = ''; drvModel.value = ''; drvComment.value = '';
   Object.keys(entered).forEach(k => delete entered[k]);
+  selectedCharts.value = CHART_DEPS.map(c => c.chart);
 }
 
 function applyDriver() {
@@ -356,9 +364,9 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                     :title="graphHelpOpen ? 'Hide graph requirements' : 'Show which fields each graph needs'">
               <span class="dd-help-caret">{{ graphHelpOpen ? '▾' : '▸' }}</span>
               What each graph needs
-              <span class="dd-help-sub">— click a graph to highlight its fields</span>
             </button>
             <div v-if="graphHelpOpen" class="dd-help-body">
+              <div class="dd-help-lead"><span class="dd-help-ico">💡</span> Click a graph to highlight its fields, or deselect graphs you don't need</div>
               <div v-for="c in CHART_DEPS" :key="c.chart" class="dd-cd-row"
                    :class="{ 'dd-cd-sel': selectedCharts.includes(c.chart) }"
                    @click="toggleChart(c.chart)"
@@ -708,8 +716,14 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
 }
 .dd-help-hd:hover { color: var(--acc); }
 .dd-help-caret { display: inline-block; width: 11px; color: var(--mut); }
-.dd-help-sub { color: var(--mut); font-weight: 400; }
 .dd-help-body { padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; }
+.dd-help-lead {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+  font-size: 10.5px; color: var(--acc2); font-weight: 600;
+  background: rgba(255,180,84,.12); border: 1px solid rgba(255,180,84,.35);
+  border-radius: 4px; padding: 4px 7px;
+}
+.dd-help-ico { flex: 0 0 auto; font-size: 12px; line-height: 1; }
 .dd-help-note {
   font-size: 10px; color: var(--mut); margin-top: 4px; padding: 4px 4px 1px;
   border-top: 1px solid var(--line); line-height: 1.4;
