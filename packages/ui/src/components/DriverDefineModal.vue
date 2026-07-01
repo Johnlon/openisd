@@ -233,6 +233,21 @@ function isRequiredMissing(key) {
   return false;
 }
 
+// Optional fields that gate specific graphs — leaving them N disables those curves.
+const GRAPH_GATES = [
+  { key: 'Xmax', graphs: ['Cone excursion', 'Maximum SPL'] },
+  { key: 'Pe',   graphs: ['Maximum power', 'Maximum SPL'] },
+];
+const disabledGraphs = computed(() => {
+  const byGraph = {};
+  for (const g of GRAPH_GATES) {
+    if (resolvedSI.value[g.key] == null) {
+      for (const gr of g.graphs) (byGraph[gr] ||= new Set()).add(g.key);
+    }
+  }
+  return Object.entries(byGraph).map(([graph, keys]) => ({ graph, need: [...keys].join(' + ') }));
+});
+
 // ── Actions ───────────────────────────────────────────────────────────────
 function resetAll() {
   drvName.value = ''; drvBrand.value = ''; drvModel.value = ''; drvComment.value = '';
@@ -444,6 +459,14 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
             Still needed: {{ missing.join(' · ') }}
           </div>
 
+          <!-- Which graphs stay disabled because an optional field is blank -->
+          <div v-if="disabledGraphs.length" class="dd-graphgate">
+            <span class="dd-gg-hd">Graphs disabled by blank fields:</span>
+            <span v-for="d in disabledGraphs" :key="d.graph" class="dd-gg">
+              {{ d.graph }} <em>(add {{ d.need }})</em>
+            </span>
+          </div>
+
           <!-- Reference links -->
           <div class="dd-refs">
             <a href="https://en.wikipedia.org/wiki/Thiele/Small_parameters"
@@ -622,6 +645,15 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   background: rgba(255,180,84,.07); border: 1px solid rgba(255,180,84,.25);
   border-radius: 4px; padding: 5px 8px;
 }
+/* Info note: which graphs are unavailable because an optional field is blank. */
+.dd-graphgate {
+  font-size: 10.5px; color: var(--mut);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 10px;
+  padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
+}
+.dd-gg-hd { color: var(--fg); font-weight: 600; }
+.dd-gg { white-space: nowrap; }
+.dd-gg em { color: var(--acc2); font-style: normal; }
 .dd-refs { font-size: 10.5px; color: var(--mut); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dd-refs a { color: var(--acc); text-decoration: none; }
 .dd-refs a:hover { text-decoration: underline; }
