@@ -686,7 +686,7 @@ async function openDefine() {
             </div>
             <div class="dlist-sep"></div>
           </template>
-          <div v-for="f in displayedFiles" :key="(f.sourceName || '') + (f.path || '') + f.name"
+          <div v-for="f in displayedFiles" :key="(f.sourceName || '') + '|' + (f.path || f.fileName || f.name)"
                :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
                @click="pickFile(f)">
             <b>{{ f.name }}</b>
