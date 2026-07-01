@@ -13,7 +13,7 @@ const P_DEFAULTS = {
   nDrivers:1, wiring:'parallel', Pin:1, Rs:0.1,
   prName:'Custom PR',
   prSd:0.0133, prNum:1, prMmd:0.010, prMadd:0, prCms:0.0008, prRms:1.0, prXmax:0.012, prMode:'winisd',
-  fmin:10, fmax:1000, N:400,
+  fmin:10, fmax:20000, N:400,
   circuitModel: 'winisd',
   filters: [],
 };

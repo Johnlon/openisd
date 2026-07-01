@@ -57,7 +57,7 @@ function toggleLock() {
     <span class="lab" title="Right-click any graph to snap &amp; lock cursor to nearest peak or trough">Cursor:</span>
     <button class="nudge-btn" @click="nudge(-1)" title="Step cursor down ~1%">−</button>
     <input class="cursor-hz"
-           type="number" min="1" max="9999" step="0.1"
+           type="number" min="1" max="40000" step="0.1"
            :value="effectiveF ? effectiveF.toFixed(1) : ''"
            @change="setCursorHz"
            placeholder="Hz" />
