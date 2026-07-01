@@ -742,7 +742,7 @@ def run_scraper(vendor_name: str,
     args = parser.parse_args()
 
     out = Path(args.out_dir)
-    pdf_dir = out / "datasheets"
+    pdf_dir = out / "_datasheets"
     out.mkdir(parents=True, exist_ok=True)
     pdf_dir.mkdir(exist_ok=True)
 

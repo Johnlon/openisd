@@ -1,4 +1,4 @@
-# Welcome to Resonate 
+# Welcome to Resonate
 
 Resonate is a currently "shitty" (not my words) vibe coded spike based on the functionality offered by WinIsd.
 
@@ -14,7 +14,6 @@ The long term goals of Resonate are to build something open source using modern 
 
 Please volunteer your time with ideas and feedback and pull requests for improving it.
 
-
 ## Who am I?
 
 I am a software engineer with 40 years of experience and would like to do the right thing here and have a bit of fun at the same time.
@@ -27,7 +26,7 @@ But I need your help; that's the whole point!
 
 **An open, community-owned loudspeaker enclosure simulator that runs in any browser.**
 
-*Speaker design belongs to everyone who builds.*
+_Speaker design belongs to everyone who builds._
 
 Resonate is a modern, free, open-source replacement for WinISD — a tool to design
 sealed, vented, bandpass, and passive-radiator enclosures from a driver's
@@ -41,10 +40,21 @@ on every load.
 > Mobile layout is a known gap — contributions welcome.
 >
 > **To install for offline use (PWA):**
+>
 > - **Chrome / Edge / Android:** open the site, click the install icon in the address bar (or the ⋮ menu → "Install Resonate")
 > - **iOS Safari:** tap the Share button → "Add to Home Screen"
 >
 > Once installed the app works without an internet connection.
+
+![Resonate simulator — driver panel, enclosure controls, and the SPL, cone-excursion, impedance and group-delay graphs rendered for a demo 6.5" woofer in a vented box](docs/screenshots/simulator.png)
+
+_The main simulator._ Driver and enclosure controls sit on the left; the response
+graphs fill the right. Everything is **live**: change the box volume, drag the vent
+length, swap the driver or the box type, and every curve — SPL, cone excursion,
+impedance, group delay — redraws on the same keystroke. There is no "calculate"
+button and no waiting. That instant feedback is what makes exploring a design fast
+and genuinely fun — you can feel how each parameter pushes the response around
+instead of guessing.
 
 ---
 
@@ -70,22 +80,32 @@ instead of as another solo project that dies in a year.
 - **Files:** import **and** export WinISD `.wdr` driver files; save/load whole
   projects as JSON
 
+![What-If editor — the driver's Thiele/Small parameters (Fs, Qts, Qes, Vas, Sd, Re, Le, Xmax, Pe) open for inline editing on the left, with all response graphs updating live](docs/screenshots/whatif.png)
+
+_What-If editor._ Click any driver to open its Thiele/Small parameters (Fs, Qts,
+Qes, Vas, Sd, Re, Le, Xmax, Pe) for inline editing. Nudge a value and the graphs
+respond immediately — the same live loop as the box controls — so you can ask
+"what if this driver had a lower Fs?" or "a bigger Vas?" and _see_ the answer at
+once. Derived quantities (Bl, Mms, Cms, EBP) recompute as you type. It is a
+scratchpad: nothing you try here changes the shared library entry until you
+explicitly **Save to My Drivers**.
+
 ## Resonate vs WinISD
 
 WinISD is the canonical reference tool. Resonate's default mode replicates its
 simulation output. But Resonate goes further in several areas:
 
-| | WinISD 0.7 | Resonate |
-|---|---|---|
-| **Platform** | Windows-only desktop app | Any browser, no install |
-| **Source** | Closed, abandoned 2016 | Open source, MIT licence |
-| **Circuit model** | Simplified acoustic-domain only (Le excluded from SPL/GD) | Both WinISD-compatible **and** full gyrator with Le (switchable) |
-| **Box losses** | Ql + Qa via hidden "Advanced→" popup | Ql + Qa with practical stuffing guide |
-| **Cursor / readout** | Mouse hover only | Hover + right-click snap to peak/trough + lock + Hz input |
-| **Design compare** | Not supported | Pin any design, overlay curves |
-| **State persistence** | Manual project files | Auto-saves to browser storage |
-| **Filter / EQ** | Yes | Yes |
-| **Passive radiator** | WinISD-style inputs | WinISD **and** T/S modes, switchable |
+|                       | WinISD 0.7                                                | Resonate                                                         |
+| --------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Platform**          | Windows-only desktop app                                  | Any browser, no install                                          |
+| **Source**            | Closed, abandoned 2016                                    | Open source, MIT licence                                         |
+| **Circuit model**     | Simplified acoustic-domain only (Le excluded from SPL/GD) | Both WinISD-compatible **and** full gyrator with Le (switchable) |
+| **Box losses**        | Ql + Qa via hidden "Advanced→" popup                      | Ql + Qa with practical stuffing guide                            |
+| **Cursor / readout**  | Mouse hover only                                          | Hover + right-click snap to peak/trough + lock + Hz input        |
+| **Design compare**    | Not supported                                             | Pin any design, overlay curves                                   |
+| **State persistence** | Manual project files                                      | Auto-saves to browser storage                                    |
+| **Filter / EQ**       | Yes                                                       | Yes                                                              |
+| **Passive radiator**  | WinISD-style inputs                                       | WinISD **and** T/S modes, switchable                             |
 
 ### Why the circuit model switch matters
 
@@ -126,6 +146,25 @@ public. See [CONTRIBUTING.md](CONTRIBUTING.md) for the model.
 doesn't? Import its spec sheet, check the numbers, and open a PR with the `.wdr`.
 Every spec sheet added is a gift to the next builder — this shared library is the
 whole point.
+
+![Driver library browser — search box, type and parameter filters, and a scrollable list of thousands of drivers with their type, date and source](docs/screenshots/driver-library.png)
+
+_Driver library browser._ Search thousands of community-contributed drivers, or
+narrow the list by type (sub, woofer, mid, tweeter, PR, coax…), by Fs, by Sd, by
+nominal impedance, or by source. Pick one and it loads straight into the current
+design, so the graphs redraw around the real driver you're considering — making it
+easy to audition candidate drivers against the same box in seconds.
+
+![Define Driver Model editor — form to enter a new driver's Thiele/Small, acoustic, electrical and motor parameters, with a legend showing which fields each graph needs](docs/screenshots/driver-editor.png)
+
+_Define Driver Model._ Enter a driver Resonate doesn't have yet, straight from its
+datasheet. Fields are grouped (Thiele/Small, piston/acoustic, electrical,
+motor/large-signal, voice coil/thermal) and the **"what each graph needs"** legend
+at the top highlights exactly which values a given chart depends on — so you can
+see what's required for the curves you care about and skip the rest. Enter two of
+Qts/Qes/Qms and the third is calculated for you; the same goes for Sd ↔ cone
+diameter. Once saved, the driver behaves like any other — drop it into a box and
+the graphs update live.
 
 ## Contributing
 

@@ -30,7 +30,7 @@ function walkWdr(dir) {
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (entry.name === '_html' || entry.name === 'datasheets') continue;
+      if (entry.name.startsWith('_')) continue;   // _ dirs are cache/scratch — excluded from bundle
       files.push(...walkWdr(join(dir, entry.name)));
     } else if (extname(entry.name).toLowerCase() === '.wdr') {
       files.push(join(dir, entry.name));

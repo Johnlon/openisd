@@ -342,7 +342,7 @@ def main() -> None:
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
     json_cache    = out / "_html"        # JSON API page cache
-    datasheets    = out / "datasheets"   # PDF datasheet cache
+    datasheets    = out / "_datasheets"  # PDF datasheet cache
     json_cache.mkdir(exist_ok=True)
     datasheets.mkdir(exist_ok=True)
 

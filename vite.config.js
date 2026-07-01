@@ -25,7 +25,7 @@ export default defineConfig({
   base,
   server: {
     watch: {
-      ignored: ['**/drivers/**/_html/**', '**/drivers/**/datasheets/**'],
+      ignored: ['**/drivers/**/_*/**'],
     },
   },
   plugins: [

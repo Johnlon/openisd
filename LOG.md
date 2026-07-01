@@ -8,6 +8,12 @@
 
 ---
 
+## 2026-07-01 — WDR field documentation, _ directory convention
+
+- **Max-SPL curves no longer lie when Pe is absent.** Removed the silent 50 W fabrication in `sweep.js`; curves now show only the Xmax limit, and a dismissible warning flags the gap to the user.
+- **WinISD's non-functional WDR fields documented.** §16 added to `WINISD.md`: which fields do nothing in WinISD (Znom, alfaVC, Rt, Ct), which are metadata only, which would change output if entered (Hc/Hg), and VCCon's unverified DVC path.
+- **`_` prefix is now the one rule for cache directories.** `bundle-drivers.mjs`, Vite's watch list, `.gitignore`, and all three scraper libs now treat any `_`-prefixed directory as excluded — no more named exceptions to maintain.
+
 ## 2026-07-01 — Driver editor rebuild, test guardrail
 
 - **Editor shows what each field is and which graph it feeds.** 3-column grouped form, WinISD-style dimensions diagram, graph↔field legend, "what each graph needs" expander with click-to-highlight, field-purpose tooltips from one source.

@@ -851,3 +851,58 @@ Version: WinISD Pro 0.7 (Linearteam).
 | `technical/pr.html`                      | Image only — passive radiator eq circuit diagram                                          |
 | `technical/bp4.html`                     | Image only — 4th-order bandpass eq circuit diagram                                        |
 | `technical/bp6a.html`                    | Image only — 6th-order bandpass type A eq circuit diagram                                 |
+
+## 16. WDR fields that are non-functional in WinISD — historic parity only
+
+These fields exist in the WDR format and are written by Resonate scrapers/exporters for
+WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
+present purely because real WinISD files contain them and omitting them could prevent correct
+round-trip import. Resonate includes them for historic parity with WinISD, not because they
+drive any curve or calculation.
+
+### Confirmed no simulation effect — WinISD help says so explicitly
+
+| Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                 |
+| ---------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. Resonate uses it for the 4Ω/8Ω/16Ω browser filter only. |
+| **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                              |
+| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                              |
+| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                                |
+
+### Pure metadata — no functional role at all
+
+| Field            | Notes                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| **Manufacturer** | Separate from Brand; shown in the General tab editor only. |
+| **ProvidedBy**   | Attribution text; shown in General tab only.               |
+| **Comment**      | Free text note; shown in General tab only.                 |
+| **DateAdded**    | Entry date; shown in General tab only.                     |
+| **DateModified** | Last-edit date; shown in General tab only.                 |
+
+### Physical dimensions — WinISD Dimensions tab, no simulation effect
+
+All eight dimension fields (Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd, DVol) are
+shown on the Dimensions tab for the builder's reference. **WinISD does not subtract driver
+displacement (DVol) from box volume** — users must do that manually. Source: `faq.html`:
+_"WinISD doesn't take driver displacement into account."_
+
+These are written as `0` by Resonate scrapers because the data is not yet extracted from
+datasheets. See BACKLOG.md (Physical dimension extraction gap).
+
+### Inert in practice — but WOULD affect output if entered
+
+| Field       | What would actually change                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hc / Hg** | **Not truly inert.** When both are entered, WinISD computes `Xmax = \|Hc−Hg\|/2` (consistency group 19) and marks Xmax as C. That Xmax then affects the excursion limit line, the Xmax-limited part of the Max-SPL curve, and `Vd = Sd × Xmax`. These are an alternative, physically-grounded path to Xmax rather than entering it directly. In every file analysed they are 0 because engineers measure and enter Xmax directly. |
+| **Mcost**   | Genuinely display-only. A figure-of-merit (T.L. Clarke motor cost factor) derived from Rme, Xmax, Hc, Hg. Appears in the Advanced parameters panel. No consistency group uses Mcost as an input to anything else — it does not feed back into any acoustic simulation curve. Zero in practice because it requires Hc/Hg to be populated.                                                                                          |
+| **Dia**     | Superseded by Dd since WinISD alpha2 (2001). Still present in the canonical write order for legacy compatibility; Dd takes precedence. Source: `versions.txt alpha2`.                                                                                                                                                                                                                                                             |
+
+### VCCon — sets UI dropdown; simulation effect for DVC unverified
+
+VCCon (parallel/series) sets the connection-type dropdown when WinISD loads the file.
+For **single-VC drivers** (VCCon=1, essentially all scraped files) this is a no-op — there
+is only one configuration. For **dual-VC drivers** (numVC=2), the dropdown would logically
+affect Re and BL (series doubles both; parallel halves Re), but whether WinISD actually uses
+VCCon to adjust simulation calculations for DVC drivers **has not been verified** in our
+primary-source testing. The save bug (§12) means VCCon=1 in all natively-saved WinISD files
+anyway, so this path is never exercised by normal WinISD users.

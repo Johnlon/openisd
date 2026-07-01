@@ -38,6 +38,23 @@ Open a PR appending an entry to [`sources.json`](sources.json):
 `path` — `""` for repo root, or a subfolder like `"drivers"`. Only metadata lives here —
 driver files stay in the source repo.
 
+## Underscore-prefix convention — excluded from the app bundle
+
+Any directory inside `drivers/` whose name starts with `_` is **invisible to the app**.
+`scripts/bundle-drivers.mjs` skips all `_`-prefixed directories when it walks the tree,
+so their contents are never included in `drivers-bundle.json` and Vite never sees them.
+
+Current `_`-prefixed directories and what they hold:
+
+| Directory                    | Contents                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `<collection>/_html/`        | Cached HTML pages from the scraper — large, gitignored, regenerable                     |
+| `<collection>/_problems.log` | (file, not dir) Scraper problem log — not excluded by this rule                         |
+| `<collection>/datasheets/`   | Cached PDFs — large, gitignored. Note: no `_` prefix; excluded via `.gitignore` instead |
+
+**Rule:** if you need to add a working directory, cache directory, or scratch space inside
+`drivers/`, prefix its name with `_` so the bundle walker automatically ignores it.
+
 ## Add a bundled driver
 
 Create or use an appropriate subfolder, drop a `.wdr` file there, create a `_meta.yml`

@@ -82,7 +82,7 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 - **Sell the value, then explain how — briefly.** "Find the right kind of driver fast. Multi-label type system + Fs/Sd/Z filters." Not a commit paraphrase, not a feature dump.
 - **Plain, honest, no marketing voice.** No slogans, no "so the user can finally…", no cutesy section titles. If a thing is a rough prototype, say so. Overstated value is worse than none.
-- **Group by day**, newest at the bottom; day heading is `## YYYY-MM-DD — <terse factual tag>`.
+- **Group by day**, newest at the top; day heading is `## YYYY-MM-DD — <terse factual tag>`.
 - **Maintain it at end of session.** When a working session lands changes worth a user or contributor knowing about, append that day's benefits before finishing. Skip pure churn (WIP saves, typo fixes) — the bar is "did this change what someone can do, how much they can trust it, or how the team works?"
 
 Git remains the record of _mechanics_. `LOG.md` is the record of _value_.
@@ -144,6 +144,21 @@ Before starting any server: kill the target port first with `bash scripts/kill-h
 - **AI must start the dev server with `bash scripts/dev-4200.sh`.** Never use `npm run dev`, `npx vite`, or any ad-hoc command.
 - **After starting, verify the page loads.** `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` → must be 200.
 - **Unregister any stale service worker** before handing off to the user — run `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4200`.
+
+---
+
+## Driver collection subdirectories — hard rule
+
+**Every subdirectory inside a driver collection (`drivers/<collection>/`) must start with `_`.**
+
+- `_html/` — cached HTML pages (scraper cache)
+- `_datasheets/` — cached PDF datasheets (scraper cache)
+- `_ocr/` — OCR output cache
+- `_problems/` — scraper problem logs
+
+**Why:** Vite watches `drivers/` for changes. Subdirs that start with `_` are ignored by a single glob rule (`**/drivers/**/_*/**`), `.gitignore` ignores them with one pattern (`drivers/**/_*/`), and the bundler skips them with `entry.name.startsWith('_')`. A subdir that does NOT start with `_` silently breaks all three — Vite re-bundles on every PDF download, git tracks binary files, and the bundler tries to walk PDFs as WDRs.
+
+**When creating a new cache subdir in a scraper**, always prefix with `_`. Never add a named exception to `.gitignore`, `vite.config.js`, or `bundle-drivers.mjs` — the `_` prefix covers it automatically.
 
 ---
 

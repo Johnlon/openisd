@@ -920,7 +920,7 @@ def run_scraper(
     args = ap.parse_args()
 
     out = Path(args.out_dir)
-    pdf_dir      = out / "datasheets"
+    pdf_dir      = out / "_datasheets"
     html_dir     = out / "_html"
     problems_dir = out / "_problems"
     out.mkdir(parents=True, exist_ok=True)
