@@ -36,14 +36,11 @@ export const state = reactive({
 });
 
 
-export const driver = computed(() => deriveDriver(state.driverRaw));
-
-export const driverWarnings = computed(() => {
-  const w = [];
-  if (state.driverRaw.Pe == null || state.driverRaw.Pe <= 0)
-    w.push('Pe (rated power) not in datasheet — thermal power limit not shown on Max-SPL / Max-Power curves');
-  return w;
-});
+const _derived = computed(() => deriveDriver(state.driverRaw));
+export const driver       = computed(() => _derived.value.value);
+export const driverErrors = computed(() => _derived.value.errors);
+// driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
+export const driverWarnings = computed(() => driverErrors.value.map(e => e.message));
 
 export const syncedP = computed(() => {
   const p = { ...state.P };
@@ -53,19 +50,22 @@ export const syncedP = computed(() => {
   }
   // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
   // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
-  p.eg = Math.sqrt((p.Pin ?? 1) * driver.value.Re);
+  p.eg = Math.sqrt((p.Pin ?? 1) * (driver.value?.Re ?? 1));
   return p;
 });
 
-const _curves = ref(sweep(driver.value, state.box, syncedP.value));
-const _max    = ref(maxCurves(driver.value, state.box, syncedP.value));
+const _doSweep = () => {
+  const d = driver.value;
+  _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
+  _max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
+};
+const _curves = ref(null);
+const _max    = ref(null);
+_doSweep();
 let _sweepTimer = null;
 watch([driver, syncedP, () => state.box], () => {
   clearTimeout(_sweepTimer);
-  _sweepTimer = setTimeout(() => {
-    _curves.value = sweep(driver.value, state.box, syncedP.value);
-    _max.value    = maxCurves(driver.value, state.box, syncedP.value);
-  }, 80);
+  _sweepTimer = setTimeout(_doSweep, 80);
 });
 export const curvesData = _curves;
 export const maxData    = _max;
@@ -76,6 +76,7 @@ export function driverShort(raw) {
 }
 
 export function pinCompare() {
+  if (!driver.value) return;
   const p = { ...syncedP.value };
   p.filters = (p.filters || []).map(f => ({ ...f }));  // snapshot; isolate from future edits
   const d = {

@@ -34,7 +34,8 @@ function onFileChange(e) {
   rd.onload = () => {
     try {
       if (isWdr || /^\s*\[Driver\]/.test(rd.result)) {
-        state.driverRaw = parseWdr(rd.result);
+        const { value: parsed } = parseWdr(rd.result);
+        if (parsed) state.driverRaw = parsed;
       } else {
         const o = JSON.parse(rd.result);
         if (o.driver) state.driverRaw = o.driver;

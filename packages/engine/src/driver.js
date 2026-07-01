@@ -23,17 +23,37 @@ import { RHO, C } from './constants.js';
  *   Bl  = √(2π · Fs · Mms · Re / Qes)
  */
 export function deriveDriver(d) {
-  const r  = Object.assign({}, d);
-  const ws = 2 * Math.PI * r.Fs;
+  const errors = [];
+  const r = Object.assign({}, d);
+
+  // Required fields — each missing one is a blocking error
+  if (!(r.Fs > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
+  if (!(r.Re > 0))  errors.push({ level: 'error', field: 'Re',  message: 'DC resistance (Re) is required and must be greater than zero' });
+  if (!(r.Sd > 0))  errors.push({ level: 'error', field: 'Sd',  message: 'Piston area (Sd) is required — enter Sd or cone diameter' });
+  if (!(r.Vas > 0)) errors.push({ level: 'error', field: 'Vas', message: 'Acoustic compliance volume (Vas) is required for moving-mass derivation' });
+
+  // Q completeness — need at least two of {Qts, Qes, Qms} to solve the third
+  const qCount = [r.Qts, r.Qes, r.Qms].filter(v => v > 0).length;
+  if (qCount < 2) errors.push({ level: 'error', field: 'Qts', message: 'At least two Q parameters (Qts, Qes, Qms) are required — enter any two to derive the third' });
+
+  // Pe is optional but its absence means max-power / max-SPL curves cannot be shown
+  if (!(r.Pe > 0)) errors.push({ level: 'warn', field: 'Pe', message: 'Rated power (Pe) is not set — max-SPL and max-power curves will not be shown' });
+
+  if (errors.some(e => e.level === 'error')) return { value: null, errors };
+
+  // Derive the third Q from whichever two are provided
   if (!r.Qts && r.Qes && r.Qms) r.Qts = (r.Qes * r.Qms) / (r.Qes + r.Qms);
   if (!r.Qes && r.Qts && r.Qms) r.Qes = (r.Qts * r.Qms) / (r.Qms - r.Qts);
   if (!r.Qms && r.Qts && r.Qes) r.Qms = (r.Qts * r.Qes) / (r.Qes - r.Qts);
+
+  const ws  = 2 * Math.PI * r.Fs;
   const Cas = r.Vas / (RHO * C * C);   // Cms = Vas/(ρc²Sd²)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
   r.Cms = Cas / (r.Sd * r.Sd);
   r.Mms = 1 / (ws * ws * r.Cms);       // Mms = 1/(ωs²·Cms)
   r.Rms = ws * r.Mms / r.Qms;          // Rms = 2π·Fs·Mms/Qms
   r.Bl  = Math.sqrt(ws * r.Mms * r.Re / r.Qes);  // Bl = √(2π·Fs·Mms·Re/Qes)
-  return r;
+
+  return { value: r, errors };
 }
 
 /**
@@ -88,9 +108,6 @@ export function parseWdr(text, sidecarText) {
   if (name) d.name = name;
   if (f.ProvidedBy)              d.providedBy    = f.ProvidedBy.trim();
   if (f.Comment)                 d.comment       = f.Comment.trim();
-  const _qCount = [d.Qts, d.Qes, d.Qms].filter(v => v != null).length;
-  if (!(d.Fs && d.Sd && d.Re && d.Vas && _qCount >= 2))
-    throw new Error('missing core T/S parameters');
   if (sidecarText) {
     const s = _parseSimpleYaml(sidecarText);
     if (s.datasheet_url)   d.datasheetUrl  = s.datasheet_url;
@@ -100,11 +117,12 @@ export function parseWdr(text, sidecarText) {
     if (s.zma_url)         d.impedanceUrl  = s.zma_url;
   }
   for (const k in d) if (d[k] === undefined) delete d[k];
-  return d;
+  return { value: d, errors: [] };
 }
 
 export function toWdr(raw) {
-  const d   = deriveDriver(raw);
+  const { value: d } = deriveDriver(raw);
+  if (!d) return '';
   const Sd  = d.Sd, Vd = Sd * (d.Xmax || 0), Dd = 2 * Math.sqrt(Sd / Math.PI);
   const g   = (x, p = 6) => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
   const brand = raw.brand || '', model = raw.model || '';

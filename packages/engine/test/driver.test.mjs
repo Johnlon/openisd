@@ -1,8 +1,8 @@
 /**
  * Unit tests for src/core/driver.js
  *
- * Covers: deriveDriver Q-derivation branches, parseWdr (including sidecar),
- * _parseSimpleYaml (via sidecar code path), and toWdr/parseWdr round-trip.
+ * Covers: deriveDriver {value,errors} contract, Q-derivation branches,
+ * parseWdr (including sidecar), _parseSimpleYaml (via sidecar), and toWdr/parseWdr round-trip.
  *
  * Q-factor formulas: https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  *   Qts = (Qes · Qms) / (Qes + Qms)
@@ -38,7 +38,7 @@ const BASE = {
 };
 
 // ── Minimal WDR text for parseWdr tests ─────────────────────────────────────
-// Contains every field required by parseWdr's validation gate:
+// Contains every field required for a complete T/S set:
 //   Fs, Sd, Re, Vas must be present; at least two of {Qts, Qes, Qms} must be present.
 const MINIMAL_WDR = `[Driver]
 Brand=TestBrand
@@ -56,12 +56,91 @@ Pe=60
 Znom=8
 `;
 
+// ── deriveDriver — {value, errors} contract ───────────────────────────────────
+
+describe('deriveDriver — {value, errors} contract', () => {
+  it('returns an object with value and errors properties — never a bare driver or a throw', () => {
+    const result = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
+    assert.ok('value' in result, 'must have value property');
+    assert.ok('errors' in result, 'must have errors property');
+    assert.ok(Array.isArray(result.errors), 'errors must be an array');
+  });
+
+  it('errors is empty for a complete valid driver — no spurious warnings on good input', () => {
+    const { errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
+    assert.deepEqual(errors, [], 'no errors expected for complete valid driver');
+  });
+
+  it('value is non-null for a complete valid driver — all T/S fields present means usable result', () => {
+    const { value } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
+    assert.ok(value != null, 'value must not be null for complete input');
+  });
+
+  it('returns value:null and field-level error for Fs when Fs is missing', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Fs: undefined });
+    assert.equal(value, null, 'value must be null when Fs is missing');
+    const e = errors.find(e => e.field === 'Fs');
+    assert.ok(e, 'must have an error entry for field Fs');
+    assert.equal(e.level, 'error', 'Fs error must be level:error');
+    assert.ok(typeof e.message === 'string' && e.message.length > 0, 'must have a non-empty human-readable message');
+  });
+
+  it('returns value:null and field-level error for Re when Re is missing', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Re: undefined });
+    assert.equal(value, null);
+    const e = errors.find(e => e.field === 'Re');
+    assert.ok(e && e.level === 'error', 'must have level:error entry for Re');
+  });
+
+  it('returns value:null and field-level error for Sd when Sd is missing', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Sd: undefined });
+    assert.equal(value, null);
+    const e = errors.find(e => e.field === 'Sd');
+    assert.ok(e && e.level === 'error', 'must have level:error entry for Sd');
+  });
+
+  it('returns value:null and field-level error for Vas when Vas is missing', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Vas: undefined });
+    assert.equal(value, null);
+    const e = errors.find(e => e.field === 'Vas');
+    assert.ok(e && e.level === 'error', 'must have level:error entry for Vas');
+  });
+
+  it('returns value:null and error when fewer than two Q parameters are present', () => {
+    // Qts alone cannot resolve Qes or Qms — underdetermined system
+    const { value, errors } = deriveDriver({ ...BASE, Qts: QTS_DERIVED });
+    assert.equal(value, null, 'value must be null when Q system is underdetermined');
+    assert.ok(errors.some(e => e.level === 'error'), 'must have at least one error');
+  });
+
+  it('returns value:null when Fs is zero — zero frequency is not physically valid', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Fs: 0 });
+    assert.equal(value, null);
+    assert.ok(errors.some(e => e.field === 'Fs'), 'must have Fs error entry');
+  });
+
+  it('returns non-null value and a warn for Pe when Pe is absent — Pe is optional, driver is still usable', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Pe: undefined });
+    assert.ok(value != null, 'value must not be null — Pe absence does not block derivation');
+    const w = errors.find(e => e.field === 'Pe' && e.level === 'warn');
+    assert.ok(w, 'must have a level:warn entry for Pe when absent');
+    assert.ok(typeof w.message === 'string' && w.message.length > 0, 'warn message must be non-empty');
+  });
+
+  it('returns non-null value and a warn for Pe when Pe is zero — zero Pe same treatment as absent', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Pe: 0 });
+    assert.ok(value != null, 'value must not be null for Pe=0');
+    const w = errors.find(e => e.field === 'Pe' && e.level === 'warn');
+    assert.ok(w, 'must have a level:warn entry for Pe=0');
+  });
+});
+
 // ── deriveDriver — Q-factor derivation ───────────────────────────────────────
 
 describe('deriveDriver — Q-factor derivation branches', () => {
   it('derives Qts from Qes and Qms when Qts is absent — '
    + 'standard scenario where Qes and Qms are measured separately', () => {
-    const d = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
+    const { value: d } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
     assert(
       Math.abs(d.Qts - QTS_DERIVED) < Q_TOL,
       `expected Qts = Qes·Qms/(Qes+Qms) = ${QTS_DERIVED}, got ${d.Qts}`,
@@ -71,7 +150,7 @@ describe('deriveDriver — Q-factor derivation branches', () => {
   it('derives Qes from Qts and Qms when Qes is absent — '
    + 'inverse combination formula Qes = Qts·Qms / (Qms − Qts)', () => {
     const expectedQes = (QTS_DERIVED * QMS) / (QMS - QTS_DERIVED);
-    const d = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qms: QMS });
+    const { value: d } = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qms: QMS });
     assert(
       Math.abs(d.Qes - expectedQes) < Q_TOL,
       `expected Qes = ${expectedQes}, got ${d.Qes}`,
@@ -81,7 +160,7 @@ describe('deriveDriver — Q-factor derivation branches', () => {
   it('derives Qms from Qts and Qes when Qms is absent — '
    + 'inverse combination formula Qms = Qts·Qes / (Qes − Qts)', () => {
     const expectedQms = (QTS_DERIVED * QES) / (QES - QTS_DERIVED);
-    const d = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qes: QES });
+    const { value: d } = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qes: QES });
     assert(
       Math.abs(d.Qms - expectedQms) < Q_TOL,
       `expected Qms = ${expectedQms}, got ${d.Qms}`,
@@ -89,36 +168,54 @@ describe('deriveDriver — Q-factor derivation branches', () => {
   });
 });
 
-// ── parseWdr — validation gate ────────────────────────────────────────────────
+// ── parseWdr — never throws ───────────────────────────────────────────────────
+// parseWdr is a pure parser. T/S completeness validation is deriveDriver's job.
 
-describe('parseWdr — validation gate', () => {
-  it('throws when Fs is missing — cannot compute resonant frequency without it', () => {
+describe('parseWdr — returns {value, errors}, never throws', () => {
+  it('returns an object with value and errors properties', () => {
+    const result = parseWdr(MINIMAL_WDR);
+    assert.ok('value' in result, 'must have value property');
+    assert.ok('errors' in result, 'must have errors property');
+    assert.ok(Array.isArray(result.errors), 'errors must be an array');
+  });
+
+  it('returns value and empty errors for a complete WDR', () => {
+    const { value, errors } = parseWdr(MINIMAL_WDR);
+    assert.ok(value != null, 'value must not be null for a complete WDR');
+    assert.deepEqual(errors, [], 'no parse errors for a complete WDR');
+  });
+
+  it('returns value (with whatever was parsed) even when Fs is missing — T/S completeness is deriveDriver\'s job', () => {
     const noFs = MINIMAL_WDR.replace(/Fs=37\n/, '');
-    assert.throws(
-      () => parseWdr(noFs),
-      /missing core T\/S parameters/,
-    );
+    const { value } = parseWdr(noFs);
+    assert.ok(value != null, 'parseWdr returns what it found, not null, even when Fs is absent');
+    assert.equal(value.Fs, undefined, 'Fs must be undefined (absent from parse result)');
   });
 
-  it('throws when Vas is absent — Vas is always required to derive Mms for T/S calculations', () => {
-    // Without Vas, deriveDriver cannot compute Mms, which poisons Bl, Rms, and all circuit math.
-    // Explicit rejection here prevents silent NaN propagation through charts.
-    const stripped = MINIMAL_WDR.replace(/Vas=[\d.]+\n/, '');
-    assert.throws(
-      () => parseWdr(stripped),
-      /missing core T\/S parameters/,
-    );
+  it('returns value even when Vas is missing — does not guard T/S completeness', () => {
+    const noVas = MINIMAL_WDR.replace(/Vas=[\d.]+\n/, '');
+    const { value } = parseWdr(noVas);
+    assert.ok(value != null, 'parseWdr returns what it found even without Vas');
   });
 
-  it('throws when fewer than two Q parameters are present — deriveDriver needs at least two to solve the third', () => {
-    // Qts alone cannot derive Qes or Qms — throws rather than silently NaN-poisoning.
-    const stripped = MINIMAL_WDR
+  it('returns value even when only one Q parameter is present — T/S underdetermination is not parseWdr\'s concern', () => {
+    const oneQ = MINIMAL_WDR
       .replace(/Qes=[\d.]+\n/, '')
       .replace(/Qms=[\d.]+\n/, '');
-    assert.throws(
-      () => parseWdr(stripped),
-      /missing core T\/S parameters/,
-    );
+    const { value } = parseWdr(oneQ);
+    assert.ok(value != null, 'parseWdr does not enforce Q completeness');
+  });
+
+  it('returns value even when Sd is missing — not parseWdr\'s validation concern', () => {
+    const noSd = MINIMAL_WDR.replace(/Sd=[\d.]+\n/, '');
+    const { value } = parseWdr(noSd);
+    assert.ok(value != null, 'parseWdr does not guard Sd');
+  });
+
+  it('returns value even when Re is missing — not parseWdr\'s validation concern', () => {
+    const noRe = MINIMAL_WDR.replace(/Re=[\d.]+\n/, '');
+    const { value } = parseWdr(noRe);
+    assert.ok(value != null, 'parseWdr does not guard Re');
   });
 });
 
@@ -127,7 +224,7 @@ describe('parseWdr — validation gate', () => {
 describe('parseWdr — YAML sidecar overrides URL fields', () => {
   it('sidecar sets datasheetUrl from the datasheet_url field', () => {
     const sidecar = 'datasheet_url: https://new.example.com/sheet.pdf\n';
-    const d = parseWdr(MINIMAL_WDR, sidecar);
+    const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
     assert.equal(d.datasheetUrl, 'https://new.example.com/sheet.pdf',
       'sidecar datasheet_url field must populate datasheetUrl');
   });
@@ -141,7 +238,7 @@ describe('parseWdr — YAML sidecar overrides URL fields', () => {
       'frd_url: https://example.com/frd.frd',
       'zma_url: https://example.com/imp.zma',
     ].join('\n');
-    const d = parseWdr(MINIMAL_WDR, sidecar);
+    const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
     assert.equal(d.datasheetUrl,  'https://example.com/sheet.pdf');
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
     assert.equal(d.sourceUrl,     'https://example.com/source');
@@ -155,47 +252,42 @@ describe('parseWdr — YAML sidecar overrides URL fields', () => {
 
 describe('_parseSimpleYaml (via parseWdr sidecar) — YAML parser edge cases', () => {
   it('parses a plain key: value pair — the common case', () => {
-    const d = parseWdr(MINIMAL_WDR, 'vendor_page_url: https://example.com/buy\n');
+    const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url: https://example.com/buy\n');
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
   });
 
   it('treats null literal as absent — sidecar null means the field was intentionally cleared', () => {
-    // The guard `if (s.vendor_page_url)` skips null values, leaving the field unset.
-    const d = parseWdr(MINIMAL_WDR, 'vendor_page_url: null\n');
+    const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url: null\n');
     assert.equal(d.vendorpageUrl, undefined,
       'null sidecar value must not set vendorpageUrl');
   });
 
   it('treats an empty value as absent — bare key: with no value is treated like null', () => {
-    // Line `vendor_page_url:` has v='' which matches `if (!v || v === 'null')`
-    const d = parseWdr(MINIMAL_WDR, 'vendor_page_url:\n');
+    const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url:\n');
     assert.equal(d.vendorpageUrl, undefined);
   });
 
   it('unescapes doubled single-quotes in YAML single-quoted strings — '
    + "YAML rule: '' inside '...' is a literal apostrophe", () => {
-    // `vendor_page_url: 'it''s here'` → value is "it's here"
-    const d = parseWdr(MINIMAL_WDR, "vendor_page_url: 'it''s here'\n");
+    const { value: d } = parseWdr(MINIMAL_WDR, "vendor_page_url: 'it''s here'\n");
     assert.equal(d.vendorpageUrl, "it's here");
   });
 
   it('ignores lines with no colon — blank lines and comment-style separators pass silently', () => {
-    // A blank line in the sidecar should not cause a parse error.
     const sidecar = '\nvendor_page_url: https://example.com/buy\n\n';
-    const d = parseWdr(MINIMAL_WDR, sidecar);
+    const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
   });
 
   it('parses block scalar (|) with multiple indented continuation lines — '
    + 'multi-line description text is joined with newlines', () => {
-    // YAML block scalar: key: |\n  line one\n  line two → value is "line one\nline two"
     const sidecar = [
       'vendor_page_url: |',
       '  line one',
       '  line two',
       'source: https://example.com/src',
     ].join('\n');
-    const d = parseWdr(MINIMAL_WDR, sidecar);
+    const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
     assert.equal(d.vendorpageUrl, 'line one\nline two',
       'block scalar lines must be joined with \\n, indentation stripped');
     assert.equal(d.sourceUrl, 'https://example.com/src',
@@ -204,34 +296,13 @@ describe('_parseSimpleYaml (via parseWdr sidecar) — YAML parser edge cases', (
 
   it('parses block scalar at end of file without a trailing key — '
    + 'end-of-input guard must flush the accumulated block lines', () => {
-    // When a block scalar is the last item and there is no following non-indented line,
-    // the flush happens at end-of-input: `if (blockKey !== null) r[blockKey] = blockLines.join('\n')`
     const sidecar = [
       'vendor_page_url: |',
       '  only line',
     ].join('\n');
-    const d = parseWdr(MINIMAL_WDR, sidecar);
+    const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
     assert.equal(d.vendorpageUrl, 'only line',
       'end-of-file block scalar must be flushed correctly');
-  });
-});
-
-// ── parseWdr — validation sub-branches ───────────────────────────────────────
-
-describe('parseWdr — individual required-field validation sub-branches', () => {
-  it('throws when Sd is missing — piston area is required for all derived quantities', () => {
-    const noSd = MINIMAL_WDR.replace(/Sd=[\d.]+\n/, '');
-    assert.throws(() => parseWdr(noSd), /missing core T\/S parameters/);
-  });
-
-  it('throws when Re is missing — DC resistance is required for Bl and sensitivity', () => {
-    const noRe = MINIMAL_WDR.replace(/Re=[\d.]+\n/, '');
-    assert.throws(() => parseWdr(noRe), /missing core T\/S parameters/);
-  });
-
-  it('throws when Vas is missing even with a complete Q set — Vas is always required for Mms derivation', () => {
-    const noVas = MINIMAL_WDR.replace(/Vas=[\d.]+\n/, '');
-    assert.throws(() => parseWdr(noVas), /missing core T\/S parameters/);
   });
 });
 
@@ -240,15 +311,12 @@ describe('parseWdr — individual required-field validation sub-branches', () =>
 describe('parseWdr — undefined fields are removed from the returned object', () => {
   it('drops optional fields absent from WDR rather than returning undefined — '
    + 'Le and Xmax are optional; missing ones must not appear in the driver object', () => {
-    // Strip optional fields Le and Xmax — n() returns undefined for absent fields,
-    // and line 106 (for (const k in d) if (d[k] === undefined) delete d[k]) cleans them up.
     const noOptional = MINIMAL_WDR
       .replace(/Le=[\d.e+-]+\n/, '')
       .replace(/Xmax=[\d.]+\n/, '');
-    const d = parseWdr(noOptional);
+    const { value: d } = parseWdr(noOptional);
     assert.equal(d.Le, undefined, 'absent Le must not appear in driver object');
     assert.equal(d.Xmax, undefined, 'absent Xmax must not appear in driver object');
-    // Core fields must still be present
     assert.equal(d.Fs, 37);
   });
 });
@@ -281,12 +349,10 @@ describe('toWdr — missing optional fields use fallback branches', () => {
   it('uses Re as Znom when Z (nominal impedance) is not provided — '
    + 'Znom= falls back to the DC resistance Re', () => {
     const wdr = toWdr(BARE_DRIVER);
-    // g(d.Z || d.Re) → g(undefined || 5.6) → g(5.6) → '5.6' or '5.60000'
     assert.match(wdr, /^Znom=5\.6/m, 'Znom must fall back to Re when Z is absent');
   });
 
   it('produces Vd=0 when Xmax is absent — zero peak displacement volume', () => {
-    // (d.Xmax || 0) takes the 0 path; g(d.Xmax) returns '' (null/undefined branch in g)
     const wdr = toWdr(BARE_DRIVER);
     assert.match(wdr, /^Vd=0$/m, 'Vd must be 0 when Xmax is absent');
     assert.match(wdr, /^Xmax=$/m, 'Xmax= must be empty string when Xmax is absent');

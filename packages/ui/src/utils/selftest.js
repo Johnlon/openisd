@@ -89,7 +89,8 @@ const SPL_EFFICIENCY_OFFSET_DB = 112.1; // dB — constant in T/S radiation effi
                                         // = 20·log10(ρ·c²/(4π²·p_ref)) at standard conditions
 
 export function runSelfTest() {
-  const d   = deriveDriver(REF_DRIVER);
+  const { value: d } = deriveDriver(REF_DRIVER);
+  if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveDriver validation' }];
   const dNoLe = { ...d, Le: 0 }; // Le=0 isolates acoustic response from voice-coil inductance
 
   // --- Gate 1: sealed SPL vs closed-form Thiele/Small transfer function ---

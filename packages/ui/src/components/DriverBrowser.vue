@@ -489,7 +489,8 @@ async function loadDriver(f) {
     state.browseOpen = false; previewFile.value = null; return;
   }
   if (f.content) {
-    const d = parseWdr(f.content);
+    const { value: d } = parseWdr(f.content);
+    if (!d) return;
     if (f.datasheet)  d.datasheetUrl  = f.datasheet;
     if (f.manupage)   d.manuPageUrl   = f.manupage;
     if (f.vendorpage) d.vendorpageUrl = f.vendorpage;
@@ -500,13 +501,15 @@ async function loadDriver(f) {
     state.browseOpen = false; previewFile.value = null; return;
   }
   statusErr.value = false; statusMsg.value = 'Loading ' + f.name + '…';
-  try {
-    const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path.split('/').map(encodeURIComponent).join('/')}`;
-    const r = await fetch(url); if (!r.ok) throw new Error('fetch failed (' + r.status + ')');
-    state.driverRaw = parseWdr(await r.text());
-    state.driverSource = { ...state.driverRaw };
-    state.browseOpen = false; previewFile.value = null;
-  } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + err.message; }
+  const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path.split('/').map(encodeURIComponent).join('/')}`;
+  let fetchResult;
+  try { fetchResult = await fetch(url); } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + err.message; return; }
+  if (!fetchResult.ok) { statusErr.value = true; statusMsg.value = 'Could not load: fetch failed (' + fetchResult.status + ')'; return; }
+  const { value: loaded } = parseWdr(await fetchResult.text());
+  if (!loaded) { statusErr.value = true; statusMsg.value = 'Could not load: file did not parse as a WDR'; return; }
+  state.driverRaw = loaded;
+  state.driverSource = { ...loaded };
+  state.browseOpen = false; previewFile.value = null;
 }
 
 function pickFile(f) {

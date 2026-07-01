@@ -106,7 +106,7 @@ describe('Sealed box simulation', () => {
     // We set Le = 0 to isolate the acoustic response from voice-coil inductance.
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
-    const d = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
     const fc  = d.Fs  * Math.sqrt(1 + d.Vas / Vb_m3);
     const Qtc = d.Qts * Math.sqrt(1 + d.Vas / Vb_m3);
     const { fs, spl } = sweep(d, 'sealed', {
@@ -134,7 +134,7 @@ describe('Sealed box simulation', () => {
     //   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Efficiency
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
-    const d     = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d }     = deriveDriver({ ...REF_DRIVER, Le: 0 });
     const eta0  = (4 * Math.PI ** 2 / C ** 3) * (d.Fs ** 3 * d.Vas / d.Qes);
     const predicted = 112.1 + 10 * Math.log10(eta0) + 10 * Math.log10(EG ** 2 / d.Re);
     const { fs, spl } = sweep(d, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 });
@@ -159,7 +159,7 @@ describe('Sealed box simulation', () => {
     const F3_QSPEAKERS_HZ = 70.72; // Hz — f3 from QSpeakers formula, REF_DRIVER, 20 L, lossless
 
     const Vb_m3 = 0.020;
-    const d = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
     const { fs, spl } = sweep(d, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
@@ -202,7 +202,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const wb     = 2 * Math.PI * Fb_Hz;
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / RHO;  // effective duct length (including end correction)
-  const d      = deriveDriver(REF_DRIVER);
+  const { value: d }      = deriveDriver(REF_DRIVER);
   const { fs, spl, zmag } = sweep(d, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   });
@@ -259,7 +259,7 @@ describe('Passive radiator box simulation', () => {
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
   };
-  const d  = deriveDriver(REF_DRIVER);
+  const { value: d }  = deriveDriver(REF_DRIVER);
   const sw = sweep(d, 'pr', PR_PARAMS);
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
@@ -358,7 +358,9 @@ describe('.wdr driver file import and export', () => {
   let imported;
 
   it('reads the model name, Fs, and Sd from a real-world .wdr file', () => {
-    imported = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8'));
+    const { value: _imp1, errors: _imp1Errors } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8'));
+    if (!_imp1) throw new Error('parseWdr failed on Tang Band WDR: ' + _imp1Errors.map(e => e.message).join('; '));
+    imported = _imp1;
     assert.equal(imported.name, EXPECTED_MODEL_NAME,
       `name should be "${EXPECTED_MODEL_NAME}"`);
     assert.equal(imported.Fs, EXPECTED_FS_HZ,
@@ -370,8 +372,8 @@ describe('.wdr driver file import and export', () => {
   it('exports to .wdr text and round-trips all T/S parameters to within 0.01%', () => {
     // toWdr uses toPrecision(6) which introduces tiny rounding — relative tolerance
     // of 1e-4 (= 0.01%) captures any real mismatch while allowing formatting drift.
-    imported = imported ?? parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8'));
-    const roundTripped = parseWdr(toWdr(imported));
+    if (!imported) { const { value: _fb } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8')); imported = _fb; }
+    const { value: roundTripped } = parseWdr(toWdr(imported));
     const params = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe', 'Z'];
     for (const k of params) {
       if (imported[k] == null) continue;
@@ -384,8 +386,8 @@ describe('.wdr driver file import and export', () => {
   it('the re-imported .wdr is internally self-consistent: deriveDriver gives the same Fs, Qts, Qes', () => {
     // If the export/import round-trip is clean, deriveDriver on the re-imported data
     // should reproduce the same key parameters (within floating-point tolerance).
-    imported = imported ?? parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8'));
-    const d = deriveDriver(parseWdr(toWdr(imported)));
+    if (!imported) { const { value: _fb } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8')); imported = _fb; }
+    const { value: d } = deriveDriver(parseWdr(toWdr(imported)).value);
     assert.ok(Math.abs(d.Fs  - EXPECTED_FS_HZ) < 1e-6,
       `Fs should be ${EXPECTED_FS_HZ} Hz, got ${d.Fs}`);
     assert.ok(Math.abs(d.Qts - 0.49) < 1e-3,
@@ -496,7 +498,7 @@ describe('Filter chain', () => {
 
     it('an empty filter array leaves the SPL curve completely unchanged', () => {
       // When no filters are applied the engine must produce identical results.
-      const d = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const base   = sweep(d, 'sealed', opts);
@@ -518,7 +520,7 @@ describe('Filter chain', () => {
       // approximately 7x12 = 84 dB (2nd order = 12 dB/oct).  We simply assert
       // a large reduction relative to the unfiltered curve to confirm the filter
       // is actually being applied to the sweep.
-      const d = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const HP_FC_HZ  = 80;
@@ -535,7 +537,7 @@ describe('Filter chain', () => {
     });
 
     it('an active high-pass filter leaves SPL unchanged well above its cutoff', () => {
-      const d = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const HP_FC_HZ = 80;

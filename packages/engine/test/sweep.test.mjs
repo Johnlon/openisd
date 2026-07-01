@@ -20,7 +20,7 @@ import { sweep, maxCurves } from '@resonate/engine';
 import { deriveDriver } from '@resonate/engine';
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
-const DRV = deriveDriver({
+const { value: DRV, errors: _drvErrors } = deriveDriver({
   Fs:   37,      // Hz
   Qts:  0.38,
   Qes:  0.40,
@@ -33,6 +33,7 @@ const DRV = deriveDriver({
   Pe:   60,      // W
   Z:    8,       // Ω
 });
+if (!DRV) throw new Error('Test fixture driver is invalid: ' + _drvErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
 // Sealed box — lossless, 30 L
 const BOX = 'sealed';
@@ -121,11 +122,12 @@ describe('maxCurves — Pe defaults to 50 W when driver Pe field is absent', () 
   it('driver without Pe uses 50 W as the thermal power limit — result must be finite', () => {
     // `(drv.Pe || 50)` → 50 when Pe is undefined.
     // The driver is otherwise identical to the reference driver.
-    const drvNoPe = deriveDriver({
+    const { value: drvNoPe, errors: _noPeErrors } = deriveDriver({
       Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005,
-      // Pe intentionally absent — defaults to 50 W in maxCurves
+      // Pe intentionally absent — deriveDriver returns warn (not error); excursion-only max curves
     });
+    if (!drvNoPe) throw new Error('Test fixture invalid: ' + _noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
     const { fs, maxspl } = maxCurves(drvNoPe, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,

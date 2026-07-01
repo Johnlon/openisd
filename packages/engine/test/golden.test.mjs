@@ -33,7 +33,8 @@ for (const name of NAMES) {
   const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
     JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 
-  const drv = deriveDriver(driverRaw);
+  const { value: drv, errors: _drvErrors } = deriveDriver(driverRaw);
+  if (!drv) { check(`${name}  driver-valid`, false); console.error('  driver errors:', _drvErrors.map(e => e.message)); continue; }
   const sw  = sweep(drv, box, P);
   const mx  = maxCurves(drv, box, P);
 
