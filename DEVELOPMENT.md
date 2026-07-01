@@ -32,7 +32,7 @@ the core unit-testable forever. If a function needs the DOM, it belongs in the U
 layer.
 
 **UI** — everything that touches the page: building the sidebar, drawing graphs
-to canvas, wiring events. It *calls* the core; the core never calls it.
+to canvas, wiring events. It _calls_ the core; the core never calls it.
 
 ---
 
@@ -48,42 +48,50 @@ imported directly in Node for testing without stubs or jsdom.
 
 ---
 
-## 3. Testing strategy — two suites, both required
+## 3. Testing strategy — three suites, all required
 
-### Unit tests — `node:test` + `node:assert` (zero deps)
-For everything in the core. Fast, deterministic, no browser.
+### Python scraper tests — `pytest` (unit)
 
-- Physics gates (the existing sealed≡closed-form, sensitivity, vented rolloff +
-  twin Z-peaks) become real unit tests requiring the core module.
-- Plus: `.wdr` parse/serialize round-trips and malformed-input handling;
-  state serialize/apply/URL round-trip; alignment + PR math; the driver
-  dedup/same-model detector.
-- Run: `node --test test/unit/`
+For all parsing and extraction logic in `scripts/scrapers/`. Fast, deterministic, no network.
 
-### Functional tests — Playwright (headless browser)
-This is the gap. **jsdom / no-op stubs prove "the script didn't throw" — they do
-NOT prove a curve was drawn.** A headless browser is the only way to verify the
-actual app, and it automates the rendering check we currently push onto the user.
+- Tests live alongside the code: `scripts/scrapers/test_<module>.py`.
+- Every parser function (`parse_field_value`, `extract_h1`, `parse_freq_range_str`, field-mapping logic) must have direct unit tests.
+- Network/HTTP concerns (fetching, caching, pagination) are integration concerns — tested against saved HTML fixtures in `scripts/scrapers/fixtures/`, never against the live site.
+- Run: `python -m pytest scripts/scrapers/ -v`
 
-Functional tests load the built `index.html` and assert real behaviour:
-- the multi-graph grid renders the expected number of panels and non-blank canvases
-- the driver panel collapses to a summary and expands on Edit
-- a `.wdr` import loads and the SPL curve changes
-- "Share link" → reopen the URL → identical design restored
-- the federated driver browser lists files (mock the network)
+Rules: `.claude/context/testing-python.md`
+
+### JS core tests — `node:test` + `node:assert` (zero deps)
+
+For everything in `packages/engine/src/core/`. Fast, deterministic, no browser.
+
+- Physics gates (sealed≡closed-form, sensitivity, vented rolloff + twin Z-peaks), `.wdr` parse/serialize round-trips, alignment + PR math, driver dedup.
+- Run: `node --test packages/engine/test/*.test.mjs`
+
+Rules: `.claude/context/testing-js-core.md`
+
+### Browser tests — Playwright (headless browser)
+
+**jsdom / no-op stubs prove "the script didn't throw" — they do NOT prove a curve was drawn.** A headless browser is the only way to verify the actual app.
+
+All `packages/ui/test/*.browser.spec.js` must import from `packages/ui/test/fixtures.js` (not `@playwright/test` directly) — that module's `browserLog` auto-fixture captures and asserts on console errors, Vue warnings, and failed network requests for every test. A green DOM assertion is not enough.
 
 Run: `npx playwright test`
 
-**Tooling is deliberately minimal: `node:test` + Playwright, nothing else.** Do
-not add Jest / Vitest / Mocha.
+Rules: `.claude/context/testing-js-ui.md`
+
+**Tooling is deliberately minimal: `pytest` + `node:test` + Playwright, nothing else.** Do not add Jest / Vitest / Mocha.
 
 ---
 
 ## 4. Definition of done (PR checklist)
 
 - [ ] Core logic has **no DOM references**
-- [ ] New behaviour has unit tests (core) and/or a functional test (UI)
-- [ ] `npm test` (units) and `npx playwright test` (functional) both pass
+- [ ] New scraper parsing logic has `pytest` unit tests; new core logic has `node:test` unit tests; new UI behaviour has a Playwright browser test
+- [ ] `python -m pytest scripts/scrapers/ -v` passes (scraper tests)
+- [ ] `node --test packages/engine/test/*.test.mjs` passes (JS core tests)
+- [ ] `npx playwright test` passes (browser tests)
+- [ ] `npm run lint` is 0 errors
 - [ ] Physics validation gates still green
 - [ ] `npm run build` succeeds and the built app works in a browser
 - [ ] PWA / offline still works (service worker caches all assets)
@@ -115,23 +123,27 @@ This project has been developed exclusively on **Windows 11 with Git Bash**. Oth
 Always use the project scripts — do not run `npm run dev`, `vite`, or ad-hoc commands directly.
 
 ```bash
-bash scripts/start-http.sh    # health checks then dev server at http://localhost:4000
-bash scripts/stop-http.sh     # stop the dev server (kills ports 4000–4005)
-bash scripts/health-check.sh  # lint + unit tests + golden tests + DQ (no server)
-bash scripts/preview-4000.sh  # serve built dist at http://localhost:4000
+bash scripts/dev-4200.sh      # agent dev server: health checks then Vite at http://localhost:4200
+bash scripts/stop-http.sh 4200  # stop the agent dev server
+bash scripts/preview-4000.sh  # human lightweight preview at http://localhost:4000 (no health checks)
+bash scripts/health-check.sh  # full gate: lint + JS unit + golden + DQ + Python scraper tests
 bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
 ```
 
-Unit tests only:
+Individual gates:
 
 ```bash
+# Python scraper tests
+python -m pytest scripts/scrapers/ -v
+
+# JS core unit tests
 node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
-```
 
-Browser tests:
-
-```bash
+# Browser tests
 npx playwright test
+
+# Lint
+npm run lint
 ```
 
 CI runs lint, unit tests, and Playwright on every push.
