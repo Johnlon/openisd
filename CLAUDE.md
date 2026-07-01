@@ -2,7 +2,7 @@
 
 ## Quality gates — non-negotiable
 
-**Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.**
+**Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + unit + golden + browser + DQ + scraper) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
 
 | Domain                 | Gate              | Command                                 |
 | ---------------------- | ----------------- | --------------------------------------- |
@@ -11,6 +11,10 @@
 | JS UI (Vue/Playwright) | browser suite     | `npx playwright test`                   |
 | All code               | lint              | `npm run lint` (0 errors)               |
 | All                    | full health check | `bash scripts/health-check.sh`          |
+
+**A red result is red — no excuses.** You may NOT step past a failing test, lint error, or console/network error by calling it "pre-existing", "stale", "unrelated", "flaky", "HMR", or "someone else's". Regardless of who caused it or how long ago, either make it green or STOP and investigate the cause with primary evidence (read the actual error/log output) before doing anything else. Attributing red to a cause you have not proven is the exact failure that let issues survive for hours. If a failure is genuinely pre-existing, that means the tree was already broken and fixing it is now your job, not your excuse.
+
+**Enforcement (git hooks, `core.hooksPath=scripts/hooks`):** `pre-commit` runs lint + unit + golden and **blocks the commit on any red** (so red cannot ride along commit-to-commit); `pre-push` runs the full `npm run ci`. Never bypass with `--no-verify`. Fresh clones must run `git config core.hooksPath scripts/hooks` once.
 
 **TDD — red→green, in this order:**
 

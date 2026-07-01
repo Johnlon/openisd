@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run all project health checks: lint, unit tests, golden tests, DQ, schema.
+# Run all project health checks: lint, unit tests, golden tests, browser tests, DQ, scraper tests.
 # Exit code 0 = all passed. Non-zero = something failed.
 # Add new checks here as they are created — this is the single entry point.
 set -euo pipefail
@@ -29,8 +29,9 @@ echo "  $(date '+%H:%M:%S')"
 echo "========================================"
 
 run "ESLint"            npm run lint
-run "Unit tests"        node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
+run "Unit tests"        node --test packages/engine/test/*.test.mjs packages/ui/test/*.test.mjs
 run "Golden tests"      node packages/engine/test/golden.test.mjs
+run "Browser tests"     npx playwright test
 run "DQ check"          python scripts/dq_check.py
 run "Scraper tests"     python -m pytest scripts/scrapers/ -v --tb=short
 

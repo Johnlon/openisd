@@ -1,0 +1,14 @@
+#!/bin/sh
+# Fast gate on EVERY commit — lint + unit + golden tests. Blocks the commit on any
+# red so a failure cannot ride along commit-to-commit (the "an issue from hours ago
+# persisted" failure mode). These are all fast (no browser, no network, no python).
+#
+# The FULL suite — browser tests, DQ, scraper tests — runs at pre-push
+# (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
+# a change "done". A green pre-commit is necessary, not sufficient.
+set -e
+echo "[pre-commit] lint + unit + golden — blocking commit on any red…"
+npm run lint
+npm run test:unit
+node packages/engine/test/golden.test.mjs
+echo "[pre-commit] all green ✓"
