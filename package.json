@@ -17,7 +17,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:unit && node packages/engine/test/golden.test.mjs && npx playwright test",
-    "test:unit": "node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs",
+    "test:unit": "node --test packages/engine/test/*.test.mjs packages/ui/test/*.test.mjs",
     "test:crosscheck": "npx playwright test packages/ui/test/micka-crosscheck.browser.spec.js --timeout=60000",
     "test:visual": "npx playwright test packages/ui/test/visual.browser.spec.js",
     "gen-scenarios": "node packages/ui/test/gen-scenarios.mjs",

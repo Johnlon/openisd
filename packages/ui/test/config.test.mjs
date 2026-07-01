@@ -22,20 +22,12 @@ describe('vite.config.js', () => {
   // side effects and keeps the test framework-agnostic).
   const viteConfig = readFileSync(VITE_CONFIG_PATH, 'utf8');
 
-  it('excludes _html/ scraper cache from file watcher so active scraper runs do not reload the dev server', () => {
+  it('excludes all _-prefixed scraper cache dirs (_html, _datasheets, …) from the file watcher so active scraper runs do not reload the dev server', () => {
     assert.ok(
-      viteConfig.includes('_html'),
-      'vite.config.js server.watch.ignored must exclude _html/ directories. ' +
-      'Without this, scraper runs write HTML files that Vite watches and ' +
-      'triggers continuous full-page reloads, making the dev server unusable.'
-    );
-  });
-
-  it('excludes datasheets/ scraper cache from file watcher for the same reason', () => {
-    assert.ok(
-      viteConfig.includes('datasheets'),
-      'vite.config.js server.watch.ignored must exclude datasheets/ directories. ' +
-      'Without this, scraper PDF downloads trigger continuous full-page reloads.'
+      viteConfig.includes('_*'),
+      'vite.config.js server.watch.ignored must exclude drivers/**/_*/ directories. ' +
+      'All scraper cache/scratch dirs are _-prefixed (_html, _datasheets); without this, ' +
+      'scraper writes trigger continuous full-page reloads, making the dev server unusable.'
     );
   });
 });
@@ -46,19 +38,11 @@ describe('.gitignore', () => {
   const GITIGNORE_PATH = join(ROOT, '.gitignore');
   const gitignore = readFileSync(GITIGNORE_PATH, 'utf8');
 
-  it('excludes scraper _html/ cache directories so raw HTML never bloats the repo', () => {
+  it('excludes all _-prefixed scraper cache dirs (_html, _datasheets, …) so raw HTML and PDFs never bloat the repo', () => {
     assert.ok(
-      gitignore.includes('_html'),
-      '.gitignore must exclude drivers/**/_html/ — raw HTML cache is ' +
-      'for local scraper re-use only; datasheet URLs are stored in _meta.yml sidecar files.'
-    );
-  });
-
-  it('excludes scraper datasheets/ directories so PDF datasheets never bloat the repo', () => {
-    assert.ok(
-      gitignore.includes('datasheets'),
-      '.gitignore must exclude drivers/**/datasheets/ — PDF files are ' +
-      'large; the datasheet URL is stored in the _meta.yml sidecar.'
+      gitignore.includes('_*'),
+      '.gitignore must exclude drivers/**/_*/ — all scraper cache/scratch dirs are ' +
+      '_-prefixed (_html raw HTML, _datasheets PDFs); source URLs live in _meta.yml sidecars.'
     );
   });
 });
