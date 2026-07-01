@@ -258,6 +258,19 @@ function tokClass(tok) {
   if (tokPresent(tok)) return 'cd-on';
   return tok.req ? 'cd-req' : 'cd-off';
 }
+// Verified field purposes (source: WinISD help — research/winisd/help/thielesmall.html —
+// cross-checked against our engine usage). Shown as token tooltips in the legend.
+const FIELD_PURPOSE = {
+  Fs:   'Free-air resonance frequency of the driver. Sets where the bass rolls off. (WinISD: Fs)',
+  Q:    'Damping: Qts (total) = Qms (mechanical) ‖ Qes (electrical) — lower = more damped. Enter any 2; the third is computed. (WinISD: Qts/Qms/Qes)',
+  Vas:  'Equivalent compliance volume — the air volume as springy as the cone suspension. Drives box-size choice. (WinISD: Vas)',
+  Sd:   'Effective diaphragm (radiating piston) area. Governs displacement and SPL. (WinISD: Sd)',
+  Re:   'DC resistance of the voice coil. Our power↔voltage reference (P = V²/Re), same as WinISD. (WinISD: Re)',
+  Le:   'Voice-coil inductance — sets the high-frequency impedance rise; only affects the impedance plot. (WinISD: Le)',
+  Xmax: 'Peak linear (clean) excursion, ≈ |Hc−Hg|/2. Sets the cone-excursion limit and the excursion-limited part of Max SPL. (WinISD: Xmax)',
+  Pe:   'Thermal-limited continuous power handling. Sets Max power and the thermal-limited part of Max SPL. (WinISD: Pe)',
+};
+function tokPurpose(tok) { return tok.k ? (FIELD_PURPOSE[tok.k] || '') : ''; }
 
 // The "what's needed" expander lives at the top and leads input: pick one or more
 // graphs and every input those graphs require gets a highlighted border.
@@ -366,14 +379,15 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
               What each graph needs
             </button>
             <div v-if="graphHelpOpen" class="dd-help-body">
-              <div class="dd-help-lead"><span class="dd-help-ico">💡</span> Click a graph to highlight its fields, or deselect graphs you don't need</div>
+              <div class="dd-help-lead"><span class="dd-help-ico">💡</span> Click a graph to highlight its fields (or deselect ones you don't need) · hover a field for what it does</div>
               <div v-for="c in CHART_DEPS" :key="c.chart" class="dd-cd-row"
                    :class="{ 'dd-cd-sel': selectedCharts.includes(c.chart) }"
                    @click="toggleChart(c.chart)"
                    :title="`Highlight the fields the ${c.chart} graph needs`">
                 <span class="dd-cd-chart">{{ c.chart }}:</span>
                 <span class="dd-cd-need">
-                  <span v-for="(tok, i) in c.need" :key="i" :class="tokClass(tok)">{{ tok.t }}</span>
+                  <span v-for="(tok, i) in c.need" :key="i" :class="[tokClass(tok), { 'cd-info': tok.k }]"
+                        :title="tokPurpose(tok)">{{ tok.t }}</span>
                 </span>
               </div>
               <div class="dd-help-note">
@@ -744,6 +758,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
 .cd-off  { color: #d8c176; }
 .cd-req  { color: var(--bad); font-weight: 600; }
 .cd-sep  { color: var(--mut); font-style: italic; }
+.cd-info { cursor: help; text-decoration: underline dotted; text-underline-offset: 2px; }
 
 /* Highlighted input(s) for the currently-selected graph(s). */
 .dd-hl { outline: 2px solid var(--acc); outline-offset: -1px; position: relative; z-index: 2; }
