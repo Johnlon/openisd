@@ -233,20 +233,24 @@ function isRequiredMissing(key) {
   return false;
 }
 
-// Optional fields that gate specific graphs — leaving them N disables those curves.
-const GRAPH_GATES = [
-  { key: 'Xmax', graphs: ['Cone excursion', 'Maximum SPL'] },
-  { key: 'Pe',   graphs: ['Maximum power', 'Maximum SPL'] },
+// Which driver fields each graph depends on. Verified against the engine:
+//  • circuit.js excludes Le from the acoustic path ("Le added back only for
+//    impedance, not for acoustic simulation") → Le only shapes Impedance & phase.
+//  • sweep.js maxCurves uses Xmax/Pe only for the max-SPL / max-power limits.
+// Core T/S (Fs, a Q pair, Vas, Sd, Re) drive every graph and are required.
+const CHART_DEPS = [
+  { chart: 'All graphs',        need: [{ t: 'Fs' }, { t: 'Qts/Qes/Qms' }, { t: 'Vas' }, { t: 'Sd' }, { t: 'Re' }] },
+  { chart: 'Impedance & phase', need: [{ t: 'Le', k: 'Le' }] },
+  { chart: 'Cone excursion',    need: [{ t: 'Xmax', k: 'Xmax' }] },
+  { chart: 'Maximum SPL',       need: [{ t: 'Xmax', k: 'Xmax' }, { t: 'and/or', sep: true }, { t: 'Pe', k: 'Pe' }] },
+  { chart: 'Maximum power',     need: [{ t: 'Pe', k: 'Pe' }] },
 ];
-const disabledGraphs = computed(() => {
-  const byGraph = {};
-  for (const g of GRAPH_GATES) {
-    if (resolvedSI.value[g.key] == null) {
-      for (const gr of g.graphs) (byGraph[gr] ||= new Set()).add(g.key);
-    }
-  }
-  return Object.entries(byGraph).map(([graph, keys]) => ({ graph, need: [...keys].join(' + ') }));
-});
+// green when the optional field is present (graph fully available), yellow when blank.
+function tokClass(tok) {
+  if (tok.sep) return 'cd-sep';
+  if (!tok.k)  return 'cd-core';
+  return resolvedSI.value[tok.k] != null ? 'cd-on' : 'cd-off';
+}
 
 // ── Actions ───────────────────────────────────────────────────────────────
 function resetAll() {
@@ -463,14 +467,16 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
             Still needed: {{ missing.join(' · ') }}
           </div>
 
-          <!-- Which graphs stay disabled because an optional field is blank.
-               Only meaningful once the driver itself is valid — before that the
-               required (red) fields block every graph, so the note would mislead. -->
-          <div v-if="canApply && disabledGraphs.length" class="dd-graphgate">
-            <span class="dd-gg-hd">Graphs disabled by blank fields:</span>
-            <span v-for="d in disabledGraphs" :key="d.graph" class="dd-gg">
-              {{ d.graph }} <em>(add {{ d.need }})</em>
-            </span>
+          <!-- What each graph needs. Optional fields turn green once present
+               (that graph is fully available) and stay yellow while blank. -->
+          <div class="dd-chartdeps">
+            <div class="dd-cd-hd">What each graph needs</div>
+            <div v-for="c in CHART_DEPS" :key="c.chart" class="dd-cd-row">
+              <span class="dd-cd-chart">{{ c.chart }}:</span>
+              <span class="dd-cd-need">
+                <span v-for="(tok, i) in c.need" :key="i" :class="tokClass(tok)">{{ tok.t }}</span>
+              </span>
+            </div>
           </div>
 
           <!-- Reference links -->
@@ -661,15 +667,18 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   background: rgba(255,180,84,.07); border: 1px solid rgba(255,180,84,.25);
   border-radius: 4px; padding: 5px 8px;
 }
-/* Info note: which graphs are unavailable because an optional field is blank. */
-.dd-graphgate {
-  font-size: 10.5px; color: var(--mut);
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 10px;
-  padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
+/* Graph ↔ field relationship legend. Optional fields colour by presence. */
+.dd-chartdeps {
+  font-size: 10.5px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
 }
-.dd-gg-hd { color: var(--fg); font-weight: 600; }
-.dd-gg { white-space: nowrap; }
-.dd-gg em { color: var(--acc2); font-style: normal; }
+.dd-cd-hd { color: var(--fg); font-weight: 600; margin-bottom: 3px; }
+.dd-cd-row { display: flex; gap: 6px; line-height: 1.55; }
+.dd-cd-chart { color: var(--mut); flex: 0 0 116px; text-align: right; }
+.dd-cd-need { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.cd-core { color: var(--fg); }
+.cd-on   { color: var(--good); font-weight: 600; }
+.cd-off  { color: #d8c176; }
+.cd-sep  { color: var(--mut); font-style: italic; }
 .dd-refs { font-size: 10.5px; color: var(--mut); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dd-refs a { color: var(--acc); text-decoration: none; }
 .dd-refs a:hover { text-decoration: underline; }
