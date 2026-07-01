@@ -22,6 +22,8 @@
 
 Never reorder. "I added a test and a fix" without having seen the test fail first is not TDD.
 
+**For test-first feature or bug work, invoke the `/tdd` skill** — the red→green-refactor workflow reference (what a good test is, where tests go, the anti-patterns, and the rules of the loop). Consult it before and during the loop, not after.
+
 **Domain-specific testing rules:** `.claude/context/testing-python.md` · `.claude/context/testing-js-core.md` · `.claude/context/testing-js-ui.md`
 
 ---
@@ -67,6 +69,23 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 **Why:** Documentation must reflect current best knowledge only. Git history and commit messages are the authoritative record of what changed and why.
 
 **If tempted to record history:** write it in the commit message instead and move on.
+
+**The single sanctioned exception is `LOG.md`.** It is the one file allowed to record change over time, because it records the **value** of changes (functional/quality/procedural benefit), not their mechanics — see the "Value log" rule below. No other `.md` file may carry history. Never delete `LOG.md` as "history clutter"; it is a deliberate, rule-governed exception.
+
+---
+
+## Value log — `LOG.md` maintenance — hard rule
+
+`LOG.md` is the project's value log. It records **why each change was worth making**, not what the code did.
+
+**Every entry is benefit-first:** state the functional, quality, or procedural benefit in plain language, then tersely how the change delivered it. One line per benefit.
+
+- **Sell the value, then explain how — briefly.** "Find the right kind of driver fast. Multi-label type system + Fs/Sd/Z filters." Not a commit paraphrase, not a feature dump.
+- **Plain, honest, no marketing voice.** No slogans, no "so the user can finally…", no cutesy section titles. If a thing is a rough prototype, say so. Overstated value is worse than none.
+- **Group by day**, newest at the bottom; day heading is `## YYYY-MM-DD — <terse factual tag>`.
+- **Maintain it at end of session.** When a working session lands changes worth a user or contributor knowing about, append that day's benefits before finishing. Skip pure churn (WIP saves, typo fixes) — the bar is "did this change what someone can do, how much they can trust it, or how the team works?"
+
+Git remains the record of _mechanics_. `LOG.md` is the record of _value_.
 
 ---
 
