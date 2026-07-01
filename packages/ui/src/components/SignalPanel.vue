@@ -5,15 +5,15 @@ import HelpTip from './HelpTip.vue';
 
 const drv = driver;
 
-const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value.Re || 8)));
+const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value?.Re || 8)));
 
 function onVoltageInput(e) {
   const v = parseFloat(e.target.value);
-  if (isFinite(v) && v > 0) state.P.Pin = (v * v) / (drv.value.Re || 8);
+  if (isFinite(v) && v > 0) state.P.Pin = (v * v) / (drv.value?.Re || 8);
 }
 
 function setIEC() {
-  state.P.Pin = (2.83 * 2.83) / (drv.value.Re || 8);
+  state.P.Pin = (2.83 * 2.83) / (drv.value?.Re || 8);
 }
 </script>
 

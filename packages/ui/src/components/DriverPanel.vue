@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, reactive, watch, nextTick } from 'vue';
-import { state, driver, driverWarnings, driverShort } from '../store.js';
+import { state, driver, driverErrors, driverShort } from '../store.js';
 import DriverDefineModal from './DriverDefineModal.vue';
 
 const MY_DRIVERS_KEY = 'resonate_my_drivers';
@@ -57,14 +57,18 @@ import { ebp } from '@resonate/engine';
 const d = computed(() => state.driverRaw);
 const drv = driver;
 
-const ebpVal = computed(() => ebp(drv.value));
+const ebpVal = computed(() => { const dv = drv.value; return dv ? ebp(dv) : null; });
 const sug = computed(() => {
   const e = ebpVal.value;
+  if (e == null) return '—';
   return e < 50 ? 'sealed' : e > 100 ? 'vented' : 'sealed or vented';
 });
 
 const dismissed = ref(false);
 watch(driver, () => { dismissed.value = false; });
+// Any error-level issue means the driver cannot be simulated at all (charts blocked).
+// Warn-level issues (Pe/Xmax) only drop a reference line — the sim still runs.
+const hasError = computed(() => driverErrors.value.some(e => e.level === 'error'));
 
 function startEdit() {
   if (!state.driverSource) state.driverSource = { ...state.driverRaw };
@@ -135,9 +139,14 @@ function applyDefine(raw) {
 <template>
   <fieldset>
     <legend>Driver</legend>
-    <div v-if="driverWarnings.length && !dismissed" class="drv-warn">
-      <span>⚠ {{ driverWarnings.join(' · ') }}</span>
-      <button class="drv-warn-x" @click="dismissed = true" title="Dismiss this warning">✕</button>
+    <div v-if="driverErrors.length && !dismissed" class="drv-issues" :class="{ 'is-error': hasError }">
+      <div class="drv-issues-head">
+        <span>{{ hasError ? '⛔ Cannot simulate — fix these:' : '⚠ Some reference lines are missing:' }}</span>
+        <button class="drv-warn-x" @click="dismissed = true" title="Dismiss this list of issues">✕</button>
+      </div>
+      <ul class="drv-issues-list">
+        <li v-for="e in driverErrors" :key="e.level + e.field" :class="e.level">{{ e.message }}</li>
+      </ul>
     </div>
     <div class="row" style="margin-bottom:6px">
       <button style="flex:1" @click="state.browseOpen = true" title="Browse the driver library — click any driver to see its specs, then load it into the current design">Browse / Select…</button>
@@ -156,15 +165,15 @@ function applyDefine(raw) {
       </div>
       <div class="drvspecs">
         <span class="ds">Fs <b>{{ (+d.Fs||0).toFixed(0) }} Hz</b></span> ·
-        <span class="ds">Qts <b>{{ (drv.Qts||0).toFixed(3) }}</b></span> ·
+        <span class="ds">Qts <b>{{ (drv?.Qts||0).toFixed(3) }}</b></span> ·
         <span class="ds">Vas <b>{{ (d.Vas*1000).toFixed(1) }} L</b></span> ·
         <span class="ds">Sd <b>{{ (d.Sd*1e4).toFixed(0) }} cm²</b></span> ·
         <span class="ds">Re <b>{{ (+d.Re||0).toFixed(1) }} Ω</b></span> ·
         <span class="ds">Xmax <b>{{ (d.Xmax*1000).toFixed(1) }} mm</b></span> ·
         <span class="ds"
-              title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed enclosure preferred. Above 100: vented preferred. 50–100: either works well.">EBP <b>{{ ebpVal.toFixed(0) }}</b> → {{ sug }}</span> ·
-        <span class="ds">Bl <b>{{ drv.Bl.toFixed(2) }} T·m</b></span> ·
-        <span class="ds">Mms <b>{{ (drv.Mms*1000).toFixed(1) }} g</b></span>
+              title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed enclosure preferred. Above 100: vented preferred. 50–100: either works well.">EBP <b>{{ ebpVal != null ? ebpVal.toFixed(0) : '—' }}</b> → {{ sug }}</span> ·
+        <span class="ds">Bl <b>{{ drv?.Bl != null ? drv.Bl.toFixed(2) : '—' }} T·m</b></span> ·
+        <span class="ds">Mms <b>{{ drv?.Mms != null ? (drv.Mms*1000).toFixed(1) : '—' }} g</b></span>
       </div>
       <div v-if="d.providedBy || d.comment || drvLinks.length" class="drvsource">
         <span v-if="d.providedBy || d.comment">{{ [d.providedBy, d.comment].filter(Boolean).join(' · ') }}</span>
@@ -258,22 +267,22 @@ function applyDefine(raw) {
       <div class="subsect">Derived</div>
       <div class="row pr-derived" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor. WinISD: Bl">
         <label>Bl</label>
-        <span class="pr-roval">{{ drv.Bl.toFixed(2) }}</span>
+        <span class="pr-roval">{{ drv?.Bl != null ? drv.Bl.toFixed(2) : '—' }}</span>
         <span class="u">T·m</span>
       </div>
       <div class="row pr-derived" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass including air load. WinISD: Mms">
         <label>Mms</label>
-        <span class="pr-roval">{{ (drv.Mms*1000).toFixed(1) }}</span>
+        <span class="pr-roval">{{ drv?.Mms != null ? (drv.Mms*1000).toFixed(1) : '—' }}</span>
         <span class="u">g</span>
       </div>
       <div class="row pr-derived" title="Derived: Cms = Vas / (ρc²·Sd²) — mechanical compliance of suspension. WinISD: Cms">
         <label>Cms</label>
-        <span class="pr-roval">{{ (drv.Cms*1000).toFixed(3) }}</span>
+        <span class="pr-roval">{{ drv?.Cms != null ? (drv.Cms*1000).toFixed(3) : '—' }}</span>
         <span class="u">mm/N</span>
       </div>
       <div class="row pr-derived" title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed preferred. Above 100: vented preferred. 50–100: either works">
         <label>EBP</label>
-        <span class="pr-roval">{{ ebpVal.toFixed(0) }}</span>
+        <span class="pr-roval">{{ ebpVal != null ? ebpVal.toFixed(0) : '—' }}</span>
         <span class="u" style="width:auto;white-space:nowrap">→ {{ sug }}</span>
       </div>
       <div class="ts-refs">

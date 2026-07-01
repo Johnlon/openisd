@@ -16,11 +16,13 @@ const fb = computed(() => {
 const showLosses = ref(false);
 
 function setVbForQtc() {
+  if (!drv.value) return;
   const vb = sealedFromQtc(drv.value, 0.707);
   if (vb) state.P.Vb = vb;
 }
 
 function autoVentAlign() {
+  if (!drv.value) return;
   const a = ventedAlignment(drv.value);
   state.P.Vb = a.Vb;
   state.P.ventL = ventLength(a.Vb, a.Fb, Math.PI * (state.P.ventD / 2) ** 2);

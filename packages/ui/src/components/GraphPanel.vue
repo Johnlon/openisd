@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, driver, syncedP, curvesData, maxData } from '../store.js';
+import { state, driver, driverErrors, syncedP, curvesData, maxData } from '../store.js';
 import { TABS, buildPlotData } from '../utils/series.js';
 import { drawOne } from '../utils/canvas.js';
 import { DPAL } from '../presets.js';
@@ -17,9 +17,17 @@ const currentDesign = computed(() => ({
   name: 'Current', color: DPAL[0],
 }));
 
-const plotData = computed(() =>
-  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, state.compare)
+// buildPlotData returns { value, errors }: value is the drawable bundle (null when the
+// driver is invalid OR the sweep is mid-recompute), errors are the driver issues.
+const plot        = computed(() =>
+  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value)
 );
+const plotData    = computed(() => plot.value.value);
+const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));
+// Show the blocking message only when there is no plot AND the reason is a real error
+// (a required T/S param). A transient null during sweep recompute has no errors → we
+// simply don't redraw until the curves arrive, no message.
+const blocked     = computed(() => !plotData.value && blockErrors.value.length > 0);
 
 const effectiveF = computed(() =>
   state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
@@ -61,6 +69,8 @@ const localDragRange = computed(() => {
 });
 
 function redraw() {
+  if (!canvasEl.value) return;
+  if (blocked.value || !plotData.value) { geoRef = null; return; }
   geoRef = drawOne(canvasEl.value, plotData.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
 }
 
@@ -178,7 +188,7 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocClick);
 });
 
-watch([plotData, effectiveF, localDragRange], redraw, { flush: 'post' });
+watch([plotData, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
 </script>
 
 <template>
@@ -192,6 +202,11 @@ watch([plotData, effectiveF, localDragRange], redraw, { flush: 'post' });
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
     <div ref="readEl" class="gread"></div>
+    <div v-if="blocked" class="gmsg">
+      <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
+      <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
+      <div class="gmsg-foot">Fix the driver parameters to restore this chart.</div>
+    </div>
   </div>
 
   <Teleport to="body">
@@ -211,6 +226,28 @@ watch([plotData, effectiveF, localDragRange], redraw, { flush: 'post' });
 
 <style scoped>
 canvas { touch-action: none; }
+
+.gpanel { position: relative; }
+
+/* Blocking message shown in place of the chart when the driver has no derivable
+   value (a core T/S parameter is missing). Opaque so any stale curve is hidden. */
+.gmsg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.gmsg-title { font-size: 13px; font-weight: 600; color: var(--fg); }
+.gmsg-line  { font-size: 11px; color: var(--mut); line-height: 1.4; max-width: 90%; }
+.gmsg-foot  { font-size: 11px; color: var(--mut); margin-top: 4px; font-style: italic; }
 
 .ctx-menu {
   position: fixed;

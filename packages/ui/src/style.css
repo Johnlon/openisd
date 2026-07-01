@@ -38,10 +38,19 @@ canvas { display:block; width:100%; height:100% }
 .drvspecs b { color:var(--acc2) }
 .drvsource { font-size:10px; color:var(--mut); padding:2px 8px 4px; opacity:0.7; word-break:break-all }
 .whatif-hint { font-size:10.5px; color:var(--acc2); background:rgba(255,180,84,.08); border:1px solid rgba(255,180,84,.3); border-radius:4px; padding:5px 8px; margin-bottom:6px; line-height:1.4 }
-.drv-warn { display:flex; align-items:flex-start; gap:6px; background:rgba(255,180,84,.12); border:1px solid var(--acc2); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:10.5px; color:var(--acc2); line-height:1.4 }
-.drv-warn span { flex:1 }
+.drv-issues { background:rgba(255,180,84,.12); border:1px solid var(--acc2); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:10.5px; line-height:1.4 }
+.drv-issues.is-error { background:rgba(255,107,107,.12); border-color:var(--bad) }
+.drv-issues-head { display:flex; align-items:flex-start; gap:6px; color:var(--acc2); font-weight:600 }
+.drv-issues.is-error .drv-issues-head { color:var(--bad) }
+.drv-issues-head span { flex:1 }
+.drv-issues-list { margin:4px 0 0; padding:0 0 0 16px; list-style:disc }
+.drv-issues-list li { margin:2px 0 }
+.drv-issues-list li.error { color:var(--bad) }
+.drv-issues-list li.warn { color:var(--acc2) }
 .drv-warn-x { padding:0 4px; min-width:auto; font-size:11px; border-color:var(--acc2); color:var(--acc2); background:transparent; line-height:1.4 }
+.drv-issues.is-error .drv-warn-x { border-color:var(--bad); color:var(--bad) }
 .drv-warn-x:hover { background:var(--acc2); color:var(--bg) }
+.drv-issues.is-error .drv-warn-x:hover { background:var(--bad); color:var(--bg) }
 .flash { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--acc); color:#06223a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:12px; z-index:80; transition:opacity .4s; pointer-events:none }
 fieldset { border:1px solid var(--line); border-radius:6px; margin:0 0 10px; padding:8px 10px }
 legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:0 4px }

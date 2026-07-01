@@ -16,6 +16,8 @@ function findRolloff(fs, spl, drop) {
 const stats = computed(() => {
   const d = drv.value, p = P.value, s = sw.value;
   const box = state.box;
+  // No derivable driver (core T/S invalid) → no sweep to summarise.
+  if (!d || !s) return { box, invalid: true };
   const f3  = findRolloff(s.fs, s.spl, 3);
   const f6  = findRolloff(s.fs, s.spl, 6);
   const f10 = findRolloff(s.fs, s.spl, 10);
@@ -33,6 +35,10 @@ const stats = computed(() => {
 <template>
   <div id="stat" class="stat">
     <span>Box: <b>{{ stats.box }}</b></span>
+    <template v-if="stats.invalid">
+      <span class="stat-invalid">Driver incomplete — fix the highlighted parameters to run the simulation</span>
+    </template>
+    <template v-else>
     <span>Vb: <b>{{ (stats.Vb*1000).toFixed(1) }} L</b></span>
     <span v-if="stats.fc">fc: <b>{{ stats.fc.toFixed(1) }} Hz</b></span>
     <span v-if="stats.Qtc">Qtc: <b>{{ stats.Qtc.toFixed(3) }}</b></span>
@@ -48,5 +54,6 @@ const stats = computed(() => {
       (Xmax {{ ((stats.prXmax||0)*1000).toFixed(1) }})
     </span>
     <span>EBP: <b>{{ stats.ebpVal.toFixed(0) }}</b></span>
+    </template>
   </div>
 </template>

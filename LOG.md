@@ -8,6 +8,13 @@
 
 ---
 
+## 2026-07-01 — Invalid-driver handling, no-throws contract
+
+- **A bad driver parameter no longer crashes the app.** Setting Fs (or any required T/S value) to 0/blank used to throw an uncaught error and blank every graph. Now each chart that can't be computed shows a plain message naming what to fix, the rest of the UI stays alive, and the state round-trips through reload so you can correct it.
+- **Charts never draw incomplete data silently.** A chart is drawn only when every value it uses is valid: a missing *required* param blocks the whole chart (with a message); a missing *optional* line (Pe→thermal limit, Xmax→excursion limit) draws the real curve and lists the missing line as a dismissable issue. No half-curves presented as if complete.
+- **One issue list, colour-coded by severity.** The driver panel now lists every active issue — red for "can't simulate", amber for "a reference line is missing" — each dismissable.
+- **Calculations never throw; they return `{value, errors}`.** `deriveDriver`/`parseWdr` now report field-level, human-readable problems instead of throwing or silently producing NaN. Documented as a hard rule in `js-patterns.md` (third-party throwers must be wrapped); `buildPlotData` follows the same contract so the view never inspects store internals to decide what to draw.
+
 ## 2026-07-01 — WDR field documentation, _ directory convention
 
 - **Max-SPL curves no longer lie when Pe is absent.** Removed the silent 50 W fabrication in `sweep.js`; curves now show only the Xmax limit, and a dismissible warning flags the gap to the user.

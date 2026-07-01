@@ -53,17 +53,51 @@ test('setting Re to 0 (a different required field) also shows the per-chart mess
   await expect(messages.first()).toContainText(/Re/);
 });
 
-test('setting Pe to 0 is a warning, NOT an error — charts keep rendering, no blanking message', async ({ page }) => {
-  // Pe is optional. deriveDriver returns a warn (not an error) and a usable driver.
-  // The graphs must continue to render — Pe absence only removes the max-power/SPL
-  // thermal limit, it does not invalidate the whole driver.
+test('missing Pe drops only the thermal-limit line — Max-SPL chart still draws, and the issue is listed (dismissable)', async ({ page }) => {
+  // Pe is optional. Its absence removes ONE reference line (the thermal limit) from
+  // the Max-SPL / Max-power charts. The excursion-limited curve is still fully valid,
+  // so the chart must keep drawing — no blocking message. The missing line is surfaced
+  // as a dismissable issue in the driver panel's issue list.
+
+  // Show a Pe-dependent chart so the missing-line case is actually on screen.
+  await page.locator('.gchip', { hasText: 'Maximum SPL' }).click();
+
   await page.locator('text=What-If? ✎').click();
   const peInput = page.locator('label').filter({ hasText: /^Pe/ })
     .locator('..').locator('input[type="number"]');
   await peInput.fill('0');
   await peInput.press('Tab');
 
-  // No blanking message — the canvases stay visible.
+  // The Max-SPL chart draws (canvas visible) — it is NOT replaced by a block message.
   await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
   await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
+
+  // The missing line is reported in the driver panel's issue list, and it is a warning
+  // (amber, not a blocking error), and it is dismissable.
+  const issues = page.locator('.drv-issues');
+  await expect(issues).toBeVisible();
+  await expect(issues).not.toHaveClass(/is-error/);
+  await expect(issues).toContainText(/Pe/);
+  await expect(issues).toContainText(/thermal-limit line/i);
+  await issues.locator('.drv-warn-x').click();
+  await expect(page.locator('.drv-issues')).toHaveCount(0);
+});
+
+test('missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning', async ({ page }) => {
+  // Xmax is optional. Without it, the Excursion chart keeps its (reliable) cone-travel
+  // curve; only the Xmax limit reference line is omitted. Reported as a dismissable warn.
+  await page.locator('text=What-If? ✎').click();
+  const xmaxInput = page.locator('label').filter({ hasText: /^Xmax/ })
+    .locator('..').locator('input[type="number"]');
+  await xmaxInput.fill('0');
+  await xmaxInput.press('Tab');
+
+  // Excursion is in the default chart set — it must still render, no block message.
+  await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
+  await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
+
+  const issues = page.locator('.drv-issues');
+  await expect(issues).toBeVisible();
+  await expect(issues).not.toHaveClass(/is-error/);
+  await expect(issues).toContainText(/Xmax/);
 });

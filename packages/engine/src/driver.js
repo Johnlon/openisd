@@ -36,8 +36,11 @@ export function deriveDriver(d) {
   const qCount = [r.Qts, r.Qes, r.Qms].filter(v => v > 0).length;
   if (qCount < 2) errors.push({ level: 'error', field: 'Qts', message: 'At least two Q parameters (Qts, Qes, Qms) are required — enter any two to derive the third' });
 
-  // Pe is optional but its absence means max-power / max-SPL curves cannot be shown
-  if (!(r.Pe > 0)) errors.push({ level: 'warn', field: 'Pe', message: 'Rated power (Pe) is not set — max-SPL and max-power curves will not be shown' });
+  // Optional fields — absence does NOT block derivation; it only drops one reference
+  // line from a chart. Reported as warnings so the UI can list them (dismissable) and
+  // still draw the reliable curve.
+  if (!(r.Pe > 0))   errors.push({ level: 'warn', field: 'Pe',   message: 'Rated power (Pe) is not set — the thermal-limit line is omitted from the Max-SPL and Max-power charts' });
+  if (!(r.Xmax > 0)) errors.push({ level: 'warn', field: 'Xmax', message: 'Peak excursion (Xmax) is not set — the Xmax limit line is omitted from the Excursion and Max-SPL charts' });
 
   if (errors.some(e => e.level === 'error')) return { value: null, errors };
 

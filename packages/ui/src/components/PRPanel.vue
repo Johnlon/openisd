@@ -55,6 +55,7 @@ function setWinIsdVas(newVasL) {
 }
 
 function autoPRMass() {
+  if (!drv.value) return;
   const target = ventedAlignment(drv.value).Fb;
   const totalMass = prMassForFp(state.P, target);
   state.P.prMadd = Math.max(0, totalMass - state.P.prMmd);

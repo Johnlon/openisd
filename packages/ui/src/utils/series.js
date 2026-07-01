@@ -30,9 +30,11 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
     if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
   } else if (tabId === 'Excursion') {
     series = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
-    const xm = drv.Xmax * 1000;
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
-    let top = Math.max(xm * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
+    // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
+    // the missing line is surfaced to the user as a dismissable issue elsewhere).
+    const xm = drv.Xmax > 0 ? drv.Xmax * 1000 : null;
+    if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
+    let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     if (box === 'pr') {
       series.push({ xs: sw.fs, ys: sw.excPR, color:'#5ad17a', name:'PR' });
       const xmp = (P.prXmax || 0.01) * 1000;
@@ -75,7 +77,18 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
   return { series, ymin, ymax, logy, unit };
 }
 
-export function buildPlotData(tabId, fmin, fmax, currentDesign, compare) {
+// Returns { value, errors } per the project's Go-inspired contract (js-patterns.md).
+//   value:  the plot-ready series bundle, or null when there is nothing to draw.
+//   errors: the driver-derivation issues (passed through) so the caller can explain
+//           WHY a chart is not drawn — it never has to inspect store internals itself.
+// A chart is not drawable when the derived driver is missing (a required T/S param is
+// invalid) or the sweep results are not ready yet (the debounced sweep hasn't run since
+// the driver last changed). Both collapse to value:null here; the caller distinguishes
+// "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
+export function buildPlotData(tabId, fmin, fmax, currentDesign, compare, errors = []) {
+  if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
+    return { value: null, errors };
+
   const designs = [currentDesign, ...compare];
   const multi = designs.length > 1;
   let out = null;
@@ -92,5 +105,5 @@ export function buildPlotData(tabId, fmin, fmax, currentDesign, compare) {
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
     out.logy = out.logy || pd.logy;
   });
-  return out;
+  return { value: out, errors };
 }
