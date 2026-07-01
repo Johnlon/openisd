@@ -8,38 +8,52 @@ const RHO = 1.2;   // kg/m³
 const C   = 343;   // m/s
 
 // ── Parameter definitions ─────────────────────────────────────────────────
-// readOnly = always derived by engine, can't be overridden — show as read-only display
+// readOnly  = always derived by engine, shown as read-only display
+// optional  = not required for Apply
+// dimOnly   = physical dimension field — no SI conversion, stored as-is in mm or g
 const PARAMS = [
+  // Thiele–Small
+  { key: 'Fs',   unit: 'Hz',    sect: 'TS',   label: 'Fs',        desc: 'Free-air resonance — from T/S table on datasheet. WinISD: Fs' },
+  { key: 'Qms',  unit: '',      sect: 'TS',   label: 'Qms',       desc: 'Mechanical Q factor — losses in spider/surround. WinISD: Qms' },
+  { key: 'Qes',  unit: '',      sect: 'TS',   label: 'Qes',       desc: 'Electrical Q factor — losses in voice coil resistance. WinISD: Qes' },
+  { key: 'Qts',  unit: '',      sect: 'TS',   label: 'Qts',       desc: 'Total Q = Qms·Qes / (Qms+Qes). Enter any 2 of the 3 Q values — third is auto-calculated. WinISD: Qts' },
+  { key: 'Vas',  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — from T/S table. WinISD: Vas' },
+  // Piston / Acoustic
+  { key: 'Sd',   unit: 'cm²',   sect: 'Piston', label: 'Sd',      desc: 'Effective piston area. Enter Sd or cone Dia — the other is auto-calculated. WinISD: Sd' },
+  { key: 'Dia',  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  desc: 'Cone effective diameter → Sd = π·(Dia/2)². Enter Sd or Dia, not both. WinISD: Dia' },
+  { key: 'Xmax', unit: 'mm',    sect: 'Piston', label: 'Xmax',    desc: 'Peak linear excursion (one-way). Enables excursion and max-SPL curves. WinISD: Xmax', optional: true },
   // Electrical
-  { key: 'Re',   unit: 'Ω',       sect: 'Electrical',  label: 'Re',   desc: 'DC voice coil resistance' },
-  { key: 'Le',   unit: 'mH',      sect: 'Electrical',  label: 'Le',   desc: 'Voice coil inductance at 1 kHz' },
-  { key: 'Znom', unit: 'Ω',       sect: 'Electrical',  label: 'Znom', desc: 'Nominal impedance (typically 4, 8, or 16 Ω)' },
-  // T/S
-  { key: 'Fs',   unit: 'Hz',      sect: 'T/S',         label: 'Fs',   desc: 'Free-air resonance frequency' },
-  { key: 'Qms',  unit: '',        sect: 'T/S',         label: 'Qms',  desc: 'Mechanical Q factor — losses due to spider/surround' },
-  { key: 'Qes',  unit: '',        sect: 'T/S',         label: 'Qes',  desc: 'Electrical Q factor — losses due to voice coil resistance' },
-  { key: 'Qts',  unit: '',        sect: 'T/S',         label: 'Qts',  desc: 'Total Q = Qms·Qes / (Qms+Qes). Enter any 2 of the 3 Q values.' },
-  { key: 'Bl',   unit: 'T·m',     sect: 'T/S',         label: 'Bl',   desc: 'Force factor — derived from Fs, Mms, Re, Qes. Always recalculated by the engine.',  readOnly: true },
-  { key: 'Mms',  unit: 'g',       sect: 'T/S',         label: 'Mms',  desc: 'Moving mass incl. air load — derived from Fs, Vas, Sd. Always recalculated.',       readOnly: true },
-  { key: 'Cms',  unit: 'mm/N',    sect: 'T/S',         label: 'Cms',  desc: 'Suspension compliance — derived from Vas, Sd. Always recalculated.',                 readOnly: true },
-  { key: 'Rms',  unit: 'N·s/m',   sect: 'T/S',         label: 'Rms',  desc: 'Mechanical resistance — derived from Fs, Mms, Qms. Always recalculated.',           readOnly: true },
-  // Physical / acoustic
-  { key: 'Sd',   unit: 'cm²',     sect: 'Physical',    label: 'Sd',   desc: 'Effective piston area. Sd = π·(Dia/2)².' },
-  { key: 'Dia',  unit: 'mm',      sect: 'Physical',    label: 'Dia',  desc: 'Cone diameter → Sd. Enter Sd or Dia, the other is calculated.' },
-  { key: 'Vas',  unit: 'L',       sect: 'Physical',    label: 'Vas',  desc: 'Equivalent compliance volume (volume of air with same compliance as the cone)' },
-  { key: 'Xmax', unit: 'mm',      sect: 'Physical',    label: 'Xmax', desc: 'Peak linear excursion (one-way, mm). Typically from manufacturer.' },
-  { key: 'Vd',   unit: 'cm³',     sect: 'Physical',    label: 'Vd',   desc: 'Volume displacement = Sd × Xmax. Always recalculated.',  readOnly: true },
+  { key: 'Re',   unit: 'Ω',     sect: 'Electrical', label: 'Re',  desc: 'DC voice coil resistance. Required to calculate Bl. WinISD: Re' },
+  { key: 'Le',   unit: 'mH',    sect: 'Electrical', label: 'Le',  desc: 'Voice coil inductance at 1 kHz. Affects impedance shape only. WinISD: Le', optional: true },
+  { key: 'Znom', unit: 'Ω',     sect: 'Electrical', label: 'Znom', desc: 'Nominal impedance rating (typically 4, 8, or 16 Ω). Label only — not used in SPL calculation. WinISD: Z', optional: true },
   // Performance
-  { key: 'Pe',   unit: 'W',       sect: 'Performance', label: 'Pe',   desc: 'Power handling — long-term continuous power rating' },
-  { key: 'SPL',  unit: 'dB',      sect: 'Performance', label: 'SPL',  desc: '1W/1m sensitivity — derived from efficiency. Always recalculated.',  readOnly: true },
-  { key: 'no',   unit: '%',       sect: 'Performance', label: 'η₀',   desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Always recalculated.',  readOnly: true },
+  { key: 'Pe',   unit: 'W',     sect: 'Performance', label: 'Pe', desc: 'Long-term continuous power handling. Enables max-power curves. WinISD: Pe', optional: true },
+  // Derived — always recalculated, never stored in raw
+  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax',                          readOnly: true },
+  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor — √(2π·Fs·Mms·Re / Qes). WinISD: Bl', readOnly: true },
+  { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load — 1 / ((2π·Fs)²·Cms). WinISD: Mms', readOnly: true },
+  { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance — Vas / (ρc²·Sd²). WinISD: Cms',   readOnly: true },
+  { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance — 2π·Fs·Mms / Qms. WinISD: Rms',  readOnly: true },
+  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency — (4π²/c³)·Fs³·Vas/Qes. WinISD: Eff', readOnly: true },
+  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). WinISD: SPL', readOnly: true },
+  // Physical dimensions — WinISD Dimensions tab equivalents, stored in mm/g as-is
+  { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange projection above baffle face (mm). WinISD Dimensions: Thick',        optional: true, dimOnly: true },
+  { key: 'depthMm',    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back (mm). WinISD Dimensions: Depth',           optional: true, dimOnly: true },
+  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    desc: 'Magnet assembly axial depth (mm). WinISD Dimensions: Magnet Depth',         optional: true, dimOnly: true },
+  { key: 'magnetMm',   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter (mm). WinISD Dimensions: Magnet',                    optional: true, dimOnly: true },
+  { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket/cone height — surround to spider (mm). WinISD Dimensions: Basket',   optional: true, dimOnly: true },
+  { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (mm). WinISD Dimensions: Outer',               optional: true, dimOnly: true },
+  { key: 'vcDiaMm',    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice coil diameter (mm). WinISD Dimensions: VCd',                          optional: true, dimOnly: true },
+  { key: 'weightG',    unit: 'g',  sect: 'Dimensions', label: 'Weight',    desc: 'Driver weight (grams). Reference only.',                                     optional: true, dimOnly: true },
 ];
 
 const SECTIONS = [
+  { id: 'TS',          label: 'Thiele–Small',      hint: 'Any 2 of Qts/Qes/Qms — the third is auto-calculated' },
+  { id: 'Piston',      label: 'Piston / Acoustic', hint: 'Enter Sd or cone Dia — the other is calculated' },
   { id: 'Electrical',  label: 'Electrical' },
-  { id: 'T/S',         label: 'Thiele–Small' },
-  { id: 'Physical',    label: 'Physical / Acoustic' },
-  { id: 'Performance', label: 'Performance' },
+  { id: 'Performance', label: 'Performance',        hint: 'Optional — enables max-power and max-SPL curves', allOptional: true },
+  { id: 'Derived',     label: 'Derived values',     hint: 'Calculated from your entries — read only', isDerived: true },
+  { id: 'Dimensions',  label: 'Dimensions',         hint: 'Physical size for cabinet planning (WinISD Dimensions tab) — all optional', allOptional: true },
 ];
 
 // ── Reactive state ────────────────────────────────────────────────────────
@@ -47,14 +61,17 @@ const drvName    = ref('');
 const drvBrand   = ref('');
 const drvModel   = ref('');
 const drvComment = ref('');
+const dimExpanded = ref(false);
 
-// entered: key → display-unit string (only E state params, empty key = deleted = N/C)
+// entered: key → display-unit string
 const entered = reactive({});
 
 // ── Unit conversions ──────────────────────────────────────────────────────
 function toSI(key, displayStr) {
   const v = parseFloat(displayStr);
   if (!isFinite(v) || v < 0) return null;
+  const p = PARAMS.find(x => x.key === key);
+  if (p?.dimOnly) return v > 0 ? v : null;
   switch (key) {
     case 'Le':   return v / 1000;
     case 'Mms':  return v / 1000;
@@ -71,6 +88,8 @@ function toSI(key, displayStr) {
 
 function fmtSI(key, si) {
   if (si == null || !isFinite(si) || si <= 0) return '';
+  const p = PARAMS.find(x => x.key === key);
+  if (p?.dimOnly) return parseFloat(si.toPrecision(4)).toString();
   let v;
   switch (key) {
     case 'Le':   v = si * 1000;  break;
@@ -103,25 +122,20 @@ function fmtSI(key, si) {
 const resolvedSI = computed(() => {
   const r = {};
 
-  // Seed with entered values
   for (const [key, str] of Object.entries(entered)) {
     if (!str) continue;
     const si = toSI(key, str);
     if (si != null && si > 0) r[key] = si;
   }
 
-  // Two passes to handle cascaded deps
   for (let pass = 0; pass < 2; pass++) {
-    // Sd ↔ Dia
     if (!r.Sd && r.Dia)  r.Sd  = Math.PI * (r.Dia / 2) ** 2;
     if (!r.Dia && r.Sd)  r.Dia = 2 * Math.sqrt(r.Sd / Math.PI);
 
-    // Q interdependencies (match engine's deriveDriver logic)
     if (!r.Qts && r.Qes && r.Qms) r.Qts = r.Qes * r.Qms / (r.Qes + r.Qms);
     if (!r.Qes && r.Qts && r.Qms) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
     if (!r.Qms && r.Qts && r.Qes) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
 
-    // T/S derivations — engine always recalculates these
     if (r.Fs && r.Vas && r.Sd) {
       const Cas = r.Vas / (RHO * C * C);
       r.Cms = Cas / (r.Sd * r.Sd);
@@ -130,7 +144,6 @@ const resolvedSI = computed(() => {
       if (r.Re && r.Qes) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
     }
 
-    // Vd and efficiency/SPL
     if (r.Sd && r.Xmax) r.Vd = r.Sd * r.Xmax;
     if (r.Fs && r.Vas && r.Qes)
       r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;
@@ -196,18 +209,23 @@ function applyDriver() {
   if (drvModel.value.trim())   raw.model   = drvModel.value.trim();
   if (drvComment.value.trim()) raw.comment = drvComment.value.trim();
 
-  // Primary T/S parameters (engine reads these directly)
   if (si.Fs)   raw.Fs   = si.Fs;
   if (si.Qts)  raw.Qts  = si.Qts;
   if (si.Qes)  raw.Qes  = si.Qes;
   if (si.Qms)  raw.Qms  = si.Qms;
   if (si.Re)   raw.Re   = si.Re;
   if (si.Le)   raw.Le   = si.Le;
-  if (si.Znom) raw.Z    = si.Znom;   // engine uses .Z for Znom
+  if (si.Znom) raw.Z    = si.Znom;
   if (si.Vas)  raw.Vas  = si.Vas;
   if (si.Sd)   raw.Sd   = si.Sd;
   if (si.Xmax) raw.Xmax = si.Xmax;
   if (si.Pe)   raw.Pe   = si.Pe;
+
+  // Physical dimension fields (stored in mm/g as-is from resolvedSI, which passes dimOnly through)
+  for (const p of PARAMS.filter(x => x.dimOnly)) {
+    const v = si[p.key];
+    if (v != null && v > 0) raw[p.key] = v;
+  }
   // Note: Bl/Mms/Cms/Rms are NOT stored — engine always recalculates from above
 
   emit('apply', raw);
@@ -238,13 +256,126 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
             <input class="dd-text" v-model="drvModel" placeholder="e.g. RS180-8">
           </div>
 
+          <!-- State legend -->
+          <div class="dd-legend">
+            <span class="leg-e">E entered</span>
+            <span class="leg-c">C calculated</span>
+            <span class="leg-n">N not entered</span>
+          </div>
+
           <!-- Parameter table -->
           <div class="dd-table">
             <template v-for="sect in SECTIONS" :key="sect.id">
-              <div class="dd-sect-hdr">{{ sect.label }}</div>
+              <div class="dd-sect-hdr"
+                   :class="{ 'hdr-derived': sect.isDerived, 'hdr-optional': sect.allOptional }">
+                {{ sect.label }}
+                <span v-if="sect.allOptional" class="sect-opt-badge">all optional</span>
+              </div>
+              <div v-if="sect.hint" class="dd-sect-hint">{{ sect.hint }}</div>
+
+              <!-- Driver cross-section diagram for Dimensions section -->
+              <div v-if="sect.id === 'Dimensions'" class="dd-dim-wrap" :class="{ 'dd-dim-expanded': dimExpanded }">
+                <button class="dd-dim-toggle" @click="dimExpanded = !dimExpanded"
+                        :title="dimExpanded ? 'Collapse diagram' : 'Expand diagram'">
+                  {{ dimExpanded ? '▲ collapse' : '▼ expand' }}
+                </button>
+                <!--
+                  Cross-section matching WinISD pg4. Front = RIGHT, Back = LEFT.
+                  Basket outer frame; two nested magnet rects (motor body + pole piece);
+                  two parallel diagonal cone lines per half (cone thickness); flanges at
+                  front corners only. All 7 dimensional params labelled.
+                  Blue: Thick, Outer ⌀, Depth.  Amber: Basket, Magnet ⌀, MagDpt, VCd.
+                -->
+                <svg viewBox="0 0 540 450" class="dd-dim-svg" xmlns="http://www.w3.org/2000/svg"
+                     @click="dimExpanded = !dimExpanded"
+                     :title="dimExpanded ? 'Click to collapse diagram' : 'Click to expand diagram'">
+                  <defs>
+                    <marker id="dd-arr-s" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                      <path d="M 10 1.5 L 0 5 L 10 8.5 Z" fill="#4fb0ff"/>
+                    </marker>
+                    <marker id="dd-arr-e" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                      <path d="M 0 1.5 L 10 5 L 0 8.5 Z" fill="#4fb0ff"/>
+                    </marker>
+                  </defs>
+
+                  <!-- Driver geometry (front = RIGHT). Held in a +15,+15 group so the dimension
+                       lines/labels can live in the outer 540×450 frame. Ported from the WinISD
+                       Dimensions cross-section reference. -->
+                  <g transform="translate(15,15)">
+                    <!-- Mounting flange (right edge) — taller than the basket connection points -->
+                    <rect x="400" y="40" width="10" height="340" fill="#1a2029" stroke="#c9d4e0"
+                          stroke-width="1.3" stroke-linejoin="round"/>
+
+                    <!-- Basket chassis: straight diagonal walls + two windows -->
+                    <g stroke="#c9d4e0" stroke-width="1.3" fill="none" stroke-linejoin="round" stroke-linecap="round">
+                      <path d="M 310 140 L 400 50"/>   <!-- top diagonal wall -->
+                      <path d="M 310 280 L 400 370"/>  <!-- bottom diagonal wall -->
+                      <path d="M 310 140 L 310 280"/>  <!-- rear vertical wall -->
+                      <!-- upper window: outer box masks the bg, inner box = frame border -->
+                      <polygon points="330,150 330,180 385,180 385,105" fill="#11151c"/>
+                      <polygon points="335,155 335,175 380,175 380,114"/>
+                      <!-- lower window -->
+                      <polygon points="330,270 330,240 385,240 385,315" fill="#11151c"/>
+                      <polygon points="335,265 335,245 380,245 380,306"/>
+                    </g>
+
+                    <!-- Rear magnet motor structure -->
+                    <g stroke="#c9d4e0" stroke-width="1.3" fill="#1a2029" stroke-linejoin="round">
+                      <rect x="235" y="140" width="55" height="140"/> <!-- main magnet core -->
+                      <rect x="227" y="150" width="8"  height="120"/> <!-- rear backplate / vent cap -->
+                      <rect x="290" y="145" width="20" height="130"/> <!-- front plate junction -->
+                    </g>
+                  </g>
+
+                  <!-- Dimension lines & extensions (outer frame coords) -->
+                  <g stroke="#4fb0ff" stroke-width="0.8" fill="none">
+                    <!-- Outer -->
+                    <line x1="430" y1="55" x2="480" y2="55"/>
+                    <line x1="430" y1="395" x2="480" y2="395"/>
+                    <line x1="465" y1="70" x2="465" y2="380" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
+                    <!-- Basket (dashed extensions) -->
+                    <line x1="415" y1="65" x2="155" y2="65" stroke-dasharray="2,2"/>
+                    <line x1="415" y1="385" x2="155" y2="385" stroke-dasharray="2,2"/>
+                    <line x1="170" y1="80" x2="170" y2="370" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
+                    <!-- Magnet -->
+                    <line x1="250" y1="155" x2="205" y2="155"/>
+                    <line x1="250" y1="295" x2="205" y2="295"/>
+                    <line x1="215" y1="170" x2="215" y2="280" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
+                    <!-- Thick -->
+                    <line x1="415" y1="55" x2="415" y2="20"/>
+                    <line x1="425" y1="55" x2="425" y2="20"/>
+                    <line x1="385" y1="25" x2="415" y2="25" marker-end="url(#dd-arr-e)"/>
+                    <line x1="455" y1="25" x2="425" y2="25" marker-end="url(#dd-arr-e)"/>
+                    <!-- MagDpt -->
+                    <line x1="250" y1="295" x2="250" y2="340"/>
+                    <line x1="325" y1="295" x2="325" y2="340"/>
+                    <line x1="250" y1="330" x2="325" y2="330" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
+                    <!-- Depth -->
+                    <line x1="242" y1="295" x2="242" y2="420"/>
+                    <line x1="415" y1="385" x2="415" y2="420"/>
+                    <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
+                  </g>
+
+                  <!-- Labels -->
+                  <g font-family="system-ui,sans-serif" font-size="14" fill="#4fb0ff" text-anchor="middle">
+                    <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
+                    <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
+                    <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>
+                    <text x="420" y="15" font-size="13">Thick</text>
+                    <text x="287" y="355">MagDpt</text>
+                    <text x="328" y="435">Depth</text>
+                  </g>
+                </svg>
+              </div>
+
               <div v-for="p in PARAMS.filter(x => x.sect === sect.id)" :key="p.key"
-                   class="dd-row" :class="'row-' + stateOf(p.key)" :title="p.desc">
-                <span class="dd-lbl">{{ p.label }}</span>
+                   class="dd-row"
+                   :class="{ 'row-derived': sect.isDerived }"
+                   :title="p.desc">
+                <span class="dd-lbl">
+                  {{ p.label }}
+                  <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
+                </span>
                 <input v-if="!p.readOnly"
                        class="dd-val" type="number" step="any"
                        :class="'input-' + stateOf(p.key)"
@@ -270,18 +401,20 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 
           <!-- Missing params hint -->
           <div v-if="!canApply" class="dd-missing">
-            Required: {{ missing.join(' · ') }}
+            Still needed: {{ missing.join(' · ') }}
           </div>
 
           <!-- Reference links -->
           <div class="dd-refs">
             <a href="https://en.wikipedia.org/wiki/Thiele/Small_parameters"
-               target="_blank" rel="noopener" title="Wikipedia: Thiele/Small parameters — definitions, equations, and units">
+               target="_blank" rel="noopener"
+               title="Wikipedia: Thiele/Small parameters — definitions, equations, and units">
               Wikipedia: T/S Parameters
             </a>
             <span class="dd-ref-sep">·</span>
             <a href="https://www.youtube.com/watch?v=JdQ3mLU5zBE"
-               target="_blank" rel="noopener" title="T/S Parameters Explained — YouTube video guide">
+               target="_blank" rel="noopener"
+               title="T/S Parameters Explained — YouTube video guide">
               T/S Parameters Explained ▶
             </a>
           </div>
@@ -308,9 +441,10 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   display: flex; align-items: center; justify-content: center; z-index: 300;
 }
 .dd-modal {
-  width: min(460px, 96vw); max-height: 90vh;
+  width: min(460px, 96vw);
   display: flex; flex-direction: column;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 8px 32px #0009;
 }
 .dd-header {
@@ -323,34 +457,84 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 }
 .dd-x:hover { color: var(--fg); }
 
-.dd-body { overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.dd-body {
+  overflow-y: auto;
+  max-height: calc(90vh - 96px);
+  padding: 10px; display: flex; flex-direction: column; gap: 8px;
+}
+.dd-body > * { flex-shrink: 0; }
 
 .dd-id-grid { display: grid; grid-template-columns: 52px 1fr; gap: 3px 8px; align-items: center; }
 .dd-id-grid label { font-size: 11px; color: var(--mut); text-align: right; }
 .dd-text { padding: 3px 6px; background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; color: var(--fg); font: inherit; font-size: 12px; width: 100%; }
 .dd-name { border-color: var(--acc); }
 
+/* State legend */
+.dd-legend { display: flex; gap: 10px; font-size: 10px; color: var(--mut); padding: 0 2px; }
+.leg-e { color: var(--good); font-weight: 700; }
+.leg-c { color: var(--acc); font-style: italic; font-weight: 700; }
+.leg-n { color: var(--mut); }
+
+.dd-badge { font-size: 9px; font-weight: 700; text-align: center; padding: 0 2px; }
+.badge-E { color: var(--good); }
+.badge-C { color: var(--acc); }
+.badge-N { color: var(--mut); opacity: 0.5; }
+
 .dd-table { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+
 .dd-sect-hdr {
-  padding: 3px 8px;
+  display: flex; align-items: center; gap: 6px; padding: 3px 8px;
   background: var(--panel2); border-bottom: 1px solid var(--line);
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--acc);
 }
+.hdr-derived  { color: var(--mut); }
+.hdr-optional { color: var(--mut); }
+.sect-opt-badge { font-size: 9px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--mut); opacity: 0.7; font-style: italic; }
+
+.dd-sect-hint {
+  padding: 2px 8px 3px; background: var(--panel2); border-bottom: 1px solid var(--line);
+  font-size: 10px; color: var(--mut); font-style: italic;
+}
+
+/* Dimensions cross-section diagram */
+.dd-dim-wrap {
+  background: var(--bg); border-bottom: 1px solid var(--line); padding: 4px 8px 4px;
+}
+.dd-dim-toggle {
+  display: block; width: 100%; margin-bottom: 4px;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  color: var(--mut); font-size: 10px; padding: 2px 0 4px; text-align: center;
+  cursor: pointer;
+}
+.dd-dim-toggle:hover { color: var(--fg) }
+.dd-dim-svg { display: block; width: 100%; max-height: 150px; cursor: zoom-in; }
+.dd-dim-expanded .dd-dim-svg { max-height: none; cursor: zoom-out; }
+
 .dd-row {
-  display: grid; grid-template-columns: 52px 1fr 52px 22px;
+  display: grid; grid-template-columns: 76px 1fr 48px 22px;
   align-items: center; border-bottom: 1px solid var(--line);
 }
 .dd-row:last-child { border-bottom: none; }
+.row-derived { opacity: 0.7; }
+
 .dd-lbl {
   font-size: 11px; color: var(--mut); padding: 0 6px;
   text-align: right; white-space: nowrap; user-select: none;
+  display: flex; align-items: center; justify-content: flex-end; gap: 3px;
 }
+.opt-tag { font-size: 9px; color: var(--mut); opacity: 0.55; font-style: italic; }
+
 .dd-val {
   width: 100%; padding: 3px 5px; border: none;
   border-left: 1px solid var(--line); border-right: 1px solid var(--line);
   font: inherit; font-size: 11px; font-variant-numeric: tabular-nums;
   text-align: right; outline: none; min-height: 24px;
 }
+/* No spinners in the editor — up/down steppers only make sense for live what-if
+   tweaking in the sidebar, not for typing exact datasheet values here. */
+.dd-val::-webkit-outer-spin-button,
+.dd-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.dd-val { -moz-appearance: textfield; appearance: textfield; }
 .dd-val:focus { border-color: var(--acc); position: relative; z-index: 1; }
 
 /* State-specific input colours */
@@ -363,15 +547,12 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   padding: 3px 5px; font-size: 11px; font-variant-numeric: tabular-nums;
   text-align: right; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
   line-height: 1.45; min-height: 24px; display: flex; align-items: center; justify-content: flex-end;
+  font-style: italic;
 }
-.ro-C { background: color-mix(in srgb, var(--acc) 10%, var(--bg)); color: var(--acc); font-style: italic; }
+.ro-C { background: color-mix(in srgb, var(--acc) 10%, var(--bg)); color: var(--acc); }
 .ro-N { background: var(--bg); color: var(--line); }
 
 .dd-unit { font-size: 10px; color: var(--mut); padding: 0 4px; white-space: nowrap; text-align: left; }
-.dd-badge { font-size: 9px; font-weight: 700; text-align: center; padding: 0 2px; }
-.badge-E { color: #5ad17a; }
-.badge-C { color: var(--acc); }
-.badge-N { color: var(--line); }
 
 .dd-notes-wrap { display: flex; flex-direction: column; gap: 3px; }
 .dd-notes-lbl { font-size: 10.5px; color: var(--mut); }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { state } from '../store.js';
 import HelpTip from './HelpTip.vue';
 import { parseWdr } from '@resonate/engine';
@@ -13,6 +13,9 @@ const statusMsg   = ref('');
 const statusErr   = ref(false);
 const customUrl   = ref('');
 const initialized = ref(false);
+
+const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kicks in
+const displayLimit  = ref(DISPLAY_LIMIT);
 
 // Source filter
 const selectedSources = ref([]);   // empty = all
@@ -124,14 +127,17 @@ function toggleType(id) {
   if (!cur)            typeStates.value = { ...typeStates.value, [id]: 'include' };
   else if (cur === 'include') typeStates.value = { ...typeStates.value, [id]: 'exclude' };
   else                 { const s = { ...typeStates.value }; delete s[id]; typeStates.value = s; }
+  displayLimit.value = DISPLAY_LIMIT;
 }
 function toggleZ(z) {
   const idx = selZ.value.indexOf(z);
   if (idx >= 0) selZ.value.splice(idx, 1); else selZ.value.push(z);
+  displayLimit.value = DISPLAY_LIMIT;
 }
 function clearParamFilters() {
   typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
   sdMin.value = ''; sdMax.value = ''; selZ.value = [];
+  displayLimit.value = DISPLAY_LIMIT;
 }
 
 const availableSources = computed(() => {
@@ -146,9 +152,10 @@ function toggleSource(name) {
   const idx = selectedSources.value.indexOf(name);
   if (idx >= 0) selectedSources.value.splice(idx, 1);
   else selectedSources.value.push(name);
+  displayLimit.value = DISPLAY_LIMIT;
 }
 
-function clearSources() { selectedSources.value = []; }
+function clearSources() { selectedSources.value = []; displayLimit.value = DISPLAY_LIMIT; }
 
 // Normalise any date string to YYYY-MM-DD for comparison and display.
 // Handles ISO (2026-06-24), DD/MM/YYYY, DD-MM-YYYY, "Jun 24 2026", etc.
@@ -214,6 +221,11 @@ const filteredFiles = computed(() => {
     return { ...f, _nd: nd, _isLatest: isLatest, _isOlder: hasDups && !isLatest };
   });
 });
+
+watch(filterQ, () => { displayLimit.value = DISPLAY_LIMIT; });
+
+const displayedFiles = computed(() => filteredFiles.value.slice(0, displayLimit.value));
+const listTruncated  = computed(() => filteredFiles.value.length > displayLimit.value);
 
 // ── GitHub source helpers ────────────────────────────────────────────────────
 
@@ -484,6 +496,11 @@ watch(() => state.browseOpen, val => {
 });
 function close() { state.browseOpen = false; }
 function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
+async function openDefine() {
+  state.browseOpen = false;
+  await nextTick();
+  state.defineOpen = true;
+}
 </script>
 
 <template>
@@ -645,7 +662,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
             </div>
             <div class="dlist-sep"></div>
           </template>
-          <div v-for="f in filteredFiles.slice(0, 5000)" :key="(f.sourceName || '') + (f.path || '') + f.name"
+          <div v-for="f in displayedFiles" :key="(f.sourceName || '') + (f.path || '') + f.name"
                :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
                @click="pickFile(f)">
             <b>{{ f.name }}</b>
@@ -670,6 +687,12 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
               <span v-else class="stag">{{ f.sourceName }}</span>
             </span>
           </div>
+          <div v-if="listTruncated" class="dlist-more">
+            Showing {{ displayLimit }} of {{ filteredFiles.length }} —
+            <button class="dlist-more-btn" @click="displayLimit += 200"
+                    title="Show 200 more drivers">show more</button>
+            or type to search
+          </div>
           <div v-if="!filteredFiles.length && !statusErr" class="status loading">
             {{ filterQ ? 'No matching drivers.' : 'Loading…' }}
           </div>
@@ -687,7 +710,7 @@ function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
           </div>
         </div>
         <div class="browser-footer">
-          <button @click="state.defineOpen = true; state.browseOpen = false"
+          <button @click="openDefine"
                   title="Define a new driver model from datasheet T/S parameters">
             Add new Driver
           </button>
@@ -735,6 +758,8 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .stag { font-size:10px; color:var(--mut); white-space:nowrap; cursor:pointer; }
 .stag:hover { color:var(--acc); text-decoration:underline; }
 .status.loading { padding:8px 10px; }
+.dlist-more { padding:6px 10px; font-size:11px; color:var(--mut); text-align:center; border-top:1px solid var(--line); }
+.dlist-more-btn { background:none; border:none; color:var(--acc); cursor:pointer; font-size:11px; padding:0 3px; text-decoration:underline; min-height:unset; }
 .addrow { display:flex; flex-direction:column; gap:4px; }
 .addrow-label { font-size:11px; color:var(--mut); display:flex; align-items:center; gap:5px; }
 .addrow-inputs { display:flex; gap:6px; }
@@ -777,6 +802,10 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .param-row { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
 .plabel { font-size:10px; color:var(--mut); white-space:nowrap; padding:0 1px; }
 .pnum { width:46px; padding:2px 3px; font-size:11px; background:var(--bg); border:1px solid var(--mut); border-radius:3px; color:var(--fg); text-align:right; }
+/* No spinners — these are search bounds in a picker, not live what-if controls. */
+.pnum::-webkit-outer-spin-button,
+.pnum::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.pnum { -moz-appearance:textfield; appearance:textfield; }
 .pnum:focus { outline:none; border-color:var(--acc); }
 .pmid { font-size:11px; color:var(--mut); }
 .psep { width:8px; flex-shrink:0; }

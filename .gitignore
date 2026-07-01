@@ -3,6 +3,8 @@ dist/
 test-results/
 .server.pid
 .server.log
+.server-*.pid
+.server-*.log
 dq_report.txt
 
 # Scraper cache — raw HTML and PDF datasheets, never commit (URLs kept in _meta.json)

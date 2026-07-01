@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue';
+import { computed, ref, reactive, watch, nextTick } from 'vue';
 import { state, driver, driverWarnings, driverShort } from '../store.js';
 import DriverDefineModal from './DriverDefineModal.vue';
 
@@ -107,9 +107,23 @@ function isValid(key, displayVal) {
   return isFinite(v) && v >= r.min && v <= r.max;
 }
 
-function numInput(key, scale, val) {
-  if (isValid(key, val)) state.driverRaw[key] = parseFloat(val) / scale;
+// Track raw typed strings so :value doesn't fight the user mid-keystroke.
+// Cleared on blur so the input normalises to the stored value.
+const rawVals = reactive({});
+
+function rawOrFmt(key, formattedVal) {
+  return key in rawVals ? rawVals[key] : formattedVal;
 }
+function badInput(key, formattedVal) {
+  return !isValid(key, rawOrFmt(key, formattedVal));
+}
+
+function numInput(key, scale, val) {
+  rawVals[key] = val;
+  const parsed = parseFloat(val);
+  if (isFinite(parsed)) state.driverRaw[key] = parsed / scale;
+}
+function numBlur(key) { delete rawVals[key]; }
 
 function applyDefine(raw) {
   state.driverRaw = raw;
@@ -131,25 +145,26 @@ function applyDefine(raw) {
     </div>
     <DriverDefineModal :open="state.defineOpen" @close="state.defineOpen = false" @apply="applyDefine" />
     <template v-if="!state.editDriver">
-      <div class="drvsum" @click="startEdit" title="Click to edit driver Thiele/Small parameters — opens the full T/S parameter editor">
+      <div class="drvsum" @click="startEdit" title="Click to open What-If editor — tweak T/S parameters to explore box designs without changing the library entry">
         <span class="nm">{{ driverShort(d) }}</span>
         <span class="drvlinks">
           <a v-if="d.datasheetUrl" :href="d.datasheetUrl" target="_blank" rel="noopener"
              :title="d.datasheetUrl.match(/\.pdf(\?|$)/i) ? 'Open datasheet PDF' : 'Open product page'"
              @click.stop>{{ d.datasheetUrl.match(/\.pdf(\?|$)/i) ? 'PDF' : '↗' }}</a>
         </span>
-        <span class="ed">Edit ✎</span>
+        <span class="ed">What-If? ✎</span>
       </div>
       <div class="drvspecs">
-        Fs <b>{{ (+d.Fs||0).toFixed(0) }} Hz</b> ·
-        Qts <b>{{ (drv.Qts||0).toFixed(2) }}</b> ·
-        Vas <b>{{ (d.Vas*1000).toFixed(1) }} L</b> ·
-        Sd <b>{{ (d.Sd*1e4).toFixed(0) }} cm²</b> ·
-        Re <b>{{ (+d.Re||0).toFixed(1) }} Ω</b> ·
-        Xmax <b>{{ (d.Xmax*1000).toFixed(1) }} mm</b><br>
-        EBP <b>{{ ebpVal.toFixed(0) }}</b> → {{ sug }} ·
-        Bl {{ drv.Bl.toFixed(1) }} Tm ·
-        Mms {{ (drv.Mms*1000).toFixed(1) }} g
+        <span class="ds">Fs <b>{{ (+d.Fs||0).toFixed(0) }} Hz</b></span> ·
+        <span class="ds">Qts <b>{{ (drv.Qts||0).toFixed(3) }}</b></span> ·
+        <span class="ds">Vas <b>{{ (d.Vas*1000).toFixed(1) }} L</b></span> ·
+        <span class="ds">Sd <b>{{ (d.Sd*1e4).toFixed(0) }} cm²</b></span> ·
+        <span class="ds">Re <b>{{ (+d.Re||0).toFixed(1) }} Ω</b></span> ·
+        <span class="ds">Xmax <b>{{ (d.Xmax*1000).toFixed(1) }} mm</b></span> ·
+        <span class="ds"
+              title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed enclosure preferred. Above 100: vented preferred. 50–100: either works well.">EBP <b>{{ ebpVal.toFixed(0) }}</b> → {{ sug }}</span> ·
+        <span class="ds">Bl <b>{{ drv.Bl.toFixed(2) }} T·m</b></span> ·
+        <span class="ds">Mms <b>{{ (drv.Mms*1000).toFixed(1) }} g</b></span>
       </div>
       <div v-if="d.providedBy || d.comment || drvLinks.length" class="drvsource">
         <span v-if="d.providedBy || d.comment">{{ [d.providedBy, d.comment].filter(Boolean).join(' · ') }}</span>
@@ -165,69 +180,101 @@ function applyDefine(raw) {
         Tweak specs for what-if analysis. Hit <b>Save to My Drivers</b> to keep this as a custom model, or <b>Done</b> to close without saving.
       </div>
       <div class="row"><label>Fs</label>
-        <input type="number" step="any" min="1" max="5000" data-bind="Fs" :value="(+d.Fs).toFixed(1)"
-               :class="{ 'inp-bad': !isValid('Fs',(+d.Fs).toFixed(1)) }"
-               @input="e => numInput('Fs',1,e.target.value)"
-               title="Resonance frequency — must be 1–5000 Hz">
+        <input type="number" step="any" min="1" max="5000"
+               :value="rawOrFmt('Fs',(+d.Fs).toFixed(1))"
+               :class="{ 'inp-bad': badInput('Fs',(+d.Fs).toFixed(1)) }"
+               @input="e => numInput('Fs',1,e.target.value)" @blur="numBlur('Fs')"
+               title="Free-air resonance frequency — from datasheet. WinISD: Fs. Must be 1–5000 Hz">
         <span class="u">Hz</span></div>
       <div class="row"><label>Qts</label>
-        <input type="number" step="any" min="0.01" max="20" :value="(+d.Qts).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Qts',(+d.Qts).toPrecision(3)) }"
-               @input="e => numInput('Qts',1,e.target.value)"
-               title="Total Q factor — must be 0.01–20">
+        <input type="number" step="any" min="0.01" max="20"
+               :value="rawOrFmt('Qts',(+d.Qts).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Qts',(+d.Qts).toPrecision(3)) }"
+               @input="e => numInput('Qts',1,e.target.value)" @blur="numBlur('Qts')"
+               title="Total Q factor = Qes·Qms/(Qes+Qms) — from datasheet. WinISD: Qts. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qes</label>
-        <input type="number" step="any" min="0.01" max="20" :value="(+d.Qes).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Qes',(+d.Qes).toPrecision(3)) }"
-               @input="e => numInput('Qes',1,e.target.value)"
-               title="Electrical Q factor — must be 0.01–20">
+        <input type="number" step="any" min="0.01" max="20"
+               :value="rawOrFmt('Qes',(+d.Qes).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Qes',(+d.Qes).toPrecision(3)) }"
+               @input="e => numInput('Qes',1,e.target.value)" @blur="numBlur('Qes')"
+               title="Electrical Q factor — motor damping. From datasheet. WinISD: Qes. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qms</label>
-        <input type="number" step="any" min="0.05" max="200" :value="(+d.Qms).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Qms',(+d.Qms).toPrecision(3)) }"
-               @input="e => numInput('Qms',1,e.target.value)"
-               title="Mechanical Q factor — must be 0.05–200">
+        <input type="number" step="any" min="0.05" max="200"
+               :value="rawOrFmt('Qms',(+d.Qms).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Qms',(+d.Qms).toPrecision(3)) }"
+               @input="e => numInput('Qms',1,e.target.value)" @blur="numBlur('Qms')"
+               title="Mechanical Q factor — suspension damping. From datasheet. WinISD: Qms. Must be 0.05–200">
         <span class="u"></span></div>
       <div class="row"><label>Vas</label>
-        <input type="number" step="any" min="0.001" max="10000" :value="(d.Vas*1000).toPrecision(4)"
-               :class="{ 'inp-bad': !isValid('Vas',(d.Vas*1000).toPrecision(4)) }"
-               @input="e => numInput('Vas',1000,e.target.value)"
-               title="Equivalent volume — must be 0.001–10000 L">
+        <input type="number" step="any" min="0.001" max="10000"
+               :value="rawOrFmt('Vas',(d.Vas*1000).toPrecision(4))"
+               :class="{ 'inp-bad': badInput('Vas',(d.Vas*1000).toPrecision(4)) }"
+               @input="e => numInput('Vas',1000,e.target.value)" @blur="numBlur('Vas')"
+               title="Equivalent compliance volume — from datasheet. WinISD: Vas. Must be 0.001–10000 L">
         <span class="u">L</span></div>
       <div class="row"><label>Sd</label>
-        <input type="number" step="any" min="0.5" max="6000" :value="(d.Sd*1e4).toPrecision(4)"
-               :class="{ 'inp-bad': !isValid('Sd',(d.Sd*1e4).toPrecision(4)) }"
-               @input="e => numInput('Sd',1e4,e.target.value)"
-               title="Piston area — must be 0.5–6000 cm²">
+        <input type="number" step="any" min="0.5" max="6000"
+               :value="rawOrFmt('Sd',(d.Sd*1e4).toPrecision(4))"
+               :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toPrecision(4)) }"
+               @input="e => numInput('Sd',1e4,e.target.value)" @blur="numBlur('Sd')"
+               title="Effective piston area — from datasheet. WinISD: Sd. Must be 0.5–6000 cm²">
         <span class="u">cm²</span></div>
       <div class="row"><label>Re</label>
-        <input type="number" step="any" min="0.1" max="300" :value="(+d.Re).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Re',(+d.Re).toPrecision(3)) }"
-               @input="e => numInput('Re',1,e.target.value)"
-               title="DC resistance — must be 0.1–300 Ω">
+        <input type="number" step="any" min="0.1" max="300"
+               :value="rawOrFmt('Re',(+d.Re).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Re',(+d.Re).toPrecision(3)) }"
+               @input="e => numInput('Re',1,e.target.value)" @blur="numBlur('Re')"
+               title="DC voice coil resistance — from datasheet. WinISD: Re. Must be 0.1–300 Ω">
         <span class="u">Ω</span></div>
-      <div class="row"><label>Le</label>
-        <input type="number" step="any" min="0" max="100" :value="(d.Le*1000).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Le',(d.Le*1000).toPrecision(3)) }"
-               @input="e => numInput('Le',1000,e.target.value)"
-               title="Inductance — 0–100 mH (0 is allowed for resistive voice coil)">
+
+      <div class="subsect">Optional</div>
+      <div class="row"
+           title="Voice coil inductance. Leave as 0 for a resistive-only model — affects only high-frequency impedance shape, not SPL or excursion. WinISD: Le. 0–100 mH">
+        <label>Le <span class="opt-lbl">opt</span></label>
+        <input type="number" step="any" min="0" max="100"
+               :value="rawOrFmt('Le',(d.Le*1000).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Le',(d.Le*1000).toPrecision(3)) }"
+               @input="e => numInput('Le',1000,e.target.value)" @blur="numBlur('Le')">
         <span class="u">mH</span></div>
-      <div class="row"><label>Xmax</label>
-        <input type="number" step="any" min="0.1" max="500" :value="(d.Xmax*1000).toPrecision(3)"
-               :class="{ 'inp-bad': !isValid('Xmax',(d.Xmax*1000).toPrecision(3)) }"
-               @input="e => numInput('Xmax',1000,e.target.value)"
-               title="Peak excursion — must be 0.1–500 mm">
+      <div class="row"
+           title="Peak one-way linear excursion. Required to show the Excursion and Max-SPL curves — omit if not on the datasheet. WinISD: Xmax. 0.1–500 mm">
+        <label>Xmax <span class="opt-lbl">opt</span></label>
+        <input type="number" step="any" min="0.1" max="500"
+               :value="rawOrFmt('Xmax',(d.Xmax*1000).toPrecision(3))"
+               :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toPrecision(3)) }"
+               @input="e => numInput('Xmax',1000,e.target.value)" @blur="numBlur('Xmax')">
         <span class="u">mm</span></div>
-      <div class="row"><label>Pe</label>
-        <input type="number" step="any" min="0.1" max="50000" :value="(+d.Pe||0)"
-               :class="{ 'inp-bad': !isValid('Pe',(+d.Pe||0)) }"
-               @input="e => numInput('Pe',1,e.target.value)"
-               title="Power handling — must be 0.1–50000 W">
+      <div class="row"
+           title="Rated continuous power handling. Required to show the Max-Power curve — omit if not on the datasheet. WinISD: Pe. 0.1–50000 W">
+        <label>Pe <span class="opt-lbl">opt</span></label>
+        <input type="number" step="any" min="0.1" max="50000"
+               :value="rawOrFmt('Pe',String(+d.Pe||0))"
+               :class="{ 'inp-bad': badInput('Pe',String(+d.Pe||0)) }"
+               @input="e => numInput('Pe',1,e.target.value)" @blur="numBlur('Pe')">
         <span class="u">W</span></div>
-      <div class="ebp">
-        EBP = Fs/Qes = <b>{{ ebpVal.toFixed(0) }}</b> → suggests <b>{{ sug }}</b>.<br>
-        Derived: Bl={{ drv.Bl.toFixed(2) }} Tm, Mms={{ (drv.Mms*1000).toFixed(1) }} g,
-        Cms={{ (drv.Cms*1000).toFixed(3) }} mm/N
+
+      <div class="subsect">Derived</div>
+      <div class="row pr-derived" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor. WinISD: Bl">
+        <label>Bl</label>
+        <span class="pr-roval">{{ drv.Bl.toFixed(2) }}</span>
+        <span class="u">T·m</span>
+      </div>
+      <div class="row pr-derived" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass including air load. WinISD: Mms">
+        <label>Mms</label>
+        <span class="pr-roval">{{ (drv.Mms*1000).toFixed(1) }}</span>
+        <span class="u">g</span>
+      </div>
+      <div class="row pr-derived" title="Derived: Cms = Vas / (ρc²·Sd²) — mechanical compliance of suspension. WinISD: Cms">
+        <label>Cms</label>
+        <span class="pr-roval">{{ (drv.Cms*1000).toFixed(3) }}</span>
+        <span class="u">mm/N</span>
+      </div>
+      <div class="row pr-derived" title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed preferred. Above 100: vented preferred. 50–100: either works">
+        <label>EBP</label>
+        <span class="pr-roval">{{ ebpVal.toFixed(0) }}</span>
+        <span class="u" style="width:auto;white-space:nowrap">→ {{ sug }}</span>
       </div>
       <div class="ts-refs">
         <a href="https://en.wikipedia.org/wiki/Thiele/Small_parameters"
