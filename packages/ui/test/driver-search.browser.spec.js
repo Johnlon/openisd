@@ -69,6 +69,16 @@ test('driver library search returns only matching drivers, with a clean console 
   expect(demoNames).toContain('Demo Generic 6.5" Woofer');
   expect(demoNames).toContain('Demo Generic 1" Tweeter');
 
+  // CRITICAL for catching the key bug: search a term whose results contain the
+  // SAME Brand+Model twice (the Matt set has "AE TD12M" as two dated files). This
+  // forces the keyed list to re-patch with colliding rows — which is exactly when
+  // Vue emits "Duplicate keys found" if the v-for key isn't unique. Searching a
+  // term that filters the duplicates OUT (like "demo") never triggers it.
+  const dupRows = await searchNames('td12m');
+  expect(dupRows.filter(n => /AE TD12M/i.test(n)).length,
+    'expected the duplicate "AE TD12M" rows to render (they trigger the key collision)')
+    .toBeGreaterThanOrEqual(2);
+
   // Console + network must be clean. This is the assertion that actually catches
   // the non-unique v-for key ("Duplicate keys found") and any load failure.
   const dupKeys = diag.consoleWarnings.filter(w => /duplicate key/i.test(w));
