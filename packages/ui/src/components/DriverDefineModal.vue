@@ -28,6 +28,20 @@ const PARAMS = [
   { key: 'Znom', unit: 'Ω',     sect: 'Electrical', label: 'Znom', desc: 'Nominal impedance rating (typically 4, 8, or 16 Ω). Label only — not used in SPL calculation. WinISD: Z', optional: true },
   // Performance
   { key: 'Pe',   unit: 'W',     sect: 'Performance', label: 'Pe', desc: 'Long-term continuous power handling. Enables max-power curves. WinISD: Pe', optional: true },
+  // Motor / large-signal — WinISD Le model + voice-coil geometry (WDR: fLe, KLe, Hc, Hg)
+  { key: 'fLe',  unit: 'Hz',    sect: 'Motor', label: 'fLe', desc: 'Frequency at which Le/KLe were measured. 0 = standard Le model. WinISD: fLe', optional: true, raw: true },
+  { key: 'KLe',  unit: 'H·√Hz', sect: 'Motor', label: 'KLe', desc: 'Semi-inductance (Vanderkooy lossy-inductance model). 0 = not active. WinISD: KLe', optional: true, raw: true },
+  { key: 'Hc',   unit: 'mm',    sect: 'Motor', label: 'Hc',  desc: 'Voice-coil winding height. WinISD large-signal: Hc', optional: true },
+  { key: 'Hg',   unit: 'mm',    sect: 'Motor', label: 'Hg',  desc: 'Magnetic air-gap height. WinISD large-signal: Hg', optional: true },
+  // Voice coil & thermal (WDR: numVC, VCCon, alfaVC, Rt, Ct)
+  { key: 'numVC',  unit: 'count', sect: 'VC', label: 'VCs',   desc: 'Number of voice coils — 1 for most, 2 for dual-voice-coil. WinISD: Voicecoils', optional: true, raw: true },
+  { key: 'VCCon',  unit: '1∥/2S', sect: 'VC', label: 'VCCon', desc: 'Voice-coil wiring: 1 = parallel, 2 = series. WinISD: Connection', optional: true, raw: true },
+  { key: 'alfaVC', unit: '1/K',   sect: 'VC', label: 'αVC',   desc: 'VC resistance temperature coefficient (copper ≈ 0.0039). WinISD Advanced: AlfaVC', optional: true, raw: true },
+  { key: 'Rt',     unit: 'K/W',   sect: 'VC', label: 'R(t)',  desc: 'Voice-coil-to-ambient thermal resistance. WinISD Advanced: R(t)', optional: true, raw: true },
+  { key: 'Ct',     unit: 'J/K',   sect: 'VC', label: 'C(t)',  desc: 'Voice-coil thermal capacitance. WinISD Advanced: C(t)', optional: true, raw: true },
+  // Environment (WDR: c, roo)
+  { key: 'c',    unit: 'm/s',   sect: 'Environment', label: 'c', desc: 'Speed of sound (default ≈ 343.7 m/s at ~20 °C). WinISD Advanced: c', optional: true, raw: true },
+  { key: 'roo',  unit: 'kg/m³', sect: 'Environment', label: 'ρ', desc: 'Air density (default ≈ 1.2 kg/m³ at ~20 °C, 1 atm). WinISD Advanced: roo', optional: true, raw: true },
   // Derived — mechanical trio on top row, motor+displacement next, efficiency pair last
   { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load — 1 / ((2π·Fs)²·Cms). WinISD: Mms', readOnly: true },
   { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance — Vas / (ρc²·Sd²). WinISD: Cms',   readOnly: true },
@@ -52,6 +66,9 @@ const SECTIONS = [
   { id: 'Piston',      label: 'Piston / Acoustic', hint: 'Enter Sd or cone Dia — the other is calculated' },
   { id: 'Electrical',  label: 'Electrical' },
   { id: 'Performance', label: 'Performance',        hint: 'Optional — enables max-power and max-SPL curves', allOptional: true },
+  { id: 'Motor',       label: 'Motor / large-signal', hint: 'Inductance model & voice-coil geometry (WinISD large-signal) — all optional', allOptional: true },
+  { id: 'VC',          label: 'Voice coil & thermal', hint: 'VC count/wiring & thermal model — all optional', allOptional: true },
+  { id: 'Environment', label: 'Environment',        hint: 'Air constants — defaults c≈343.7 m/s, ρ≈1.2 kg/m³ — all optional', allOptional: true },
   { id: 'Derived',     label: 'Derived values',     hint: 'Calculated from your entries — read only', isDerived: true },
   { id: 'Dimensions',  label: 'Dimensions',         hint: 'Physical size for cabinet planning (WinISD Dimensions tab) — all optional', allOptional: true },
 ];
@@ -105,6 +122,8 @@ function toSI(key, displayStr) {
     case 'Dia':  return v / 1000;
     case 'Vas':  return v / 1000;
     case 'Xmax': return v / 1000;
+    case 'Hc':   return v / 1000;
+    case 'Hg':   return v / 1000;
     case 'Vd':   return v / 1e6;
     case 'no':   return v / 100;
     default:     return v;
@@ -124,6 +143,8 @@ function fmtSI(key, si) {
     case 'Dia':  v = si * 1000;  break;
     case 'Vas':  v = si * 1000;  break;
     case 'Xmax': v = si * 1000;  break;
+    case 'Hc':   v = si * 1000;  break;
+    case 'Hg':   v = si * 1000;  break;
     case 'Vd':   v = si * 1e6;   break;
     case 'no':   v = si * 100;   break;
     default:     v = si;
@@ -179,16 +200,26 @@ const resolvedSI = computed(() => {
   return r;
 });
 
+// Show the user's typed value when the field is an active input, OR when it was
+// demoted (over-constrained) but the calculated fallback is impossible — so we
+// never silently blank a value the user actually typed (e.g. inconsistent Q's).
+function showsEntered(key) {
+  if (activeEntered.value.has(key)) return true;
+  // Demoted field whose calculated fallback is impossible (null / ≤0 / NaN):
+  // keep the user's typed value visible rather than blanking it.
+  return !!entered[key] && !(resolvedSI.value[key] > 0);
+}
+
 function stateOf(key) {
   const p = PARAMS.find(x => x.key === key);
   if (p?.readOnly) return resolvedSI.value[key] != null ? 'C' : 'N';
-  if (activeEntered.value.has(key)) return 'E';
+  if (showsEntered(key)) return 'E';
   if (resolvedSI.value[key] != null) return 'C';
   return 'N';
 }
 
 function displayVal(key) {
-  if (activeEntered.value.has(key)) return entered[key];
+  if (showsEntered(key)) return entered[key];
   const si = resolvedSI.value[key];
   return si != null ? fmtSI(key, si) : '';
 }
