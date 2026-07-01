@@ -42,14 +42,14 @@ const PARAMS = [
   // Environment (WDR: c, roo)
   { key: 'c',    unit: 'm/s',   sect: 'Environment', label: 'c', desc: 'Speed of sound (default ≈ 343.7 m/s at ~20 °C). WinISD Advanced: c', optional: true, raw: true },
   { key: 'roo',  unit: 'kg/m³', sect: 'Environment', label: 'ρ', desc: 'Air density (default ≈ 1.2 kg/m³ at ~20 °C, 1 atm). WinISD Advanced: roo', optional: true, raw: true },
-  // Derived — mechanical trio on top row, motor+displacement next, efficiency pair last
-  { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load — 1 / ((2π·Fs)²·Cms). WinISD: Mms', readOnly: true },
-  { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance — Vas / (ρc²·Sd²). WinISD: Cms',   readOnly: true },
-  { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance — 2π·Fs·Mms / Qms. WinISD: Rms',  readOnly: true },
-  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor — √(2π·Fs·Mms·Re / Qes). WinISD: Bl', readOnly: true },
-  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax',                          readOnly: true },
-  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency — (4π²/c³)·Fs³·Vas/Qes. WinISD: Eff', readOnly: true, newRow: true },
-  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). WinISD: SPL', readOnly: true },
+  // Derived — calculated by default (state C) but editable: type to override, clear to revert
+  { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load — 1 / ((2π·Fs)²·Cms). Calculated by default; type to override. WinISD: Mms' },
+  { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance — Vas / (ρc²·Sd²). Calculated by default; type to override. WinISD: Cms' },
+  { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance — 2π·Fs·Mms / Qms. Calculated by default; type to override. WinISD: Rms' },
+  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor — √(2π·Fs·Mms·Re / Qes). Calculated by default; type to override. WinISD: Bl' },
+  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax. Calculated by default; type to override.' },
+  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency — (4π²/c³)·Fs³·Vas/Qes. Calculated by default; type to override. WinISD: Eff', newRow: true },
+  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Calculated by default; type to override. WinISD: SPL' },
   // Physical dimensions — diameters row, axial depths row, misc row
   { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (mm). WinISD Dimensions: Outer',               optional: true, dimOnly: true },
   { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket/cone height — surround to spider (mm). WinISD Dimensions: Basket',   optional: true, dimOnly: true },
@@ -69,7 +69,7 @@ const SECTIONS = [
   { id: 'Motor',       label: 'Motor / large-signal', hint: 'Inductance model & voice-coil geometry (WinISD large-signal) — all optional', allOptional: true },
   { id: 'VC',          label: 'Voice coil & thermal', hint: 'VC count/wiring & thermal model — all optional', allOptional: true },
   { id: 'Environment', label: 'Environment',        hint: 'Air constants — defaults c≈343.7 m/s, ρ≈1.2 kg/m³ — all optional', allOptional: true },
-  { id: 'Derived',     label: 'Derived values',     hint: 'Calculated from your entries — read only', isDerived: true },
+  { id: 'Derived',     label: 'Derived values',     hint: 'Calculated from your entries — editable to override, clear to recalculate', isDerived: true },
   { id: 'Dimensions',  label: 'Dimensions',         hint: 'Physical size for cabinet planning (WinISD Dimensions tab) — all optional', allOptional: true },
 ];
 
@@ -80,33 +80,14 @@ const drvModel   = ref('');
 const drvComment = ref('');
 const dimExpanded = ref(false);
 
-// entered: key → display-unit string
+// entered: key → display-unit string. A field is "entered" (authoritative, state E)
+// whenever it holds a non-empty string. Entered values ALWAYS stick — the tool never
+// silently rewrites a value you typed. A blank field is calculated from the others
+// (state C) when possible, otherwise not-entered (state N). Clear a field to turn it
+// back into a calculated one.
 const entered = reactive({});
-// Most-recently-edited-first list of keys, used to decide which member of an
-// over-constrained group (Q-trio, Sd/Dia) stays an input vs. reverts to calculated.
-const order = reactive([]);
-
-// Interdependent groups: at most `keep` members may be authoritative inputs at once;
-// any extra (oldest-edited) members revert to their calculated value.
-const CALC_GROUPS = [
-  { keys: ['Qts', 'Qes', 'Qms'], keep: 2 },
-  { keys: ['Sd', 'Dia'],         keep: 1 },
-];
-
-// The set of keys whose entered value is currently authoritative. When a group is
-// over-filled, only its `keep` most-recently-edited members count; the rest fall
-// back to calculated (default-to-calculated behaviour).
-const activeEntered = computed(() => {
-  const active = new Set(Object.keys(entered).filter(k => entered[k] !== ''));
-  for (const g of CALC_GROUPS) {
-    const filled = g.keys.filter(k => active.has(k));
-    if (filled.length > g.keep) {
-      const newest = order.filter(k => filled.includes(k)).slice(0, g.keep);
-      for (const k of filled) if (!newest.includes(k)) active.delete(k);
-    }
-  }
-  return active;
-});
+const activeEntered = computed(() =>
+  new Set(Object.keys(entered).filter(k => entered[k] !== '')));
 
 // ── Unit conversions ──────────────────────────────────────────────────────
 function toSI(key, displayStr) {
@@ -183,57 +164,42 @@ const resolvedSI = computed(() => {
     if (!r.Qes && r.Qts && r.Qms) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
     if (!r.Qms && r.Qts && r.Qes) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
 
+    // Derived values: `== null` guards so an entered override (state E) is never
+    // overwritten by the computed value, and feeds downstream formulas.
     if (r.Fs && r.Vas && r.Sd) {
       const Cas = r.Vas / (RHO * C * C);
-      r.Cms = Cas / (r.Sd * r.Sd);
-      r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
-      if (r.Qms) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
-      if (r.Re && r.Qes) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
+      if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
+      if (r.Mms == null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
+      if (r.Rms == null && r.Qms) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
+      if (r.Bl == null && r.Re && r.Qes) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
     }
 
-    if (r.Sd && r.Xmax) r.Vd = r.Sd * r.Xmax;
-    if (r.Fs && r.Vas && r.Qes)
+    if (r.Vd == null && r.Sd && r.Xmax) r.Vd = r.Sd * r.Xmax;
+    if (r.no == null && r.Fs && r.Vas && r.Qes)
       r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;
-    if (r.no && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
+    if (r.SPL == null && r.no && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
   }
 
   return r;
 });
 
-// Show the user's typed value when the field is an active input, OR when it was
-// demoted (over-constrained) but the calculated fallback is impossible — so we
-// never silently blank a value the user actually typed (e.g. inconsistent Q's).
-function showsEntered(key) {
-  if (activeEntered.value.has(key)) return true;
-  // Demoted field whose calculated fallback is impossible (null / ≤0 / NaN):
-  // keep the user's typed value visible rather than blanking it.
-  return !!entered[key] && !(resolvedSI.value[key] > 0);
-}
-
+// E = you typed it (sticks); C = calculated from the others; N = not entered yet.
 function stateOf(key) {
-  const p = PARAMS.find(x => x.key === key);
-  if (p?.readOnly) return resolvedSI.value[key] != null ? 'C' : 'N';
-  if (showsEntered(key)) return 'E';
+  if (activeEntered.value.has(key)) return 'E';
   if (resolvedSI.value[key] != null) return 'C';
   return 'N';
 }
 
 function displayVal(key) {
-  if (showsEntered(key)) return entered[key];
+  if (activeEntered.value.has(key)) return entered[key];
   const si = resolvedSI.value[key];
   return si != null ? fmtSI(key, si) : '';
 }
 
 function onInput(key, e) {
   const val = e.target.value;
-  const i = order.indexOf(key);
-  if (i >= 0) order.splice(i, 1);
-  if (val === '') {
-    delete entered[key];
-  } else {
-    entered[key] = val;
-    order.unshift(key); // mark as most-recently edited
-  }
+  if (val === '') delete entered[key];
+  else entered[key] = val;
 }
 
 // ── Validation ────────────────────────────────────────────────────────────
@@ -255,11 +221,22 @@ const missing = computed(() => {
   return m;
 });
 
+// A field that is REQUIRED to build the driver but still N reads red (blocking),
+// vs. the gentle yellow used for optional not-entered fields.
+const Q_KEYS = ['Qts', 'Qes', 'Qms'];
+function isRequiredMissing(key) {
+  if (stateOf(key) !== 'N') return false;
+  const si = resolvedSI.value;
+  if (key === 'Fs' || key === 'Re' || key === 'Vas') return true;
+  if (key === 'Sd' || key === 'Dia') return si.Sd == null;
+  if (Q_KEYS.includes(key)) return Q_KEYS.filter(k => si[k] != null).length < 2;
+  return false;
+}
+
 // ── Actions ───────────────────────────────────────────────────────────────
 function resetAll() {
   drvName.value = ''; drvBrand.value = ''; drvModel.value = ''; drvComment.value = '';
   Object.keys(entered).forEach(k => delete entered[k]);
-  order.splice(0);
 }
 
 function applyDriver() {
@@ -441,18 +418,15 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
                     {{ p.label }}
                     <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
                   </span>
-                  <input v-if="!p.readOnly"
-                         class="dd-val" type="number" step="any"
-                         :class="'input-' + stateOf(p.key)"
+                  <input class="dd-val" type="number" step="any"
+                         :class="['input-' + stateOf(p.key), { 'input-required': isRequiredMissing(p.key) }]"
                          :value="displayVal(p.key)"
                          @input="onInput(p.key, $event)"
                          @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
                          :title="p.desc">
-                  <span v-else class="dd-ro-val" :class="'ro-' + stateOf(p.key)">
-                    {{ displayVal(p.key) || '–' }}
-                  </span>
                   <span class="dd-unit">{{ p.unit }}</span>
-                  <span class="dd-badge" :class="'badge-' + stateOf(p.key)">{{ stateOf(p.key) }}</span>
+                  <span class="dd-badge"
+                        :class="[ 'badge-' + stateOf(p.key), { 'badge-required': isRequiredMissing(p.key) } ]">{{ stateOf(p.key) }}</span>
                 </div>
               </div>
             </template>
@@ -507,7 +481,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   display: flex; align-items: center; justify-content: center; z-index: 300;
 }
 .dd-modal {
-  width: min(500px, 96vw);
+  width: min(524px, 96vw);
   display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
   overflow: hidden;
@@ -590,7 +564,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 }
 
 .dd-row {
-  display: grid; grid-template-columns: 60px 48px 30px 14px;
+  display: grid; grid-template-columns: 58px 46px 28px 20px;
   align-items: center; border-bottom: 1px solid var(--line);
 }
 .row-derived { opacity: 0.7; }
@@ -620,6 +594,9 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .input-C { background: color-mix(in srgb, var(--acc) 10%, var(--bg)); color: var(--acc); }
 /* Not-entered = a gentle, non-alarming yellow prompt (not red — nothing is wrong yet). */
 .input-N { background: color-mix(in srgb, #e6c24d 9%, var(--bg)); color: #d8c176; }
+/* Required-but-missing = red: this field actually blocks building the driver. */
+.input-required { background: color-mix(in srgb, var(--bad) 13%, var(--bg)); color: var(--bad); }
+.badge-required { color: var(--bad); opacity: 1; }
 
 /* Read-only derived cells */
 .dd-ro-val {
