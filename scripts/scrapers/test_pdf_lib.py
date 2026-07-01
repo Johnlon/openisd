@@ -47,15 +47,17 @@ class TestOcrViaSubprocessAlwaysLogs(unittest.TestCase):
         output = stderr_capture.getvalue()
         self.assertIn("tesseract", output.lower())
 
-    def test_missing_tesseract_is_silent(self):
-        """_TESSERACT_PATH=None (tesseract not installed) → silent '' with no stderr output.
-        This is a configuration choice, not an error — user opted out of OCR."""
+    def test_missing_tesseract_warns_to_stderr(self):
+        """_TESSERACT_PATH=None (tesseract not installed) → warning on stderr.
+        Missing tesseract means OCR pages get no text extracted — that is data loss,
+        not a graceful degradation, so it must always be visible."""
         stderr_capture = io.StringIO()
         with patch.object(pdf_lib, "_TESSERACT_PATH", None):
             with patch("sys.stderr", stderr_capture):
                 result = pdf_lib._ocr_via_subprocess(Path("fake.pdf"), page_num=0)
         self.assertEqual(result, "")
-        self.assertEqual(stderr_capture.getvalue(), "")
+        output = stderr_capture.getvalue()
+        self.assertIn("tesseract", output.lower())
 
 
 if __name__ == "__main__":

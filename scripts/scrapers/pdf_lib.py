@@ -303,6 +303,8 @@ def _ocr_via_subprocess(pdf_path: Path, page_num: int) -> str:
       to recognize text/data from tables" when preprocessing alters layout.
     """
     if not _TESSERACT_PATH:
+        print(f"WARNING pdf_lib: tesseract not found — OCR skipped for page {page_num} of {pdf_path.name}",
+              file=sys.stderr, flush=True)
         return ""
     import subprocess
     import tempfile
