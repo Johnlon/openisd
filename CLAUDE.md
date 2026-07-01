@@ -1,35 +1,38 @@
 # Claude Code rules for this project
 
-## TDD and quality gates — hard rule (most important)
+## Quality gates — non-negotiable
 
-**Never claim success, "done", "fixed", or "ready to check" until every quality gate is 100% green — run them, do not assume.** The gates are: `npm run lint` (0 errors), the unit/golden tests, the DQ checks, AND the full Playwright browser suite (`npx playwright test`). A change is not done because it *looks* right or the code compiles.
+**Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.**
 
-**Run the relevant safeguard every single time you make a claim.** In particular:
+| Domain                 | Gate              | Command                                 |
+| ---------------------- | ----------------- | --------------------------------------- |
+| Python scrapers        | pytest suite      | `python -m pytest scripts/scrapers/ -v` |
+| JS core (`src/core/`)  | unit tests        | `node --test test/*.test.mjs`           |
+| JS UI (Vue/Playwright) | browser suite     | `npx playwright test`                   |
+| All code               | lint              | `npm run lint` (0 errors)               |
+| All                    | full health check | `bash scripts/health-check.sh`          |
 
-- **Any change to a Vue component, template, CSS, store, or engine wiring → run `npx playwright test` before claiming it works.** A UI change that renames a control, changes a binding, or alters a selector can silently break tests; the only way to know is to run them. (This rule exists because a button rename + input change earlier went unverified and rotted the browser tests until a later run caught it — a preventable SDLC failure.)
-- Never skip a gate because it is "slow" or "probably fine". Slow is cheaper than wrong.
+**TDD — red→green, in this order:**
 
-**Bug fixes follow strict red→green TDD:**
-
-1. Write a test that reproduces the bug and **drives the app into the state where the bug actually renders** (a check that never renders the broken state can't catch it).
-2. **Run it and watch it FAIL** — confirming the test detects the bug (and fails for the right reason).
+1. Write a test that reproduces the bug and fails (for the right reason).
+2. Watch it fail.
 3. Apply the fix.
-4. **Run it and watch it PASS.**
-5. Run the full suite + lint and confirm 100% green before saying done.
+4. Watch it pass.
+5. Run the full gate for the domain.
 
-Do not reorder these. "I added a test and a fix" without having *seen the test fail first* is not TDD — the test may be asserting nothing.
+Never reorder. "I added a test and a fix" without having seen the test fail first is not TDD.
+
+**Domain-specific testing rules:** `.claude/context/testing-python.md` · `.claude/context/testing-js-core.md` · `.claude/context/testing-js-ui.md`
 
 ---
 
 ## Linting — hard rule
 
-**Never work around the linter.** This means:
+**Never work around the linter:**
 
-- Never add `// eslint-disable`, `/* eslint-disable */`, or any per-line/per-file ESLint suppression comments.
-- Never rename a variable to `_foo` solely to bypass an `no-unused-vars` rule when the variable is actually meant to be used.
-- Never delete code just to silence a lint error — fix the underlying problem instead (e.g. reconnect the function to a call site, or fix the logic so the variable is used).
-
-**The linter is always right about the symptom.** If ESLint says a function is unused, the correct fix is to either wire it to a call site or genuinely remove it because it is dead code that will never be needed — not to suppress the warning. When in doubt, ask.
+- Never add `// eslint-disable`, `/* eslint-disable */`, or any per-line/per-file ESLint suppression.
+- Never rename a variable to `_foo` solely to bypass `no-unused-vars`.
+- Never delete code just to silence a lint error — fix the underlying problem.
 
 ---
 
@@ -37,7 +40,7 @@ Do not reorder these. "I added a test and a fix" without having *seen the test f
 
 **`dev` is the working branch. All development, scraping, and feature work happens on `dev`.**
 
-**`main` is the release branch. It is reserved exclusively for production releases.**
+**`main` is the release branch. Reserved exclusively for production releases.**
 
 **AI must never commit to or push `main` directly** except through the approved release workflow:
 
@@ -45,74 +48,63 @@ Do not reorder these. "I added a test and a fix" without having *seen the test f
 - Any future release skill added to `.claude/skills/`
 - Explicit human instruction in the current conversation that names `main` specifically
 
-**At the start of every conversation, check the current branch.** If on `main` accidentally, switch to `dev` immediately before doing any work. Never assume it is safe to work on `main`.
+**At the start of every conversation, check the current branch.** If on `main` accidentally, switch to `dev` immediately before doing any work.
 
-**Permitted on `main` without explicit instruction:** nothing. Read-only inspection (e.g. `git log`, `git diff`) is fine; any write, commit, or push requires the release workflow or explicit per-conversation authorisation.
+**Permitted on `main` without explicit instruction:** nothing. Read-only inspection (`git log`, `git diff`) is fine; any write, commit, or push requires the release workflow or explicit per-conversation authorisation.
 
 ---
 
 ## AI-locked files
 
-Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected from modification. These files define critical rules or transformations that must remain stable and auditable.
-
-**Rule:** Never edit AI-locked files, even if given explicit permission in conversation. If changes are needed, the human must remove the lock comment first, or provide documented authorization that explicitly overrides the lock.
-
-**Why:** Locked files are the single source of truth for deterministic processes (scrapers, data restoration, migrations). Unauthorized changes break repeatability and auditability.
+Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected. Never edit them, even if given explicit permission in conversation. The human must remove the lock comment first.
 
 ---
 
 ## No history in documentation — hard rule
 
-**Never write history into any `.md` file.** This includes:
+**Never write history into any `.md` file.** No "As of \<date\>…", no "What was removed / what replaced X" blocks, no closed-item records `[x]` with a **Closed:** description, no "Previously this was called…" notes.
 
-- "As of \<date\>…" or "Prior to \<date\>…" sentences
-- "What was removed / what replaced X" blocks
-- Closed-item records with `[x]` and a **Closed:** description
-- "Previously this was called…" or "This was a one-time migration…" notes
-- Any block whose sole content is recording what changed in the past
+**Why:** Documentation must reflect current best knowledge only. Git history and commit messages are the authoritative record of what changed and why.
 
-**Why:** Documentation must reflect current best knowledge only. History clutters docs, confuses AI agents, and rots as code evolves. Git history and commit messages are the authoritative record of what changed and why. Writing history in docs duplicates git — badly.
-
-**If tempted to record history:** write it in the commit message instead and move on. Delete closed items from TODO/backlog files immediately — a closed item is not a record, it is clutter.
+**If tempted to record history:** write it in the commit message instead and move on.
 
 ---
 
 ## Shell environment — Windows + Git Bash only
 
-This project has been developed exclusively on **Windows 11 with Git Bash**. Other operating systems (macOS, Linux) have not been considered yet — support may be added in future. Git Bash is placed first in the Windows `PATH` so that `bash` always resolves to Git Bash, not WSL or any other shell.
+This project runs on **Windows 11 with Git Bash**. Other OSes have not been considered.
 
-**The SDLC scripts have not yet been made cross-platform.** Running them in the wrong shell (WSL, PowerShell, cmd) causes errors and confusion. To avoid this, every project script asserts it is running in Git Bash at startup and exits immediately with a clear error if not.
+**AI must:**
 
-**Consequences for AI:**
+- Always use the **Bash** tool for shell commands. Never PowerShell.
+- Not use WSL commands — WSL processes are in a separate namespace.
+- Include the Git Bash guard in every new script in `scripts/`, immediately after `set -euo pipefail`:
+  ```bash
+  [ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
+  ```
+  `MSYSTEM` is set by Git Bash (`MINGW64`/`MINGW32`) and absent in WSL, PowerShell, and cmd.
 
-- Always use the **Bash** tool for shell commands. Never use PowerShell.
-- All scripts use Windows-native tools via Git Bash: `netstat` is `C:\Windows\System32\NETSTAT.EXE`, process killing uses `cmd /c "taskkill ..."`, not Unix `kill`.
-- Do not use WSL commands (`wsl --`, `wsl.exe`) in scripts — WSL processes are in a separate namespace and cannot reliably interact with Windows-side listeners.
-- Every script **must** include the Git Bash guard immediately after `set -euo pipefail`: `[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1`. `MSYSTEM` is set by Git Bash (`MINGW64`/`MINGW32`) and absent in WSL, PowerShell, and cmd. This applies to any new script added to `scripts/`.
+---
 
 ## AI role — build tools, don't perform ad-hoc tasks
 
-**The role of AI is to create reusable tools for routine tasks, not to perform those tasks ad-hoc each time.**
+**Create reusable scripts for recurring tasks; never write an inline one-liner when a script already exists or should exist.** Check `scripts/` first.
 
-When a task recurs (killing ports, cleaning build artefacts, resetting state, etc.) the correct response is:
-
-1. Write a script in `scripts/` that performs the task cleanly and generally.
-2. Run the script.
-3. Document it here so future AI sessions use the script rather than reinventing it.
-
-**Never write an inline one-liner when a reusable script already exists or should exist.** Check `scripts/` first. If a script for the task does not exist, create it before running it.
-
-**This principle does NOT apply to driver data files.** Scripts that touch, patch, normalise, backfill, or otherwise modify files in `drivers/` are banned regardless of how reusable they are — see "No normalisation or fix-it scripts" below. Driver data is maintained exclusively by the scrapers.
+**This principle does NOT apply to driver data files.** Scripts that touch, patch, normalise, backfill, or otherwise modify files in `drivers/` are banned — see `.claude/context/scraping-rules.md`.
 
 **Available utility scripts:**
 
-- `scripts/start-http.sh [port]` — start Vite dev on the given port (default 4000). Runs all health checks first (lint, unit, golden, DQ), kills the port, then starts the server in the background. Writes PID to `.server-<port>.pid`. AI always calls this as `bash scripts/dev-4200.sh` (which wraps `start-http.sh 4200`).
-- `scripts/stop-http.sh [port]` — stop the server on the given port (default 4000). Reads `.server-<port>.pid` then calls `kill-http.sh <port>`.
-- `scripts/kill-http.sh [port …]` — kill all processes on the specified ports (default: 4000–4005). Escalates from PID tree-kill to image-name kill. Called by `start-http.sh` and `stop-http.sh`; never call ad-hoc.
-- `scripts/dev-4200.sh` — **AI primary start script.** Calls `start-http.sh 4200`. Use `stop-http.sh 4200` to stop.
-- `scripts/preview-4000.sh` — human's lightweight preview server: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).
-- `scripts/build-release.sh` — production dist build (`GITHUB_PAGES=true`). Used by the release-drivers workflow; never run ad-hoc.
-- `scripts/health-check.sh` — all health checks: lint, unit tests, golden tests, DQ validation. Single entry point — add new checks here as they are created.
+| Script                          | Purpose                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `scripts/start-http.sh [port]`  | Vite dev on given port (default 4000). Runs health-check first, kills port, starts server in bg. Writes PID to `.server-<port>.pid`. |
+| `scripts/dev-4200.sh`           | **AI primary start script.** Calls `start-http.sh 4200`. Use `stop-http.sh 4200` to stop.                                            |
+| `scripts/stop-http.sh [port]`   | Stop server on given port (default 4000).                                                                                            |
+| `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                                                         |
+| `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).                                  |
+| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                                                |
+| `scripts/health-check.sh`       | All health checks: lint, unit tests, golden tests, DQ validation, Python scraper tests. Single entry point.                          |
+
+---
 
 ## Port assignments — hard rule
 
@@ -121,338 +113,77 @@ All project servers use ports in the 4000–4299 range only. Never use a port ou
 | Port | Purpose                                                 | Script                                                        |
 | ---- | ------------------------------------------------------- | ------------------------------------------------------------- |
 | 4000 | Human's preview/dev server — **exclusive to the human** | `scripts/preview-4000.sh` or `scripts/start-http.sh` (no arg) |
-| 4100 | Playwright browser tests — started by Playwright itself | `playwright.config.js` (`reuseExistingServer: false`)         |
+| 4100 | Playwright browser tests — started by Playwright itself | `playwright.config.js`                                        |
 | 4200 | Agent-started vite dev server                           | `scripts/dev-4200.sh` or `scripts/start-http.sh 4200`         |
 
-- **Before starting any server:** kill the target port first with `bash scripts/kill-http.sh <port>`. Never reach for `taskkill` ad-hoc.
-- **If Vite auto-increments to a wrong port:** stop, kill the correct port, restart with `--strictPort`. Never accept drift.
+Before starting any server: kill the target port first with `bash scripts/kill-http.sh <port>`. Never use `taskkill` ad-hoc.
+
+---
 
 ## Dev server — hard rules
 
-- **AI must start the dev server with `bash scripts/dev-4200.sh`.** This runs all quality checks (lint, unit, golden, DQ), kills port 4200, then starts Vite dev on 4200 with `--strictPort`. Never use `npm run dev`, `npx vite`, or any ad-hoc command.
-- **After starting, verify the page loads.** Run `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` and confirm 200. If the server log shows a compile error, fix it first — never hand off a broken URL.
-- **Unregister any stale service worker before handing off to the user.** Use browser automation to run `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4200`. Do this silently. The SW is only registered from a production build; in dev sessions it is usually absent, but if present it will serve stale JS and make changes invisible.
+- **AI must start the dev server with `bash scripts/dev-4200.sh`.** Never use `npm run dev`, `npx vite`, or any ad-hoc command.
+- **After starting, verify the page loads.** `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` → must be 200.
+- **Unregister any stale service worker** before handing off to the user — run `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4200`.
 
-## Post-deploy / post-build test — hard rule
-
-**After every `npm run build` or any change that is handed to the user as "ready to check", run a post-deploy smoke test before saying it is done.** Minimum checks:
-
-1. `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` → must be 200.
-2. Fetch the compiled JS entry point from the Vite server log output and confirm no `[vite] error` lines appear in the server output.
-3. For UI changes: use the browser automation tools (`mcp__claude-in-chrome__*`) to load the page and visually confirm the changed element is present and correct — do not rely on source-file grep alone. A component that compiles but renders incorrectly is still broken.
-4. **Inspect the browser Console AND HTTP/Network logs for the whole interaction — a passing DOM assertion is NOT enough.** A green visual check once hid a Vue `Duplicate keys found` warning that was silently corrupting list rendering (and I wrongly blamed "stale HMR"). When verifying or debugging any UI behaviour you MUST capture and read **before drawing any conclusion about probable cause or effect**: (a) console **errors and warnings** (Vue warnings like duplicate keys, unhandled rejections), (b) uncaught page errors, (c) failed same-origin network requests (4xx/5xx/failed). Read the logs FIRST — the cause is often already printed there. If any appear, the change is not done — investigate, never dismiss as "stale HMR" without proof.
-
-**Never say "it should work now — please check" without completing steps 1–4.** If a step fails, fix the problem first.
-
-## UI test rule — assert on console + network — hard rule
-
-**Every Playwright UI/browser test (`packages/ui/test/*.browser.spec.js`) MUST import `test`/`expect` from `packages/ui/test/fixtures.js`, NOT from `@playwright/test`.** That module's `browserLog` **auto-fixture** runs for every test (no opt-out) and:
-
-- captures `page.on('console', …)` errors + warnings (Vue emits `Duplicate keys found`, injection warnings, etc. as `warning`), `pageerror` uncaught exceptions, and failed/4xx/5xx same-origin (`localhost`) requests — external federated sources (github.com) are excluded so their unavailability isn't a false failure;
-- at teardown asserts every collector is empty (no console errors, no `duplicate key` warnings, no page errors, no same-origin network failures) — a green DOM assertion alone is NOT enough;
-- on any failure attaches the full console+network capture to the report and prints it, so a failing UI test surfaces the browser-side evidence like a stack trace.
-
-A test needs no per-test boilerplate for this — importing from `fixtures.js` is the whole contract. A test may call `browserLog.reset()` (add `browserLog` to its args) after initial navigation to re-baseline. Drive the app into the state that makes a bug *render* (e.g. `driver-search.browser.spec.js` searches a duplicate-named driver to force the key-collision the console check then catches) — a check that never renders the broken state can't see it. Use condition waits (`page.waitForFunction`), never `page.waitForTimeout()` (the ESLint playwright rule forbids it and it makes tests flaky).
-
-## JavaScript error handling — Go-inspired pattern (preferred)
-
-All functions that perform I/O, validation, or calculations that can partially fail **must** return `{ value, errors }` rather than throwing or returning bare values.
-
-**Shape:**
-
-```js
-// errors is always an array — empty means clean, never omit it
-{ value: <result or null>, errors: [{ level: 'error'|'warn', field, message }, ...] }
-```
-
-**Rules:**
-
-- **Return value even when errors are present** where the data is still partially usable. Reserve `value: null` for truly unrecoverable failures (e.g. parse fails completely). Degraded data + warnings is better than null + error for chart rendering.
-- **Caller always checks `errors`** — never silently discard. A caller that ignores errors must do so explicitly (e.g. `const { value } = fn(); // errors intentionally ignored — display handled upstream`).
-- **`level: 'error'`** — value is unusable; caller must not render or use it.
-- **`level: 'warn'`** — value is usable but degraded; caller should surface the warning to the user.
-- **Per-point invalidity** — when a calculation produces invalid results for a subset of points (not all), set those positions to `null` in the value array (renderer draws gaps) and include a `level: 'warn'` entry describing the affected range. Do not set `value: null` for partial failures.
-- **Never throw from engine or extractor functions** — throw only from pure parsers where the input is structurally invalid (e.g. `parseWdr` on non-WDR text). Calculation functions catch their own errors internally and return them in `errors`.
-
-**Where this applies:**
-
-- `engine.js` — `loadDriver`, `extractSpl`, `extractExcursion`, `extractMaxSpl`, etc.
-- Any future function that reads files, calls external APIs, or runs calculations that can produce NaN/Infinity.
-- Does **not** apply to pure math functions in `src/core/` — those remain plain return-value functions. The engine layer wraps them and owns the error contract.
+---
 
 ## Markdown formatting
 
-- After writing or editing any `.md` file that contains tables, run `npx prettier --write <file>` to format the tables. Do not spend tokens manually aligning columns — use the tool.
+After writing or editing any `.md` file that contains tables, run `npx prettier --write <file>`.
 
-## Scraping pipeline — core goal and AI boundaries
+---
 
-The scraping pipeline must be able to regenerate everything in `drivers/` from scratch by running the scrapers alone — no human or AI intervention, no post-hoc tweaks. This must be fast and repeatable.
+## Reading context — what to load per task
 
-**Roles:**
+Before starting work, always read:
 
-- Human + AI together decide what the rules are.
-- AI encodes those rules correctly in the scrapers, diagnoses problems, and is transparent about issues or bad ideas.
-- **AI may always read WDR and `_meta.yml` files freely** — for diagnosis, analysis, reporting, cross-referencing.
-- **AI must not modify WDR or `_meta.yml` files** unless the human explicitly authorises it in the current conversation. The correct fix is always to improve the scraper so the file is generated correctly on the next run. A direct file edit that is not backed by a scraper rule will be wiped on the next run and is therefore wrong by definition.
+- `BACKLOG.md` — feature backlog (P0 gates all feature work)
+- `PLAN.md` — re-architecture phases and scope guards (read before touching `src/core/` or any structural change)
+- `ARCHITECTURE.md` — hard architectural decisions
+- `DEVELOPMENT.md` — coding practices and testing contract
+- For driver data tasks: `WDR_SCHEMA.md`, `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md`
+- For WinISD-related tasks: `WINISD.md`
 
-**The test:** before touching any WDR or sidecar file, ask "is this fix encoded in the scraper?" If not, fix the scraper first. Only touch data files when the human explicitly says to, and record the authorisation.
+**Load the relevant context file for the task domain:**
 
-## No normalisation or fix-it scripts — hard rule
+| Task type                                                | Load                                                                         |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Python scraper work (parsing, extraction, field mapping) | `.claude/context/scraping-rules.md` · `.claude/context/testing-python.md`    |
+| Driver data files (WDR / `_meta.yml`)                    | `.claude/context/scraping-rules.md` · `.claude/context/driver-data-rules.md` |
+| JS core functions (`src/core/`, engine, alignments)      | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`     |
+| Vue components, CSS, stores, UI wiring                   | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`           |
+| JS I/O or calculation functions (engine.js, loaders)     | `.claude/context/js-patterns.md`                                             |
+| Any change claimed "ready to check"                      | `.claude/context/testing-js-ui.md` (post-deploy smoke test)                  |
 
-**Never write a standalone script whose purpose is to normalise, patch, or fix data files in `drivers/`.** This includes:
-
-- Scripts that walk `drivers/` and rewrite field values to fix a known bad pattern
-- Scripts that "normalise" units, casing, or formatting across WDR or `_meta.yml` files
-- One-shot migration scripts that apply a correction to many files at once
-- **"Backfill" scripts** — scripts that re-read existing WDR or `_meta.yml` files and derive a field value from file contents or filenames, then write it back. Example: a script that reads WDR filenames, infers `driver_type` from them, and persists that to `_meta.yml`. This pattern is banned even when it mirrors runtime logic.
-- **"Enrich" / "derive-and-persist" passes** — any second-pass script that reads already-written scraper output and adds or updates fields. The scraper must write every field at scrape time. A separate enrichment pass creates a second authority that diverges from the scraper on re-run.
-
-**Why the backfill/enrich pattern is especially dangerous:** it creates three separate authorities — the scraper vocabulary (what the scraper writes), the backfill vocabulary (what the backfill writes), and the runtime classifier (what the app computes). These inevitably diverge and produce driver cards that show the wrong type, silently. The chaos is invisible until users notice wrong filter results.
-
-**The two valid authorities for any sidecar field:**
-
-1. The scraper writes it directly at scrape time from authoritative source data (HTML, PDF).
-2. The app computes it at runtime (e.g. `classifyTypes()` in `DriverBrowser.vue`).
-
-There is no third option.
-
-**The only correct fix is to find the bug in the scraper and rerun the scraper.** A patch script applied to generated files will be silently wiped on the next scraper run — it fixes nothing permanently and creates a false sense of correctness.
-
-**If the scraper cannot yet regenerate the correct value**, the right response is to fix the scraper until it can, not to write a patch script as a shortcut. If a human explicitly authorises a one-time direct file edit (recorded in the conversation), that is the narrow exception — and even then, no script; the edit is manual and deliberate.
-
-**`driver_type` specifically:** this field is either written by the scraper at scrape time (from the vendor's category label), or left null for `classifyTypes()` to handle at runtime from the driver name and T/S parameters. Never write a script that derives and persists `driver_type` from existing file content.
-
-## Protected collections — DO NOT MODIFY
-
-**`drivers/matt/` is human-curated. Never write to, rename, delete, or modify any file in this collection without explicit human instruction in the current conversation.** Scripts, batch fixes, scrapers, and normalisation tools must all exclude `matt/` by default. If a script would touch `matt/`, it must stop and log a warning instead. This collection represents manual human work that cannot be recovered from a scraper.
-
-## Script rules — progress, monitoring, and resume
-
-Every script that processes more than a handful of files or runs for more than a few seconds **MUST**:
-
-- **Timestamp every output line** — use `datetime.now().strftime('%H:%M:%S')` or equivalent. No silent scripts. A script that emits no output for 30+ seconds is indistinguishable from a hung script.
-- **Print a progress line per collection or per N files** — e.g. `[14:32:01] dayton-audio: 412 files, 3 issues found`.
-- **Print a final summary line** — total files scanned, total issues, elapsed time.
-- **External monitor / auto-kill** — for any script expected to run >60 seconds, add a watchdog: a second terminal command that kills the script if it produces no output for 120 seconds. Use `timeout` (Unix) or equivalent.
-- **Resume capability** — any batch-write script must be restartable mid-run. Write to a temp file or skip already-processed files so a killed run can be continued without reprocessing.
-
-These rules apply equally to inline scripts run via `python -c`, subagent scripts, and standalone `.py` / `.mjs` files. **No exceptions.** A script that violates these rules must be fixed before its output is trusted.
-
-## Schema discipline — hard rule
-
-`scripts/wdr_meta_schema.py` is the **single source of truth** for every field
-that may appear in a `.wdr` or `_meta.yml` file. The schema is enforced at runtime:
-`scraper_lib._scrape_one()` validates every written file before counting it as success.
-
-**Rules for AI — non-negotiable:**
-
-1. **Never write a field that is not defined in the schema.** Check `_WDR_FIELD_SPEC` (WDR)
-   or `MetaModel` (meta) before writing any field.
-
-2. **Never change the schema unilaterally.** Any addition, removal, or rename of a field
-   requires: (a) describing the change to the human — field name, type, unit, reason;
-   (b) getting explicit human approval in the current conversation; (c) then and only then
-   updating `wdr_meta_schema.py`, then the scraper code, then `WDR_SCHEMA.md §9.1`.
-
-3. **Respect the schema in all scrapers and batch scripts.** Code that writes to `.wdr` or
-   `_meta.yml` must only use fields defined in the schema. When adding scraper features that
-   require new fields, propose the field first — do not add it speculatively.
-
-Full operational rules: `drivers/SCRAPING_RULES.md §Schema discipline`.
-
-## Scraper rules — cache everything
-
-Every scraper **MUST** cache all HTML it fetches to `drivers/<collection>/_html/`.
-`scraper_lib.py`'s `run_scraper` already does this automatically. Do not bypass it.
-
-**Why:** `_html/` is gitignored (large, regenerable), so it only exists on the local
-machine. It is the only source `enrich_drivers.py` can use to extract `driver_type`,
-`freq_low_hz`, `freq_high_hz`, and other product metadata without hitting the live site
-again. If `_html/` is missing for a collection, the enrichment script silently produces
-`source: none` for every driver in that collection.
-
-**Rule for AI agents:** if `_extract.yml` shows `source: none` for an entire collection
-and `drivers/<collection>/_html/` is absent, do NOT try to individually fetch and cache
-pages. Instead, tell the user: "run `python scripts/scrape_<collection>.py --refresh`
-to rebuild the HTML cache, then re-run `enrich_drivers.py --force --collection <name>`."
-Fetching pages one-by-one outside the scraper workflow bypasses rate-limit controls and
-creates an inconsistent partial cache.
-
-**Image / custom-encoded PDFs:** some collections (Scan-Speak, some wavecor) publish
-datasheets as image PDFs or PDFs with custom Type1 font encoding. `pypdf` extracts
-garbled token sequences (`/0/1/2/i255/...`) from these — not readable text. Detect this
-pattern in `extract_lib.extract_from_pdf()` and log `pdf_encoding=garbled` to the
-problems log instead of reporting a false "no frequency range found". For these
-collections, the HTML product page (once cached) is the primary extraction source.
-
-## Script rules — scraper problem logs
-
-Every scraper **MUST** write a problem log file alongside its output. The log is separate from stdout progress output.
-
-- **Log file location:** `drivers/<collection>/_problems.log`
-- **Append, never overwrite** — each run appends with a run header so history is preserved.
-- **Log every problem encountered**, including but not limited to:
-  - Missing mandatory fields (`Brand`, `Model`, `Manufacturer`, `Fs`, etc.) — log field name, the raw API/HTML value that was present (or `<absent>`), the source URL, the item ID or SKU, and the offset within the API page.
-  - Mandatory fields that could not be parsed — log the raw string, the regex or parse attempt, and why it failed.
-  - URLs that returned unexpected status codes or content types — log URL, expected type, actual status + content-type.
-  - Items skipped due to DQ rules — log the rule ID, the offending value, and the item.
-  - Any exception caught during processing — log full traceback, item identity, and source URL.
-- **Log format:** one entry per problem, structured as:
-
-  ```
-  [HH:MM:SS] RUN <iso-datetime> scraper=<name> collection=<dir>
-  [HH:MM:SS] PROBLEM field=<field> item=<id_or_sku> url=<url> offset=<N>
-             raw_value=<repr of what was found>
-             reason=<why this is a problem>
-  ```
-
-- **A scraper that produces zero problems is not exempt** — write the run header with `problems=0` so there is a record that the run completed cleanly.
-- **Log and continue — never abort.** A missing or unparseable mandatory field is a problem to log, not a reason to stop or raise an exception. The scraper must process every item it can, write whatever partial record is available, and move on. The log is the signal for an AI or human to review and fix later. Blowing up on bad data is itself a bug.
-
-## Reading context
-
-- Read all `README.md` files in the repository (excluding `node_modules/`) before starting any task — they contain agent instructions and context for each directory.
-- **Always also read** (not READMEs but essential context):
-  - `BACKLOG.md` — prioritised feature backlog (P0–P3) and list of what is already shipped. P0 gates all feature work.
-  - `PLAN.md` — re-architecture phases, gates, and scope guards. Read before touching `src/core/` or any structural change.
-  - `ARCHITECTURE.md` — hard, hard-to-reverse decisions.
-  - `DEVELOPMENT.md` — coding practices and testing contract.
-- **Read for driver-data tasks:** `WDR_SCHEMA.md` (field spec and sidecar format), `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md` (link-field workflows, DQ check, scripts reference)
-- **Read for WinISD-related tasks:** `WINISD.md`
-
-## UI rules
-
-- Every `<button>` and every nav-like interactive element (toggles, chips, icon-only controls) **must** have a `title` attribute with a plain-English description of what it does. No exceptions.
-- Tooltip text should explain the _effect_, not just restate the label — e.g. `title="Set to 2.83V — IEC 60268-5 sensitivity standard"` not `title="2.83V button"`.
-- **Box type symmetry rule:** Controls that apply to all box types (e.g. box losses, Vb) must appear in a fixed position common to all types — never inside a box-type-specific block. Box-type-specific controls (vent params, PR params, etc.) go in their own conditional blocks below the shared controls. All box types must have the same structural skeleton; only the middle section varies.
-- **WinISD cross-reference rule:** Every tooltip, label, doc section, and default value should mention the WinISD equivalent wherever one exists — the parameter name WinISD uses, its default value, where it appears in the WinISD UI, and any known difference in behaviour. Users migrate from WinISD; they need to map Resonate concepts to what they already know. Examples: `"WinISD default: 10"`, `"called 'Driver input voltage' in WinISD"`, `"WinISD shows this in the Box tab → Advanced→ popup"`.
-- **Intrinsic vs tunable rule:** Device-intrinsic parameters (datasheet specs that describe what the component _is_) belong inside a collapsible edit section. Tunable parameters (things the user adjusts during design — added mass, box volume, vent length, losses) must stay permanently visible outside any collapsible block so the user can tweak them without entering edit mode.
-- **Driver-field purpose rule (single source of truth):** Every driver-editor field's tooltip lives in exactly one place — the `desc` string of its entry in `PARAMS` (`DriverDefineModal.vue`). Each `desc` **must** state both (a) what the field _is_ and (b) its role in the charts/functionality — either **which graphs it affects** (e.g. "AFFECTS only Impedance & phase", "CORE input — affects every response graph") or that it is **descriptive / derived / not simulated** (e.g. "Descriptive label only — not used in any graph", "Cabinet-planning geometry only — not used in the response simulation"). The "what each graph needs" legend tooltips read from these same `desc` strings (via `tokPurpose`), so there is **no second copy** — never add a parallel field-description map. When adding or changing a field, verify its purpose against `WINISD.md §13.1` (WinISD help) **and** the actual engine usage in `packages/engine`, and keep the chart-role clause accurate. If a field's engine behaviour changes (e.g. Le starts affecting SPL), update its `desc` in the same change.
-
-## Calculation stability — hard rule
-
-**Never change any calculation logic without explicit human permission.** This covers:
-
-- Formulas in `src/core/` (alignments, circuit, engine, filters, etc.)
-- Physical constants (`RHO`, `C`, end-correction coefficients, etc.)
-- `toFixed()` / display precision in stat bar or any rendered output
-- Default parameter values that affect computed results
-
-Cross-checks against external tools (micka.de, REW, WinISD, etc.) are **reference only**. A discrepancy does not authorise a fix — document it and stop. The human decides whether a difference warrants a change.
-
-## Testing rules
-
-- **Direct unit tests required:** Every function in `src/core/` must have direct unit tests in `test/`. Tests are not optional.
-- **Human-readable scenarios:** Every test (`it(...)`) must describe its scenario in plain English — what physical situation is being tested and what the expected outcome is. A loudspeaker designer who has never seen the code must be able to read a test name and understand what it verifies.
-- **No magic numbers in tests:** Every numeric literal used in a test (inputs, expected values, tolerances) must be a named constant with a comment explaining what it represents and why it has that value. No unexplained `0.1`, `37`, `2.83`, etc.
-- **All tolerances documented:** Every comparison tolerance must be a named constant (e.g. `SPL_TOLERANCE_DB = 0.1`) with a comment explaining why that tolerance is physically appropriate.
-- **Parameterised tests are allowed** as long as each scenario row has a clear human-readable label explaining what case it covers.
-- **References must be verified:** Any citation (AES paper, Wikipedia URL, textbook) included in test or source code comments must be verified to exist before inclusion. Do not invent or assume URLs — check them. Flag unverified citations with `⚠ Unverified reference`.
-- **No magic numbers in source code:** Every non-obvious numeric constant in `src/core/` must have a comment explaining its physical meaning and a source reference where applicable. Named constants are preferred over inline literals.
-- **Test framework:** Use `node:test` (`import { describe, it } from 'node:test'`) with `node:assert/strict`. Run with `node --test test/*.test.mjs`.
-
-## Visual regression tests — SPL canvas
-
-`test/visual.browser.spec.js` takes pixel-exact screenshots of the SPL graph panel for all four box types and compares against committed baselines in `test/visual.browser.spec.js-snapshots/`.
-
-**Run:** `npm run test:visual`
-
-**When to regenerate baselines** (intentional visual change — CSS, layout, curve styling):
-
-```
-npm run test:visual -- --update-snapshots
-```
-
-Review with `git diff` to confirm only the intended panels changed, then commit the new PNGs.
-
-**Do NOT regenerate** to paper over a failing test caused by a physics or engine change. If a visual test fails unexpectedly, investigate the cause first.
-
-## Third-party cross-check — micka.de oracle tests
-
-`test/scenarios.js` is the source of truth for every UI test case. Each scenario defines the driver/box inputs AND both tools' expected outputs (Resonate stat-bar values and micka.de table values).
-
-**When to run `npm run test:crosscheck`:**
-
-- You add a new scenario to `scenarios.js` and need to confirm the expected values are physically correct.
-- You change a formula in `src/core/` and need to re-validate the frozen expected values before updating the tests.
-- NOT in normal CI — these tests hit an external site and are slow (~15s each).
-
-**SOP for adding a new test case:**
-
-1. Add a scenario to `test/scenarios.js` with `driver:` and `box:` filled in; leave `micka:` and `resonate:` blank.
-2. Run `npm run test:crosscheck` — read what micka.de reports and fill in `micka:`.
-3. Map micka's values to Resonate's display format (apply the same `toFixed` precision the stat bar uses) and fill in `resonate:`.
-4. Add the Resonate UI wiring test to `test/app.browser.spec.js` using the frozen `resonate:` values.
-5. Commit. `npm run test:crosscheck` does not run in CI.
-
-**Do not run `test:crosscheck` in CI.** Add it only to local workflows or manual validation steps.
-
-## Driver data — human-verified flag rules
-
-These rules apply to all `_meta.yml` sidecar fields, and to any commentary or provenance text written into driver data files.
-
-- **NEVER write "human verified", "human-verified", "verified by human", or any equivalent phrase** in any sidecar field (`corrections`, `detail`, `reviewed_by`, or any other field) unless the user has **explicitly granted permission in this conversation**.
-- The only valid trigger is the user saying something like "mark as human verified", "you can mark it verified", or equivalent explicit instruction addressed to you in this session.
-- If you believe the user has reviewed the data and may have forgotten to grant this permission, you **may ask once**: _"Would you like me to mark this as human-verified?"_ Do not assume permission; wait for an explicit yes.
-- An AI writing that it "confirmed" or "verified" data in `corrections` does NOT count as human verification, even if the AI performed checks. `corrections` is AI-owned and must never contain verification language implying human sign-off.
-- `reviewed_by` must remain `null` or unset until the user explicitly authorises it for a specific driver or batch.
-
-## Driver data — batch fix SOP
-
-- **Datasheet first, always.** Before applying any automated DQ fix to a WDR field, read the cached datasheet from `drivers/<collection>/datasheets/` and confirm the correct value is there. Never apply a batch fix on pattern alone.
-- **Be suspicious of repetition.** If multiple drivers in a family produce identical values, verify each PDF independently — the match may be a regex hitting boilerplate rather than real per-driver data.
-- **If the field doesn't exist in the datasheet, don't invent it.** Omit the field and add a `corrections` note in `_meta.yml` explaining why — e.g. AMT tweeters have no T/S Fs; compression drivers rarely publish Fs. A missing field is more honest than a plausible-sounding placeholder.
-- **Record datasheet evidence in `corrections`.** State what the datasheet says and which file it came from. This lets a future reviewer verify the fix without re-fetching the PDF.
-
-## Driver data — PDF sourcing and debugging
-
-- **Cached PDFs are the primary source.** Always try `drivers/<collection>/datasheets/<filename>` first. Filenames are derived from the `datasheet` URL in `_meta.yml`.
-- **If no cached PDF, or if pypdf extracts no text:** Search for the PDF using web search with query `pdf <Brand> <Model>` — e.g. `pdf HiVi F8`. Scan the results for a direct PDF link, preferring the manufacturer's own site. If no manufacturer PDF is found, accept a major vendor (Parts Express, Mouser, Digikey). Do not use random or unknown third-party sites.
-- **PDF link priority (strict):** manufacturer site PDF > Parts Express / Mouser / Digikey PDF > skip and fall back to human review. Never use an unknown site.
-- **Fallback to human review.** If no extractable PDF can be found after web search, use `scripts/verify-vas-tiny.py` — it opens the cached PDF in the local viewer and prompts for the field value.
-- **Add DQ post-check.** After writing any fix to a WDR, re-run `check_fields()` and confirm the flag is cleared. If the flag remains, the fix value is wrong or the rule threshold needs review.
+---
 
 ## Precision in communication — ALWAYS NAME THE EXACT DEVICE
 
-**This rule is non-negotiable. Violations make findings unverifiable and waste the human's time.**
+**Non-negotiable. Violations make findings unverifiable.**
 
-Every finding, diagnosis, example, or data quality report **must** identify the exact device(s) involved by full brand + model. No exceptions, no abbreviations.
+Every finding, diagnosis, example, or data quality report **must** identify the exact device(s) involved by full brand + model.
 
-**BANNED phrases — never write these:**
+**Banned phrases:** "an 8Ω driver", "some drivers", "those files", "the affected ones", "etc.", "and others".
 
-- "an 8Ω driver", "a large woofer", "a tweeter", "some drivers", "certain models"
-- "those drivers", "these files", "the affected ones", "the page", "the issue"
-- "etc.", "and others", "and similar", "among others"
-- "a driver with X problem", "drivers in this family"
-
-**Required replacement — always write the actual name AND the actual values from that device:**
-
-- Wrong: "an 8Ω driver where Znom extracted as 82"
-- Right: "Scan-Speak 10F/8414G10: OCR extracted Znom=82 from the text `Nominal impedance [Zn] 82` in `drivers/new_ss_tool/datasheets/10f-8414g10.pdf`; correct value is 8 Ω (HTML source: `https://www.scan-speak.dk/product/10f-8414g10/`)"
-- Wrong: "those pages showed incorrect values"
-- Right: "`https://www.scan-speak.dk/product/11m-4631g05/` (Scan-Speak 11M/4631G05): Vas extracted as 0.271 m³ from OCR text `Equivalent volume [Vas] 271`; correct value is 0.0027 m³"
-
-The example must be **verifiable by the human without any further lookup**. If the human has to open a file or visit a URL just to check whether your example is accurate, the example is not specific enough.
+**Required:** actual name + actual values. The example must be verifiable by the human without any further lookup.
 
 **When reporting a data quality problem, always state all six:**
 
-1. Exact driver: brand + model (e.g. "Scan-Speak 15M/4531K00")
-2. Exact field: field name (e.g. "Vas")
-3. Exact wrong value: the number the tool extracted, **plus the local file path and location within the file where that value was found** (e.g. "0.161 m³ — extracted from `drivers/new_ss_tool/datasheets/15m-4531k00.pdf`, T/S parameters table, row 'Equivalent volume [Vas]'")
-4. Exact correct value: what the authoritative source says, **with the URL or local file path so the human can verify it without asking you** (e.g. "0.016 m³ per `https://www.scan-speak.dk/product/15m-4531k00/`, cached at `drivers/new_ss_tool/_html/15m-4531k00.html`, second table, row 'Equivalent Volume'")
-5. Exact cause: the verbatim raw text string that was misread, and which tool misread it (e.g. "OCR returned the line `Equivalent volume [Vas] 161`; decimal point between `16` and `1` was dropped by tesseract")
-6. Location in the file: describe where in the document the bad value appears (e.g. "3rd row of the Electrical Data table", "Key Features box top-right", "T/S parameter section, 5th row")
+1. Exact driver: brand + model
+2. Exact field: field name
+3. Exact wrong value + local file path + location within the file
+4. Exact correct value + URL or local file path so the human can verify without asking
+5. Exact cause: verbatim raw text string that was misread, and which tool misread it
+6. Location in the file: row name, table, section
 
-**If a list is long, enumerate every item.** Do not truncate. If there are 14 affected drivers, name all 14.
-
-**If you cannot name the device with all five points above, you do not have enough information to report the finding.** Stop and look it up before writing anything.
+If you cannot name the device with all six points, you do not have enough information to report the finding — stop and look it up first.
 
 ---
 
 ## External claims — require evidence, label inline
 
-- Never assert facts about external systems — tools (WinISD, LEAP, REW, etc.), websites, services, APIs, or data sources — without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
-- **The user must not have to verify my claims.** Any external claim that has not been verified in the current session must be flagged inline in the response with "⚠ unverified" before it reaches the user — not corrected after they catch it.
-- Inferred or assumed behaviour **must** be labelled as such in code comments, docs, and conversation. Record tool-behaviour assumptions in `WINISD.md` (or the relevant tool's notes file) with an explicit "⚠ Assumption — NOT directly verified" marker and a verification procedure.
-- Example violations to avoid: stating "WinISD uses 2.83 V fixed" without a source; stating "Eminence publishes machine-readable data files" without having fetched evidence of this.
-- **Hard gate:** Before making any comparative or causal claim about an external system ("X works because…", "unlike Y which…", "Y publishes…", "Z supports…"), call `advisor` to review the claim. Do not state it to the user until advisor has confirmed it is grounded.
+- Never assert facts about external systems (WinISD, LEAP, REW, websites, APIs) without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
+- **The user must not have to verify my claims.** Any unverified external claim must be flagged inline with "⚠ unverified" before it reaches the user.
+- Inferred or assumed behaviour **must** be labelled as such. Record tool-behaviour assumptions in `WINISD.md` with an explicit "⚠ Assumption — NOT directly verified" marker.
+- **Hard gate:** Before any comparative or causal claim about an external system, call `advisor` to review the claim. Do not state it to the user until advisor has confirmed it is grounded.

@@ -32,6 +32,7 @@ run "ESLint"            npm run lint
 run "Unit tests"        node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
 run "Golden tests"      node packages/engine/test/golden.test.mjs
 run "DQ check"          python scripts/dq_check.py
+run "Scraper tests"     python -m pytest scripts/scrapers/ -v --tb=short
 
 echo ""
 echo "========================================"
