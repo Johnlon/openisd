@@ -119,8 +119,19 @@ All project servers use ports in the 4000–4299 range only. Never use a port ou
 1. `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` → must be 200.
 2. Fetch the compiled JS entry point from the Vite server log output and confirm no `[vite] error` lines appear in the server output.
 3. For UI changes: use the browser automation tools (`mcp__claude-in-chrome__*`) to load the page and visually confirm the changed element is present and correct — do not rely on source-file grep alone. A component that compiles but renders incorrectly is still broken.
+4. **Inspect the browser Console AND Network for the whole interaction — a passing DOM assertion is NOT enough.** A green visual check once hid a Vue `Duplicate keys found` warning that was silently corrupting list rendering. When verifying or debugging any UI behaviour you MUST capture and read: (a) console **errors and warnings** (Vue warnings like duplicate keys, unhandled rejections), (b) uncaught page errors, (c) failed same-origin network requests (4xx/5xx/failed). If any appear, the change is not done — investigate, don't dismiss as "stale HMR" without proof.
 
-**Never say "it should work now — please check" without completing steps 1–3.** If a step fails, fix the problem first.
+**Never say "it should work now — please check" without completing steps 1–4.** If a step fails, fix the problem first.
+
+## UI test rule — assert on console + network — hard rule
+
+**Every Playwright UI/browser test (`packages/ui/test/*.browser.spec.js`) that exercises a feature MUST attach diagnostics and assert they are clean**, not just assert on the DOM. Attach at the start:
+
+- `page.on('console', …)` — collect `msg.type() === 'error'` and `'warning'` (Vue emits `Duplicate keys found`, injection warnings, etc. as `warning`).
+- `page.on('pageerror', …)` — uncaught exceptions.
+- `page.on('requestfailed', …)` and `page.on('response', r => r.status() >= 400)` — network failures. Filter to same-origin (`localhost`) so unreachable external federated sources don't cause false failures.
+
+Then `expect(...).toEqual([])` on each collector (at minimum: no console errors, no `duplicate key` warnings, no page errors, no same-origin network failures). `packages/ui/test/driver-search.browser.spec.js` is the reference implementation. Use condition waits (`page.waitForFunction`), never `page.waitForTimeout()` (the ESLint playwright rule forbids it and it makes tests flaky).
 
 ## JavaScript error handling — Go-inspired pattern (preferred)
 
