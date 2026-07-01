@@ -378,6 +378,11 @@ const filteredMyDrivers = computed(() => {
   if (!tokens.length) return myDrivers.value;
   return myDrivers.value.filter(d => tokens.every(t => (d.name || '').toLowerCase().includes(t)));
 });
+// Shorter source label for the list — drop the "(… bundled …)" clutter; the full
+// name and description stay in the hover tooltip.
+function shortSource(name) {
+  return (name || '').replace(/\s*\([^)]*bundled[^)]*\)/gi, '').trim();
+}
 
 // Lightweight WDR parser — returns whatever it finds, never throws
 function parseWdrLoose(content) {
@@ -701,9 +706,9 @@ async function openDefine() {
                  title="Download frequency response & impedance data (FRD/ZMA)" @click.stop>FRD ↗</a>
               <span v-if="f._canonical" :class="['dtype', f._canonical === 'Unclassified' && 'unk']">{{ f._canonical }}</span>
               <a v-if="f.sourceUrl" class="stag"
-                 :title="f.sourceUrl + (f.sourceDesc ? ' — ' + f.sourceDesc : '')"
-                 @click.stop.prevent="openSourceUrl(f.sourceUrl)">{{ f.sourceName }}</a>
-              <span v-else class="stag">{{ f.sourceName }}</span>
+                 :title="f.sourceName + (f.sourceDesc ? ' — ' + f.sourceDesc : '') + '\n' + f.sourceUrl"
+                 @click.stop.prevent="openSourceUrl(f.sourceUrl)">{{ shortSource(f.sourceName) }}</a>
+              <span v-else class="stag" :title="f.sourceName + (f.sourceDesc ? ' — ' + f.sourceDesc : '')">{{ shortSource(f.sourceName) }}</span>
             </span>
           </div>
           <div v-if="listTruncated" class="dlist-more">
