@@ -209,18 +209,6 @@ const canApply = computed(() => {
   return !!(si.Fs && si.Sd && si.Re && si.Vas && qCount >= 2);
 });
 
-const missing = computed(() => {
-  const si = resolvedSI.value;
-  const m = [];
-  if (!si.Fs)  m.push('Fs');
-  if (!si.Re)  m.push('Re');
-  if (!si.Sd)  m.push('Sd or Dia');
-  if (!si.Vas) m.push('Vas');
-  const qCount = [si.Qts, si.Qes, si.Qms].filter(v => v != null).length;
-  if (qCount < 2) m.push('at least 2 of Qts/Qes/Qms');
-  return m;
-});
-
 // A field that is REQUIRED to build the driver but still N reads red (blocking),
 // vs. the gentle yellow used for optional not-entered fields.
 const Q_KEYS = ['Qts', 'Qes', 'Qms'];
@@ -238,13 +226,21 @@ function isRequiredMissing(key) {
 //    impedance, not for acoustic simulation") → Le only shapes Impedance & phase.
 //  • sweep.js maxCurves uses Xmax/Pe only for the max-SPL / max-power limits.
 // Core T/S (Fs, a Q pair, Vas, Sd, Re) drive every graph and are required.
+// `need` = incremental tokens shown in the legend; `extra` = the extra field keys
+// (beyond the always-required core) this graph needs, used to highlight inputs.
 const CHART_DEPS = [
-  { chart: 'All graphs',        need: [{ t: 'Fs', k: 'Fs', req: true }, { t: 'Qts/Qes/Qms', k: 'Q', req: true }, { t: 'Vas', k: 'Vas', req: true }, { t: 'Sd', k: 'Sd', req: true }, { t: 'Re', k: 'Re', req: true }] },
-  { chart: 'Impedance & phase', need: [{ t: 'Le', k: 'Le' }] },
-  { chart: 'Cone excursion',    need: [{ t: 'Xmax', k: 'Xmax' }] },
-  { chart: 'Maximum SPL',       need: [{ t: 'Xmax', k: 'Xmax' }, { t: 'and/or', sep: true }, { t: 'Pe', k: 'Pe' }] },
-  { chart: 'Maximum power',     need: [{ t: 'Pe', k: 'Pe' }] },
+  { chart: 'All graphs',        extra: [],             need: [{ t: 'Fs', k: 'Fs', req: true }, { t: '2 of Qts/Qes/Qms', k: 'Q', req: true }, { t: 'Vas', k: 'Vas', req: true }, { t: 'Sd', k: 'Sd', req: true }, { t: 'Re', k: 'Re', req: true }] },
+  { chart: 'Impedance & phase', extra: ['Le'],         need: [{ t: 'Le', k: 'Le' }] },
+  { chart: 'Cone excursion',    extra: ['Xmax'],       need: [{ t: 'Xmax', k: 'Xmax' }] },
+  { chart: 'Maximum SPL',       extra: ['Xmax', 'Pe'], need: [{ t: 'Xmax', k: 'Xmax' }, { t: 'and/or', sep: true }, { t: 'Pe', k: 'Pe' }] },
+  { chart: 'Maximum power',     extra: ['Pe'],         need: [{ t: 'Pe', k: 'Pe' }] },
 ];
+const CORE_KEYS = ['Fs', 'Q', 'Vas', 'Sd', 'Re'];
+function expandKey(k) {
+  if (k === 'Q')  return ['Qts', 'Qes', 'Qms'];
+  if (k === 'Sd') return ['Sd', 'Dia'];
+  return [k];
+}
 function tokPresent(tok) {
   const si = resolvedSI.value;
   if (tok.k === 'Q') return ['Qts', 'Qes', 'Qms'].filter(k => si[k] != null).length >= 2;
@@ -257,6 +253,25 @@ function tokClass(tok) {
   if (tokPresent(tok)) return 'cd-on';
   return tok.req ? 'cd-req' : 'cd-off';
 }
+
+// The "what's needed" expander lives at the top and leads input: pick one or more
+// graphs and every input those graphs require gets a highlighted border.
+const graphHelpOpen  = ref(false);
+const selectedCharts = ref([]);
+function toggleChart(name) {
+  const i = selectedCharts.value.indexOf(name);
+  if (i >= 0) selectedCharts.value.splice(i, 1);
+  else selectedCharts.value.push(name);
+}
+const highlightKeys = computed(() => {
+  const set = new Set();
+  for (const name of selectedCharts.value) {
+    const dep = CHART_DEPS.find(c => c.chart === name);
+    if (!dep) continue;
+    for (const k of [...CORE_KEYS, ...dep.extra]) expandKey(k).forEach(x => set.add(x));
+  }
+  return set;
+});
 
 // ── Actions ───────────────────────────────────────────────────────────────
 function resetAll() {
@@ -298,6 +313,10 @@ function applyDriver() {
 }
 
 watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.querySelector('.dd-name')?.focus()); } });
+// Lead the input: keep the "what's needed" expander open while the driver is
+// incomplete, and let it fold away once it's valid. Manual toggle still works
+// until the validity state next changes.
+watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
 </script>
 
 <template>
@@ -326,7 +345,34 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
           <div class="dd-legend">
             <span class="leg-e">E entered</span>
             <span class="leg-c">C calculated</span>
-            <span class="leg-n">N not entered</span>
+            <span class="leg-n">N optional</span>
+            <span class="leg-req">N required</span>
+          </div>
+
+          <!-- What each graph needs — leads input; auto-opens while the driver is
+               incomplete, auto-closes when valid. Click a graph to highlight its fields. -->
+          <div class="dd-help">
+            <button class="dd-help-hd" @click="graphHelpOpen = !graphHelpOpen"
+                    :title="graphHelpOpen ? 'Hide graph requirements' : 'Show which fields each graph needs'">
+              <span class="dd-help-caret">{{ graphHelpOpen ? '▾' : '▸' }}</span>
+              What each graph needs
+              <span class="dd-help-sub">— click a graph to highlight its fields</span>
+            </button>
+            <div v-if="graphHelpOpen" class="dd-help-body">
+              <div v-for="c in CHART_DEPS" :key="c.chart" class="dd-cd-row"
+                   :class="{ 'dd-cd-sel': selectedCharts.includes(c.chart) }"
+                   @click="toggleChart(c.chart)"
+                   :title="`Highlight the fields the ${c.chart} graph needs`">
+                <span class="dd-cd-chart">{{ c.chart }}:</span>
+                <span class="dd-cd-need">
+                  <span v-for="(tok, i) in c.need" :key="i" :class="tokClass(tok)">{{ tok.t }}</span>
+                </span>
+              </div>
+              <div class="dd-help-note">
+                Fields in <span class="cd-off">yellow</span> / <span class="cd-req">red</span> are still needed.
+                The <span class="cd-req">red</span> fields are needed for every chart to function.
+              </div>
+            </div>
           </div>
 
           <!-- Parameter table -->
@@ -447,7 +493,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
                     <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
                   </span>
                   <input class="dd-val" type="number" step="any"
-                         :class="['input-' + stateOf(p.key), { 'input-required': isRequiredMissing(p.key) }]"
+                         :class="['input-' + stateOf(p.key), { 'input-required': isRequiredMissing(p.key), 'dd-hl': highlightKeys.has(p.key) }]"
                          :value="displayVal(p.key)"
                          @input="onInput(p.key, $event)"
                          @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
@@ -466,23 +512,6 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
             <label class="dd-notes-lbl">Notes</label>
             <textarea class="dd-notes" v-model="drvComment" rows="2"
                       placeholder="Optional notes about this driver…"></textarea>
-          </div>
-
-          <!-- Missing params hint -->
-          <div v-if="!canApply" class="dd-missing">
-            Still needed: {{ missing.join(' · ') }}
-          </div>
-
-          <!-- What each graph needs. Optional fields turn green once present
-               (that graph is fully available) and stay yellow while blank. -->
-          <div class="dd-chartdeps">
-            <div class="dd-cd-hd">What each graph needs</div>
-            <div v-for="c in CHART_DEPS" :key="c.chart" class="dd-cd-row">
-              <span class="dd-cd-chart">{{ c.chart }}:</span>
-              <span class="dd-cd-need">
-                <span v-for="(tok, i) in c.need" :key="i" :class="tokClass(tok)">{{ tok.t }}</span>
-              </span>
-            </div>
           </div>
 
           <!-- Reference links -->
@@ -555,6 +584,7 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
 .leg-e { color: var(--good); font-weight: 700; }
 .leg-c { color: var(--acc); font-style: italic; font-weight: 700; }
 .leg-n { color: #d8c176; }
+.leg-req { color: var(--bad); font-weight: 700; }
 
 .dd-badge { font-size: 9px; font-weight: 700; text-align: center; padding: 0 2px; }
 .badge-E { color: var(--good); }
@@ -668,24 +698,41 @@ watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.quer
   color: var(--fg); font: inherit; font-size: 11px; padding: 4px 6px; resize: vertical; width: 100%;
 }
 
-.dd-missing {
-  font-size: 10.5px; color: var(--acc2);
-  background: rgba(255,180,84,.07); border: 1px solid rgba(255,180,84,.25);
-  border-radius: 4px; padding: 5px 8px;
+/* "What each graph needs" expander (top of form). Leads input; click a graph
+   to highlight its required fields. Optional field tokens colour by presence. */
+.dd-help { border: 1px solid var(--line); border-radius: 4px; }
+.dd-help-hd {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--panel2); border: none; border-radius: 4px 4px 0 0;
+  color: var(--fg); font-size: 11px; font-weight: 600; padding: 5px 8px;
 }
-/* Graph ↔ field relationship legend. Optional fields colour by presence. */
-.dd-chartdeps {
-  font-size: 10.5px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
+.dd-help-hd:hover { color: var(--acc); }
+.dd-help-caret { display: inline-block; width: 11px; color: var(--mut); }
+.dd-help-sub { color: var(--mut); font-weight: 400; }
+.dd-help-body { padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; }
+.dd-help-note {
+  font-size: 10px; color: var(--mut); margin-top: 4px; padding: 4px 4px 1px;
+  border-top: 1px solid var(--line); line-height: 1.4;
 }
-.dd-cd-hd { color: var(--fg); font-weight: 600; margin-bottom: 3px; }
-.dd-cd-row { display: flex; gap: 6px; line-height: 1.55; }
+.dd-help-note .cd-off, .dd-help-note .cd-req { font-weight: 700; }
+
+.dd-cd-row {
+  display: flex; gap: 6px; line-height: 1.5; font-size: 10.5px;
+  cursor: pointer; border-radius: 3px; padding: 1px 4px;
+}
+.dd-cd-row:hover { background: var(--panel2); }
+.dd-cd-sel { background: color-mix(in srgb, var(--acc) 16%, var(--bg)); }
 .dd-cd-chart { color: var(--mut); flex: 0 0 116px; text-align: right; }
+.dd-cd-sel .dd-cd-chart { color: var(--acc); font-weight: 700; }
 .dd-cd-need { display: flex; flex-wrap: wrap; gap: 0 6px; }
 .cd-core { color: var(--fg); }
 .cd-on   { color: var(--good); font-weight: 600; }
 .cd-off  { color: #d8c176; }
 .cd-req  { color: var(--bad); font-weight: 600; }
 .cd-sep  { color: var(--mut); font-style: italic; }
+
+/* Highlighted input(s) for the currently-selected graph(s). */
+.dd-hl { outline: 2px solid var(--acc); outline-offset: -1px; position: relative; z-index: 2; }
 .dd-refs { font-size: 10.5px; color: var(--mut); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dd-refs a { color: var(--acc); text-decoration: none; }
 .dd-refs a:hover { text-decoration: underline; }
