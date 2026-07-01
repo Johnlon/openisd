@@ -2,8 +2,6 @@ import { reactive, computed, ref, watch } from 'vue';
 import { deriveDriver, sweep, maxCurves } from '@resonate/engine';
 import { DPAL } from './presets.js';
 
-const STORAGE_KEY = 'resonate_v2';
-
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
 export const DEFAULT_DRIVER = { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
@@ -18,18 +16,14 @@ const P_DEFAULTS = {
   filters: [],
 };
 
-function loadSaved() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {}; }
-  catch { return {}; }
-}
-
-const _saved = loadSaved();
-
+// Persistence has a SINGLE source of truth: resonate.state (utils/persist.js),
+// written by App.vue's watch and restored by loadLocal() on mount. store.js does
+// not persist — it initialises to defaults; App.vue applies any saved state.
 export const state = reactive({
-  driverRaw: _saved.driverRaw ?? DEFAULT_DRIVER,
-  box:       _saved.box      ?? 'vented',
-  P:         { ...P_DEFAULTS, ...(_saved.P ?? {}) },
-  graphs:    _saved.graphs   ?? ['SPL', 'Excursion', 'Zmag', 'GD'],
+  driverRaw: DEFAULT_DRIVER,
+  box:       'vented',
+  P:         { ...P_DEFAULTS },
+  graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
   compare:   [],
   editDriver: false,
   cursorF:     null,
@@ -41,23 +35,12 @@ export const state = reactive({
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
 });
 
-let _saveTimer = null;
-watch(
-  () => ({ driverRaw: state.driverRaw, box: state.box, P: state.P, graphs: state.graphs }),
-  (val) => {
-    clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(() => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(val)); } catch {}
-    }, 500);
-  },
-  { deep: true }
-);
 
 export const driver = computed(() => deriveDriver(state.driverRaw));
 
 export const driverWarnings = computed(() => {
   const w = [];
-  if (state.driverRaw.Pe == null)
+  if (state.driverRaw.Pe == null || state.driverRaw.Pe <= 0)
     w.push('Pe (rated power) not in datasheet — thermal power limit not shown on Max-SPL / Max-Power curves');
   return w;
 });
