@@ -1,38 +1,17 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
-// Attach collectors for console errors/warnings, uncaught page errors, and
-// same-origin network failures. UI tests MUST assert these are clean — a green
-// DOM assertion alone once hid a Vue "Duplicate keys found" warning that was
-// corrupting the driver-list rendering (unrelated drivers appeared for a query).
-function attachDiagnostics(page) {
-  const consoleErrors = [];
-  const consoleWarnings = [];
-  const pageErrors = [];
-  const networkErrors = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-    else if (msg.type() === 'warning') consoleWarnings.push(msg.text());
-  });
-  page.on('pageerror', err => pageErrors.push(err.message));
-  page.on('requestfailed', req => {
-    // Only the app's own resources are our responsibility; external federated
-    // driver sources (github.com) may be unreachable in CI and are not our bug.
-    if (req.url().includes('localhost')) networkErrors.push(`FAILED ${req.url()} — ${req.failure()?.errorText}`);
-  });
-  page.on('response', resp => {
-    if (resp.url().includes('localhost') && resp.status() >= 400) networkErrors.push(`${resp.status()} ${resp.url()}`);
-  });
-  return { consoleErrors, consoleWarnings, pageErrors, networkErrors };
-}
+// The `browserLog` auto-fixture (fixtures.js) already asserts a clean console +
+// network for every test — no console errors, no Vue "Duplicate keys found"
+// warning, no page errors, no same-origin network failures. This spec's job is to
+// (a) assert the DOM results are correct and (b) drive the app into the state that
+// makes the key-collision RENDER, so the fixture's console check can catch it.
 
 // Library rows only (exclude the "My Drivers" section rows).
 const LIB_ITEM = '.ditem:not(.my-ditem) b';
 
-test('driver library search returns only matching drivers, with a clean console + network', async ({ page }) => {
-  const diag = attachDiagnostics(page);
+test('driver library search returns only matching drivers (and renders the duplicate-name case)', async ({ page }) => {
   await page.goto('/');
 
-  // Open the driver library browser.
   await page.getByRole('button', { name: /Browse \/ Select/ }).click();
   const filter = page.locator('.filter');
   await expect(filter).toBeVisible();
@@ -52,9 +31,7 @@ test('driver library search returns only matching drivers, with a clean console 
     return page.locator(LIB_ITEM).allTextContents();
   };
 
-  // Every visible result must actually contain the query token. The regression
-  // showed unrelated drivers (e.g. "AE TD12M") appearing for "demo"/"generic"
-  // because the v-for key was non-unique after switching to Brand+Model names.
+  // Every visible result must actually contain the query token.
   for (const q of ['demo', 'generic', 'tweeter']) {
     const names = await searchNames(q);
     expect(names.length, `"${q}" returned no drivers`).toBeGreaterThan(0);
@@ -63,27 +40,19 @@ test('driver library search returns only matching drivers, with a clean console 
     }
   }
 
-  // The two bundled demos must be findable by their WDR Brand + Model, NOT the
-  // filename — both "demo" and "generic" resolve to them.
+  // Demos are found by their WDR Brand + Model, NOT the filename.
   const demoNames = await searchNames('demo');
   expect(demoNames).toContain('Demo Generic 6.5" Woofer');
   expect(demoNames).toContain('Demo Generic 1" Tweeter');
 
-  // CRITICAL for catching the key bug: search a term whose results contain the
-  // SAME Brand+Model twice (the Matt set has "AE TD12M" as two dated files). This
-  // forces the keyed list to re-patch with colliding rows — which is exactly when
-  // Vue emits "Duplicate keys found" if the v-for key isn't unique. Searching a
-  // term that filters the duplicates OUT (like "demo") never triggers it.
+  // Render the duplicate-name case: the Matt set has "AE TD12M" as two dated files.
+  // This re-patches the keyed list with colliding rows, which emits Vue's
+  // "Duplicate keys found" warning if the v-for key is not unique — caught by the
+  // fixture's console assertion. (A search that filters the duplicates out, like
+  // "demo", never triggers it — which is why the first version of this test missed
+  // the bug.)
   const dupRows = await searchNames('td12m');
   expect(dupRows.filter(n => /AE TD12M/i.test(n)).length,
     'expected the duplicate "AE TD12M" rows to render (they trigger the key collision)')
     .toBeGreaterThanOrEqual(2);
-
-  // Console + network must be clean. This is the assertion that actually catches
-  // the non-unique v-for key ("Duplicate keys found") and any load failure.
-  const dupKeys = diag.consoleWarnings.filter(w => /duplicate key/i.test(w));
-  expect(dupKeys, 'Vue "Duplicate keys found" warnings').toEqual([]);
-  expect(diag.consoleErrors, 'console errors during search').toEqual([]);
-  expect(diag.pageErrors, 'uncaught page errors').toEqual([]);
-  expect(diag.networkErrors, 'same-origin network failures').toEqual([]);
 });

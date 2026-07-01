@@ -125,13 +125,13 @@ All project servers use ports in the 4000–4299 range only. Never use a port ou
 
 ## UI test rule — assert on console + network — hard rule
 
-**Every Playwright UI/browser test (`packages/ui/test/*.browser.spec.js`) that exercises a feature MUST attach diagnostics and assert they are clean**, not just assert on the DOM. Attach at the start:
+**Every Playwright UI/browser test (`packages/ui/test/*.browser.spec.js`) MUST import `test`/`expect` from `packages/ui/test/fixtures.js`, NOT from `@playwright/test`.** That module's `browserLog` **auto-fixture** runs for every test (no opt-out) and:
 
-- `page.on('console', …)` — collect `msg.type() === 'error'` and `'warning'` (Vue emits `Duplicate keys found`, injection warnings, etc. as `warning`).
-- `page.on('pageerror', …)` — uncaught exceptions.
-- `page.on('requestfailed', …)` and `page.on('response', r => r.status() >= 400)` — network failures. Filter to same-origin (`localhost`) so unreachable external federated sources don't cause false failures.
+- captures `page.on('console', …)` errors + warnings (Vue emits `Duplicate keys found`, injection warnings, etc. as `warning`), `pageerror` uncaught exceptions, and failed/4xx/5xx same-origin (`localhost`) requests — external federated sources (github.com) are excluded so their unavailability isn't a false failure;
+- at teardown asserts every collector is empty (no console errors, no `duplicate key` warnings, no page errors, no same-origin network failures) — a green DOM assertion alone is NOT enough;
+- on any failure attaches the full console+network capture to the report and prints it, so a failing UI test surfaces the browser-side evidence like a stack trace.
 
-Then `expect(...).toEqual([])` on each collector (at minimum: no console errors, no `duplicate key` warnings, no page errors, no same-origin network failures). `packages/ui/test/driver-search.browser.spec.js` is the reference implementation. Use condition waits (`page.waitForFunction`), never `page.waitForTimeout()` (the ESLint playwright rule forbids it and it makes tests flaky).
+A test needs no per-test boilerplate for this — importing from `fixtures.js` is the whole contract. A test may call `browserLog.reset()` (add `browserLog` to its args) after initial navigation to re-baseline. Drive the app into the state that makes a bug *render* (e.g. `driver-search.browser.spec.js` searches a duplicate-named driver to force the key-collision the console check then catches) — a check that never renders the broken state can't see it. Use condition waits (`page.waitForFunction`), never `page.waitForTimeout()` (the ESLint playwright rule forbids it and it makes tests flaky).
 
 ## JavaScript error handling — Go-inspired pattern (preferred)
 

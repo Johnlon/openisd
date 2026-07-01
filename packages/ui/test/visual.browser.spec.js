@@ -26,7 +26,7 @@
  * the stat bar assertion passes, the canvas is already painted.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // Fixed viewport for all visual tests — pixel-exact comparison requires a stable size
 test.use({ viewport: { width: 1440, height: 900 } });
@@ -56,9 +56,9 @@ function splPanel(page) {
 
 // Helper: set the reference driver T/S params via the edit panel
 async function setReferenceDriver(page) {
-  await page.locator('text=Edit ✎').click();
-  await page.locator('input[data-bind="Fs"]').fill(String(DRV_FS_HZ));
-  await page.locator('input[data-bind="Fs"]').press('Tab');
+  await page.locator('text=What-If? ✎').click();
+  await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
+  await numInputByLabel(page, 'Fs').press('Tab');
   const qtsInput = numInputByLabel(page, 'Qts');
   await qtsInput.fill(String(DRV_QTS));
   await qtsInput.press('Tab');

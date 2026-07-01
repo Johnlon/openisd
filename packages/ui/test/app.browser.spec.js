@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -111,9 +111,9 @@ function numInputByLabel(page, labelText) {
 
 test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 and fc=58.5Hz in stat bar', async ({ page }) => {
   // Set driver parameters — Qts and Vas drive the Qtc formula; Fs drives fc
-  await page.locator('text=Edit ✎').click();
-  await page.locator('input[data-bind="Fs"]').fill(String(DRV_FS_HZ));
-  await page.locator('input[data-bind="Fs"]').press('Tab');
+  await page.locator('text=What-If? ✎').click();
+  await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
+  await numInputByLabel(page, 'Fs').press('Tab');
   const qtsInput = numInputByLabel(page, 'Qts');
   await qtsInput.fill(String(DRV_QTS));
   await qtsInput.press('Tab');
@@ -137,9 +137,9 @@ test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 a
 test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.707 and fc=68.8Hz', async ({ page }) => {
   // Set all driver params that the stat bar assertions depend on:
   // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc
-  await page.locator('text=Edit ✎').click();
-  await page.locator('input[data-bind="Fs"]').fill(String(DRV_FS_HZ));
-  await page.locator('input[data-bind="Fs"]').press('Tab');
+  await page.locator('text=What-If? ✎').click();
+  await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
+  await numInputByLabel(page, 'Fs').press('Tab');
   const qtsInput = numInputByLabel(page, 'Qts');
   await qtsInput.fill(String(DRV_QTS));
   await qtsInput.press('Tab');
@@ -199,9 +199,9 @@ const BP4_STAT_VB      = '15.0'; // (0.015 m³ × 1000).toFixed(1)
 
 test('bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows box:bandpass4, Vb:15.0L and peak port velocity', async ({ page }) => {
   // Set driver — peak port velocity depends on driver T/S
-  await page.locator('text=Edit ✎').click();
-  await page.locator('input[data-bind="Fs"]').fill(String(BP4_DRV_FS_HZ));
-  await page.locator('input[data-bind="Fs"]').press('Tab');
+  await page.locator('text=What-If? ✎').click();
+  await numInputByLabel(page, 'Fs').fill(String(BP4_DRV_FS_HZ));
+  await numInputByLabel(page, 'Fs').press('Tab');
   const qtsInput = numInputByLabel(page, 'Qts');
   await qtsInput.fill(String(BP4_DRV_QTS));
   await qtsInput.press('Tab');
