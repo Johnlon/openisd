@@ -1,29 +1,3 @@
-# Welcome to Resonate
-
-Resonate is a browser-based loudspeaker enclosure simulator, inspired by the functionality of WinISD.
-
-It started as a quick spike, and it has come a long way since. The physics engine (`src/core/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
-
-WinISD has been abandoned and is closed source so there is no opportunity to move it forward.
-
-The intention of Resonate is to form a collaboration of interested parties to build a modern alternative to WinIsd.
-
-The technical goals include compatibility with WinIsd file formats (and other) and to create a modern intuitive tool that address the numerous complaints on the internet about the WinIsd tool.
-
-The long term goal of Resonate is to build something open source using modern tech, with proper tests and architecture, so that it doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
-
-**I am looking for a band of the willing to move this thing forward.**
-
-Please volunteer your time with ideas and feedback and pull requests for improving it.
-
-## Who am I?
-
-I am a software engineer with 40 years of experience and would like to do the right thing here and have a bit of fun at the same time.
-
-My bio, CV and all my Hackaday projects can be found on my personal page https://johnlon.github.io/
-
-But I need your help; that's the whole point!
-
 # Resonate
 
 **An open, community-owned loudspeaker enclosure simulator that runs in any browser.**
@@ -35,6 +9,20 @@ sealed, vented, bandpass, and passive-radiator enclosures from a driver's
 Thiele/Small parameters. No install, no licence key, runs in any browser.
 Validated against the closed-form physics, with a self-test that proves it
 on every load.
+
+It started as a quick spike, and it has come a long way since. The physics engine (`src/core/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
+
+WinISD has been abandoned and is closed source, so there is no way to move it forward. Resonate exists to build a modern, open alternative — compatible with WinISD's file formats (and others), and answering the many complaints about the old tool. The long-term goal is something that doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
+
+**I am looking for a band of the willing to move this thing forward.** Please volunteer your time with ideas, feedback, and pull requests.
+
+## Who am I?
+
+I am a software engineer with 40 years of experience and would like to do the right thing here and have a bit of fun at the same time.
+
+My bio, CV and all my Hackaday projects can be found on my personal page https://johnlon.github.io/
+
+But I need your help; that's the whole point!
 
 > ## ▶ [**Launch Resonate**](https://johnlon.github.io/resonate/)
 >

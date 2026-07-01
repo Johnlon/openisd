@@ -133,6 +133,60 @@ describe('deriveDriver — {value, errors} contract', () => {
     const w = errors.find(e => e.field === 'Pe' && e.level === 'warn');
     assert.ok(w, 'must have a level:warn entry for Pe=0');
   });
+
+  // ── edge cases ──────────────────────────────────────────────────────────────
+
+  it('a Pe warn alone (all required fields present) does not block the value — warn ≠ error', () => {
+    // The critical distinction: warn-level entries must NOT null the value.
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Pe: 0 });
+    assert.ok(value != null, 'warn-only result must keep a usable value');
+    assert.ok(!errors.some(e => e.level === 'error'), 'Pe=0 alone produces no error-level entry');
+  });
+
+  it('negative Fs is rejected the same as zero/absent — Fs must be strictly positive', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Fs: -37 });
+    assert.equal(value, null);
+    assert.ok(errors.some(e => e.field === 'Fs' && e.level === 'error'), 'negative Fs must be an error');
+  });
+
+  it('negative Re is rejected — resistance must be strictly positive', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Re: -5.6 });
+    assert.equal(value, null);
+    assert.ok(errors.some(e => e.field === 'Re' && e.level === 'error'));
+  });
+
+  it('NaN Fs is rejected — NaN must not slip through the > 0 guard', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS, Fs: NaN });
+    assert.equal(value, null);
+    assert.ok(errors.some(e => e.field === 'Fs' && e.level === 'error'));
+  });
+
+  it('multiple missing required fields accumulate one error entry per field — not just the first', () => {
+    // Fs, Re, Sd, Vas all absent → four distinct error entries, all fields named.
+    const { value, errors } = deriveDriver({ Qes: QES, Qms: QMS });
+    assert.equal(value, null);
+    const errFields = new Set(errors.filter(e => e.level === 'error').map(e => e.field));
+    for (const f of ['Fs', 'Re', 'Sd', 'Vas']) {
+      assert.ok(errFields.has(f), `expected an error entry for ${f}; got fields ${[...errFields].join(', ')}`);
+    }
+  });
+
+  it('a completely empty driver produces errors but never throws and never returns undefined', () => {
+    const result = deriveDriver({});
+    assert.ok(result && Array.isArray(result.errors), 'must return {value, errors} even for {}');
+    assert.equal(result.value, null);
+    assert.ok(result.errors.length > 0, 'empty driver must report at least one error');
+  });
+
+  it('every error entry has field, level, and a non-empty human-readable message', () => {
+    // Contract guarantee the UI relies on to render per-field messages.
+    const { errors } = deriveDriver({});
+    for (const e of errors) {
+      assert.ok(typeof e.field === 'string' && e.field.length > 0, 'field must be a non-empty string');
+      assert.ok(e.level === 'error' || e.level === 'warn', `level must be error|warn, got ${e.level}`);
+      assert.ok(typeof e.message === 'string' && e.message.length > 0, 'message must be non-empty text');
+    }
+  });
 });
 
 // ── deriveDriver — Q-factor derivation ───────────────────────────────────────
