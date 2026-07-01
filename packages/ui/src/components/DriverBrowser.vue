@@ -298,11 +298,15 @@ async function init() {
     if (!files) continue;
     const entries = files.map(f => {
       const qp = quickParse(f.content);
-      const nameStr = f.name + ' ' +
-        ((f.content || '').match(/^Brand=(.+)$/m)?.[1] || '') + ' ' +
-        ((f.content || '').match(/^Model=(.+)$/m)?.[1] || '');
+      const brand = (f.content || '').match(/^Brand=(.+)$/m)?.[1]?.trim() || '';
+      const model = (f.content || '').match(/^Model=(.+)$/m)?.[1]?.trim() || '';
+      // Identify/display by the WDR's Brand + Model (the driver's real name),
+      // NOT the filename. Fall back to the filename only if both are absent.
+      const displayName = [brand, model].filter(Boolean).join(' ') || f.name;
+      const nameStr = displayName + ' ' + f.name;
       return {
-        name: f.name,
+        name: displayName,
+        fileName: f.name,
         content: f.content,
         date: f.date || '',
         datasheet:   f.datasheet   || '',
