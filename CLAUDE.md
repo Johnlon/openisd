@@ -1,5 +1,26 @@
 # Claude Code rules for this project
 
+## TDD and quality gates — hard rule (most important)
+
+**Never claim success, "done", "fixed", or "ready to check" until every quality gate is 100% green — run them, do not assume.** The gates are: `npm run lint` (0 errors), the unit/golden tests, the DQ checks, AND the full Playwright browser suite (`npx playwright test`). A change is not done because it *looks* right or the code compiles.
+
+**Run the relevant safeguard every single time you make a claim.** In particular:
+
+- **Any change to a Vue component, template, CSS, store, or engine wiring → run `npx playwright test` before claiming it works.** A UI change that renames a control, changes a binding, or alters a selector can silently break tests; the only way to know is to run them. (This rule exists because a button rename + input change earlier went unverified and rotted the browser tests until a later run caught it — a preventable SDLC failure.)
+- Never skip a gate because it is "slow" or "probably fine". Slow is cheaper than wrong.
+
+**Bug fixes follow strict red→green TDD:**
+
+1. Write a test that reproduces the bug and **drives the app into the state where the bug actually renders** (a check that never renders the broken state can't catch it).
+2. **Run it and watch it FAIL** — confirming the test detects the bug (and fails for the right reason).
+3. Apply the fix.
+4. **Run it and watch it PASS.**
+5. Run the full suite + lint and confirm 100% green before saying done.
+
+Do not reorder these. "I added a test and a fix" without having *seen the test fail first* is not TDD — the test may be asserting nothing.
+
+---
+
 ## Linting — hard rule
 
 **Never work around the linter.** This means:

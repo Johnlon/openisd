@@ -66,14 +66,27 @@ export const test = base.extend({
       console.error(`\n[browser diagnostics — "${testInfo.title}"${failed ? ' (test FAILED)' : ''}]\n${JSON.stringify(dump, null, 2)}\n`);
     }
 
-    // NO opt-out, NO skip-on-failure. Every test asserts the browser stayed clean,
-    // always — even alongside an existing failure, so browser-side evidence is never
-    // swallowed. (Clean logs make these assertions no-ops.)
-    const dupKeys = log.consoleWarnings.filter(w => /duplicate key/i.test(w));
-    expect(dupKeys, 'Vue "Duplicate keys found" warnings').toEqual([]);
-    expect(log.consoleErrors, 'console errors during test').toEqual([]);
-    expect(log.pageErrors, 'uncaught page errors during test').toEqual([]);
-    expect(log.networkErrors, 'same-origin network failures during test').toEqual([]);
+    // NO opt-out, NO skip-on-failure. EVERY check runs every time — each is wrapped
+    // in try/catch so an early failure never prevents the later checks from running.
+    // Their failures are aggregated into ONE error listing every category, so a
+    // single test run reports the complete picture rather than the first problem only.
+    const checks = [
+      ['Vue "Duplicate keys found" warnings', log.consoleWarnings.filter(w => /duplicate key/i.test(w))],
+      ['console errors', log.consoleErrors],
+      ['uncaught page errors', log.pageErrors],
+      ['same-origin network failures', log.networkErrors],
+    ];
+    const failures = [];
+    for (const [label, entries] of checks) {
+      try {
+        expect(entries, label).toEqual([]);
+      } catch {
+        failures.push(`✗ ${label} (${entries.length}):\n    ${entries.join('\n    ')}`);
+      }
+    }
+    if (failures.length) {
+      throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\n${failures.join('\n')}`);
+    }
   }, { auto: true }],
 });
 

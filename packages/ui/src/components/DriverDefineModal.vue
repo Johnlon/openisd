@@ -265,6 +265,11 @@ function tokPurpose(tok) {
   if (tok.k === 'Q') return 'Damping trio — enter any 2 of Qms/Qes/Qts, the third auto-calculates. CORE input; affects every response graph.';
   return PARAMS.find(p => p.key === tok.k)?.desc || '';
 }
+// Format a desc for a native title tooltip: one sentence per line so long
+// descriptions read easily instead of wrapping as a single run-on line.
+function fmtTip(desc) {
+  return (desc || '').replace(/([.?!]) (?=[A-Z(])/g, '$1\n');
+}
 
 // The "what's needed" expander lives at the top and leads input: pick one or more
 // graphs and every input those graphs require gets a highlighted border.
@@ -381,7 +386,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                 <span class="dd-cd-chart">{{ c.chart }}:</span>
                 <span class="dd-cd-need">
                   <span v-for="(tok, i) in c.need" :key="i" :class="[tokClass(tok), { 'cd-info': tok.k }]"
-                        :title="tokPurpose(tok)">{{ tok.t }}</span>
+                        :title="fmtTip(tokPurpose(tok))">{{ tok.t }}</span>
                 </span>
               </div>
               <div class="dd-help-note">
@@ -503,7 +508,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                 <div v-for="p in PARAMS.filter(x => x.sect === sect.id)" :key="p.key"
                      class="dd-row"
                      :class="{ 'row-derived': sect.isDerived, 'dd-newrow': p.newRow }"
-                     :title="p.desc">
+                     :title="fmtTip(p.desc)">
                   <span class="dd-lbl">
                     {{ p.label }}
                     <span v-if="p.wdr" class="wdr-tag" title="WinISD / WDR field name">{{ p.wdr }}</span>
@@ -514,7 +519,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                          :value="displayVal(p.key)"
                          @input="onInput(p.key, $event)"
                          @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
-                         :title="p.desc">
+                         :title="fmtTip(p.desc)">
                   <span class="dd-unit">{{ p.unit }}</span>
                   <span class="dd-badge"
                         :class="[ 'badge-' + stateOf(p.key), { 'badge-required': isRequiredMissing(p.key) } ]">{{ stateOf(p.key) }}</span>
@@ -733,8 +738,8 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
 .dd-help-body { padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; }
 .dd-help-lead {
   display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
-  font-size: 10.5px; color: var(--acc2); font-weight: 600;
-  background: rgba(255,180,84,.12); border: 1px solid rgba(255,180,84,.35);
+  font-size: 10.5px; color: var(--mut); font-weight: 500;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.12);
   border-radius: 4px; padding: 4px 7px;
 }
 .dd-help-ico { flex: 0 0 auto; font-size: 12px; line-height: 1; }
