@@ -20,7 +20,7 @@ const PARAMS = [
   { key: 'Qts',  unit: '',      sect: 'TS',   label: 'Qts',       desc: 'Total Q = Qms‖Qes. CORE input — enter any 2 of the trio, the third auto-calculates; affects every response graph. WinISD: Qts' },
   // Piston / Acoustic — Sd/Dia (interchangeable) + Xmax on one row
   { key: 'Sd',   unit: 'cm²',   sect: 'Piston', label: 'Sd',      desc: 'Effective radiating (piston) area. CORE input — governs displacement, SPL and excursion; affects every graph. Enter Sd or Cone ⌀. WinISD: Sd' },
-  { key: 'Dia',  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  desc: 'Cone effective diameter → Sd = π·(Dia/2)². Alternative to Sd (enter one). CORE input; affects every graph. WinISD: Dia' },
+  { key: 'Dia',  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  wdr: 'Dd', desc: 'Cone effective diameter → Sd = π·(Dd/2)². Alternative to Sd (enter one). CORE input; affects every graph. WinISD: Dd' },
   { key: 'Xmax', unit: 'mm',    sect: 'Piston', label: 'Xmax',    desc: 'Peak linear (clean) excursion, one-way. AFFECTS: Cone excursion (the ±Xmax limit) and the excursion-limited part of Maximum SPL. WinISD: Xmax', optional: true },
   // Electrical — Re/Le/Znom on one row
   { key: 'Re',   unit: 'Ω',     sect: 'Electrical', label: 'Re',  desc: 'DC voice-coil resistance. CORE input — the power↔voltage reference (P = V²/Re); scales SPL & power; needed for Bl. Affects every graph. WinISD: Re' },
@@ -34,29 +34,29 @@ const PARAMS = [
   { key: 'Hc',   unit: 'mm',    sect: 'Motor', label: 'Hc',  desc: 'Voice-coil winding height. Reference/WDR geometry (WinISD derives Xmax ≈ |Hc−Hg|/2) — not used directly by our simulation. WinISD: Hc', optional: true },
   { key: 'Hg',   unit: 'mm',    sect: 'Motor', label: 'Hg',  desc: 'Magnetic air-gap height. Reference/WDR geometry (with Hc gives Xmax) — not used directly by our simulation. WinISD: Hg', optional: true },
   // Voice coil & thermal (WDR: numVC, VCCon, alfaVC, Rt, Ct)
-  { key: 'numVC',  unit: 'count', sect: 'VC', label: 'VCs',   desc: 'Number of voice coils (1 normal, 2 = dual-voice-coil). Descriptive / WDR only — not simulated. WinISD: Voicecoils', optional: true, raw: true },
+  { key: 'numVC',  unit: 'count', sect: 'VC', label: 'VCs',   wdr: 'numVC',  desc: 'Number of voice coils (1 normal, 2 = dual-voice-coil). Descriptive / WDR only — not simulated. WinISD: Voicecoils', optional: true, raw: true },
   { key: 'VCCon',  unit: '1∥/2S', sect: 'VC', label: 'VCCon', desc: 'Voice-coil wiring: 1 = parallel, 2 = series. Descriptive / WDR only — not simulated. WinISD: Connection', optional: true, raw: true },
-  { key: 'alfaVC', unit: '1/K',   sect: 'VC', label: 'αVC',   desc: 'VC resistance temperature coefficient (copper ≈ 0.0039). Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: AlfaVC', optional: true, raw: true },
-  { key: 'Rt',     unit: 'K/W',   sect: 'VC', label: 'R(t)',  desc: 'Voice-coil-to-ambient thermal resistance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: R(t)', optional: true, raw: true },
-  { key: 'Ct',     unit: 'J/K',   sect: 'VC', label: 'C(t)',  desc: 'Voice-coil thermal capacitance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: C(t)', optional: true, raw: true },
+  { key: 'alfaVC', unit: '1/K',   sect: 'VC', label: 'αVC',   wdr: 'AlfaVC', desc: 'VC resistance temperature coefficient (copper ≈ 0.0039). Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: AlfaVC', optional: true, raw: true },
+  { key: 'Rt',     unit: 'K/W',   sect: 'VC', label: 'R(t)',  wdr: 'Rt',     desc: 'Voice-coil-to-ambient thermal resistance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: R(t)', optional: true, raw: true },
+  { key: 'Ct',     unit: 'J/K',   sect: 'VC', label: 'C(t)',  wdr: 'Ct',     desc: 'Voice-coil thermal capacitance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: C(t)', optional: true, raw: true },
   // Environment (WDR: c, roo)
   { key: 'c',    unit: 'm/s',   sect: 'Environment', label: 'c', desc: 'Speed of sound (default ≈ 343 m/s). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: c', optional: true, raw: true },
-  { key: 'roo',  unit: 'kg/m³', sect: 'Environment', label: 'ρ', desc: 'Air density (default ≈ 1.2 kg/m³). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: roo', optional: true, raw: true },
+  { key: 'roo',  unit: 'kg/m³', sect: 'Environment', label: 'ρ', wdr: 'roo', desc: 'Air density (default ≈ 1.2 kg/m³). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: roo', optional: true, raw: true },
   // Derived — calculated by default (state C) but editable: type to override, clear to revert
   { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load = 1/((2π·Fs)²·Cms). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Mms' },
   { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance = Vas/(ρc²·Sd²). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Cms' },
   { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance = 2π·Fs·Mms/Qms. Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Rms' },
-  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    desc: 'Motor force factor = √(2π·Fs·Mms·Re/Qes). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Bl' },
+  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    wdr: 'BL',  desc: 'Motor force factor = √(2π·Fs·Mms·Re/Qes). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: BL' },
   { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax. Derived (state C); type to override. Reference value — not a direct chart input.' },
-  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Derived (state C); type to override. Sets the SPL reference level. WinISD: Eff', newRow: true },
-  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
+  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    wdr: 'no',  desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Derived (state C); type to override. Sets the SPL reference level. WinISD: no', newRow: true },
+  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', wdr: 'SPL', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
   // Physical dimensions — diameters row, axial depths row, misc row
   { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (baffle space to reserve). Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Outer', optional: true, dimOnly: true },
   { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket diameter = the hole to cut in the baffle. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Basket', optional: true, dimOnly: true },
   { key: 'magnetMm',   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet', optional: true, dimOnly: true },
   { key: 'depthMm',    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Depth', optional: true, dimOnly: true },
   { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange/basket-plate thickness. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Thick', optional: true, dimOnly: true },
-  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    desc: 'Magnet assembly axial depth. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet Depth', optional: true, dimOnly: true },
+  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    wdr: 'MagDepth', desc: 'Magnet assembly axial depth. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet Depth', optional: true, dimOnly: true },
   { key: 'vcDiaMm',    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice-coil diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: VCd', optional: true, dimOnly: true },
   { key: 'weightG',    unit: 'g',  sect: 'Dimensions', label: 'Weight',    desc: 'Driver weight. Reference only — not used in the response simulation.', optional: true, dimOnly: true },
 ];
@@ -506,6 +506,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                      :title="p.desc">
                   <span class="dd-lbl">
                     {{ p.label }}
+                    <span v-if="p.wdr" class="wdr-tag" title="WinISD / WDR field name">{{ p.wdr }}</span>
                     <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
                   </span>
                   <input class="dd-val" type="number" step="any"
@@ -672,6 +673,11 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
   display: flex; align-items: center; justify-content: flex-end; gap: 3px;
 }
 .opt-tag { font-size: 9px; color: var(--mut); opacity: 0.55; font-style: italic; }
+/* WDR/WinISD field name shown next to labels that differ from it. */
+.wdr-tag {
+  font-size: 8px; color: var(--acc); font-weight: 600; letter-spacing: .02em;
+  background: color-mix(in srgb, var(--acc) 14%, transparent); border-radius: 2px; padding: 0 2px;
+}
 
 .dd-val {
   width: 100%; padding: 3px 5px; border: none;
