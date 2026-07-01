@@ -1,61 +1,61 @@
 {
   "$schema": "./sources.schema.md",
-  "version": 1,
-  "description": "Federated driver-data sources. Resonate links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this list (and you can paste any GitHub repo ad hoc). Add a source by opening a PR that appends an entry here.",
-  "sources": [
-    {
-      "name": "Resonate demos (bundled)",
+  "version": 2,
+  "description": "Federated driver-data sources, keyed by a short stable source id. Resonate links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this map (and you can paste any GitHub repo ad hoc). A driver's unique identity is its source key + its path within that source — never its display name, which can repeat. Add a source by opening a PR that adds a keyed entry here; the key is the drivers/ folder name for bundled sources, or a short slug for federated ones.",
+  "sources": {
+    "demos": {
+      "name": "Resonate demos",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/demos",
       "description": "Generic demo drivers shipped with Resonate (a 6.5\" woofer and a 1\" tweeter) — not real products; representative values for trying the tool. The woofer is the app's default driver.",
       "license": "public domain (Resonate demo data)"
     },
-    {
-      "name": "Matt (mtg90) / AVS Forum (legacy bundled)",
+    "matt": {
+      "name": "Matt (mtg90) / AVS Forum",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/matt",
       "description": "~430 drivers from the mtg90 AVS Forum collection. See drivers/matt/meta.json for provenance.",
       "license": "community / factual T/S measurements"
     },
-    {
-      "name": "loudspeakerdatabase (bundled samples)",
+    "loudspeakerdatabase": {
+      "name": "loudspeakerdatabase",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/loudspeakerdatabase",
       "description": "Drivers sourced from loudspeakerdatabase.com.",
       "license": "see loudspeakerdatabase.com"
     },
-    {
+    "mwisbest-winisd": {
       "name": "MWisBest/WinISDDrivers git repo",
       "url": "https://github.com/MWisBest/WinISDDrivers",
       "description": "~108 subwoofer driver files for WinISD.",
       "license": "see repository"
     },
-    {
-      "name": "SB Acoustics (bundled)",
+    "sb-acoustics": {
+      "name": "SB Acoustics",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/sb-acoustics",
       "description": "201 drivers scraped from sbacoustics.com. Covers SB Acoustics and Satori lines — woofers, midrange, tweeters. PDF datasheets linked in _meta.json. All quality=M (scraped, not human-verified). Refresh with: python scripts/scrape_sbacoustics.py",
       "license": "public product data from sbacoustics.com"
     },
-    {
-      "name": "Scan-Speak (bundled)",
+    "scan-speak": {
+      "name": "Scan-Speak",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/scan-speak",
       "description": "114 drivers scraped from scan-speak.dk — woofers, midrange, tweeters, and Revelator/Ellipticor lines. PDF datasheets and ZIP measurement files (SPL + impedance) downloaded locally. Quality=M (scraped, not human-verified). Refresh with: python scripts/scrape_scanspeak.py --refresh",
       "license": "public product data from scan-speak.dk"
     },
-    {
-      "name": "Wavecor (bundled)",
+    "wavecor": {
+      "name": "Wavecor",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/wavecor",
       "description": "73 drivers scraped from wavecor.com — woofers, subwoofers, and full-range drivers (WF/SW/FR series). PDF datasheets and SPL/impedance TXT measurement files downloaded locally. Quality=M (scraped, not human-verified). Refresh with: python scripts/scrape_wavecor.py --refresh",
       "license": "public product data from wavecor.com"
     },
-    {
-      "name": "Parts Express woofer guide (bundled)",
+    "parts-express": {
+      "name": "Parts Express woofer guide",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/parts-express",
       "description": "1673 drivers fetched from the Parts Express product API (https://www.parts-express.com/api/items?q={sku}&fieldset=details). Covers woofers, subwoofers, tweeters, midrange/full-range, passive radiators, planar/ribbon, car audio, and pro audio drivers. Brands: Aurum Cantus, B&C Speakers, Beyma, Celestion, Ciare, CSS, Dayton Audio, EPIQUE, Eminence Speaker, FaitalPRO, Goldwood, GRS, HiVi, JBL Professional, Lavoce, Morel, Peerless by Tymphany, PRV Audio, Selenium, Tang Band, Tectonic, Timpano Audio, Visaton, Wavecor and others. Files with populated Qes have full T/S (quality=H); files with blank Qes have estimated Re and Sd only (quality=L). See meta.json for quality=M cases. Refresh with: node scripts/refresh-pe-catalog.mjs",
       "license": "public product data from parts-express.com"
     },
-    {
-      "name": "WinISD (legacy bundled)",
+    "winisd": {
+      "name": "WinISD",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/winisd",
       "description": "1121 driver files from the original WinISD distribution (circa 2006 or earlier). Quality=L (obsolete, unchecked). Most drivers are likely subsumed by more recent sources.",
       "license": "see WinISD project"
     }
-  ]
+  }
 }

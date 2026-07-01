@@ -7,7 +7,8 @@ import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
-const sources     = sourcesJson.sources || [];
+// sources.json v2 keys sources by a short stable id; expose each as { key, ...src }.
+const sources     = Object.entries(sourcesJson.sources || {}).map(([key, s]) => ({ key, ...s }));
 const allFiles    = ref([]);   // unified pool across all sources
 const filterQ     = ref('');
 const statusMsg   = ref('');
@@ -257,6 +258,7 @@ async function fetchSource(src) {
         return {
           path: t.path, branch, repo: src.repo,
           name: nm,
+          sourceKey:  src.key,
           sourceName: src.name,
           sourceUrl:  src.url || '',
           sourceDesc: src.description || '',
@@ -276,17 +278,17 @@ async function fetchSource(src) {
 function parseRepoInput(s) {
   s = s.trim(); if (!s) return null;
   let m = s.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?(?:\/tree\/([^/]+)(?:\/(.*))?)?$/i);
-  if (m) return { name: m[1]+'/'+m[2], type:'github', repo: m[1]+'/'+m[2], branch: m[3]||'', path: m[4]||'' };
+  if (m) return { key: m[1]+'/'+m[2], name: m[1]+'/'+m[2], type:'github', repo: m[1]+'/'+m[2], branch: m[3]||'', path: m[4]||'' };
   m = s.match(/^([\w.-]+)\/([\w.-]+)$/);
-  if (m) return { name: s, type:'github', repo: s, branch: '', path: '' };
+  if (m) return { key: s, name: s, type:'github', repo: s, branch: '', path: '' };
   return null;
 }
 
 // ── Initialise ───────────────────────────────────────────────────────────────
 
-// Index bundled sources by name for O(1) lookup
-const bundledByName = Object.fromEntries(
-  (bundleJson.sources || []).map(s => [s.name, s.files])
+// Index bundled sources by their stable key for O(1) lookup
+const bundledByKey = Object.fromEntries(
+  (bundleJson.sources || []).map(s => [s.key, s.files])
 );
 
 async function init() {
@@ -296,7 +298,7 @@ async function init() {
 
   // 1. Load bundled sources instantly from the pre-built JSON (no network)
   for (const src of sources) {
-    const files = bundledByName[src.name];
+    const files = bundledByKey[src.key];
     if (!files) continue;
     const entries = files.map(f => {
       const qp = quickParse(f.content);
@@ -316,7 +318,8 @@ async function init() {
         vendorpage:  f.vendorpage  || '',
         frd:         f.frd         || '',
         impedance:   f.impedance   || '',
-        path: null, repo: null, branch: null,
+        path: f.path, repo: null, branch: null,
+        sourceKey:  src.key,
         sourceName: src.name,
         sourceUrl:  src.url || '',
         sourceDesc: src.description || '',
@@ -332,7 +335,7 @@ async function init() {
 
   // 2. Fetch any non-bundled sources from GitHub in the background
   const liveSources = sources
-    .filter(src => !bundledByName[src.name])
+    .filter(src => !bundledByKey[src.key])
     .map(src => {
       const m = src.url?.match(/github\.com\/([^/]+\/[^/]+?)(?:\/tree\/([^/]+)(?:\/(.*?))?)?(?:\.git)?$/i);
       return m ? { ...src, repo: m[1], branch: m[2] || '', path: m[3] || '' } : src;
@@ -689,7 +692,7 @@ async function openDefine() {
             </div>
             <div class="dlist-sep"></div>
           </template>
-          <div v-for="f in displayedFiles" :key="(f.sourceName || '') + '|' + (f.path || f.fileName || f.name)"
+          <div v-for="f in displayedFiles" :key="(f.sourceKey || f.sourceName || '') + '/' + (f.path || f.fileName || f.name)"
                :class="['ditem', f._isLatest && 'ditem-latest', f._isOlder && 'ditem-older']"
                @click="pickFile(f)">
             <b>{{ f.name }}</b>

@@ -15,7 +15,7 @@
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
@@ -45,7 +45,7 @@ const bundle = {
   sources: [],
 };
 
-for (const src of sources) {
+for (const [key, src] of Object.entries(sources)) {
   const m = src.url?.match(REPO_RE);
   if (!m) continue;
 
@@ -73,6 +73,9 @@ for (const src of sources) {
     const freq_low_hz  = ymlVal('freq_low_hz');
     const freq_high_hz = ymlVal('freq_high_hz');
     return {
+      // path within the source (forward-slashed) — the unique id together with the
+      // source key; never rely on the display name, which can repeat across files.
+      path: relative(localPath, p).replace(/\\/g, '/'),
       name: p.split(/[\\/]/).pop().replace(/\.wdr$/i, ''),
       date,
       content,
@@ -87,8 +90,8 @@ for (const src of sources) {
     };
   });
 
-  bundle.sources.push({ name: src.name, files });
-  console.log(`  ${src.name}: ${files.length} drivers`);
+  bundle.sources.push({ key, name: src.name, files });
+  console.log(`  ${key} (${src.name}): ${files.length} drivers`);
 }
 
 const total = bundle.sources.reduce((n, s) => n + s.files.length, 0);
