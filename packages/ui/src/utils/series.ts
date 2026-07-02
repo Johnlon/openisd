@@ -1,7 +1,11 @@
 import { C } from '@resonate/engine';
+import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from '@resonate/engine';
 import { DPAL } from '../presets.js';
+import type { Series, PlotData, Design } from '../types.js';
 
-export const TABS = [
+interface TabMeta { id: string; name: string; unit: string; color: string }
+
+export const TABS: TabMeta[] = [
   { id:'SPL',    name:'SPL response',    unit:'dB',  color:'#4fb0ff' },
   { id:'Excursion', name:'Cone excursion', unit:'mm', color:'#ffb454' },
   { id:'Port',   name:'Air velocity',    unit:'m/s', color:'#5ad17a' },
@@ -13,10 +17,14 @@ export const TABS = [
   { id:'MaxPwr', name:'Maximum power',   unit:'W',   color:'#ffd05a' },
 ];
 
-export function seriesFor(tabId, drv, box, P, sw, mx) {
-  const meta = TABS.find(t => t.id === tabId);
-  let series = [], ymin, ymax, logy = false, unit = meta.unit;
-  const pick = arr => ({ xs: sw.fs, ys: arr });
+interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string }
+
+export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepParams, sw: SweepResult, mx: MaxCurvesResult): SeriesBundle {
+  const meta = TABS.find(t => t.id === tabId)!;
+  let series: Series[] = [], ymin = 0, ymax = 1;
+  let logy = false;
+  const unit = meta.unit;
+  const pick = (arr: number[]) => ({ xs: sw.fs, ys: arr });
 
   if (tabId === 'SPL') {
     series = [{ ...pick(sw.spl), color: meta.color, name: 'SPL' }];
@@ -30,7 +38,7 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
     ymin = Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5);
     // F3 / F6: first frequency (low→high) where SPL reaches within N dB of the passband peak.
     // Same reference as StatBar.findF3 — max SPL across the sweep.
-    const rolloff = (drop) => { for (let i = 0; i < sw.fs.length; i++) if (sw.spl[i] >= mx2 - drop) return sw.fs[i]; return null; };
+    const rolloff = (drop: number): number | null => { for (let i = 0; i < sw.fs.length; i++) if (sw.spl[i] >= mx2 - drop) return sw.fs[i]; return null; };
     const f3 = rolloff(3), f6 = rolloff(6), f10 = rolloff(10);
     if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
     if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
@@ -39,7 +47,7 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
     series = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
-    const xm = drv.Xmax > 0 ? drv.Xmax * 1000 : null;
+    const xm = drv.Xmax! > 0 ? drv.Xmax! * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     if (box === 'pr') {
@@ -97,17 +105,24 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
 // invalid) or the sweep results are not ready yet (the debounced sweep hasn't run since
 // the driver last changed). Both collapse to value:null here; the caller distinguishes
 // "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
-export function buildPlotData(tabId, fmin, fmax, currentDesign, compare, errors = []) {
+export function buildPlotData(
+  tabId: string,
+  fmin: number,
+  fmax: number,
+  currentDesign: Design,
+  compare: Design[],
+  errors: DriverError[] = [],
+): { value: PlotData | null; errors: DriverError[] } {
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
     return { value: null, errors };
 
   const designs = [currentDesign, ...compare];
   const multi = designs.length > 1;
-  let out = null;
+  let out: PlotData | null = null;
   designs.forEach((d, di) => {
-    const pd = seriesFor(tabId, d.driver, d.box, d.P, d.curves, d.maxCurves || d.maxCurvesData || {});
+    const pd = seriesFor(tabId, d.driver!, d.box, d.P, d.curves!, d.maxCurves || ({} as MaxCurvesResult));
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
-    const prim = { ...pd.series[0] };
+    const prim: Series = { ...pd.series[0] };
     if (multi) {
       prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
       if (di > 0) delete prim.xlim; // compare overlays: solid color, no segmented coloring

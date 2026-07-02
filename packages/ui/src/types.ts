@@ -1,0 +1,136 @@
+/**
+ * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
+ * Engine shapes (Driver, SweepResult, …) are imported from @resonate/engine.
+ */
+import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@resonate/engine';
+
+/** One plotted line. Optional fields are set only by the series that need them. */
+export interface Series {
+  xs: number[];
+  ys: number[];
+  color: string;
+  name: string;
+  dash?: boolean;
+  /** Per-point "Xmax is the limiting factor" flags — drives two-pass MaxSPL coloring. */
+  xlim?: boolean[];
+  /** Legend-only entry with no drawn line. */
+  phantom?: boolean;
+}
+
+/** A chart's full plot bundle. */
+export interface PlotData {
+  series: Series[];
+  ymin: number;
+  ymax: number;
+  logy: boolean;
+  unit: string;
+  fmin?: number;
+  fmax?: number;
+}
+
+/** A design shown on a chart — the current design plus any pinned comparisons. */
+export interface Design {
+  driver: Driver | null;
+  box: BoxType;
+  P: SweepParams;
+  curves: SweepResult | null;
+  maxCurves: MaxCurvesResult | null;
+  name?: string;
+  color?: string;
+}
+
+/** Frequency-band selection shared across graph panels. */
+export interface DragRange {
+  fLo: number;
+  fHi: number;
+  stats?: { ripple: number; peak: number; trough: number };
+}
+
+/** Pixel↔data mapping returned by drawOne for crosshair hit-testing. */
+export interface Geo {
+  m: { l: number; r: number; t: number; b: number };
+  pw: number;
+  ph: number;
+  X: (f: number) => number;
+  Y: (v: number) => number;
+  f0: number;
+  f1: number;
+}
+
+/** A saved passive-radiator library entry. */
+export interface PRLibEntry {
+  id: number;
+  name: string;
+  prSd: number;
+  prMmd: number;
+  prCms: number;
+  prRms: number;
+  prXmax: number;
+  savedAt: string;
+}
+
+/**
+ * UI-side parameters held in the store. A superset of the engine's SweepParams:
+ * it adds view-only inputs (ventD/ventL geometry, Pin drive power, prName/prMode)
+ * and omits the derived fields (eg, Sp, Leff) that syncedP computes on the fly.
+ */
+export interface UiParams {
+  Vb: number;
+  Vf: number;
+  ventD: number;
+  ventL: number;
+  Ql: number;
+  Qa: number;
+  Qp: number;
+  nDrivers: number;
+  wiring: 'series' | 'parallel';
+  Pin: number;
+  Rs: number;
+  prName: string;
+  prSd: number;
+  prNum: number;
+  prMmd: number;
+  prMadd: number;
+  prCms: number;
+  prRms: number;
+  prXmax: number;
+  prMode: string;
+  fmin: number;
+  fmax: number;
+  N: number;
+  circuitModel: 'winisd' | 'gyrator';
+  filters: Filter[];
+}
+
+/** Per-chart Y-axis override; absent entry = auto-scale. */
+export interface YRange { min: number; max: number }
+
+/** The reactive application state held in the store. */
+export interface AppState {
+  driverRaw: DriverRaw;
+  box: BoxType;
+  P: UiParams;
+  graphs: string[];
+  compare: Design[];
+  editDriver: boolean;
+  cursorF: number | null;
+  pinnedF: number | null;
+  cursorLocked: boolean;
+  dragRange: DragRange | null;
+  browseOpen: boolean;
+  defineOpen: boolean;
+  driverSource: DriverRaw | null;
+  yRanges: Record<string, YRange>;
+}
+
+/** The persisted / URL-encoded snapshot shape (persist.ts). */
+export interface SerializedState {
+  v: number;
+  driver: DriverRaw;
+  box: BoxType;
+  P: UiParams;
+  graphs: string[];
+  compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string }>;
+}
+
+export type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult };

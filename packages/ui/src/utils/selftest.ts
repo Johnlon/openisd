@@ -28,7 +28,12 @@
 import { RHO, C } from '@resonate/engine';
 import { deriveDriver } from '@resonate/engine';
 import { sweep } from '@resonate/engine';
+import type { SweepParams } from '@resonate/engine';
 import { flash } from './flash.js';
+
+declare global {
+  interface Window { _selfTestDone?: boolean }
+}
 
 // ---------------------------------------------------------------------------
 // Reference test driver — synthetic 6.5" mid-woofer, 8 Ω nominal.
@@ -98,7 +103,7 @@ export function runSelfTest() {
   // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
   const fc  = d.Fs  * Math.sqrt(1 + d.Vas / VB_M3);
   const Qtc = d.Qts * Math.sqrt(1 + d.Vas / VB_M3);
-  const Psl = { Vb: VB_M3, Ql: QL_LOSSLESS, nDrivers: 1, wiring: 'parallel',
+  const Psl: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, nDrivers: 1, wiring: 'parallel',
                 eg: EG_V, fmin: FMIN_HZ, fmax: FMAX_HZ, N: N_POINTS };
   const sw  = sweep(dNoLe, 'sealed', Psl);
   const passbandRef = sw.spl[sw.spl.length - 1]; // HF asymptote = reference level

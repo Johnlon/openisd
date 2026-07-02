@@ -7,11 +7,11 @@ import { onMounted, onBeforeUnmount } from 'vue';
  * modal. Every modal component uses this composable rather than hand-rolling a
  * keydown listener, so the behaviour is consistent and can't be forgotten.
  *
- * @param {() => boolean} isOpen  reactive getter — true while the modal is shown
- * @param {() => void}    onClose called when Escape is pressed and isOpen() is true
+ * @param isOpen  reactive getter — true while the modal is shown
+ * @param onClose called when Escape is pressed and isOpen() is true
  */
-export function useEscToClose(isOpen, onClose) {
-  function handler(e) {
+export function useEscToClose(isOpen: () => boolean, onClose: () => void): void {
+  function handler(e: KeyboardEvent) {
     if (e.key === 'Escape' && isOpen()) onClose();
   }
   onMounted(() => window.addEventListener('keydown', handler));

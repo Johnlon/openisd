@@ -1,26 +1,34 @@
-export const fmtF   = f => f >= 1000 ? (f/1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);
-export const fmtY   = v => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };
-export const fmtVal = (v, u) => { if (!isFinite(v)) return '—'; const a = Math.abs(v); return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + u; };
+import type { PlotData, Geo, DragRange } from '../types.js';
 
-export function niceTicks(min, max, n = 6) {
+export const fmtF   = (f: number): string => f >= 1000 ? (f/1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);
+export const fmtY   = (v: number): string => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };
+export const fmtVal = (v: number, u: string): string => { if (!isFinite(v)) return '—'; const a = Math.abs(v); return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + u; };
+
+export function niceTicks(min: number, max: number, n = 6): number[] {
   const span = max - min, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
   const norm = step0 / mag, step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10, s = step * mag;
-  const t = [];
+  const t: number[] = [];
   for (let v = Math.ceil(min / s) * s; v <= max + 1e-9; v += s) t.push(+v.toFixed(6));
   return t;
 }
 
-export function logTicks(min, max) {
-  const t = [];
+export function logTicks(min: number, max: number): number[] {
+  const t: number[] = [];
   for (let d = Math.floor(Math.log10(min)); d <= Math.ceil(Math.log10(max)); d++)
     for (const mul of [1, 2, 5]) { const v = mul * Math.pow(10, d); if (v >= min && v <= max) t.push(v); }
   return t;
 }
 
 // Returns geo so the caller can map pixel → frequency for crosshair.
-export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
+export function drawOne(
+  canvas: HTMLCanvasElement | null,
+  plotData: PlotData | null,
+  cursorF: number | null,
+  readEl: HTMLElement | null,
+  dragRange: DragRange | null,
+): Geo | null {
   if (!canvas || !plotData) return null;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   const dpr = window.devicePixelRatio || 1;
   const W = canvas.clientWidth || 300, H = canvas.clientHeight || 180;
   canvas.width = W * dpr; canvas.height = H * dpr;
@@ -33,8 +41,8 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
   const lx0 = Math.log10(f0), lx1 = Math.log10(f1);
   const { ymin, ymax, logy } = plotData;
   const ly0 = logy ? Math.log10(ymin) : ymin, ly1 = logy ? Math.log10(ymax) : ymax;
-  const X = f => m.l + (Math.log10(f) - lx0) / (lx1 - lx0) * pw;
-  const Y = v => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
+  const X = (f: number) => m.l + (Math.log10(f) - lx0) / (lx1 - lx0) * pw;
+  const Y = (v: number) => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
 
   // frequency grid
   ctx.strokeStyle = '#243040'; ctx.fillStyle = '#7c8a9c'; ctx.font = '9px Segoe UI'; ctx.lineWidth = 1;
@@ -64,7 +72,7 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
     if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
     if (s.xlim) {
       // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
-      for (const [isXlim, passColor] of [[true, s.color], [false, PE_LIMIT_COLOR]]) {
+      for (const [isXlim, passColor] of [[true, s.color], [false, PE_LIMIT_COLOR]] as const) {
         ctx.strokeStyle = passColor;
         ctx.beginPath(); let started = false;
         for (let i = 0; i < s.xs.length; i++) {
@@ -102,7 +110,7 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
     }
   }
 
-  const geo = { m, pw, ph, X, Y, f0, f1 };
+  const geo: Geo = { m, pw, ph, X, Y, f0, f1 };
 
   // drag range — shaded band between two frequencies with measurement readout
   if (dragRange) {
@@ -114,7 +122,7 @@ export function drawOne(canvas, plotData, cursorF, readEl, dragRange) {
     ctx.beginPath(); ctx.moveTo(x2, m.t); ctx.lineTo(x2, m.t + ph); ctx.stroke();
     ctx.setLineDash([]);
     if (readEl) {
-      const ff = f => f >= 100 ? f.toFixed(0) : f.toFixed(1);
+      const ff = (f: number) => f >= 100 ? f.toFixed(0) : f.toFixed(1);
       const u = plotData.unit;
       const st = dragRange.stats;
       let html = `<b>${ff(dragRange.fLo)} Hz</b> – <b>${ff(dragRange.fHi)} Hz</b>`;
