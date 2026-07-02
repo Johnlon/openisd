@@ -100,7 +100,7 @@ export function maxCurves(drv, box, P) {
   const maxspl = [], maxpwr = [], xlim = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
-    const vXmax = (excAt283 > 0 && drv.Xmax != null) ? 2.83 * (drv.Xmax / excAt283) : 1e9;
+    const vXmax = (excAt283 > 0 && drv.Xmax > 0) ? 2.83 * (drv.Xmax / excAt283) : Infinity;
     const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));

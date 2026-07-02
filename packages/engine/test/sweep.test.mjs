@@ -118,14 +118,13 @@ describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () 
 
 // ── Line 98: drv.Pe default in maxCurves ──────────────────────────────────────
 
-describe('maxCurves — Pe defaults to 50 W when driver Pe field is absent', () => {
-  it('driver without Pe uses 50 W as the thermal power limit — result must be finite', () => {
-    // `(drv.Pe || 50)` → 50 when Pe is undefined.
-    // The driver is otherwise identical to the reference driver.
+describe('maxCurves — one limit absent falls back to the other (never poisons the curve)', () => {
+  it('driver without Pe → curve is Xmax-limited and finite (no thermal limit, no fabricated default)', () => {
+    // Pe absent → vPe = Infinity; the excursion (Xmax) limit alone bounds the curve.
     const { value: drvNoPe, errors: _noPeErrors } = deriveDriver({
       Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
       Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005,
-      // Pe intentionally absent — deriveDriver returns warn (not error); excursion-only max curves
+      // Pe intentionally absent — deriveDriver returns warn (not error); Xmax-limited max curves
     });
     if (!drvNoPe) throw new Error('Test fixture invalid: ' + _noPeErrors.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
 
@@ -133,16 +132,33 @@ describe('maxCurves — Pe defaults to 50 W when driver Pe field is absent', () 
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
     });
 
-    // Verify output is finite and non-empty
     assert(fs.length > 0, 'maxCurves must return non-empty fs array');
     assert(maxspl.every(v => isFinite(v)),
-      'every maxspl value must be finite with Pe defaulting to 50 W');
+      'every maxspl value must be finite when Pe is absent (Xmax-limited)');
 
-    // At the passband (well above Fs), excursion << Xmax → vXmax >> vPe → power-limited.
-    // At these frequencies, maxspl = spl_at_2.83V + 20·log10(vPe / 2.83).
-    // A sanity check: maxspl values must be in a physically plausible range.
+    // Physically plausible passband range.
     const passband = maxspl.find((_, i) => fs[i] > 200);  // well above Fs=37
-    assert(passband !== undefined && passband > 60 && passband < 140,
-      `passband maxspl must be in [60, 140] dB for Pe=50 W, got ${passband} dB`);
+    assert(passband !== undefined && passband > 60 && passband < 160,
+      `passband maxspl must be in [60, 160] dB, got ${passband} dB`);
+  });
+
+  it('driver with Xmax=0 but Pe present → curve is Pe-limited and finite, not -Infinity', () => {
+    // Regression: Xmax=0 used to make vXmax=0 → vUse=0 → maxspl=-Infinity, maxpwr=0
+    // (blank Max-SPL/Max-power charts). Xmax=0 must be treated as "no excursion limit"
+    // so the Pe (thermal) limit alone bounds the curve.
+    const { value: drvXmax0, errors: _e } = deriveDriver({
+      Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0,
+      Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Pe: 60, Xmax: 0,
+    });
+    if (!drvXmax0) throw new Error('Test fixture invalid: ' + _e.filter(e => e.level === 'error').map(e => `${e.field}: ${e.message}`).join('; '));
+
+    const { maxspl, maxpwr } = maxCurves(drvXmax0, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+    });
+
+    assert(maxspl.every(Number.isFinite),
+      'Xmax=0 must not poison Max-SPL with -Infinity — Pe limit must apply');
+    assert(maxpwr.every(v => Number.isFinite(v) && v > 0),
+      'Max-power must be finite and positive (Pe-limited), not 0');
   });
 });

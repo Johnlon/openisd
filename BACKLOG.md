@@ -22,7 +22,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## Next — do first
 
-- [ ] **Fix `maxCurves` Xmax guard + magic sentinel** — engine calc, needs human sign-off before editing. In `packages/engine/src/sweep.js`, the line `const vXmax = (excAt283 > 0 && drv.Xmax != null) ? 2.83 * (drv.Xmax / excAt283) : 1e9;`. **Problem:** with `Xmax = 0` and the Max-SPL chart visible, `vXmax` becomes 0 → max-SPL = −∞ (garbage drawn on screen) — the "draw unreliable data" case we want gone. Not hit by current tests (the Xmax test targets the Excursion chart); pre-existing. **Fix:** change `!= null` → `> 0` (treat `Xmax = 0` as absent = no excursion limit), and replace the `1e9` magic sentinel with `Infinity` to match the `vPe` line directly below (`Pe != null ? … : Infinity`). Touches engine calculation → explicit human sign-off required per the engine-calc rule, plus a golden-master re-check (valid drivers all have `Xmax > 0`, so output must be byte-identical). Add a unit test: `Xmax = 0` + Max-SPL must produce finite values limited by Pe alone.
+- [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
 ---
 
