@@ -14,6 +14,25 @@ function toggleGraph(id) {
 function removeCompare(i) { state.compare.splice(i, 1); }
 function clearCompare() { state.compare = []; }
 
+// Frequency-axis (X) range — the "zoom out / in" control shared by every chart.
+// Bounds: 1 Hz ≤ fmin < fmax ≤ 40 kHz. Inputs validate against each other so the
+// range can never invert or collapse. Presets are quick jumps; the inputs give
+// arbitrary control.
+const FMIN_LIMIT = 1, FMAX_LIMIT = 40000;
+function setRange(lo, hi) { state.P.fmin = lo; state.P.fmax = hi; }
+function onFmin(e) {
+  const v = parseFloat(e.target.value);
+  if (isFinite(v) && v >= FMIN_LIMIT && v < state.P.fmax) state.P.fmin = v;
+  // Rejected input leaves state unchanged, so :value won't re-render — snap the
+  // field back to the authoritative value so it never shows a value that isn't applied.
+  else e.target.value = Math.round(state.P.fmin);
+}
+function onFmax(e) {
+  const v = parseFloat(e.target.value);
+  if (isFinite(v) && v > state.P.fmin && v <= FMAX_LIMIT) state.P.fmax = v;
+  else e.target.value = Math.round(state.P.fmax);
+}
+
 const effectiveF = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 
 function setCursorHz(e) {
@@ -43,6 +62,22 @@ function toggleLock() {
           class="gchip" :class="{ on: state.graphs.includes(t.id) }"
           :title="state.graphs.includes(t.id) ? `Hide ${t.name} graph` : `Show ${t.name} graph`"
           @click="toggleGraph(t.id)">{{ t.name }}</span>
+    <span class="sep"></span>
+    <span class="lab" title="Frequency range shown on every chart's X axis. Widen it to zoom out, narrow it to zoom in.">Range:</span>
+    <input class="freq-in" type="number" :min="FMIN_LIMIT" :max="FMAX_LIMIT" step="1"
+           :value="Math.round(state.P.fmin)" @change="onFmin"
+           title="Lowest frequency shown (Hz). Minimum 1 Hz, must be below the max." />
+    <span class="freq-dash">–</span>
+    <input class="freq-in" type="number" :min="FMIN_LIMIT" :max="FMAX_LIMIT" step="1"
+           :value="Math.round(state.P.fmax)" @change="onFmax"
+           title="Highest frequency shown (Hz). Maximum 40 kHz, must be above the min." />
+    <span class="freq-unit">Hz</span>
+    <button class="freq-preset" :class="{ on: state.P.fmin === 20 && state.P.fmax === 20000 }"
+            @click="setRange(20, 20000)" title="Audio band: 20 Hz – 20 kHz">20–20k</button>
+    <button class="freq-preset" :class="{ on: state.P.fmin === 10 && state.P.fmax === 20000 }"
+            @click="setRange(10, 20000)" title="Default: 10 Hz – 20 kHz">10–20k</button>
+    <button class="freq-preset" :class="{ on: state.P.fmin === 1 && state.P.fmax === 40000 }"
+            @click="setRange(1, 40000)" title="Full: 1 Hz – 40 kHz (zoom all the way out)">1–40k</button>
     <span class="sep"></span>
     <button @click="pinCompare" title="Snapshot the current design and overlay its curves on all graphs for comparison">+ Compare current</button>
     <template v-if="state.compare.length">
@@ -128,6 +163,30 @@ function toggleLock() {
   text-align: right;
 }
 .cursor-hz:focus { outline: none; border-color: var(--acc); }
+.freq-in {
+  width: 56px;
+  font-size: 11px;
+  padding: 1px 4px;
+  background: var(--panel2);
+  border: 1px solid var(--mut);
+  border-radius: 3px;
+  color: var(--fg);
+  text-align: right;
+}
+.freq-in:focus { outline: none; border-color: var(--acc); }
+.freq-dash { color: var(--mut); font-size: 11px; }
+.freq-unit { color: var(--mut); font-size: 11px; margin-right: 2px; }
+.freq-preset {
+  font-size: 11px;
+  padding: 1px 6px;
+  background: none;
+  border: 1px solid var(--mut);
+  border-radius: 3px;
+  color: var(--mut);
+  cursor: pointer;
+}
+.freq-preset:hover { color: var(--fg); border-color: var(--fg); }
+.freq-preset.on { border-color: var(--acc); color: var(--acc); }
 .nudge-btn {
   font-size: 11px;
   padding: 1px 5px;
