@@ -24,11 +24,21 @@ import { test as base, expect } from '@playwright/test';
  * are NOT failed. On any failure the full console + network capture is attached
  * to the report and printed for diagnosis.
  */
-export const test = base.extend({
+export interface BrowserLog {
+  consoleErrors: string[];
+  consoleWarnings: string[];
+  pageErrors: string[];
+  networkErrors: string[];
+  reset: () => void;
+}
+
+export const test = base.extend<{ browserLog: BrowserLog }>({
   browserLog: [async ({ page }, use, testInfo) => {
-    const log = { consoleErrors: [], consoleWarnings: [], pageErrors: [], networkErrors: [] };
-    log.reset = () => {
-      for (const k of ['consoleErrors', 'consoleWarnings', 'pageErrors', 'networkErrors']) log[k].length = 0;
+    const log: BrowserLog = {
+      consoleErrors: [], consoleWarnings: [], pageErrors: [], networkErrors: [],
+      reset: () => {
+        for (const k of ['consoleErrors', 'consoleWarnings', 'pageErrors', 'networkErrors'] as const) log[k].length = 0;
+      },
     };
 
     page.on('console', m => {
@@ -70,13 +80,13 @@ export const test = base.extend({
     // in try/catch so an early failure never prevents the later checks from running.
     // Their failures are aggregated into ONE error listing every category, so a
     // single test run reports the complete picture rather than the first problem only.
-    const checks = [
+    const checks: Array<[string, string[]]> = [
       ['Vue "Duplicate keys found" warnings', log.consoleWarnings.filter(w => /duplicate key/i.test(w))],
       ['console errors', log.consoleErrors],
       ['uncaught page errors', log.pageErrors],
       ['same-origin network failures', log.networkErrors],
     ];
-    const failures = [];
+    const failures: string[] = [];
     for (const [label, entries] of checks) {
       try {
         expect(entries, label).toEqual([]);

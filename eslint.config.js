@@ -132,15 +132,22 @@ export default [
     },
   },
 
-  // ── Playwright tests: packages/ui/test/*.browser.spec.js ─────────────────
+  // ── Playwright tests: packages/ui/test/*.browser.spec.ts ─────────────────
   {
     ...pluginPlaywright.configs['flat/recommended'],
-    files: ['packages/ui/test/**/*.browser.spec.js'],
+    files: ['packages/ui/test/**/*.browser.spec.ts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      // Specs run in Node, but page.evaluate/waitForFunction callbacks reference
+      // browser globals (window, localStorage, document) analysed statically.
+      globals: { ...globals.node, ...globals.browser, ...globals.es2022 },
+    },
+    plugins: { ...pluginPlaywright.configs['flat/recommended'].plugins, '@typescript-eslint': tseslint.plugin },
     rules: {
       ...pluginPlaywright.configs['flat/recommended'].rules,
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      ...noUnusedVars,
     },
   },
 ];

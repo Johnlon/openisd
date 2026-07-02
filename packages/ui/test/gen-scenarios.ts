@@ -13,25 +13,21 @@
  *   Adding the Resonate UI wiring test to app.browser.spec.js
  *
  * Usage:
- *   node test/gen-scenarios.mjs        — dry run (prints what would change)
- *   node test/gen-scenarios.mjs --write — writes changes to scenarios.js
+ *   npm run gen-scenarios              — dry run (prints what would change)
+ *   npm run gen-scenarios -- --write   — writes changes to scenarios.ts
+ *   (runs under vite-node — engine + scenarios are TypeScript)
  *
  * DO NOT run in CI.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { sealedFromQtc, tuningFromLength, prTuning } from '@resonate/engine';
+import { SCENARIOS } from './scenarios.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
-const srcCore = join(here, '..', 'src', 'core');
 const write   = process.argv.includes('--write');
-
-// Import core functions directly — same code that Resonate's stat bar uses
-const { sealedFromQtc, tuningFromLength, prTuning } =
-  await import(pathToFileURL(join(srcCore, 'alignments.js')).href);
-
-const { SCENARIOS } = await import(pathToFileURL(join(here, 'scenarios.js')).href);
 
 // ── Compute resonate: values for each scenario ────────────────────────────────
 
@@ -41,6 +37,7 @@ for (const S of SCENARIOS) {
 
   if (S.box.type === 'sealed' && S.box.Qtc != null) {
     const Vb    = sealedFromQtc(drv, S.box.Qtc);
+    if (Vb == null) { console.warn(`  SKIP  ${S.id}: Qtc below driver Qts`); continue; }
     const scale = Math.sqrt(1 + VAS_M3 / Vb);
     S._computed = {
       // StatBar.vue: Qtc.toFixed(3)  fc.toFixed(1)
@@ -106,7 +103,7 @@ if (!write) {
 
 // ── Write changes to scenarios.js ────────────────────────────────────────────
 
-const scenariosPath = join(here, 'scenarios.js');
+const scenariosPath = join(here, 'scenarios.ts');
 let lines = readFileSync(scenariosPath, 'utf8').split(/\r?\n/);
 
 for (const S of SCENARIOS) {
@@ -120,7 +117,7 @@ console.log(`\nDone. Run npm test to confirm green, then commit.\n`);
 
 // ── Helper: replace the resonate: block for one scenario ─────────────────────
 
-function replaceResonateBlock(lines, id, computed) {
+function replaceResonateBlock(lines: string[], id: string, computed: Record<string, string>): string[] {
   // Find the id: line for this scenario
   const idIdx = lines.findIndex(l => l.includes(`'${id}'`) && l.trimStart().startsWith('id:'));
   if (idIdx < 0) throw new Error(`Scenario id '${id}' not found in scenarios.js`);
@@ -152,7 +149,7 @@ function replaceResonateBlock(lines, id, computed) {
   }
 
   // Infer indentation from the resonate: line
-  const indent = lines[resonateIdx].match(/^(\s*)/)[1];
+  const indent = lines[resonateIdx].match(/^(\s*)/)![1];
 
   // Build the replacement block
   const keys    = Object.keys(computed);

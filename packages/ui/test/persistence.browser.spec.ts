@@ -18,8 +18,8 @@ test('state persists via one key (resonate.state) and never writes the redundant
   await page.waitForFunction(() => localStorage.getItem('resonate.state') !== null, { timeout: 3000 });
 
   // Wait out store.js's 500ms debounce so a (buggy) resonate_v2 write would have landed by now.
-  await page.evaluate(() => { window.__persistMark = Date.now(); });
-  await page.waitForFunction(() => Date.now() - window.__persistMark > 800, { timeout: 2000 });
+  await page.evaluate(() => { (window as unknown as { __persistMark: number }).__persistMark = Date.now(); });
+  await page.waitForFunction(() => Date.now() - (window as unknown as { __persistMark: number }).__persistMark > 800, { timeout: 2000 });
 
   const keys = await page.evaluate(() => ({
     state: localStorage.getItem('resonate.state') !== null,

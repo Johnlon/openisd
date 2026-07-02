@@ -54,8 +54,8 @@ for (const S of SCENARIOS) {
 
     // Assert micka's computed outputs against scenario's expected values
     const table = page.locator('table.generouscolumns');
-    if (S.micka.Vb) await expect(table).toContainText(S.micka.Vb);
-    if (S.micka.fc) await expect(table).toContainText(S.micka.fc);
-    if (S.micka.Fb) await expect(table).toContainText(S.micka.Fb);
+    if (S.micka?.Vb) await expect(table).toContainText(S.micka.Vb);
+    if (S.micka?.fc) await expect(table).toContainText(S.micka.fc);
+    if (S.micka?.Fb) await expect(table).toContainText(S.micka.Fb);
   });
 }

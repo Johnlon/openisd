@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures.js';
+import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -11,7 +12,7 @@ test('app shell renders — side panel and graph grid are populated', async ({ p
 });
 
 test('in-browser self-test passes all three physics gates', async ({ page }) => {
-  const logs = [];
+  const logs: string[] = [];
   page.on('console', msg => logs.push(msg.text()));
   await page.goto('/');
   await page.waitForFunction(() => window._selfTestDone === true, { timeout: 5000 })
@@ -102,7 +103,7 @@ const VENTED_FB_HZ   = '37.2'; // StatBar: fb.toFixed(1)
 // Helper: locate a NumInput's <input> element by its paired <label> text.
 // NumInput renders a plain <input type="number"> with no id or data-bind;
 // the parent .row div contains both the label and the input as siblings.
-function numInputByLabel(page, labelText) {
+function numInputByLabel(page: Page, labelText: string) {
   return page.locator('label')
     .filter({ hasText: labelText })
     .locator('..')

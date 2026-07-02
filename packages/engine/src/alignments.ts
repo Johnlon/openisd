@@ -29,23 +29,22 @@ import type { Driver, SweepParams } from './types.js';
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
 type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
 
-/** The T/S fields the alignment helpers read — lets callers pass a full Driver or a
- *  bare T/S fixture (they use only these, never the derived Cms/Mms/Bl). */
-type TSAlign = Pick<Driver, 'Fs' | 'Qts' | 'Qes' | 'Vas'>;
+// Each alignment helper takes exactly the T/S fields it reads (a full Driver or a
+// bare T/S fixture both satisfy the Pick — they never touch the derived Cms/Mms/Bl).
 
 /**
  * Efficiency Bandwidth Product — criterion for enclosure type selection.
  * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function ebp(drv: TSAlign): number { return drv.Fs / drv.Qes; }
+export function ebp(drv: Pick<Driver, 'Fs' | 'Qes'>): number { return drv.Fs / drv.Qes; }
 
 /**
  * Sealed box volume for a target system Q (Qtc).
  * Qtc = Qts · √(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function sealedFromQtc(drv: TSAlign, Qtc: number): number | null {
+export function sealedFromQtc(drv: Pick<Driver, 'Qts' | 'Vas'>, Qtc: number): number | null {
   const ratio = (Qtc / drv.Qts) ** 2 - 1;
   return ratio <= 0 ? null : drv.Vas / ratio;
 }
@@ -56,7 +55,7 @@ export function sealedFromQtc(drv: TSAlign, Qtc: number): number | null {
  * fb = Fs · √(Vas / Vb)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function ventedAlignment(drv: TSAlign): { Vb: number; Fb: number } {
+export function ventedAlignment(drv: Pick<Driver, 'Fs' | 'Qts' | 'Vas'>): { Vb: number; Fb: number } {
   const Vb = 15 * drv.Vas * Math.pow(drv.Qts, 2.87);
   return { Vb, Fb: drv.Fs * Math.pow(drv.Vas / Vb, 0.5) };
 }

@@ -23,8 +23,8 @@
     "test:unit": "vitest run",
     "test:crosscheck": "npx playwright test packages/ui/test/micka-crosscheck.browser.spec.js --timeout=60000",
     "test:visual": "npx playwright test packages/ui/test/visual.browser.spec.js",
-    "gen-scenarios": "node packages/ui/test/gen-scenarios.mjs",
-    "gen-golden": "node packages/engine/test/gen-golden.mjs"
+    "gen-scenarios": "vite-node packages/ui/test/gen-scenarios.ts",
+    "gen-golden": "vite-node packages/engine/test/gen-golden.ts"
   },
   "keywords": [
     "loudspeaker",

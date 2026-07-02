@@ -2,8 +2,8 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './packages/ui/test',
-  testMatch: '**/*.browser.spec.js',
-  testIgnore: '**/micka-crosscheck.browser.spec.js',
+  testMatch: '**/*.browser.spec.ts',
+  testIgnore: '**/micka-crosscheck.browser.spec.ts',
   timeout: 30000,
   use: {
     browserName: 'chromium',

@@ -32,7 +32,25 @@
  *  ventL    cm             port physical length (vented)
  */
 
-export const SCENARIOS = [
+export interface Scenario {
+  id: string;
+  name: string;
+  driver: { Fs: number; Qts: number; Vas: number; Qes?: number; Sd?: number; Re?: number; Le?: number };
+  box: {
+    type: 'sealed' | 'vented' | 'pr';
+    Qtc?: number;
+    Vb?: number;
+    ventD?: number;
+    ventL?: number;
+    pr?: { Vb: number; Sd: number; Mms: number; Cms: number; Rms: number; Madd?: number };
+  };
+  micka?: Record<string, string>;
+  resonate: Record<string, string>;
+  /** Filled in by gen-scenarios.ts at generation time. */
+  _computed?: Record<string, string>;
+}
+
+export const SCENARIOS: Scenario[] = [
 
   // ── Scenario 1: Sealed Butterworth (Qtc = 0.707) ────────────────────────────
   // Formula: Vb = Vas / ((Qtc/Qts)² − 1) = 30 / 2.4616 = 12.18 L

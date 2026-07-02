@@ -27,6 +27,7 @@
  */
 
 import { test, expect } from './fixtures.js';
+import type { Page } from '@playwright/test';
 
 // Fixed viewport for all visual tests — pixel-exact comparison requires a stable size
 test.use({ viewport: { width: 1440, height: 900 } });
@@ -40,7 +41,7 @@ const DRV_QTS   = 0.38;
 const DRV_VAS_L = 30;
 
 // Helper: locate a NumInput's <input> by the text of its paired <label>
-function numInputByLabel(page, labelText) {
+function numInputByLabel(page: Page, labelText: string) {
   return page.locator('label')
     .filter({ hasText: labelText })
     .locator('..')
@@ -48,14 +49,14 @@ function numInputByLabel(page, labelText) {
 }
 
 // Helper: locate the SPL graph panel by its title text
-function splPanel(page) {
+function splPanel(page: Page) {
   return page.locator('.gpanel').filter({
     has: page.locator('.gtitle', { hasText: 'SPL response' }),
   });
 }
 
 // Helper: set the reference driver T/S params via the edit panel
-async function setReferenceDriver(page) {
+async function setReferenceDriver(page: Page) {
   await page.locator('text=What-If? ✎').click();
   await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
   await numInputByLabel(page, 'Fs').press('Tab');

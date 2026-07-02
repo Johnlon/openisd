@@ -18,7 +18,7 @@ test('driver library search returns only matching drivers (and renders the dupli
 
   // Type a query and wait until the rendered list reflects it (every visible row
   // contains the token) — a condition wait, not a fixed sleep.
-  const searchNames = async (q) => {
+  const searchNames = async (q: string) => {
     await filter.fill(q);
     await page.waitForFunction(
       ({ sel, query }) => {

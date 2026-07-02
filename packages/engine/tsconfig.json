@@ -3,6 +3,5 @@
   "compilerOptions": {
     "lib": ["ES2022"]
   },
-  "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.mjs", "test/**/*.ts"],
-  "exclude": ["test/gen-golden.mjs"]
+  "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.ts"]
 }

@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures.js';
+import type { Page, Locator } from '@playwright/test';
 
 // Chart zoom controls:
 //   X (frequency) — a dropdown of preset spans in the graph toolbar. Changing it
@@ -15,7 +16,7 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
-const rangeSel = (page) => page.locator('.freq-sel');
+const rangeSel = (page: Page) => page.locator('.freq-sel');
 
 // ── X-axis frequency range dropdown ──────────────────────────────────────────
 
@@ -44,8 +45,8 @@ test('the chosen frequency range persists across reload', async ({ page }) => {
 // ── X-axis drag (frequency pan/zoom) ─────────────────────────────────────────
 
 // Drag horizontally inside a panel's bottom axis strip (the frequency-label margin).
-async function dragXAxis(page, panel, fromFrac, dxPx) {
-  const box = await panel.boundingBox();
+async function dragXAxis(page: Page, panel: Locator, fromFrac: number, dxPx: number) {
+  const box = (await panel.boundingBox())!;
   const x = box.x + box.width * fromFrac;
   const y = box.y + box.height - 8;                    // inside the bottom X-axis strip
   await page.mouse.move(x, y);
@@ -66,7 +67,7 @@ test('double-clicking the X axis resets the frequency range to 1–20 kHz', asyn
   const panel = page.locator('#ggrid .gpanel').first();
   await dragXAxis(page, panel, 0.5, 60);
   await expect(rangeSel(page)).toHaveValue('');
-  const box = await panel.boundingBox();
+  const box = (await panel.boundingBox())!;
   await page.mouse.dblclick(box.x + box.width * 0.5, box.y + box.height - 8);
   await expect(rangeSel(page)).toHaveValue('20000');
 });
@@ -74,8 +75,8 @@ test('double-clicking the X axis resets the frequency range to 1–20 kHz', asyn
 // ── Y-axis drag (level pan/zoom) ─────────────────────────────────────────────
 
 // Drag vertically inside a panel's left axis strip (x within the 44 px label margin).
-async function dragYAxis(page, panel, fromFrac, dyPx) {
-  const box = await panel.boundingBox();
+async function dragYAxis(page: Page, panel: Locator, fromFrac: number, dyPx: number) {
+  const box = (await panel.boundingBox())!;
   const x = box.x + 8;                                  // inside the 44 px Y-axis strip
   const y = box.y + box.height * fromFrac;
   await page.mouse.move(x, y);
@@ -97,7 +98,7 @@ test('double-clicking the Y axis resets it to auto', async ({ page }) => {
   const panel = page.locator('#ggrid .gpanel').first();
   await dragYAxis(page, panel, 0.2, 30);                   // top end = zoom
   await expect(panel).toHaveClass(/y-manual/);
-  const box = await panel.boundingBox();
+  const box = (await panel.boundingBox())!;
   await page.mouse.dblclick(box.x + 8, box.y + box.height * 0.5);
   await expect(panel).not.toHaveClass(/y-manual/);
 });

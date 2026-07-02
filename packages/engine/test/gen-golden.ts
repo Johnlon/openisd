@@ -1,13 +1,16 @@
 /* Run once to generate golden fixtures.  DO NOT run in CI.
- *   node test/gen-golden.mjs
+ *   npm run gen-golden   (vite-node — the engine is TypeScript)
  * Commit the resulting test/fixtures/golden/*.json.  Never regenerate during
  * a test run — the test must read the committed snapshot, not overwrite it. */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { engine } from './load-engine.mjs';
+import type { DriverRaw, BoxType, SweepParams } from '@resonate/engine';
+import { engine } from './load-engine.js';
 
 const { deriveDriver, sweep, maxCurves } = engine;
+
+interface Design { name: string; driverRaw: DriverRaw; box: BoxType; P: SweepParams }
 const here   = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, 'fixtures', 'golden');
 mkdirSync(outDir, { recursive: true });
@@ -17,7 +20,7 @@ const BASE_DRIVER = {
   Re:5.6, Le:0.7e-3, Xmax:0.005, Pe:60, Z:8,
 };
 
-const DESIGNS = [
+const DESIGNS: Design[] = [
   {
     name: 'sealed-single',
     driverRaw: BASE_DRIVER,
@@ -62,7 +65,9 @@ let ok = true;
 console.log('\nGenerating golden fixtures\n');
 
 for (const d of DESIGNS) {
-  const drv = deriveDriver(d.driverRaw);
+  // deriveDriver returns { value, errors } — unwrap the driver before sweeping.
+  const { value: drv, errors } = deriveDriver(d.driverRaw);
+  if (!drv) { console.error(`  ERROR  ${d.name}: driver invalid — ${errors.map(e => e.message).join('; ')}`); process.exit(1); }
   const sw  = sweep(drv, d.box, d.P);
   const mx  = maxCurves(drv, d.box, d.P);
 
