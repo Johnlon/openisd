@@ -19,7 +19,7 @@
     "prebuild": "node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "npm run test:unit && node packages/engine/test/golden.test.mjs && npx playwright test",
+    "test": "npm run test:unit && npx playwright test",
     "test:unit": "vitest run",
     "test:crosscheck": "npx playwright test packages/ui/test/micka-crosscheck.browser.spec.js --timeout=60000",
     "test:visual": "npx playwright test packages/ui/test/visual.browser.spec.js",

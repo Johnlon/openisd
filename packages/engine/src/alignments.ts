@@ -23,20 +23,21 @@
  */
 
 import { RHO, C } from './constants.js';
+import type { Driver, SweepParams } from './types.js';
 
 /**
  * Efficiency Bandwidth Product — criterion for enclosure type selection.
  * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function ebp(drv) { return drv.Fs / drv.Qes; }
+export function ebp(drv: Driver): number { return drv.Fs / drv.Qes; }
 
 /**
  * Sealed box volume for a target system Q (Qtc).
  * Qtc = Qts · √(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function sealedFromQtc(drv, Qtc) {
+export function sealedFromQtc(drv: Driver, Qtc: number): number | null {
   const ratio = (Qtc / drv.Qts) ** 2 - 1;
   return ratio <= 0 ? null : drv.Vas / ratio;
 }
@@ -47,7 +48,7 @@ export function sealedFromQtc(drv, Qtc) {
  * fb = Fs · √(Vas / Vb)
  * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
  */
-export function ventedAlignment(drv) {
+export function ventedAlignment(drv: Driver): { Vb: number; Fb: number } {
   const Vb = 15 * drv.Vas * Math.pow(drv.Qts, 2.87);
   return { Vb, Fb: drv.Fs * Math.pow(drv.Vas / Vb, 0.5) };
 }
@@ -58,7 +59,7 @@ export function ventedAlignment(drv) {
  * where L_eq = L + 0.85·d  (end correction for one open flanged end)
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function ventLength(Vb, fb, Sp) {
+export function ventLength(Vb: number, fb: number, Sp: number): number {
   const Cab = Vb / (RHO * C * C);
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
@@ -71,7 +72,7 @@ export function ventLength(Vb, fb, Sp) {
  * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + 0.85·d
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function tuningFromLength(Vb, L, Sp) {
+export function tuningFromLength(Vb: number, L: number, Sp: number): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
   const Leff = L + 0.85 * d;
   const Cab  = Vb / (RHO * C * C);
@@ -85,10 +86,10 @@ export function tuningFromLength(Vb, L, Sp) {
  * Cpar = Cab·Cap/(Cab+Cap);  fp = 1/(2π·√(Map·Cpar))
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function prTuning(P) {
+export function prTuning(P: SweepParams): number {
   const Cab  = P.Vb / (RHO * C * C);
-  const Map  = (P.prMmd + P.prMadd) / (P.prSd * P.prSd);
-  const Cap  = P.prCms * P.prSd * P.prSd;
+  const Map  = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
+  const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cpar));
 }
@@ -98,10 +99,10 @@ export function prTuning(P) {
  * Inverts prTuning(): Map = 1/((2π·fp)²·Cpar),  Mmp = Map·prSd²
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function prMassForFp(P, fp) {
+export function prMassForFp(P: SweepParams, fp: number): number {
   const Cab  = P.Vb / (RHO * C * C);
-  const Cap  = P.prCms * P.prSd * P.prSd;
+  const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);
   const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);
-  return Map * P.prSd * P.prSd;
+  return Map * P.prSd! * P.prSd!;
 }

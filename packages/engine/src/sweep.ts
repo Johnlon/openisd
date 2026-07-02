@@ -16,12 +16,13 @@ import { RHO, P0 } from './constants.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { applyFilters } from './filters.js';
+import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
 
 /**
  * Unwrap a phase array (radians) to remove ±π discontinuities.
  * https://en.wikipedia.org/wiki/Phase_unwrapping
  */
-export function unwrap(p) {
+export function unwrap(p: number[]): number[] {
   const o = [p[0]];
   for (let i = 1; i < p.length; i++) {
     let d = p[i] - p[i - 1];
@@ -49,9 +50,9 @@ export function unwrap(p) {
  * Group delay τg = −dφ/dω
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
-export function sweep(drv, box, P) {
+export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
-  const fs = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], gd = [], phase = [];
+  const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], gd = [], phase = [];
   for (let i = 0; i <= N; i++) {
     const f   = f0 * Math.pow(f1 / f0, i / N);
     const s   = solve(f, drv, box, P);
@@ -59,12 +60,12 @@ export function sweep(drv, box, P) {
     // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
     // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
     const Hf  = applyFilters(f, P.filters);
-    let   Hc  = cMul(cScale(cMul(cx(0, w), s.U0), RHO / (2 * Math.PI * r)), Hf);
+    const Hc  = cMul(cScale(cMul(cx(0, w), s.U0), RHO / (2 * Math.PI * r)), Hf);
     const UD  = cMul(s.UD, Hf);
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
     const Sdt = drv.Sd * (P.nDrivers || 1);
-    const area = box === 'pr' ? P.prSd : P.Sp;
+    const area = box === 'pr' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
     spl.push(pm > 0 ? 20 * Math.log10(pm / P0) : -200);
@@ -73,7 +74,7 @@ export function sweep(drv, box, P) {
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
     // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
-    excPR.push(box === 'pr' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd * (P.prNum || 1)) * 1000 : 0);
+    excPR.push(box === 'pr' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
@@ -93,14 +94,14 @@ export function sweep(drv, box, P) {
  * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
-export function maxCurves(drv, box, P) {
+export function maxCurves(drv: Driver, box: BoxType, P: SweepParams): MaxCurvesResult {
   const base = sweep(drv, box, Object.assign({}, P, { eg: 2.83 }));
   const Pe   = (drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null;
   const Re   = drv.Re;                  // T/S power reference is always Re, not Znom
-  const maxspl = [], maxpwr = [], xlim = [];
+  const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
   for (let i = 0; i < base.fs.length; i++) {
     const excAt283 = base.exc[i] / 1000;
-    const vXmax = (excAt283 > 0 && drv.Xmax > 0) ? 2.83 * (drv.Xmax / excAt283) : Infinity;
+    const vXmax = (excAt283 > 0 && drv.Xmax! > 0) ? 2.83 * (drv.Xmax! / excAt283) : Infinity;
     const vPe   = Pe != null ? Math.sqrt(Pe * Re) : Infinity;
     const vUse  = Math.min(vXmax, vPe);
     maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));

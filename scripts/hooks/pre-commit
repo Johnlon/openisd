@@ -7,8 +7,8 @@
 # (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
 # a change "done". A green pre-commit is necessary, not sufficient.
 set -e
-echo "[pre-commit] lint + unit + golden — blocking commit on any red…"
+echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
 npm run lint
+npm run typecheck
 npm run test:unit
-node packages/engine/test/golden.test.mjs
 echo "[pre-commit] all green ✓"

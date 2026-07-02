@@ -28,8 +28,9 @@
 
 import { RHO, C } from './constants.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar } from './complex.js';
+import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
 
-export function portLoss(w, Map, P) {
+export function portLoss(w: number, Map: number, P: SweepParams): number {
   return w * Map / (P.Qp || 100);
 }
 
@@ -43,7 +44,7 @@ export function portLoss(w, Map, P) {
  * Returns U0 (net output volume velocity), UD (driver), UP (port/PR),
  * and Zel (electrical input impedance).
  */
-export function solve(f, drv, box, P) {
+export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Solution {
   const w      = 2 * Math.PI * f;
   const n      = P.nDrivers || 1;
   const wiring = P.wiring || 'parallel';
@@ -58,8 +59,8 @@ export function solve(f, drv, box, P) {
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
   const Rdc1 = drv.Re + (P.Rs || 0);
   const Zcoil1AC = cx(Rdc1, 0);
-  const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * drv.Le));
-  let ZcoilAC, Zcoil, Bl;
+  const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * drv.Le!));
+  let ZcoilAC: Complex, Zcoil: Complex, Bl: number;
   if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.Bl * n; }
   else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.Bl; }
 
@@ -89,7 +90,8 @@ export function solve(f, drv, box, P) {
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  let Zbox, UP = cx(0, 0), U0, UD;
+  let Zbox!: Complex, U0!: Complex, UD!: Complex;
+  let UP: Complex = cx(0, 0);
 
   if (box === 'sealed') {
     Zbox = cPar(Zc, Ral, Raa);
@@ -99,7 +101,7 @@ export function solve(f, drv, box, P) {
   } else if (box === 'vented') {
     // Port acoustic mass Map = ρ·Leff/Sp, Leff = L + 0.85·d (end correction)
     // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
-    const Map = RHO * P.Leff / P.Sp, Rap = portLoss(w, Map, P);
+    const Map = RHO * P.Leff! / P.Sp!, Rap = portLoss(w, Map, P);
     const Zport = cAdd(cx(Rap, 0), cx(0, w * Map));
     Zbox = cPar(Zc, Ral, Raa, Zport);
     UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
@@ -111,9 +113,9 @@ export function solve(f, drv, box, P) {
     // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr
     const n_pr = P.prNum || 1;
-    const Map = (P.prMmd + P.prMadd) / (P.prSd * P.prSd);
-    const Cap = P.prCms * P.prSd * P.prSd;
-    const Rap = (P.prRms || 0) / (P.prSd * P.prSd);
+    const Map = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
+    const Cap = P.prCms! * P.prSd! * P.prSd!;
+    const Rap = (P.prRms || 0) / (P.prSd! * P.prSd!);
     const Zpr_single = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
     const Zpr = n_pr > 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
     Zbox = cPar(Zc, Ral, Raa, Zpr);
@@ -125,8 +127,8 @@ export function solve(f, drv, box, P) {
     // 4th-order bandpass: rear sealed chamber + front vented chamber
     const Cabr   = P.Vb / (RHO * C * C);
     const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));
-    const Cabf   = P.Vf / (RHO * C * C);
-    const Map    = RHO * P.Leff / P.Sp, Rap = portLoss(w, Map, P);
+    const Cabf   = P.Vf! / (RHO * C * C);
+    const Map    = RHO * P.Leff! / P.Sp!, Rap = portLoss(w, Map, P);
     const Zportf = cAdd(cx(Rap, 0), cx(0, w * Map));
     const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
     Zbox = cAdd(Zr, Zf);

@@ -5,9 +5,12 @@
   "description": "Thiele-Small loudspeaker enclosure physics engine — pure functions, zero dependencies",
   "license": "MIT",
   "exports": {
-    ".": "./src/index.js"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs && node test/golden.test.mjs"
+    "test": "vitest run"
   }
 }

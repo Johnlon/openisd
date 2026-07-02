@@ -10,6 +10,7 @@
  */
 
 import { RHO, C } from './constants.js';
+import type { DriverRaw, Driver, DriverError, Result } from './types.js';
 
 /**
  * Derive the full Thiele-Small parameter set from {Fs, Qts/Qes/Qms, Vas, Sd, Re, Le}.
@@ -22,9 +23,12 @@ import { RHO, C } from './constants.js';
  *   Rms = 2π · Fs · Mms / Qms
  *   Bl  = √(2π · Fs · Mms · Re / Qes)
  */
-export function deriveDriver(d) {
-  const errors = [];
-  const r = Object.assign({}, d);
+export function deriveDriver(d: DriverRaw): Result<Driver> {
+  const errors: DriverError[] = [];
+  // The working copy becomes a fully-derived Driver once validation passes below;
+  // the single cast lets us assign the derived fields. Guarded reads (r.Fs > 0)
+  // tolerate the pre-validation undefined values fine.
+  const r = Object.assign({}, d) as Driver;
 
   // Required fields — each missing one is a blocking error
   if (!(r.Fs > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
@@ -39,8 +43,8 @@ export function deriveDriver(d) {
   // Optional fields — absence does NOT block derivation; it only drops one reference
   // line from a chart. Reported as warnings so the UI can list them (dismissable) and
   // still draw the reliable curve.
-  if (!(r.Pe > 0))   errors.push({ level: 'warn', field: 'Pe',   message: 'Rated power (Pe) is not set — the thermal-limit line is omitted from the Max-SPL and Max-power charts' });
-  if (!(r.Xmax > 0)) errors.push({ level: 'warn', field: 'Xmax', message: 'Peak excursion (Xmax) is not set — the Xmax limit line is omitted from the Excursion and Max-SPL charts' });
+  if (!(r.Pe! > 0))   errors.push({ level: 'warn', field: 'Pe',   message: 'Rated power (Pe) is not set — the thermal-limit line is omitted from the Max-SPL and Max-power charts' });
+  if (!(r.Xmax! > 0)) errors.push({ level: 'warn', field: 'Xmax', message: 'Peak excursion (Xmax) is not set — the Xmax limit line is omitted from the Excursion and Max-SPL charts' });
 
   if (errors.some(e => e.level === 'error')) return { value: null, errors };
 
@@ -64,11 +68,11 @@ export function deriveDriver(d) {
  * single-quoted strings with '' escape, and block scalars (|).
  * Private — only called from parseWdr.
  */
-function _parseSimpleYaml(text) {
-  const r = {};
+function _parseSimpleYaml(text: string): Record<string, string | null> {
+  const r: Record<string, string | null> = {};
   const lines = text.split(/\r?\n/);
-  let blockKey = null;
-  const blockLines = [];
+  let blockKey: string | null = null;
+  const blockLines: string[] = [];
 
   for (const line of lines) {
     if (blockKey !== null && line.length > 0 && (line[0] === ' ' || line[0] === '\t')) {
@@ -93,15 +97,15 @@ function _parseSimpleYaml(text) {
   return r;
 }
 
-export function parseWdr(text, sidecarText) {
-  const f = {};
+export function parseWdr(text: string, sidecarText?: string): Result<DriverRaw> {
+  const f: Record<string, string> = {};
   for (const line of text.split(/\r?\n/)) {
     const i = line.indexOf('=');
     if (i < 0 || line[0] === '[') continue;
     f[line.slice(0, i).trim()] = line.slice(i + 1).trim();
   }
-  const n = k => { const v = parseFloat(f[k]); return isFinite(v) ? v : undefined; };
-  const d = {};
+  const n = (k: string): number | undefined => { const v = parseFloat(f[k]); return isFinite(v) ? v : undefined; };
+  const d: DriverRaw = {};
   d.Fs = n('Fs'); d.Qts = n('Qts'); d.Qes = n('Qes'); d.Qms = n('Qms');
   d.Vas = n('Vas'); d.Sd = n('Sd'); d.Re = n('Re'); d.Le = n('Le');
   d.Xmax = n('Xmax'); d.Pe = n('Pe'); d.Z = n('Znom');
@@ -119,15 +123,16 @@ export function parseWdr(text, sidecarText) {
     if (s.frd_url)         d.frdUrl        = s.frd_url;
     if (s.zma_url)         d.impedanceUrl  = s.zma_url;
   }
-  for (const k in d) if (d[k] === undefined) delete d[k];
+  const dRec = d as Record<string, unknown>;
+  for (const k in dRec) if (dRec[k] === undefined) delete dRec[k];
   return { value: d, errors: [] };
 }
 
-export function toWdr(raw) {
+export function toWdr(raw: DriverRaw): string {
   const { value: d } = deriveDriver(raw);
   if (!d) return '';
   const Sd  = d.Sd, Vd = Sd * (d.Xmax || 0), Dd = 2 * Math.sqrt(Sd / Math.PI);
-  const g   = (x, p = 6) => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
+  const g   = (x: number | null | undefined, p = 6): string | number => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
   const brand = raw.brand || '', model = raw.model || '';
   // WinISD per-field edit-state flags: E=enabled, C=calculated, N=not-used.
   // The sequence maps to the WDR field list order (Qts, Znom, Fs, Pe, Re, Le, BL, Xmax, Cms, Qms, Qes, Rms, Mms, Sd, Vas, Vd, Dd, numVC, VCCon). Exact values are opaque to us — kept as WinISD requires.

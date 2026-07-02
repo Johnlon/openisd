@@ -1,8 +1,10 @@
-/* Golden-master regression test.  Run: node test/golden.test.mjs
+/* Golden-master regression test.  Runs under Vitest (npm run test:unit).
  * Reads committed fixtures from test/fixtures/golden/*.json and asserts the
  * engine reproduces every number exactly.  Exact === is intentional: the engine
  * is deterministic, JSON round-trips doubles losslessly, so any divergence after
  * a "pure move" is a real behaviour change.  Do not add tolerance. */
+import { describe, it } from 'vitest';
+import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -21,40 +23,29 @@ const NAMES = [
   'vented-2drv-series',
 ];
 
-let fails = 0;
-const check = (label, pass, detail = '') => {
-  console.log(`  ${pass ? 'PASS' : 'FAIL'}  ${label}${detail ? '  —  ' + detail : ''}`);
-  if (!pass) fails++;
+const cmpArray = (label, got, exp) => {
+  assert.ok(Array.isArray(got), `${label}: expected an array`);
+  assert.equal(got.length, exp.length, `${label}: length ${got.length} !== ${exp.length}`);
+  for (let i = 0; i < exp.length; i++)
+    assert.equal(got[i], exp[i], `${label}[${i}]: ${got[i]} !== ${exp[i]}`);
 };
 
-console.log('\nResonate golden-master tests\n');
+describe('golden-master — engine reproduces committed fixtures exactly', () => {
+  for (const name of NAMES) {
+    it(`${name} — sweep + maxCurves are byte-identical to the fixture`, () => {
+      const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
+        JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 
-for (const name of NAMES) {
-  const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
-    JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
+      const { value: drv, errors } = deriveDriver(driverRaw);
+      assert.ok(drv, `${name}: driver failed to derive — ${errors.map(e => e.message).join('; ')}`);
+      const sw = sweep(drv, box, P);
+      const mx = maxCurves(drv, box, P);
 
-  const { value: drv, errors: _drvErrors } = deriveDriver(driverRaw);
-  if (!drv) { check(`${name}  driver-valid`, false); console.error('  driver errors:', _drvErrors.map(e => e.message)); continue; }
-  const sw  = sweep(drv, box, P);
-  const mx  = maxCurves(drv, box, P);
-
-  const cmpNum = (label, got, exp) => {
-    let pass = Array.isArray(got) && got.length === exp.length;
-    if (pass) for (let i = 0; i < exp.length; i++) if (got[i] !== exp[i]) { pass = false; break; }
-    check(`${name}  ${label}`, pass);
-  };
-  const cmpBool = (label, got, exp) => {
-    let pass = Array.isArray(got) && got.length === exp.length;
-    if (pass) for (let i = 0; i < exp.length; i++) if (got[i] !== exp[i]) { pass = false; break; }
-    check(`${name}  ${label}`, pass);
-  };
-
-  for (const k of ['fs','spl','phase','exc','excPR','pv','zmag','zph','gd'])
-    cmpNum(`sweep.${k}`, sw[k], expSw[k]);
-  for (const k of ['maxspl','maxpwr'])
-    cmpNum(`maxCurves.${k}`, mx[k], expMx[k]);
-  cmpBool('maxCurves.xlim', mx.xlim, expMx.xlim);
-}
-
-console.log(`\n${fails ? fails + ' check(s) FAILED' : 'All checks passed.'}\n`);
-process.exit(fails ? 1 : 0);
+      for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'])
+        cmpArray(`${name} sweep.${k}`, sw[k], expSw[k]);
+      for (const k of ['maxspl', 'maxpwr'])
+        cmpArray(`${name} maxCurves.${k}`, mx[k], expMx[k]);
+      cmpArray(`${name} maxCurves.xlim`, mx.xlim, expMx.xlim);
+    });
+  }
+});
