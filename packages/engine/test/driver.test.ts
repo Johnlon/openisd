@@ -223,6 +223,34 @@ describe('deriveDriver — Q-factor derivation branches', () => {
       `expected Qms = ${expectedQms}, got ${d.Qms}`,
     );
   });
+
+  // §11 — deriving Qes from Qts,Qms divides by (Qms − Qts); Qms ≤ Qts makes that
+  // zero/negative → Qes = ∞/negative, which used to poison Bl and the whole circuit
+  // silently. Qts is the parallel combination of Qes and Qms, so Qms > Qts is a
+  // physical invariant; violating it must be a blocking error, not a NaN curve.
+  it('rejects Qms == Qts (Qes absent) with a blocking error instead of deriving Qes = Infinity', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qts: 0.5, Qms: 0.5 });
+    assert.equal(value, null, 'a degenerate Qms == Qts driver must not derive');
+    assert.ok(
+      errors.some(e => e.level === 'error' && /Qms/.test(e.field + e.message)),
+      'must report a blocking error naming Qms',
+    );
+  });
+
+  it('rejects Qms < Qts (Qes absent) — Qes = Qts·Qms/(Qms−Qts) would go negative', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qts: 0.6, Qms: 0.4 });
+    assert.equal(value, null, 'Qms < Qts is physically impossible; must not derive');
+    assert.ok(errors.some(e => e.level === 'error'), 'must report a blocking error');
+  });
+
+  it('rejects Qes == Qts (Qms absent) — the symmetric divide-by-zero deriving Qms', () => {
+    const { value, errors } = deriveDriver({ ...BASE, Qts: 0.5, Qes: 0.5 });
+    assert.equal(value, null, 'a degenerate Qes == Qts driver must not derive');
+    assert.ok(
+      errors.some(e => e.level === 'error' && /Qes/.test(e.field + e.message)),
+      'must report a blocking error naming Qes',
+    );
+  });
 });
 
 // ── parseWdr — never throws ───────────────────────────────────────────────────

@@ -40,6 +40,15 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   const qCount = [r.Qts, r.Qes, r.Qms].filter(v => v > 0).length;
   if (qCount < 2) errors.push({ level: 'error', field: 'Qts', message: 'At least two Q parameters (Qts, Qes, Qms) are required — enter any two to derive the third' });
 
+  // Deriving the third Q divides by (Qms−Qts) or (Qes−Qts). Qts is the parallel
+  // combination of Qes and Qms, so physically Qms > Qts and Qes > Qts. Equal or
+  // inverted values make the denominator zero/negative → Qes/Qms = Infinity/negative,
+  // which would silently poison Bl and the whole circuit. Reject as a blocking error.
+  if (!(r.Qes > 0) && r.Qts > 0 && r.Qms > 0 && r.Qms <= r.Qts)
+    errors.push({ level: 'error', field: 'Qms', message: 'Qms must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
+  if (!(r.Qms > 0) && r.Qts > 0 && r.Qes > 0 && r.Qes <= r.Qts)
+    errors.push({ level: 'error', field: 'Qes', message: 'Qes must be greater than Qts (Qts is the parallel combination of Qes and Qms)' });
+
   // Optional fields — absence does NOT block derivation; it only drops one reference
   // line from a chart. Reported as warnings so the UI can list them (dismissable) and
   // still draw the reliable curve.
