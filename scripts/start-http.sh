@@ -34,8 +34,8 @@ echo "  Health checks — $(date '+%H:%M:%S')"
 echo "========================================"
 
 run "ESLint"       npm run lint
-run "Unit tests"   node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
-run "Golden tests" node packages/engine/test/golden.test.mjs
+run "Type check"   npm run typecheck
+run "Unit tests"   npm run test:unit
 run "DQ check"     python scripts/dq_check.py
 
 echo ""
