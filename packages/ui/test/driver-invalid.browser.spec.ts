@@ -83,6 +83,27 @@ test('missing Pe drops only the thermal-limit line — Max-SPL chart still draws
   await expect(page.locator('.drv-issues')).toHaveCount(0);
 });
 
+test('box volume Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition)', async ({ page }) => {
+  // A *valid* driver can still yield a non-finite sweep: Vb=0 makes cInv(0) poison
+  // exc/zmag with NaN at every frequency. The classifyFinite postcondition must catch
+  // it and surface a blocking error via the issue list — never a silent blank chart,
+  // and no console error (the fixture fails the test on any console/page error).
+  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
+    .locator('..').locator('input[type="number"]');
+  await vbInput.fill('0');
+  await vbInput.press('Tab');
+
+  const issues = page.locator('.drv-issues');
+  await expect(issues).toBeVisible();
+  await expect(issues).toHaveClass(/is-error/);
+  await expect(issues).toContainText(/no usable values|box volume/i);
+
+  // Restore a valid volume — the error clears.
+  await vbInput.fill('30');
+  await vbInput.press('Tab');
+  await expect(page.locator('.drv-issues.is-error')).toHaveCount(0);
+});
+
 test('missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning', async ({ page }) => {
   // Xmax is optional. Without it, the Excursion chart keeps its (reliable) cone-travel
   // curve; only the Xmax limit reference line is omitted. Reported as a dismissable warn.

@@ -195,4 +195,14 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     const r = classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
   });
+
+  it('flags pervasive breakdown even when spl is the finite −200 sentinel (the Vb=0 shape)', () => {
+    // Vb=0 makes cInv(0) poison exc/zmag with NaN, but spl stays −200 (finite) via
+    // the pm>0 guard. Classifying on spl alone would call this a "warn"; it is total
+    // garbage → error. Every frequency is affected, so it must be a blocking error.
+    const sw = sweep(DRV, BOX, P);
+    for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
+    const r = classifyFinite(sw);
+    assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
+  });
 });

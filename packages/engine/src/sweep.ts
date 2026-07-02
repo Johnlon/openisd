@@ -129,8 +129,10 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
       if (!Number.isFinite(arr[i])) badIdx.add(i);
   if (badIdx.size === 0) return null;
 
-  // Primary curve entirely non-finite → nothing usable to draw.
-  if (!sw.spl.some(v => Number.isFinite(v)))
+  // Every frequency has a non-finite observable → nothing usable to draw. (Test on
+  // the whole grid, not on spl alone: spl carries a finite −200 dB silence sentinel
+  // that would mask a pervasive breakdown, e.g. Vb=0 → exc/zmag all NaN but spl=−200.)
+  if (badIdx.size === sw.fs.length)
     return { level: 'error', field: 'sweep', message: 'Simulation produced no usable values — check the box volume and driver parameters.' };
 
   // Otherwise an isolated singularity: the curve still draws (the renderer gaps
