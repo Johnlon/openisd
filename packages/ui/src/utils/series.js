@@ -20,13 +20,14 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
 
   if (tabId === 'SPL') {
     series = [{ ...pick(sw.spl), color: meta.color, name: 'SPL' }];
-    const finite = sw.spl.filter(Number.isFinite);
-    const mx2 = Math.max(...finite), lo = Math.min(...finite);
+    // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
+    // can't drag the scale to nonsense; fit to the real visible curve.
+    const real = sw.spl.filter(v => Number.isFinite(v) && v > -190);
+    const mx2 = real.length ? Math.max(...real) : 0;
+    const lo  = real.length ? Math.min(...real) : mx2 - 45;
     ymax = Math.ceil((mx2 + 3) / 5) * 5;
-    // Bring the bottom of the visible curve into frame — fit down to the minimum,
-    // but keep at least a 45 dB window and cap the span at 90 dB so a deep rolloff
-    // tail (e.g. when zoomed to low frequencies) doesn't squash the passband.
-    ymin = Math.max(ymax - 90, Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5));
+    // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
+    ymin = Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5);
     // F3 / F6: first frequency (low→high) where SPL reaches within N dB of the passband peak.
     // Same reference as StatBar.findF3 — max SPL across the sweep.
     const rolloff = (drop) => { for (let i = 0; i < sw.fs.length; i++) if (sw.spl[i] >= mx2 - drop) return sw.fs[i]; return null; };
@@ -69,11 +70,12 @@ export function seriesFor(tabId, drv, box, P, sw, mx) {
     const ys = series[0].ys; ymin = Math.floor(Math.min(...ys) / 90) * 90; ymax = Math.ceil(Math.max(...ys) / 90) * 90;
   } else if (tabId === 'MaxSPL') {
     series = [{ xs: mx.fs, ys: mx.maxspl, color: meta.color, name: 'Max SPL', xlim: mx.xlim }];
-    const finite = mx.maxspl.filter(Number.isFinite);
-    const mx2 = Math.max(...finite), lo = Math.min(...finite);
+    const real = mx.maxspl.filter(v => Number.isFinite(v) && v > -190);
+    const mx2 = real.length ? Math.max(...real) : 0;
+    const lo  = real.length ? Math.min(...real) : mx2 - 40;
     ymax = Math.ceil(mx2 / 5) * 5;
-    // Fit the bottom of the curve into frame (min 40 dB window, capped at 90 dB).
-    ymin = Math.max(ymax - 90, Math.min(ymax - 40, Math.floor((lo - 3) / 5) * 5));
+    // Fit the bottom of the curve fully into frame, keeping at least a 40 dB window.
+    ymin = Math.min(ymax - 40, Math.floor((lo - 3) / 5) * 5);
     if (mx.xlim && !mx.peAbsent) {
       // Phantom legend entries replace the generic "Max SPL" label when both limits apply.
       series[0].name = '';
