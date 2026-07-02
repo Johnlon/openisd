@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
-defineProps({ text: { type: String, required: true } });
+defineProps<{ text: string }>();
 const open = ref(false);
 </script>
 

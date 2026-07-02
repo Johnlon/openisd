@@ -1,15 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
 import { state, driver, driverErrors, driverShort } from '../store.js';
+import type { DriverRaw } from '@resonate/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
+
+type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
+type MyDriver = DriverRaw & { _savedAt?: number };
 
 const MY_DRIVERS_KEY = 'resonate_my_drivers';
 
-function loadMyDrivers() {
+function loadMyDrivers(): MyDriver[] {
   try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) || '[]'); } catch { return []; }
 }
-function saveMyDrivers(list) {
-  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch {}
+function saveMyDrivers(list: MyDriver[]) {
+  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }
 }
 
 const savingMode = ref(false);
@@ -18,13 +22,13 @@ const saveName   = ref('');
 function startSave() {
   saveName.value = state.driverRaw.name || 'Custom Driver';
   savingMode.value = true;
-  nextTick(() => document.querySelector('.save-name-input')?.select());
+  nextTick(() => document.querySelector<HTMLInputElement>('.save-name-input')?.select());
 }
 
 function confirmSave() {
   const name = saveName.value.trim() || state.driverRaw.name || 'Custom Driver';
   const list = loadMyDrivers();
-  const entry = { ...state.driverRaw, name, _savedAt: Date.now() };
+  const entry: MyDriver = { ...state.driverRaw, name, _savedAt: Date.now() };
   const idx = list.findIndex(d => d.name === name);
   if (idx >= 0) list[idx] = entry; else list.push(entry);
   saveMyDrivers(list);
@@ -42,7 +46,7 @@ function resetToSource() {
   nextTick(() => { _skipNextRename = false; });
 }
 
-const TS_KEYS = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe'];
+const TS_KEYS: NumKey[] = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe'];
 watch(
   () => TS_KEYS.map(k => state.driverRaw[k]),
   () => {
@@ -54,7 +58,10 @@ watch(
 );
 import { ebp } from '@resonate/engine';
 
-const d = computed(() => state.driverRaw);
+// Display view of the raw driver. The T/S numeric fields are treated as present
+// for display formatting (the editor binds to them directly); if one is genuinely
+// absent the arithmetic yields NaN exactly as before — the cast is compile-time only.
+const d = computed(() => state.driverRaw as DriverRaw & Record<NumKey, number>);
 const drv = driver;
 
 const ebpVal = computed(() => { const dv = drv.value; return dv ? ebp(dv) : null; });
@@ -91,7 +98,7 @@ const drvLinks = computed(() => {
 });
 
 // Reasonable physical ranges for edit inputs (in display units)
-const RANGES = {
+const RANGES: Record<string, { min: number; max: number }> = {
   Fs:   { min: 1,      max: 5000 },
   Qts:  { min: 0.01,   max: 20   },
   Qes:  { min: 0.01,   max: 20   },
@@ -104,7 +111,7 @@ const RANGES = {
   Pe:   { min: 0.1,    max: 50000 },  // W
 };
 
-function isValid(key, displayVal) {
+function isValid(key: string, displayVal: string): boolean {
   const r = RANGES[key];
   if (!r) return true;
   const v = parseFloat(displayVal);
@@ -113,23 +120,23 @@ function isValid(key, displayVal) {
 
 // Track raw typed strings so :value doesn't fight the user mid-keystroke.
 // Cleared on blur so the input normalises to the stored value.
-const rawVals = reactive({});
+const rawVals = reactive<Record<string, string>>({});
 
-function rawOrFmt(key, formattedVal) {
+function rawOrFmt(key: string, formattedVal: string): string {
   return key in rawVals ? rawVals[key] : formattedVal;
 }
-function badInput(key, formattedVal) {
+function badInput(key: string, formattedVal: string): boolean {
   return !isValid(key, rawOrFmt(key, formattedVal));
 }
 
-function numInput(key, scale, val) {
+function numInput(key: NumKey, scale: number, val: string) {
   rawVals[key] = val;
   const parsed = parseFloat(val);
   if (isFinite(parsed)) state.driverRaw[key] = parsed / scale;
 }
-function numBlur(key) { delete rawVals[key]; }
+function numBlur(key: string) { delete rawVals[key]; }
 
-function applyDefine(raw) {
+function applyDefine(raw: DriverRaw) {
   state.driverRaw = raw;
   state.driverSource = { ...raw };
   state.defineOpen = false;
@@ -192,49 +199,49 @@ function applyDefine(raw) {
         <input type="number" step="any" min="1" max="5000"
                :value="rawOrFmt('Fs',(+d.Fs).toFixed(1))"
                :class="{ 'inp-bad': badInput('Fs',(+d.Fs).toFixed(1)) }"
-               @input="e => numInput('Fs',1,e.target.value)" @blur="numBlur('Fs')"
+               @input="e => numInput('Fs',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Fs')"
                title="Free-air resonance frequency — from datasheet. WinISD: Fs. Must be 1–5000 Hz">
         <span class="u">Hz</span></div>
       <div class="row"><label>Qts</label>
         <input type="number" step="any" min="0.01" max="20"
                :value="rawOrFmt('Qts',(+d.Qts).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qts',(+d.Qts).toPrecision(3)) }"
-               @input="e => numInput('Qts',1,e.target.value)" @blur="numBlur('Qts')"
+               @input="e => numInput('Qts',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qts')"
                title="Total Q factor = Qes·Qms/(Qes+Qms) — from datasheet. WinISD: Qts. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qes</label>
         <input type="number" step="any" min="0.01" max="20"
                :value="rawOrFmt('Qes',(+d.Qes).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qes',(+d.Qes).toPrecision(3)) }"
-               @input="e => numInput('Qes',1,e.target.value)" @blur="numBlur('Qes')"
+               @input="e => numInput('Qes',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qes')"
                title="Electrical Q factor — motor damping. From datasheet. WinISD: Qes. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qms</label>
         <input type="number" step="any" min="0.05" max="200"
                :value="rawOrFmt('Qms',(+d.Qms).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qms',(+d.Qms).toPrecision(3)) }"
-               @input="e => numInput('Qms',1,e.target.value)" @blur="numBlur('Qms')"
+               @input="e => numInput('Qms',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qms')"
                title="Mechanical Q factor — suspension damping. From datasheet. WinISD: Qms. Must be 0.05–200">
         <span class="u"></span></div>
       <div class="row"><label>Vas</label>
         <input type="number" step="any" min="0.001" max="10000"
                :value="rawOrFmt('Vas',(d.Vas*1000).toPrecision(4))"
                :class="{ 'inp-bad': badInput('Vas',(d.Vas*1000).toPrecision(4)) }"
-               @input="e => numInput('Vas',1000,e.target.value)" @blur="numBlur('Vas')"
+               @input="e => numInput('Vas',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Vas')"
                title="Equivalent compliance volume — from datasheet. WinISD: Vas. Must be 0.001–10000 L">
         <span class="u">L</span></div>
       <div class="row"><label>Sd</label>
         <input type="number" step="any" min="0.5" max="6000"
                :value="rawOrFmt('Sd',(d.Sd*1e4).toPrecision(4))"
                :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toPrecision(4)) }"
-               @input="e => numInput('Sd',1e4,e.target.value)" @blur="numBlur('Sd')"
+               @input="e => numInput('Sd',1e4,(e.target as HTMLInputElement).value)" @blur="numBlur('Sd')"
                title="Effective piston area — from datasheet. WinISD: Sd. Must be 0.5–6000 cm²">
         <span class="u">cm²</span></div>
       <div class="row"><label>Re</label>
         <input type="number" step="any" min="0.1" max="300"
                :value="rawOrFmt('Re',(+d.Re).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Re',(+d.Re).toPrecision(3)) }"
-               @input="e => numInput('Re',1,e.target.value)" @blur="numBlur('Re')"
+               @input="e => numInput('Re',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Re')"
                title="DC voice coil resistance — from datasheet. WinISD: Re. Must be 0.1–300 Ω">
         <span class="u">Ω</span></div>
 
@@ -245,7 +252,7 @@ function applyDefine(raw) {
         <input type="number" step="any" min="0" max="100"
                :value="rawOrFmt('Le',(d.Le*1000).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Le',(d.Le*1000).toPrecision(3)) }"
-               @input="e => numInput('Le',1000,e.target.value)" @blur="numBlur('Le')">
+               @input="e => numInput('Le',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Le')">
         <span class="u">mH</span></div>
       <div class="row"
            title="Peak one-way linear excursion. Required to show the Excursion and Max-SPL curves — omit if not on the datasheet. WinISD: Xmax. 0.1–500 mm">
@@ -253,7 +260,7 @@ function applyDefine(raw) {
         <input type="number" step="any" min="0.1" max="500"
                :value="rawOrFmt('Xmax',(d.Xmax*1000).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toPrecision(3)) }"
-               @input="e => numInput('Xmax',1000,e.target.value)" @blur="numBlur('Xmax')">
+               @input="e => numInput('Xmax',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Xmax')">
         <span class="u">mm</span></div>
       <div class="row"
            title="Rated continuous power handling. Required to show the Max-Power curve — omit if not on the datasheet. WinISD: Pe. 0.1–50000 W">
@@ -261,7 +268,7 @@ function applyDefine(raw) {
         <input type="number" step="any" min="0.1" max="50000"
                :value="rawOrFmt('Pe',String(+d.Pe||0))"
                :class="{ 'inp-bad': badInput('Pe',String(+d.Pe||0)) }"
-               @input="e => numInput('Pe',1,e.target.value)" @blur="numBlur('Pe')">
+               @input="e => numInput('Pe',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Pe')">
         <span class="u">W</span></div>
 
       <div class="subsect">Derived</div>

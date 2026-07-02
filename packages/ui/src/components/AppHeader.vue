@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { state, driver } from '../store.js';
 import { toWdr, parseWdr } from '@resonate/engine';
@@ -7,7 +7,7 @@ import { flash } from '../utils/flash.js';
 
 function shareLink() {
   const url = stateToUrl(serialize(state, driver.value, state.compare));
-  try { history.replaceState(null, '', url); } catch {}
+  try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(
       () => flash('Share link copied to clipboard'),
@@ -25,31 +25,33 @@ function exportWdr() {
   dlFile(fn, toWdr(state.driverRaw), 'text/plain');
 }
 
-const fileInput = ref(null);
-function importClick() { fileInput.value.click(); }
-function onFileChange(e) {
-  const f = e.target.files[0]; if (!f) return;
+const fileInput = ref<HTMLInputElement | null>(null);
+function importClick() { fileInput.value!.click(); }
+function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const f = input.files?.[0]; if (!f) return;
   const rd = new FileReader();
   const isWdr = /\.wdr$/i.test(f.name);
   rd.onload = () => {
+    const text = rd.result as string;
     try {
-      if (isWdr || /^\s*\[Driver\]/.test(rd.result)) {
-        const { value: parsed } = parseWdr(rd.result);
+      if (isWdr || /^\s*\[Driver\]/.test(text)) {
+        const { value: parsed } = parseWdr(text);
         if (parsed) state.driverRaw = parsed;
       } else {
-        const o = JSON.parse(rd.result);
+        const o = JSON.parse(text);
         if (o.driver) state.driverRaw = o.driver;
         if (o.box) state.box = o.box;
         if (o.P) Object.assign(state.P, o.P);
         if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
       }
-    } catch(err) { alert('Could not read "' + f.name + '": ' + err.message); }
+    } catch(err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
   };
   rd.readAsText(f);
-  e.target.value = '';
+  input.value = '';
 }
 
-function dlFile(name, text, mime) {
+function dlFile(name: string, text: string, mime: string) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: mime }));
   a.download = name; a.click();

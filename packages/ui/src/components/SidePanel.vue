@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import DriverPanel from './DriverPanel.vue';
 import BoxPanel from './BoxPanel.vue';
 import SignalPanel from './SignalPanel.vue';

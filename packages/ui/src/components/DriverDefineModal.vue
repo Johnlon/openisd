@@ -1,19 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, reactive, watch, nextTick } from 'vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
+import type { DriverRaw } from '@resonate/engine';
 
-const props = defineProps({ open: Boolean });
-const emit  = defineEmits(['close', 'apply']);
+const props = defineProps<{ open: boolean }>();
+const emit  = defineEmits<{ close: []; apply: [raw: DriverRaw] }>();
 useEscToClose(() => props.open, () => emit('close'));
 
 const RHO = 1.2;   // kg/m³
 const C   = 343;   // m/s
 
+interface Param {
+  key: string; unit: string; sect: string; label: string; desc: string;
+  wdr?: string; optional?: boolean; raw?: boolean; dimOnly?: boolean; newRow?: boolean;
+}
+interface Section {
+  id: string; label: string; hint?: string; allOptional?: boolean; isDerived?: boolean;
+}
+interface Tok { t: string; k?: string; req?: boolean; sep?: boolean }
+interface ChartDep { chart: string; extra: string[]; need: Tok[] }
+
 // ── Parameter definitions ─────────────────────────────────────────────────
 // readOnly  = always derived by engine, shown as read-only display
 // optional  = not required for Apply
 // dimOnly   = physical dimension field — no SI conversion, stored as-is in mm or g
-const PARAMS = [
+const PARAMS: Param[] = [
   // Thiele–Small — Fs & Vas on the top row; the interchangeable Q-trio grouped below
   { key: 'Fs',   unit: 'Hz',    sect: 'TS',   label: 'Fs',        desc: 'Free-air resonance frequency (datasheet T/S). CORE input — sets where bass rolls off; affects every response graph. WinISD: Fs' },
   { key: 'Vas',  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — air as springy as the suspension. CORE input — drives box size/alignment; affects every response graph. WinISD: Vas' },
@@ -63,7 +74,7 @@ const PARAMS = [
   { key: 'weightG',    unit: 'g',  sect: 'Dimensions', label: 'Weight',    desc: 'Driver weight. Reference only — not used in the response simulation.', optional: true, dimOnly: true },
 ];
 
-const SECTIONS = [
+const SECTIONS: Section[] = [
   { id: 'TS',          label: 'Thiele–Small',      hint: 'Any 2 of Qts/Qes/Qms — the third is auto-calculated' },
   { id: 'Piston',      label: 'Piston / Acoustic', hint: 'Enter Sd or cone Dia — the other is calculated' },
   { id: 'Electrical',  label: 'Electrical' },
@@ -87,12 +98,12 @@ const dimExpanded = ref(false);
 // silently rewrites a value you typed. A blank field is calculated from the others
 // (state C) when possible, otherwise not-entered (state N). Clear a field to turn it
 // back into a calculated one.
-const entered = reactive({});
+const entered = reactive<Record<string, string>>({});
 const activeEntered = computed(() =>
   new Set(Object.keys(entered).filter(k => entered[k] !== '')));
 
 // ── Unit conversions ──────────────────────────────────────────────────────
-function toSI(key, displayStr) {
+function toSI(key: string, displayStr: string): number | null {
   const v = parseFloat(displayStr);
   if (!isFinite(v) || v < 0) return null;
   const p = PARAMS.find(x => x.key === key);
@@ -113,7 +124,7 @@ function toSI(key, displayStr) {
   }
 }
 
-function fmtSI(key, si) {
+function fmtSI(key: string, si: number): string {
   if (si == null || !isFinite(si) || si <= 0) return '';
   const p = PARAMS.find(x => x.key === key);
   if (p?.dimOnly) return parseFloat(si.toPrecision(4)).toString();
@@ -148,8 +159,8 @@ function fmtSI(key, si) {
 }
 
 // ── Calculation (same equations as engine's deriveDriver) ─────────────────
-const resolvedSI = computed(() => {
-  const r = {};
+const resolvedSI = computed<Record<string, number>>(() => {
+  const r: Record<string, number> = {};
 
   for (const key of activeEntered.value) {
     const str = entered[key];
@@ -191,20 +202,20 @@ const resolvedSI = computed(() => {
 });
 
 // E = you typed it (sticks); C = calculated from the others; N = not entered yet.
-function stateOf(key) {
+function stateOf(key: string): 'E' | 'C' | 'N' {
   if (activeEntered.value.has(key)) return 'E';
   if (resolvedSI.value[key] != null) return 'C';
   return 'N';
 }
 
-function displayVal(key) {
+function displayVal(key: string): string {
   if (activeEntered.value.has(key)) return entered[key];
   const si = resolvedSI.value[key];
   return si != null ? fmtSI(key, si) : '';
 }
 
-function onInput(key, e) {
-  const val = e.target.value;
+function onInput(key: string, e: Event) {
+  const val = (e.target as HTMLInputElement).value;
   if (val === '') delete entered[key];
   else entered[key] = val;
 }
@@ -219,7 +230,7 @@ const canApply = computed(() => {
 // A field that is REQUIRED to build the driver but still N reads red (blocking),
 // vs. the gentle yellow used for optional not-entered fields.
 const Q_KEYS = ['Qts', 'Qes', 'Qms'];
-function isRequiredMissing(key) {
+function isRequiredMissing(key: string): boolean {
   if (stateOf(key) !== 'N') return false;
   const si = resolvedSI.value;
   if (key === 'Fs' || key === 'Re' || key === 'Vas') return true;
@@ -235,7 +246,7 @@ function isRequiredMissing(key) {
 // Core T/S (Fs, a Q pair, Vas, Sd, Re) drive every graph and are required.
 // `need` = incremental tokens shown in the legend; `extra` = the extra field keys
 // (beyond the always-required core) this graph needs, used to highlight inputs.
-const CHART_DEPS = [
+const CHART_DEPS: ChartDep[] = [
   { chart: 'All graphs',        extra: [],             need: [{ t: 'Fs', k: 'Fs', req: true }, { t: '2 of Qts/Qes/Qms', k: 'Q', req: true }, { t: 'Vas', k: 'Vas', req: true }, { t: 'Sd', k: 'Sd', req: true }, { t: 'Re', k: 'Re', req: true }] },
   { chart: 'Impedance & phase', extra: ['Le'],         need: [{ t: 'Le', k: 'Le' }] },
   { chart: 'Cone excursion',    extra: ['Xmax'],       need: [{ t: 'Xmax', k: 'Xmax' }] },
@@ -243,18 +254,18 @@ const CHART_DEPS = [
   { chart: 'Maximum power',     extra: ['Pe'],         need: [{ t: 'Pe', k: 'Pe' }] },
 ];
 const CORE_KEYS = ['Fs', 'Q', 'Vas', 'Sd', 'Re'];
-function expandKey(k) {
+function expandKey(k: string): string[] {
   if (k === 'Q')  return ['Qts', 'Qes', 'Qms'];
   if (k === 'Sd') return ['Sd', 'Dia'];
   return [k];
 }
-function tokPresent(tok) {
+function tokPresent(tok: Tok): boolean {
   const si = resolvedSI.value;
   if (tok.k === 'Q') return ['Qts', 'Qes', 'Qms'].filter(k => si[k] != null).length >= 2;
-  return si[tok.k] != null; // Sd token covers Sd-or-Dia (both resolve to Sd)
+  return si[tok.k!] != null; // Sd token covers Sd-or-Dia (both resolve to Sd)
 }
 // green = present (graph available); red = required-but-missing; yellow = optional-but-blank.
-function tokClass(tok) {
+function tokClass(tok: Tok): string {
   if (tok.sep) return 'cd-sep';
   if (!tok.k)  return 'cd-core';
   if (tokPresent(tok)) return 'cd-on';
@@ -262,14 +273,14 @@ function tokClass(tok) {
 }
 // Legend token tooltips reuse the SINGLE source of truth — each field's PARAMS.desc.
 // The Q token spans the whole trio, so it gets a combined note.
-function tokPurpose(tok) {
+function tokPurpose(tok: Tok): string {
   if (!tok.k) return '';
   if (tok.k === 'Q') return 'Damping trio — enter any 2 of Qms/Qes/Qts, the third auto-calculates. CORE input; affects every response graph.';
   return PARAMS.find(p => p.key === tok.k)?.desc || '';
 }
 // Format a desc for a native title tooltip: one sentence per line so long
 // descriptions read easily instead of wrapping as a single run-on line.
-function fmtTip(desc) {
+function fmtTip(desc: string | undefined): string {
   return (desc || '').replace(/([.?!]) (?=[A-Z(])/g, '$1\n');
 }
 
@@ -278,14 +289,14 @@ function fmtTip(desc) {
 const graphHelpOpen  = ref(false);
 // Start with every graph selected so all fields are highlighted; user deselects
 // graphs they don't care about to narrow the highlighted set.
-const selectedCharts = ref(CHART_DEPS.map(c => c.chart));
-function toggleChart(name) {
+const selectedCharts = ref<string[]>(CHART_DEPS.map(c => c.chart));
+function toggleChart(name: string) {
   const i = selectedCharts.value.indexOf(name);
   if (i >= 0) selectedCharts.value.splice(i, 1);
   else selectedCharts.value.push(name);
 }
 const highlightKeys = computed(() => {
-  const set = new Set();
+  const set = new Set<string>();
   for (const name of selectedCharts.value) {
     const dep = CHART_DEPS.find(c => c.chart === name);
     if (!dep) continue;
@@ -307,7 +318,9 @@ function applyDriver() {
   const name = drvName.value.trim() ||
     [drvBrand.value, drvModel.value].filter(Boolean).join(' ') || 'Custom Driver';
 
-  const raw = { name };
+  // Built loosely because it carries UI/WDR-only dimension keys beyond DriverRaw;
+  // emitted as DriverRaw (the engine reads only the T/S fields, ignores the rest).
+  const raw: Record<string, unknown> = { name };
   if (drvBrand.value.trim())   raw.brand   = drvBrand.value.trim();
   if (drvModel.value.trim())   raw.model   = drvModel.value.trim();
   if (drvComment.value.trim()) raw.comment = drvComment.value.trim();
@@ -331,10 +344,10 @@ function applyDriver() {
   }
   // Note: Bl/Mms/Cms/Rms are NOT stored — engine always recalculates from above
 
-  emit('apply', raw);
+  emit('apply', raw as DriverRaw);
 }
 
-watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.querySelector('.dd-name')?.focus()); } });
+watch(() => props.open, v => { if (v) { resetAll(); nextTick(() => document.querySelector<HTMLElement>('.dd-name')?.focus()); } });
 // Lead the input: keep the "what's needed" expander open while the driver is
 // incomplete, and let it fold away once it's valid. Manual toggle still works
 // until the validity state next changes.
@@ -520,7 +533,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                          :class="['input-' + stateOf(p.key), { 'input-required': isRequiredMissing(p.key), 'dd-hl': highlightKeys.has(p.key) }]"
                          :value="displayVal(p.key)"
                          @input="onInput(p.key, $event)"
-                         @focus="e => { if (stateOf(p.key) !== 'E') e.target.select(); }"
+                         @focus="e => { if (stateOf(p.key) !== 'E') (e.target as HTMLInputElement).select(); }"
                          :title="fmtTip(p.desc)">
                   <span class="dd-unit">{{ p.unit }}</span>
                   <span class="dd-badge"

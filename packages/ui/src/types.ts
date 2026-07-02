@@ -39,11 +39,20 @@ export interface Design {
   color?: string;
 }
 
+/** Stats over a selected band (canvas reads ripple/peak/trough; peakF/avg are extra). */
+export interface RangeStats {
+  ripple: number;
+  peak: number;
+  trough: number;
+  peakF?: number | null;
+  avg?: number;
+}
+
 /** Frequency-band selection shared across graph panels. */
 export interface DragRange {
   fLo: number;
   fHi: number;
-  stats?: { ripple: number; peak: number; trough: number };
+  stats?: RangeStats;
 }
 
 /** Pixel↔data mapping returned by drawOne for crosshair hit-testing. */
@@ -101,6 +110,13 @@ export interface UiParams {
   circuitModel: 'winisd' | 'gyrator';
   filters: Filter[];
 }
+
+/**
+ * What syncedP produces: the full UiParams (so consumers can still read ventD/
+ * ventL/Pin) plus the derived drive voltage eg and, for vented/bandpass, Sp/Leff.
+ * Assignable to the engine's SweepParams (it has Vb + eg + the rest).
+ */
+export type SyncedParams = UiParams & { eg: number; Sp?: number; Leff?: number };
 
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }

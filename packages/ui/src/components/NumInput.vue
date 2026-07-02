@@ -1,19 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue';
 
-const props = defineProps({
-  modelValue: { type: Number, required: true },
-  scale:      { type: Number,  default: 1 },       // display = SI value × scale
-  precision:  { type: Number,  default: 4 },
-  step:       { type: String,  default: 'any' },
-  min:        { type: Number,  default: undefined },
+const props = withDefaults(defineProps<{
+  modelValue: number;
+  scale?: number;       // display = SI value × scale
+  precision?: number;
+  step?: string;
+  min?: number;
+}>(), {
+  scale: 1,
+  precision: 4,
+  step: 'any',
+  min: undefined,
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
 
 const focused = ref(false);
 
-function fmt(v) {
+function fmt(v: number): string {
   const s = v * props.scale;
   return isFinite(s) ? (+s.toPrecision(props.precision)).toString() : '';
 }
@@ -32,15 +37,16 @@ function onFocus() {
   display.value = fmt(props.modelValue);
 }
 
-function onInput(e) {
-  display.value = e.target.value;   // track what the user actually typed
-  const v = parseFloat(e.target.value);
+function onInput(e: Event) {
+  const t = e.target as HTMLInputElement;
+  display.value = t.value;   // track what the user actually typed
+  const v = parseFloat(t.value);
   if (isFinite(v)) emit('update:modelValue', v / props.scale);
 }
 
-function onBlur(e) {
+function onBlur(e: Event) {
   focused.value = false;
-  const v = parseFloat(e.target.value);
+  const v = parseFloat((e.target as HTMLInputElement).value);
   if (isFinite(v)) emit('update:modelValue', v / props.scale);
   display.value = fmt(props.modelValue);
 }

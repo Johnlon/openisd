@@ -1,6 +1,9 @@
 import type { PRLibEntry } from '../types.js';
 import type { SweepParams } from '@resonate/engine';
 
+/** The PR fields savePR persists — accepts any params object carrying them. */
+type PRSaveParams = Pick<SweepParams, 'prSd' | 'prMmd' | 'prCms' | 'prRms' | 'prXmax'>;
+
 const KEY = 'resonate_pr_lib';
 
 function load(): PRLibEntry[] {
@@ -11,7 +14,7 @@ export function listPRs(): PRLibEntry[] {
   return load();
 }
 
-export function savePR(name: string, P: SweepParams): PRLibEntry[] {
+export function savePR(name: string, P: PRSaveParams): PRLibEntry[] {
   const list = load();
   list.push({
     id: Date.now(),

@@ -1,17 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from 'vue';
 import { state, pinCompare } from '../store.js';
 
 const showHelp = ref(false);
 import { TABS } from '../utils/series.js';
 
-function toggleGraph(id) {
+function toggleGraph(id: string) {
   const i = state.graphs.indexOf(id);
   if (i >= 0) { if (state.graphs.length > 1) state.graphs.splice(i, 1); }
   else state.graphs.push(id);
 }
 
-function removeCompare(i) { state.compare.splice(i, 1); }
+function removeCompare(i: number) { state.compare.splice(i, 1); }
 function clearCompare() { state.compare = []; }
 
 // Frequency-axis (X) range shared by every chart — a dropdown of preset spans, all
@@ -26,18 +26,18 @@ const X_RANGES = [
 ];
 const rangeSel = computed({
   get: () => (state.P.fmin === 1 && X_RANGES.some(r => r.hi === state.P.fmax)) ? String(state.P.fmax) : '',
-  set: (v) => { if (v) { state.P.fmin = 1; state.P.fmax = +v; } },
+  set: (v: string) => { if (v) { state.P.fmin = 1; state.P.fmax = +v; } },
 });
 
 const effectiveF = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 
-function setCursorHz(e) {
-  const v = parseFloat(e.target.value);
+function setCursorHz(e: Event) {
+  const v = parseFloat((e.target as HTMLInputElement).value);
   if (isFinite(v) && v > 0) { state.pinnedF = v; state.cursorLocked = true; }
   else { state.pinnedF = null; state.cursorLocked = false; }
 }
 
-function nudge(dir) {
+function nudge(dir: number) {
   const f = effectiveF.value ?? state.cursorF;
   if (!f) return;
   // step ~1% of current frequency (log-uniform feel), min 0.1 Hz
@@ -48,13 +48,14 @@ function nudge(dir) {
 
 // Press-and-hold auto-repeat for the ◄ ► arrows: one step immediately, then repeat
 // after a short delay so a long press "spins" the frequency.
-let holdTimer = null, holdInterval = null;
-function startNudge(dir) {
+let holdTimer: ReturnType<typeof setTimeout> | null = null, holdInterval: ReturnType<typeof setInterval> | null = null;
+function startNudge(dir: number) {
   nudge(dir);
   holdTimer = setTimeout(() => { holdInterval = setInterval(() => nudge(dir), 60); }, 300);
 }
 function stopNudge() {
-  clearTimeout(holdTimer); clearInterval(holdInterval);
+  if (holdTimer) clearTimeout(holdTimer);
+  if (holdInterval) clearInterval(holdInterval);
   holdTimer = holdInterval = null;
 }
 onBeforeUnmount(stopNudge);

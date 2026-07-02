@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { state } from '../store.js';
 import GraphPanel from './GraphPanel.vue';

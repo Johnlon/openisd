@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state, driver } from '../store.js';
 import { prTuning, prMassForFp, ventedAlignment } from '@resonate/engine';
 import { RHO, C } from '@resonate/engine';
 import { savePR, listPRs, deletePR } from '../utils/prLibrary.js';
+import type { PRLibEntry } from '../types.js';
 import NumInput from './NumInput.vue';
 
 const P = computed(() => state.P);
@@ -30,7 +31,7 @@ const prFsLoaded = computed(() => {
 
 // WinISD mode handlers — each reads Fs/Qms from canonical T/S at full precision,
 // then rewrites the affected T/S fields while holding the other two WinISD params fixed.
-function setWinIsdFs(newFsHz) {
+function setWinIsdFs(newFsHz: number) {
   if (!(newFsHz > 0)) return;
   const Qms = prQmsDisplay.value || 5;
   const newMmd = 1 / ((2 * Math.PI * newFsHz) ** 2 * state.P.prCms);
@@ -38,12 +39,12 @@ function setWinIsdFs(newFsHz) {
   state.P.prRms = Math.sqrt(newMmd / state.P.prCms) / Qms;
 }
 
-function setWinIsdQms(newQms) {
+function setWinIsdQms(newQms: number) {
   if (!(newQms > 0)) return;
   state.P.prRms = Math.sqrt(state.P.prMmd / state.P.prCms) / newQms;
 }
 
-function setWinIsdVas(newVasL) {
+function setWinIsdVas(newVasL: number) {
   if (!(newVasL > 0)) return;
   const Fs_curr = prFsDisplay.value || 30;
   const Qms_curr = prQmsDisplay.value || 5;
@@ -70,7 +71,7 @@ function saveCurrentPR() {
   prLib.value = savePR(name, state.P);
 }
 
-function loadPR(entry) {
+function loadPR(entry: PRLibEntry) {
   state.P.prName = entry.name;
   state.P.prSd   = entry.prSd;
   state.P.prMmd  = entry.prMmd;
@@ -81,7 +82,7 @@ function loadPR(entry) {
   editPR.value = false;
 }
 
-function removePR(id) {
+function removePR(id: number) {
   prLib.value = deletePR(id);
 }
 </script>
@@ -119,7 +120,7 @@ function removePR(id) {
   <template v-else>
     <div class="row" title="Name for this passive radiator — shown in the summary and saved with the PR library entry">
       <label>PR name</label>
-      <input style="flex:1" type="text" :value="state.P.prName" @input="e => state.P.prName = e.target.value" placeholder="e.g. Dayton SD270A-88">
+      <input style="flex:1" type="text" :value="state.P.prName" @input="e => state.P.prName = (e.target as HTMLInputElement).value" placeholder="e.g. Dayton SD270A-88">
     </div>
 
     <div class="row" title="Number of passive radiators. Multiple PRs in parallel lower the effective acoustic impedance of the PR branch, increasing output without changing the tuning frequency Fp. WinISD: 'Number of radiators'.">

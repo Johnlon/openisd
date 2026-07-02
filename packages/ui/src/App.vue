@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import AppHeader from './components/AppHeader.vue';
 import SidePanel from './components/SidePanel.vue';
@@ -9,19 +9,20 @@ import Flash from './components/Flash.vue';
 import { state, driver } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
+import type { SerializedState } from './types.js';
 
 const mobileTab = ref('graphs');
 const isMobile = ref(false);
 const sideCollapsed = ref(false);
 const MQ = typeof window !== 'undefined' ? window.matchMedia('(max-width: 720px)') : null;
-function onMqChange(e) { isMobile.value = e.matches; }
+function onMqChange(e: MediaQueryListEvent) { isMobile.value = e.matches; }
 
 function handleHashChange() {
   const saved = loadFromHash();
   if (saved) applyState(saved);
 }
 
-function applyState(o) {
+function applyState(o: SerializedState) {
   if (o.driver) state.driverRaw = o.driver;
   if (o.box) state.box = o.box;
   if (o.P) Object.assign(state.P, o.P);

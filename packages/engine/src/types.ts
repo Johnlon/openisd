@@ -55,6 +55,7 @@ export interface DriverRaw {
   providedBy?: string;
   comment?: string;
   datasheetUrl?: string;
+  manuPageUrl?: string;
   vendorpageUrl?: string;
   sourceUrl?: string;
   frdUrl?: string;
@@ -94,6 +95,8 @@ export type CircuitModel = 'winisd' | 'gyrator';
 export type FilterType = 'highpass' | 'lowpass' | 'linkwitz' | 'peaking';
 
 export interface Filter {
+  /** UI list key (crypto.randomUUID). Carried through state; ignored by the engine. */
+  id?: string;
   type: FilterType;
   enabled: boolean;
   fc?: number;

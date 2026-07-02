@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state, driver } from '../store.js';
 import { sealedFromQtc, ventedAlignment, ventLength, tuningFromLength } from '@resonate/engine';

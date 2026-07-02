@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver } from '../store.js';
 import HelpTip from './HelpTip.vue';
@@ -7,8 +7,8 @@ const drv = driver;
 
 const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value?.Re || 8)));
 
-function onVoltageInput(e) {
-  const v = parseFloat(e.target.value);
+function onVoltageInput(e: Event) {
+  const v = parseFloat((e.target as HTMLInputElement).value);
   if (isFinite(v) && v > 0) state.P.Pin = (v * v) / (drv.value?.Re || 8);
 }
 
@@ -30,7 +30,7 @@ function setIEC() {
     </div>
     <div class="row" title="Input power. Changing this updates the drive voltage below.">
       <label>Input power</label>
-      <input type="number" step="0.001" min="0" :value="(state.P.Pin ?? 1).toFixed(3)" @change="e => state.P.Pin = parseFloat(e.target.value)||1">
+      <input type="number" step="0.001" min="0" :value="(state.P.Pin ?? 1).toFixed(3)" @change="e => state.P.Pin = parseFloat((e.target as HTMLInputElement).value)||1">
       <span class="u">W</span>
     </div>
     <div class="row" title="Drive voltage = √(Pin × Re). Edit directly to set an exact voltage — input power updates automatically. Use 2.83V for IEC 60268-5 sensitivity reference (1W into 8Ω).">
@@ -43,12 +43,12 @@ function setIEC() {
     </div>
     <div class="row" title="Series resistance (wire, crossover DCR, amplifier output impedance). WinISD default is 0.1 Ω.">
       <label>Series resistance</label>
-      <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat(e.target.value)||0">
+      <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
       <span class="u">Ω</span>
     </div>
     <div class="row">
       <label>No. of drivers</label>
-      <input type="number" step="1" :value="state.P.nDrivers" @input="e => state.P.nDrivers = parseInt(e.target.value)||1">
+      <input type="number" step="1" :value="state.P.nDrivers" @input="e => state.P.nDrivers = parseInt((e.target as HTMLInputElement).value)||1">
       <span class="u"></span>
     </div>
     <div class="row">

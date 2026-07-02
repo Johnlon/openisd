@@ -25,6 +25,10 @@
 import { RHO, C } from './constants.js';
 import type { Driver, SweepParams } from './types.js';
 
+/** The subset of params the PR helpers read — lets callers pass any params object
+ *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
+type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
+
 /**
  * Efficiency Bandwidth Product — criterion for enclosure type selection.
  * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
@@ -86,7 +90,7 @@ export function tuningFromLength(Vb: number, L: number, Sp: number): number {
  * Cpar = Cab·Cap/(Cab+Cap);  fp = 1/(2π·√(Map·Cpar))
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function prTuning(P: SweepParams): number {
+export function prTuning(P: PRParams): number {
   const Cab  = P.Vb / (RHO * C * C);
   const Map  = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
@@ -99,7 +103,7 @@ export function prTuning(P: SweepParams): number {
  * Inverts prTuning(): Map = 1/((2π·fp)²·Cpar),  Mmp = Map·prSd²
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function prMassForFp(P: SweepParams, fp: number): number {
+export function prMassForFp(P: PRParams, fp: number): number {
   const Cab  = P.Vb / (RHO * C * C);
   const Cap  = P.prCms! * P.prSd! * P.prSd!;
   const Cpar = (Cab * Cap) / (Cab + Cap);

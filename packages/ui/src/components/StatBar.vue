@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver, syncedP, curvesData } from '../store.js';
 import { ebp, tuningFromLength, prTuning } from '@resonate/engine';
@@ -7,13 +7,23 @@ const drv = driver;
 const P = syncedP;
 const sw = curvesData;
 
-function findRolloff(fs, spl, drop) {
+function findRolloff(fs: number[], spl: number[], drop: number): number | null {
   const ref = Math.max(...spl);
   for (let i = 0; i < fs.length; i++) if (spl[i] >= ref - drop) return fs[i];
   return null;
 }
 
-const stats = computed(() => {
+type StatsInvalid = { box: string; invalid: true };
+type StatsValid = {
+  box: string; invalid?: false;
+  Vb: number; fc: number | null; Qtc: number | null;
+  fb: number | null; fp: number | null;
+  f3: number | null; f6: number | null; f10: number | null;
+  peakZ: number; maxPV: number | null; maxPRx: number | null;
+  ebpVal: number; prXmax: number;
+};
+
+const stats = computed<StatsInvalid | StatsValid>(() => {
   const d = drv.value, p = P.value, s = sw.value;
   const box = state.box;
   // No derivable driver (core T/S invalid) → no sweep to summarise.

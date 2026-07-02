@@ -1,15 +1,40 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
 import { state, DEFAULT_DRIVER } from '../store.js';
 import HelpTip from './HelpTip.vue';
 import { parseWdr } from '@resonate/engine';
+import type { DriverRaw } from '@resonate/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
+// A driver source (federated GitHub repo or bundled collection).
+interface SourceEntry {
+  key: string; name: string; type?: string;
+  url?: string; description?: string;
+  repo?: string; branch?: string; path?: string;
+}
+// A saved "My Driver" — a raw driver plus a save timestamp (name always present).
+type MyDriver = DriverRaw & { name: string; _savedAt?: number };
+// A row in the unified driver pool. Built dynamically, so most fields are optional.
+interface FileEntry {
+  name: string;
+  fileName?: string;
+  content?: string;
+  date?: string;
+  datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
+  path?: string; repo?: string | null; branch?: string | null;
+  sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
+  _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
+  _types?: string[]; _canonical?: string;
+  _freqRange?: { lo: number; hi: number } | null;
+  _nd?: string; _isLatest?: boolean; _isOlder?: boolean;
+  myDriverData?: MyDriver;
+}
+
 // sources.json v2 keys sources by a short stable id; expose each as { key, ...src }.
-const sources     = Object.entries(sourcesJson.sources || {}).map(([key, s]) => ({ key, ...s }));
-const allFiles    = ref([]);   // unified pool across all sources
+const sources: SourceEntry[] = Object.entries(sourcesJson.sources || {}).map(([key, s]) => ({ key, ...(s as Omit<SourceEntry, 'key'>) }));
+const allFiles    = ref<FileEntry[]>([]);   // unified pool across all sources
 const filterQ     = ref('');
 const statusMsg   = ref('');
 const statusErr   = ref(false);
@@ -20,17 +45,17 @@ const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kicks in
 const displayLimit  = ref(DISPLAY_LIMIT);
 
 // Source filter
-const selectedSources = ref([]);   // empty = all
+const selectedSources = ref<string[]>([]);   // empty = all
 const sourcesOpen     = ref(false);
 
 // Type + param filters
 const typeHelpOpen  = ref(false);
-const typeStates = ref({});   // id → 'include' | 'exclude'
+const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
 const fsMin = ref('');
 const fsMax = ref('');
 const sdMin = ref('');   // cm²
 const sdMax = ref('');   // cm²
-const selZ  = ref([]);   // '4', '8', '16'
+const selZ  = ref<string[]>([]);   // '4', '8', '16'
 
 // Multi-label type chips — a driver can match several simultaneously.
 // Selecting a chip shows all drivers that carry that label.
@@ -46,14 +71,14 @@ const DRIVER_TYPES = [
   { id: 'unclassified', label: 'Unclassified', title: 'Drivers that did not match any type pattern' },
 ];
 
-function quickParse(content) {
-  const m = k => { const r = (content || '').match(new RegExp('^' + k + '=(.+)$', 'm')); return r ? parseFloat(r[1]) : null; };
+function quickParse(content: string | undefined) {
+  const m = (k: string) => { const r = (content || '').match(new RegExp('^' + k + '=(.+)$', 'm')); return r ? parseFloat(r[1]) : null; };
   return { Fs: m('Fs'), Sd: m('Sd'), Re: m('Re'), Znom: m('Znom'), Pe: m('Pe') };
 }
 
-function fmtHz(hz) {
+function fmtHz(hz: number | string | null | undefined): string | null {
   if (hz == null) return null;
-  const v = parseFloat(hz);
+  const v = parseFloat(String(hz));
   if (!isFinite(v)) return null;
   return v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'kHz' : Math.round(v) + 'Hz';
 }
@@ -82,13 +107,13 @@ const COAX_PAT     = /\bcoax(ial)?\b|coaxial/i;
 // types  = functional chip IDs for filtering
 // canonical = the normalised product-type name for display (e.g. "Subwoofer", "Midrange")
 // driverType = scraper-derived type written to _meta.yml (e.g. 'coaxial', 'subwoofer')
-function classifyTypes(Fs, Sd, nameStr, driverType) {
+function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, driverType?: string): { types: string[]; canonical: string } {
   const nm = nameStr || '';
   // Scrapers may write compound values like "midwoofer, automotive" — take the primary
   // type token only; secondary qualifiers (automotive, marine, etc.) are not type tags.
   const dt = (driverType || '').split(',')[0].trim().toLowerCase();
-  const types = new Set();
-  const canonical = [];
+  const types = new Set<string>();
+  const canonical: string[] = [];
 
   if (PR_PAT.test(nm) || dt === 'pr' || dt === 'passive radiator' || dt === 'passive_radiator')
     return { types: ['pr'], canonical: 'Passive Radiator' };
@@ -124,14 +149,14 @@ function classifyTypes(Fs, Sd, nameStr, driverType) {
   return                                   { types: [],                      canonical: 'Unclassified' };
 }
 
-function toggleType(id) {
+function toggleType(id: string) {
   const cur = typeStates.value[id];
   if (!cur)            typeStates.value = { ...typeStates.value, [id]: 'include' };
   else if (cur === 'include') typeStates.value = { ...typeStates.value, [id]: 'exclude' };
   else                 { const s = { ...typeStates.value }; delete s[id]; typeStates.value = s; }
   displayLimit.value = DISPLAY_LIMIT;
 }
-function toggleZ(z) {
+function toggleZ(z: string) {
   const idx = selZ.value.indexOf(z);
   if (idx >= 0) selZ.value.splice(idx, 1); else selZ.value.push(z);
   displayLimit.value = DISPLAY_LIMIT;
@@ -143,14 +168,14 @@ function clearParamFilters() {
 }
 
 const availableSources = computed(() => {
-  const counts = {};
+  const counts: Record<string, number> = {};
   for (const f of allFiles.value) {
     if (f.sourceName) counts[f.sourceName] = (counts[f.sourceName] || 0) + 1;
   }
   return Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]));
 });
 
-function toggleSource(name) {
+function toggleSource(name: string) {
   const idx = selectedSources.value.indexOf(name);
   if (idx >= 0) selectedSources.value.splice(idx, 1);
   else selectedSources.value.push(name);
@@ -161,7 +186,7 @@ function clearSources() { selectedSources.value = []; displayLimit.value = DISPL
 
 // Normalise any date string to YYYY-MM-DD for comparison and display.
 // Handles ISO (2026-06-24), DD/MM/YYYY, DD-MM-YYYY, "Jun 24 2026", etc.
-function normaliseDate(raw) {
+function normaliseDate(raw: string | undefined): string {
   if (!raw) return '';
   const s = raw.trim();
   // Already ISO
@@ -171,7 +196,7 @@ function normaliseDate(raw) {
   if (dmy) return `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`;
   // Try native parse as last resort
   const d = new Date(s);
-  if (!isNaN(d)) return d.toISOString().slice(0, 10);
+  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
   return s;
 }
 
@@ -182,10 +207,10 @@ const filteredFiles = computed(() => {
   if (tokens.length)
     filtered = filtered.filter(f => tokens.every(t => f.name.toLowerCase().includes(t)));
   if (srcFilter.length)
-    filtered = filtered.filter(f => srcFilter.includes(f.sourceName));
+    filtered = filtered.filter(f => f.sourceName != null && srcFilter.includes(f.sourceName));
   const included = Object.keys(typeStates.value).filter(k => typeStates.value[k] === 'include');
   const excluded = Object.keys(typeStates.value).filter(k => typeStates.value[k] === 'exclude');
-  const isUnclassified = f => !f._types?.length;
+  const isUnclassified = (f: FileEntry) => !f._types?.length;
   if (included.length)
     filtered = filtered.filter(f => (included.includes('unclassified') && isUnclassified(f)) || included.filter(t => t !== 'unclassified').some(t => f._types?.includes(t)));
   if (excluded.length) {
@@ -208,8 +233,8 @@ const filteredFiles = computed(() => {
   );
 
   // Find the latest normalised date for each name (to flag newer/older versions)
-  const latestDate = {};
-  const nameCount = {};
+  const latestDate: Record<string, string> = {};
+  const nameCount: Record<string, number> = {};
   for (const f of sorted) {
     nameCount[f.name] = (nameCount[f.name] || 0) + 1;
     const nd = normaliseDate(f.date);
@@ -231,15 +256,15 @@ const listTruncated  = computed(() => filteredFiles.value.length > displayLimit.
 
 // ── GitHub source helpers ────────────────────────────────────────────────────
 
-async function ghDefaultBranch(repo) {
+async function ghDefaultBranch(repo: string): Promise<string> {
   const r = await fetch(`https://api.github.com/repos/${repo}`);
   if (!r.ok) throw new Error('repo not found (' + r.status + ')');
   return (await r.json()).default_branch || 'main';
 }
 
-async function fetchSource(src) {
+async function fetchSource(src: SourceEntry) {
   try {
-    const branch = src.branch || await ghDefaultBranch(src.repo);
+    const branch = src.branch || await ghDefaultBranch(src.repo!);
     const r = await fetch(`https://api.github.com/repos/${src.repo}/git/trees/${branch}?recursive=1`);
     if (!r.ok) return;
     const result = await r.json();
@@ -248,13 +273,13 @@ async function fetchSource(src) {
       statusMsg.value = `Repo "${src.name}" is too large to list fully. Specify a direct subfolder in the URL — e.g. github.com/${src.repo}/tree/main/drivers — so only that folder is scanned.`;
       return;
     }
-    const tree = result.tree || [];
+    const tree: Array<{ path: string; type: string }> = result.tree || [];
     const base = (src.path || '').replace(/^\/|\/$/g, '');
     const found = tree
       .filter(t => t.type === 'blob' && t.path.toLowerCase().endsWith('.wdr')
                 && (!base || t.path.toLowerCase().startsWith(base.toLowerCase() + '/')))
       .map(t => {
-        const nm = t.path.split('/').pop().replace(/\.wdr$/i, '');
+        const nm = t.path.split('/').pop()!.replace(/\.wdr$/i, '');
         return {
           path: t.path, branch, repo: src.repo,
           name: nm,
@@ -275,7 +300,7 @@ async function fetchSource(src) {
   } catch {}
 }
 
-function parseRepoInput(s) {
+function parseRepoInput(s: string): SourceEntry | null {
   s = s.trim(); if (!s) return null;
   let m = s.match(/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?(?:\/tree\/([^/]+)(?:\/(.*))?)?$/i);
   if (m) return { key: m[1]+'/'+m[2], name: m[1]+'/'+m[2], type:'github', repo: m[1]+'/'+m[2], branch: m[3]||'', path: m[4]||'' };
@@ -287,8 +312,14 @@ function parseRepoInput(s) {
 // ── Initialise ───────────────────────────────────────────────────────────────
 
 // Index bundled sources by their stable key for O(1) lookup
-const bundledByKey = Object.fromEntries(
-  (bundleJson.sources || []).map(s => [s.key, s.files])
+// Shape of a pre-bundled driver entry in drivers-bundle.json.
+interface BundleFile {
+  name: string; content: string; date?: string;
+  datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
+  path?: string; driver_type?: string; freq_low_hz?: string; freq_high_hz?: string;
+}
+const bundledByKey: Record<string, BundleFile[]> = Object.fromEntries(
+  (bundleJson.sources || []).map((s: { key: string; files: BundleFile[] }) => [s.key, s.files])
 );
 
 async function init() {
@@ -300,7 +331,7 @@ async function init() {
   for (const src of sources) {
     const files = bundledByKey[src.key];
     if (!files) continue;
-    const entries = files.map(f => {
+    const entries = files.map((f: BundleFile) => {
       const qp = quickParse(f.content);
       const brand = (f.content || '').match(/^Brand=(.+)$/m)?.[1]?.trim() || '';
       const model = (f.content || '').match(/^Model=(.+)$/m)?.[1]?.trim() || '';
@@ -324,7 +355,7 @@ async function init() {
         sourceUrl:  src.url || '',
         sourceDesc: src.description || '',
         _Fs: qp.Fs, _Sd: qp.Sd, _Re: qp.Re, _Znom: qp.Znom, _Pe: qp.Pe,
-        _freqRange: (() => { const lo = parseFloat(f.freq_low_hz), hi = parseFloat(f.freq_high_hz); return (isFinite(lo) && isFinite(hi)) ? { lo, hi } : null; })(),
+        _freqRange: (() => { const lo = parseFloat(f.freq_low_hz || ''), hi = parseFloat(f.freq_high_hz || ''); return (isFinite(lo) && isFinite(hi)) ? { lo, hi } : null; })(),
         ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(qp.Fs, qp.Sd, nameStr, f.driver_type)),
       };
     });
@@ -363,17 +394,17 @@ async function loadCustom() {
 
 // ── Pick / preview a driver ──────────────────────────────────────────────────
 
-const previewFile  = ref(null);
-const myDrivers    = ref([]);   // drivers saved by the user to localStorage
+const previewFile  = ref<FileEntry | null>(null);
+const myDrivers    = ref<MyDriver[]>([]);   // drivers saved by the user to localStorage
 
 const MY_DRIVERS_KEY = 'resonate_my_drivers';
 function reloadMyDrivers() {
   try { myDrivers.value = JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) || '[]'); }
   catch { myDrivers.value = []; }
 }
-function deleteMyDriver(name) {
+function deleteMyDriver(name: string) {
   const list = myDrivers.value.filter(d => d.name !== name);
-  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch {}
+  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }
   myDrivers.value = list;
 }
 // My Drivers respect the text search too, so a query like "demo" doesn't leave
@@ -385,13 +416,13 @@ const filteredMyDrivers = computed(() => {
 });
 // Shorter source label for the list — drop the "(… bundled …)" clutter; the full
 // name and description stay in the hover tooltip.
-function shortSource(name) {
+function shortSource(name: string | undefined) {
   return (name || '').replace(/\s*\([^)]*bundled[^)]*\)/gi, '').trim();
 }
 
 // Lightweight WDR parser — returns whatever it finds, never throws
-function parseWdrLoose(content) {
-  const raw = {};
+function parseWdrLoose(content: string | undefined): Record<string, string> {
+  const raw: Record<string, string> = {};
   for (const line of (content || '').split(/\r?\n/)) {
     const i = line.indexOf('=');
     if (i < 0 || line.startsWith('[')) continue;
@@ -412,7 +443,7 @@ const previewData = computed(() => {
 
   if (f.myDriverData) {
     const d = f.myDriverData;
-    const n = (v, scale = 1) => (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
+    const n = (v: number | undefined, scale = 1): number | null => (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
     const Fs = n(d.Fs), Qes = n(d.Qes);
     return {
       name: d.name || 'My Driver', source: 'My Drivers', providedBy: '', links,
@@ -433,8 +464,8 @@ const previewData = computed(() => {
   }
 
   const raw = parseWdrLoose(f.content);
-  const n   = k => { const v = parseFloat(raw[k]); return isFinite(v) && v !== 0 ? v : null; };
-  const str = k => (raw[k] || '').trim() || null;
+  const n   = (k: string): number | null => { const v = parseFloat(raw[k]); return isFinite(v) && v !== 0 ? v : null; };
+  const str = (k: string): string | null => (raw[k] || '').trim() || null;
   const Fs = n('Fs'), Qes = n('Qes'), Le = n('Le'), Vas = n('Vas'), Sd = n('Sd'), Xmax = n('Xmax');
   const Mms = n('Mms'), Cms = n('Cms'), Rms = n('Rms'), Vd = n('Vd'), Dia = n('Dia'), noEff = n('no');
   return {
@@ -482,7 +513,7 @@ function resetToDemo() {
   close();
 }
 
-async function loadDriver(f) {
+async function loadDriver(f: FileEntry) {
   if (f.myDriverData) {
     state.driverRaw    = { ...f.myDriverData };
     state.driverSource = { ...f.myDriverData };
@@ -501,9 +532,9 @@ async function loadDriver(f) {
     state.browseOpen = false; previewFile.value = null; return;
   }
   statusErr.value = false; statusMsg.value = 'Loading ' + f.name + '…';
-  const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path.split('/').map(encodeURIComponent).join('/')}`;
-  let fetchResult;
-  try { fetchResult = await fetch(url); } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + err.message; return; }
+  const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path!.split('/').map(encodeURIComponent).join('/')}`;
+  let fetchResult: Response;
+  try { fetchResult = await fetch(url); } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + (err as Error).message; return; }
   if (!fetchResult.ok) { statusErr.value = true; statusMsg.value = 'Could not load: fetch failed (' + fetchResult.status + ')'; return; }
   const { value: loaded } = parseWdr(await fetchResult.text());
   if (!loaded) { statusErr.value = true; statusMsg.value = 'Could not load: file did not parse as a WDR'; return; }
@@ -512,11 +543,11 @@ async function loadDriver(f) {
   state.browseOpen = false; previewFile.value = null;
 }
 
-function pickFile(f) {
+function pickFile(f: FileEntry) {
   previewFile.value = f;
 }
 
-function openSourceUrl(url) {
+function openSourceUrl(url: string | undefined) {
   if (url) window.open(url, '_blank', 'noopener');
 }
 
@@ -525,7 +556,7 @@ watch(() => state.browseOpen, val => {
   else previewFile.value = null;
 });
 function close() { previewFile.value = null; state.browseOpen = false; }
-function onBackdrop(e) { if (e.target === e.currentTarget) close(); }
+function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => state.browseOpen, close);
 async function openDefine() {
   state.browseOpen = false;
@@ -538,7 +569,7 @@ async function openDefine() {
   <div class="overlay" :class="{ on: state.browseOpen }" @click="onBackdrop">
     <div class="modal" v-if="state.browseOpen">
       <h2>
-        {{ previewFile ? previewData.name : 'Driver library' }}
+        {{ previewFile ? previewData?.name : 'Driver library' }}
         <button v-if="!previewFile" class="reset-demo-btn" @click="resetToDemo"
                 title="Reset the driver to the built-in demo (Generic 6.5&quot; Woofer)">↺ Reset to demo</button>
         <span class="x" @click="close" title="Close the driver library browser">&times;</span>

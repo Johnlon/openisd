@@ -1,8 +1,8 @@
 import { reactive, computed, ref, watch } from 'vue';
 import { deriveDriver, sweep, maxCurves } from '@resonate/engine';
-import type { Driver, DriverRaw, SweepParams, SweepResult, MaxCurvesResult } from '@resonate/engine';
+import type { Driver, DriverRaw, SweepResult, MaxCurvesResult } from '@resonate/engine';
 import { DPAL } from './presets.js';
-import type { AppState, UiParams, Design } from './types.js';
+import type { AppState, UiParams, SyncedParams, Design } from './types.js';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
@@ -45,12 +45,11 @@ export const driverErrors = computed(() => _derived.value.errors);
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
 
-export const syncedP = computed<SweepParams>(() => {
+export const syncedP = computed<SyncedParams>(() => {
   // Drive voltage: sqrt(Pin × Re) — matches WinISD reference-power convention.
   // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
-  // eg is written into the literal so the spread of UiParams satisfies SweepParams.
   const eg = Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re ?? 1));
-  const p: SweepParams = { ...state.P, eg };
+  const p: SyncedParams = { ...state.P, eg };
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
     p.Leff = state.P.ventL + 0.85 * state.P.ventD;
