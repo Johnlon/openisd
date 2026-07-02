@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import { solve } from '@resonate/engine';
 import { deriveDriver } from '@resonate/engine';
 import { cAbs } from '@resonate/engine';
+import type { SweepParams } from '@resonate/engine';
 
 // Reference driver: synthetic 6.5" mid-woofer, identical to engine.test.mjs
 const RAW_DRIVER = {
@@ -202,7 +203,7 @@ describe('solve — passive radiator with no mechanical damping (prRms absent)',
   it('absent prRms (= no PR mechanical damping) uses 0 — result must still be finite', () => {
     // `(P.prRms || 0)` → Rap = 0/Sd² = 0 — lossless PR mechanical damping.
     // The acoustic circuit remains well-formed (Ral/Raa still provide damping).
-    const P_noRms = { ...PR_BASE };
+    const P_noRms: SweepParams = { ...PR_BASE };
     delete P_noRms.prRms;  // triggers (P.prRms || 0) → 0
     const r = solve(FREQ_PASSBAND_HZ, DRV, 'pr', P_noRms);
     const u0 = cAbs(r.U0);

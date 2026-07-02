@@ -8,7 +8,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { engine } from './load-engine.mjs';
+import type { SweepResult, MaxCurvesResult } from '@resonate/engine';
+import { engine } from './load-engine.js';
 
 const { deriveDriver, sweep, maxCurves } = engine;
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -23,7 +24,7 @@ const NAMES = [
   'vented-2drv-series',
 ];
 
-const cmpArray = (label, got, exp) => {
+const cmpArray = (label: string, got: unknown, exp: unknown[]) => {
   assert.ok(Array.isArray(got), `${label}: expected an array`);
   assert.equal(got.length, exp.length, `${label}: length ${got.length} !== ${exp.length}`);
   for (let i = 0; i < exp.length; i++)
@@ -41,10 +42,10 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       const sw = sweep(drv, box, P);
       const mx = maxCurves(drv, box, P);
 
-      for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'])
-        cmpArray(`${name} sweep.${k}`, sw[k], expSw[k]);
-      for (const k of ['maxspl', 'maxpwr'])
-        cmpArray(`${name} maxCurves.${k}`, mx[k], expMx[k]);
+      for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)
+        cmpArray(`${name} sweep.${k}`, sw[k as keyof SweepResult], expSw[k]);
+      for (const k of ['maxspl', 'maxpwr'] as const)
+        cmpArray(`${name} maxCurves.${k}`, mx[k as keyof MaxCurvesResult], expMx[k]);
       cmpArray(`${name} maxCurves.xlim`, mx.xlim, expMx.xlim);
     });
   }

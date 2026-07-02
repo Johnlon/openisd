@@ -12,15 +12,16 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cAbs, cArg, cScale, cPar } from '@resonate/engine';
+import type { Complex } from '@resonate/engine';
 
 // Tolerance for floating-point comparisons (effectively exact for these operations).
 const EPS = 1e-12;
 
-function near(a, b, msg) {
+function near(a: number, b: number, msg: string) {
   assert.ok(Math.abs(a - b) < EPS, `${msg}: got ${a}, expected ${b}`);
 }
 
-function nearCx(got, re, im, label) {
+function nearCx(got: Complex, re: number, im: number, label: string) {
   near(got.re, re, `${label}.re`);
   near(got.im, im, `${label}.im`);
 }

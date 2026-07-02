@@ -30,7 +30,7 @@ import { RHO, C } from './constants.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar } from './complex.js';
 import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
 
-export function portLoss(w: number, Map: number, P: SweepParams): number {
+export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
 }
 

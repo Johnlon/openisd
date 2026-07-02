@@ -21,6 +21,7 @@ import {
   unwrap, portLoss,
   cAbs,
 } from '@resonate/engine';
+import type { Complex, DriverRaw } from '@resonate/engine';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -80,17 +81,17 @@ const F3_ORACLE_TOLERANCE_HZ = 1.0;
 // ---------------------------------------------------------------------------
 
 /** Index of the first frequency >= f in a sweep fs array */
-const idxGe = (fs, f) => fs.findIndex(x => x >= f);
+const idxGe = (fs: number[], f: number) => fs.findIndex(x => x >= f);
 
 /** Maximum absolute difference between two same-length numeric arrays */
-function maxAbsDiff(a, b) {
+function maxAbsDiff(a: number[], b: number[]) {
   let m = 0;
   for (let i = 0; i < a.length; i++) m = Math.max(m, Math.abs(a[i] - b[i]));
   return m;
 }
 
 /** dB magnitude of a complex transfer function value */
-const dBmag = z => 20 * Math.log10(cAbs(z));
+const dBmag = (z: Complex) => 20 * Math.log10(cAbs(z));
 
 
 // ===========================================================================
@@ -107,13 +108,14 @@ describe('Sealed box simulation', () => {
     // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
     const Vb_m3 = 0.020; // 20 L enclosure volume in m³
     const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    assert.ok(d);
     const fc  = d.Fs  * Math.sqrt(1 + d.Vas / Vb_m3);
     const Qtc = d.Qts * Math.sqrt(1 + d.Vas / Vb_m3);
     const { fs, spl } = sweep(d, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
     });
-    const passbandRef = spl.at(-1); // HF asymptote — reference level
+    const passbandRef = spl.at(-1)!; // HF asymptote — reference level
     let maxError = 0;
     for (let i = 0; i < fs.length; i++) {
       const x = fs[i] / fc;
@@ -135,6 +137,7 @@ describe('Sealed box simulation', () => {
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const { value: d }     = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    assert.ok(d);
     const eta0  = (4 * Math.PI ** 2 / C ** 3) * (d.Fs ** 3 * d.Vas / d.Qes);
     const predicted = 112.1 + 10 * Math.log10(eta0) + 10 * Math.log10(EG ** 2 / d.Re);
     const { fs, spl } = sweep(d, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 });
@@ -160,12 +163,13 @@ describe('Sealed box simulation', () => {
 
     const Vb_m3 = 0.020;
     const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+    assert.ok(d);
     const { fs, spl } = sweep(d, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
     });
     // Use the high-frequency SPL as the passband reference (same method as QSpeakers normalises to 0 dB)
-    const passbandRef = spl.at(-1);
+    const passbandRef = spl.at(-1)!;
     // Scan high→low for the first point below -3 dB, then linearly interpolate
     let f3 = null;
     for (let i = spl.length - 1; i >= 0; i--) {
@@ -203,6 +207,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / RHO;  // effective duct length (including end correction)
   const { value: d }      = deriveDriver(REF_DRIVER);
+  assert.ok(d);
   const { fs, spl, zmag } = sweep(d, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   });
@@ -260,6 +265,7 @@ describe('Passive radiator box simulation', () => {
     fmin: 10, fmax: 1000, N: 300,
   };
   const { value: d }  = deriveDriver(REF_DRIVER);
+  assert.ok(d);
   const sw = sweep(d, 'pr', PR_PARAMS);
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
@@ -355,7 +361,7 @@ describe('.wdr driver file import and export', () => {
   const EXPECTED_FS_HZ      = 45;   // Hz  — as written in the .wdr file
   const EXPECTED_SD_M2      = 0.0094; // m² — as written in the .wdr file
 
-  let imported;
+  let imported: DriverRaw | null = null;
 
   it('reads the model name, Fs, and Sd from a real-world .wdr file', () => {
     const { value: _imp1, errors: _imp1Errors } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8'));
@@ -373,13 +379,18 @@ describe('.wdr driver file import and export', () => {
     // toWdr uses toPrecision(6) which introduces tiny rounding — relative tolerance
     // of 1e-4 (= 0.01%) captures any real mismatch while allowing formatting drift.
     if (!imported) { const { value: _fb } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8')); imported = _fb; }
+    assert.ok(imported);
     const { value: roundTripped } = parseWdr(toWdr(imported));
+    assert.ok(roundTripped);
+    // These params are all numeric T/S fields; view as numeric records for the loop.
+    const imp = imported as Record<string, number>;
+    const rt  = roundTripped as Record<string, number>;
     const params = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe', 'Z'];
     for (const k of params) {
-      if (imported[k] == null) continue;
-      const rel = Math.abs(imported[k] - roundTripped[k]) / Math.abs(imported[k]);
+      if (imp[k] == null) continue;
+      const rel = Math.abs(imp[k] - rt[k]) / Math.abs(imp[k]);
       assert.ok(rel < WDR_ROUNDTRIP_RELATIVE_TOLERANCE,
-        `${k}: ${imported[k]} → export → import → ${roundTripped[k]} (relative error ${rel.toExponential(2)})`);
+        `${k}: ${imp[k]} → export → import → ${rt[k]} (relative error ${rel.toExponential(2)})`);
     }
   });
 
@@ -387,7 +398,11 @@ describe('.wdr driver file import and export', () => {
     // If the export/import round-trip is clean, deriveDriver on the re-imported data
     // should reproduce the same key parameters (within floating-point tolerance).
     if (!imported) { const { value: _fb } = parseWdr(readFileSync(TANG_BAND_WDR_PATH, 'utf8')); imported = _fb; }
-    const { value: d } = deriveDriver(parseWdr(toWdr(imported)).value);
+    assert.ok(imported);
+    const reparsed = parseWdr(toWdr(imported)).value;
+    assert.ok(reparsed);
+    const { value: d } = deriveDriver(reparsed);
+    assert.ok(d);
     assert.ok(Math.abs(d.Fs  - EXPECTED_FS_HZ) < 1e-6,
       `Fs should be ${EXPECTED_FS_HZ} Hz, got ${d.Fs}`);
     assert.ok(Math.abs(d.Qts - 0.49) < 1e-3,
@@ -499,6 +514,7 @@ describe('Filter chain', () => {
     it('an empty filter array leaves the SPL curve completely unchanged', () => {
       // When no filters are applied the engine must produce identical results.
       const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const base   = sweep(d, 'sealed', opts);
@@ -521,6 +537,7 @@ describe('Filter chain', () => {
       // a large reduction relative to the unfiltered curve to confirm the filter
       // is actually being applied to the sweep.
       const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const HP_FC_HZ  = 80;
@@ -528,7 +545,7 @@ describe('Filter chain', () => {
       const base     = sweep(d, 'sealed', opts);
       const withHP   = sweep(d, 'sealed', {
         ...opts,
-        filters: [{ id: 1, type: 'highpass', enabled: true, fc: HP_FC_HZ, Q: Math.SQRT1_2 }],
+        filters: [{ id: '1', type: 'highpass', enabled: true, fc: HP_FC_HZ, Q: Math.SQRT1_2 }],
       });
       const i10 = idxGe(withHP.fs, 10);
       assert.ok(withHP.spl[i10] < base.spl[i10] - REDUCTION_FLOOR_DB,
@@ -538,6 +555,7 @@ describe('Filter chain', () => {
 
     it('an active high-pass filter leaves SPL unchanged well above its cutoff', () => {
       const { value: d } = deriveDriver({ ...REF_DRIVER, Le: 0 });
+      assert.ok(d);
       const Vb_m3 = 0.020;
       const opts = { Vb: Vb_m3, Ql: 1e6, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
       const HP_FC_HZ = 80;
@@ -545,7 +563,7 @@ describe('Filter chain', () => {
       const base   = sweep(d, 'sealed', opts);
       const withHP = sweep(d, 'sealed', {
         ...opts,
-        filters: [{ id: 1, type: 'highpass', enabled: true, fc: HP_FC_HZ, Q: Math.SQRT1_2 }],
+        filters: [{ id: '1', type: 'highpass', enabled: true, fc: HP_FC_HZ, Q: Math.SQRT1_2 }],
       });
       const i800 = idxGe(withHP.fs, 800); // 800 Hz — one decade above fc
       assert.ok(Math.abs(withHP.spl[i800] - base.spl[i800]) < PASSBAND_TOLERANCE_DB,
@@ -701,7 +719,9 @@ describe('Filter dispatcher (evalFilter)', () => {
   });
 
   it('evalFilter returns unity 1+0i for an unknown filter type — safe no-op fallback', () => {
-    const H = evalFilter(1000, { type: 'unknown_type', fc: 500 });
+    // Deliberately invalid filter type to exercise the default branch; cast past the
+    // FilterType union since that is the whole point of the test.
+    const H = evalFilter(1000, { type: 'unknown_type', fc: 500 } as unknown as Parameters<typeof evalFilter>[1]);
     assert.ok(Math.abs(cAbs(H) - 1) < 1e-12,
       `unknown type: |H| = ${cAbs(H)}, expected 1.0`);
   });

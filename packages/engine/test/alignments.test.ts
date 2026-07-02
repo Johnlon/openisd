@@ -128,6 +128,7 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
     // Qtc 0.9 > 0.707, so Vb(0.9) < Vb(0.707).
     const Vb_707 = sealedFromQtc(DRIVER, Math.SQRT1_2);
     const Vb_090 = sealedFromQtc(DRIVER, 0.9);
+    assert.ok(Vb_707 !== null && Vb_090 !== null);
     assert.ok(Vb_090 < Vb_707,
       `Vb for Qtc=0.9 (${(Vb_090 * 1000).toFixed(1)} L) should be less than Vb for Qtc=0.707 (${(Vb_707 * 1000).toFixed(1)} L)`);
   });

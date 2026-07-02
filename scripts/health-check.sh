@@ -29,8 +29,8 @@ echo "  $(date '+%H:%M:%S')"
 echo "========================================"
 
 run "ESLint"            npm run lint
-run "Unit tests"        node --test packages/engine/test/*.test.mjs packages/ui/test/*.test.mjs
-run "Golden tests"      node packages/engine/test/golden.test.mjs
+run "Type check"        npm run typecheck
+run "Unit tests"        npm run test:unit
 run "Browser tests"     npx playwright test
 run "DQ check"          python scripts/dq_check.py
 run "Scraper tests"     python -m pytest scripts/scrapers/ -v --tb=short

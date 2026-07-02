@@ -81,7 +81,7 @@ export function peakingEQ(f: number, fc: number, Q: number, gainDb: number): Com
  * Evaluate one filter descriptor at frequency f.
  * Returns complex H(jω) — multiply onto Hc, UD, UP in sweep.js.
  */
-export function evalFilter(f: number, flt: Filter): Complex {
+export function evalFilter(f: number, flt: Omit<Filter, 'enabled'>): Complex {
   switch (flt.type) {
     case 'highpass': return highPass(f, flt.fc!, flt.Q);
     case 'lowpass':  return lowPass(f, flt.fc!, flt.Q);

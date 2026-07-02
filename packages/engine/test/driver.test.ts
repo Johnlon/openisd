@@ -195,6 +195,7 @@ describe('deriveDriver — Q-factor derivation branches', () => {
   it('derives Qts from Qes and Qms when Qts is absent — '
    + 'standard scenario where Qes and Qms are measured separately', () => {
     const { value: d } = deriveDriver({ ...BASE, Qes: QES, Qms: QMS });
+    assert.ok(d);
     assert(
       Math.abs(d.Qts - QTS_DERIVED) < Q_TOL,
       `expected Qts = Qes·Qms/(Qes+Qms) = ${QTS_DERIVED}, got ${d.Qts}`,
@@ -205,6 +206,7 @@ describe('deriveDriver — Q-factor derivation branches', () => {
    + 'inverse combination formula Qes = Qts·Qms / (Qms − Qts)', () => {
     const expectedQes = (QTS_DERIVED * QMS) / (QMS - QTS_DERIVED);
     const { value: d } = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qms: QMS });
+    assert.ok(d);
     assert(
       Math.abs(d.Qes - expectedQes) < Q_TOL,
       `expected Qes = ${expectedQes}, got ${d.Qes}`,
@@ -215,6 +217,7 @@ describe('deriveDriver — Q-factor derivation branches', () => {
    + 'inverse combination formula Qms = Qts·Qes / (Qes − Qts)', () => {
     const expectedQms = (QTS_DERIVED * QES) / (QES - QTS_DERIVED);
     const { value: d } = deriveDriver({ ...BASE, Qts: QTS_DERIVED, Qes: QES });
+    assert.ok(d);
     assert(
       Math.abs(d.Qms - expectedQms) < Q_TOL,
       `expected Qms = ${expectedQms}, got ${d.Qms}`,
@@ -279,6 +282,7 @@ describe('parseWdr — YAML sidecar overrides URL fields', () => {
   it('sidecar sets datasheetUrl from the datasheet_url field', () => {
     const sidecar = 'datasheet_url: https://new.example.com/sheet.pdf\n';
     const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
+    assert.ok(d);
     assert.equal(d.datasheetUrl, 'https://new.example.com/sheet.pdf',
       'sidecar datasheet_url field must populate datasheetUrl');
   });
@@ -293,6 +297,7 @@ describe('parseWdr — YAML sidecar overrides URL fields', () => {
       'zma_url: https://example.com/imp.zma',
     ].join('\n');
     const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
+    assert.ok(d);
     assert.equal(d.datasheetUrl,  'https://example.com/sheet.pdf');
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
     assert.equal(d.sourceUrl,     'https://example.com/source');
@@ -307,29 +312,34 @@ describe('parseWdr — YAML sidecar overrides URL fields', () => {
 describe('_parseSimpleYaml (via parseWdr sidecar) — YAML parser edge cases', () => {
   it('parses a plain key: value pair — the common case', () => {
     const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url: https://example.com/buy\n');
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
   });
 
   it('treats null literal as absent — sidecar null means the field was intentionally cleared', () => {
     const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url: null\n');
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, undefined,
       'null sidecar value must not set vendorpageUrl');
   });
 
   it('treats an empty value as absent — bare key: with no value is treated like null', () => {
     const { value: d } = parseWdr(MINIMAL_WDR, 'vendor_page_url:\n');
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, undefined);
   });
 
   it('unescapes doubled single-quotes in YAML single-quoted strings — '
    + "YAML rule: '' inside '...' is a literal apostrophe", () => {
     const { value: d } = parseWdr(MINIMAL_WDR, "vendor_page_url: 'it''s here'\n");
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, "it's here");
   });
 
   it('ignores lines with no colon — blank lines and comment-style separators pass silently', () => {
     const sidecar = '\nvendor_page_url: https://example.com/buy\n\n';
     const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, 'https://example.com/buy');
   });
 
@@ -342,6 +352,7 @@ describe('_parseSimpleYaml (via parseWdr sidecar) — YAML parser edge cases', (
       'source: https://example.com/src',
     ].join('\n');
     const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, 'line one\nline two',
       'block scalar lines must be joined with \\n, indentation stripped');
     assert.equal(d.sourceUrl, 'https://example.com/src',
@@ -355,6 +366,7 @@ describe('_parseSimpleYaml (via parseWdr sidecar) — YAML parser edge cases', (
       '  only line',
     ].join('\n');
     const { value: d } = parseWdr(MINIMAL_WDR, sidecar);
+    assert.ok(d);
     assert.equal(d.vendorpageUrl, 'only line',
       'end-of-file block scalar must be flushed correctly');
   });
@@ -369,6 +381,7 @@ describe('parseWdr — undefined fields are removed from the returned object', (
       .replace(/Le=[\d.e+-]+\n/, '')
       .replace(/Xmax=[\d.]+\n/, '');
     const { value: d } = parseWdr(noOptional);
+    assert.ok(d);
     assert.equal(d.Le, undefined, 'absent Le must not appear in driver object');
     assert.equal(d.Xmax, undefined, 'absent Xmax must not appear in driver object');
     assert.equal(d.Fs, 37);
