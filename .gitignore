@@ -27,3 +27,6 @@ __pycache__/
 
 # Tool caches
 .playwright-mcp/
+
+# Vitest coverage output
+coverage/
