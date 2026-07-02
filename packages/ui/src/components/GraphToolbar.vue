@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onBeforeUnmount } from 'vue';
 import { state, pinCompare } from '../store.js';
 
 const showHelp = ref(false);
@@ -45,6 +45,19 @@ function nudge(dir) {
   state.pinnedF = Math.max(0.1, f + dir * step);
   state.cursorLocked = true;   // stepping the marker locks it so hover doesn't override
 }
+
+// Press-and-hold auto-repeat for the ◄ ► arrows: one step immediately, then repeat
+// after a short delay so a long press "spins" the frequency.
+let holdTimer = null, holdInterval = null;
+function startNudge(dir) {
+  nudge(dir);
+  holdTimer = setTimeout(() => { holdInterval = setInterval(() => nudge(dir), 60); }, 300);
+}
+function stopNudge() {
+  clearTimeout(holdTimer); clearInterval(holdInterval);
+  holdTimer = holdInterval = null;
+}
+onBeforeUnmount(stopNudge);
 </script>
 
 <template>
@@ -76,13 +89,15 @@ function nudge(dir) {
     <span class="sep"></span>
     <span class="tgroup">
       <span class="lab" title="Cursor frequency. Hover a graph to read any point; click a graph, type here, or use the ◄ ► arrows to lock the crosshair at a frequency. Click the graph again to unlock.">Cursor:</span>
-      <button class="nudge-btn" @click="nudge(-1)" title="Step the cursor down ~1%">◄</button>
+      <button class="nudge-btn" @pointerdown="startNudge(-1)" @pointerup="stopNudge" @pointerleave="stopNudge"
+              title="Step the cursor down ~1% (hold to spin)">◄</button>
       <input class="cursor-hz"
              type="number" min="1" max="40000" step="0.1"
              :value="effectiveF ? effectiveF.toFixed(1) : ''"
              @change="setCursorHz"
              placeholder="Hz" />
-      <button class="nudge-btn" @click="nudge(1)" title="Step the cursor up ~1%">►</button>
+      <button class="nudge-btn" @pointerdown="startNudge(1)" @pointerup="stopNudge" @pointerleave="stopNudge"
+              title="Step the cursor up ~1% (hold to spin)">►</button>
     </span>
     <span class="sep"></span>
     <button class="nudge-btn help-btn" @click="showHelp = true" title="Graph interaction guide — hover, click, drag, right-click">Graph help ?</button>
@@ -127,7 +142,7 @@ function nudge(dir) {
             </tr>
             <tr>
               <td class="hk">◄ ► arrows</td>
-              <td>Step the cursor down or up by ~1% (log-uniform step); locks it. Click the graph again to unlock.</td>
+              <td>Step the cursor down or up by ~1% (log-uniform step); <b>hold to spin</b>. Locks the cursor — click the graph again to unlock.</td>
             </tr>
           </tbody>
         </table>
