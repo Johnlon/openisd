@@ -33,7 +33,8 @@ const effectiveF = computed(() => state.cursorLocked ? state.pinnedF : (state.cu
 
 function setCursorHz(e) {
   const v = parseFloat(e.target.value);
-  state.pinnedF = isFinite(v) && v > 0 ? v : null;
+  if (isFinite(v) && v > 0) { state.pinnedF = v; state.cursorLocked = true; }
+  else { state.pinnedF = null; state.cursorLocked = false; }
 }
 
 function nudge(dir) {
@@ -42,6 +43,7 @@ function nudge(dir) {
   // step ~1% of current frequency (log-uniform feel), min 0.1 Hz
   const step = Math.max(0.1, f * 0.01);
   state.pinnedF = Math.max(0.1, f + dir * step);
+  state.cursorLocked = true;   // stepping the marker locks it so hover doesn't override
 }
 </script>
 
@@ -73,14 +75,14 @@ function nudge(dir) {
     </template>
     <span class="sep"></span>
     <span class="tgroup">
-      <span class="lab" title="Marker frequency. Hover a graph to read any point; click, type, or step with the arrows to place a marker that stays when you move off the graph.">Cursor:</span>
-      <button class="nudge-btn" @click="nudge(-1)" title="Step the marker down ~1%">◄</button>
+      <span class="lab" title="Cursor frequency. Hover a graph to read any point; click a graph, type here, or use the ◄ ► arrows to lock the crosshair at a frequency. Click the graph again to unlock.">Cursor:</span>
+      <button class="nudge-btn" @click="nudge(-1)" title="Step the cursor down ~1%">◄</button>
       <input class="cursor-hz"
              type="number" min="1" max="40000" step="0.1"
              :value="effectiveF ? effectiveF.toFixed(1) : ''"
              @change="setCursorHz"
              placeholder="Hz" />
-      <button class="nudge-btn" @click="nudge(+1)" title="Step the marker up ~1%">►</button>
+      <button class="nudge-btn" @click="nudge(1)" title="Step the cursor up ~1%">►</button>
     </span>
     <span class="sep"></span>
     <button class="nudge-btn help-btn" @click="showHelp = true" title="Graph interaction guide — hover, click, drag, right-click">Graph help ?</button>
@@ -101,7 +103,7 @@ function nudge(dir) {
             </tr>
             <tr>
               <td class="hk">Click</td>
-              <td>Drops a marker at that frequency. Hover still reads any point; the marker is what the readout shows when the pointer is off the graphs.</td>
+              <td>Locks the crosshair at that frequency so it stays put while you adjust settings. Click again to unlock and resume hover tracking.</td>
             </tr>
             <tr>
               <td class="hk">Drag (plot)</td>
@@ -124,8 +126,8 @@ function nudge(dir) {
               <td>Type a frequency to place the marker there directly.</td>
             </tr>
             <tr>
-              <td class="hk">◄ ► buttons</td>
-              <td>Step the marker down or up by ~1% (log-uniform step).</td>
+              <td class="hk">◄ ► arrows</td>
+              <td>Step the cursor down or up by ~1% (log-uniform step); locks it. Click the graph again to unlock.</td>
             </tr>
           </tbody>
         </table>

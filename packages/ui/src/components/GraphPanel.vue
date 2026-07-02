@@ -239,10 +239,12 @@ function onPointerUp(e) {
   dragOrigin = null;
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
   state.dragRange = null;
-  // Place a marker at the clicked frequency. Hover still live-tracks (no lock);
-  // the marker is what the readout shows when the pointer is off the graphs.
+  // Click toggles a locked marker: first click locks the crosshair at that
+  // frequency (hover stops moving it); clicking again unlocks and resumes hover.
   const f = freqAt(e.clientX);
-  if (f !== null) state.pinnedF = f;
+  if (f === null) return;
+  if (state.cursorLocked) { state.cursorLocked = false; }
+  else { state.pinnedF = f; state.cursorLocked = true; }
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click
@@ -300,12 +302,13 @@ function snapAction(dir, type) {
     if (d < bestD) { bestD = d; best = i; }
   }
   state.pinnedF = s.xs[best];
+  state.cursorLocked = true;   // hold the snapped point so hover doesn't override it
   closeMenu();
 }
 
 function pinHere() {
   const f = ctxMenu.value.f;
-  if (f) state.pinnedF = f;
+  if (f) { state.pinnedF = f; state.cursorLocked = true; }
   closeMenu();
 }
 
