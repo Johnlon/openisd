@@ -29,7 +29,7 @@ detail you can return to.
 | --------------------------------------- | -------------- | ----------- | ------------------- |
 | What to build / priority (`BACKLOG.md`) | **Decides**    | Suggests    | —                   |
 | Physics & calculation correctness       | **Decides**    | Implements  | Cross-check (ref)   |
-| `src/core/` formulas & constants        | **Approves**   | Proposes    | Unit + oracle tests |
+| `packages/engine/src/` formulas & constants        | **Approves**   | Proposes    | Unit + oracle tests |
 | Schema (`wdr_meta_schema.py`)           | **Approves**   | Proposes    | Runtime validation  |
 | Scraper rules                           | Co-decides     | **Encodes** | Deterministic regen |
 | Driver data (`*.wdr`, `*_meta.yml`)     | Authorises     | Reads only  | **Generates**       |
@@ -52,21 +52,21 @@ Tooling, never to a one-off human or agent edit.
 - Human states intent. Agent enters plan mode for anything non-trivial, explores
   the codebase read-only, and proposes a plan.
 - Gate: `BACKLOG.md` P0 items block lower-priority feature work. `PLAN.md` and
-  `ARCHITECTURE.md` gates apply before any `src/core/` or structural change.
+  `ARCHITECTURE.md` gates apply before any `packages/engine/src/` or structural change.
 - Human approves the plan before code is written.
 
 ### 2. Implement
 
 - Agent writes code to match surrounding style, plus **direct unit tests** for
-  every new `src/core/` function (non-negotiable per `DEVELOPMENT.md`).
+  every new `packages/engine/src/` function (non-negotiable per `DEVELOPMENT.md`).
 - **Calculation-stability rule:** no formula, constant, or display precision in
-  `src/core/` changes without explicit human approval in the session.
+  `packages/engine/src/` changes without explicit human approval in the session.
 - **Schema-discipline rule:** no field is written to `.wdr`/`_meta.yml` unless it
   exists in `wdr_meta_schema.py`. New field → propose to human first.
 
 ### 3. Verify
 
-- `npm test` (node:test unit), `npm run test:visual` (pixel-exact SPL canvas).
+- `npm run test:unit` (Vitest unit + golden), `npm run test:visual` (pixel-exact SPL canvas).
 - `npm run test:crosscheck` is **reference-only** (hits micka.de) — a discrepancy
   is documented, never auto-fixed. Not in CI.
 - `/verify` drives the real app when a change needs to be seen working.

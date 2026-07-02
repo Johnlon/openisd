@@ -1,12 +1,12 @@
-# JS core testing rules — src/core/
+# JS core testing rules — packages/engine/src/
 
 ## Framework
 
-`node:test` + `node:assert/strict`. Run with `node --test test/*.test.mjs`.
+Vitest + `node:assert/strict`. Run with `npm run test:unit` (watch: `npx vitest`).
 
 ## Rules
 
-- **Direct unit tests required.** Every function in `src/core/` must have direct unit tests in `test/`. Tests are not optional.
+- **Direct unit tests required.** Every function in `packages/engine/src/` must have direct unit tests in `test/`. Tests are not optional.
 
 - **Human-readable scenarios.** Every `it(...)` must describe its scenario in plain English — what physical situation is being tested and what the expected outcome is. A loudspeaker designer who has never seen the code must be able to read a test name and understand what it verifies.
 
@@ -18,12 +18,12 @@
 
 - **References must be verified.** Any citation (AES paper, Wikipedia URL, textbook) included in test or source code comments must be verified to exist before inclusion. Do not invent or assume URLs — check them. Flag unverified citations with `⚠ Unverified reference`.
 
-- **No magic numbers in source code.** Every non-obvious numeric constant in `src/core/` must have a comment explaining its physical meaning and a source reference where applicable. Named constants are preferred over inline literals.
+- **No magic numbers in source code.** Every non-obvious numeric constant in `packages/engine/src/` must have a comment explaining its physical meaning and a source reference where applicable. Named constants are preferred over inline literals.
 
 ## Red→green TDD cycle
 
 1. Write a test that reproduces the bug and drives the app into the state where the bug actually renders (a check that never renders the broken state cannot catch it).
-2. Run `node --test test/*.test.mjs` and watch it **fail** — confirm it fails for the right reason (wrong value, not a missing import).
+2. Run `npm run test:unit` and watch it **fail** — confirm it fails for the right reason (wrong value, not a missing import).
 3. Apply the fix.
 4. Run again and watch it **pass**.
 5. Run `npm run lint` — must be 0 errors.

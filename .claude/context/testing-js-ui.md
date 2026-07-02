@@ -60,7 +60,7 @@ Review with `git diff` to confirm only the intended panels changed, then commit 
 Run `npm run test:crosscheck` when:
 
 - Adding a new scenario to `scenarios.js`.
-- Changing a formula in `src/core/` to re-validate frozen expected values.
+- Changing a formula in `packages/engine/src/` to re-validate frozen expected values.
 - **NOT in normal CI** — these tests hit an external site and are slow (~15s each).
 
 **SOP for a new test case:**

@@ -54,7 +54,7 @@ constraint from the pre-Vite era no longer applies.
   better user experience (installable, auto-updates).
 
 **Implication:** The dev workflow requires `npm run dev` (or `npm run build` +
-serve `dist/`). The core (`src/core/*.js`) is still DOM-free and importable
+serve `dist/`). The core (`packages/engine/src/*.js`) is still DOM-free and importable
 directly in Node for testing.
 
 **Status:** Adopted (replaced the file:// constraint after the Vue 3 + Vite migration).
@@ -78,17 +78,17 @@ UI layer calls the core; the core never calls the UI.
 **Layers:**
 
 ```
-src/main.js          Vue app entry point — mounts the root component
+packages/ui/src/main.ts          Vue app entry point — mounts the root component
 src/App.vue          Root layout: header, side panel, graph area, overlays
-src/components/*.vue UI components — DOM, event wiring, canvas; no physics
-src/store.js         Shared reactive state (Vue reactive/computed); no DOM, no physics
-src/utils/*.js       Browser-side utilities — canvas drawing, plot data, persist,
+packages/ui/src/components/*.vue UI components — DOM, event wiring, canvas; no physics
+packages/ui/src/store.ts         Shared reactive state (Vue reactive/computed); no DOM, no physics
+packages/ui/src/utils/*.js       Browser-side utilities — canvas drawing, plot data, persist,
                        flash messages, PR library CRUD, self-test; no physics
 src/presets.js       Static presets (colour palettes, graph tab definitions)
-src/core/*.js        Physics — T/S engine, alignments, .wdr I/O; pure functions, no DOM
+packages/engine/src/*.js        Physics — T/S engine, alignments, .wdr I/O; pure functions, no DOM
 ```
 
-**Component inventory** (`src/components/`):
+**Component inventory** (`packages/ui/src/components/`):
 
 | Component | Responsibility |
 |---|---|
@@ -108,7 +108,7 @@ src/core/*.js        Physics — T/S engine, alignments, .wdr I/O; pure function
 | `NumInput.vue` | Shared numeric input with unit scaling and precision |
 | `Flash.vue` | Transient notification overlay |
 
-**Utility inventory** (`src/utils/`):
+**Utility inventory** (`packages/ui/src/utils/`):
 
 | File | Responsibility |
 |---|---|
@@ -125,13 +125,13 @@ src/core/*.js        Physics — T/S engine, alignments, .wdr I/O; pure function
 
 ## AD-5: Runtime self-test — bundle verification distinct from build-time tests
 
-**Decision:** A lightweight physics smoke-test (`src/utils/selftest.js`) runs
+**Decision:** A lightweight physics smoke-test (`packages/ui/src/utils/selftest.js`) runs
 once on every page load, in the user's browser, against the live deployed bundle.
 Its results are written to the browser console under `[Resonate self-test]`.
 
 **Why this exists alongside the Node.js test suite:**
 
-The build-time tests (`node --test test/*.test.mjs`) prove that the **source
+The build-time tests (`npm run test:unit`) prove that the **source
 code** is correct, running against source files in a Node.js V8 environment on
 the developer's machine or in CI.
 

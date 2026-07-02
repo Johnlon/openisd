@@ -15,7 +15,7 @@ below is behaviour-preserving and gated by tests.
 ## Target shape
 
 ```
-src/core/   pure, no DOM — the reusable library (the product)
+packages/engine/src/   pure, no DOM — the reusable library (the product)
 src/ui/     DOM + canvas, consumes core — the Resonate web app
 index.html  shell, classic <script src> includes (offline-safe; see DEVELOPMENT.md)
 mobile      a SECOND consumer of the same core (deferred)
@@ -41,7 +41,7 @@ behaviour*. So first, freeze current behaviour:
 - **Gate:** golden master green on the un-moved code = the net is in place.
 
 ### Phase 1 — Extract the core incrementally
-One module at a time into `src/core/*.js` with the dual export (classic script +
+One module at a time into `packages/engine/src/*.js` with the dual export (classic script +
 `module.exports`, per DEVELOPMENT.md). After **each** module:
 - golden master + in-page self-test stay green,
 - **go/no-go:** `index.html` still opens and runs from `file://` **and**

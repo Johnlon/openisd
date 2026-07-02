@@ -28,10 +28,10 @@ All functions that perform I/O, validation, or calculations that can partially f
 
 ## Where this applies
 
-- `engine/src/driver.js` — `deriveDriver`, `parseWdr`, `toWdr`
+- `engine/src/driver.ts` — `deriveDriver`, `parseWdr`, `toWdr`
 - `engine.js` — `loadDriver`, `extractSpl`, `extractExcursion`, `extractMaxSpl`, etc.
 - Any future function that reads files, calls external APIs, or runs calculations that can produce NaN/Infinity.
-- Does **not** apply to pure math functions in `src/core/` — those remain plain return-value functions. The engine layer wraps them and owns the error contract.
+- Does **not** apply to pure math functions in `packages/engine/src/` — those remain plain return-value functions. The engine layer wraps them and owns the error contract.
 
 ## Caller pattern for test fixtures (the only place throws are allowed)
 

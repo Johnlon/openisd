@@ -17,9 +17,9 @@ add a check for it.
 
 ## Project shape
 
-- **`src/core/`** — the physics engine, alignments, `.wdr` I/O, state. Pure JS,
+- **`packages/engine/src/`** — the physics engine, alignments, `.wdr` I/O, state. Pure JS,
   no DOM. This is the reusable heart of the project.
-- **`src/components/`** — Vue 3 UI components (graphs, panels, controls).
+- **`packages/ui/src/components/`** — Vue 3 UI components (graphs, panels, controls).
 - **`test/`** — engine unit tests (`engine.test.mjs`) and Playwright browser tests.
 - **`drivers/`** — community `.wdr` driver files.
 

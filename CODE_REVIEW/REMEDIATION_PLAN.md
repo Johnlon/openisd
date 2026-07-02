@@ -25,14 +25,14 @@ verified findings and 10 preventative practices. This plan tracks remediation.
    divergent copies (632 vs 834 lines); move validation into the one write path.
 3. **`#6` — Scraper robustness** (§6-8). Replace bare `except: pass` with problem-log
    entries; retry non-`ok` URLs; key OCR cache by content hash/mtime.
-4. **`#7` — JS/Vue bugs** (§9,10,12). `FiltersPanel` id collision; `sweep.js` NaN
+4. **`#7` — JS/Vue bugs** (§9,10,12). `FiltersPanel` id collision; `sweep.ts` NaN
    when `Xmax` absent; `DriverPanel` dead `manuPageUrl` branch.
 5. **`#9` — Docs/structure + CI guards** (§13-15). Fix history-in-docs violations,
    broken links, competing canonical sources; add no-history grep + link-checker.
 
 ## Blocked / needs human sign-off
 
-- **`#8` — `driver.js` zero-denominator guard** (§11). `src/core` calculation code;
+- **`#8` — `driver.ts` zero-denominator guard** (§11). `packages/engine/src` calculation code;
   the calculation-stability rule requires explicit human approval before any change,
   even an input-validation guard. **Do not start without sign-off.**
 

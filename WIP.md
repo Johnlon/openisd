@@ -26,7 +26,7 @@ No code yet. Design approved in principle.
 ### 3. Signal chain / EQ (P1 in backlog)
 
 Filters panel (HP, LP, Linkwitz, Peaking EQ) is already fully implemented in the UI
-(`FiltersPanel.vue`) and engine (`filters.js`). High-shelf and low-shelf are NOT yet
+(`FiltersPanel.vue`) and engine (`filters.ts`). High-shelf and low-shelf are NOT yet
 built. Listening distance is fixed at 1 m (not user-configurable yet).
 
 ---
@@ -36,6 +36,6 @@ built. Listening distance is fixed at 1 m (not user-configurable yet).
 - `_sources` keys are short identifiers (`datasheet`, `manu_page`, `vendor_page`, `human`) —
   provenance keys, NOT field names.
 - `matt/` collection is human-curated — never touch without explicit per-session permission.
-- All calculation changes require explicit human approval before touching `src/core/`.
+- All calculation changes require explicit human approval before touching `packages/engine/src/`.
 - Two valid authorities for any sidecar field: (1) scraper writes at scrape time from HTML/PDF;
   (2) `write_driver()` computes at write time from already-extracted fields. No third option.

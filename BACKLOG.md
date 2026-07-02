@@ -15,7 +15,7 @@ today's engine · **P2** = larger but well-defined · **P3** = big rocks (design
 **Checkbox format:** `[x]` = implemented · `[ ]` = not implemented.
 Implemented items carry a second box for test status: `[x] [x]` = implemented + tested,
 `[x] [ ]` = implemented but untested.
-**Test tags** — `[unit]` = logic in `src/core/` with tests in `test/`;
+**Test tags** — `[unit]` = logic in `packages/engine/src/` with tests in `test/`;
 `[ui]` = Playwright browser automation in `test/app.browser.spec.js`.
 
 ---
@@ -46,7 +46,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## P0 — Test & architecture foundation
 
-**Status: complete.** `src/core/` is fully extracted (7 modules), golden-master
+**Status: complete.** `packages/engine/src/` is fully extracted (7 modules), golden-master
 fixtures cover all box types, CONTRACT.md is written and versioned, per-module unit
 tests exist, the Vue UI consumes only the public contract, and Playwright + CI are
 both live. The description below is preserved for history.
@@ -63,7 +63,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
       every box type, assert equality — the net that proves extraction preserves
       behaviour, before any code moves. `[unit]`
 - [x] [x] **P0 · Phase 1** Extract the core (`complex`, `driver`, `wdr`, `circuit`,
-      `sweep`, `alignments`, `filters`) into `src/core/*.js` — no DOM — one module
+      `sweep`, `alignments`, `filters`) into `packages/engine/src/*.js` — no DOM — one module
       at a time, **extracting not rewriting**. `[unit]`
 - [x] [x] **P0 · Phase 2** Define & version the `Design → Curves` contract
       (`CONTRACT.md`) — the documented API third-party UIs depend on. `[unit]`

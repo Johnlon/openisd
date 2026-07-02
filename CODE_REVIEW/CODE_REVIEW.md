@@ -112,9 +112,9 @@ patched the wrong row.
 **Preventative:** stable ids from `crypto.randomUUID()` (done); consider a lint
 rule against module-counter ids for persisted entities.
 
-### 10. `sweep.js` — NaN propagation when a driver has no `Xmax` — ✓ RESOLVED
+### 10. `sweep.ts` — NaN propagation when a driver has no `Xmax` — ✓ RESOLVED
 
-**✓ RESOLVED (verified):** `packages/engine/src/sweep.js:103` now guards
+**✓ RESOLVED (verified):** `packages/engine/src/sweep.ts:103` now guards
 `(excAt283 > 0 && drv.Xmax != null) ? 2.83 * (drv.Xmax / excAt283) : 1e9` — a
 missing `Xmax` falls back to an effectively-infinite voltage limit, so only the
 `Pe` limit applies and no `NaN` reaches the Max-SPL/Max-Power curves.
@@ -125,13 +125,13 @@ _Original:_ `vXmax = 2.83 * (drv.Xmax / excAt283)` with no `Xmax`-present guard 
 **Preventative:** skip the Xmax limit (use only the Pe limit) when `Xmax` is
 absent. (done)
 
-### 11. `src/core/driver.js:29-30` — division by zero deriving Qes/Qms
+### 11. `packages/engine/src/driver.ts:29-30` — division by zero deriving Qes/Qms
 
 `r.Qes = (Qts*Qms)/(Qms - Qts)` and the Qms line divide by `(Qms − Qts)` /
 `(Qes − Qts)`. An external file with `Qms == Qts` yields `Infinity`, poisoning
 `Bl`/circuit math.
 
-> ⚠ This is `src/core` calculation code — needs explicit human sign-off before
+> ⚠ This is `packages/engine/src` calculation code — needs explicit human sign-off before
 > change (calculation-stability rule). The fix is an input-validation guard, not
 > a formula change.
 
@@ -204,16 +204,16 @@ Generalised rules worth adding to `CLAUDE.md`/CI:
 7. **Share extraction helpers** instead of re-implementing regexes per scraper.
    (2, 3)
 8. **Guard against missing optional fields and zero denominators** before
-   arithmetic in `src/core`/`sweep`. (10, 11)
+   arithmetic in `packages/engine/src`/`sweep`. (10, 11)
 9. **Stable entity ids** — derive from persisted data, never a module counter that
    resets. (9)
 10. **CI guards for doc rules** — no-history grep + markdown link-checker. (13, 14)
 
 ---
 
-## Engine / calculation core (`src/core/`) — robustness
+## Engine / calculation core (`packages/engine/src/`) — robustness
 
-The math in `src/core/` is correct on inspection, pure, side-effect-free, and
+The math in `packages/engine/src/` is correct on inspection, pure, side-effect-free, and
 deterministic (verified: no `console`/`fetch`/`localStorage`/`Date`/`Math.random`,
 no module-level mutable state, no argument mutation — `deriveDriver` and
 `maxCurves` defensively copy their inputs). **These are not "vibe-coded".** The one
@@ -227,7 +227,7 @@ an explanation of why that is better than returning `NaN`.
 ### 16. `parseWdr` — driver with `Vas` but no `Qes`/`Qms` derives `Bl`/`Rms` as `NaN` — ✓ RESOLVED (at parseWdr only)
 
 **✓ RESOLVED at the file-import path (verified):** `parseWdr` now requires **two** of
-{Qts, Qes, Qms} before accepting a driver (`packages/engine/src/driver.js:91-93`:
+{Qts, Qes, Qms} before accepting a driver (`packages/engine/src/driver.ts:91-93`:
 `_qCount >= 2`), matching `deriveDriver`'s contract — so a `.wdr` with only `Qts`+`Vas`
 is rejected with `'missing core T/S parameters'` instead of yielding `NaN`.
 **⚠ Does not cover the live UI path:** the app computes `deriveDriver(state.driverRaw)`
@@ -240,20 +240,20 @@ _Original:_ `parseWdr` accepted a `Vas`-only driver whose `Qes`/`Qms` stayed
 **Preventative:** one validated definition of "complete driver" enforced at **every**
 engine entry, not just `parseWdr` (see §22).
 
-### 17. `complex.js:5-6` — `cDiv`/`cInv` divide by `re²+im²` with no zero guard
+### 17. `complex.ts:5-6` — `cDiv`/`cInv` divide by `re²+im²` with no zero guard
 
 Root enabler of every `NaN` above: a zero denominator yields `Infinity`/`NaN`
 silently. (Keep the hot path branch-free; prevent zero denominators at the
 boundary instead — see ENGINE_HARDENING.md.)
 
-### 18. `circuit.js:85,126,128` — `Cab = Vb/(ρc²)` with `Vb` 0/undefined → `cInv(0)` poison
+### 18. `circuit.ts:85,126,128` — `Cab = Vb/(ρc²)` with `Vb` 0/undefined → `cInv(0)` poison
 
 A box volume of 0 or an unset `Vb` makes `Zc = cInv(cx(0, 0))` → `Infinity`/`NaN`
 through the entire solve.
 
-### 19. `sweep.js` — silent fabricated power rating `(drv.Pe || 50)` — ✓ RESOLVED
+### 19. `sweep.ts` — silent fabricated power rating `(drv.Pe || 50)` — ✓ RESOLVED
 
-**✓ RESOLVED (verified):** `packages/engine/src/sweep.js:98` now uses
+**✓ RESOLVED (verified):** `packages/engine/src/sweep.ts:98` now uses
 `(drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null` and returns
 `peAbsent: Pe == null` (`:110`); when `Pe` is absent the `Pe` voltage limit is set to
 `Infinity` (only the `Xmax` limit applies) and the UI shows a "Pe not in datasheet"
@@ -264,25 +264,25 @@ max-SPL/max-power curves.
 
 **Preventative:** require `Pe`, or surface the absence in the UI (done).
 
-### 20. `constants.js:11-12` — values labelled "20 °C" correspond to ~24 °C
+### 20. `constants.ts:11-12` — values labelled "20 °C" correspond to ~24 °C
 
 `C = 345.0` m/s and `RHO = 1.184` kg/m³ are commented "20 °C", but textbook 20 °C
 dry-air values are ≈343.2 m/s and ≈1.204 kg/m³ (345/1.184 ≈ 24 °C). A fixed ~1%
 systematic offset on all volume/SPL/tuning math, with no user temperature input.
 ⚠ Affects computed output — sign-off gated; verify exact textbook values first.
 
-### 21. `driver.js` — opaque 48-char `ParState` magic string — ◐ DOCUMENTED
+### 21. `driver.ts` — opaque 48-char `ParState` magic string — ◐ DOCUMENTED
 
 **◐ DOCUMENTED (verified):** the string is still hard-coded
-(`packages/engine/src/driver.js:113`) but now carries a comment explaining it is a
+(`packages/engine/src/driver.ts:113`) but now carries a comment explaining it is a
 WinISD per-field edit-state flag sequence and mapping the positions to the WDR field
 order (`:111-112`). The maintainability wart is annotated, not removed — a data-driven
 builder (as `scraper_lib.py`'s `_parstate` does) would eliminate the literal.
 
 ### Already listed above (engine-related)
 
-- §10 `sweep.js:103` — `NaN` max curves when `Xmax` absent. ✓ RESOLVED.
-- §11 `driver.js:29-30` — division by zero when `Qms == Qts`. Still present.
+- §10 `sweep.ts:103` — `NaN` max curves when `Xmax` absent. ✓ RESOLVED.
+- §11 `driver.ts:29-30` — division by zero when `Qms == Qts`. Still present.
 
 ---
 
@@ -292,8 +292,8 @@ builder (as `scraper_lib.py`'s `_parstate` does) would eliminate the literal.
 
 §16 hardened **`parseWdr`** (the `.wdr` file-import path) to require ≥2 of {Qts, Qes,
 Qms}. But the app's live driver is `deriveDriver(state.driverRaw)`, computed **directly**
-in `packages/ui/src/store.js:56` — it never goes through `parseWdr`. `deriveDriver`
-(`packages/engine/src/driver.js:25-37`) has no validation boundary: given a driver with
+in `packages/ui/src/store.ts:56` — it never goes through `parseWdr`. `deriveDriver`
+(`packages/engine/src/driver.ts:25-37`) has no validation boundary: given a driver with
 only `Qts`+`Vas` (or `Qms == Qts`, or no `Re`), it returns `Bl`/`Rms`/`Cms` as `NaN`,
 which `syncedP.eg = √(Pin·driver.Re)` (`store.js:73`) then spreads across the whole sweep
 → blank graphs, no error. Reachable from the What-If and Define-new editors, and from a

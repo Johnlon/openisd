@@ -4,13 +4,13 @@
 
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + unit + golden + browser + DQ + scraper) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
 
-| Domain                 | Gate              | Command                                 |
-| ---------------------- | ----------------- | --------------------------------------- |
-| Python scrapers        | pytest suite      | `python -m pytest scripts/scrapers/ -v` |
-| JS core (`src/core/`)  | unit tests        | `node --test test/*.test.mjs`           |
-| JS UI (Vue/Playwright) | browser suite     | `npx playwright test`                   |
-| All code               | lint              | `npm run lint` (0 errors)               |
-| All                    | full health check | `bash scripts/health-check.sh`          |
+| Domain                           | Gate              | Command                                 |
+| -------------------------------- | ----------------- | --------------------------------------- |
+| Python scrapers                  | pytest suite      | `python -m pytest scripts/scrapers/ -v` |
+| JS core (`packages/engine/src/`) | unit tests        | `npm run test:unit`                     |
+| JS UI (Vue/Playwright)           | browser suite     | `npx playwright test`                   |
+| All code                         | lint              | `npm run lint` (0 errors)               |
+| All                              | full health check | `bash scripts/health-check.sh`          |
 
 **A red result is red — no excuses.** You may NOT step past a failing test, lint error, or console/network error by calling it "pre-existing", "stale", "unrelated", "flaky", "HMR", or "someone else's". Regardless of who caused it or how long ago, either make it green or STOP and investigate the cause with primary evidence (read the actual error/log output) before doing anything else. Attributing red to a cause you have not proven is the exact failure that let issues survive for hours. If a failure is genuinely pre-existing, that means the tree was already broken and fixing it is now your job, not your excuse.
 
@@ -177,7 +177,7 @@ After writing or editing any `.md` file that contains tables, run `npx prettier 
 Before starting work, always read:
 
 - `BACKLOG.md` — feature backlog (P0 gates all feature work)
-- `PLAN.md` — re-architecture phases and scope guards (read before touching `src/core/` or any structural change)
+- `PLAN.md` — re-architecture phases and scope guards (read before touching `packages/engine/src/` or any structural change)
 - `ARCHITECTURE.md` — hard architectural decisions
 - `DEVELOPMENT.md` — coding practices and testing contract
 - For driver data tasks: `WDR_SCHEMA.md`, `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md`
@@ -185,14 +185,14 @@ Before starting work, always read:
 
 **Load the relevant context file for the task domain:**
 
-| Task type                                                | Load                                                                         |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Python scraper work (parsing, extraction, field mapping) | `.claude/context/scraping-rules.md` · `.claude/context/testing-python.md`    |
-| Driver data files (WDR / `_meta.yml`)                    | `.claude/context/scraping-rules.md` · `.claude/context/driver-data-rules.md` |
-| JS core functions (`src/core/`, engine, alignments)      | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`     |
-| Vue components, CSS, stores, UI wiring                   | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`           |
-| JS I/O or calculation functions (engine.js, loaders)     | `.claude/context/js-patterns.md`                                             |
-| Any change claimed "ready to check"                      | `.claude/context/testing-js-ui.md` (post-deploy smoke test)                  |
+| Task type                                                      | Load                                                                         |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Python scraper work (parsing, extraction, field mapping)       | `.claude/context/scraping-rules.md` · `.claude/context/testing-python.md`    |
+| Driver data files (WDR / `_meta.yml`)                          | `.claude/context/scraping-rules.md` · `.claude/context/driver-data-rules.md` |
+| JS core functions (`packages/engine/src/`, engine, alignments) | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`     |
+| Vue components, CSS, stores, UI wiring                         | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`           |
+| JS I/O or calculation functions (engine.js, loaders)           | `.claude/context/js-patterns.md`                                             |
+| Any change claimed "ready to check"                            | `.claude/context/testing-js-ui.md` (post-deploy smoke test)                  |
 
 ---
 

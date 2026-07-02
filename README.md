@@ -10,7 +10,7 @@ Thiele/Small parameters. No install, no licence key, runs in any browser.
 Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
-It started as a quick spike, and it has come a long way since. The physics engine (`src/core/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
+It started as a quick spike, and it has come a long way since. The physics engine (`packages/engine/src/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
 
 WinISD has been abandoned and is closed source, so there is no way to move it forward. Resonate exists to build a modern, open alternative — compatible with WinISD's file formats (and others), and answering the many complaints about the old tool. The long-term goal is something that doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
 
@@ -159,7 +159,7 @@ the graphs update live.
 ## Contributing
 
 Newcomers welcome — you do not need to be an acoustician. The physics engine lives
-in `src/core/`; a new box type or filter is a weekend and a pull request. Start
+in `packages/engine/src/`; a new box type or filter is a weekend and a pull request. Start
 with [CONTRIBUTING.md](CONTRIBUTING.md) and the [backlog](BACKLOG.md).
 
 ## Free?

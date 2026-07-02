@@ -1,18 +1,18 @@
 # Resonate — Design → Curves Contract (v1)
 
-This document defines the data contract between the physics core (`src/core/`)
+This document defines the data contract between the physics core (`packages/engine/src/`)
 and any consumer — the Resonate web UI, the test suite, the self-test, and any
 third-party tool that links against the core.
 
 **All functions and types described here are stable.** Internal helpers inside
-`src/core/` are not part of this contract and may change without notice.
+`packages/engine/src/` are not part of this contract and may change without notice.
 
 ---
 
 ## Entry point
 
 ```js
-import { deriveDriver, sweep, maxCurves } from './src/core/index.js';
+import { deriveDriver, sweep, maxCurves } from './packages/engine/src/index.ts';
 // or individually from their modules
 ```
 
@@ -175,7 +175,7 @@ plain object with a `type` field and type-specific parameters.
 | `'peak'` | `{ fc, gain, q }` | Peaking EQ. `gain` dB, `q` dimensionless |
 
 Filters are evaluated with `evalFilter(f, filter)` and composed with
-`applyFilters(f, filters)`, both exported from `src/core/index.js`.
+`applyFilters(f, filters)`, both exported from `packages/engine/src/index.ts`.
 
 ---
 

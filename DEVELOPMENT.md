@@ -18,7 +18,7 @@ pass in CI. Physics changes must keep the validation gates green.**
 │  (src/ui/*.js)     event wiring               │
 ├─────────────────────────────────────────────┤
 │ CORE (no DOM)     physics + data, pure        │
-│  (src/core/*.js)   functions only             │
+│  (packages/engine/src/*.js)   functions only             │
 └─────────────────────────────────────────────┘
 ```
 
@@ -43,7 +43,7 @@ normal development workflow. Offline use is delivered by the Vite PWA plugin
 (Workbox), which caches all built assets in a service worker — not by a
 downloadable single file.
 
-The core (`src/core/*.js`) has no DOM and no Vue dependencies, so it can be
+The core (`packages/engine/src/*.js`) has no DOM and no Vue dependencies, so it can be
 imported directly in Node for testing without stubs or jsdom.
 
 ---
@@ -61,12 +61,12 @@ For all parsing and extraction logic in `scripts/scrapers/`. Fast, deterministic
 
 Rules: `.claude/context/testing-python.md`
 
-### JS core tests — `node:test` + `node:assert` (zero deps)
+### JS core tests — Vitest + `node:assert`
 
-For everything in `packages/engine/src/core/`. Fast, deterministic, no browser.
+For everything in `packages/engine/src/`. Fast, deterministic, no browser.
 
 - Physics gates (sealed≡closed-form, sensitivity, vented rolloff + twin Z-peaks), `.wdr` parse/serialize round-trips, alignment + PR math, driver dedup.
-- Run: `node --test packages/engine/test/*.test.mjs`
+- Run: `npm run test:unit`
 
 Rules: `.claude/context/testing-js-core.md`
 
@@ -80,16 +80,16 @@ Run: `npx playwright test`
 
 Rules: `.claude/context/testing-js-ui.md`
 
-**Tooling is deliberately minimal: `pytest` + `node:test` + Playwright, nothing else.** Do not add Jest / Vitest / Mocha.
+**Tooling is deliberately minimal: `pytest` + Vitest + Playwright, nothing else.** Do not add another test runner (Jest / Mocha / etc.).
 
 ---
 
 ## 4. Definition of done (PR checklist)
 
 - [ ] Core logic has **no DOM references**
-- [ ] New scraper parsing logic has `pytest` unit tests; new core logic has `node:test` unit tests; new UI behaviour has a Playwright browser test
+- [ ] New scraper parsing logic has `pytest` unit tests; new core logic has Vitest unit tests; new UI behaviour has a Playwright browser test
 - [ ] `python -m pytest scripts/scrapers/ -v` passes (scraper tests)
-- [ ] `node --test packages/engine/test/*.test.mjs` passes (JS core tests)
+- [ ] `npm run test:unit` passes (JS core tests)
 - [ ] `npx playwright test` passes (browser tests)
 - [ ] `npm run lint` is 0 errors
 - [ ] Physics validation gates still green
@@ -102,7 +102,7 @@ Rules: `.claude/context/testing-js-ui.md`
 
 Keep changes incremental:
 
-1. One area of `src/core/` at a time — identical behaviour, no UI reorg, no new
+1. One area of `packages/engine/src/` at a time — identical behaviour, no UI reorg, no new
    features in the same pass.
 2. Keep the engine tests green at every step — they are the safety net.
 3. Pure extraction only: if a function needs the DOM, it belongs in a component,
@@ -137,7 +137,7 @@ Individual gates:
 python -m pytest scripts/scrapers/ -v
 
 # JS core unit tests
-node --test packages/engine/test/*.test.mjs packages/ui/test/config.test.mjs
+npm run test:unit
 
 # Browser tests
 npx playwright test
