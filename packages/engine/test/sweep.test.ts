@@ -16,7 +16,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { sweep, maxCurves } from '@resonate/engine';
+import { sweep, maxCurves, classifyFinite } from '@resonate/engine';
 import { deriveDriver } from '@resonate/engine';
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
@@ -160,5 +160,39 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
       'Xmax=0 must not poison Max-SPL with -Infinity — Pe limit must apply');
     assert(maxpwr.every(v => Number.isFinite(v) && v > 0),
       'Max-power must be finite and positive (Pe-limited), not 0');
+  });
+});
+
+// ── classifyFinite — the sweep-finiteness postcondition (hardening) ──────────
+// A precondition on inputs can't foresee a frequency-dependent singularity, so
+// the sweep output is classified at the boundary: isolated non-finite points →
+// warn (the curve still draws with a gap); an entirely non-finite primary curve
+// → error (nothing usable). Sentinels like -200 dB are finite and never flagged.
+describe('classifyFinite — non-finite sweep results are surfaced, never silently blank', () => {
+  const P = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
+
+  it('returns null for an all-finite sweep', () => {
+    const sw = sweep(DRV, BOX, P);
+    assert.equal(classifyFinite(sw), null, 'a healthy sweep has no finiteness issue');
+  });
+
+  it('an all-finite sweep with -200 dB silence sentinels is still null (sentinels are finite)', () => {
+    const sw = sweep(DRV, BOX, { ...P, eg: 0 }); // eg=0 → spl all -200 (finite sentinel)
+    assert.equal(classifyFinite(sw), null, '-200 dB sentinels must not be flagged as non-finite');
+  });
+
+  it('flags an isolated non-finite point as a warn that names the frequency', () => {
+    const sw = sweep(DRV, BOX, P);
+    sw.spl[10] = NaN; // inject a lone singularity
+    const r = classifyFinite(sw);
+    assert.ok(r && r.level === 'warn', 'an isolated NaN is a warn, not a block');
+    assert.match(r.message, /Hz/, 'the message names the affected frequency');
+  });
+
+  it('flags an entirely non-finite primary curve as a blocking error', () => {
+    const sw = sweep(DRV, BOX, P);
+    for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
+    const r = classifyFinite(sw);
+    assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
   });
 });

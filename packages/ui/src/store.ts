@@ -1,6 +1,6 @@
 import { reactive, computed, ref, watch } from 'vue';
-import { deriveDriver, sweep, maxCurves } from '@resonate/engine';
-import type { Driver, DriverRaw, SweepResult, MaxCurvesResult } from '@resonate/engine';
+import { deriveDriver, sweep, maxCurves, classifyFinite } from '@resonate/engine';
+import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@resonate/engine';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
 
@@ -72,6 +72,21 @@ watch([driver, syncedP, () => state.box], () => {
 });
 export const curvesData = _curves;
 export const maxData    = _max;
+
+// Postcondition (hardening): a valid driver can still yield a non-finite sweep at
+// some frequency (a numerical singularity the input guards can't foresee). Classify
+// the sweep output so it's never a silently blank chart — surfaced through the same
+// issue channel as deriveDriver's errors. Empty when the driver is invalid (no sweep)
+// or the sweep is clean.
+export const curveIssues = computed<DriverError[]>(() => {
+  const sw = _curves.value;
+  if (!sw) return [];
+  const issue = classifyFinite(sw);
+  return issue ? [issue] : [];
+});
+
+// The full issue list the UI shows: driver-derivation issues + sweep-finiteness issues.
+export const allIssues = computed<DriverError[]>(() => [...driverErrors.value, ...curveIssues.value]);
 
 export function driverShort(raw: DriverRaw | null | undefined): string {
   return ((raw?.name) || [raw?.brand, raw?.model].filter(Boolean).join(' ') || 'Driver')

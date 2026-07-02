@@ -16,7 +16,7 @@ import { RHO, P0 } from './constants.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { applyFilters } from './filters.js';
-import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult } from './types.js';
+import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 
 /**
  * Unwrap a phase array (radians) to remove ±π discontinuities.
@@ -109,4 +109,34 @@ export function maxCurves(drv: Driver, box: BoxType, P: SweepParams): MaxCurvesR
     xlim.push(vXmax < vPe);
   }
   return { fs: base.fs, maxspl, maxpwr, xlim, peAbsent: Pe == null };
+}
+
+/**
+ * Postcondition: classify a sweep result's finiteness so a degenerate design is
+ * never a silently blank chart. A precondition on inputs can't foresee a
+ * frequency-dependent singularity, so this is the belt-and-braces at the exit.
+ * Returns a DriverError-shaped issue (same channel as deriveDriver), or null:
+ *   - null  — every plotted point is finite (sentinels like −200 dB count as finite)
+ *   - warn  — some points non-finite (isolated singularity); the curve still draws
+ *             with a gap, so name the frequency
+ *   - error — the primary curve (spl) has no finite point at all: nothing usable
+ */
+export function classifyFinite(sw: SweepResult): DriverError | null {
+  const arrays = [sw.spl, sw.phase, sw.exc, sw.excPR, sw.pv, sw.zmag, sw.zph, sw.gd];
+  const badIdx = new Set<number>();
+  for (const arr of arrays)
+    for (let i = 0; i < arr.length; i++)
+      if (!Number.isFinite(arr[i])) badIdx.add(i);
+  if (badIdx.size === 0) return null;
+
+  // Primary curve entirely non-finite → nothing usable to draw.
+  if (!sw.spl.some(v => Number.isFinite(v)))
+    return { level: 'error', field: 'sweep', message: 'Simulation produced no usable values — check the box volume and driver parameters.' };
+
+  // Otherwise an isolated singularity: the curve still draws (the renderer gaps
+  // non-finite points); name the affected frequency so the gap isn't a mystery.
+  const freqs = [...badIdx].sort((a, b) => a - b).map(i => sw.fs[i]);
+  const near = freqs.slice(0, 3).map(f => f >= 100 ? f.toFixed(0) : f.toFixed(1)).join(', ');
+  const more = freqs.length > 3 ? ` (+${freqs.length - 3} more)` : '';
+  return { level: 'warn', field: 'sweep', message: `Simulation undefined near ${near} Hz${more} — likely a numerical singularity; the curve has a gap there.` };
 }

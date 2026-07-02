@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
-import { state, driver, driverErrors, driverShort } from '../store.js';
+import { state, driver, allIssues, driverShort } from '../store.js';
 import type { DriverRaw } from '@resonate/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
 
@@ -75,7 +75,7 @@ const dismissed = ref(false);
 watch(driver, () => { dismissed.value = false; });
 // Any error-level issue means the driver cannot be simulated at all (charts blocked).
 // Warn-level issues (Pe/Xmax) only drop a reference line — the sim still runs.
-const hasError = computed(() => driverErrors.value.some(e => e.level === 'error'));
+const hasError = computed(() => allIssues.value.some(e => e.level === 'error'));
 
 function startEdit() {
   if (!state.driverSource) state.driverSource = { ...state.driverRaw };
@@ -146,13 +146,13 @@ function applyDefine(raw: DriverRaw) {
 <template>
   <fieldset>
     <legend>Driver</legend>
-    <div v-if="driverErrors.length && !dismissed" class="drv-issues" :class="{ 'is-error': hasError }">
+    <div v-if="allIssues.length && !dismissed" class="drv-issues" :class="{ 'is-error': hasError }">
       <div class="drv-issues-head">
         <span>{{ hasError ? '⛔ Cannot simulate — fix these:' : '⚠ Some reference lines are missing:' }}</span>
         <button class="drv-warn-x" @click="dismissed = true" title="Dismiss this list of issues">✕</button>
       </div>
       <ul class="drv-issues-list">
-        <li v-for="e in driverErrors" :key="e.level + e.field" :class="e.level">{{ e.message }}</li>
+        <li v-for="e in allIssues" :key="e.level + e.field" :class="e.level">{{ e.message }}</li>
       </ul>
     </div>
     <div class="row" style="margin-bottom:6px">
