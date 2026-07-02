@@ -8,6 +8,16 @@
 
 ---
 
+## 2026-07-02 — Engine hardening: degenerate input never a silent blank chart
+
+- **Impossible Q combinations are rejected, not silently turned to garbage.** A driver with `Qms ≤ Qts` (or `Qes ≤ Qts`) used to divide by zero deriving the third Q → `Infinity` → a blank chart with no reason given. It's now a clear blocking error naming the offending parameter.
+- **A numerical singularity mid-sweep is explained, not mysterious.** The sweep output is classified for finiteness: an isolated bad point keeps the curve (drawn with a gap) and adds an amber note naming the frequency; a wholly non-finite result shows a red "can't simulate" issue instead of an unexplained empty graph. Communicated through the same issue list as driver errors — no exceptions thrown.
+
+## 2026-07-02 — CI/deploy repaired, docs caught up to the monorepo
+
+- **CI actually runs again.** The workflow had been calling pre-monorepo test paths (red since the engine was extracted); it now runs lint → type-check → unit (Vitest) → browser → build. The deploy workflow was publishing the wrong directory (`./dist` vs the real `packages/ui/dist`) — fixed.
+- **Docs match the code.** ~17 docs still pointed at `src/core/…js` and `node --test`; updated to `packages/engine/src/…ts` and `npm run test:unit` so the run/test instructions you and contributors follow are correct.
+
 ## 2026-07-02 — Whole codebase migrated to strict TypeScript
 
 - **Every source and unit-test file is now strict TypeScript.** The engine package, the Vue UI (all 18 components + store + utils), and the unit tests moved from plain JS to `.ts`/`<script setup lang="ts">` under `strict: true`. Types are modeled from the real runtime shapes, so the compiler now catches the whole class of missing-field / null-propagation bugs that used to surface only as blank graphs (the same family as the `Pe=0` bug).
