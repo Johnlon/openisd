@@ -44,19 +44,6 @@ const viewPlot  = computed(() => {
 // Effective Y bounds currently drawn — seeds the input fields (auto or override).
 const effY = computed(() => viewPlot.value ? { min: viewPlot.value.ymin, max: viewPlot.value.ymax } : null);
 const fmtY = (v) => (v == null || !isFinite(v)) ? '' : String(Number(v.toFixed(2)));
-function setY(min, max) { state.yRanges[props.tabId] = { min, max }; }
-function onYMin(e) {
-  const eff = effY.value; if (!eff) return;
-  const v = parseFloat(e.target.value), logy = viewPlot.value.logy;
-  if (isFinite(v) && v < eff.max && !(logy && v <= 0)) setY(v, eff.max);
-  else e.target.value = fmtY(eff.min);  // reject → snap back to the applied value
-}
-function onYMax(e) {
-  const eff = effY.value; if (!eff) return;
-  const v = parseFloat(e.target.value);
-  if (isFinite(v) && v > eff.min) setY(eff.min, v);
-  else e.target.value = fmtY(eff.max);
-}
 function resetY() { delete state.yRanges[props.tabId]; }
 
 const effectiveF = computed(() =>
@@ -64,7 +51,24 @@ const effectiveF = computed(() =>
 );
 
 let geoRef = null;
-let dragOrigin = null; // { clientX, f } — set on pointerdown
+let dragOrigin = null; // { clientX, f } — set on pointerdown (frequency band-select)
+let yDrag = null;      // { mode, startY, ly0, ly1, logy, ph } — set on Y-axis drag
+
+// Is a pointer position inside the left Y-axis strip (the value-label margin)?
+// Returns the vertical zone for the gesture, or null if not on the axis.
+//   'zoomTop' (top quarter) / 'zoomBot' (bottom quarter) → zoom that end
+//   'pan' (middle) → shift the window;  Shift key → 'zoomSym' (symmetric zoom)
+function yAxisZone(e) {
+  if (!geoRef || !viewPlot.value) return null;
+  const rect = canvasEl.value.getBoundingClientRect();
+  const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
+  const { m, ph } = geoRef;
+  if (xIn < 0 || xIn > m.l || yIn < m.t || yIn > m.t + ph) return null;
+  if (e.shiftKey) return 'zoomSym';
+  if (yIn <= m.t + 0.25 * ph) return 'zoomTop';
+  if (yIn >= m.t + 0.75 * ph) return 'zoomBot';
+  return 'pan';
+}
 
 function freqAt(clientX) {
   if (!geoRef) return null;
@@ -106,6 +110,19 @@ function redraw() {
 
 function onPointerDown(e) {
   if (e.button !== 0 || !geoRef) return;
+  // Y-axis strip → start a level pan/zoom drag (takes priority over the freq band).
+  const zone = yAxisZone(e);
+  if (zone) {
+    const p = viewPlot.value, logy = p.logy;
+    yDrag = {
+      mode: zone, startY: e.clientY, logy, ph: geoRef.ph,
+      ly0: logy ? Math.log10(p.ymin) : p.ymin,
+      ly1: logy ? Math.log10(p.ymax) : p.ymax,
+    };
+    canvasEl.value.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   const f = freqAt(e.clientX);
   if (f !== null) {
     state.dragRange = null; // clear previous selection
@@ -114,8 +131,33 @@ function onPointerDown(e) {
   }
 }
 
+// Apply the in-progress Y-axis drag → write a per-chart Y override (which viewPlot
+// picks up and redraws). All math is in display space (log for log-scale charts).
+function applyYDrag(e) {
+  const { mode, startY, ly0, ly1, logy, ph } = yDrag;
+  const span = ly1 - ly0;
+  const dy = e.clientY - startY;
+  let a = ly0, b = ly1;
+  if (mode === 'pan') { const d = -(dy / ph) * span; a += d; b += d; }
+  else if (mode === 'zoomTop') { b += -(dy / ph) * span; }        // drag top end
+  else if (mode === 'zoomBot') { a += -(dy / ph) * span; }        // drag bottom end
+  else { // zoomSym: drag down = zoom out (wider), up = zoom in
+    const c = (ly0 + ly1) / 2, half = (span / 2) * Math.max(0.05, 1 + dy / ph);
+    a = c - half; b = c + half;
+  }
+  if (b - a < span * 0.05) return;              // guard: don't collapse/invert
+  const inv = v => logy ? Math.pow(10, v) : v;
+  const min = inv(a), max = inv(b);
+  if (!isFinite(min) || !isFinite(max) || (logy && min <= 0)) return;
+  state.yRanges[props.tabId] = { min, max };
+}
+
 function onPointerMove(e) {
   e.preventDefault(); // prevent scroll/zoom on touch and stylus
+  // Hint that the Y-axis strip is draggable.
+  if (!yDrag && !dragOrigin && canvasEl.value)
+    canvasEl.value.style.cursor = yAxisZone(e) ? 'ns-resize' : '';
+  if (yDrag && (e.buttons & 1)) { applyYDrag(e); return; }
   if (dragOrigin && (e.buttons & 1)) {
     if (Math.abs(e.clientX - dragOrigin.clientX) >= 5) {
       const f2 = freqAt(e.clientX);
@@ -136,6 +178,7 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
+  if (yDrag) { yDrag = null; return; }
   if (!dragOrigin || e.button !== 0) { dragOrigin = null; return; }
   const wasDrag = Math.abs(e.clientX - dragOrigin.clientX) >= 5;
   dragOrigin = null;
@@ -145,6 +188,11 @@ function onPointerUp(e) {
   if (f !== null) { state.pinnedF = f; state.cursorLocked = true; }
 }
 
+// Double-click on the Y-axis strip resets that chart's level scale to auto.
+function onDblClick(e) {
+  if (yAxisZone(e)) resetY();
+}
+
 function onPointerLeave() {
   dragOrigin = null;
   // Don't clear state.dragRange — selection persists across all panels
@@ -152,7 +200,7 @@ function onPointerLeave() {
 }
 
 function onPointerCancel() {
-  dragOrigin = null; state.dragRange = null;
+  dragOrigin = null; yDrag = null; state.dragRange = null;
   if (!state.cursorLocked) state.cursorF = null;
 }
 
@@ -229,20 +277,17 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
             @pointermove="onPointerMove"
             @pointerleave="onPointerLeave"
             @pointercancel="onPointerCancel"
+            @dblclick="onDblClick"
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
     <div ref="readEl" class="gread"></div>
-    <div v-if="!blocked && effY" class="gyctl" :class="{ active: yOverride }">
-      <span class="gyctl-lab" title="Y-axis (level) range. Edit to zoom the vertical scale; A resets to auto-fit.">Y</span>
-      <input class="gy-in" type="number" step="any" :value="fmtY(effY.min)" @change="onYMin"
-             title="Y-axis minimum (chart units)" />
-      <span class="gy-dash">–</span>
-      <input class="gy-in" type="number" step="any" :value="fmtY(effY.max)" @change="onYMax"
-             title="Y-axis maximum (chart units)" />
-      <span class="gy-unit">{{ viewPlot.unit }}</span>
-      <button class="gy-auto" :class="{ on: !yOverride }" @click="resetY"
-              title="Auto-scale the Y axis to fit the data">A</button>
-    </div>
+    <!-- Y scale is controlled by dragging on the axis (pan middle, zoom the ends,
+         Shift-drag = symmetric). This chip appears only when a manual range is set,
+         showing it and offering a one-click reset (double-click the axis also resets). -->
+    <button v-if="!blocked && yOverride" class="gy-reset" @click="resetY"
+            title="Reset the Y axis to auto-scale (or double-click the axis)">
+      Y: {{ fmtY(effY.min) }}–{{ fmtY(effY.max) }} {{ viewPlot.unit }} · auto ↺
+    </button>
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
@@ -270,49 +315,22 @@ canvas { touch-action: none; }
 
 .gpanel { position: relative; }
 
-/* Per-chart Y-axis range control — bottom-left, revealed on hover (or kept visible
-   while an override is active so the manual scale is discoverable). */
-.gyctl {
+/* Y scale is set by dragging the axis; this reset chip appears (bottom-left) only
+   while a manual range is active, showing the range and resetting to auto on click. */
+.gy-reset {
   position: absolute;
   left: 6px;
   bottom: 6px;
   z-index: 3;
-  display: none;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 5px;
+  padding: 1px 6px;
   background: rgba(10, 14, 20, 0.82);
-  border: 1px solid var(--line);
+  border: 1px solid var(--acc);
   border-radius: 4px;
+  color: var(--acc);
   font-size: 10.5px;
-}
-.gpanel:hover .gyctl,
-.gyctl.active { display: flex; }
-.gyctl-lab { color: var(--mut); font-weight: 600; }
-.gy-in {
-  width: 46px;
-  font-size: 10.5px;
-  padding: 0 3px;
-  background: var(--panel2);
-  border: 1px solid var(--mut);
-  border-radius: 3px;
-  color: var(--fg);
-  text-align: right;
-}
-.gy-in:focus { outline: none; border-color: var(--acc); }
-.gy-dash, .gy-unit { color: var(--mut); }
-.gy-auto {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 0 5px;
-  background: none;
-  border: 1px solid var(--mut);
-  border-radius: 3px;
-  color: var(--mut);
   cursor: pointer;
 }
-.gy-auto:hover { color: var(--fg); border-color: var(--fg); }
-.gy-auto.on { border-color: var(--acc); color: var(--acc); }
+.gy-reset:hover { background: var(--acc); color: var(--bg); }
 
 /* Blocking message shown in place of the chart when the driver has no derivable
    value (a core T/S parameter is missing). Opaque so any stale curve is hidden. */

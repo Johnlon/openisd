@@ -1,8 +1,13 @@
 import { test, expect } from './fixtures.js';
 
-// Frequency-range (X-axis) zoom controls in the graph toolbar. The shared fixture
-// (fixtures.js) fails the test on any console / render / network error, so each
-// range change here also proves the full redraw pipeline stays clean at the new range.
+// Chart zoom controls:
+//   X (frequency) — a dropdown of preset spans in the graph toolbar. Changing it
+//     re-sweeps over the new band, so the Y axis auto-fits the visible data.
+//   Y (level) — drag on a chart's left axis strip: middle = pan, ends = zoom,
+//     Shift-drag = symmetric zoom, double-click = reset to auto. A bottom-left chip
+//     appears while a manual Y range is active and resets it.
+// The shared fixture fails on any console / render / network error, so every change
+// here also proves the redraw pipeline stays clean.
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -10,96 +15,66 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
-const minInput = (page) => page.locator('.freq-in').nth(0);
-const maxInput = (page) => page.locator('.freq-in').nth(1);
+const rangeSel = (page) => page.locator('.freq-sel');
 
-test('range inputs default to 10–20000 Hz', async ({ page }) => {
-  await expect(minInput(page)).toHaveValue('10');
-  await expect(maxInput(page)).toHaveValue('20000');
+// ── X-axis frequency range dropdown ──────────────────────────────────────────
+
+test('frequency dropdown defaults to 1–20 kHz', async ({ page }) => {
+  await expect(rangeSel(page)).toHaveValue('20000');
 });
 
-test('preset "1–40k" zooms the range all the way out; charts still render', async ({ page }) => {
-  await page.locator('.freq-preset', { hasText: '40k' }).click();
-  await expect(minInput(page)).toHaveValue('1');
-  await expect(maxInput(page)).toHaveValue('40000');
+test('choosing 1–500 Hz narrows the range; charts still render', async ({ page }) => {
+  await rangeSel(page).selectOption('500');
+  await expect(rangeSel(page)).toHaveValue('500');
   await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
 });
 
-test('preset "20–20k" sets the audio band', async ({ page }) => {
-  await page.locator('.freq-preset', { hasText: '20–20k' }).click();
-  await expect(minInput(page)).toHaveValue('20');
-  await expect(maxInput(page)).toHaveValue('20000');
-});
-
-test('typing a valid narrower range zooms in with a clean redraw', async ({ page }) => {
-  await maxInput(page).fill('2000');
-  await maxInput(page).press('Tab');
-  await minInput(page).fill('30');
-  await minInput(page).press('Tab');
-  await expect(minInput(page)).toHaveValue('30');
-  await expect(maxInput(page)).toHaveValue('2000');
+test('choosing 1–40 kHz zooms all the way out', async ({ page }) => {
+  await rangeSel(page).selectOption('40000');
+  await expect(rangeSel(page)).toHaveValue('40000');
   await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
 });
 
-test('an inverted min (above the max) is rejected — the range never collapses', async ({ page }) => {
-  await minInput(page).fill('99999');   // above the 20000 max → invalid
-  await minInput(page).press('Tab');
-  await expect(minInput(page)).toHaveValue('10');  // reverted to the last valid value
-});
-
-test('the chosen range persists across reload', async ({ page }) => {
-  await page.locator('.freq-preset', { hasText: '40k' }).click();
-  await expect(maxInput(page)).toHaveValue('40000');
+test('the chosen frequency range persists across reload', async ({ page }) => {
+  await rangeSel(page).selectOption('500');
   await page.reload();
-  await expect(minInput(page)).toHaveValue('1');
-  await expect(maxInput(page)).toHaveValue('40000');
+  await expect(rangeSel(page)).toHaveValue('500');
 });
 
-// ── Y-axis (level) per-chart override ────────────────────────────────────────
+// ── Y-axis drag (level pan/zoom) ─────────────────────────────────────────────
 
-test('per-chart Y control appears on hover and starts in auto mode', async ({ page }) => {
-  const panel = page.locator('#ggrid .gpanel').first();
-  await panel.hover();
-  const yctl = panel.locator('.gyctl');
-  await expect(yctl).toBeVisible();
-  // Auto is the default — the "A" button is highlighted (on).
-  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
-});
+// Drag vertically inside a panel's left axis strip (x within the 44 px label margin).
+async function dragYAxis(page, panel, fromFrac, dyPx) {
+  const box = await panel.boundingBox();
+  const x = box.x + 8;                                  // inside the 44 px Y-axis strip
+  const y = box.y + box.height * fromFrac;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + dyPx, { steps: 6 });
+  await page.mouse.up();
+}
 
-test('setting a manual Y range switches off auto and keeps the control pinned visible', async ({ page }) => {
-  const panel = page.locator('#ggrid .gpanel').first();  // SPL chart
-  await panel.hover();
-  const yMin = panel.locator('.gy-in').nth(0);
-  const yMax = panel.locator('.gy-in').nth(1);
-  await yMax.fill('110'); await yMax.press('Tab');
-  await yMin.fill('30');  await yMin.press('Tab');
-
-  // Override active → auto no longer highlighted, control stays visible (pinned), chart redraws clean.
-  await expect(panel.locator('.gy-auto')).not.toHaveClass(/on/);
-  await expect(panel.locator('.gyctl')).toHaveClass(/active/);
+test('dragging the Y axis sets a manual range and reveals the reset chip', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();   // SPL chart
+  await expect(panel.locator('.gy-reset')).toHaveCount(0); // auto by default
+  await dragYAxis(page, panel, 0.5, 40);                   // middle = pan
+  await expect(panel.locator('.gy-reset')).toBeVisible();
   await expect(panel.locator('canvas')).toBeVisible();
 });
 
-test('the "A" button resets the Y axis back to auto', async ({ page }) => {
+test('the reset chip returns the Y axis to auto', async ({ page }) => {
   const panel = page.locator('#ggrid .gpanel').first();
-  await panel.hover();
-  await panel.locator('.gy-in').nth(1).fill('110');
-  await panel.locator('.gy-in').nth(1).press('Tab');
-  await expect(panel.locator('.gy-auto')).not.toHaveClass(/on/);
-
-  await panel.locator('.gy-auto').click();
-  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
+  await dragYAxis(page, panel, 0.5, 40);
+  await expect(panel.locator('.gy-reset')).toBeVisible();
+  await panel.locator('.gy-reset').click();
+  await expect(panel.locator('.gy-reset')).toHaveCount(0);
 });
 
-test('an inverted Y range (min above max) is rejected', async ({ page }) => {
+test('double-clicking the Y axis resets it to auto', async ({ page }) => {
   const panel = page.locator('#ggrid .gpanel').first();
-  await panel.hover();
-  const yMax = panel.locator('.gy-in').nth(1);
-  const before = await yMax.inputValue();
-  const yMin = panel.locator('.gy-in').nth(0);
-  await yMin.fill('99999');  // above the max → invalid
-  await yMin.press('Tab');
-  // Still auto (no override applied), max unchanged.
-  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
-  await expect(yMax).toHaveValue(before);
+  await dragYAxis(page, panel, 0.2, 30);                   // top end = zoom
+  await expect(panel.locator('.gy-reset')).toBeVisible();
+  const box = await panel.boundingBox();
+  await page.mouse.dblclick(box.x + 8, box.y + box.height * 0.5);
+  await expect(panel.locator('.gy-reset')).toHaveCount(0);
 });

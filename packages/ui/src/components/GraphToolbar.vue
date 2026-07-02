@@ -14,24 +14,20 @@ function toggleGraph(id) {
 function removeCompare(i) { state.compare.splice(i, 1); }
 function clearCompare() { state.compare = []; }
 
-// Frequency-axis (X) range — the "zoom out / in" control shared by every chart.
-// Bounds: 1 Hz ≤ fmin < fmax ≤ 40 kHz. Inputs validate against each other so the
-// range can never invert or collapse. Presets are quick jumps; the inputs give
-// arbitrary control.
-const FMIN_LIMIT = 1, FMAX_LIMIT = 40000;
-function setRange(lo, hi) { state.P.fmin = lo; state.P.fmax = hi; }
-function onFmin(e) {
-  const v = parseFloat(e.target.value);
-  if (isFinite(v) && v >= FMIN_LIMIT && v < state.P.fmax) state.P.fmin = v;
-  // Rejected input leaves state unchanged, so :value won't re-render — snap the
-  // field back to the authoritative value so it never shows a value that isn't applied.
-  else e.target.value = Math.round(state.P.fmin);
-}
-function onFmax(e) {
-  const v = parseFloat(e.target.value);
-  if (isFinite(v) && v > state.P.fmin && v <= FMAX_LIMIT) state.P.fmax = v;
-  else e.target.value = Math.round(state.P.fmax);
-}
+// Frequency-axis (X) range shared by every chart — a dropdown of preset spans, all
+// starting at 1 Hz. Selecting one sets fmin/fmax and re-sweeps. "custom" only shows
+// if the state doesn't match a preset (e.g. an older persisted range).
+const X_RANGES = [
+  { label: '1 – 500 Hz', hi: 500 },
+  { label: '1 – 1 kHz',  hi: 1000 },
+  { label: '1 – 10 kHz', hi: 10000 },
+  { label: '1 – 20 kHz', hi: 20000 },
+  { label: '1 – 40 kHz', hi: 40000 },
+];
+const rangeSel = computed({
+  get: () => (state.P.fmin === 1 && X_RANGES.some(r => r.hi === state.P.fmax)) ? String(state.P.fmax) : '',
+  set: (v) => { if (v) { state.P.fmin = 1; state.P.fmax = +v; } },
+});
 
 const effectiveF = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 
@@ -63,21 +59,14 @@ function toggleLock() {
           :title="state.graphs.includes(t.id) ? `Hide ${t.name} graph` : `Show ${t.name} graph`"
           @click="toggleGraph(t.id)">{{ t.name }}</span>
     <span class="sep"></span>
-    <span class="lab" title="Frequency range shown on every chart's X axis. Widen it to zoom out, narrow it to zoom in.">Range:</span>
-    <input class="freq-in" type="number" :min="FMIN_LIMIT" :max="FMAX_LIMIT" step="1"
-           :value="Math.round(state.P.fmin)" @change="onFmin"
-           title="Lowest frequency shown (Hz). Minimum 1 Hz, must be below the max." />
-    <span class="freq-dash">–</span>
-    <input class="freq-in" type="number" :min="FMIN_LIMIT" :max="FMAX_LIMIT" step="1"
-           :value="Math.round(state.P.fmax)" @change="onFmax"
-           title="Highest frequency shown (Hz). Maximum 40 kHz, must be above the min." />
-    <span class="freq-unit">Hz</span>
-    <button class="freq-preset" :class="{ on: state.P.fmin === 20 && state.P.fmax === 20000 }"
-            @click="setRange(20, 20000)" title="Audio band: 20 Hz – 20 kHz">20–20k</button>
-    <button class="freq-preset" :class="{ on: state.P.fmin === 10 && state.P.fmax === 20000 }"
-            @click="setRange(10, 20000)" title="Default: 10 Hz – 20 kHz">10–20k</button>
-    <button class="freq-preset" :class="{ on: state.P.fmin === 1 && state.P.fmax === 40000 }"
-            @click="setRange(1, 40000)" title="Full: 1 Hz – 40 kHz (zoom all the way out)">1–40k</button>
+    <span class="tgroup">
+      <span class="lab" title="Frequency range shown on every chart's X axis. Narrower = zoomed in.">Range:</span>
+      <select class="freq-sel" v-model="rangeSel"
+              title="Frequency span shown on every chart. The vertical scale auto-fits the data in this range.">
+        <option v-if="rangeSel === ''" value="">custom</option>
+        <option v-for="r in X_RANGES" :key="r.hi" :value="String(r.hi)">{{ r.label }}</option>
+      </select>
+    </span>
     <span class="sep"></span>
     <button @click="pinCompare" title="Snapshot the current design and overlay its curves on all graphs for comparison">+ Compare current</button>
     <template v-if="state.compare.length">
@@ -89,20 +78,22 @@ function toggleLock() {
       <button @click="clearCompare" title="Remove all comparison overlays from graphs">clear</button>
     </template>
     <span class="sep"></span>
-    <span class="lab" title="Right-click any graph to snap &amp; lock cursor to nearest peak or trough">Cursor:</span>
-    <button class="nudge-btn" @click="nudge(-1)" title="Step cursor down ~1%">−</button>
-    <input class="cursor-hz"
-           type="number" min="1" max="40000" step="0.1"
-           :value="effectiveF ? effectiveF.toFixed(1) : ''"
-           @change="setCursorHz"
-           placeholder="Hz" />
-    <button class="nudge-btn" @click="nudge(+1)" title="Step cursor up ~1%">+</button>
-    <button class="nudge-btn lock-btn" :class="{ locked: state.cursorLocked }"
-            @click="toggleLock"
-            :title="state.cursorLocked ? 'Unlock cursor (hover will move it)' : 'Lock cursor at current frequency'">
-      {{ state.cursorLocked ? '🔒' : '🔓' }}
-    </button>
-    <button v-if="state.pinnedF" class="nudge-btn" @click="clearPin" title="Clear pinned cursor">✕</button>
+    <span class="tgroup">
+      <span class="lab" title="Right-click any graph to snap &amp; lock cursor to nearest peak or trough">Cursor:</span>
+      <button class="nudge-btn" @click="nudge(-1)" title="Step cursor down ~1%">−</button>
+      <input class="cursor-hz"
+             type="number" min="1" max="40000" step="0.1"
+             :value="effectiveF ? effectiveF.toFixed(1) : ''"
+             @change="setCursorHz"
+             placeholder="Hz" />
+      <button class="nudge-btn" @click="nudge(+1)" title="Step cursor up ~1%">+</button>
+      <button class="nudge-btn lock-btn" :class="{ locked: state.cursorLocked }"
+              @click="toggleLock"
+              :title="state.cursorLocked ? 'Unlock cursor (hover will move it)' : 'Lock cursor at current frequency'">
+        {{ state.cursorLocked ? '🔒' : '🔓' }}
+      </button>
+      <button v-if="state.pinnedF" class="nudge-btn" @click="clearPin" title="Clear pinned cursor">✕</button>
+    </span>
     <span class="sep"></span>
     <button class="nudge-btn help-btn" @click="showHelp = true" title="Graph interaction guide — hover, click, drag, right-click">Graph help ?</button>
   </div>
@@ -163,30 +154,19 @@ function toggleLock() {
   text-align: right;
 }
 .cursor-hz:focus { outline: none; border-color: var(--acc); }
-.freq-in {
-  width: 56px;
+/* Keep a labelled control group (Range, Cursor) intact as one unit when the
+   toolbar wraps to a new line, instead of splitting mid-group. */
+.tgroup { display: inline-flex; align-items: center; gap: 6px; }
+.freq-sel {
   font-size: 11px;
   padding: 1px 4px;
   background: var(--panel2);
   border: 1px solid var(--mut);
   border-radius: 3px;
   color: var(--fg);
-  text-align: right;
-}
-.freq-in:focus { outline: none; border-color: var(--acc); }
-.freq-dash { color: var(--mut); font-size: 11px; }
-.freq-unit { color: var(--mut); font-size: 11px; margin-right: 2px; }
-.freq-preset {
-  font-size: 11px;
-  padding: 1px 6px;
-  background: none;
-  border: 1px solid var(--mut);
-  border-radius: 3px;
-  color: var(--mut);
   cursor: pointer;
 }
-.freq-preset:hover { color: var(--fg); border-color: var(--fg); }
-.freq-preset.on { border-color: var(--acc); color: var(--acc); }
+.freq-sel:focus { outline: none; border-color: var(--acc); }
 .nudge-btn {
   font-size: 11px;
   padding: 1px 5px;
