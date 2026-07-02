@@ -8,7 +8,11 @@
 
 ---
 
-## 2026-07-02 — Chart zoom, Max-SPL/Power robustness
+## 2026-07-02 — Whole codebase migrated to strict TypeScript
+
+- **Every source and unit-test file is now strict TypeScript.** The engine package, the Vue UI (all 18 components + store + utils), and the unit tests moved from plain JS to `.ts`/`<script setup lang="ts">` under `strict: true`. Types are modeled from the real runtime shapes, so the compiler now catches the whole class of missing-field / null-propagation bugs that used to surface only as blank graphs (the same family as the `Pe=0` bug).
+- **Provably unchanged behaviour.** Done as a behaviour-preserving migration, not a rewrite: the golden-master fixtures still match byte-for-byte, all 162 unit tests pass, and the 30-test Playwright suite passes against the built app (self-test physics gates green, stat-bar values exact). No formula, constant, or calculation was touched.
+- **Faster, type-aware test loop.** Test runner moved to Vitest (native `.ts`, watch mode, golden folded in); `npm run typecheck` (tsc for the engine, vue-tsc for the UI) is now a health-check and pre-commit gate, so a type error can't land.
 
 - **You can zoom the charts now.** A frequency-span dropdown in the graph toolbar (1–500 Hz up to 1–40 kHz) sets the X range for every chart at once; because the sweep regenerates over the chosen band, the vertical scale auto-fits the visible data. Both axes are also directly draggable on each chart: grab the left (level) or bottom (frequency) axis strip — drag the middle to pan, the ends to zoom, Shift-drag for symmetric zoom, double-click to reset (Y→auto-fit, X→1–20 kHz). Directional cursors (↕ / ↔ / resize arrows / grab hand) cue what each part of a strip does. Range persists across reload; the gestures are listed in the graph-help panel.
 - **Cursor controls decluttered.** Removed the 🔒/🔓 lock toggle and ✕ clear buttons. Clicking a graph now toggles the lock (click to lock the crosshair, click again to unlock and resume hover); the ◄ ► arrows flanking the Hz box step the cursor ±1% and lock it; the Hz box and right-click snap also lock. One gesture, no extra buttons.
