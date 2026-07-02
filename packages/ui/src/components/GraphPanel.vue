@@ -239,8 +239,10 @@ function onPointerUp(e) {
   dragOrigin = null;
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
   state.dragRange = null;
+  // Place a marker at the clicked frequency. Hover still live-tracks (no lock);
+  // the marker is what the readout shows when the pointer is off the graphs.
   const f = freqAt(e.clientX);
-  if (f !== null) { state.pinnedF = f; state.cursorLocked = true; }
+  if (f !== null) state.pinnedF = f;
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click
@@ -266,7 +268,7 @@ const ctxMenu = ref({ visible: false, x: 0, y: 0, f: null });
 
 function onContextMenu(e) {
   e.preventDefault();
-  const f = state.cursorLocked ? state.pinnedF : state.cursorF;
+  const f = state.cursorF ?? state.pinnedF;
   ctxMenu.value = { visible: true, x: e.clientX, y: e.clientY, f };
 }
 
@@ -298,13 +300,12 @@ function snapAction(dir, type) {
     if (d < bestD) { bestD = d; best = i; }
   }
   state.pinnedF = s.xs[best];
-  state.cursorLocked = true;
   closeMenu();
 }
 
-function lockHere() {
+function pinHere() {
   const f = ctxMenu.value.f;
-  if (f) { state.pinnedF = f; state.cursorLocked = true; }
+  if (f) state.pinnedF = f;
   closeMenu();
 }
 
@@ -350,7 +351,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
          class="ctx-menu"
          :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }"
          @click.stop>
-      <div class="ctx-item" @click="lockHere" title="Pin the cursor to this frequency — hover will no longer move it">Lock cursor here</div>
+      <div class="ctx-item" @click="pinHere" title="Place the marker at this frequency">Pin marker here</div>
       <div class="ctx-sep"></div>
       <div class="ctx-item" @click="snapAction('left',  'max')" title="Snap cursor left to the nearest peak (local maximum)">◄ Max to left</div>
       <div class="ctx-item" @click="snapAction('left',  'min')" title="Snap cursor left to the nearest trough (local minimum)">◄ Min to left</div>

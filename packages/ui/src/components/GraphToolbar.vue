@@ -37,17 +37,11 @@ function setCursorHz(e) {
 }
 
 function nudge(dir) {
-  const f = effectiveF.value;
+  const f = effectiveF.value ?? state.cursorF;
   if (!f) return;
   // step ~1% of current frequency (log-uniform feel), min 0.1 Hz
   const step = Math.max(0.1, f * 0.01);
   state.pinnedF = Math.max(0.1, f + dir * step);
-}
-
-function clearPin() { state.pinnedF = null; state.cursorLocked = false; }
-function toggleLock() {
-  state.cursorLocked = !state.cursorLocked;
-  if (state.cursorLocked && state.cursorF) state.pinnedF = state.cursorF;
 }
 </script>
 
@@ -79,20 +73,14 @@ function toggleLock() {
     </template>
     <span class="sep"></span>
     <span class="tgroup">
-      <span class="lab" title="Right-click any graph to snap &amp; lock cursor to nearest peak or trough">Cursor:</span>
-      <button class="nudge-btn" @click="nudge(-1)" title="Step cursor down ~1%">−</button>
+      <span class="lab" title="Marker frequency. Hover a graph to read any point; click, type, or step with the arrows to place a marker that stays when you move off the graph.">Cursor:</span>
+      <button class="nudge-btn" @click="nudge(-1)" title="Step the marker down ~1%">◄</button>
       <input class="cursor-hz"
              type="number" min="1" max="40000" step="0.1"
              :value="effectiveF ? effectiveF.toFixed(1) : ''"
              @change="setCursorHz"
              placeholder="Hz" />
-      <button class="nudge-btn" @click="nudge(+1)" title="Step cursor up ~1%">+</button>
-      <button class="nudge-btn lock-btn" :class="{ locked: state.cursorLocked }"
-              @click="toggleLock"
-              :title="state.cursorLocked ? 'Unlock cursor (hover will move it)' : 'Lock cursor at current frequency'">
-        {{ state.cursorLocked ? '🔒' : '🔓' }}
-      </button>
-      <button v-if="state.pinnedF" class="nudge-btn" @click="clearPin" title="Clear pinned cursor">✕</button>
+      <button class="nudge-btn" @click="nudge(+1)" title="Step the marker up ~1%">►</button>
     </span>
     <span class="sep"></span>
     <button class="nudge-btn help-btn" @click="showHelp = true" title="Graph interaction guide — hover, click, drag, right-click">Graph help ?</button>
@@ -113,7 +101,7 @@ function toggleLock() {
             </tr>
             <tr>
               <td class="hk">Click</td>
-              <td>Pins (locks) the cursor at that frequency so it stays put while you adjust settings.</td>
+              <td>Drops a marker at that frequency. Hover still reads any point; the marker is what the readout shows when the pointer is off the graphs.</td>
             </tr>
             <tr>
               <td class="hk">Drag (plot)</td>
@@ -129,19 +117,15 @@ function toggleLock() {
             </tr>
             <tr>
               <td class="hk">Right-click</td>
-              <td>Context menu — snap and lock the cursor to the nearest <b>peak</b> or <b>trough</b> to the left or right of the current position.</td>
+              <td>Context menu — snap the marker to the nearest <b>peak</b> or <b>trough</b> to the left or right of the current position.</td>
             </tr>
             <tr>
               <td class="hk">Hz input</td>
-              <td>Type a frequency to jump the cursor there directly.</td>
+              <td>Type a frequency to place the marker there directly.</td>
             </tr>
             <tr>
-              <td class="hk">± buttons</td>
-              <td>Nudge the cursor up or down by ~1% (log-uniform step).</td>
-            </tr>
-            <tr>
-              <td class="hk">🔒 / 🔓</td>
-              <td>Toggle cursor lock — locked cursor stays at the pinned frequency; unlocked cursor follows the mouse.</td>
+              <td class="hk">◄ ► buttons</td>
+              <td>Step the marker down or up by ~1% (log-uniform step).</td>
             </tr>
           </tbody>
         </table>
@@ -185,7 +169,6 @@ function toggleLock() {
   cursor: pointer;
 }
 .nudge-btn:hover { color: var(--fg); border-color: var(--fg); }
-.lock-btn.locked { border-color: var(--acc); color: var(--acc); }
 .help-btn { font-weight: 700; }
 
 .help-overlay {
