@@ -116,8 +116,16 @@ function toggleLock() {
               <td>Pins (locks) the cursor at that frequency so it stays put while you adjust settings.</td>
             </tr>
             <tr>
-              <td class="hk">Drag</td>
+              <td class="hk">Drag (plot)</td>
               <td>Select a frequency range — the readout shows the <b>average</b>, <b>peak</b>, and <b>ripple</b> (peak − trough) of the curve within the band. Useful for checking flatness in a target passband.</td>
+            </tr>
+            <tr>
+              <td class="hk">Drag Y axis</td>
+              <td>Rescale the level (vertical) axis: drag the <b>middle</b> to pan, the <b>top/bottom end</b> to zoom that end, <b>Shift-drag</b> for symmetric zoom. <b>Double-click</b> the axis resets it to auto-fit.</td>
+            </tr>
+            <tr>
+              <td class="hk">Drag X axis</td>
+              <td>Rescale the frequency (horizontal) axis: drag the <b>middle</b> to pan, the <b>left/right end</b> to zoom that end, <b>Shift-drag</b> for symmetric zoom. <b>Double-click</b> resets to 1–20 kHz. (Or pick a preset span from the Range dropdown.)</td>
             </tr>
             <tr>
               <td class="hk">Right-click</td>

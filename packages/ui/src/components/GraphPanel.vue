@@ -50,9 +50,12 @@ const effectiveF = computed(() =>
   state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
 );
 
+const X_LMAX = Math.log10(40000); // frequency drag clamps to 1 Hz … 40 kHz (log space)
+
 let geoRef = null;
 let dragOrigin = null; // { clientX, f } — set on pointerdown (frequency band-select)
 let yDrag = null;      // { mode, startY, ly0, ly1, logy, ph } — set on Y-axis drag
+let xDrag = null;      // { mode, startX, lx0, lx1, pw } — set on X-axis (frequency) drag
 
 // Is a pointer position inside the left Y-axis strip (the value-label margin)?
 // Returns the vertical zone for the gesture, or null if not on the axis.
@@ -67,6 +70,21 @@ function yAxisZone(e) {
   if (e.shiftKey) return 'zoomSym';
   if (yIn <= m.t + 0.25 * ph) return 'zoomTop';
   if (yIn >= m.t + 0.75 * ph) return 'zoomBot';
+  return 'pan';
+}
+
+// Same idea for the bottom X-axis strip (the frequency-label margin, below the plot).
+//   'zoomLo' (left quarter) / 'zoomHi' (right quarter) → zoom that end
+//   'pan' (middle) → shift the frequency window;  Shift → 'zoomSym'
+function xAxisZone(e) {
+  if (!geoRef) return null;
+  const rect = canvasEl.value.getBoundingClientRect();
+  const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
+  const { m, pw, ph } = geoRef;
+  if (yIn < m.t + ph || xIn < m.l || xIn > m.l + pw) return null;
+  if (e.shiftKey) return 'zoomSym';
+  if (xIn <= m.l + 0.25 * pw) return 'zoomLo';
+  if (xIn >= m.l + 0.75 * pw) return 'zoomHi';
   return 'pan';
 }
 
@@ -123,6 +141,17 @@ function onPointerDown(e) {
     e.preventDefault();
     return;
   }
+  // X-axis (frequency) strip → start a frequency pan/zoom drag.
+  const xzone = xAxisZone(e);
+  if (xzone) {
+    xDrag = {
+      mode: xzone, startX: e.clientX, pw: geoRef.pw,
+      lx0: Math.log10(state.P.fmin), lx1: Math.log10(state.P.fmax),
+    };
+    canvasEl.value.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   const f = freqAt(e.clientX);
   if (f !== null) {
     state.dragRange = null; // clear previous selection
@@ -152,12 +181,34 @@ function applyYDrag(e) {
   state.yRanges[props.tabId] = { min, max };
 }
 
+// Apply the in-progress X-axis (frequency) drag → write state.P.fmin/fmax (which
+// re-sweeps). Math is in log space; result is clamped to 1 Hz … 40 kHz.
+function applyXDrag(e) {
+  const { mode, startX, lx0, lx1, pw } = xDrag;
+  const span = lx1 - lx0;
+  const dx = e.clientX - startX;
+  let a = lx0, b = lx1;
+  if (mode === 'pan') { const d = -(dx / pw) * span; a += d; b += d; }
+  else if (mode === 'zoomLo') { a += (dx / pw) * span; }          // drag low (left) end
+  else if (mode === 'zoomHi') { b += (dx / pw) * span; }          // drag high (right) end
+  else { // zoomSym: drag right = zoom in (narrower), left = zoom out
+    const c = (lx0 + lx1) / 2, half = (span / 2) * Math.max(0.05, 1 - dx / pw);
+    a = c - half; b = c + half;
+  }
+  a = Math.max(0, Math.min(a, X_LMAX - 0.1));   // 0 = log10(1 Hz)
+  b = Math.min(X_LMAX, Math.max(b, a + 0.1));
+  if (b - a < 0.1) return;                        // keep at least ~0.1 decade
+  state.P.fmin = Math.pow(10, a);
+  state.P.fmax = Math.pow(10, b);
+}
+
 function onPointerMove(e) {
   e.preventDefault(); // prevent scroll/zoom on touch and stylus
-  // Hint that the Y-axis strip is draggable.
-  if (!yDrag && !dragOrigin && canvasEl.value)
-    canvasEl.value.style.cursor = yAxisZone(e) ? 'ns-resize' : '';
+  // Hint which axis strip is draggable.
+  if (!yDrag && !xDrag && !dragOrigin && canvasEl.value)
+    canvasEl.value.style.cursor = yAxisZone(e) ? 'ns-resize' : xAxisZone(e) ? 'ew-resize' : '';
   if (yDrag && (e.buttons & 1)) { applyYDrag(e); return; }
+  if (xDrag && (e.buttons & 1)) { applyXDrag(e); return; }
   if (dragOrigin && (e.buttons & 1)) {
     if (Math.abs(e.clientX - dragOrigin.clientX) >= 5) {
       const f2 = freqAt(e.clientX);
@@ -179,6 +230,7 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (yDrag) { yDrag = null; return; }
+  if (xDrag) { xDrag = null; return; }
   if (!dragOrigin || e.button !== 0) { dragOrigin = null; return; }
   const wasDrag = Math.abs(e.clientX - dragOrigin.clientX) >= 5;
   dragOrigin = null;
@@ -188,9 +240,11 @@ function onPointerUp(e) {
   if (f !== null) { state.pinnedF = f; state.cursorLocked = true; }
 }
 
-// Double-click on the Y-axis strip resets that chart's level scale to auto.
+// Double-click the Y-axis strip resets that chart's level scale to auto; double-click
+// the X-axis strip resets the frequency range to the 1–20 kHz default.
 function onDblClick(e) {
   if (yAxisZone(e)) resetY();
+  else if (xAxisZone(e)) { state.P.fmin = 1; state.P.fmax = 20000; }
 }
 
 function onPointerLeave() {
@@ -200,7 +254,7 @@ function onPointerLeave() {
 }
 
 function onPointerCancel() {
-  dragOrigin = null; yDrag = null; state.dragRange = null;
+  dragOrigin = null; yDrag = null; xDrag = null; state.dragRange = null;
   if (!state.cursorLocked) state.cursorF = null;
 }
 

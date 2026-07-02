@@ -41,6 +41,36 @@ test('the chosen frequency range persists across reload', async ({ page }) => {
   await expect(rangeSel(page)).toHaveValue('500');
 });
 
+// ── X-axis drag (frequency pan/zoom) ─────────────────────────────────────────
+
+// Drag horizontally inside a panel's bottom axis strip (the frequency-label margin).
+async function dragXAxis(page, panel, fromFrac, dxPx) {
+  const box = await panel.boundingBox();
+  const x = box.x + box.width * fromFrac;
+  const y = box.y + box.height - 8;                    // inside the bottom X-axis strip
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + dxPx, y, { steps: 6 });
+  await page.mouse.up();
+}
+
+test('dragging the X axis changes the frequency range (dropdown shows custom)', async ({ page }) => {
+  await expect(rangeSel(page)).toHaveValue('20000');
+  const panel = page.locator('#ggrid .gpanel').first();
+  await dragXAxis(page, panel, 0.5, 60);               // middle = pan
+  await expect(rangeSel(page)).toHaveValue('');        // no preset matches → "custom"
+  await expect(panel.locator('canvas')).toBeVisible();
+});
+
+test('double-clicking the X axis resets the frequency range to 1–20 kHz', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();
+  await dragXAxis(page, panel, 0.5, 60);
+  await expect(rangeSel(page)).toHaveValue('');
+  const box = await panel.boundingBox();
+  await page.mouse.dblclick(box.x + box.width * 0.5, box.y + box.height - 8);
+  await expect(rangeSel(page)).toHaveValue('20000');
+});
+
 // ── Y-axis drag (level pan/zoom) ─────────────────────────────────────────────
 
 // Drag vertically inside a panel's left axis strip (x within the 44 px label margin).
