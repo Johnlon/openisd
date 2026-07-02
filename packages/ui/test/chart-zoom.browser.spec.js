@@ -84,27 +84,20 @@ async function dragYAxis(page, panel, fromFrac, dyPx) {
   await page.mouse.up();
 }
 
-test('dragging the Y axis sets a manual range and reveals the reset chip', async ({ page }) => {
-  const panel = page.locator('#ggrid .gpanel').first();   // SPL chart
-  await expect(panel.locator('.gy-reset')).toHaveCount(0); // auto by default
+// The panel carries a `y-manual` class while a manual Y range is active (auto = absent).
+test('dragging the Y axis sets a manual range (panel flagged y-manual)', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();    // SPL chart
+  await expect(panel).not.toHaveClass(/y-manual/);         // auto by default
   await dragYAxis(page, panel, 0.5, 40);                   // middle = pan
-  await expect(panel.locator('.gy-reset')).toBeVisible();
+  await expect(panel).toHaveClass(/y-manual/);
   await expect(panel.locator('canvas')).toBeVisible();
-});
-
-test('the reset chip returns the Y axis to auto', async ({ page }) => {
-  const panel = page.locator('#ggrid .gpanel').first();
-  await dragYAxis(page, panel, 0.5, 40);
-  await expect(panel.locator('.gy-reset')).toBeVisible();
-  await panel.locator('.gy-reset').click();
-  await expect(panel.locator('.gy-reset')).toHaveCount(0);
 });
 
 test('double-clicking the Y axis resets it to auto', async ({ page }) => {
   const panel = page.locator('#ggrid .gpanel').first();
   await dragYAxis(page, panel, 0.2, 30);                   // top end = zoom
-  await expect(panel.locator('.gy-reset')).toBeVisible();
+  await expect(panel).toHaveClass(/y-manual/);
   const box = await panel.boundingBox();
   await page.mouse.dblclick(box.x + 8, box.y + box.height * 0.5);
-  await expect(panel.locator('.gy-reset')).toHaveCount(0);
+  await expect(panel).not.toHaveClass(/y-manual/);
 });

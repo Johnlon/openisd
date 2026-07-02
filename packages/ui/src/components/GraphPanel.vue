@@ -41,9 +41,7 @@ const viewPlot  = computed(() => {
     return { ...p, ymin: ov.min, ymax: ov.max };
   return p;
 });
-// Effective Y bounds currently drawn — seeds the input fields (auto or override).
-const effY = computed(() => viewPlot.value ? { min: viewPlot.value.ymin, max: viewPlot.value.ymax } : null);
-const fmtY = (v) => (v == null || !isFinite(v)) ? '' : String(Number(v.toFixed(2)));
+// Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { delete state.yRanges[props.tabId]; }
 
 const effectiveF = computed(() =>
@@ -204,9 +202,14 @@ function applyXDrag(e) {
 
 function onPointerMove(e) {
   e.preventDefault(); // prevent scroll/zoom on touch and stylus
-  // Hint which axis strip is draggable.
-  if (!yDrag && !xDrag && !dragOrigin && canvasEl.value)
-    canvasEl.value.style.cursor = yAxisZone(e) ? 'ns-resize' : xAxisZone(e) ? 'ew-resize' : '';
+  // Hint which axis strip is under the pointer and what a drag there will do:
+  // directional resize arrows on the zoom ends, a grab hand in the pan middle.
+  if (!yDrag && !xDrag && !dragOrigin && canvasEl.value) {
+    const yz = yAxisZone(e), xz = xAxisZone(e);
+    canvasEl.value.style.cursor =
+      yz === 'zoomTop' ? 'n-resize' : yz === 'zoomBot' ? 's-resize' : yz === 'zoomSym' ? 'ns-resize' : yz ? 'grab' :
+      xz === 'zoomLo' ? 'w-resize' : xz === 'zoomHi' ? 'e-resize' : xz === 'zoomSym' ? 'ew-resize' : xz ? 'grab' : '';
+  }
   if (yDrag && (e.buttons & 1)) { applyYDrag(e); return; }
   if (xDrag && (e.buttons & 1)) { applyXDrag(e); return; }
   if (dragOrigin && (e.buttons & 1)) {
@@ -324,7 +327,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
 </script>
 
 <template>
-  <div class="gpanel">
+  <div class="gpanel" :class="{ 'y-manual': !!yOverride }">
     <canvas ref="canvasEl"
             @pointerdown="onPointerDown"
             @pointerup="onPointerUp"
@@ -335,13 +338,6 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
     <div ref="readEl" class="gread"></div>
-    <!-- Y scale is controlled by dragging on the axis (pan middle, zoom the ends,
-         Shift-drag = symmetric). This chip appears only when a manual range is set,
-         showing it and offering a one-click reset (double-click the axis also resets). -->
-    <button v-if="!blocked && yOverride" class="gy-reset" @click="resetY"
-            title="Reset the Y axis to auto-scale (or double-click the axis)">
-      Y: {{ fmtY(effY.min) }}–{{ fmtY(effY.max) }} {{ viewPlot.unit }} · auto ↺
-    </button>
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
@@ -368,23 +364,6 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
 canvas { touch-action: none; }
 
 .gpanel { position: relative; }
-
-/* Y scale is set by dragging the axis; this reset chip appears (bottom-left) only
-   while a manual range is active, showing the range and resetting to auto on click. */
-.gy-reset {
-  position: absolute;
-  left: 6px;
-  bottom: 6px;
-  z-index: 3;
-  padding: 1px 6px;
-  background: rgba(10, 14, 20, 0.82);
-  border: 1px solid var(--acc);
-  border-radius: 4px;
-  color: var(--acc);
-  font-size: 10.5px;
-  cursor: pointer;
-}
-.gy-reset:hover { background: var(--acc); color: var(--bg); }
 
 /* Blocking message shown in place of the chart when the driver has no derivable
    value (a core T/S parameter is missing). Opaque so any stale curve is hidden. */

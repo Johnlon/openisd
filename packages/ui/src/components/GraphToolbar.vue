@@ -121,7 +121,7 @@ function toggleLock() {
             </tr>
             <tr>
               <td class="hk">Drag Y axis</td>
-              <td>Rescale the level (vertical) axis: drag the <b>middle</b> to pan, the <b>top/bottom end</b> to zoom that end, <b>Shift-drag</b> for symmetric zoom. <b>Double-click</b> the axis resets it to auto-fit.</td>
+              <td>Rescale the level (vertical) axis: drag the <b>middle</b> to pan, the <b>top/bottom end</b> to zoom that end, <b>Shift-drag</b> for symmetric zoom. <b>Double-click</b> the axis to auto-fit (auto-scale brings the whole visible curve into frame).</td>
             </tr>
             <tr>
               <td class="hk">Drag X axis</td>
