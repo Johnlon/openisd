@@ -14,7 +14,7 @@
  * Run: node --test test/sweep.test.mjs
  */
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { sweep, maxCurves } from '@resonate/engine';
 import { deriveDriver } from '@resonate/engine';

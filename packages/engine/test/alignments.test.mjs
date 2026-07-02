@@ -19,7 +19,7 @@
  *
  * Run: node --test test/alignments.test.mjs
  */
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   ebp,

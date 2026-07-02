@@ -10,7 +10,7 @@
  *   Qms = (Qts · Qes) / (Qes − Qts)   [inverse]
  */
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { deriveDriver, parseWdr, toWdr } from '@resonate/engine';
 

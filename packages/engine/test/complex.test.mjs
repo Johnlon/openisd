@@ -9,7 +9,7 @@
  *
  * Run: node --test test/complex.test.mjs
  */
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cAbs, cArg, cScale, cPar } from '@resonate/engine';
 
