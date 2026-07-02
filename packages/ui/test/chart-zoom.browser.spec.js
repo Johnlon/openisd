@@ -54,3 +54,52 @@ test('the chosen range persists across reload', async ({ page }) => {
   await expect(minInput(page)).toHaveValue('1');
   await expect(maxInput(page)).toHaveValue('40000');
 });
+
+// ── Y-axis (level) per-chart override ────────────────────────────────────────
+
+test('per-chart Y control appears on hover and starts in auto mode', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();
+  await panel.hover();
+  const yctl = panel.locator('.gyctl');
+  await expect(yctl).toBeVisible();
+  // Auto is the default — the "A" button is highlighted (on).
+  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
+});
+
+test('setting a manual Y range switches off auto and keeps the control pinned visible', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();  // SPL chart
+  await panel.hover();
+  const yMin = panel.locator('.gy-in').nth(0);
+  const yMax = panel.locator('.gy-in').nth(1);
+  await yMax.fill('110'); await yMax.press('Tab');
+  await yMin.fill('30');  await yMin.press('Tab');
+
+  // Override active → auto no longer highlighted, control stays visible (pinned), chart redraws clean.
+  await expect(panel.locator('.gy-auto')).not.toHaveClass(/on/);
+  await expect(panel.locator('.gyctl')).toHaveClass(/active/);
+  await expect(panel.locator('canvas')).toBeVisible();
+});
+
+test('the "A" button resets the Y axis back to auto', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();
+  await panel.hover();
+  await panel.locator('.gy-in').nth(1).fill('110');
+  await panel.locator('.gy-in').nth(1).press('Tab');
+  await expect(panel.locator('.gy-auto')).not.toHaveClass(/on/);
+
+  await panel.locator('.gy-auto').click();
+  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
+});
+
+test('an inverted Y range (min above max) is rejected', async ({ page }) => {
+  const panel = page.locator('#ggrid .gpanel').first();
+  await panel.hover();
+  const yMax = panel.locator('.gy-in').nth(1);
+  const before = await yMax.inputValue();
+  const yMin = panel.locator('.gy-in').nth(0);
+  await yMin.fill('99999');  // above the max → invalid
+  await yMin.press('Tab');
+  // Still auto (no override applied), max unchanged.
+  await expect(panel.locator('.gy-auto')).toHaveClass(/on/);
+  await expect(yMax).toHaveValue(before);
+});

@@ -8,8 +8,9 @@
 
 ---
 
-## 2026-07-02 — Max-SPL/Power robustness
+## 2026-07-02 — Chart zoom, Max-SPL/Power robustness
 
+- **You can zoom the charts now.** Frequency (X) range is editable in the graph toolbar — min/max Hz inputs (1 Hz–40 kHz, validated) plus presets (20–20k audio, 10–20k default, 1–40k full), applied to every chart and persisted across reload. Each chart also has a per-chart Y (level) range control (hover the chart, bottom-left) with an auto-reset button, so you can zoom the vertical scale independently.
 - **Xmax=0 no longer blanks the Max-SPL and Max-power charts.** A zero/absent Xmax used to force max-SPL to −∞ and max-power to 0 (empty charts, no axis). It's now treated as "no excursion limit", so the Pe (thermal) limit bounds the curve; the `1e9` magic sentinel became `Infinity`, matching the Pe branch. Golden output byte-identical for valid drivers; regression test added.
 
 ## 2026-07-01 — Invalid-driver handling, no-throws contract

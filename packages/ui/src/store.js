@@ -33,6 +33,7 @@ export const state = reactive({
   browseOpen:   false,
   defineOpen:   false,
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
+  yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
 });
 
 

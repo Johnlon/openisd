@@ -29,6 +29,36 @@ const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'er
 // simply don't redraw until the curves arrive, no message.
 const blocked     = computed(() => !plotData.value && blockErrors.value.length > 0);
 
+// Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
+// auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
+// plot only; series data and cursor stats are untouched.
+const yOverride = computed(() => state.yRanges[props.tabId] || null);
+const viewPlot  = computed(() => {
+  const p = plotData.value;
+  if (!p) return p;
+  const ov = yOverride.value;
+  if (ov && isFinite(ov.min) && isFinite(ov.max) && ov.min < ov.max && !(p.logy && ov.min <= 0))
+    return { ...p, ymin: ov.min, ymax: ov.max };
+  return p;
+});
+// Effective Y bounds currently drawn — seeds the input fields (auto or override).
+const effY = computed(() => viewPlot.value ? { min: viewPlot.value.ymin, max: viewPlot.value.ymax } : null);
+const fmtY = (v) => (v == null || !isFinite(v)) ? '' : String(Number(v.toFixed(2)));
+function setY(min, max) { state.yRanges[props.tabId] = { min, max }; }
+function onYMin(e) {
+  const eff = effY.value; if (!eff) return;
+  const v = parseFloat(e.target.value), logy = viewPlot.value.logy;
+  if (isFinite(v) && v < eff.max && !(logy && v <= 0)) setY(v, eff.max);
+  else e.target.value = fmtY(eff.min);  // reject → snap back to the applied value
+}
+function onYMax(e) {
+  const eff = effY.value; if (!eff) return;
+  const v = parseFloat(e.target.value);
+  if (isFinite(v) && v > eff.min) setY(eff.min, v);
+  else e.target.value = fmtY(eff.max);
+}
+function resetY() { delete state.yRanges[props.tabId]; }
+
 const effectiveF = computed(() =>
   state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
 );
@@ -70,8 +100,8 @@ const localDragRange = computed(() => {
 
 function redraw() {
   if (!canvasEl.value) return;
-  if (blocked.value || !plotData.value) { geoRef = null; return; }
-  geoRef = drawOne(canvasEl.value, plotData.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
+  if (blocked.value || !viewPlot.value) { geoRef = null; return; }
+  geoRef = drawOne(canvasEl.value, viewPlot.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
 }
 
 function onPointerDown(e) {
@@ -188,7 +218,7 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocClick);
 });
 
-watch([plotData, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
+watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
 </script>
 
 <template>
@@ -202,6 +232,17 @@ watch([plotData, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
     <div ref="readEl" class="gread"></div>
+    <div v-if="!blocked && effY" class="gyctl" :class="{ active: yOverride }">
+      <span class="gyctl-lab" title="Y-axis (level) range. Edit to zoom the vertical scale; A resets to auto-fit.">Y</span>
+      <input class="gy-in" type="number" step="any" :value="fmtY(effY.min)" @change="onYMin"
+             title="Y-axis minimum (chart units)" />
+      <span class="gy-dash">–</span>
+      <input class="gy-in" type="number" step="any" :value="fmtY(effY.max)" @change="onYMax"
+             title="Y-axis maximum (chart units)" />
+      <span class="gy-unit">{{ viewPlot.unit }}</span>
+      <button class="gy-auto" :class="{ on: !yOverride }" @click="resetY"
+              title="Auto-scale the Y axis to fit the data">A</button>
+    </div>
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
@@ -228,6 +269,50 @@ watch([plotData, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
 canvas { touch-action: none; }
 
 .gpanel { position: relative; }
+
+/* Per-chart Y-axis range control — bottom-left, revealed on hover (or kept visible
+   while an override is active so the manual scale is discoverable). */
+.gyctl {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 5px;
+  background: rgba(10, 14, 20, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 10.5px;
+}
+.gpanel:hover .gyctl,
+.gyctl.active { display: flex; }
+.gyctl-lab { color: var(--mut); font-weight: 600; }
+.gy-in {
+  width: 46px;
+  font-size: 10.5px;
+  padding: 0 3px;
+  background: var(--panel2);
+  border: 1px solid var(--mut);
+  border-radius: 3px;
+  color: var(--fg);
+  text-align: right;
+}
+.gy-in:focus { outline: none; border-color: var(--acc); }
+.gy-dash, .gy-unit { color: var(--mut); }
+.gy-auto {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 0 5px;
+  background: none;
+  border: 1px solid var(--mut);
+  border-radius: 3px;
+  color: var(--mut);
+  cursor: pointer;
+}
+.gy-auto:hover { color: var(--fg); border-color: var(--fg); }
+.gy-auto.on { border-color: var(--acc); color: var(--acc); }
 
 /* Blocking message shown in place of the chart when the driver has no derivable
    value (a core T/S parameter is missing). Opaque so any stale curve is hidden. */
