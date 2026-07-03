@@ -6,6 +6,9 @@ import { test, expect } from './fixtures.js';
 // one was an orphan nothing else read. See the "two stores" investigation.
 
 test('state persists via one key (resonate.state) and never writes the redundant resonate_v2', async ({ page }) => {
+  // Two page.reload()s plus a debounce wait — under full-suite parallel load a reload
+  // can exceed the 30 s default. Mark slow (×3) so a load spike isn't a false failure.
+  test.slow();
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
