@@ -12,7 +12,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, parseWdr, toWdr } from '@resonate/engine';
+import { deriveDriver, parseWdr, toWdr, parstate } from '@resonate/engine';
 
 // ── Q-derivation test values ─────────────────────────────────────────────────
 const QES = 0.400;    // electrical Q — resistance damping from voice coil
@@ -451,5 +451,50 @@ describe('toWdr — missing optional fields use fallback branches', () => {
     const wdr = toWdr(BARE_DRIVER);
     assert.match(wdr, /^Vd=0$/m, 'Vd must be 0 when Xmax is absent');
     assert.match(wdr, /^Xmax=$/m, 'Xmax= must be empty string when Xmax is absent');
+  });
+});
+
+// ── parstate — WinISD ParState computed per-driver, not hardcoded ────────────
+// WinISD's 49-char edit-state string must reflect THIS driver's fields (E present,
+// C computed, N absent). The old exporter hardcoded one fixed string, so a driver
+// without Pe/Xmax still claimed those were entered. Ported from scraper_lib._parstate
+// (probe-confirmed positions: Pe=2, Xmax=9, Qts=14, numVC=23, c=47, roo=48).
+describe('parstate — per-field WinISD edit-state, computed from the driver', () => {
+  const FULL = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Z: 8 };
+
+  it('is exactly 49 characters', () => {
+    const { value: d } = deriveDriver(FULL);
+    assert.ok(d);
+    assert.equal(parstate(d).length, 49);
+  });
+
+  it('marks present fields E and always-computed fields C', () => {
+    const { value: d } = deriveDriver(FULL);
+    assert.ok(d);
+    const p = parstate(d);
+    assert.equal(p[2], 'E', 'Pe present → E');
+    assert.equal(p[9], 'E', 'Xmax present → E');
+    assert.equal(p[14], 'E', 'Qts present → E');
+    assert.equal(p[23], 'E', 'numVC → E');
+    assert.equal(p[47], 'C', 'c (speed of sound) → C');
+    assert.equal(p[48], 'C', 'roo (air density) → C');
+  });
+
+  it('marks an ABSENT optional field N — the whole point vs the old hardcoded string', () => {
+    const { value: d } = deriveDriver({ ...FULL, Pe: undefined, Xmax: undefined });
+    assert.ok(d);
+    const p = parstate(d);
+    assert.equal(p[2], 'N', 'Pe absent → N (old hardcoded string wrongly said E)');
+    assert.equal(p[9], 'N', 'Xmax absent → N');
+    assert.equal(p[28], 'N', 'USPL depends on Pe → N when Pe absent');
+    // A present field is still E, proving it is genuinely per-driver.
+    assert.equal(p[14], 'E', 'Qts still present → E');
+  });
+
+  it('toWdr embeds the computed ParState', () => {
+    const wdr = toWdr(FULL);
+    const line = wdr.split('\n').find(l => l.startsWith('ParState='));
+    assert.ok(line, 'toWdr writes a ParState line');
+    assert.equal(line.slice('ParState='.length).length, 49, 'embedded ParState is 49 chars');
   });
 });

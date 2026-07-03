@@ -143,9 +143,7 @@ export function toWdr(raw: DriverRaw): string {
   const Sd  = d.Sd, Vd = Sd * (d.Xmax || 0), Dd = 2 * Math.sqrt(Sd / Math.PI);
   const g   = (x: number | null | undefined, p = 6): string | number => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
   const brand = raw.brand || '', model = raw.model || '';
-  // WinISD per-field edit-state flags: E=enabled, C=calculated, N=not-used.
-  // The sequence maps to the WDR field list order (Qts, Znom, Fs, Pe, Re, Le, BL, Xmax, Cms, Qms, Qes, Rms, Mms, Sd, Vas, Vd, Dd, numVC, VCCon). Exact values are opaque to us — kept as WinISD requires.
-  const ParState = 'EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC';
+  const ParState = parstate(d);
   const L = [
     '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=',
     'ProvidedBy=Resonate', 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
@@ -157,4 +155,49 @@ export function toWdr(raw: DriverRaw): string {
     'Vd=' + g(Vd), 'Dd=' + g(Dd), 'numVC=1', 'VCCon=2', 'ParState=' + ParState, '',
   ];
   return L.join('\n');
+}
+
+/**
+ * Build WinISD's 49-char ParState string for an exported driver: the per-field edit
+ * state in WinISD's internal field order — E (field present/entered), C (WinISD
+ * derives it), N (absent). Ported from scraper_lib._parstate; positions are
+ * probe-confirmed against real WinISD files (drivers/sample/). Computed per-driver,
+ * so a driver missing an optional field (Pe, Xmax) marks that position N, not E —
+ * unlike the old hardcoded string, which claimed every field was present.
+ */
+export function parstate(d: Driver): string {
+  const s = new Array<string>(49).fill('N');
+  const has = (v: number | null | undefined): boolean => v != null && isFinite(v);
+
+  // Fixed positions (probe-confirmed)
+  s[23] = 'E';                                       // numVC (WinISD defaults to 1)
+  for (const p of [32, 33, 34, 35, 36, 37]) s[p] = 'C'; // gamma, EBP, Rme, Mpow, Mcost, Gloss
+  s[47] = 'C'; s[48] = 'C';                          // c (speed of sound), roo (air density)
+  s[3]  = 'C';                                       // SPL — WinISD computes it (Resonate supplies none)
+
+  // T/S fields — E when written to the file (Znom is always written: Z or Re fallback)
+  s[0] = 'E';                                        // Znom
+  if (has(d.Fs))   s[1]  = 'E';
+  if (has(d.Pe))   s[2]  = 'E';
+  if (has(d.Re))   s[4]  = 'E';
+  if (has(d.Le))   s[5]  = 'E';
+  if (has(d.Bl))   s[8]  = 'E';
+  if (has(d.Xmax)) s[9]  = 'E';
+  if (has(d.Cms))  s[11] = 'E';
+  if (has(d.Qms))  s[12] = 'E';
+  if (has(d.Qes))  s[13] = 'E';
+  if (has(d.Qts))  s[14] = 'E';
+  if (has(d.Rms))  s[15] = 'E';
+  if (has(d.Mms))  s[16] = 'E';
+  if (has(d.Sd))   s[17] = 'E';
+  if (has(d.Vas))  s[19] = 'E';
+
+  // Computed fields — C when their source fields are available
+  if (has(d.Sd) && has(d.Xmax)) s[18] = 'C';         // Vd
+  if (has(d.Sd))                s[21] = 'C';         // Dd
+  if (has(d.Fs) && has(d.Vas) && has(d.Qes)) s[22] = 'C';       // eta0
+  if (has(d.Sd) && has(d.Re) && has(d.Pe)) { s[26] = 'C'; s[27] = 'C'; }  // SPLmax, SPLmaxLF
+  if (has(d.Pe)) s[28] = 'C';                        // USPL
+
+  return s.join('');
 }
