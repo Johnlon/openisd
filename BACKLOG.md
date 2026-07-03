@@ -211,6 +211,17 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Storage & sharing
 
+- [ ] **P2** Project ↔ source-driver traceability & refresh. When a library driver (or
+      PR) is pinned into a design/project, its parameters are **copied in and detached**
+      from the source — exactly like a WinISD `.wpr`, which embeds a full `[Driver]` copy.
+      So: (a) stamp the Resonate driver id / source path into the embedded driver's
+      `Comment` field (WinISD already does this — `Comment=loudspeakerdatabase.com/…`) and
+      into the project JSON, giving traceability back to the original selection; (b) add a
+      **"refresh drivers"** project action that re-pulls current library values when they
+      differ from the embedded copy (delta detection), so a corrected driver can be pulled
+      forward; (c) extend the same to the **PR selection** — WinISD has no concept of a PR
+      _library_, so this is Resonate-only. Prerequisite: a stable driver id (see the
+      duplicate-driver detection item under Quality/infrastructure).
 - [x] [x] **P1** URL-encoded designs — the full design (driver, box, params, graph
       selection, comparisons) lives in a shareable link; no server needed `[ui]`
 - [x] [ ] **P1** Export / import the complete design as a JSON file
