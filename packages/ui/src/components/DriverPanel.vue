@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
 import { state, driver, allIssues, driverShort } from '../store.js';
-import type { DriverRaw } from '@resonate/engine';
+import type { DriverRaw } from '@openisd/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
 type MyDriver = DriverRaw & { _savedAt?: number };
 
-const MY_DRIVERS_KEY = 'resonate_my_drivers';
+const MY_DRIVERS_KEY = 'openisd_my_drivers';
+const MY_DRIVERS_KEY_LEGACY = 'resonate_my_drivers';   // pre-OpenISD key — read-fallback so saved drivers survive the rename
 
 function loadMyDrivers(): MyDriver[] {
-  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? localStorage.getItem(MY_DRIVERS_KEY_LEGACY) ?? '[]'); } catch { return []; }
 }
 function saveMyDrivers(list: MyDriver[]) {
   try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }
@@ -56,7 +57,7 @@ watch(
     }
   }
 );
-import { ebp } from '@resonate/engine';
+import { ebp } from '@openisd/engine';
 
 // Display view of the raw driver. The T/S numeric fields are treated as present
 // for display formatting (the editor binds to them directly); if one is genuinely

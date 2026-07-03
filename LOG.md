@@ -1,4 +1,4 @@
-# Resonate — change log (value-first)
+# OpenISD — change log (value-first)
 
 **Purpose:** a record of meaningful changes — functional, quality, procedural — each stated by the benefit it delivered, then how it delivered it. Git holds the mechanics; this holds the reason a change was worth making.
 
@@ -7,6 +7,18 @@
 **Status:** the one sanctioned history file in the repo — see the "No history in documentation" exception in `CLAUDE.md`. Agents append the day's entries at end of session (`CLAUDE.md` "Value log" rule).
 
 ---
+
+## 2026-07-03 — Rebrand to OpenISD; safe-tool tooling
+
+Project is now **OpenISD**, served at a real domain. Renamed everything user- and contributor-facing — app title/header/about, PWA manifest, package scope (`@openisd/*`), WDR `ProvidedBy`, docs, and the README (new banner using the app's own SPL/impedance curves). Physics terms (resonator/resonant) deliberately untouched.
+
+No saved work lost in the rename. localStorage keys moved to `openisd_*` with a read-fallback to the old keys, so existing users keep their saved drivers, PR library, and design.
+
+Real domain, correct hosting. `openisd.app` set via a `CNAME` file with Vite `base` back to `/`, so the custom apex domain serves at root.
+
+Fewer permission prompts without widening access. `grep_local` — a read-only grep locked to the project tree (relative paths, whitelisted flags, symlink-resolved containment, no `-exec`) — is safe to blanket-allow; the `safe-tools` skill captures the pattern so more such tools get built the same way.
+
+Answers the "vibe-coded" jab head-on. `VIBE_CODING.md` reframes the old self-flagellating doc: it asks the accuser to define the term, then hands over the public trait-by-trait scorecard (tests, guardrails, and the rows still red) and lets the reader judge.
 
 ## 2026-07-02 — Engine hardening: degenerate input never a silent blank chart
 
@@ -52,7 +64,7 @@
 ## 2026-06-30 — Script suite, mobile
 
 - **First step toward phone support (still rough — a prototype).** Responsive layout, Controls/Graphs tab switcher, two-colour MaxSPL curve.
-- **One reliable command to start/stop/test.** Physics moved to the `@resonate/engine` workspace package; script suite (`health-check`, `start/stop/kill-http`, `dev-4200`) with fixed port assignments.
+- **One reliable command to start/stop/test.** Physics moved to the `@openisd/engine` workspace package; script suite (`health-check`, `start/stop/kill-http`, `dev-4200`) with fixed port assignments.
 - **Branch safety and releases codified.** dev/main branch model + `release-drivers` skill; `--no-verify` tech debt removed.
 - **Wrong-shell failures are loud, not silent.** Windows + Git Bash requirement documented; `MSYSTEM` guard in every script.
 - **DQ output legible and actionable.** `dq_check` live progress, reliable TTY detection, clickable `file://` report links.

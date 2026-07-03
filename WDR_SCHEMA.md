@@ -99,7 +99,7 @@ direct analysis of 423 WDR files from `drivers/matt/` (human-curated, authoritat
 | Model        | string |          | **Mandatory.** Driver model number/name verbatim from datasheet.                                   |
 | Manufacturer | string |          | Left blank by scrapers. WinISD-native field; present in the file as `Manufacturer=` with no value. |
 | ProvidedBy   | string |          | Data source attribution, e.g. `SB Acoustics website (scraped 2026-06-27)`.                         |
-| Comment      | string |          | Free text. Resonate scrapers use this for source URL and caveats.                                  |
+| Comment      | string |          | Free text. OpenISD scrapers use this for source URL and caveats.                                  |
 | DateAdded    | string | YYYYMMDD | Date driver was added; no separators (e.g. `20260627`). See §5.4 for date rules.                   |
 | DateModified | string | YYYYMMDD | Date of last refresh; no separators. Updated by scrapers on each run.                              |
 

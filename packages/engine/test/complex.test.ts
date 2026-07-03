@@ -11,8 +11,8 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { cx, cAdd, cSub, cMul, cDiv, cInv, cAbs, cArg, cScale, cPar } from '@resonate/engine';
-import type { Complex } from '@resonate/engine';
+import { cx, cAdd, cSub, cMul, cDiv, cInv, cAbs, cArg, cScale, cPar } from '@openisd/engine';
+import type { Complex } from '@openisd/engine';
 
 // Tolerance for floating-point comparisons (effectively exact for these operations).
 const EPS = 1e-12;

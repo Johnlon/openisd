@@ -1,8 +1,8 @@
 /**
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
- * Engine shapes (Driver, SweepResult, …) are imported from @resonate/engine.
+ * Engine shapes (Driver, SweepResult, …) are imported from @openisd/engine.
  */
-import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@resonate/engine';
+import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {

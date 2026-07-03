@@ -1,7 +1,7 @@
 # Research on external tools and data sources
 
 This file documents findings, observations, and compatibility notes for tools and 
-data sources that Resonate users interact with or that inform our design decisions.
+data sources that OpenISD users interact with or that inform our design decisions.
 
 ---
 
@@ -9,7 +9,7 @@ data sources that Resonate users interact with or that inform our design decisio
 
 **Collection:** `drivers/loudspeakerdatabase/` (14 WDR files)
 
-**Source:** Third-party scraper (not WinISD, not Resonate's current scraper)
+**Source:** Third-party scraper (not WinISD, not OpenISD's current scraper)
 
 ### Quality findings (analysis: 2026-06-28)
 
@@ -21,7 +21,7 @@ data sources that Resonate users interact with or that inform our design decisio
 **ParState issues:**
 - All 14 files use hardcoded constant: `EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC`
 - Does not match dynamically-computed ParState seen in real WinISD files (matt collection)
-- Suggests use of older Resonate scraper version or independent implementation
+- Suggests use of older OpenISD scraper version or independent implementation
 
 **Metadata issues:**
 - Most files dated December 2025 (future dates; likely test or placeholder data)
@@ -101,7 +101,7 @@ Minor calculated vs. spec discrepancies are normal (rounding). Significant diffe
 - Misidentified units
 - Need to contact manufacturer
 
-**Implication for Resonate:** 
+**Implication for OpenISD:** 
 1. Scraper must aim for "full entry" level (9 fields) for professional-quality WDR files
 2. Understanding these levels helps validate data quality — files missing multiple core fields may be incomplete
 3. Use entry order + minimal levels to understand ParState patterns in real WinISD files

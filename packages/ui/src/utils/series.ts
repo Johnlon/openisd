@@ -1,5 +1,5 @@
-import { C } from '@resonate/engine';
-import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from '@resonate/engine';
+import { C } from '@openisd/engine';
+import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
 import { DPAL } from '../presets.js';
 import type { Series, PlotData, Design } from '../types.js';
 

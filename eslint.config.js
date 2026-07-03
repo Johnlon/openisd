@@ -118,12 +118,12 @@ export default [
       'no-restricted-imports': ['error', {
         patterns: [
           {
-            group: ['@resonate/engine'],
+            group: ['@openisd/engine'],
             importNamePattern: '^deriveDriver$',
             message: 'Use driver from store — the store wraps deriveDriver with error handling.',
           },
           {
-            group: ['@resonate/engine'],
+            group: ['@openisd/engine'],
             importNamePattern: '^(sweep|maxCurves)$',
             message: 'Use curvesData/maxData from store — the store wraps sweep/maxCurves with error handling.',
           },

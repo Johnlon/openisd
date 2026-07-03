@@ -2,8 +2,8 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { state, DEFAULT_DRIVER } from '../store.js';
 import HelpTip from './HelpTip.vue';
-import { parseWdr } from '@resonate/engine';
-import type { DriverRaw } from '@resonate/engine';
+import { parseWdr } from '@openisd/engine';
+import type { DriverRaw } from '@openisd/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
@@ -397,9 +397,10 @@ async function loadCustom() {
 const previewFile  = ref<FileEntry | null>(null);
 const myDrivers    = ref<MyDriver[]>([]);   // drivers saved by the user to localStorage
 
-const MY_DRIVERS_KEY = 'resonate_my_drivers';
+const MY_DRIVERS_KEY = 'openisd_my_drivers';
+const MY_DRIVERS_KEY_LEGACY = 'resonate_my_drivers';   // pre-OpenISD key — read-fallback so saved drivers survive the rename
 function reloadMyDrivers() {
-  try { myDrivers.value = JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) || '[]'); }
+  try { myDrivers.value = JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? localStorage.getItem(MY_DRIVERS_KEY_LEGACY) ?? '[]'); }
   catch { myDrivers.value = []; }
 }
 function deleteMyDriver(name: string) {
@@ -639,7 +640,7 @@ async function openDefine() {
           <span class="plabel">Z</span>
           <button v-for="z in ['4','8','16']" :key="z" class="zchip"
                   :class="{ active: selZ.includes(z) }"
-                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (descriptive label only; not used in simulation by WinISD or Resonate)`"
+                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (descriptive label only; not used in simulation by WinISD or OpenISD)`"
                   @click="toggleZ(z)">{{ z }}Ω</button>
         </div>
         <div class="src-row">

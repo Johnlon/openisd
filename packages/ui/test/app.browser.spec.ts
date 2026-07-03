@@ -17,7 +17,7 @@ test('in-browser self-test passes all three physics gates', async ({ page }) => 
   await page.goto('/');
   await page.waitForFunction(() => window._selfTestDone === true, { timeout: 5000 })
     .catch(() => {});
-  logs.find(l => l.includes('[Resonate self-test]'));  // presence checked implicitly via gates
+  logs.find(l => l.includes('[OpenISD self-test]'));  // presence checked implicitly via gates
   const gate1 = logs.find(l => l.includes('GATE1'));
   const gate2 = logs.find(l => l.includes('GATE2'));
   const gate3 = logs.find(l => l.includes('GATE3'));

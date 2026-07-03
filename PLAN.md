@@ -1,6 +1,6 @@
-# Resonate — re-architecture plan ("make it not shitty")
+# OpenISD — re-architecture plan ("make it not shitty")
 
-Addresses [issue #1](https://github.com/Johnlon/resonate/issues/1). Companion to
+Addresses [issue #1](https://github.com/Johnlon/openisd/issues/1). Companion to
 [BACKLOG.md](BACKLOG.md) (full feature backlog and priorities) · [DEVELOPMENT.md](DEVELOPMENT.md)
 (practices) · [references.md](references.md) (prior art + test oracles).
 
@@ -16,7 +16,7 @@ below is behaviour-preserving and gated by tests.
 
 ```
 packages/engine/src/   pure, no DOM — the reusable library (the product)
-src/ui/     DOM + canvas, consumes core — the Resonate web app
+src/ui/     DOM + canvas, consumes core — the OpenISD web app
 index.html  shell, classic <script src> includes (offline-safe; see DEVELOPMENT.md)
 mobile      a SECOND consumer of the same core (deferred)
 ```
@@ -60,7 +60,7 @@ Real inputs, real outputs, asserted against the tiered oracles in REFERENCES.md.
 No mocking of the physics. Heavy on `circuit` / `sweep` / `alignments` and
 `wdr` / `state`; light on `complex`.
 
-### Phase 4 — Rebuild the Resonate UI on the core API
+### Phase 4 — Rebuild the OpenISD UI on the core API
 Point `src/ui/` at the published contract only (no reaching into internals).
 Behaviour unchanged; golden master + Playwright green.
 

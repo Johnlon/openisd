@@ -1,11 +1,11 @@
-# Resonate — Code Review Findings
+# OpenISD — Code Review Findings
 
 Full-codebase review covering Python scrapers, JavaScript/Vue, and repository
 structure/documentation. Every correctness finding was verified against the
 source before listing. Each finding states the exact file, the failure scenario,
 and a preventative practice.
 
-Finding numbers (`§N`) are **stable IDs**: `HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md`
+Finding numbers (`§N`) are **stable IDs**: `VIBE_CODING.md`
 references them, so a resolved finding is marked **✓ RESOLVED** in place (with the
 verifying evidence) rather than deleted and renumbered. New findings take the next
 free number. Verify the two docs agree after any edit.
@@ -314,13 +314,13 @@ resolved once landed.
 ### 23. Two `localStorage` persistence systems with different keys can disagree — ✓ RESOLVED
 
 **✓ RESOLVED (verified):** app-state persistence now has a single source of truth —
-`resonate.state`, written by `App.vue`'s watch (`saveLocal`, `utils/persist.js:25-26`)
+`openisd.state`, written by `App.vue`'s watch (`saveLocal`, `utils/persist.js:25-26`)
 and restored by `loadLocal()` on mount. `store.js` no longer writes its own
 `resonate_v2` key or runs a competing `setItem` watch; `store.js:19-20` documents the
 single-writer contract. (The separate `MY_DRIVERS_KEY` and PR-library keys are distinct
 concerns, not duplicates of app state.)
 
-_Original:_ `store.js` wrote `resonate_v2` while `persist.js` wrote `resonate.state`;
+_Original:_ `store.js` wrote `resonate_v2` while `persist.js` wrote `openisd.state`;
 both were read at startup and could silently override each other.
 
 **Preventative:** one persistence module, one key, one serialise/restore path (done).

@@ -11,23 +11,23 @@
  *   - You add a new scenario to scenarios.js and need to verify the expected values
  *   - You change a formula and want to confirm the new expected values against an
  *     independent implementation
- *   - NOT in normal CI (the Resonate tests in app.browser.spec.js cover the same
+ *   - NOT in normal CI (the OpenISD tests in app.browser.spec.js cover the same
  *     physics locally without network dependency)
  *
  * Run: npx playwright test test/micka-crosscheck.browser.spec.js
  *
  * ── Vented box NOT cross-checked here (documented discrepancy) ────────────────
  * For a 5 cm bore, 10 cm physical vent length:
- *   Resonate: Fb = 37.1 Hz  (Leff = L + 0.85·d, Beranek 1954)
+ *   OpenISD: Fb = 37.1 Hz  (Leff = L + 0.85·d, Beranek 1954)
  *   micka.de: Fb = 37.85 Hz (back-calculated: smaller end-correction, ~0.75·d)
  * This ~2% divergence is a known end-correction convention difference, not a bug.
- * See alignments.js tuningFromLength() for Resonate's documented choice.
+ * See alignments.js tuningFromLength() for OpenISD's documented choice.
  */
 
 import { test, expect } from '@playwright/test';
 import { SCENARIOS } from './scenarios.js';
 
-const TEMP_C = 20; // air temperature — micka's default; matches Resonate's c = 343.68 m/s (20 °C)
+const TEMP_C = 20; // air temperature — micka's default; matches OpenISD's c = 343.68 m/s (20 °C)
 
 for (const S of SCENARIOS) {
   if (!S.micka) continue;

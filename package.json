@@ -1,5 +1,5 @@
 {
-  "name": "resonate",
+  "name": "openisd",
   "version": "0.1.0",
   "type": "module",
   "workspaces": [
@@ -56,7 +56,7 @@
     "vue-tsc": "^2.2.12"
   },
   "dependencies": {
-    "@resonate/engine": "*",
+    "@openisd/engine": "*",
     "vue": "^3.5.38"
   }
 }

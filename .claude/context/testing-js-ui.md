@@ -55,7 +55,7 @@ Review with `git diff` to confirm only the intended panels changed, then commit 
 
 ## micka.de oracle tests
 
-`test/scenarios.js` is the source of truth for every UI test case. Each scenario defines driver/box inputs AND both tools' expected outputs (Resonate stat-bar values and micka.de table values).
+`test/scenarios.js` is the source of truth for every UI test case. Each scenario defines driver/box inputs AND both tools' expected outputs (OpenISD stat-bar values and micka.de table values).
 
 Run `npm run test:crosscheck` when:
 
@@ -65,8 +65,8 @@ Run `npm run test:crosscheck` when:
 
 **SOP for a new test case:**
 
-1. Add a scenario to `test/scenarios.js` with `driver:` and `box:` filled in; leave `micka:` and `resonate:` blank.
+1. Add a scenario to `test/scenarios.js` with `driver:` and `box:` filled in; leave `micka:` and `openisd:` blank.
 2. Run `npm run test:crosscheck` — read what micka.de reports and fill in `micka:`.
-3. Map micka's values to Resonate's display format (apply the same `toFixed` precision the stat bar uses) and fill in `resonate:`.
-4. Add the Resonate UI wiring test to `test/app.browser.spec.js` using the frozen `resonate:` values.
+3. Map micka's values to OpenISD's display format (apply the same `toFixed` precision the stat bar uses) and fill in `openisd:`.
+4. Add the OpenISD UI wiring test to `test/app.browser.spec.js` using the frozen `openisd:` values.
 5. Commit. `npm run test:crosscheck` does not run in CI.

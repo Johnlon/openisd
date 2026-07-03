@@ -1,2 +1,2 @@
-import * as engine from '@resonate/engine';
+import * as engine from '@openisd/engine';
 export { engine };

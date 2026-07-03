@@ -1,17 +1,17 @@
 # References & prior art
 
-External resources for Resonate's engine and tests. Two uses: **theory** (what
+External resources for OpenISD's engine and tests. Two uses: **theory** (what
 the math should be) and **oracles** (known-good values to test against).
 
 > Using these for reference is fine — reading equations and theory, and
 > *cross-checking outputs*, carries no licence issue. Do **not** copy code from
-> GPL/closed projects into Resonate; cite them as reference and re-derive.
+> GPL/closed projects into OpenISD; cite them as reference and re-derive.
 
 ---
 
 ## 1. Theory canon — what our engine implements
 
-Resonate uses the **analogous-circuit (acoustical impedance analogy)** model with
+OpenISD uses the **analogous-circuit (acoustical impedance analogy)** model with
 controlled sources coupling the electrical → mechanical → acoustical domains. The
 authoritative sources for exactly this approach:
 
@@ -41,7 +41,7 @@ Useful to compare curve shapes and catch gross errors. **Agreement ≠ correctne
 — these are sanity checks, not ground truth.
 
 - **scimpy** (Python) — sealed + vented SPL and group delay, alignment optimisation
-  (B2 / QB4 / B4 / C4). Closest peer to Resonate.
+  (B2 / QB4 / B4 / C4). Closest peer to OpenISD.
   <https://github.com/maqifrnswa/scimpy>
 - **jmpolom/Vented** (Python) — vented-box frequency response from the Thiele &
   Small papers. <https://github.com/jmpolom/Vented>

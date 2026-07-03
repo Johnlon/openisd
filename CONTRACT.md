@@ -1,7 +1,7 @@
-# Resonate — Design → Curves Contract (v1)
+# OpenISD — Design → Curves Contract (v1)
 
 This document defines the data contract between the physics core (`packages/engine/src/`)
-and any consumer — the Resonate web UI, the test suite, the self-test, and any
+and any consumer — the OpenISD web UI, the test suite, the self-test, and any
 third-party tool that links against the core.
 
 **All functions and types described here are stable.** Internal helpers inside

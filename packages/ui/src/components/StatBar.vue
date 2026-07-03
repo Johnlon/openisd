@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver, syncedP, curvesData } from '../store.js';
-import { ebp, tuningFromLength, prTuning } from '@resonate/engine';
+import { ebp, tuningFromLength, prTuning } from '@openisd/engine';
 
 const drv = driver;
 const P = syncedP;

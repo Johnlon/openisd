@@ -3,7 +3,7 @@
  *
  * Each scenario is a source-of-truth for a physical test case. The expected values
  * are verified against micka.de (an independent calculator) and then frozen here.
- * Both the Resonate UI tests (app.browser.spec.js) and the micka.de oracle tests
+ * Both the OpenISD UI tests (app.browser.spec.js) and the micka.de oracle tests
  * (micka-crosscheck.browser.spec.js) draw from this file.
  *
  * ── How to add a new test case ────────────────────────────────────────────────
@@ -11,9 +11,9 @@
  *     expected outputs.
  *  2. Run `TEST_TARGET=micka npx playwright test test/micka-crosscheck.browser.spec.js`
  *     to let micka.de tell you the correct expected values; fill them in under `micka`.
- *  3. Map from micka's values to Resonate's display format (toFixed precision) and
- *     fill in under `resonate`.
- *  4. Add the Resonate UI wiring test to test/app.browser.spec.js.
+ *  3. Map from micka's values to OpenISD's display format (toFixed precision) and
+ *     fill in under `openisd`.
+ *  4. Add the OpenISD UI wiring test to test/app.browser.spec.js.
  *
  * ── Driver field units ────────────────────────────────────────────────────────
  *  Fs   Hz          free-air resonance
@@ -45,7 +45,7 @@ export interface Scenario {
     pr?: { Vb: number; Sd: number; Mms: number; Cms: number; Rms: number; Madd?: number };
   };
   micka?: Record<string, string>;
-  resonate: Record<string, string>;
+  openisd: Record<string, string>;
   /** Filled in by gen-scenarios.ts at generation time. */
   _computed?: Record<string, string>;
 }
@@ -70,8 +70,8 @@ export const SCENARIOS: Scenario[] = [
       fc: '68.79',
     },
 
-    // Resonate stat bar values — toFixed precision as rendered by StatBar.vue
-    resonate: {
+    // OpenISD stat bar values — toFixed precision as rendered by StatBar.vue
+    openisd: {
       Qtc: '0.707',  // exact by construction (Butterworth target)
       fc:  '68.8',   // toFixed(1) of 68.84 Hz
     },

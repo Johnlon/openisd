@@ -5,7 +5,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import type { DriverRaw, BoxType, SweepParams } from '@resonate/engine';
+import type { DriverRaw, BoxType, SweepParams } from '@openisd/engine';
 import { engine } from './load-engine.js';
 
 const { deriveDriver, sweep, maxCurves } = engine;

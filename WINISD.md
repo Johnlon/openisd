@@ -1,6 +1,6 @@
 # WinISD compatibility notes
 
-This file records findings, assumptions, and open questions about how Resonate's
+This file records findings, assumptions, and open questions about how OpenISD's
 behaviour compares to WinISD (Linear Team, http://www.winISD.com/). It distinguishes
 between **confirmed** facts (user-observed, sourced), **inferred** conclusions
 (deduced from data), and **unverified** assumptions (plausible but not confirmed).
@@ -9,10 +9,10 @@ between **confirmed** facts (user-observed, sourced), **inferred** conclusions
 
 ### Observation (user-reported)
 
-Same driver, same box: WinISD showed **92.6 dB**, Resonate showed **94.4 dB** —
+Same driver, same box: WinISD showed **92.6 dB**, OpenISD showed **94.4 dB** —
 a fixed +1.8 dB offset.
 
-### Resonate's original formula
+### OpenISD's original formula
 
 ```
 eg = sqrt(Pin × Re)
@@ -55,7 +55,7 @@ Forum corroboration (talkbass.com, thread "WinISD and sensitivity ratings"):
 
 > "WinISD uses Re to calculate sensitivity" — Rick James
 
-### Current Resonate implementation (matches WinISD)
+### Current OpenISD implementation (matches WinISD)
 
 ```
 eg = sqrt(Pin × Re)          // Re only — matches WinISD convention
@@ -73,15 +73,15 @@ Datasheet: **"Sensitivity 2.83V/1m 87 dB SPL"**
 
 | Tool                    | Parameters                  | Voltage | SPL                 |
 | ----------------------- | --------------------------- | ------- | ------------------- |
-| Resonate 2.83V IEC mode | Resonate entry              | 2.83V   | **87.0 dB** ✓       |
+| OpenISD 2.83V IEC mode | OpenISD entry              | 2.83V   | **87.0 dB** ✓       |
 | WinISD                  | Built-in Morel DB entry     | 2.83V   | 86.59 dB (−0.41 dB) |
-| WinISD                  | .wdr exported from Resonate | 2.83V   | **87.1 dB** ✓       |
+| WinISD                  | .wdr exported from OpenISD | 2.83V   | **87.1 dB** ✓       |
 
 The 0.41 dB gap with WinISD's built-in entry was a **parameter difference** (different T/S values in
 WinISD's database vs the datasheet). With identical parameters (via .wdr export), both tools agree
 to within 0.1 dB — rounding noise.
 
-IEC baffle (1.2×1.2 m flat baffle) is half-space (2π sr) — identical to WinISD/Resonate radiation model.
+IEC baffle (1.2×1.2 m flat baffle) is half-space (2π sr) — identical to WinISD/OpenISD radiation model.
 For 8Ω drivers with explicit "2.83V/1m" datasheet specs, the 2.83V IEC mode is correct.
 
 ### ⚠ Observed sensitivity offset vs datasheet (2026-06-24)
@@ -97,7 +97,7 @@ Test driver: Tang Band W5-1138SMF (Re ≈ 3.24 Ω, 4 Ω nominal). Datasheet: **8
 WinISD uses sqrt(Re) = 1.8 V, which is lower, producing a ~2.25 dB systematic shortfall vs
 manufacturer sensitivity specs for low-Re drivers.
 
-**To match a datasheet sensitivity in WinISD/Resonate:** set input power so that
+**To match a datasheet sensitivity in WinISD/OpenISD:** set input power so that
 `sqrt(Pin × Re) ≈ sqrt(Z_measurement_freq)`, i.e. `Pin = Z_meas / Re` watts.
 For this driver: Pin ≈ 5.3 / 3.24 ≈ 1.63 W.
 
@@ -127,7 +127,7 @@ Rms = sqrt(Mms / Cms) / Qms
 This is internally identical to entering {Mms, Cms, Rms} from a T/S datasheet — both
 representations carry the same information.
 
-Resonate's WinISD entry mode implements these exact conversions.
+OpenISD's WinISD entry mode implements these exact conversions.
 
 ### "Fs with added mass" (WinISD output)
 
@@ -139,7 +139,7 @@ Fs_loaded = 1 / (2π · sqrt((Mms + Madd) · Cms))
            = Fs · sqrt(Mms / (Mms + Madd))
 ```
 
-Resonate shows this as "Fs+mass" alongside the in-box Fp. They differ because the box
+OpenISD shows this as "Fs+mass" alongside the in-box Fp. They differ because the box
 compliance in series with the PR compliance reduces the total system compliance, raising
 the resonance: Fp > Fs+mass.
 
@@ -152,7 +152,7 @@ has not been confirmed by testing an actual WinISD session with a known PR.
 
 ## 3. Multiple passive radiators (numPR)
 
-WinISD accepts `numPR` as an input. Resonate implements this as `prNum` (default 1).
+WinISD accepts `numPR` as an input. OpenISD implements this as `prNum` (default 1).
 
 **Physical effect of n identical PRs in parallel:**
 
@@ -164,7 +164,7 @@ WinISD accepts `numPR` as an input. Resonate implements this as `prNum` (default
   through the PR branch at a given driver drive
 - Per-PR excursion = total PR volume velocity / (n × Sd)
 
-Resonate implements this in `circuit.js` (scale `Zpr` by `1/n`) and `sweep.js`
+OpenISD implements this in `circuit.js` (scale `Zpr` by `1/n`) and `sweep.js`
 (divide `excPR` by `n`).
 
 ### ⚠ Assumption
@@ -225,7 +225,7 @@ specifically, not in the general box losses popup. Default: **100**. Earlier obs
 "Qp is not shown" was incorrect; it was observed in the sealed box view where the port loss
 field does not apply.
 
-Resonate exposes `Ql` (default 10), `Qa` (default 100), and `Qp` (default 100), matching WinISD.
+OpenISD exposes `Ql` (default 10), `Qa` (default 100), and `Qp` (default 100), matching WinISD.
 `Qp` is implemented in `circuit.js` (`portLoss()`) and applied for vented and bandpass4 boxes.
 It must be exposed in the UI for vented/bandpass4 — currently missing from BoxPanel.vue.
 
@@ -238,7 +238,7 @@ It must be exposed in the UI for vented/bandpass4 — currently missing from Box
 
 **Modelling limitation:** Real stuffing is not purely resistive. It also increases the apparent
 box volume (velocity of sound is reduced in stuffed enclosures) and can modify driver Qms near
-the driver cone. WinISD's resistive model (and Resonate's) captures only the damping component.
+the driver cone. WinISD's resistive model (and OpenISD's) captures only the damping component.
 Cut-and-try with an impedance measurement is the only reliable way to determine real Qa.
 
 ## 6. Signal / voltage reference — confirmed from help file
@@ -253,27 +253,27 @@ Cut-and-try with an impedance measurement is the only reliable way to determine 
 > **Eg = sqrt(P × Re)**, or P = Eg²/Re"
 
 Series resistance (default **0.1 Ω**): included in the electrical circuit model but NOT in the
-power-to-voltage conversion. Resonate matches this behaviour.
+power-to-voltage conversion. OpenISD matches this behaviour.
 
 ## 7. Group delay calibration
 
 **Observation (2026-06-24):** Same driver + PR box, same parameters.
 
-|                   | Resonate (before) | Resonate (after) | WinISD 0.7 |
+|                   | OpenISD (before) | OpenISD (after) | WinISD 0.7 |
 | ----------------- | ----------------- | ---------------- | ---------- |
 | GD peak frequency | 58.9 Hz           | 60 Hz            | 61.9 Hz    |
 | GD peak magnitude | 11.4 ms           | 12.1 ms          | 12.2 ms    |
 
-**Root cause:** Resonate's Ql default was 7; WinISD's confirmed default is 10. Higher loss
+**Root cause:** OpenISD's Ql default was 7; WinISD's confirmed default is 10. Higher loss
 (lower Ql) damps the resonance, shifting the peak down in frequency and reducing its magnitude.
 
 **Fix applied:** Changed Ql default to 10 in `P_DEFAULTS` and circuit fallback.
 
 **Remaining offset after Ql fix:** ~1.9 Hz in frequency. Root cause identified and fixed —
-see section 9 (circuit model). Le was included in Resonate's acoustic circuit but WinISD
+see section 9 (circuit model). Le was included in OpenISD's acoustic circuit but WinISD
 excludes it. Removing Le from the acoustic drive in WinISD mode resolved the offset.
 
-**Final result (2026-06-24):** Resonate WinISD mode → **61 Hz / 12 ms**, WinISD → **61.9 Hz / 12.2 ms**. Essentially
+**Final result (2026-06-24):** OpenISD WinISD mode → **61 Hz / 12 ms**, WinISD → **61.9 Hz / 12.2 ms**. Essentially
 matched.
 
 ## 8. Driver volume / net vs gross Vb
@@ -293,7 +293,7 @@ Stuffing (polyfill, fibreglass) is typically excluded because it is low-density 
 volume displacement is negligible, but it does reduce the effective speed of sound and increase
 apparent Vb — a separate effect from its Qa damping contribution.
 
-**Implication for Resonate:** Vb is treated as net acoustic volume, consistent with WinISD.
+**Implication for OpenISD:** Vb is treated as net acoustic volume, consistent with WinISD.
 The UI should make this explicit. The Vb label tooltip should note "net acoustic volume".
 
 ## 9. Circuit model — WinISD vs Full Gyrator
@@ -301,9 +301,9 @@ The UI should make this explicit. The Vb label tooltip should note "net acoustic
 **Source:** `research/winisd/help/aboutequivalentcircuits.html` (from official WinISD 0.7 installer)
 
 WinISD's acoustic simulation works entirely in the **acoustical domain** using a simplified
-constant-element model. Resonate implements both this model and a physically more complete one.
+constant-element model. OpenISD implements both this model and a physically more complete one.
 
-### WinISD model (default in Resonate — "WinISD" mode)
+### WinISD model (default in OpenISD — "WinISD" mode)
 
 Driver acoustic elements are **constants** derived from T/S parameters at resonance:
 
@@ -330,7 +330,7 @@ Group delay is computed by WinISD as a centred finite difference on phase:
 gd(ω) = −(arg H(f+δ) − arg H(f−δ)) / (2δ)
 ```
 
-### Full gyrator model (Resonate "Full gyrator" mode)
+### Full gyrator model (OpenISD "Full gyrator" mode)
 
 The electrical domain is fully modelled and coupled to the acoustic circuit via a gyrator:
 
@@ -350,15 +350,15 @@ With the demo 6.5" driver (Le = 0.7 mH, Re = 5.6 Ω) in a PR box:
 | Mode                                           | GD peak freq | GD peak mag |
 | ---------------------------------------------- | ------------ | ----------- |
 | WinISD 0.7.0.950 (observed)                    | 61.9 Hz      | 12.2 ms     |
-| Resonate — WinISD model (confirmed 2026-06-24) | **61 Hz**    | **12 ms**   |
-| Resonate — Full gyrator                        | 60.0 Hz      | 12.1 ms     |
+| OpenISD — WinISD model (confirmed 2026-06-24) | **61 Hz**    | **12 ms**   |
+| OpenISD — Full gyrator                        | 60.0 Hz      | 12.1 ms     |
 
 At 60 Hz: `jωLe ≈ j0.26 Ω` (4.6% of Re). This reactive component in ZaE shifts the
 effective electrical Q and coupled system resonance by ~1.9 Hz in the full gyrator model.
 
-### Resonate advantage over WinISD
+### OpenISD advantage over WinISD
 
-| Feature                   | WinISD               | Resonate                       |
+| Feature                   | WinISD               | OpenISD                       |
 | ------------------------- | -------------------- | ------------------------------ |
 | Le in acoustic circuit    | No (constant Rae)    | Yes (full gyrator, switchable) |
 | Box losses (Ql, Qa)       | Ql + Qa via UI       | Ql + Qa via UI                 |
@@ -406,7 +406,7 @@ at the 3rd decimal place triggers "consistency check failed: Qts Qms Qes".
 Spec sheets commonly round Qts, Qms, Qes to 2 decimal places. Even when arithmetically
 consistent on paper, the 3rd-decimal recompute may differ.
 
-**Resonate fix:** WDR files must not contain Qts when Qms and Qes are both present.
+**OpenISD fix:** WDR files must not contain Qts when Qms and Qes are both present.
 Either omit Qts entirely, or ensure it is marked 'C' (calculated) in ParState.
 
 ### Recommended parameter entry sequence
@@ -441,14 +441,14 @@ regenerated from current datasheet values when this occurs.
 ### WDR field order and ParState
 
 `ParState` is the last WinISD-native field in a WDR file. Fields after `ParState` are
-ignored by WinISD. Resonate's provenance metadata lives in the companion `_meta.yml` sidecar, not in the WDR.
+ignored by WinISD. OpenISD's provenance metadata lives in the companion `_meta.yml` sidecar, not in the WDR.
 
 `ParState` is a 49-character string: each position is `E` (user-Entered), `C` (Calculated
 by WinISD from other entered values), or `N` (Not set). The mapping of positions to
 parameter names has been reverse-engineered via single-parameter probes in `drivers/sample/`
 and is documented in `drivers/sample/README.md`.
 
-**Resonate's ParState builder** (`scraper_lib.py:_parstate()`) dynamically constructs ParState
+**OpenISD's ParState builder** (`scraper_lib.py:_parstate()`) dynamically constructs ParState
 based on which fields were actually sourced from the datasheet:
 
 - **E** — field is present and non-zero (user-entered or sourced from datasheet)
@@ -484,7 +484,7 @@ confirms this behaviour:
 numVC  VCCon  ParState
 ```
 
-Fields written by Resonate's `to_wdr()`:
+Fields written by OpenISD's `to_wdr()`:
 
 ```
 Calculatable — computed from T/S when dependencies are available, otherwise 0:
@@ -511,9 +511,9 @@ Physical dimensions (not currently extracted by scrapers):
 | 1   | ~~Does WinISD use 2.83 V fixed or `sqrt(Pin × Z_nom)`?~~ **RESOLVED: uses `Eg = sqrt(P × Re)`** — confirmed in WinISD help file                                                                                                                                                                                                                                                                                                               | Closed   |
 | 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                       | Closed   |
 | 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                      | Closed   |
-| 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. Resonate uses identical formula.**                                                                                                                                                                                                                                            | Closed   |
-| 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor Resonate adds an extra radiation-mass term. Source: `research/winisd/help/thielesmall.html`** | Closed   |
-| 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to Resonate's `Rms = sqrt(Mms/Cms)/Qms`. Source: `research/winisd/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
+| 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. OpenISD uses identical formula.**                                                                                                                                                                                                                                            | Closed   |
+| 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `research/winisd/help/thielesmall.html`** | Closed   |
+| 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `research/winisd/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
 
 ## 12. VCCon — confirmed save bug (verified 2026-06-26)
 
@@ -538,8 +538,8 @@ is pure WDR metadata, not part of WinISD's 49-position internal state machine.
 
 **Implication for scraper:** Always write `VCCon=1`. Correct for all single-VC drivers and matches what WinISD writes.
 
-**TODO — Resonate WDR writer (future):** When Resonate gains the ability to write WDR files, it must write `VCCon=2`
-when the user has selected series wiring. The save bug is WinISD-specific — Resonate's own writer should write the
+**TODO — OpenISD WDR writer (future):** When OpenISD gains the ability to write WDR files, it must write `VCCon=2`
+when the user has selected series wiring. The save bug is WinISD-specific — OpenISD's own writer should write the
 correct value. See BACKLOG.md.
 
 ## 11. SpeakerBoxLite API — CORS finding
@@ -561,9 +561,9 @@ This is a **server-side misconfiguration** on speakerboxlite.com — no client-s
 workaround is possible. The site itself remains reachable (direct browser navigation works)
 but JavaScript `fetch()` is blocked.
 
-**Resonate status:** SpeakerBoxLite is exposed as an opt-in button; clicking it immediately
+**OpenISD status:** SpeakerBoxLite is exposed as an opt-in button; clicking it immediately
 hits this error. To re-enable, speakerboxlite.com would need to include
-`Access-Control-Allow-Origin: *` on their GET responses, or Resonate would need a CORS
+`Access-Control-Allow-Origin: *` on their GET responses, or OpenISD would need a CORS
 proxy (introduces a server dependency).
 
 ## 13. Driver Editor UI — Complete field inventory
@@ -660,12 +660,12 @@ WinISD's driver editor has 4 tabs: General, Parameters, Advanced parameters, Dim
 ### 13.1 Field purposes — verified from WinISD help
 
 Source: `research/winisd/help/thielesmall.html` (parameter explanations by Claus
-Futtrup, in WinISD's own help), condensed. "Resonate:" notes record how our engine
+Futtrup, in WinISD's own help), condensed. "OpenISD:" notes record how our engine
 actually uses each field — verified against `packages/engine`.
 
 **Thiele/Small**
 
-- **Fs** — Free-air resonance frequency of the driver. _Resonate: core input; every graph depends on it._
+- **Fs** — Free-air resonance frequency of the driver. _OpenISD: core input; every graph depends on it._
 - **Qes** — Electrical Q (damping); ability to resonate at Fs by electrical means. Lower = more damped.
 - **Qms** — Mechanical Q (damping); ability to resonate at Fs by mechanical means.
 - **Qts** — Total damping = Qms ‖ Qes (parallel coupling). _Enter any 2 of the trio; the third is computed._
@@ -676,27 +676,27 @@ actually uses each field — verified against `packages/engine`.
 - **Mms** — Moving mass of the vibrating parts including air load.
 - **Cms** — Suspension compliance (inverse of spring stiffness).
 - **Rms** — Mechanical damping (suspension friction + resistive part of the radiation load).
-- **Re** — DC resistance of the voice coil. _Resonate + WinISD power reference: P = V²/Re (see §1); Znom is NOT used._
+- **Re** — DC resistance of the voice coil. _OpenISD + WinISD power reference: P = V²/Re (see §1); Znom is NOT used._
 - **BL** — Force factor: magnetic flux crossed with wire length in the gap.
 - **Dd** — Diaphragm diameter (= our Cone ⌀; Sd = π·(Dd/2)²).
-- **Le** — Voice-coil inductance. _Resonate: only shapes the impedance plot — circuit.js keeps Le out of the acoustic path._
+- **Le** — Voice-coil inductance. _OpenISD: only shapes the impedance plot — circuit.js keeps Le out of the acoustic path._
 - **Sd** — Effective radiating (piston) area. _Core input._
 - **fLe** — Frequency at which Le and KLe were measured (0 = standard Le model).
 - **KLe** — Voice-coil semi-inductance [H·√Hz], Vanderkooy lossy-inductance model.
 
 **Large-signal**
 
-- **Xmax** — Max linear excursion, ≈ |Hc−Hg|/2, peak value. _Resonate: cone-excursion limit + excursion-limited part of Max SPL._
+- **Xmax** — Max linear excursion, ≈ |Hc−Hg|/2, peak value. _OpenISD: cone-excursion limit + excursion-limited part of Max SPL._
 - **Xlim** — Damage-limit excursion (peak). _WinISD field; not present in our WDR schema._
 - **Hc** — Voice-coil winding height.
 - **Hg** — Magnetic air-gap height.
 - **Vd** — Volume displacement = Sd × Xmax (air moved in the linear range).
-- **Pe** — Thermal-limited continuous power handling. _Resonate: Max power + thermal-limited part of Max SPL._
+- **Pe** — Thermal-limited continuous power handling. _OpenISD: Max power + thermal-limited part of Max SPL._
 
 **Miscellaneous**
 
 - **no (η₀)** — Reference efficiency, %.
-- **Znom** — Nominal impedance. **WinISD's own help: "(not used in simulation)."** _Resonate matches exactly: label-only, written to the WDR, never simulated._
+- **Znom** — Nominal impedance. **WinISD's own help: "(not used in simulation)."** _OpenISD matches exactly: label-only, written to the WDR, never simulated._
 - **USPL** — Voltage sensitivity [dB/2.83 V]; closer to voltage-amplifier use, rises below 8 Ω.
 - **SPL** — Power sensitivity [dB/W], 1 m, half-space (2π); directly related to η₀.
 - **Voicecoils (numVC)** — Descriptive: number of voice coils (1 normal, 2 = dual-voice-coil).
@@ -720,8 +720,8 @@ actually uses each field — verified against `packages/engine`.
 
 **Environment**
 
-- **c** — Speed of sound [m/s]. _Resonate: autofills to 343 m/s (state C), user-overridable._
-- **roo (ρ)** — Air density [kg/m³]. _Resonate: autofills to 1.2 (state C), user-overridable._
+- **c** — Speed of sound [m/s]. _OpenISD: autofills to 343 m/s (state C), user-overridable._
+- **roo (ρ)** — Air density [kg/m³]. _OpenISD: autofills to 1.2 (state C), user-overridable._
 
 **Dimensions**
 
@@ -854,17 +854,17 @@ Version: WinISD Pro 0.7 (Linearteam).
 
 ## 16. WDR fields that are non-functional in WinISD — historic parity only
 
-These fields exist in the WDR format and are written by Resonate scrapers/exporters for
+These fields exist in the WDR format and are written by OpenISD scrapers/exporters for
 WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
 present purely because real WinISD files contain them and omitting them could prevent correct
-round-trip import. Resonate includes them for historic parity with WinISD, not because they
+round-trip import. OpenISD includes them for historic parity with WinISD, not because they
 drive any curve or calculation.
 
 ### Confirmed no simulation effect — WinISD help says so explicitly
 
 | Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                 |
 | ---------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. Resonate uses it for the 4Ω/8Ω/16Ω browser filter only. |
+| **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
 | **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                              |
 | **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                              |
 | **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                                |
@@ -886,7 +886,7 @@ shown on the Dimensions tab for the builder's reference. **WinISD does not subtr
 displacement (DVol) from box volume** — users must do that manually. Source: `faq.html`:
 _"WinISD doesn't take driver displacement into account."_
 
-These are written as `0` by Resonate scrapers because the data is not yet extracted from
+These are written as `0` by OpenISD scrapers because the data is not yet extracted from
 datasheets. See BACKLOG.md (Physical dimension extraction gap).
 
 ### Inert in practice — but WOULD affect output if entered
@@ -922,6 +922,6 @@ Both charts display the **same underlying data series** (system frequency respon
 
 The cursor readout (−9.896 dB at 38.01 Hz) is identical in both screenshots, confirming no separate computation.
 
-### Implication for Resonate
+### Implication for OpenISD
 
 "Transfer function magnitude" is a **display mode on the SPL chart**, not a new engine series. Implementation: subtract the passband SPL reference level from the curve, draw 0 dB and −3 dB dashed reference lines, relabel Y axis from "dB SPL" to "dB".

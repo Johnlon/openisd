@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import type { SweepResult, MaxCurvesResult } from '@resonate/engine';
+import type { SweepResult, MaxCurvesResult } from '@openisd/engine';
 import { engine } from './load-engine.js';
 
 const { deriveDriver, sweep, maxCurves } = engine;

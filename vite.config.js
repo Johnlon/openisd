@@ -4,7 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 
-const base = process.env.GITHUB_PAGES ? '/resonate/' : '/';
+// openisd.app is a custom apex domain served at the site root, so the base is '/'
+// in both dev and the GitHub Pages build (the CNAME file selects the domain).
+const base = '/';
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
@@ -35,13 +37,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       base,
       manifest: {
-        name: 'Resonate',
-        short_name: 'Resonate',
+        name: 'OpenISD',
+        short_name: 'OpenISD',
         description: 'Open loudspeaker enclosure simulator — community-owned, runs anywhere',
         theme_color: '#11151c',
         background_color: '#11151c',
         display: 'standalone',
-        start_url: '/resonate/',
+        start_url: '/',
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],

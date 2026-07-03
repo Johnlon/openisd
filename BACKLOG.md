@@ -1,6 +1,6 @@
-# Resonate — backlog
+# OpenISD — backlog
 
-Working list of capabilities that make Resonate a complete, professional
+Working list of capabilities that make OpenISD a complete, professional
 enclosure-design tool. Items are described on their own terms; each notes how it
 fits the existing engine so it can become a GitHub issue. Priorities are a guide,
 not a contract — pick what interests you and open a PR.
@@ -51,7 +51,7 @@ fixtures cover all box types, CONTRACT.md is written and versioned, per-module u
 tests exist, the Vue UI consumes only the public contract, and Playwright + CI are
 both live. The description below is preserved for history.
 
-> ~~Resonate is a spike: logic is one inline script in `index.html`, "verified" by a
+> ~~OpenISD is a spike: logic is one inline script in `index.html`, "verified" by a
 > self-test that string-slices the engine out and `eval`s it, with no real UI tests.~~
 > Completed — see [PLAN.md](PLAN.md).
 
@@ -69,7 +69,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
       (`CONTRACT.md`) — the documented API third-party UIs depend on. `[unit]`
 - [x] [x] **P0 · Phase 3** Per-module functional tests vs tiered oracles (closed
       forms > datasheets > alignment tables > cross-tool). `[unit]`
-- [x] [x] **P0 · Phase 4** Rebuild the Resonate UI on the core contract only. `[ui]`
+- [x] [x] **P0 · Phase 4** Rebuild the OpenISD UI on the core contract only. `[ui]`
 - [x] [x] **P0 · Phase 5** Playwright functional tests + CI runs unit + golden +
       functional on every push / PR. `[ui]`
 - [ ] **Research** Chrome's MCP server as a functional-test driver — evaluate vs
@@ -95,7 +95,7 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 
 ## Charts & graph types
 
-WinISD chart inventory mapped to Resonate status. Box-type scope notes: `[PR]` = passive radiator only · `[BP]` = 4th-order bandpass only · `[EQ]` = only when EQ/Filter is active.
+WinISD chart inventory mapped to OpenISD status. Box-type scope notes: `[PR]` = passive radiator only · `[BP]` = 4th-order bandpass only · `[EQ]` = only when EQ/Filter is active.
 
 ### Universal (all box types)
 
@@ -146,17 +146,17 @@ WinISD chart inventory mapped to Resonate status. Box-type scope notes: `[PR]` =
 
 ## WinISD input/feature parity
 
-Gaps found by auditing the WinISD 0.7.0.950 screenshots against Resonate's UI —
+Gaps found by auditing the WinISD 0.7.0.950 screenshots against OpenISD's UI —
 full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md).
 
 - [ ] **P1** Environment model — derive `c`/`ρ` from **temperature / humidity / air pressure** (per-project + app default), replacing the single hardcoded constant. WinISD: Advanced pane.
-- [ ] **P1** Off-axis **listening angle** + configurable **distance** (Resonate is fixed 1 m on-axis). WinISD: Signal pane.
-- [ ] **P1** Filters Resonate lacks: **all-pass, raised-cosine delay, static gain**, high/low **shelf**. WinISD: Filters.
-- [ ] **P2** Driver fields Resonate lacks: **Xlim**, **USPL**; figure-of-merit read-outs (Rme, gamma, Mpow, Mcost, SPLmax). WinISD: Parameters/Advanced tabs.
-- [ ] **P2** Charts Resonate lacks: **amplifier apparent load power (VA)**, port **gain** (vs velocity), intrachamber port velocity (needs 6th-order BP).
+- [ ] **P1** Off-axis **listening angle** + configurable **distance** (OpenISD is fixed 1 m on-axis). WinISD: Signal pane.
+- [ ] **P1** Filters OpenISD lacks: **all-pass, raised-cosine delay, static gain**, high/low **shelf**. WinISD: Filters.
+- [ ] **P2** Driver fields OpenISD lacks: **Xlim**, **USPL**; figure-of-merit read-outs (Rme, gamma, Mpow, Mcost, SPLmax). WinISD: Parameters/Advanced tabs.
+- [ ] **P2** Charts OpenISD lacks: **amplifier apparent load power (VA)**, port **gain** (vs velocity), intrachamber port velocity (needs 6th-order BP).
 - [ ] **P2** Loading/model options: **isobaric (Iso-Barik)**, **transmission-line port**, **force-flat response**, **Rg-at-driver-side**, **SPL-graph-Xmax-limited**.
 - [ ] **P2** Driver **added mass to cone** (WinISD has it for the driver, not just the PR).
-- [ ] **P3** Metric ↔ imperial **unit switching** (Resonate is metric-only).
+- [ ] **P3** Metric ↔ imperial **unit switching** (OpenISD is metric-only).
 
 ## Enclosure types & box model
 
@@ -180,12 +180,12 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
 - [x] [x] **P1** In-app driver database search / filter (by size, brand, parameters) `[ui]`
 - [ ] **P1** "Duplicate / copy from" an existing driver to speed manual entry
-- [ ] **P1** WDR writer: when Resonate writes `.wdr` files, write `VCCon=2` for series wiring — the scraper always writes `VCCon=1` (correct for parallel/single-VC), but the full writer must emit the correct value. WinISD has a save bug and always writes 1; Resonate should not replicate that bug. See `WINISD.md §12`.
+- [ ] **P1** WDR writer: when OpenISD writes `.wdr` files, write `VCCon=2` for series wiring — the scraper always writes `VCCon=1` (correct for parallel/single-VC), but the full writer must emit the correct value. WinISD has a save bug and always writes 1; OpenISD should not replicate that bug. See `WINISD.md §12`.
 - [ ] **P2** WinISD `.wpr` project import — format is decoded (INI sections:
       ProjectInfo, Driver, Box, Vent*, PassiveRadiator, SignalSource, Filters)
 - [ ] **P2** Unibox spreadsheet import
 - [ ] **P3** Import measured traces (SPL / impedance / ZMA / FRD)
-- [ ] **P3** Physical dimension extraction — Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd appear as text in some datasheets and as engineering drawings in most. Extracting them would let Resonate compute DVol (driver displacement volume) and display baffle cutout dimensions alongside the box design. Requires PDF/image parsing per manufacturer drawing conventions.
+- [ ] **P3** Physical dimension extraction — Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd appear as text in some datasheets and as engineering drawings in most. Extracting them would let OpenISD compute DVol (driver displacement volume) and display baffle cutout dimensions alongside the box design. Requires PDF/image parsing per manufacturer drawing conventions.
 
 ## Alignments & helpers
 
@@ -214,13 +214,13 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P2** Project ↔ source-driver traceability & refresh. When a library driver (or
       PR) is pinned into a design/project, its parameters are **copied in and detached**
       from the source — exactly like a WinISD `.wpr`, which embeds a full `[Driver]` copy.
-      So: (a) stamp the Resonate driver id / source path into the embedded driver's
+      So: (a) stamp the OpenISD driver id / source path into the embedded driver's
       `Comment` field (WinISD already does this — `Comment=loudspeakerdatabase.com/…`) and
       into the project JSON, giving traceability back to the original selection; (b) add a
       **"refresh drivers"** project action that re-pulls current library values when they
       differ from the embedded copy (delta detection), so a corrected driver can be pulled
       forward; (c) extend the same to the **PR selection** — WinISD has no concept of a PR
-      _library_, so this is Resonate-only. Prerequisite: a stable driver id (see the
+      _library_, so this is OpenISD-only. Prerequisite: a stable driver id (see the
       duplicate-driver detection item under Quality/infrastructure).
 - [x] [x] **P1** URL-encoded designs — the full design (driver, box, params, graph
       selection, comparisons) lives in a shareable link; no server needed `[ui]`
@@ -280,7 +280,7 @@ These measurements are often available in datasheets (PDF dimensions section, me
 - No PDF dimension extraction implemented
 - Physical measurements remain absent from WDR files
 - Users cannot design enclosures that account for driver displacement volume
-- WinISD users can import these; Resonate cannot
+- WinISD users can import these; OpenISD cannot
 
 ### Known data sources
 

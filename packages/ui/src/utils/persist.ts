@@ -25,11 +25,12 @@ export function loadFromHash(): SerializedState | null {
 }
 
 export function saveLocal(serialized: SerializedState): void {
-  try { localStorage.setItem('resonate.state', JSON.stringify(serialized)); } catch { /* quota / disabled storage — non-fatal */ }
+  try { localStorage.setItem('openisd.state', JSON.stringify(serialized)); } catch { /* quota / disabled storage — non-fatal */ }
 }
 
 export function loadLocal(): SerializedState | null {
-  try { const s = localStorage.getItem('resonate.state'); return s ? JSON.parse(s) : null; } catch { return null; }
+  // Read-fallback from the pre-OpenISD key so an existing saved design survives the rename.
+  try { const s = localStorage.getItem('openisd.state') ?? localStorage.getItem('resonate.state'); return s ? JSON.parse(s) : null; } catch { return null; }
 }
 
 export function download(name: string, text: string, mime?: string): void {

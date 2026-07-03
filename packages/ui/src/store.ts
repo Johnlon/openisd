@@ -1,6 +1,6 @@
 import { reactive, computed, ref, watch } from 'vue';
-import { deriveDriver, sweep, maxCurves, classifyFinite } from '@resonate/engine';
-import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@resonate/engine';
+import { deriveDriver, sweep, maxCurves, classifyFinite } from '@openisd/engine';
+import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@openisd/engine';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
 
@@ -18,7 +18,7 @@ const P_DEFAULTS: UiParams = {
   filters: [],
 };
 
-// Persistence has a SINGLE source of truth: resonate.state (utils/persist.js),
+// Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
 export const state: AppState = reactive({

@@ -1,4 +1,4 @@
-# Plan — Address Resonate code-review findings
+# Plan — Address OpenISD code-review findings
 
 ## Context
 

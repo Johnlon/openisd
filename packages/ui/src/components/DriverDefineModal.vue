@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch, nextTick } from 'vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
-import { C, RHO } from '@resonate/engine';
-import type { DriverRaw } from '@resonate/engine';
+import { C, RHO } from '@openisd/engine';
+import type { DriverRaw } from '@openisd/engine';
 
 const props = defineProps<{ open: boolean }>();
 const emit  = defineEmits<{ close: []; apply: [raw: DriverRaw] }>();

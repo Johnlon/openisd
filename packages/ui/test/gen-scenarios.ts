@@ -1,16 +1,16 @@
 /**
- * Compute and write the `resonate:` expected values in test/scenarios.js.
+ * Compute and write the `openisd:` expected values in test/scenarios.js.
  *
  * Reads each scenario's driver + box params, runs the same core formula that
- * Resonate's stat bar uses, applies the same toFixed() precision, and rewrites
- * the `resonate:` block in scenarios.js in-place.
+ * OpenISD's stat bar uses, applies the same toFixed() precision, and rewrites
+ * the `openisd:` block in scenarios.js in-place.
  *
  * Run after:
  *   1. Adding a new scenario to scenarios.js
  *   2. Running `npm run test:crosscheck` to fill in the `micka:` values
  *
  * Run before:
- *   Adding the Resonate UI wiring test to app.browser.spec.js
+ *   Adding the OpenISD UI wiring test to app.browser.spec.js
  *
  * Usage:
  *   npm run gen-scenarios              — dry run (prints what would change)
@@ -23,13 +23,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { sealedFromQtc, tuningFromLength, prTuning } from '@resonate/engine';
+import { sealedFromQtc, tuningFromLength, prTuning } from '@openisd/engine';
 import { SCENARIOS } from './scenarios.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
 const write   = process.argv.includes('--write');
 
-// ── Compute resonate: values for each scenario ────────────────────────────────
+// ── Compute openisd: values for each scenario ────────────────────────────────
 
 for (const S of SCENARIOS) {
   const VAS_M3 = S.driver.Vas / 1000;   // litres → m³ (core units)
@@ -84,11 +84,11 @@ for (const S of SCENARIOS) {
 console.log('');
 for (const S of SCENARIOS) {
   if (!S._computed) continue;
-  const changed = JSON.stringify(S.resonate) !== JSON.stringify(S._computed);
+  const changed = JSON.stringify(S.openisd) !== JSON.stringify(S._computed);
   const tag = changed ? 'CHANGE' : 'ok    ';
   console.log(`  [${tag}]  ${S.id}`);
   if (changed) {
-    console.log(`           was:  ${JSON.stringify(S.resonate)}`);
+    console.log(`           was:  ${JSON.stringify(S.openisd)}`);
     console.log(`           now:  ${JSON.stringify(S._computed)}`);
   } else {
     console.log(`           ${JSON.stringify(S._computed)}`);
@@ -108,48 +108,48 @@ let lines = readFileSync(scenariosPath, 'utf8').split(/\r?\n/);
 
 for (const S of SCENARIOS) {
   if (!S._computed) continue;
-  lines = replaceResonateBlock(lines, S.id, S._computed);
+  lines = replaceOpenISDBlock(lines, S.id, S._computed);
   console.log(`  wrote  ${S.id}`);
 }
 
 writeFileSync(scenariosPath, lines.join('\n'), 'utf8');
 console.log(`\nDone. Run npm test to confirm green, then commit.\n`);
 
-// ── Helper: replace the resonate: block for one scenario ─────────────────────
+// ── Helper: replace the openisd: block for one scenario ─────────────────────
 
-function replaceResonateBlock(lines: string[], id: string, computed: Record<string, string>): string[] {
+function replaceOpenISDBlock(lines: string[], id: string, computed: Record<string, string>): string[] {
   // Find the id: line for this scenario
   const idIdx = lines.findIndex(l => l.includes(`'${id}'`) && l.trimStart().startsWith('id:'));
   if (idIdx < 0) throw new Error(`Scenario id '${id}' not found in scenarios.js`);
 
-  // Find resonate: { after the id line (stop at the next id: to stay within this scenario)
-  let resonateIdx = -1;
+  // Find openisd: { after the id line (stop at the next id: to stay within this scenario)
+  let openisdIdx = -1;
   for (let i = idIdx + 1; i < lines.length; i++) {
     const t = lines[i].trimStart();
     if (t.startsWith('id:') && lines[i].includes(`'`) && !lines[i].includes(`'${id}'`)) break;
-    if (t.startsWith('resonate:')) { resonateIdx = i; break; }
+    if (t.startsWith('openisd:')) { openisdIdx = i; break; }
   }
-  if (resonateIdx < 0) throw new Error(`resonate: block not found for scenario '${id}'`);
+  if (openisdIdx < 0) throw new Error(`openisd: block not found for scenario '${id}'`);
 
-  // Find the closing }, by counting braces from the resonate: { line
-  let depth = 0, resonateEnd = -1;
-  for (let i = resonateIdx; i < lines.length; i++) {
+  // Find the closing }, by counting braces from the openisd: { line
+  let depth = 0, openisdEnd = -1;
+  for (let i = openisdIdx; i < lines.length; i++) {
     for (const ch of lines[i]) {
       if (ch === '{') depth++;
-      if (ch === '}') { depth--; if (depth === 0) { resonateEnd = i; break; } }
+      if (ch === '}') { depth--; if (depth === 0) { openisdEnd = i; break; } }
     }
-    if (resonateEnd >= 0) break;
+    if (openisdEnd >= 0) break;
   }
-  if (resonateEnd < 0) throw new Error(`resonate: block closing not found for '${id}'`);
+  if (openisdEnd < 0) throw new Error(`openisd: block closing not found for '${id}'`);
 
   // Also absorb a preceding generated-comment line if present
-  let blockStart = resonateIdx;
+  let blockStart = openisdIdx;
   if (blockStart > 0 && lines[blockStart - 1].trimStart().startsWith('// Generated by gen-scenarios')) {
     blockStart--;
   }
 
-  // Infer indentation from the resonate: line
-  const indent = lines[resonateIdx].match(/^(\s*)/)![1];
+  // Infer indentation from the openisd: line
+  const indent = lines[openisdIdx].match(/^(\s*)/)![1];
 
   // Build the replacement block
   const keys    = Object.keys(computed);
@@ -158,11 +158,11 @@ function replaceResonateBlock(lines: string[], id: string, computed: Record<stri
 
   const newBlock = [
     `${indent}// Generated by gen-scenarios.mjs — run \`npm run gen-scenarios\` to update`,
-    `${indent}resonate: {`,
+    `${indent}openisd: {`,
     ...valLines,
     `${indent}},`,
   ];
 
-  lines.splice(blockStart, resonateEnd - blockStart + 1, ...newBlock);
+  lines.splice(blockStart, openisdEnd - blockStart + 1, ...newBlock);
   return lines;
 }

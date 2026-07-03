@@ -146,7 +146,7 @@ export function toWdr(raw: DriverRaw): string {
   const ParState = parstate(raw, d);
   const L = [
     '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=',
-    'ProvidedBy=Resonate', 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
+    'ProvidedBy=OpenISD', 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
     'Qts=' + g(d.Qts), 'Znom=' + g(d.Z || d.Re),
     'Fs=' + g(d.Fs), 'Pe=' + g(d.Pe), 'Re=' + g(d.Re), 'Le=' + g(d.Le),
     'BL=' + g(d.Bl), 'Xmax=' + g(d.Xmax),
@@ -185,7 +185,7 @@ export function parstate(raw: DriverRaw, d: Driver): string {
   s[23] = 'E';                                       // numVC (WinISD defaults to 1)
   for (const p of [32, 33, 34, 35, 36, 37]) s[p] = 'C'; // gamma, EBP, Rme, Mpow, Mcost, Gloss
   s[47] = 'C'; s[48] = 'C';                          // c (speed of sound), roo (air density)
-  s[3]  = 'C';                                       // SPL — WinISD computes it (Resonate supplies none)
+  s[3]  = 'C';                                       // SPL — WinISD computes it (OpenISD supplies none)
 
   s[0] = num(raw.Z) ? 'E' : 'C';                     // Znom: entered, else defaulted from Re
   mark(1,  raw.Fs,   d.Fs);

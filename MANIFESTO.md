@@ -1,4 +1,4 @@
-# Resonate
+# OpenISD
 
 ### *Speaker design belongs to everyone who builds.*
 
@@ -13,7 +13,7 @@ at the frequencies that matter.
 
 The knowledge is open. The tools are not.
 
-**Resonate exists to close that gap.** A modern, fast, trustworthy loudspeaker
+**OpenISD exists to close that gap.** A modern, fast, trustworthy loudspeaker
 simulator that runs anywhere there's a browser — phone, laptop, workshop tablet —
 with no install, no licence key, no dead end. Open source. Built in the open.
 Owned by the people who use it.
@@ -24,7 +24,7 @@ Owned by the people who use it.
 
 **1. Trust is the whole game.**
 A simulator that's pretty but wrong is worse than useless — it costs people real
-money in drivers and timber. Every model in Resonate is validated against the
+money in drivers and timber. Every model in OpenISD is validated against the
 closed-form physics and proves it to you on load. We show our work. If the
 numbers are wrong, the test fails, in public, and we fix it. No black boxes.
 
@@ -43,7 +43,7 @@ thousand times in a thousand private files.
 
 **4. A design is meant to be shared.**
 Your enclosure should be a link you can paste into a forum, not a proprietary file
-nobody else can open. Knowledge compounds when it's passed around. Resonate is
+nobody else can open. Knowledge compounds when it's passed around. OpenISD is
 built so that sharing a design — and improving someone else's — is the natural
 thing to do.
 
@@ -81,4 +81,4 @@ The physics is free. The tools should be too.
 
 ---
 
-*Resonate is open-source software, MIT-licensed. Forever.*
+*OpenISD is open-source software, MIT-licensed. Forever.*

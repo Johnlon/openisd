@@ -1,5 +1,5 @@
 /**
- * Resonate — engine physics tests
+ * OpenISD — engine physics tests
  *
  * Every test describes a human-verifiable physical scenario:
  *   • WHY the expected value is what it is (which law / equation)
@@ -20,8 +20,8 @@ import {
   highPass, lowPass, linkwitz, peakingEQ, evalFilter, applyFilters,
   unwrap, portLoss,
   cAbs,
-} from '@resonate/engine';
-import type { Complex, DriverRaw } from '@resonate/engine';
+} from '@openisd/engine';
+import type { Complex, DriverRaw } from '@openisd/engine';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

@@ -1,11 +1,11 @@
-# Resonate — Feature Comparison
+# OpenISD — Feature Comparison
 
 This table serves two purposes:
 
-- **Promotional** — what Resonate offers today vs. the tools it replaces or complements.
+- **Promotional** — what OpenISD offers today vs. the tools it replaces or complements.
 - **Todo list** — features not yet implemented are marked 🚧 and linked to the roadmap.
 
-Comparison is primarily against **WinISD** (the tool Resonate is designed to replace or
+Comparison is primarily against **WinISD** (the tool OpenISD is designed to replace or
 extend), with notes on other tools where relevant.
 
 **Confidence markers** (WinISD column only — per the project's anti-hallucination rule):
@@ -18,7 +18,7 @@ extend), with notes on other tools where relevant.
 
 ## Platform & access
 
-| Feature                           | Resonate                            | WinISD                                     |
+| Feature                           | OpenISD                            | WinISD                                     |
 | --------------------------------- | ----------------------------------- | ------------------------------------------ |
 | Runs in browser — no install      | ✅                                  | ❌ confirmed                               |
 | Works on Mac and Linux            | ✅ (any browser)                    | ❌ confirmed (Windows-only app)            |
@@ -34,7 +34,7 @@ extend), with notes on other tools where relevant.
 
 ## Box types & simulation models
 
-| Feature                                     | Resonate                 | WinISD                                                               |
+| Feature                                     | OpenISD                 | WinISD                                                               |
 | ------------------------------------------- | ------------------------ | -------------------------------------------------------------------- |
 | Sealed (closed)                             | ✅                       | ✅ confirmed                                                         |
 | Vented (bass-reflex)                        | ✅                       | ✅ confirmed                                                         |
@@ -51,7 +51,7 @@ extend), with notes on other tools where relevant.
 
 ## Simulation curves
 
-| Feature                               | Resonate            | WinISD                             |
+| Feature                               | OpenISD            | WinISD                             |
 | ------------------------------------- | ------------------- | ---------------------------------- |
 | SPL (sound pressure level)            | ✅                  | ✅ confirmed                       |
 | Driver excursion (Xmax)               | ✅                  | ✅ confirmed                       |
@@ -72,7 +72,7 @@ extend), with notes on other tools where relevant.
 
 ## Signal chain & drive conditions
 
-| Feature                              | Resonate | WinISD                             |
+| Feature                              | OpenISD | WinISD                             |
 | ------------------------------------ | -------- | ---------------------------------- |
 | Drive voltage (2.83 V IEC reference) | ✅       | ✅ confirmed — `Eg = sqrt(P × Re)` |
 | Arbitrary input power / voltage      | ✅       | ✅ confirmed                       |
@@ -87,7 +87,7 @@ extend), with notes on other tools where relevant.
 
 ## Alignment & design tools
 
-| Feature                                    | Resonate   | WinISD       |
+| Feature                                    | OpenISD   | WinISD       |
 | ------------------------------------------ | ---------- | ------------ |
 | EBP (Efficiency Bandwidth Product) gauge   | ✅         | ⚠ assumed    |
 | Butterworth (Qtc = 0.707) sealed auto-Vb   | ✅         | ⚠ assumed    |
@@ -102,7 +102,7 @@ extend), with notes on other tools where relevant.
 
 ## Driver & PR management
 
-| Feature                                   | Resonate            | WinISD                           |
+| Feature                                   | OpenISD            | WinISD                           |
 | ----------------------------------------- | ------------------- | -------------------------------- |
 | Built-in driver library (search / browse) | ✅ JSON, extensible | ✅ confirmed (.wdr database)     |
 | Import driver from file                   | ✅ .wdr             | ✅ confirmed                     |
@@ -115,7 +115,7 @@ extend), with notes on other tools where relevant.
 
 ## File formats
 
-| Feature                            | Resonate                                      | WinISD    |
+| Feature                            | OpenISD                                      | WinISD    |
 | ---------------------------------- | --------------------------------------------- | --------- |
 | WinISD `.wdr` driver import        | ✅                                            | ✅ native |
 | WinISD `.wdr` driver export        | ✅                                            | ✅ native |
@@ -127,7 +127,7 @@ extend), with notes on other tools where relevant.
 
 ## Engineering quality & testing
 
-| Feature                                                 | Resonate                                | WinISD                      |
+| Feature                                                 | OpenISD                                | WinISD                      |
 | ------------------------------------------------------- | --------------------------------------- | --------------------------- |
 | Physics validated against closed-form equations         | ✅ < 0.03 dB error                      | ❌ (closed source, unknown) |
 | Automated unit tests (physics core)                     | ✅ Vitest, human-readable BDD scenarios | ❌                          |
@@ -140,7 +140,7 @@ extend), with notes on other tools where relevant.
 
 ---
 
-## Planned but not yet implemented (Resonate todo)
+## Planned but not yet implemented (OpenISD todo)
 
 Items not in the table above, roughly in priority order.
 See [BACKLOG.md](BACKLOG.md) to claim one or discuss prioritisation.

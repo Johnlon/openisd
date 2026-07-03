@@ -1,6 +1,6 @@
-# Resonate — development practices
+# OpenISD — development practices
 
-Resonate started as a spike. Before it grows, it needs a real testing foundation
+OpenISD started as a spike. Before it grows, it needs a real testing foundation
 and an architecture that supports one. This document is the contract.
 
 **The headline rule: every change ships with tests, and both test suites must

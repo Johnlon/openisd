@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { state, driver } from '../store.js';
-import { toWdr, parseWdr } from '@resonate/engine';
+import { toWdr, parseWdr } from '@openisd/engine';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
 
@@ -17,7 +17,7 @@ function shareLink() {
 
 function exportDesign() {
   const text = JSON.stringify(serialize(state, driver.value, state.compare), null, 2);
-  dlFile('design.resonate.json', text, 'application/json');
+  dlFile('design.openisd.json', text, 'application/json');
 }
 
 function exportWdr() {
@@ -58,21 +58,21 @@ function dlFile(name: string, text: string, mime: string) {
 }
 
 function showAbout() {
-  alert(`Resonate — open loudspeaker enclosure simulator\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
+  alert(`OpenISD — open loudspeaker enclosure simulator\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
 }
 </script>
 
 <template>
   <header>
-    <h1>Resonate<span style="color:var(--acc)"> ~</span> &nbsp;
+    <h1>OpenISD<span style="color:var(--acc)"> ~</span> &nbsp;
       <small>open loudspeaker enclosure simulator · community-owned · runs anywhere</small>
     </h1>
     <div class="sp"></div>
-    <button @click="importClick" title="Import a WinISD .wdr driver file or a Resonate .json project file">Import .wdr / project</button>
+    <button @click="importClick" title="Import a WinISD .wdr driver file or an OpenISD .json project file">Import .wdr / project</button>
     <button @click="exportWdr" title="Export the current driver parameters as a WinISD-compatible .wdr file">Export driver .wdr</button>
     <button id="btnShare" @click="shareLink" title="Copy a shareable URL that encodes the current design — paste into a forum or send to a colleague">Share link</button>
-    <button @click="exportDesign" title="Export the full design (driver + box + settings) as a Resonate .json project file">Export design</button>
-    <button @click="showAbout" title="About Resonate — version, licence, and contributors">About</button>
+    <button @click="exportDesign" title="Export the full design (driver + box + settings) as an OpenISD .json project file">Export design</button>
+    <button @click="showAbout" title="About OpenISD — version, licence, and contributors">About</button>
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFileChange">
   </header>
 </template>

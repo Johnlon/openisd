@@ -1,18 +1,20 @@
-# Resonate
+[![OpenISD — open loudspeaker enclosure simulator, a free open alternative to WinISD](docs/openisd/hero.svg)](https://openisd.app/)
+
+# OpenISD
 
 **An open, community-owned loudspeaker enclosure simulator that runs in any browser.**
 
 _Speaker design belongs to everyone who builds._
 
-Resonate is a modern, free, open-source replacement for WinISD — a tool to design
+OpenISD is a modern, free, open-source replacement for WinISD — a tool to design
 sealed, vented, bandpass, and passive-radiator enclosures from a driver's
 Thiele/Small parameters. No install, no licence key, runs in any browser.
 Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
-It started as a quick spike, and it has come a long way since. The physics engine (`packages/engine/src/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. [HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md](HOW_NOT_TO_BE_SHITTY_VIBE_CODED.md) lists each problem, the fix, how the fix is enforced, and — honestly — where Resonate stands on it today. The plan for turning those fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
+It started as a quick spike, and it has come a long way since. The physics engine (`packages/engine/src/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. If someone calls this "vibe-coded", [VIBE_CODING.md](VIBE_CODING.md) is the reply: it asks what that phrase is supposed to mean, then lays out — trait by trait, with evidence — the tests and guardrails that keep OpenISD honest, and where it still falls short. The plan for turning the remaining fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
 
-WinISD has been abandoned and is closed source, so there is no way to move it forward. Resonate exists to build a modern, open alternative — compatible with WinISD's file formats (and others), and answering the many complaints about the old tool. The long-term goal is something that doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
+WinISD has been abandoned and is closed source, so there is no way to move it forward. OpenISD exists to build a modern, open alternative — compatible with WinISD's file formats (and others), and answering the many complaints about the old tool. The long-term goal is something that doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
 
 **I am looking for a band of the willing to move this thing forward.** Please volunteer your time with ideas, feedback, and pull requests.
 
@@ -24,19 +26,19 @@ My bio, CV and all my Hackaday projects can be found on my personal page https:/
 
 But I need your help; that's the whole point!
 
-> ## ▶ [**Launch Resonate**](https://johnlon.github.io/resonate/)
+> ## ▶ [**Launch OpenISD**](https://openisd.app/)
 >
 > Runs in your browser — nothing to install if you don't want to.
 > Mobile layout is a known gap — contributions welcome.
 >
 > **To install for offline use (PWA):**
 >
-> - **Chrome / Edge / Android:** open the site, click the install icon in the address bar (or the ⋮ menu → "Install Resonate")
+> - **Chrome / Edge / Android:** open the site, click the install icon in the address bar (or the ⋮ menu → "Install OpenISD")
 > - **iOS Safari:** tap the Share button → "Add to Home Screen"
 >
 > Once installed the app works without an internet connection.
 
-![Resonate simulator — driver panel, enclosure controls, and the SPL, cone-excursion, impedance and group-delay graphs rendered for a demo 6.5" woofer in a vented box](docs/screenshots/simulator.png)
+![OpenISD simulator — driver panel, enclosure controls, and the SPL, cone-excursion, impedance and group-delay graphs rendered for a demo 6.5" woofer in a vented box](docs/openisd/simulator.png)
 
 _The main simulator._ Driver and enclosure controls sit on the left; the response
 graphs fill the right. Everything is **live**: change the box volume, drag the vent
@@ -56,7 +58,7 @@ dead. The web calculators that filled the gap mostly can't be trusted at the
 frequencies that matter.
 
 The Thiele/Small math has been public since the 1970s. The knowledge is open; the
-tools are not. Resonate exists to close that gap, and to do it **once, together**,
+tools are not. OpenISD exists to close that gap, and to do it **once, together**,
 instead of as another solo project that dies in a year.
 
 ## What it does
@@ -70,7 +72,7 @@ instead of as another solo project that dies in a year.
 - **Files:** import **and** export WinISD `.wdr` driver files; save/load whole
   projects as JSON
 
-![What-If editor — the driver's Thiele/Small parameters (Fs, Qts, Qes, Vas, Sd, Re, Le, Xmax, Pe) open for inline editing on the left, with all response graphs updating live](docs/screenshots/whatif.png)
+![What-If editor — the driver's Thiele/Small parameters (Fs, Qts, Qes, Vas, Sd, Re, Le, Xmax, Pe) open for inline editing on the left, with all response graphs updating live](docs/openisd/whatif.png)
 
 _What-If editor._ Click any driver to open its Thiele/Small parameters (Fs, Qts,
 Qes, Vas, Sd, Re, Le, Xmax, Pe) for inline editing. Nudge a value and the graphs
@@ -80,12 +82,12 @@ once. Derived quantities (Bl, Mms, Cms, EBP) recompute as you type. It is a
 scratchpad: nothing you try here changes the shared library entry until you
 explicitly **Save to My Drivers**.
 
-## Resonate vs WinISD
+## OpenISD vs WinISD
 
-WinISD is the canonical reference tool. Resonate's default mode replicates its
-simulation output. But Resonate goes further in several areas:
+WinISD is the canonical reference tool. OpenISD's default mode replicates its
+simulation output. But OpenISD goes further in several areas:
 
-|                       | WinISD 0.7                                                | Resonate                                                         |
+|                       | WinISD 0.7                                                | OpenISD                                                          |
 | --------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
 | **Platform**          | Windows-only desktop app                                  | Any browser, no install                                          |
 | **Source**            | Closed, abandoned 2016                                    | Open source, MIT licence                                         |
@@ -100,7 +102,7 @@ simulation output. But Resonate goes further in several areas:
 ### Why the circuit model switch matters
 
 WinISD computes SPL and group delay using a simplified acoustic-domain model where voice-coil
-inductance (Le) does not affect the simulation — only the impedance plot. Resonate defaults to
+inductance (Le) does not affect the simulation — only the impedance plot. OpenISD defaults to
 this mode so cross-checks against WinISD are exact.
 
 The **Full gyrator** mode includes Le throughout: the driver's electrical back-impedance becomes
@@ -121,23 +123,24 @@ Every model is validated against the exact closed-form solutions:
 
 The app runs these as a self-test in your browser console on load, and they run in
 CI from `test/engine.test.mjs`. If the physics is wrong, the test goes red — in
-public. See [CONTRIBUTING.md](CONTRIBUTING.md) for the model.
+public. See [CONTRIBUTING.md](CONTRIBUTING.md) for the model, and
+[VIBE_CODING.md](VIBE_CODING.md) for the full accounting of the guardrails.
 
 ## Run it
 
-- **Hosted:** <https://johnlon.github.io/resonate/> — nothing to install
+- **Hosted:** <https://openisd.app/> — nothing to install
 - **PWA / offline:** see the install instructions in the callout above
 - **Local dev:** `npm install && npm run dev` — opens at `http://localhost:5173`
 - **Build:** `npm run build` — output goes to `dist/`, serve with any static host
 
 ## Driver library
 
-`drivers/` holds community-contributed `.wdr` files. Got a driver Resonate
+`drivers/` holds community-contributed `.wdr` files. Got a driver OpenISD
 doesn't? Import its spec sheet, check the numbers, and open a PR with the `.wdr`.
 Every spec sheet added is a gift to the next builder — this shared library is the
 whole point.
 
-![Driver library browser — search box, type and parameter filters, and a scrollable list of thousands of drivers with their type, date and source](docs/screenshots/driver-library.png)
+![Driver library browser — search box, type and parameter filters, and a scrollable list of thousands of drivers with their type, date and source](docs/openisd/driver-library.png)
 
 _Driver library browser._ Search thousands of community-contributed drivers, or
 narrow the list by type (sub, woofer, mid, tweeter, PR, coax…), by Fs, by Sd, by
@@ -145,9 +148,9 @@ nominal impedance, or by source. Pick one and it loads straight into the current
 design, so the graphs redraw around the real driver you're considering — making it
 easy to audition candidate drivers against the same box in seconds.
 
-![Define Driver Model editor — form to enter a new driver's Thiele/Small, acoustic, electrical and motor parameters, with a legend showing which fields each graph needs](docs/screenshots/driver-editor.png)
+![Define Driver Model editor — form to enter a new driver's Thiele/Small, acoustic, electrical and motor parameters, with a legend showing which fields each graph needs](docs/openisd/driver-editor.png)
 
-_Define Driver Model._ Enter a driver Resonate doesn't have yet, straight from its
+_Define Driver Model._ Enter a driver OpenISD doesn't have yet, straight from its
 datasheet. Fields are grouped (Thiele/Small, piston/acoustic, electrical,
 motor/large-signal, voice coil/thermal) and the **"what each graph needs"** legend
 at the top highlights exactly which values a given chart depends on — so you can
@@ -177,5 +180,5 @@ carry on.
 
 ## License
 
-MIT — forever. See [LICENSE](LICENSE). Resonate can never be closed up, taken
+MIT — forever. See [LICENSE](LICENSE). OpenISD can never be closed up, taken
 away, or left behind a login. If the maintainers vanish, fork it and carry on.

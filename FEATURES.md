@@ -1,6 +1,6 @@
-# Resonate — Feature List
+# OpenISD — Feature List
 
-The full picture of what Resonate is and where it's going. Includes notes on
+The full picture of what OpenISD is and where it's going. Includes notes on
 alternative tools (00 Enclosure Simulator, SpeakerDesign.dev, SpeakerBoxLite,
 SoundForm) for orientation. This doubles as a backlog: if a ⬜ item appeals,
 claim it in an issue.
@@ -41,7 +41,7 @@ exportable in bulk.
 *free, no login, closed source*
 
 A broad, polished suite: guided Driver Wizard (sealed presets; vented
-QB3/SBB4/EBS), Box Simulator covering the same graph set as Resonate plus
+QB3/SBB4/EBS), Box Simulator covering the same graph set as OpenISD plus
 full Ql/Qa/Qp losses, 1–4 vents (round or slot), selectable end-correction,
 drag-to-adjust Vb/Fb with axis locking, frequency range presets, and
 configurable listening distance. Also includes a detailed Box Calculator (six
@@ -50,7 +50,7 @@ Cutlist Optimiser (bin-packing, kerf, rotate, fractional inches, PDF output),
 and an open knowledge base with tutorials.
 
 Sealed and vented only as of the survey date (bandpass, PR, and ABC listed as
-coming). No `.wdr` import or export noted. Broader than Resonate on
+coming). No `.wdr` import or export noted. Broader than OpenISD on
 construction and education; roughly matched on core simulation.
 
 ---
@@ -63,7 +63,7 @@ line, full crossover suite, 3D enclosure builder, STL port export. A good,
 well-regarded site that covers the basics of enclosure simulation clearly.
 
 **Graph discrepancy noted:** for the same driver and box parameters, SpeakerBoxLite
-can produce noticeably different curves from Resonate (and from WinISD) on some
+can produce noticeably different curves from OpenISD (and from WinISD) on some
 outputs — particularly SPL and excursion. The cause is not known. It may reflect
 a difference in the transfer-function model, loss assumptions, radiation
 convention, or a combination. This is an open question; anyone who diagnoses it
@@ -92,16 +92,16 @@ enclosure simulators. Provides 15+ filter types (1st/2nd order lowpass, highpass
 allpass, shelves, peaking EQ, bandpass, notch, Linkwitz transform) with real-time
 visualization across four plot types: frequency response, phase, impulse response,
 and group delay. Includes a filter optimizer that matches a target curve or flattens
-a response. Saves/loads EQ configurations in YAML format. Orthogonal to Resonate’s
-scope — Biquad focuses on signal-chain EQ filter design while Resonate simulates
-enclosure acoustics. Users often chain both tools: design an enclosure in Resonate,
+a response. Saves/loads EQ configurations in YAML format. Orthogonal to OpenISD’s
+scope — Biquad focuses on signal-chain EQ filter design while OpenISD simulates
+enclosure acoustics. Users often chain both tools: design an enclosure in OpenISD,
 then use Biquad to design corrective EQ to flatten the result.
 
 ---
 
 > Feature notes for closed tools are taken from their own sites and authors’
 > public posts, not independent testing. Treat all claims as ⚠ unverified
-> unless a Resonate contributor has directly compared outputs.
+> unless a OpenISD contributor has directly compared outputs.
 
 ---
 
@@ -161,7 +161,7 @@ then use Biquad to design corrective EQ to flatten the result.
   the app JS; no GitHub API calls, no rate limits, no spinners. The full library
   loads in the same round-trip as the page itself.
 - ✅ **Federated driver sources** — `drivers/sources.json` links external `.wdr`
-  repos so the community can grow the library without forking Resonate; *no other
+  repos so the community can grow the library without forking OpenISD; *no other
   surveyed tool federates its driver data*
 - ✅ **In-app driver browser** — token-based multi-word search (case-insensitive,
   every word must match), pure alphabetical list, source tags with clickable links
@@ -240,7 +240,7 @@ then use Biquad to design corrective EQ to flatten the result.
 - ✅ **URL-encoded shareable designs** — paste a design as a link
 - ✅ **Community contribution flow** — PR a `.wdr` file or a new source URL;
   WDR schema + meta standard documented so contributors know exactly what's expected
-- ✅ Static hosting on GitHub Pages (<https://johnlon.github.io/resonate/>)
+- ✅ Static hosting on GitHub Pages (<https://openisd.app/>)
 
 ## 9. Learning & docs
 - ✅ Documented engine + conventions (`CONTRIBUTING.md`)
@@ -248,7 +248,7 @@ then use Biquad to design corrective EQ to flatten the result.
 - ⬜ In-app explanations / tooltips on parameters and curves
 - ⬜ Worked-example tutorial
 
-## 10. Trust & validation *(Resonate’s differentiator — no other tool surveyed does this)*
+## 10. Trust & validation *(OpenISD’s differentiator — no other tool surveyed does this)*
 - ✅ Validated against closed-form Thiele/Small (sealed fc/Qtc < 0.03 dB)
 - ✅ Passband = driver reference sensitivity; vented 24 dB/oct + twin Z-peaks
 - ✅ In-browser self-test (console) on every load
@@ -260,19 +260,19 @@ then use Biquad to design corrective EQ to flatten the result.
 ## Honest competitive position
 
 The field is more advanced than “WinISD is dead” implies. **00 Simulator** is
-feature-rich and actively developed. **SpeakerDesign.dev** matches Resonate’s
+feature-rich and actively developed. **SpeakerDesign.dev** matches OpenISD’s
 graph set and exceeds it on vents and construction. **SpeakerBoxLite** is the
 broadest tool (transmission line, full crossover, 5,000+ drivers) but paywalled.
-On raw simulation features alone, Resonate is mid-pack today.
+On raw simulation features alone, OpenISD is mid-pack today.
 
-But the driver library story has changed materially. Resonate now ships with
+But the driver library story has changed materially. OpenISD now ships with
 **2,100+ bundled drivers** from SB Acoustics, Parts Express, and community
 measurement collections — loaded instantly from the app bundle, not fetched from a
 rate-limited API. A live scraper pipeline keeps that number growing. No surveyed
 competitor offers an open, version-controlled, machine-readable driver commons with
 automated ingestion pipelines and a human-review quality framework.
 
-Resonate’s defensible edges:
+OpenISD’s defensible edges:
 
 - **Open source, fully and permanently.** MIT-licensed, public, and forkable
   today. The code belongs to everyone who uses it.
@@ -282,7 +282,7 @@ Resonate’s defensible edges:
   where every number came from. No closed tool opens its aggregated driver data at
   all, let alone federates it.
 - **Federated, not hoarded.** Any `.wdr` repo on GitHub can be linked into
-  Resonate’s browser with one PR to `sources.json` — no re-hosting, no import
+  OpenISD’s browser with one PR to `sources.json` — no re-hosting, no import
   queue. The commons grows without a central gatekeeper.
 - **Provable physics.** Validated against closed-form Thiele/Small solutions,
   re-verified on every push in CI. No competitor surveyed makes this claim.
@@ -294,13 +294,13 @@ Construction output (volume calc, cut list, 3D), amplifier-load graph, richer
 vents (multi/slot/selectable end-correction), 6th-order bandpass, `.wpr` import,
 and datasheet→params paste. All tractable on the existing engine.
 
-Note on EQ: Resonate includes basic parametric, HP/LP, and Linkwitz-transform
+Note on EQ: OpenISD includes basic parametric, HP/LP, and Linkwitz-transform
 filters. For detailed multi-filter EQ design and optimization, Biquad Cookbook
 (open-source companion tool) provides a focused, modern UI with 15+ filter types
 and automated optimization against target curves.
 
 ## Strategic framing
-Resonate’s pitch is not that it out-simulates the competition today — it doesn’t,
+OpenISD’s pitch is not that it out-simulates the competition today — it doesn’t,
 and we say so plainly above. The pitch is that open code *and* open data, together,
 create something that benefits the whole speaker-building world: a permanent,
 vendor-neutral commons that anyone can build on, contribute to, and trust. As the

@@ -16,8 +16,8 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { sweep, maxCurves, classifyFinite } from '@resonate/engine';
-import { deriveDriver } from '@resonate/engine';
+import { sweep, maxCurves, classifyFinite } from '@openisd/engine';
+import { deriveDriver } from '@openisd/engine';
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
 const { value: DRV, errors: _drvErrors } = deriveDriver({

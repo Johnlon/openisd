@@ -11,10 +11,10 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { solve } from '@resonate/engine';
-import { deriveDriver } from '@resonate/engine';
-import { cAbs } from '@resonate/engine';
-import type { SweepParams } from '@resonate/engine';
+import { solve } from '@openisd/engine';
+import { deriveDriver } from '@openisd/engine';
+import { cAbs } from '@openisd/engine';
+import type { SweepParams } from '@openisd/engine';
 
 // Reference driver: synthetic 6.5" mid-woofer, identical to engine.test.mjs
 const RAW_DRIVER = {

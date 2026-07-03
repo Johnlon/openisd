@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { state } from '../store.js';
-import type { FilterType } from '@resonate/engine';
+import type { FilterType } from '@openisd/engine';
 
 const defaults: Record<FilterType, Record<string, number>> = {
   highpass: { fc: 80,  Q: 0.7071 },

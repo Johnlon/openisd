@@ -1,6 +1,6 @@
-# Resonate — Human / Agent / Tooling SDLC
+# OpenISD — Human / Agent / Tooling SDLC
 
-This is the operating manual for how work gets done on Resonate. It defines who
+This is the operating manual for how work gets done on OpenISD. It defines who
 does what across the three actors — **Human**, **AI Agent** (Claude Code), and
 **Tooling** (scripts, schema, tests, CI) — and the order work flows through.
 

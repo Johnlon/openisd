@@ -3,8 +3,9 @@
 Decisions that are hard to reverse and shape everything else. Record them here
 so future contributors understand _why_, not just _what_.
 
-**Domain:** resonate-sim.io — purchased, currently redirecting to
-https://johnlon.github.io/openisd/
+**Domain:** openisd.app — purchased; served by GitHub Pages via a `CNAME` file
+in the published site root (`packages/ui/public/CNAME`). The custom domain serves
+at the root, so the Vite `base` is `/`.
 
 ---
 

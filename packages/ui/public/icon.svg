@@ -1,5 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" fill="#11151c" rx="80"/>
-  <text x="256" y="360" font-family="system-ui,sans-serif" font-size="320" font-weight="700"
-        fill="#4fb0ff" text-anchor="middle">R</text>
+  <!-- Loudspeaker-driver mark that reads as the "O" of OpenISD:
+       outer surround ring, cone, and dust-cap dome. -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#4fb0ff" stroke-width="34"/>
+  <circle cx="256" cy="256" r="92" fill="none" stroke="#4fb0ff" stroke-width="20" opacity="0.55"/>
+  <circle cx="256" cy="256" r="46" fill="#4fb0ff"/>
 </svg>

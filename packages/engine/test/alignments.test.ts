@@ -29,8 +29,8 @@ import {
   tuningFromLength,
   prTuning,
   prMassForFp,
-} from '@resonate/engine';
-import { RHO, C } from '@resonate/engine';
+} from '@openisd/engine';
+import { RHO, C } from '@openisd/engine';
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout

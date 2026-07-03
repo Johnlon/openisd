@@ -12,7 +12,7 @@
  *
  * WHEN IT RUNS: Called once from App.vue onMounted() — on every page load.
  *
- * OUTPUT: console.log under the prefix "[Resonate self-test]".
+ * OUTPUT: console.log under the prefix "[OpenISD self-test]".
  *         On failure: Flash notification visible to the user.
  *
  * window._selfTestDone: set to true when complete. Playwright waits on this
@@ -25,10 +25,10 @@
  *
  * See ARCHITECTURE.md AD-5 for the full rationale.
  */
-import { RHO, C } from '@resonate/engine';
-import { deriveDriver } from '@resonate/engine';
-import { sweep } from '@resonate/engine';
-import type { SweepParams } from '@resonate/engine';
+import { RHO, C } from '@openisd/engine';
+import { deriveDriver } from '@openisd/engine';
+import { sweep } from '@openisd/engine';
+import type { SweepParams } from '@openisd/engine';
 import { flash } from './flash.js';
 
 declare global {
@@ -150,7 +150,7 @@ export function runSelfTest() {
   const allPass = p1 && p2 && p3;
 
   // eslint-disable-next-line no-console
-  console.log('[Resonate self-test]',
+  console.log('[OpenISD self-test]',
     `GATE1 sealed≡closed-form: max err ${e1.toFixed(4)} dB → ${p1 ? 'PASS' : 'FAIL'}`,
     `GATE2 sensitivity: circuit ${pb.toFixed(2)} vs predicted ${sensPredicted.toFixed(2)} dB → ${p2 ? 'PASS' : 'FAIL'}`,
     `GATE3 vented slope ${slope.toFixed(1)} dB/oct, peaks ${JSON.stringify(peaks)} → ${p3 ? 'PASS' : 'FAIL'}`,

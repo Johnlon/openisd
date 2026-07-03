@@ -1,11 +1,11 @@
-# Contributing to Resonate
+# Contributing to OpenISD
 
 Welcome. You do **not** need to be an acoustician to help here. If you can edit an
 HTML file and open a pull request, you can contribute.
 
 ## The one rule: don't break the physics
 
-Resonate's whole value is that its numbers are trustworthy. So:
+OpenISD's whole value is that its numbers are trustworthy. So:
 
 ```
 npm test

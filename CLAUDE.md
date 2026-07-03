@@ -129,6 +129,20 @@ This project runs on **Windows 11 with Git Bash**. Other OSes have not been cons
 
 ---
 
+## Safe restricted tools — prefer them, and build more
+
+**The project ships purpose-built, sandboxed CLI tools in `.claude/tools/` that are safe to auto-approve because they are read-only and locked to the project tree.** Prefer them over the raw command they replace.
+
+| Tool                                  | Replaces                  | Guarantees                                                                                              |
+| ------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `.claude/tools/grep_local/grep_local` | `grep` / raw shell search | Locked to project root, relative paths only, whitelisted flags, no `-exec`, no file-outside-root reads. |
+
+**For in-project content search, use `.claude/tools/grep_local/grep_local` instead of raw `grep`.** (The built-in `Grep` tool is also fine — the rule is: never reach for unrestricted `grep` over a broad path when a confined tool covers the need.) It takes basic grep syntax; run it with `--help` for the allowed flags.
+
+**When you notice yourself issuing a broad, unrestricted command repeatedly (search, read, list, fetch), reflect and propose a safe restricted tool for it** — same ethos as `grep_local`: least privilege, project-scoped, read-only, whitelisted functionality, no traversal, no code execution, so a blanket `Bash(<tool>:*)` grant stays safe. The **`safe-tools`** skill is the reference for how to build one and how to wire it into config. Add the tool to the table above and to `.claude/settings.json` when you do.
+
+---
+
 ## Port assignments — hard rule
 
 All project servers use ports in the 4000–4299 range only. Never use a port outside this range.
@@ -232,7 +246,7 @@ If you cannot name the device with all six points, you do not have enough inform
 
 The evidence rule above is not limited to external tools. Most damaging mistakes are confident, wrong statements about _this_ codebase.
 
-- **Never assert what this app has, does, or lacks without reading the relevant source in the current conversation.** "Resonate has no input for X" / "this is only used for Y" / "nothing computes Z" are claims — grep or read the actual file first. A type definition (e.g. `DriverRaw`) is NOT proof of what the whole app can do; the UI, store, and scrapers are separate layers with their own fields.
+- **Never assert what this app has, does, or lacks without reading the relevant source in the current conversation.** "OpenISD has no input for X" / "this is only used for Y" / "nothing computes Z" are claims — grep or read the actual file first. A type definition (e.g. `DriverRaw`) is NOT proof of what the whole app can do; the UI, store, and scrapers are separate layers with their own fields.
 - **Search before you build.** Before implementing any mechanism — state tracking, a computation, a mapping, serialization, a formatter — grep the codebase for an existing implementation. If the domain already solves it (e.g. `stateOf()` already tracks entered-vs-calculated), use or extend it. Never reinvent it in another layer.
 - **A hardcoded literal standing in for data that should vary per record is a correctness bug, not cosmetic.** When you find one, find the intended source of truth and fix it as a bug. Do not label it "maintainability" and defer it.
 - **Serialization to a format defined by someone else (WDR/WinISD, JSON project, etc.) must reflect real state/provenance for every field — never a fixed placeholder.** If you can't source a field's true value, that's a gap to surface, not a constant to invent.

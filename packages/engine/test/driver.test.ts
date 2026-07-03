@@ -12,7 +12,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver, parseWdr, toWdr, parstate } from '@resonate/engine';
+import { deriveDriver, parseWdr, toWdr, parstate } from '@openisd/engine';
 
 // ── Q-derivation test values ─────────────────────────────────────────────────
 const QES = 0.400;    // electrical Q — resistance damping from voice coil
