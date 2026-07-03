@@ -85,12 +85,6 @@ driver files in `drivers/` are never edited by hand or by patch script — that 
 a hard rule; a wrong value means fixing the scraper and regenerating, so the same
 error can't creep back on the next run.
 
-**8. The docs are forbidden to lie.**
-Documentation may describe only the current state — no "as of" notes, no
-migration blurbs, no closed-item graveyards. History lives in git, where it can't
-drift from the truth. That rule is itself written down and enforced in review
-(`CLAUDE.md`).
-
 That is the machinery. Now the honest part.
 
 ## The scorecard — including where it's still weak
