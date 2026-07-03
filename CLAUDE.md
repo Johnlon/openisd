@@ -133,13 +133,9 @@ This project runs on **Windows 11 with Git Bash**. Other OSes have not been cons
 
 **The project ships purpose-built, sandboxed CLI tools in `.claude/tools/` that are safe to auto-approve because they are read-only and locked to the project tree.** Prefer them over the raw command they replace.
 
-| Tool                                  | Replaces                  | Guarantees                                                                                              |
-| ------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `.claude/tools/grep_local/grep_local` | `grep` / raw shell search | Locked to project root, relative paths only, whitelisted flags, no `-exec`, no file-outside-root reads. |
+**For in-project content search, use the built-in `Grep` tool** — the rule is: never reach for unrestricted `grep` over a broad path when a confined tool covers the need.
 
-**For in-project content search, use `.claude/tools/grep_local/grep_local` instead of raw `grep`.** (The built-in `Grep` tool is also fine — the rule is: never reach for unrestricted `grep` over a broad path when a confined tool covers the need.) It takes basic grep syntax; run it with `--help` for the allowed flags.
-
-**When you notice yourself issuing a broad, unrestricted command repeatedly (search, read, list, fetch), reflect and propose a safe restricted tool for it** — same ethos as `grep_local`: least privilege, project-scoped, read-only, whitelisted functionality, no traversal, no code execution, so a blanket `Bash(<tool>:*)` grant stays safe. The **`safe-tools`** skill is the reference for how to build one and how to wire it into config. Add the tool to the table above and to `.claude/settings.json` when you do.
+**When you notice yourself issuing a broad, unrestricted command repeatedly (search, read, list, fetch), reflect and propose a safe restricted tool for it** — least privilege, project-scoped, read-only, whitelisted functionality, no traversal, no code execution, so a blanket `Bash(<tool>:*)` grant stays safe. The **`safe-tools`** skill is the reference for how to build one and how to wire it into config. Add the tool to a table here and to `.claude/settings.json` when you do.
 
 ---
 

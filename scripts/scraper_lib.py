@@ -1,5 +1,5 @@
 """
-scraper_lib.py — shared infrastructure for Resonate vendor scrapers.
+scraper_lib.py — shared infrastructure for OpenISD vendor scrapers.
 
 Each vendor scraper imports this module and provides:
   - SITEMAP_URL (str or list of strs)
@@ -39,7 +39,7 @@ from pathlib import Path
 from dq_check import check_fields
 from wdr_meta_schema import validate_driver, reorder_meta_for_save, WDR_MANDATORY_TS
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; resonate-scraper/1.0)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; openisd-scraper/1.0)"}
 DEFAULT_DELAY_S = 1.0
 
 # Force UTF-8 stdout/stderr so Unicode product names don't crash on Windows

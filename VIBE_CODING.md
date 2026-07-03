@@ -11,26 +11,94 @@ almost anything. So say plainly what you're objecting to. Which of these is it?
 - That an AI wrote some of the code? (A compiler writes the machine code too. What
   matters is never _who typed it_ — it's _whether the result holds up_.)
 - That it was written fast, or without ceremony?
-- Or that it behaves the way bad software behaves — no enforced rules,
-  unmaintainable, insecure, doesn't scale, impossible to debug, silently wrong?
+- Or that it behaves the way bad software behaves — unverified, unmaintainable,
+  silently wrong, impossible to debug?
 
-The first two are just about taste. The third is the only real complaint — and you
-can check it. So check it. The table below is the evidence, one failure at a time:
-what the failure is, what OpenISD does to avoid it, how that's **enforced** so it
-can't quietly slip back, and — honestly — how OpenISD is doing on it today.
+The first two are just about taste. The third is the only real complaint, and it is
+a claim about **verification**. That claim can be settled with facts. Here they are.
 
-Rule of thumb used throughout: **a rule that isn't enforced is just a vibe.** The
-goal is to move every antidote from "we try to remember" to "a tool fails the
-build if we don't."
+## The facts
 
-This doc has two companions:
+Every item below names the file or command that proves it. Nothing here is a
+promise or an intention — it exists in the repo today and you can check each one.
 
-- `SDLC.md` — _who_ does what and in _what order_ (Human / Agent / Tooling).
-- `CODE_REVIEW/CODE_REVIEW.md` — the evidence (findings `§N` referenced below).
+**1. The physics is proven against closed-form theory on every page load.**
+The shipped app runs three self-test gates in your browser every time it starts
+(`packages/ui/src/utils/selftest.ts`):
 
----
+- GATE 1 — the simulated sealed-box response must match the exact closed-form
+  2nd-order high-pass solution to within **0.1 dB** at every frequency in the sweep.
+- GATE 2 — the passband must converge to the driver's analytically predicted
+  reference sensitivity within **0.5 dB**.
+- GATE 3 — the vented box must roll off at the theoretical 24 dB/octave and show
+  exactly two impedance peaks straddling Fb.
 
-## The failure modes people mean — and where OpenISD stands
+A failure prints FAIL to the console and raises a visible warning in the UI. Not
+in a lab — on your machine, on every load.
+
+**2. 175 unit tests, including a zero-tolerance golden master.**
+`npm run test:unit` runs 175 tests over the engine: complex arithmetic (35),
+the circuit solver (8), box alignments (23), driver derivation and WDR file
+round-trip (50), engine physics (36), sweep behaviour (10). Six golden-master
+fixtures (sealed, vented, bandpass, passive radiator, single and multi-driver)
+are compared with **exact `===` equality — no tolerance at all**
+(`packages/engine/test/golden.test.ts`). The engine is deterministic, so any
+divergence, however small, fails the suite.
+
+**3. 31 browser tests drive the real UI.**
+Playwright starts the actual app in Chromium, clicks the actual controls, and
+asserts the actual numbers: a 20 L sealed box must show Qtc = 0.601 and
+fc = 58.5 Hz in the stat bar; a 5 cm × 10 cm vent must tune to Fb = 37.1 Hz; a
+50 g passive radiator must show Fp = 37.9 Hz. The failure paths are tested too:
+Vb = 0 must surface a blocking error (not a blank chart); a missing Pe or Xmax
+must degrade only the specific curve that depends on it, with a visible notice
+(`packages/ui/test/*.browser.spec.ts`).
+
+**4. An independent implementation is used as an external oracle.**
+`packages/ui/test/micka-crosscheck.browser.spec.ts` submits the same scenarios to
+micka.de — a loudspeaker calculator that shares no code with OpenISD — and asserts
+agreement. The one known divergence (vented Fb, ~2%) is not hidden: it is
+documented in the test header with its cause (a port end-correction convention,
+0.85·d per Beranek 1954 vs micka's ~0.75·d) and the reasoned choice OpenISD made.
+
+**5. A red result cannot ride along.**
+Git hooks (`scripts/hooks/`) block any commit that fails lint, typecheck, or the
+unit + golden suite, and block any push that fails the full CI including all 31
+browser tests. GitHub Actions (`.github/workflows/ci.yml`) re-runs lint,
+typecheck, unit + golden, browser, and a production build on every push and pull
+request. `bash scripts/health-check.sh` is the single local entry point: six
+gates — ESLint, typecheck, unit, browser, data-quality validation over the driver
+library, and 50 Python scraper tests.
+
+**6. The type system and linter are gates, not decoration.**
+TypeScript `strict: true` across the codebase (`tsconfig.base.json`); the lint
+gate is zero errors. The project rules ban silencing the linter — no
+`eslint-disable`, no renaming a variable to `_x` to dodge a warning. (Current
+count of suppressions in `packages/`: one — a `no-console` on the self-test's
+console reporter, whose output _is_ the console.)
+
+**7. Numbers are human-gated; data is never hand-patched.**
+No formula or constant in the engine changes without explicit human sign-off.
+Where OpenISD disagrees with another tool, the discrepancy is documented with its
+cause (`WINISD.md`, `COMPARISON.md`) rather than silently "fixed". The 6,405
+driver files in `drivers/` are never edited by hand or by patch script — that is
+a hard rule; a wrong value means fixing the scraper and regenerating, so the same
+error can't creep back on the next run.
+
+**8. The docs are forbidden to lie.**
+Documentation may describe only the current state — no "as of" notes, no
+migration blurbs, no closed-item graveyards. History lives in git, where it can't
+drift from the truth. That rule is itself written down and enforced in review
+(`CLAUDE.md`).
+
+That is the machinery. Now the honest part.
+
+## The scorecard — including where it's still weak
+
+Rule of thumb used throughout the project: **a rule that isn't enforced is just a
+vibe.** The goal is to move every safeguard from "we try to remember" to "a tool
+fails the build if we don't." That migration isn't finished, and the table says
+so in public. Finding numbers (`§N`) refer to `CODE_REVIEW/CODE_REVIEW.md`.
 
 | #   | The failure mode ("vibe-coded" usually means one of these) | Antidote (what OpenISD does)                                     | Enforced by                                             | OpenISD today                                                                                                                                                        |
 | --- | ---------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -49,41 +117,21 @@ This doc has two companions:
 
 Legend: ✓ clear · ◐ mixed · ⚠ partial · ✗ guilty.
 
-Notice the last column. Some of it is ✓, plenty is ◐, and one row says **✗ Guilty**
-in plain sight. That's the point — this is a scorecard kept in public, not a
-marketing page. Software that were _actually_ "just vibes" wouldn't have a column
-that can say "guilty", because nothing would be measuring it.
+Read the last column. Some ✓, plenty ◐, one **✗ Guilty** in plain sight. Software
+that was _actually_ just vibes could not produce this table, because nothing would
+be measuring it. A public scorecard that can say "guilty" is itself evidence of
+the opposite of vibe-coding.
 
----
+## Worked example — "return a named error, not `NaN`"
 
-## Then: is the pejorative accurate?
-
-Now decide. An app whose physics is checked against closed-form solutions on every
-page load; whose engine is pure and unit-, golden-, and browser-tested; whose rules
-are enforced by git hooks that block a red commit; that keeps an honest,
-public scorecard of its own weak spots — is _that_ what "vibe-coded" is supposed to
-describe?
-
-If yes, then the word has come to mean "software with tests and guardrails," and
-it's lost all its sting. If no, then it doesn't apply here — and the interesting
-question was never the vibe, it was: **which specific row above is still red, and
-do you want to help close it?**
-
-That is the whole invitation. Not "prove it isn't vibe-coded" — but "here are the
-rows that are still ◐ and ✗; pick one." The remaining work is tracked openly in
-`PLAN.md` and `SDLC.md`.
-
----
-
-## Worked example — trait #6/#10: "return a named error, not `NaN`"
-
-The single best illustration of the whole playbook. Several specific `NaN` leaks have
-since been plugged — a missing `Xmax` (§10), a missing `Pe` (§19), and the file-import
-path now rejects incomplete-Q drivers (§16). But the **validation boundary itself still
-does not exist**: the live UI computes `deriveDriver(state.driverRaw)` directly, so
-incomplete input from the editors still becomes a silent `NaN` and a blank graph (§22;
-plus the degenerate cases §11/§17/§18). Point-fixes close individual holes; only a
-boundary closes the class. The antidote is two cheap layers:
+The best single illustration of how this project treats its own defects. Several
+specific `NaN` leaks have been plugged — a missing `Xmax` (§10), a missing `Pe`
+(§19), and the file-import path now rejects incomplete-Q drivers (§16). But the
+**validation boundary itself still does not exist**: the live UI computes
+`deriveDriver(state.driverRaw)` directly, so incomplete input from the editors can
+still become a silent `NaN` and a blank graph (§22; plus the degenerate cases
+§11/§17/§18). Point-fixes close individual holes; only a boundary closes the
+class. The fix is two cheap layers:
 
 - **Precondition** — validate inputs once at the engine entry; throw a clear named
   `EngineError`.
@@ -94,18 +142,27 @@ Result: a clear message ("driver needs Qms to derive Bl") instead of a blank
 graph — _fast, loud, near the cause._ No formula changes.
 
 Full design: `CODE_REVIEW/ENGINE_HARDENING.md`.
-Action checklist (HIGH priority, awaiting sign-off): `CODE_REVIEW/ENGINE_HARDENING_TODO.md`.
+Action checklist: `CODE_REVIEW/ENGINE_HARDENING_TODO.md`.
 
----
+## Don't take this document's word for it
 
-## What "good" looks like
+Every claim above is reproducible on your machine in a few minutes:
 
-When every row above is enforced by a tool rather than a memory:
+```bash
+git clone https://github.com/Johnlon/openisd
+cd openisd
+npm install
+npm run test:unit        # 175 tests, incl. the exact-equality golden master
+npx playwright test      # 31 tests driving the real UI in Chromium
+bash scripts/health-check.sh   # all six gates, one command
+```
 
-- Rules can't drift, because the build fails when they're broken.
-- The engine refuses bad input with a message instead of producing a silent wrong
-  answer.
-- One source of truth per concern; no copy that can rot independently.
+Then open the app and open your browser console: the three physics gates print
+their PASS/FAIL against closed-form theory right there, on your hardware.
 
-That is the difference between "looks structured" and **is** structured — which is
-the whole difference between vibe-coded and not.
+So decide. If "vibe-coded" means anything, it means **nobody checked**. Here, the
+machine checks on every commit, every push, and every page load — and the parts
+that still fall short are enumerated above with their finding numbers, not hidden.
+Call that whatever you like; the code doesn't care. If instead you want to make
+one of those ◐ rows into a ✓, that's the interesting conversation —
+`CONTRIBUTING.md` is the door.

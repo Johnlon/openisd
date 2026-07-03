@@ -24,7 +24,7 @@ run() {
 }
 
 echo "========================================"
-echo "  Resonate health check"
+echo "  OpenISD health check"
 echo "  $(date '+%H:%M:%S')"
 echo "========================================"
 

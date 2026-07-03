@@ -1,5 +1,5 @@
 """
-pdf_lib.py — PyMuPDF-based PDF extraction for Resonate scrapers.
+pdf_lib.py — PyMuPDF-based PDF extraction for OpenISD scrapers.
 
 Primary path: fitz native text (deterministic, offline, no Ghostscript needed).
 Fallback for scanned/image-only pages: Tesseract OCR via pytesseract (optional).

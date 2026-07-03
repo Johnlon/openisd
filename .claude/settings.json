@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.claude/tools/grep_local/grep_local:*)",
       "Bash(bash scripts/*)",
       "Bash(git *)",
       "Bash(npm *)",

@@ -259,7 +259,7 @@ def _check_url(url: str) -> str:
     """
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "resonate-dq/1.0",
+            "User-Agent": "openisd-dq/1.0",
             "Range": "bytes=0-3",
         })
         with urllib.request.urlopen(req, timeout=10) as r:

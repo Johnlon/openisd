@@ -1,13 +1,13 @@
 ---
 name: safe-tools
-description: Optimise agent permissions by turning broad, repeatedly-prompted commands into SAFE RESTRICTED CLI tools that can be blanket auto-approved. Use when you notice yourself issuing the same unrestricted shell command (search, read, list, fetch, count) often, when a permission prompt keeps recurring, or when the user asks to reduce prompts / harden tool access. Follows the `grep_local` ethos: least privilege, project-scoped, read-only, whitelisted, no traversal, no exec.
+description: Optimise agent permissions by turning broad, repeatedly-prompted commands into SAFE RESTRICTED CLI tools that can be blanket auto-approved. Use when you notice yourself issuing the same unrestricted shell command (search, read, list, fetch, count) often, when a permission prompt keeps recurring, or when the user asks to reduce prompts / harden tool access. Ethos: least privilege, project-scoped, read-only, whitelisted, no traversal, no exec.
 ---
 
 # Safe restricted tools
 
 The goal: **fewer permission prompts without widening what the agent can actually do.** You get there not by granting `Bash(grep:*)` (which can read any file on the machine) but by building a _confined_ replacement that is safe to grant blanket, then allow-listing that.
 
-The reference implementation is [`.claude/tools/grep_local/grep_local`](../../tools/grep_local/grep_local) — read it before building a new one; copy its shape.
+For in-project content search, prefer the built-in `Grep` tool over building a bespoke wrapper — it already meets the ethos below without extra maintenance.
 
 ## When to reflect and propose a tool
 
@@ -18,6 +18,8 @@ Trigger on any of:
 - The user asks to **reduce prompts, harden permissions, or lock a tool down**.
 
 When triggered, stop and ask: _what is the minimum capability this task actually needs, and can I express it as a project-scoped read-only tool?_ If yes, build it.
+
+**Before building, verify the invocation actually avoids prompts.** The permission matcher only allow-lists a literal, non-compound command line. It is not just pipes/`&&`/redirects that break the match — a quoted search pattern, a glob, or any regex metacharacter *in the tool's own arguments* is enough to make the call look like an expansion and trigger a prompt anyway, allow-list or not. If the capability you're wrapping needs free-form pattern/query arguments (a grep-like search, a flexible fetch), a Bash-wrapper script will likely keep prompting on every real call and buys nothing over the raw command. Check first whether a built-in tool (`Grep`, `Glob`, `Read`, `WebFetch(domain:...)`) already covers the need — those never prompt at all, regardless of argument content — before spending effort on a wrapper.
 
 ## The ethos — every safe tool must be
 

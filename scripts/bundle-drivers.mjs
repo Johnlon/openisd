@@ -7,7 +7,7 @@
  * hitting the GitHub API.
  *
  * "Bundled" = sources whose URL points at this repo
- * (github.com/Johnlon/resonate). Federated third-party sources are
+ * (github.com/Johnlon/openisd). Federated third-party sources are
  * still fetched live from GitHub at runtime.
  *
  * Run automatically via `npm run build` → prebuild script.
@@ -23,8 +23,9 @@ const sources = JSON.parse(
   readFileSync(join(ROOT, 'drivers/sources.json'), 'utf8')
 ).sources;
 
-// Sources whose URLs match this repo are bundled locally
-const REPO_RE = /github\.com\/Johnlon\/resonate\/tree\/[^/]+\/(.+)/i;
+// Sources whose URLs match this repo are bundled locally.
+// Accepts both repo names so bundling keeps working across the GitHub rename.
+const REPO_RE = /github\.com\/Johnlon\/(?:resonate|openisd)\/tree\/[^/]+\/(.+)/i;
 
 function walkWdr(dir) {
   const files = [];
