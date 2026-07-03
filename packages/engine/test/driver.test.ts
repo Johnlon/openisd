@@ -454,47 +454,63 @@ describe('toWdr — missing optional fields use fallback branches', () => {
   });
 });
 
-// ── parstate — WinISD ParState computed per-driver, not hardcoded ────────────
-// WinISD's 49-char edit-state string must reflect THIS driver's fields (E present,
-// C computed, N absent). The old exporter hardcoded one fixed string, so a driver
-// without Pe/Xmax still claimed those were entered. Ported from scraper_lib._parstate
-// (probe-confirmed positions: Pe=2, Xmax=9, Qts=14, numVC=23, c=47, roo=48).
-describe('parstate — per-field WinISD edit-state, computed from the driver', () => {
+// ── parstate — WinISD ParState: E (entered) vs C (computed) vs N (absent) ─────
+// The 49-char edit-state must distinguish a value the human SUPPLIED (E) from one
+// the app DERIVED (C) — presence alone can't (Cms/Bl/Rms/Mms and a derived Q are all
+// "present" but computed). parstate(raw, d) compares supplied input against derived
+// output. Probe-confirmed positions: Bl=8, Cms=11, Qms=12, Qes=13, Qts=14, Rms=15,
+// Mms=16, numVC=23, c=47, roo=48.
+describe('parstate — E (entered) vs C (computed) vs N (absent)', () => {
   const FULL = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Z: 8 };
 
   it('is exactly 49 characters', () => {
     const { value: d } = deriveDriver(FULL);
     assert.ok(d);
-    assert.equal(parstate(d).length, 49);
+    assert.equal(parstate(FULL, d).length, 49);
   });
 
-  it('marks present fields E and always-computed fields C', () => {
+  it('supplied fields are E; always-computed fields (Bl/Cms/Rms/Mms) are C, not E', () => {
     const { value: d } = deriveDriver(FULL);
     assert.ok(d);
-    const p = parstate(d);
-    assert.equal(p[2], 'E', 'Pe present → E');
-    assert.equal(p[9], 'E', 'Xmax present → E');
-    assert.equal(p[14], 'E', 'Qts present → E');
-    assert.equal(p[23], 'E', 'numVC → E');
-    assert.equal(p[47], 'C', 'c (speed of sound) → C');
-    assert.equal(p[48], 'C', 'roo (air density) → C');
+    const p = parstate(FULL, d);
+    assert.equal(p[1],  'E', 'Fs supplied → E');
+    assert.equal(p[2],  'E', 'Pe supplied → E');
+    assert.equal(p[9],  'E', 'Xmax supplied → E');
+    assert.equal(p[14], 'E', 'Qts supplied → E');
+    assert.equal(p[8],  'C', 'Bl is derived → C (present, but NOT entered)');
+    assert.equal(p[11], 'C', 'Cms is derived → C');
+    assert.equal(p[15], 'C', 'Rms is derived → C');
+    assert.equal(p[16], 'C', 'Mms is derived → C');
+    assert.equal(p[47], 'C', 'c → C');
+    assert.equal(p[48], 'C', 'roo → C');
   });
 
-  it('marks an ABSENT optional field N — the whole point vs the old hardcoded string', () => {
-    const { value: d } = deriveDriver({ ...FULL, Pe: undefined, Xmax: undefined });
+  it('a DERIVED Q is C while the two ENTERED Qs are E', () => {
+    // Enter Qts+Qes only → deriveDriver computes Qms. Qms must read C, not E.
+    const twoQ = { Fs: 37, Qts: 0.38, Qes: 0.40, Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Z: 8 };
+    const { value: d } = deriveDriver(twoQ);
     assert.ok(d);
-    const p = parstate(d);
+    const p = parstate(twoQ, d);
+    assert.equal(p[14], 'E', 'Qts entered → E');
+    assert.equal(p[13], 'E', 'Qes entered → E');
+    assert.equal(p[12], 'C', 'Qms was derived, not entered → C');
+  });
+
+  it('an absent optional field is N', () => {
+    const noOpt = { ...FULL, Pe: undefined, Xmax: undefined };
+    const { value: d } = deriveDriver(noOpt);
+    assert.ok(d);
+    const p = parstate(noOpt, d);
     assert.equal(p[2], 'N', 'Pe absent → N (old hardcoded string wrongly said E)');
     assert.equal(p[9], 'N', 'Xmax absent → N');
     assert.equal(p[28], 'N', 'USPL depends on Pe → N when Pe absent');
-    // A present field is still E, proving it is genuinely per-driver.
-    assert.equal(p[14], 'E', 'Qts still present → E');
+    assert.equal(p[14], 'E', 'Qts still supplied → E');
   });
 
-  it('toWdr embeds the computed ParState', () => {
+  it('toWdr embeds the computed ParState (49 chars)', () => {
     const wdr = toWdr(FULL);
     const line = wdr.split('\n').find(l => l.startsWith('ParState='));
     assert.ok(line, 'toWdr writes a ParState line');
-    assert.equal(line.slice('ParState='.length).length, 49, 'embedded ParState is 49 chars');
+    assert.equal(line.slice('ParState='.length).length, 49);
   });
 });
