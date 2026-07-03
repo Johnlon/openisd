@@ -18,16 +18,16 @@
  *
  * ── Vented box NOT cross-checked here (documented discrepancy) ────────────────
  * For a 5 cm bore, 10 cm physical vent length:
- *   Resonate: Fb = 37.2 Hz  (Leff = L + 0.85·d, Beranek 1954)
+ *   Resonate: Fb = 37.1 Hz  (Leff = L + 0.85·d, Beranek 1954)
  *   micka.de: Fb = 37.85 Hz (back-calculated: smaller end-correction, ~0.75·d)
- * This ~1.7% divergence is a known end-correction convention difference, not a bug.
+ * This ~2% divergence is a known end-correction convention difference, not a bug.
  * See alignments.js tuningFromLength() for Resonate's documented choice.
  */
 
 import { test, expect } from '@playwright/test';
 import { SCENARIOS } from './scenarios.js';
 
-const TEMP_C = 20; // air temperature — micka's default; matches Resonate's C=345 m/s
+const TEMP_C = 20; // air temperature — micka's default; matches Resonate's c = 343.68 m/s (20 °C)
 
 for (const S of SCENARIOS) {
   if (!S.micka) continue;

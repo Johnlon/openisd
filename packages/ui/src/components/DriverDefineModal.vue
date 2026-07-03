@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch, nextTick } from 'vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
+import { C, RHO } from '@resonate/engine';
 import type { DriverRaw } from '@resonate/engine';
 
 const props = defineProps<{ open: boolean }>();
 const emit  = defineEmits<{ close: []; apply: [raw: DriverRaw] }>();
 useEscToClose(() => props.open, () => emit('close'));
 
-const RHO = 1.2;   // kg/m³
-const C   = 343;   // m/s
+// C (speed of sound) and RHO (air density) come from the engine — single source of
+// truth for the T/S conversions, so the editor's derived values match the sim's.
 
 interface Param {
   key: string; unit: string; sect: string; label: string; desc: string;

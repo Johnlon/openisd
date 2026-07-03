@@ -92,7 +92,7 @@ test('SPL panel renders correctly for sealed 20L box', async ({ page }) => {
 const VENTED_VB_L    = 30;
 const VENT_DIAM_CM   = 5;
 const VENT_LENGTH_CM = 10;
-const VENTED_FB_HZ   = '37.2';
+const VENTED_FB_HZ   = '37.1';
 
 test('SPL panel renders correctly for vented 30L box with ø5cm×10cm port', async ({ page }) => {
   await page.goto('/');
