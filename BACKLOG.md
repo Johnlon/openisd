@@ -144,6 +144,20 @@ WinISD chart inventory mapped to Resonate status. Box-type scope notes: `[PR]` =
 - [ ] **P2** Draggable / resizable chart panels
 - [ ] **P2** Configurable graph gridlines (3 / 5 / 10 dB) and contrast
 
+## WinISD input/feature parity
+
+Gaps found by auditing the WinISD 0.7.0.950 screenshots against Resonate's UI —
+full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md).
+
+- [ ] **P1** Environment model — derive `c`/`ρ` from **temperature / humidity / air pressure** (per-project + app default), replacing the single hardcoded constant. WinISD: Advanced pane.
+- [ ] **P1** Off-axis **listening angle** + configurable **distance** (Resonate is fixed 1 m on-axis). WinISD: Signal pane.
+- [ ] **P1** Filters Resonate lacks: **all-pass, raised-cosine delay, static gain**, high/low **shelf**. WinISD: Filters.
+- [ ] **P2** Driver fields Resonate lacks: **Xlim**, **USPL**; figure-of-merit read-outs (Rme, gamma, Mpow, Mcost, SPLmax). WinISD: Parameters/Advanced tabs.
+- [ ] **P2** Charts Resonate lacks: **amplifier apparent load power (VA)**, port **gain** (vs velocity), intrachamber port velocity (needs 6th-order BP).
+- [ ] **P2** Loading/model options: **isobaric (Iso-Barik)**, **transmission-line port**, **force-flat response**, **Rg-at-driver-side**, **SPL-graph-Xmax-limited**.
+- [ ] **P2** Driver **added mass to cone** (WinISD has it for the driver, not just the PR).
+- [ ] **P3** Metric ↔ imperial **unit switching** (Resonate is metric-only).
+
 ## Enclosure types & box model
 
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)

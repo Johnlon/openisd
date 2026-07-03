@@ -225,3 +225,17 @@ If you cannot name the device with all six points, you do not have enough inform
 - **The user must not have to verify my claims.** Any unverified external claim must be flagged inline with "⚠ unverified" before it reaches the user.
 - Inferred or assumed behaviour **must** be labelled as such. Record tool-behaviour assumptions in `WINISD.md` with an explicit "⚠ Assumption — NOT directly verified" marker.
 - **Hard gate:** Before any comparative or causal claim about an external system, call `advisor` to review the claim. Do not state it to the user until advisor has confirmed it is grounded.
+
+---
+
+## Claims about OUR OWN code — same evidence bar — hard rule
+
+The evidence rule above is not limited to external tools. Most damaging mistakes are confident, wrong statements about _this_ codebase.
+
+- **Never assert what this app has, does, or lacks without reading the relevant source in the current conversation.** "Resonate has no input for X" / "this is only used for Y" / "nothing computes Z" are claims — grep or read the actual file first. A type definition (e.g. `DriverRaw`) is NOT proof of what the whole app can do; the UI, store, and scrapers are separate layers with their own fields.
+- **Search before you build.** Before implementing any mechanism — state tracking, a computation, a mapping, serialization, a formatter — grep the codebase for an existing implementation. If the domain already solves it (e.g. `stateOf()` already tracks entered-vs-calculated), use or extend it. Never reinvent it in another layer.
+- **A hardcoded literal standing in for data that should vary per record is a correctness bug, not cosmetic.** When you find one, find the intended source of truth and fix it as a bug. Do not label it "maintainability" and defer it.
+- **Serialization to a format defined by someone else (WDR/WinISD, JSON project, etc.) must reflect real state/provenance for every field — never a fixed placeholder.** If you can't source a field's true value, that's a gap to surface, not a constant to invent.
+- **Provenance — which values a human supplied vs the app computed — is sourced where entry happens** (the UI/edit session), not reconstructed downstream from "is it present." Presence cannot distinguish Entered from Calculated.
+
+**When the user pushes for speed ("do all", "just do it"), that raises the verification bar, not lowers it.** A confident wrong commit is worse than a slower correct one.

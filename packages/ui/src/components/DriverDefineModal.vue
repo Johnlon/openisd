@@ -71,7 +71,7 @@ const PARAMS: Param[] = [
   { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange/basket-plate thickness. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Thick', optional: true, dimOnly: true },
   { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    wdr: 'MagDepth', desc: 'Magnet assembly axial depth. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet Depth', optional: true, dimOnly: true },
   { key: 'vcDiaMm',    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice-coil diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: VCd', optional: true, dimOnly: true },
-  { key: 'weightG',    unit: 'g',  sect: 'Dimensions', label: 'Weight',    desc: 'Driver weight. Reference only — not used in the response simulation.', optional: true, dimOnly: true },
+  { key: 'dvol',       unit: 'l',  sect: 'Dimensions', label: 'Dvol',      wdr: 'DVol', desc: 'Driver displacement volume — the volume the driver body occupies inside the enclosure. Reference only (WinISD does not auto-subtract it from box volume, and neither do we). WinISD Dimensions: Dvol', optional: true, dimOnly: true },
 ];
 
 const SECTIONS: Section[] = [
