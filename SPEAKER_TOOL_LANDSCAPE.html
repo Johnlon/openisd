@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speaker Tool Landscape — analysis &amp; recommendations for OpenISD</title>
+<style>
+:root{
+  --bg:#fff; --fg:#1b1f23; --muted:#5b6570; --line:#e3e6ea; --line2:#cdd3da;
+  --accent:#0f766e; --accent-soft:#e6f4f1; --head:#f4f7f8; --zebra:#fafbfc; --hover:#f0f7f6;
+  --t5:#0f766e; --t4:#2563eb; --t3:#b7791f; --t2:#94794a; --t1:#9aa0a6;
+  --warn:#b91c1c; --good:#15803d; --rec:#0f766e; --recbg:#e6f4f1;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#101317; --fg:#e6e9ec; --muted:#9aa4ad; --line:#262c33; --line2:#333b44;
+    --accent:#5eead4; --accent-soft:#12312d; --head:#171b20; --zebra:#14181c; --hover:#16211f;
+    --t5:#5eead4; --t4:#7ca8ff; --t3:#e2b25a; --t2:#c7ad7e; --t1:#8a929b; --warn:#f87171; --good:#4ade80; --rec:#5eead4; --recbg:#12312d; }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1320px;margin:0 auto;padding:2rem 1.4rem 5rem;}
+header.top{border-left:5px solid var(--accent);padding:.2rem 0 .2rem 1.1rem;margin-bottom:1.2rem;}
+h1{font-size:1.95rem;margin:.1em 0 .15em;letter-spacing:-.01em;}
+.sub{color:var(--muted);font-size:1rem;margin:.1em 0;max-width:82ch;}
+.meta{color:var(--muted);font-size:.84rem;margin-top:.5em;}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;} a:hover{border-bottom-color:currentColor;}
+h2{font-size:1.3rem;margin:2.3rem 0 .3em;padding-bottom:.26em;border-bottom:2px solid var(--line);}
+h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.4em;}
+h3{font-size:1.05rem;margin:1.3rem 0 .2em;}
+p.lead{color:var(--muted);margin:.4em 0 1em;max-width:82ch;}
+.legend{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-size:.82rem;color:var(--muted);background:var(--head);border:1px solid var(--line);border-radius:10px;padding:.7rem 1rem;margin:1rem 0 0;}
+.legend b{color:var(--fg)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:1rem 0;}
+table{border-collapse:collapse;width:100%;font-size:13px;}
+thead th{position:sticky;top:0;background:var(--head);text-align:left;font-weight:650;padding:.6rem .65rem;border-bottom:2px solid var(--line2);white-space:nowrap;z-index:2;}
+tbody td{padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:nth-child(even){background:var(--zebra);} tbody tr:hover{background:var(--hover);}
+td.tool{white-space:nowrap;font-weight:650;} td.tool a{border-bottom:1px solid var(--line2);}
+.pill{display:inline-block;font-size:10.5px;line-height:1.4;padding:.05em .45em;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin:1px 2px 1px 0;white-space:nowrap;}
+.rate{font-size:13px;letter-spacing:1px;white-space:nowrap;} .t5{color:var(--t5)}.t4{color:var(--t4)}.t3{color:var(--t3)}.t2{color:var(--t2)}.t1{color:var(--t1)} .off{opacity:.22}
+.flag{font-size:17px;text-align:center;white-space:nowrap}
+.warn{color:var(--warn);font-weight:600} .good{color:var(--good);font-weight:600}
+.card{border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;margin:1rem 0;background:var(--bg);}
+.card h3{margin-top:0}
+.rec{background:var(--recbg);border-left:4px solid var(--rec);border-radius:0 8px 8px 0;padding:.65rem .9rem;margin:.7rem 0 0;}
+.rec b{color:var(--rec)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:.1em .5em;border-radius:6px;margin-right:.5em;vertical-align:middle}
+.tag.gap{background:#fef3c7;color:#92400e} .tag.bug{background:#fee2e2;color:#991b1b} .tag.opp{background:#dcfce7;color:#166534}
+@media (prefers-color-scheme:dark){.tag.gap{background:#3a2e12;color:#e2b25a}.tag.bug{background:#3a1a1a;color:#f87171}.tag.opp{background:#12311c;color:#4ade80}}
+code{font:.85em ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--head);padding:.08em .4em;border-radius:5px;}
+pre{background:var(--head);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;overflow-x:auto;font-size:12.5px;}
+.prio{font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+footer{margin-top:3rem;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line);padding-top:1rem;max-width:92ch;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Speaker tool landscape → analysis &amp; recommendations for OpenISD</h1>
+  <p class="sub">Every tool, cited inline, with maintenance status, popularity, accuracy &amp; known bugs — then the cracked-open source formulas turned into concrete OpenISD recommendations, gaps, bugs and opportunities.</p>
+  <p class="meta">Compiled 2026-07-04 · isolated worktree branch <code>crosscheck-oracle-report</code> · companion to <a href="REPORT_ORACLE_CROSSCHECK.html">the oracle report</a>.</p>
+</header>
+
+<div class="legend">
+  <span><b>Status</b> 🟢 actively maintained · 🍌 unclear / frozen / no evidence · 🔴 defunct / abandoned</span>
+  <span><b>Popularity</b> <span class="rate t5">●●●●●</span>→<span class="rate t1">●<span class="off">●●●●</span></span> (forum engagement + tutorials + stars)</span>
+  <span><b>Cov.</b> S V PR BP TL H · <b>X</b> crossover · <b>M</b> measurement</span>
+</div>
+
+<h2><span class="n">1.</span>Master comparison</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>St.</th><th>Tool</th><th>Category</th><th>Cost</th><th>Source / licence</th><th>Cov.</th><th>X</th><th>M</th><th>Popularity (signal)</th><th>Accuracy &amp; known issues</th></tr></thead>
+<tbody>
+<tr><td class="flag" title="Actively maintained — weekly updates, v3.0.1.4 Jun 2026">🟢</td><td class="tool"><a href="https://kimmosaunisto.net/" target="_blank" rel="noopener">VituixCAD</a></td><td>Full system + crossover (Win/.NET)</td><td><a href="https://kimmosaunisto.net/" target="_blank" rel="noopener">Free</a> (ex-€85)</td><td>Closed</td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">PR</span><span class="pill">BP</span></td><td class="good">✓</td><td>FRD/ZMA</td><td><span class="rate t5">●●●●●</span> <a href="https://www.diyaudio.com/community/threads/best-software-for-designing-speaker-enclosures.431500/" target="_blank" rel="noopener">"most-used blackbox designer"</a>; weekly updates</td><td>Accurate <em>with measured data</em>; <a href="https://www.diyaudio.com/community/threads/vituixcad-accuracy.413990/" target="_blank" rel="noopener">no panel-resonance/standing-wave modelling, far-field</a></td></tr>
+<tr><td class="flag" title="Distributed and universally used, but frozen — no recent releases (v0.7 era)">🍌</td><td class="tool"><a href="https://www.linearteam.org/" target="_blank" rel="noopener">WinISD</a></td><td>Box sim (Windows)</td><td><a href="https://www.linearteam.org/" target="_blank" rel="noopener">Free/donate</a></td><td>Closed (beta) · <a href="https://github.com/ziutek/WinISD" target="_blank" rel="noopener">GitHub=data</a></td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">BP</span></td><td>filters</td><td>✗</td><td><span class="rate t5">●●●●●</span> most YouTube tutorials; beginner default</td><td><a href="https://www.caraudio.com/threads/winisd-port-velocity-is-impossible.605343/" target="_blank" rel="noopener">Port velocity = full-RMS sine (pessimistic)</a>; <a href="https://www.diymobileaudio.com/threads/winisd-port-velocity.465823/" target="_blank" rel="noopener">DB params untrusted</a></td></tr>
+<tr><td class="flag" title="Monthly updates">🟢</td><td class="tool"><a href="http://www.hornresp.net/" target="_blank" rel="noopener">Hornresp</a></td><td>1-D horn/TL sim (Windows)</td><td><a href="http://www.hornresp.net/" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">H</span><span class="pill">TL</span><span class="pill">BP</span></td><td>✗</td><td>✗</td><td><span class="rate t4">●●●●<span class="off">●</span></span> <a href="https://www.diyaudio.com/community/threads/hornresp.119854/" target="_blank" rel="noopener">500+ page diyAudio mega-thread</a></td><td><a href="http://redspade-audio.blogspot.com/2012/02/akabak-vs-hornresp-vs-real-measurements.html" target="_blank" rel="noopener">Validated ~1–3 dB vs measured</a>; <a href="https://www.diyaudio.com/community/threads/inconsistent-bandpass-enclosure-simulation-in-hornresp-vs-basta-winisd-and-vituixcad.379777/" target="_blank" rel="noopener">1-D differs from lumped tools on BP</a></td></tr>
+<tr><td class="flag" title="Maintenance status unclear (older)">🍌</td><td class="tool"><a href="https://www.tolvan.com/index.php?page=%2Fbasta%2Fbasta.php" target="_blank" rel="noopener">Basta!</a></td><td>Box + xover (Windows)</td><td><a href="https://www.tolvan.com/index.php?page=%2Fbasta%2Fbasta.php" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">OB</span><span class="pill">S</span><span class="pill">V</span><span class="pill">BP</span></td><td>✓</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td>0-D lumped; <a href="https://www.diyaudio.com/community/threads/inconsistent-bandpass-enclosure-simulation-in-hornresp-vs-basta-winisd-and-vituixcad.379777/" target="_blank" rel="noopener">tracks VituixCAD, both differ from Hornresp on BP</a></td></tr>
+<tr><td class="flag" title="Visaton maintains it">🟢</td><td class="tool"><a href="https://www.visaton.de/index.php/en/downloads-boxsim" target="_blank" rel="noopener">Boxsim</a></td><td>Full system (Windows)</td><td><a href="https://www.visaton.de/index.php/en/downloads-boxsim" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">multi</span><span class="pill">diffraction</span></td><td>✓</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td>20 drivers, diffraction, 20-dir polar; Visaton-oriented</td></tr>
+<tr><td class="flag" title="Maintenance unclear (older)">🍌</td><td class="tool"><a href="https://techtalk.parts-express.com/forum/tech-talk-forum/65919-xsim-program-by-bill-waslo" target="_blank" rel="noopener">XSim</a></td><td>Crossover (Windows)</td><td>Free</td><td>Closed</td><td><span class="pill">—</span></td><td class="good">✓✓</td><td>✗</td><td><span class="rate t4">●●●●<span class="off">●</span></span> common WinISD companion</td><td>Draw-the-schematic passive xover</td></tr>
+<tr><td class="flag" title="AKABAK 3 active">🟢</td><td class="tool"><a href="http://www.randteam.de/AKABAK3/" target="_blank" rel="noopener">Akabak 3</a></td><td>Network sim (Windows)</td><td><a href="http://www.randteam.de/AKABAK3/" target="_blank" rel="noopener">Free ed.</a></td><td>Closed</td><td><span class="pill">networks</span><span class="pill">H</span><span class="pill">BP</span></td><td>✓</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td><a href="http://redspade-audio.blogspot.com/2012/02/akabak-vs-hornresp-vs-real-measurements.html" target="_blank" rel="noopener">Benchmarked vs measurement</a>; steep</td></tr>
+<tr><td class="flag" title="Last version 2013 — effectively frozen">🔴</td><td class="tool"><a href="http://audio.claub.net/software/kougaard/ubmodel.html" target="_blank" rel="noopener">Unibox</a></td><td>Box sim (Excel)</td><td><a href="http://audio.claub.net/software/kougaard/ubdwnld.html" target="_blank" rel="noopener">Free</a></td><td>Open spreadsheet</td><td><span class="pill">S</span><span class="pill">V</span><span class="pill good">PR</span><span class="pill">BP</span></td><td>✗</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td>Few free tools with PR; last v4.07 (2013)</td></tr>
+<tr><td class="flag" title="Static community spreadsheets; maintenance unclear">🍌</td><td class="tool"><a href="http://audio.claub.net/software.html" target="_blank" rel="noopener">Bagby sheets</a></td><td>Xover + FRD (Excel)</td><td><a href="http://audio.claub.net/software.html" target="_blank" rel="noopener">Free</a></td><td>Open spreadsheet</td><td><span class="pill">—</span></td><td>✓</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td>Response Modeler + Passive Xover Designer</td></tr>
+<tr><td class="flag" title="Very old (~2007), abandoned">🔴</td><td class="tool"><a href="https://sourceforge.net/projects/speakerworkshop/" target="_blank" rel="noopener">Speaker Workshop</a></td><td>Measure+design (Windows)</td><td>Free</td><td>Closed (SF)</td><td><span class="pill">S</span><span class="pill">V</span></td><td>✓</td><td class="good">✓</td><td><span class="rate t2">●●<span class="off">●●●</span></span></td><td>Sound-card measure+design; legacy</td></tr>
+<tr><td class="flag" title="Actively developed">🟢</td><td class="tool"><a href="https://www.roomeqwizard.com/" target="_blank" rel="noopener">REW</a></td><td>Measurement/EQ (cross-platform)</td><td><a href="https://www.roomeqwizard.com/" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">—</span></td><td>✗</td><td class="good">✓✓</td><td><span class="rate t5">●●●●●</span> de-facto free measurement</td><td>Measurement engine, not a box sim</td></tr>
+<tr><td class="flag" title="artalabs active">🟢</td><td class="tool"><a href="https://artalabs.hr/" target="_blank" rel="noopener">ARTA suite</a></td><td>Measurement (Windows)</td><td><a href="https://audioxpress.com/article/vc-spotlight-arta-audio-measurement-and-analysis-software" target="_blank" rel="noopener">~$99–187</a></td><td>Closed</td><td><span class="pill">—</span></td><td>✗</td><td class="good">✓✓</td><td><span class="rate t4">●●●●<span class="off">●</span></span></td><td>Impedance/T-S via LIMP; limited free mode</td></tr>
+<tr><td class="flag" title="Sold but v6 is ancient (~2009); no recent updates">🍌</td><td class="tool"><a href="https://www.ht-audio.com/pages/Products.html" target="_blank" rel="noopener">BassBox Pro 6</a></td><td>Box sim (Windows)</td><td><a href="https://www.parts-express.com/BassBox-6-Pro-Software-CD-ROM-500-923" target="_blank" rel="noopener">~$140–149</a></td><td>Commercial</td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">BP</span><span class="pill">PR</span></td><td>sep.</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td><a href="https://www.diyaudio.com/community/threads/different-results-between-bassbox-pro-and-speaker-box-lite-which-box-design-software-is-most-accurate-today.430135/" target="_blank" rel="noopener">Used as the accuracy reference vs free apps</a></td></tr>
+<tr><td class="flag" title="Old; update status unclear">🍌</td><td class="tool"><a href="https://www.ijdata.com/" target="_blank" rel="noopener">LspCAD</a></td><td>Full system (Windows)</td><td><a href="https://www.ijdata.com/" target="_blank" rel="noopener">$129/$495</a></td><td>Commercial</td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">xover</span></td><td>✓</td><td>hw</td><td><span class="rate t2">●●<span class="off">●●●</span></span></td><td>Professional; niche vs free tools</td></tr>
+<tr><td class="flag" title="LinearX defunct">🔴</td><td class="tool">LEAP</td><td>Reference sim (Windows)</td><td>Commercial</td><td>Closed</td><td><span class="pill">full</span></td><td>✓</td><td>✓</td><td><span class="rate t1">●<span class="off">●●●●</span></span></td><td><a href="https://forums.audioholics.com/forums/threads/does-any-one-have-leap-that-could-model-something-for-me.17035/" target="_blank" rel="noopener">LinearX closed — legacy only</a></td></tr>
+<tr><td class="flag" title="Live web app, actively developed">🟢</td><td class="tool"><a href="https://speakerboxlite.com/" target="_blank" rel="noopener">SpeakerBoxLite</a></td><td>Box sim (web/iOS)</td><td><a href="https://speakerboxlite.com/" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">BP</span><span class="pill good">PR</span><span class="pill">TL</span></td><td>✗</td><td>✗</td><td><span class="rate t3">●●●<span class="off">●●</span></span></td><td><span class="warn">Accuracy questioned:</span> <a href="https://www.talkbass.com/threads/speakerbox-lite.1680290/" target="_blank" rel="noopener">DB params "WAY off", 36 vs 2.5 cu ft</a></td></tr>
+<tr><td class="flag" title="Live, modern Next.js">🟢</td><td class="tool"><a href="https://sinedesign.app/" target="_blank" rel="noopener">Sine Design</a></td><td>Box+xover (web)</td><td><a href="https://sinedesign.app/" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">S</span><span class="pill">ported</span><span class="pill">BP</span><span class="pill good">PR</span></td><td>✓</td><td>✗</td><td><span class="rate t2">●●<span class="off">●●●</span></span></td><td>Offline (IndexedDB), no compute API — <a href="REPORT_ORACLE_CROSSCHECK.html">report §4</a></td></tr>
+<tr><td class="flag" title="Live">🟢</td><td class="tool"><a href="https://www.micka.de/en/" target="_blank" rel="noopener">micka.de</a></td><td>Box calc (web)</td><td><a href="https://www.micka.de/en/" target="_blank" rel="noopener">Free</a></td><td>Closed</td><td><span class="pill">S</span><span class="pill">V</span></td><td>✗</td><td>✗</td><td><span class="rate t2">●●<span class="off">●●●</span></span></td><td>OpenISD's oracle — agrees on Vb/fc (<a href="REPORT_ORACLE_CROSSCHECK.html">report §3</a>)</td></tr>
+<tr><td class="flag" title="Live commercial site">🟢</td><td class="tool"><a href="https://www.lautsprechershop.de/tools/t_box_closed_en.htm" target="_blank" rel="noopener">lautsprechershop</a></td><td>Box calc (web)</td><td>Free</td><td>Closed</td><td><span class="pill">S</span><span class="pill">V</span></td><td>✗</td><td>✗</td><td><span class="rate t2">●●<span class="off">●●●</span></span></td><td>Uses an <a href="#f1">empirical leakage model</a> → f3=81 (not a bug, see §2 F1)</td></tr>
+<tr><td class="flag" title="Active — last commit 2026-03">🟢</td><td class="tool"><a href="https://github.com/be1/qspeakers" target="_blank" rel="noopener">QSpeakers</a></td><td>Box sim (Linux/Qt, OSS)</td><td>Free</td><td><a href="https://github.com/be1/qspeakers/blob/master/system.cpp" target="_blank" rel="noopener">GPL-3.0 · 54★</a></td><td><span class="pill">S</span><span class="pill">V</span><span class="pill">BP</span></td><td>✗</td><td>✗</td><td><span class="rate t1">●<span class="off">●●●●</span></span> 54★, active</td><td><b class="good">Readable formulas + alignments</b> — see §2 F2</td></tr>
+<tr><td class="flag" title="Abandoned — last commit 2017-06">🔴</td><td class="tool"><a href="https://github.com/maqifrnswa/scimpy" target="_blank" rel="noopener">Scimpy</a></td><td>Measure+box (Python, OSS)</td><td>Free</td><td><a href="https://github.com/maqifrnswa/scimpy/blob/master/scimpy/speakermodel.py" target="_blank" rel="noopener">GPL-3.0 · 72★</a></td><td><span class="pill">S</span><span class="pill">V</span></td><td>✗</td><td class="good">✓</td><td><span class="rate t1">●<span class="off">●●●●</span></span> 72★, dead since 2017</td><td><b class="good">Chebyshev/QB3 + theoretical F3 formula</b> — §2 F1/F3</td></tr>
+<tr><td class="flag" title="Legacy SourceForge">🔴</td><td class="tool"><a href="https://gspeakers.sourceforge.net/" target="_blank" rel="noopener">GSpeakers</a></td><td>Box+xover (Linux, OSS)</td><td>Free</td><td>GPL (SF)</td><td><span class="pill">box+xover</span></td><td>✓</td><td>✗</td><td><span class="rate t1">●<span class="off">●●●●</span></span></td><td>Needs external SPICE; legacy</td></tr>
+<tr><td class="flag" title="Tiny utility, last commit 2018">🔴</td><td class="tool"><a href="https://github.com/srjh/speaker-driver-parameters" target="_blank" rel="noopener">speaker-driver-parameters</a></td><td>T/S extractor (Python, OSS)</td><td>Free</td><td><a href="https://github.com/srjh/speaker-driver-parameters/blob/master/tsparam.py" target="_blank" rel="noopener">GitHub · 5 commits</a></td><td><span class="pill">—</span></td><td>✗</td><td class="good">✓</td><td><span class="rate t1">●<span class="off">●●●●</span></span></td><td>T/S from a WAV sweep (added-mass/impedance)</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2><span class="n">2.</span>Cracked-open evidence → analysis → recommendations</h2>
+<p class="lead">What I extracted from the open source, the live-site JS and the alignment math — each with a link to the actual source, an analysis, and a concrete recommendation for OpenISD.</p>
+
+<div class="card" id="f1">
+<h3>F1 — The f3 = 81 Hz "discrepancy" is a model choice, not an OpenISD bug <span class="tag bug">BUG?→NO</span></h3>
+<p>The <a href="https://www.lautsprechershop.de/tools/t_box_closed_en.htm" target="_blank" rel="noopener">lautsprechershop closed-box tool</a>'s inline JS (verbatim) uses a <b>leakage-corrected empirical</b> model, not the ideal lossless one:</p>
+<pre>qr = (1/qts)/(1/qb - .1);        // qb = target Qtc; "-0.1" = leakage term (Gaedtke)
+fb = qr*fs;  vr = qr*qr-1;  Vb = vas/vr;               // → Vb ≈ 10 L (not 12.2)
+f3 = 0.824 * fs/qts * (1 + 2*(qb-0.65)*(qb-0.65));      // empirical → 81 Hz</pre>
+<p><b>Analysis:</b> the <code>-0.1</code> leakage term shrinks the box (Vb 10 vs 12.2) and <code>f3</code> is a curve-fit, not the true −3 dB. Independently, <a href="https://github.com/maqifrnswa/scimpy/blob/master/scimpy/speakermodel.py" target="_blank" rel="noopener">Scimpy's sealed model</a> uses the <em>theoretical</em> F3: <code>F3 = fc·√((1/Qtc²−2+√((2−1/Qtc²)²+4))/2)</code>, which equals <code>fc</code> exactly at Qtc=0.707 — matching OpenISD's 68.8 Hz. So OpenISD is correct; lautsprechershop simply models leakage.</p>
+<div class="rec"><b>Recommendation:</b> close the oracle-report bug flag — <b>not an OpenISD bug</b>. But OpenISD only shows <code>fc</code>; add a proper <b>F3 (−3 dB) read-out</b> using Scimpy's closed-form (F3 ≠ fc for non-Butterworth Qtc). Reimplement from the formula (physics, not GPL code).</div>
+</div>
+
+<div class="card" id="f2">
+<h3>F2 — Ready-made vented alignment formulas (BACKLOG P1) <span class="tag gap">GAP</span><span class="tag opp">OPPORTUNITY</span></h3>
+<p><a href="https://github.com/be1/qspeakers/blob/master/optimizer.cpp" target="_blank" rel="noopener">QSpeakers' <code>optimizer.cpp</code></a> contains closed-form Vb/Fb for the classic alignments OpenISD's backlog wants ("expand vented alignment presets"):</p>
+<pre>Bessel:      Vb = 8.0707·Qts^2.5848·Vas       Fb = 0.3552·Qts^-0.9649·Fs
+Keele-Hoge:  Vb = 5.2358·Qts^2.1687·Vas       Fb = Fs
+Bullock:     Vb = Qts·Vas·(4.96·Qts-0.136)    Fb = Fs
+Legendre:    Vb = 10.728·Qts^2.4186·Vas       Fb = 0.3802·Qts^-1.0657·Fs
+Zbinden(M4): Vb = (2.52·Qts-0.35)·Vas         Fb = 0.32·√(1/Qts²+3.38)·Fs
+"max-flat":  Vb = 20·Vas·Qts^3.3              Fb = Fs·(Vas/Vb)^0.31</pre>
+<p><a href="https://github.com/maqifrnswa/scimpy/blob/master/scimpy/speakermodel.py" target="_blank" rel="noopener">Scimpy</a> adds <b>Chebyshev (C4)</b> and <b>QB3</b> (<code>find_ported_params_c4</code>, <code>find_ported_params_qb3</code>). <b>Analysis:</b> these trace to public papers (Bullock, Keele/Hoge, <a href="http://www.mzbinden.ch/ventedalignments/index.html" target="_blank" rel="noopener">Zbinden</a>) — the formulas are facts, not copyrightable; only the GPL code is.</p>
+<div class="rec"><b>Recommendation:</b> implement Bessel / Bullock / Keele-Hoge / Legendre / Chebyshev / QB3 / SBB4 presets in the engine, <b>reimplemented from the published formulas</b> (cite the papers; do <em>not</em> copy QSpeakers/Scimpy GPL source). Cross-check each preset's output against these two tools' numbers as a free oracle.</div>
+</div>
+
+<div class="card" id="f3">
+<h3>F3 — Box-loss (Ql) belongs in the transfer function <span class="tag gap">GAP</span></h3>
+<p><a href="https://github.com/be1/qspeakers/blob/master/system.cpp" target="_blank" rel="noopener">QSpeakers' ported <code>response()</code></a> threads a loss quality factor through every coefficient (<code>getLossQualityFactor()</code>); SpeakerBoxLite defaults <code>Ql=7</code>; lautsprechershop bakes a leakage term into <code>qr</code> (F1). OpenISD's loss model is partial (<code>Qa</code> is backlog).</p>
+<div class="rec"><b>Recommendation:</b> make <b>Ql</b> (and Qa/Qp) first-class inputs and route them into the vented/bandpass transfer function exactly as QSpeakers does (formula visible in <code>system.cpp</code>). Also lets OpenISD match other tools' lossy output when cross-checking (set Ql high = OpenISD's current lossless default).</div>
+</div>
+
+<div class="card" id="f4">
+<h3>F4 — OpenISD's sealed/bandpass math is corroborated by open source <span class="tag opp">CONFIDENCE</span></h3>
+<p>QSpeakers' sealed response is <code>10·log10(fr²/((fr−1)²+fr/Qtc²))</code> with <code>Qtc=√(1+Vas/Vb)·Qts</code>, <code>fb=√(1+Vas/Vb)·Fs</code> — <b>identical to OpenISD's sealed model</b>. Its <a href="https://github.com/be1/qspeakers/blob/master/system.cpp" target="_blank" rel="noopener">4th-order ported &amp; bandpass transfer functions</a> are fully written out and inspectable.</p>
+<div class="rec"><b>Recommendation:</b> add a unit test that evaluates OpenISD's sealed/ported/bandpass response at a few frequencies and asserts it against QSpeakers' formula (reimplemented in the test) — an <b>open, inspectable oracle</b> for the curve shape, complementing micka's scalar checks. Far more trustworthy than scraping SBL.</div>
+</div>
+
+<div class="card" id="f5">
+<h3>F5 — The open-source field is thin and mostly abandoned <span class="tag opp">POSITIONING</span></h3>
+<p>Of the OSS box tools: <a href="https://github.com/be1/qspeakers" target="_blank" rel="noopener">QSpeakers</a> is <b>active</b> (last commit 2026-03, 54★) but Linux/Qt desktop; <a href="https://github.com/maqifrnswa/scimpy" target="_blank" rel="noopener">Scimpy</a> is <b>abandoned</b> (2017, 72★); <a href="https://gspeakers.sourceforge.net/" target="_blank" rel="noopener">GSpeakers</a> is legacy. None has a test suite (Scimpy's <code>speakertest.py</code> is a soundcard measurement engine, not unit tests). The dominant tools are all closed Windows freeware.</p>
+<div class="rec"><b>Recommendation:</b> OpenISD is the <b>only modern, web-native, open, <em>tested</em> tool</b> in the space — lean into that as the differentiator. Track QSpeakers (active GPL formulas) as the reference to cross-check against; don't depend on Scimpy/GSpeakers (dead).</div>
+</div>
+
+<div class="card" id="f6">
+<h3>F6 — There is a trust vacuum around free tools <span class="tag opp">OPPORTUNITY</span></h3>
+<p>Users report <a href="https://www.talkbass.com/threads/speakerbox-lite.1680290/" target="_blank" rel="noopener">SpeakerBoxLite driver params "WAY off"</a> and <a href="https://www.diyaudio.com/community/threads/different-results-between-bassbox-pro-and-speaker-box-lite-which-box-design-software-is-most-accurate-today.430135/" target="_blank" rel="noopener">low confidence in free web apps' accuracy</a>; even respected tools <a href="https://www.diyaudio.com/community/threads/inconsistent-bandpass-enclosure-simulation-in-hornresp-vs-basta-winisd-and-vituixcad.379777/" target="_blank" rel="noopener">disagree on bandpass</a>.</p>
+<div class="rec"><b>Recommendation:</b> make <b>verifiability</b> OpenISD's brand: publish the formulas + literature citations in-app, keep the golden/oracle tests visible, and show which alignment each result uses. That directly answers the community's #1 complaint (unvetted black-box accuracy).</div>
+</div>
+
+<h2><span class="n">3.</span>OpenISD — gaps, bugs &amp; opportunities (prioritised)</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Type</th><th>Item</th><th>Evidence</th><th>Recommendation</th><th class="prio">Pri</th></tr></thead>
+<tbody>
+<tr><td><span class="tag bug">BUG?</span></td><td>f3 vs external tools (81/74.5 vs 68.8)</td><td><a href="#f1">F1</a> — leakage/empirical models, not ours</td><td>Close flag (not a bug); add theoretical F3 read-out</td><td class="prio">P1</td></tr>
+<tr><td><span class="tag gap">GAP</span></td><td>Vented alignment presets (Bessel, Bullock, Keele-Hoge, Legendre, Cheby, QB3, SBB4)</td><td><a href="#f2">F2</a> — formulas in QSpeakers + Scimpy</td><td>Implement from published papers; cross-check vs both tools</td><td class="prio">P1</td></tr>
+<tr><td><span class="tag gap">GAP</span></td><td>First-class box-loss Ql / Qa / Qp</td><td><a href="#f3">F3</a> — QSpeakers loss coefficients</td><td>Route Ql into vented/BP transfer function</td><td class="prio">P1</td></tr>
+<tr><td><span class="tag gap">GAP</span></td><td>6th-order bandpass (parallel &amp; series)</td><td><a href="REPORT_ORACLE_CROSSCHECK.html">oracle report</a> · SBL exposes both</td><td>Extend 4th-order branch; two alignments</td><td class="prio">P2</td></tr>
+<tr><td><span class="tag gap">GAP</span></td><td>Transmission line / horn</td><td>Hornresp/Akabak 1-D domain</td><td>Longer-term; different (1-D) model class</td><td class="prio">P3</td></tr>
+<tr><td><span class="tag gap">GAP</span></td><td>Crossover design &amp; measurement import</td><td>VituixCAD's edge; XSim/REW ecosystem</td><td>Strategic long-term to reach VituixCAD parity</td><td class="prio">P3</td></tr>
+<tr><td><span class="tag opp">OPP</span></td><td>Open, inspectable formula-oracle test</td><td><a href="#f4">F4</a> — QSpeakers formulas match ours</td><td>Unit-test response curve vs reimplemented formula</td><td class="prio">P1</td></tr>
+<tr><td><span class="tag opp">OPP</span></td><td>"Verifiable" positioning (trust vacuum)</td><td><a href="#f6">F6</a> — SBL accuracy complaints</td><td>Show formulas/citations/alignment in-app</td><td class="prio">P2</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2><span class="n">4.</span>Supporting docs &amp; primary sources</h2>
+<p class="lead">Manuals, help pages, source files and downloads behind the claims above.</p>
+<div class="scroll">
+<table>
+<thead><tr><th>Kind</th><th>Document / source</th><th>What it gives</th></tr></thead>
+<tbody>
+<tr><td>Source (OSS)</td><td><a href="https://github.com/be1/qspeakers/blob/master/system.cpp" target="_blank" rel="noopener">QSpeakers system.cpp</a> · <a href="https://github.com/be1/qspeakers/blob/master/optimizer.cpp" target="_blank" rel="noopener">optimizer.cpp</a></td><td>Sealed/ported/bandpass transfer functions + alignment formulas</td></tr>
+<tr><td>Source (OSS)</td><td><a href="https://github.com/maqifrnswa/scimpy/blob/master/scimpy/speakermodel.py" target="_blank" rel="noopener">Scimpy speakermodel.py</a></td><td>Theoretical sealed F3, Chebyshev C4, QB3, impedance model</td></tr>
+<tr><td>Source (OSS)</td><td><a href="https://github.com/srjh/speaker-driver-parameters/blob/master/tsparam.py" target="_blank" rel="noopener">SDP tsparam.py</a></td><td>T/S extraction from a WAV (added-mass/impedance)</td></tr>
+<tr><td>Live-site JS</td><td><a href="https://www.lautsprechershop.de/tools/t_box_closed_en.htm" target="_blank" rel="noopener">lautsprechershop closed-box tool</a></td><td>Gaedtke leakage-corrected empirical sealed formula (view source)</td></tr>
+<tr><td>Manual</td><td><a href="https://kimmosaunisto.net/Software/VituixCAD/VituixCAD_help_11.pdf" target="_blank" rel="noopener">VituixCAD manual (PDF)</a></td><td>Model assumptions, measurement workflow</td></tr>
+<tr><td>Manual</td><td><a href="https://www.petoindominique.fr/pdf/hornresp_manual.pdf" target="_blank" rel="noopener">Hornresp manual (PDF)</a></td><td>1-D horn/TL model, alignment types</td></tr>
+<tr><td>Manual</td><td><a href="https://tolvan.com/basta/Basta!UsersGuide.htm" target="_blank" rel="noopener">Basta! User's Guide</a></td><td>Box types incl. 1-/2-port bandpass</td></tr>
+<tr><td>App note</td><td><a href="https://www.micka.de/en/download/spice-tsp_en.pdf" target="_blank" rel="noopener">micka SPICE-TSP (PDF)</a></td><td>SPICE model of a driver from T/S params</td></tr>
+<tr><td>Reference</td><td><a href="http://www.mzbinden.ch/ventedalignments/index.html" target="_blank" rel="noopener">Zbinden vented alignments</a></td><td>Source of the M4 "moderate" alignment</td></tr>
+<tr><td>Spreadsheet</td><td><a href="http://audio.claub.net/software/kougaard/ubdwnld.html" target="_blank" rel="noopener">Unibox download</a> · <a href="http://audio.claub.net/software.html" target="_blank" rel="noopener">Bagby sheets</a></td><td>Free Excel box/xover models (binary .xls — not machine-parsed here)</td></tr>
+<tr><td>Validation</td><td><a href="http://redspade-audio.blogspot.com/2012/02/akabak-vs-hornresp-vs-real-measurements.html" target="_blank" rel="noopener">Red Spade: Akabak vs Hornresp vs real</a></td><td>Sim-vs-measurement correlation</td></tr>
+<tr><td>Forum</td><td><a href="https://www.diyaudio.com/community/threads/inconsistent-bandpass-enclosure-simulation-in-hornresp-vs-basta-winisd-and-vituixcad.379777/" target="_blank" rel="noopener">Bandpass inconsistency</a> · <a href="https://www.diyaudio.com/community/threads/best-software-for-designing-speaker-enclosures.431500/" target="_blank" rel="noopener">Best software</a> · <a href="https://www.diyaudio.com/community/threads/speaker-design-comprehensive-list-of-recommended-design-tools.324068/" target="_blank" rel="noopener">Comprehensive list</a></td><td>Cross-tool divergence + community consensus</td></tr>
+<tr><td>Forum (accuracy)</td><td><a href="https://www.talkbass.com/threads/speakerbox-lite.1680290/" target="_blank" rel="noopener">SBL params "WAY off" (TalkBass)</a> · <a href="https://www.diyaudio.com/community/threads/vituixcad-accuracy.413990/" target="_blank" rel="noopener">VituixCAD accuracy</a> · <a href="https://www.caraudio.com/threads/winisd-port-velocity-is-impossible.605343/" target="_blank" rel="noopener">WinISD port velocity</a></td><td>Documented bug/accuracy reports</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>
+<b>Method &amp; honesty.</b> Formulas are quoted verbatim from the linked GPL source / live-site JS (2026-07-04). <b>GPL caveat:</b> QSpeakers/Scimpy code is GPL-3.0 — reuse the <em>formulas</em> (public physics, traceable to Bullock/Keele/Hoge/Zbinden/Small papers), never copy the code, unless OpenISD adopts a compatible licence. Popularity is a qualitative composite (forum engagement, tutorials, GitHub stars). Status flags use last-release/commit evidence. Prices/stars/versions drift. Nothing fabricated: no invented view counts; the binary Unibox/Bagby <code>.xls</code> were linked but not machine-parsed; some forum threads block automated fetch and are cited from listing.
+</footer>
+
+</div>
+</body>
+</html>

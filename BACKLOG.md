@@ -166,7 +166,8 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Enclosure types & box model
 
-- [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)
+- [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set). Route `Ql`/`Qa`/`Qp` into the vented & bandpass transfer function — QSpeakers' `system.cpp` `response()` shows the loss-Q coefficients explicitly (reimplement from the physics, not the GPL code).
+- [ ] **P1** `F3` (−3 dB) read-out — the engine surfaces `fc` (system resonance) only; add the true −3 dB frequency. Sealed closed form: `F3 = fc·√((1/Qtc²−2+√((2−1/Qtc²)²+4))/2)` (equals `fc` only at Qtc=0.707). This is a display gap, **not** a calc bug: external tools' higher f3 (SpeakerBoxLite 74.5, lautsprechershop 81) come from empirical/leakage models, while our `fc` matches the theoretical −3 dB — see the cross-tool research report on the `crosscheck-oracle-report` branch.
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
@@ -195,7 +196,8 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Alignments & helpers
 
-- [ ] **P1** Expand vented alignment presets (SBB4, EBS, Bessel, Chebyshev) alongside QB3/B4
+- [ ] **P1** Expand vented alignment presets (SBB4, EBS, Bessel, Bullock, Keele-Hoge, Legendre, Chebyshev, Zbinden/M4) alongside QB3/B4. Closed-form Vb/Fb for each are published (Bullock, Keele & Hoge, [Zbinden](http://www.mzbinden.ch/ventedalignments/index.html) papers) and implemented in QSpeakers (`optimizer.cpp`) and Scimpy (`speakermodel.py`, Chebyshev/QB3) — **reimplement from the papers, not the GPL source**; cross-check each preset against QSpeakers/Scimpy output. Rationale & extracted formulas: `SPEAKER_TOOL_LANDSCAPE.html` on the `crosscheck-oracle-report` branch.
+- [ ] **P1** Formula-oracle unit test — assert the engine's sealed/ported/bandpass response at sample frequencies against the published closed-form transfer functions (independent reimplementation, e.g. cross-checked with QSpeakers). An open, inspectable oracle for curve shape, complementing micka's scalar checks and avoiding dependence on unvetted web tools (SpeakerBoxLite driver params are reported "WAY off").
 - [ ] **P2** Guided design wizard (driver → count → box type → starting params)
 - [ ] **P2** Step-response curve (time-domain, from the transfer function)
 
