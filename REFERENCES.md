@@ -4,7 +4,7 @@ External resources for OpenISD's engine and tests. Two uses: **theory** (what
 the math should be) and **oracles** (known-good values to test against).
 
 > Using these for reference is fine — reading equations and theory, and
-> *cross-checking outputs*, carries no licence issue. Do **not** copy code from
+> _cross-checking outputs_, carries no licence issue. Do **not** copy code from
 > GPL/closed projects into OpenISD; cite them as reference and re-derive.
 
 ---
@@ -15,8 +15,8 @@ OpenISD uses the **analogous-circuit (acoustical impedance analogy)** model with
 controlled sources coupling the electrical → mechanical → acoustical domains. The
 authoritative sources for exactly this approach:
 
-- **W. Marshall Leach Jr — *Introduction to Electroacoustics & Audio Amplifier
-  Design.*** Dedicated chapters on analogous circuits, closed-box and vented-box
+- **W. Marshall Leach Jr — _Introduction to Electroacoustics & Audio Amplifier
+  Design._** Dedicated chapters on analogous circuits, closed-box and vented-box
   systems, acoustic impedance and pressure transfer functions. This is the closest
   textbook match to our `circuit`/`sweep` model.
   Legacy course material: <https://leachlegacy.ece.gatech.edu/audiotext/>
@@ -57,19 +57,22 @@ Useful to compare curve shapes and catch gross errors. **Agreement ≠ correctne
 A wrong baseline institutionalises a bug, so rank fixtures by provenance:
 
 **Tier 1 — closed forms (exact, self-evident).** Already in use:
+
 - Sealed: `fc = Fs·√(1+Vas/Vb)`, `Qtc = Qts·√(1+Vas/Vb)`; |G|² closed form.
 - Passband asymptotes to reference sensitivity.
 
 **Tier 2 — manufacturer datasheets (trustworthy).**
+
 - **Tang Band W6-1139SIF** datasheet is a ready-made, internally-consistent
   `driver`-module fixture (Fs 35, Qts 0.40, Qes 0.47, Vas 11.78 L, Sd 0.0140 m²,
   Bl 8.47, Xmax 11.5 mm, Re 3.6, Mms 39.91 g, Cms 598.98 µm/N). Add more.
 
 **Tier 3 — alignment tables (verify before enshrining).**
+
 - Vented alignment families (B4, QB3, SBB4, C4, Bessel, Chebyshev): Fb/Fs, Vb/Vas,
   F3/Fs vs Qts.
-- **Action: confirm the actual numbers against a *primary* source — Small's JAES
-  paper or Dickason's *Loudspeaker Design Cookbook* — not a web snippet.** e.g. the
+- **Action: confirm the actual numbers against a _primary_ source — Small's JAES
+  paper or Dickason's _Loudspeaker Design Cookbook_ — not a web snippet.** e.g. the
   commonly-quoted B4 anchor "Qts ≈ 0.4048, Fb/Fs = F3/Fs = 1 at Ql = 7" must be
   verified before it becomes a test assertion.
 - Collections to check against (then trace to primary): Leach vented-box PDF (§1);
@@ -78,17 +81,47 @@ A wrong baseline institutionalises a bug, so rank fixtures by provenance:
 
 **Tier 4 — cross-tool agreement (sanity only).** scimpy / Vented outputs (§2).
 
-**Box types without a clean closed form (PR, bandpass):** pin with the *physical
-sanity oracles* already established this session, not a single magic number:
+**Box types without a clean closed form (PR, bandpass):** pin with the _physical
+sanity oracles_ already established this session, not a single magic number:
+
 - output volume velocity → 0 as ω→0 (no DC reinforcement),
 - low-end rolloff ≈ 24 dB/oct (vented/PR) / bandpass shape,
 - two impedance peaks straddling Fb (vented), Fp between peaks (PR).
-The plan should state explicitly that these modules are **less tightly pinned**
-than sealed/vented.
+  The plan should state explicitly that these modules are **less tightly pinned**
+  than sealed/vented.
 
 ---
 
-## 4. Driver data sources (for the library, not the engine)
+## 4. Web-based design tools & cross-check oracles
+
+Comparable end-user enclosure/design tools — used as cross-check oracles and as
+prior-art reference for features. Detailed per-tool findings (fields, automation
+notes, gaps) live in `OTHER_TOOLS.md`; this is the reference index.
+
+- **WinISD** — the desktop incumbent OpenISD emulates; `.wdr` file format is our
+  interchange baseline. <http://www.linearteam.org/> · see `WINISD.md`.
+- **micka.de** — sealed + vented cross-check oracle (`#ideal` calculator; no
+  PR/bandpass). <https://www.micka.de/en/index.php> · see `OTHER_TOOLS.md §2/§6` and
+  `PLAN_SBL_CROSSCHECK.md`.
+- **SpeakerBoxLite** — second oracle covering PR + bandpass.
+  <https://speakerboxlite.com/subwoofer-box-calculator/> · see `OTHER_TOOLS.md §3`.
+- **SpeakerDesign.dev** — free browser toolkit self-billed as a "web-based WinISD
+  alternative" (box sim + cutlist + 3D). <https://speakerdesign.dev/> · see
+  `OTHER_TOOLS.md §4`.
+- **Sonella** — guided DIY full-range design app (Dayton drivers, crossover, STL
+  export). <https://sonella.app/> · see `OTHER_TOOLS.md §5`.
+- **00 Audio Simulator** — closest web competitor; imports `.wdr`, covers
+  sealed/vented/bandpass/PR, adds port velocity + on-graph EQ + share links.
+  <https://simulator.00aud.io/> · see `OTHER_TOOLS.md §6`.
+- **SoundForm** — closed-beta web WinISD app (crossover + multi-driver summation focus);
+  no public URL, access by author DM.
+  <https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
+  · see `OTHER_TOOLS.md §7`.
+
+---
+
+## 5. Driver data sources (for the library, not the engine)
+
 - loudspeakerdatabase.com — per-driver export to WinISD `.wdr` (and other tools);
   no public API. Already the de-facto `.wdr` source.
   **Search tip:** Google `site:loudspeakerdatabase.com <model name>` to find a driver's
@@ -109,94 +142,94 @@ than sealed/vented.
 
   **T/S and acoustic fields** (all verified against DC160-8 / DS115-8):
 
-  | Field | T/S param | API unit | WDR unit | Conversion |
-  |---|---|---|---|---|
-  | `custitem_pe_resonant_frequency_fs` | Fs | Hz | Hz | — |
-  | `custitem_pe_total_q_qts` | Qts | — | — | — |
-  | `custitem_pe_electromagnetic_q_qes` | Qes | — | — | — |
-  | `custitem_pe_mechanical_q_qms` | Qms | — | — | — |
-  | `custitem_pe_dc_resistance_re` | Re | Ω | Ω | — |
-  | `custitem_pe_voice_coil_inductance_le` | Le | mH | H | ÷ 1000 |
-  | `custitem_pe_bl_product_bl` | BL | T·m | T·m | — |
-  | `custitem_pe_diaphragm_mass_airload` | Mms | g | kg | ÷ 1000 |
-  | `custitem_pe_mech_comp_suspension` | Cms | mm/N | m/N | ÷ 1000 |
-  | `custitem_pe_surface_area_of_cone_sd` | Sd | cm² | m² | ÷ 10 000 |
-  | `custitem_pe_compliance_equiv_volume` | Vas | ft³ | m³ | × 0.0283168 |
-  | `custitem_pe_max_linear_excursion` | Xmax | mm | m | ÷ 1000 |
-  | `custitem_pe_impedance` | Znom | Ω | Ω | — |
-  | `custitem_pe_power_handling_rms` | Pe (RMS) | W | W | — |
-  | `custitem_pe_power_handling_max` | Pe (peak) | W | — | — |
-  | `custitem_pe_sensitivity` | SPL sensitivity | dB 2.83 V/1 m | — | not in WDR |
+  | Field                                  | T/S param       | API unit      | WDR unit | Conversion  |
+  | -------------------------------------- | --------------- | ------------- | -------- | ----------- |
+  | `custitem_pe_resonant_frequency_fs`    | Fs              | Hz            | Hz       | —           |
+  | `custitem_pe_total_q_qts`              | Qts             | —             | —        | —           |
+  | `custitem_pe_electromagnetic_q_qes`    | Qes             | —             | —        | —           |
+  | `custitem_pe_mechanical_q_qms`         | Qms             | —             | —        | —           |
+  | `custitem_pe_dc_resistance_re`         | Re              | Ω             | Ω        | —           |
+  | `custitem_pe_voice_coil_inductance_le` | Le              | mH            | H        | ÷ 1000      |
+  | `custitem_pe_bl_product_bl`            | BL              | T·m           | T·m      | —           |
+  | `custitem_pe_diaphragm_mass_airload`   | Mms             | g             | kg       | ÷ 1000      |
+  | `custitem_pe_mech_comp_suspension`     | Cms             | mm/N          | m/N      | ÷ 1000      |
+  | `custitem_pe_surface_area_of_cone_sd`  | Sd              | cm²           | m²       | ÷ 10 000    |
+  | `custitem_pe_compliance_equiv_volume`  | Vas             | ft³           | m³       | × 0.0283168 |
+  | `custitem_pe_max_linear_excursion`     | Xmax            | mm            | m        | ÷ 1000      |
+  | `custitem_pe_impedance`                | Znom            | Ω             | Ω        | —           |
+  | `custitem_pe_power_handling_rms`       | Pe (RMS)        | W             | W        | —           |
+  | `custitem_pe_power_handling_max`       | Pe (peak)       | W             | —        | —           |
+  | `custitem_pe_sensitivity`              | SPL sensitivity | dB 2.83 V/1 m | —        | not in WDR  |
 
   **Physical / mechanical fields**:
 
-  | Field | Meaning | Unit |
-  |---|---|---|
-  | `custitem_pe_baffle_cutout_diameter` | Baffle cutout diameter | inches (string) |
-  | `custitem_pe_bolt_circle_diameter` | Bolt circle diameter | inches |
-  | `custitem_pe_overall_outside_diameter` | Overall outside diameter | inches (string) |
-  | `custitem_pe_depth` | Mounting depth | inches |
-  | `custitem_pe_nominal_diameter` | Nominal driver size (e.g. `"6-1/2"`) | inches (string) |
-  | `custitem_pe_voice_coil_diameter` | Voice coil diameter | inches |
-  | `custitem_pe_no_mounting_holes` | Number of mounting holes | integer |
-  | `custitem_pe_cone_material` | Cone material (e.g. `"Treated Paper"`) | string |
-  | `custitem_pe_surround_material` | Surround material (e.g. `"Rubber"`) | string |
-  | `custitem_pe_basket_frame_material` | Basket / frame material | string |
-  | `custitem_pe_magnet_material` | Magnet material (e.g. `"Ferrite"`) | string |
-  | `custitem_pe_voice_coil_former` | Voice coil former material | string |
-  | `custitem_pe_voice_coil_wire_material` | Voice coil wire material | string |
-  | `custitem_pe_frequency_response` | Frequency response range | string e.g. `"30 to 4,000"` (Hz) |
+  | Field                                  | Meaning                                | Unit                             |
+  | -------------------------------------- | -------------------------------------- | -------------------------------- |
+  | `custitem_pe_baffle_cutout_diameter`   | Baffle cutout diameter                 | inches (string)                  |
+  | `custitem_pe_bolt_circle_diameter`     | Bolt circle diameter                   | inches                           |
+  | `custitem_pe_overall_outside_diameter` | Overall outside diameter               | inches (string)                  |
+  | `custitem_pe_depth`                    | Mounting depth                         | inches                           |
+  | `custitem_pe_nominal_diameter`         | Nominal driver size (e.g. `"6-1/2"`)   | inches (string)                  |
+  | `custitem_pe_voice_coil_diameter`      | Voice coil diameter                    | inches                           |
+  | `custitem_pe_no_mounting_holes`        | Number of mounting holes               | integer                          |
+  | `custitem_pe_cone_material`            | Cone material (e.g. `"Treated Paper"`) | string                           |
+  | `custitem_pe_surround_material`        | Surround material (e.g. `"Rubber"`)    | string                           |
+  | `custitem_pe_basket_frame_material`    | Basket / frame material                | string                           |
+  | `custitem_pe_magnet_material`          | Magnet material (e.g. `"Ferrite"`)     | string                           |
+  | `custitem_pe_voice_coil_former`        | Voice coil former material             | string                           |
+  | `custitem_pe_voice_coil_wire_material` | Voice coil wire material               | string                           |
+  | `custitem_pe_frequency_response`       | Frequency response range               | string e.g. `"30 to 4,000"` (Hz) |
 
   **Box-tuning hints** (PE's own recommended enclosures — not T/S derived):
 
-  | Field | Meaning | Unit |
-  |---|---|---|
-  | `custitem_pe_sealed_f3` | Suggested sealed box −3 dB point | Hz |
-  | `custitem_pe_sealed_volume` | Suggested sealed box volume | ft³ |
-  | `custitem_pe_vented_f3` | Suggested vented box −3 dB point | Hz |
-  | `custitem_pe_vented_volume` | Suggested vented box volume | ft³ |
+  | Field                       | Meaning                          | Unit |
+  | --------------------------- | -------------------------------- | ---- |
+  | `custitem_pe_sealed_f3`     | Suggested sealed box −3 dB point | Hz   |
+  | `custitem_pe_sealed_volume` | Suggested sealed box volume      | ft³  |
+  | `custitem_pe_vented_f3`     | Suggested vented box −3 dB point | Hz   |
+  | `custitem_pe_vented_volume` | Suggested vented box volume      | ft³  |
 
   **Product identification fields**:
 
-  | Field | Meaning |
-  |---|---|
-  | `internalid` | NetSuite internal item ID (integer) |
-  | `itemid` | Part number e.g. `"295-305"` |
-  | `custitem_pe_brand` | Brand name |
-  | `storedisplayname2` | Full product display name |
-  | `urlcomponent` | URL slug e.g. `"Dayton-Audio-DC160-8-6-1-2-Classic-Woofer-295-305"` |
-  | `custitem_pe_webabccode` | Stock priority tier (`A`/`B`/`C`) |
-  | `custitem_pe_reviewcount` | Number of customer reviews |
-  | `custitem_pe_reviewrating` | Average star rating |
-  | `custitem_msrp` | MSRP price |
-  | `custitem_pe_prop65` | California Prop 65 warning required (bool) |
-  | `custitem_pe_bullethighlight1`–`7` | Marketing bullet points |
+  | Field                              | Meaning                                                             |
+  | ---------------------------------- | ------------------------------------------------------------------- |
+  | `internalid`                       | NetSuite internal item ID (integer)                                 |
+  | `itemid`                           | Part number e.g. `"295-305"`                                        |
+  | `custitem_pe_brand`                | Brand name                                                          |
+  | `storedisplayname2`                | Full product display name                                           |
+  | `urlcomponent`                     | URL slug e.g. `"Dayton-Audio-DC160-8-6-1-2-Classic-Woofer-295-305"` |
+  | `custitem_pe_webabccode`           | Stock priority tier (`A`/`B`/`C`)                                   |
+  | `custitem_pe_reviewcount`          | Number of customer reviews                                          |
+  | `custitem_pe_reviewrating`         | Average star rating                                                 |
+  | `custitem_msrp`                    | MSRP price                                                          |
+  | `custitem_pe_prop65`               | California Prop 65 warning required (bool)                          |
+  | `custitem_pe_bullethighlight1`–`7` | Marketing bullet points                                             |
 
   **`custitem_itemcategoryfacet` — category discriminator**
 
   This field identifies the product type and can be used to filter API results:
 
-  | Value | Driver type | Include in library? |
-  |---|---|---|
-  | `"Woofers"` | Woofers | ✓ |
-  | `"Subwoofer Drivers"` | Subwoofer drivers | ✓ |
-  | `"Tweeters"` | Tweeters | ✓ |
-  | `"Passive Radiators"` | Passive radiators | ✓ |
-  | `"Midrange / Midbass Drivers & Full-Range Speakers"` | Midrange, midbass, full-range | ✓ |
-  | `"Planar / Ribbon Transducers"` | Planar / ribbon tweeters | ✓ |
-  | `"Car Audio Tweeters"` | Car audio tweeters | ✓ |
-  | `"Car Audio Midbass Speakers"` | Car audio midbass | ✓ |
-  | `"Car Subwoofer Speakers"` | Car audio subwoofers | ✓ |
-  | `"Pro Woofers, Subwoofers & Midrange Speakers"` | Pro audio woofers / subs | ✓ |
-  | `"Horn Loaded Tweeters & Midranges"` | Horn-loaded drivers | ✓ |
-  | `"Horn Drivers"` | Compression drivers | ✓ |
-  | `"Pro Coaxial Full-Range Speakers"` | Pro coaxials | ✓ |
-  | `"Guitar Speakers & Bass Guitar Speakers"` | Guitar / instrument speakers | ✗ |
-  | `"Exciters & Tactile Transducers"` | Exciters — no standard T/S | ✗ |
-  | `"Speaker & Subwoofer Kits"` | Complete kits | ✗ |
-  | `"Replacement Diaphragms & Baskets"` | Parts, not complete drivers | ✗ |
-  | `"Refurbished, Restocked & Open Box Products"` | Duplicates of existing SKUs | ✗ |
-  | `"Horns & Waveguides"` | Physical horns (no T/S) | ✗ |
+  | Value                                                | Driver type                   | Include in library? |
+  | ---------------------------------------------------- | ----------------------------- | ------------------- |
+  | `"Woofers"`                                          | Woofers                       | ✓                   |
+  | `"Subwoofer Drivers"`                                | Subwoofer drivers             | ✓                   |
+  | `"Tweeters"`                                         | Tweeters                      | ✓                   |
+  | `"Passive Radiators"`                                | Passive radiators             | ✓                   |
+  | `"Midrange / Midbass Drivers & Full-Range Speakers"` | Midrange, midbass, full-range | ✓                   |
+  | `"Planar / Ribbon Transducers"`                      | Planar / ribbon tweeters      | ✓                   |
+  | `"Car Audio Tweeters"`                               | Car audio tweeters            | ✓                   |
+  | `"Car Audio Midbass Speakers"`                       | Car audio midbass             | ✓                   |
+  | `"Car Subwoofer Speakers"`                           | Car audio subwoofers          | ✓                   |
+  | `"Pro Woofers, Subwoofers & Midrange Speakers"`      | Pro audio woofers / subs      | ✓                   |
+  | `"Horn Loaded Tweeters & Midranges"`                 | Horn-loaded drivers           | ✓                   |
+  | `"Horn Drivers"`                                     | Compression drivers           | ✓                   |
+  | `"Pro Coaxial Full-Range Speakers"`                  | Pro coaxials                  | ✓                   |
+  | `"Guitar Speakers & Bass Guitar Speakers"`           | Guitar / instrument speakers  | ✗                   |
+  | `"Exciters & Tactile Transducers"`                   | Exciters — no standard T/S    | ✗                   |
+  | `"Speaker & Subwoofer Kits"`                         | Complete kits                 | ✗                   |
+  | `"Replacement Diaphragms & Baskets"`                 | Parts, not complete drivers   | ✗                   |
+  | `"Refurbished, Restocked & Open Box Products"`       | Duplicates of existing SKUs   | ✗                   |
+  | `"Horns & Waveguides"`                               | Physical horns (no T/S)       | ✗                   |
 
   Useful when a model-name query returns mixed results (e.g. `q=E180HE` returns a
   PR, a woofer, and a kit — use `custitem_itemcategoryfacet` to select the right one).
@@ -210,15 +243,15 @@ than sealed/vented.
   Example with full data: DSA270-PR (295-552). Example with minimal data: E180HE-PR
   (295-1140, only `custitem_pe_nominal_diameter`).
 
-  | Field | T/S param | API unit | WDR unit | Notes |
-  |---|---|---|---|---|
-  | `custitem_pe_resonant_frequency_fs` | Fs | Hz | Hz | free-air resonance of PR suspension |
-  | `custitem_pe_mechanical_q_qms` | Qms | — | — | suspension losses only (no Qes/Qts) |
-  | `custitem_pe_diaphragm_mass_airload` | Mms | g | kg | ÷ 1000 |
-  | `custitem_pe_mech_comp_suspension` | Cms | mm/N | m/N | ÷ 1000 |
-  | `custitem_pe_surface_area_of_cone_sd` | Sd | cm² | m² | ÷ 10 000 |
-  | `custitem_pe_compliance_equiv_volume` | Vas | ft³ | m³ | × 0.0283168 |
-  | `custitem_pe_max_linear_excursion` | Xmax | mm | m | ÷ 1000 |
+  | Field                                 | T/S param | API unit | WDR unit | Notes                               |
+  | ------------------------------------- | --------- | -------- | -------- | ----------------------------------- |
+  | `custitem_pe_resonant_frequency_fs`   | Fs        | Hz       | Hz       | free-air resonance of PR suspension |
+  | `custitem_pe_mechanical_q_qms`        | Qms       | —        | —        | suspension losses only (no Qes/Qts) |
+  | `custitem_pe_diaphragm_mass_airload`  | Mms       | g        | kg       | ÷ 1000                              |
+  | `custitem_pe_mech_comp_suspension`    | Cms       | mm/N     | m/N      | ÷ 1000                              |
+  | `custitem_pe_surface_area_of_cone_sd` | Sd        | cm²      | m²       | ÷ 10 000                            |
+  | `custitem_pe_compliance_equiv_volume` | Vas       | ft³      | m³       | × 0.0283168                         |
+  | `custitem_pe_max_linear_excursion`    | Xmax      | mm       | m        | ÷ 1000                              |
 
   Example response (DSA270-PR, SKU 295-552):
 
@@ -242,11 +275,11 @@ than sealed/vented.
 
   **Tweeter-specific fields** (present on tweeters, absent on woofers):
 
-  | Field | Meaning | Unit |
-  |---|---|---|
-  | `custitem_pe_tweeter_type` | Tweeter topology e.g. `"Soft Dome"`, `"Ring Dome"` | string |
-  | `custitem_pe_cone_dome_diameter` | Dome/cone diameter | inches |
-  | `custitem_pe_cutout_diameter` | Panel cutout diameter (used on tweeters; woofers use `custitem_pe_baffle_cutout_diameter` instead) | inches (string) |
+  | Field                            | Meaning                                                                                            | Unit            |
+  | -------------------------------- | -------------------------------------------------------------------------------------------------- | --------------- |
+  | `custitem_pe_tweeter_type`       | Tweeter topology e.g. `"Soft Dome"`, `"Ring Dome"`                                                 | string          |
+  | `custitem_pe_cone_dome_diameter` | Dome/cone diameter                                                                                 | inches          |
+  | `custitem_pe_cutout_diameter`    | Panel cutout diameter (used on tweeters; woofers use `custitem_pe_baffle_cutout_diameter` instead) | inches (string) |
 
   **Fields absent on tweeters** (present on woofers): `custitem_pe_bl_product_bl`,
   `custitem_pe_diaphragm_mass_airload`, `custitem_pe_mech_comp_suspension`,
@@ -323,6 +356,7 @@ than sealed/vented.
   **To add a new brand**: append it to the `BRANDS` array in `scripts/refresh-pe-catalog.mjs`
   and re-run. The brand string must match the PE API `custitem_pe_brand` field exactly
   (case-sensitive). Verify by running:
+
   ```
   node -e "fetch('https://www.parts-express.com/api/items?q=BrandName&fieldset=details',
     {headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json'}})

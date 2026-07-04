@@ -202,11 +202,152 @@ trace captured yet.
 
 ---
 
-## 4. Open questions
+## 4. SpeakerDesign.dev — WinISD-alternative toolkit
 
-| #   | Tool/Source    | Question                                                                                                                                                                                 | Priority                                                  |
-| --- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 1   | micka.de       | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per PLAN_SBL_CROSSCHECK.md live check). | [documented in test/scenarios.ts]                         |
-| 2   | SpeakerBoxLite | Second oracle for PR + bandpass (the types micka lacks). Drive-real-UI vs. API-endpoint approach undecided.                                                                              | [see §3; spec: speakerboxlite-crosscheck.browser.spec.ts] |
-| 3   | REW            | Impedance + FR measurement reference                                                                                                                                                     | Open                                                      |
-| 4   | LEAP           | High-end simulation suite comparison                                                                                                                                                     | Open                                                      |
+**Site:** https://speakerdesign.dev/
+
+**Role:** A free, browser-based enclosure-design toolkit that positions its box simulator
+as "the ultimate web-based WinISD alternative" — i.e. it competes in the same space as
+OpenISD. Worth tracking as both a design reference and a potential cross-check oracle.
+
+### What it offers (tool survey, 2026-07-04 — detail per `FEATURES.md`)
+
+A broad, polished four-tool suite (client-side web app, no download, no account;
+macOS/Windows/iOS/Android):
+
+1. **Driver Wizard** — guided setup with sealed presets and vented alignments
+   (QB3, SBB4, EBS).
+2. **Box Simulator** — the same graph set as OpenISD, **plus** a full Ql/Qa/Qp box-loss
+   model, 1–4 vents (round or slot), selectable end-correction, drag-to-adjust Vb/Fb with
+   axis locking, frequency-range presets, and configurable listening distance.
+3. **Box Calculator** — six assembly cases with driver/port/bracing/lining displacement and
+   a cut list.
+4. **Cutlist Optimiser** — bin-packing with kerf, rotation, fractional inches, PDF output.
+
+Plus an open knowledge base with tutorials.
+
+**Enclosure types:** sealed and vented only as of the survey; **bandpass, passive radiator,
+and ABC listed as coming.** Broader than OpenISD on construction and education, roughly
+matched on core simulation.
+
+### Gaps / open questions (⚠ unverified — closed source, not output-tested)
+
+- **No WinISD `.wdr` import or export noted** — unlike 00 Audio Simulator (§6), so it is
+  **not** a drop-in driver-for-driver cross-check without manual T/S re-entry.
+- Closed source; the knowledge base is closed (not community-editable).
+- No API/XHR endpoint or readable computed-output panel confirmed — same oracle blocker as
+  SpeakerBoxLite §3.
+
+The Box-Calculator + Cutlist-Optimiser combination carries a design past simulation into
+physical build output, which OpenISD does not yet do (see `BACKLOG.md`).
+
+---
+
+## 5. Sonella — guided DIY speaker-design app
+
+**Site:** https://sonella.app/
+
+**Role:** A browser-based, beginner-oriented **full-range speaker** design tool (explicitly
+"people who build speakers," not subwoofers). Different niche from OpenISD's sub/enclosure
+focus, but relevant for the guided-workflow and crossover angles OpenISD lacks.
+
+### What the homepage states (fetched live 2026-07-04)
+
+- **Structured 7-step guided workflow** from driver selection through build prep, aimed at
+  users with no prior experience.
+- **Driver selection** from "real Dayton Audio drivers" (curated database, single brand).
+- **Sealed or vented** enclosure simulation using T/S parameters for bass response.
+- **Crossover design** — frequencies, filter slopes, tweeter trim (OpenISD has no crossover
+  modelling).
+- **Room/user profile** captured via an initial questionnaire.
+- **Live preview** of the bass-response curve as enclosure volume changes; **interactive 3D**
+  enclosure preview.
+- **Cut lists** (automatic panel dimensions) and **STL export** for CAD/3D printing.
+- Client-side SPA ("all in your browser"), optional account for saving/exporting.
+
+### Not stated on the homepage (gaps for OpenISD comparison)
+
+- ⚠ unverified — no file **import** mentioned (export is STL only; no WinISD WDR / JSON).
+- ⚠ unverified — no detailed FR plot, group delay, cone excursion, or impedance output named.
+- ⚠ unverified — no API/XHR endpoint visible.
+- Scope is narrower on drivers (Dayton Audio only) but broader on the build (crossover +
+  full multi-way, not just the enclosure).
+
+---
+
+## 6. 00 Audio Simulator (simulator.00aud.io) — closest web competitor
+
+**Site:** https://simulator.00aud.io/
+
+**Role:** A "modern, browser-based WinISD alternative" and the closest feature-match to
+OpenISD found so far — it overlaps OpenISD's core (WDR import, sealed/vented/bandpass/PR,
+excursion + impedance + group delay) and exceeds it in a few areas (port velocity, on-graph
+parametric EQ, side-by-side comparison). The most important tool to track.
+
+### What the homepage states (fetched live 2026-07-04)
+
+**Enclosure types** — sealed, bass-reflex (vented), bandpass (BP4 + BP6), passive radiator.
+The feature matrix marks **transmission line and horn as "not yet"** (defers to HornResp).
+This matches OpenISD's own `BoxType` coverage closely.
+
+**Driver input** — manual T/S entry (Fs, Qts, Vas, Sd, …), **import of WinISD `.wdr`
+files**, Unibox spreadsheet compatibility, and "paste a spec-sheet and auto-infer T/S
+parameters".
+
+**Outputs** — frequency-response SPL, cone excursion, impedance, **port velocity**, group
+delay, plus a parametric-EQ overlay with draggable filter nodes (highpass/lowpass).
+Resizable charts and **side-by-side enclosure comparison**.
+
+**Architecture / data** — client-side SPA, zero-install, works offline after load
+(Windows/macOS/iPad/mobile). Projects private by default; **shareable via explicit link
+generation**. Interactive schematic signal-path visualization.
+
+### Why this one matters most
+
+- **It imports `.wdr`** — the same interchange format OpenISD reads/writes — so it is
+  directly comparable driver-for-driver and is a strong candidate cross-check oracle for
+  sealed/vented/BP/PR (the exact types OpenISD ships).
+- **Port velocity and side-by-side comparison** are features OpenISD lacks (see `BACKLOG.md`).
+- **Share-by-link + private-by-default** mirrors OpenISD's own save/share model.
+
+### Not stated on the homepage (verify before relying)
+
+- ⚠ unverified — no API/XHR endpoint mentioned (share links exist, but no documented
+  programmatic interface). A network trace would be needed to confirm an oracle-friendly
+  endpoint, same open question as SpeakerBoxLite §3.
+- ⚠ unverified — no built-in driver **database** mentioned (entry is manual / paste / import).
+- ⚠ unverified — the "auto-infer T/S from a pasted spec sheet" accuracy is unknown.
+
+---
+
+## 7. SoundForm — closed-beta web WinISD app
+
+**By:** u/BusyEntrepreneur9636 ·
+https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/
+
+**Role:** Another browser-based WinISD alternative, in **closed beta** (access by DM to the
+author). No public URL to fetch, so everything here is second-hand from the author's Reddit
+posts — ⚠ unverified, not tested by any OpenISD contributor.
+
+- Apparent focus: **crossover design and multi-driver (2-/3-way) summation** — the multi-way
+  arc OpenISD does not cover (see `FEATURES.md §5`).
+- Too little public information exists to build a feature matrix, so SoundForm is
+  **deliberately excluded from the `COMPARISON.md` web-alternatives matrix** — a row of `⚠`
+  guesses would be worse than none.
+- Worth re-checking once it opens beyond invite; the crossover/summation focus is the same
+  gap SpeakerBoxLite and (planned) OpenISD address.
+
+---
+
+## 8. Open questions
+
+| #   | Tool/Source        | Question                                                                                                                                                                                                        | Priority                                                  |
+| --- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | micka.de           | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per PLAN_SBL_CROSSCHECK.md live check).                        | [documented in test/scenarios.ts]                         |
+| 2   | SpeakerBoxLite     | Second oracle for PR + bandpass (the types micka lacks). Drive-real-UI vs. API-endpoint approach undecided.                                                                                                     | [see §3; spec: speakerboxlite-crosscheck.browser.spec.ts] |
+| 3   | SpeakerDesign.dev  | Self-described "web-based WinISD alternative" (§4). Does it expose enclosure types beyond ported, WDR/JSON import-export, or a readable computed output? Potential cross-check oracle + build-output reference. | Open                                                      |
+| 4   | Sonella            | Guided full-range design app with crossover + STL (§5). Relevant to OpenISD's missing guided workflow and crossover modelling, not sub cross-check.                                                             | Open                                                      |
+| 5   | 00 Audio Simulator | Closest web competitor — imports `.wdr`, covers sealed/vented/BP/PR (§6). Best cross-check-oracle candidate: is there a readable computed output or an XHR endpoint behind the share-link flow?                 | Open                                                      |
+| 6   | SoundForm          | Closed-beta web WinISD app focused on crossover + multi-driver summation (§7). Re-evaluate when it opens past invite-only; no feature data yet.                                                                 | Open                                                      |
+| 7   | REW                | Impedance + FR measurement reference                                                                                                                                                                            | Open                                                      |
+| 8   | LEAP               | High-end simulation suite comparison                                                                                                                                                                            | Open                                                      |
