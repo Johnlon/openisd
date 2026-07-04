@@ -124,5 +124,5 @@ to enter the field — not that WinISD accepted the typed value unchanged.
 The `ParState` in WDR files from loudspeakerdatabase.com and other scrapers is a fixed
 template string copied from a reference file. It does **not** reflect the actual
 entry/calculation state of the parameters in that specific driver. This is harmless for
-Resonate (which re-derives all T/S parameters from scratch on import), but means the
+OpenISD (which re-derives all T/S parameters from scratch on import), but means the
 ParState in scraped files carries no information about which values were measured vs derived.

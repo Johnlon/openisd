@@ -23,4 +23,4 @@ createServer((req, res) => {
     res.writeHead(404);
     res.end('Not found');
   }
-}).listen(PORT, () => console.log(`Resonate dev server → http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`OpenISD dev server → http://localhost:${PORT}`));

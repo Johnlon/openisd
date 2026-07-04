@@ -21,7 +21,7 @@ These drivers should **not** be used for new speaker designs. Most models are:
 
 The archive includes ~1120 drivers spanning many brands (Seas, Peerless, Eminence, Tang Band, etc.), but the specific models are 15–25 years old. While some brand names are still active, their current product lines do not overlap with these archived models.
 
-No exact driver matches exist between this archive and any of Resonate's active driver sources (Parts Express, SB Acoustics, Scan-Speak, Wavecor, etc.).
+No exact driver matches exist between this archive and any of OpenISD's active driver sources (Parts Express, SB Acoustics, Scan-Speak, Wavecor, etc.).
 
 ## Using this folder
 

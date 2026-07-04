@@ -1,8 +1,8 @@
 [Driver]
 Brand=Demo
 Model=Generic 6.5" Woofer
-Manufacturer=Resonate
-ProvidedBy=Resonate
+Manufacturer=OpenISD
+ProvidedBy=OpenISD
 Comment=Generic demo 6.5-inch woofer — the app's default driver. Not a real product; representative T/S values for trying the tool.
 DateAdded=20260701
 DateModified=20260701

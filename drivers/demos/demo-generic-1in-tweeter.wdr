@@ -1,8 +1,8 @@
 [Driver]
 Brand=Demo
 Model=Generic 1" Tweeter
-Manufacturer=Resonate
-ProvidedBy=Resonate
+Manufacturer=OpenISD
+ProvidedBy=OpenISD
 Comment=Generic demo 1-inch dome tweeter — not a real product; representative T/S values for trying the tool.
 DateAdded=20260701
 DateModified=20260701

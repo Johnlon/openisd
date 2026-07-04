@@ -5,22 +5,13 @@ mid-sweep, producing a blank/garbage chart with no explanation. This undermines 
 one thing the tool exists to do: produce trustworthy numbers.
 
 Design + rationale: `CODE_REVIEW/ENGINE_HARDENING.md`. Findings:
-`CODE_REVIEW/CODE_REVIEW.md` §16-21, §10-11.
+`CODE_REVIEW/CODE_REVIEW.md` §11, §16-18, §20-21.
 
 **Failure is communicated with the `Result` pattern, never by throwing** — the
 engine's contract (`js-patterns.md`) is `{ value, errors }` with `error`/`warn`
 levels. The two layers below both feed that one channel.
 
 ---
-
-## Done
-
-- [x] **Precondition in `deriveDriver`** — returns `{ value: null, errors }` for
-      missing/degenerate required fields (`Fs/Re/Sd/Vas > 0`, ≥2 of `Qts/Qes/Qms`),
-      and `warn` for absent `Pe`/`Xmax`. Fixes §16. UI renders `.gmsg` (block) and
-      `.drv-issues` (dismissable warn).
-- [x] **§10 `Xmax` absent** — `maxCurves` uses the Pe limit only; no `NaN`.
-- [x] **§19 silent `Pe || 50`** — removed; absent `Pe` omits the thermal line + warns.
 
 ## To do
 
@@ -56,7 +47,7 @@ levels. The two layers below both feed that one channel.
 
 ## Acceptance criteria
 
-- [ ] A driver with `Vas`+`Qts` but no `Qms` → clear message, not a blank graph. *(done)*
+- [ ] A driver with `Vas`+`Qts` but no `Qms` → clear message, not a blank graph.
 - [ ] `Vb = 0` → clear `error`, not `Infinity`-poisoned curves.
 - [ ] An isolated mid-sweep singularity → the curve still draws with a gap + a `warn`
       naming the frequency; it is never silently blanked.

@@ -209,5 +209,5 @@ Only two sources are authoritative for WinISD behaviour:
 1. **WinISD.exe itself** — behaviour observed by running the application.
 2. **WinISD help files** — `research/winisd/help/`.
 
-Do not infer WinISD behaviour from Resonate source code, forum posts, or third-party
+Do not infer WinISD behaviour from OpenISD source code, forum posts, or third-party
 documentation without cross-checking against one of these two sources.

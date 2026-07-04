@@ -8,10 +8,9 @@ type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax'
 type MyDriver = DriverRaw & { _savedAt?: number };
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
-const MY_DRIVERS_KEY_LEGACY = 'resonate_my_drivers';   // pre-OpenISD key — read-fallback so saved drivers survive the rename
 
 function loadMyDrivers(): MyDriver[] {
-  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? localStorage.getItem(MY_DRIVERS_KEY_LEGACY) ?? '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? '[]'); } catch { return []; }
 }
 function saveMyDrivers(list: MyDriver[]) {
   try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }

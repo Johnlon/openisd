@@ -1,13 +1,13 @@
 {
   "$schema": "./sources.schema.md",
   "version": 2,
-  "description": "Federated driver-data sources, keyed by a short stable source id. Resonate links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this map (and you can paste any GitHub repo ad hoc). A driver's unique identity is its source key + its path within that source — never its display name, which can repeat. Add a source by opening a PR that adds a keyed entry here; the key is the drivers/ folder name for bundled sources, or a short slug for federated ones.",
+  "description": "Federated driver-data sources, keyed by a short stable source id. OpenISD links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this map (and you can paste any GitHub repo ad hoc). A driver's unique identity is its source key + its path within that source — never its display name, which can repeat. Add a source by opening a PR that adds a keyed entry here; the key is the drivers/ folder name for bundled sources, or a short slug for federated ones.",
   "sources": {
     "demos": {
-      "name": "Resonate demos",
+      "name": "OpenISD demos",
       "url": "https://github.com/Johnlon/resonate/tree/main/drivers/demos",
-      "description": "Generic demo drivers shipped with Resonate (a 6.5\" woofer and a 1\" tweeter) — not real products; representative values for trying the tool. The woofer is the app's default driver.",
-      "license": "public domain (Resonate demo data)"
+      "description": "Generic demo drivers shipped with OpenISD (a 6.5\" woofer and a 1\" tweeter) — not real products; representative values for trying the tool. The woofer is the app's default driver.",
+      "license": "public domain (OpenISD demo data)"
     },
     "matt": {
       "name": "Matt (mtg90) / AVS Forum",
