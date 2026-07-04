@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch, nextTick } from 'vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
-import { C, RHO } from '@openisd/engine';
 import type { DriverRaw } from '@openisd/engine';
+import { Driver } from '@openisd/winisd';
 
 const props = defineProps<{ open: boolean }>();
 const emit  = defineEmits<{ close: []; apply: [raw: DriverRaw] }>();
 useEscToClose(() => props.open, () => emit('close'));
 
-// C (speed of sound) and RHO (air density) come from the engine — single source of
-// truth for the T/S conversions, so the editor's derived values match the sim's.
+// The Driver ADT is the single derivation authority — it owns E/C/N and every derived
+// value (Cms/Mms/Rms/Bl, Sd↔Dia, Vd, η₀, SPL, c/roo). The editor holds NO T/S math; it
+// only converts display↔SI at the edges and projects the Driver's cells.
 
 interface Param {
   key: string; unit: string; sect: string; label: string; desc: string;
@@ -159,60 +160,31 @@ function fmtSI(key: string, si: number): string {
   return parseFloat(v.toPrecision(4)).toString();
 }
 
-// ── Calculation (same equations as engine's deriveDriver) ─────────────────
-const resolvedSI = computed<Record<string, number>>(() => {
-  const r: Record<string, number> = {};
-
+// ── Projection of the Driver ADT ──────────────────────────────────────────
+// Build the Driver from what's typed (converted to SI). All E/C/N and every derived
+// value come from it — the editor keeps no duplicate T/S math. The `entered` buffer is
+// the reactive source; a value that fails toSI (invalid/≤0) stays in the buffer (shown
+// as E) but is not fed to the model, matching the previous behaviour.
+const drv = computed(() => {
+  const d = new Driver();
   for (const key of activeEntered.value) {
-    const str = entered[key];
-    if (!str) continue;
-    const si = toSI(key, str);
-    if (si != null && si > 0) r[key] = si;
+    const si = toSI(key, entered[key]);
+    if (si != null && si > 0) d.enter(key, si);
   }
-
-  for (let pass = 0; pass < 2; pass++) {
-    if (!r.Sd && r.Dia)  r.Sd  = Math.PI * (r.Dia / 2) ** 2;
-    if (!r.Dia && r.Sd)  r.Dia = 2 * Math.sqrt(r.Sd / Math.PI);
-
-    if (!r.Qts && r.Qes && r.Qms) r.Qts = r.Qes * r.Qms / (r.Qes + r.Qms);
-    if (!r.Qes && r.Qts && r.Qms) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
-    if (!r.Qms && r.Qts && r.Qes) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
-
-    // Derived values: `== null` guards so an entered override (state E) is never
-    // overwritten by the computed value, and feeds downstream formulas.
-    if (r.Fs && r.Vas && r.Sd) {
-      const Cas = r.Vas / (RHO * C * C);
-      if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
-      if (r.Mms == null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
-      if (r.Rms == null && r.Qms) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
-      if (r.Bl == null && r.Re && r.Qes) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
-    }
-
-    if (r.Vd == null && r.Sd && r.Xmax) r.Vd = r.Sd * r.Xmax;
-    if (r.no == null && r.Fs && r.Vas && r.Qes)
-      r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;
-    if (r.SPL == null && r.no && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
-  }
-
-  // Environment constants autofill to the standard air values used by the calcs
-  // (state C) until the user overrides them; clearing a field reverts to the default.
-  if (r.c   == null) r.c   = C;
-  if (r.roo == null) r.roo = RHO;
-
-  return r;
+  return d;
 });
 
 // E = you typed it (sticks); C = calculated from the others; N = not entered yet.
+// E is decided by the input buffer (rendering concern); C/N comes from the Driver.
 function stateOf(key: string): 'E' | 'C' | 'N' {
   if (activeEntered.value.has(key)) return 'E';
-  if (resolvedSI.value[key] != null) return 'C';
-  return 'N';
+  return drv.value.cell(key).state;
 }
 
 function displayVal(key: string): string {
   if (activeEntered.value.has(key)) return entered[key];
-  const si = resolvedSI.value[key];
-  return si != null ? fmtSI(key, si) : '';
+  const c = drv.value.cell(key);
+  return c.state === 'C' && typeof c.value === 'number' ? fmtSI(key, c.value) : '';
 }
 
 function onInput(key: string, e: Event) {
@@ -222,22 +194,16 @@ function onInput(key: string, e: Event) {
 }
 
 // ── Validation ────────────────────────────────────────────────────────────
-const canApply = computed(() => {
-  const si = resolvedSI.value;
-  const qCount = [si.Qts, si.Qes, si.Qms].filter(v => v != null).length;
-  return !!(si.Fs && si.Sd && si.Re && si.Vas && qCount >= 2);
-});
+// The Driver's errors() is the Apply gate — no blocking error means it derives.
+const canApply = computed(() => drv.value.errors().every(e => e.level !== 'error'));
 
-// A field that is REQUIRED to build the driver but still N reads red (blocking),
-// vs. the gentle yellow used for optional not-entered fields.
-const Q_KEYS = ['Qts', 'Qes', 'Qms'];
+// A field that is REQUIRED to build the driver but still N reads red (blocking), vs.
+// the gentle yellow used for optional not-entered fields. The Driver owns the alias
+// mapping (Sd's error surfaces on Dia; the "need two Q" error on the whole trio), so
+// there is no hardcoded field list here any more.
 function isRequiredMissing(key: string): boolean {
   if (stateOf(key) !== 'N') return false;
-  const si = resolvedSI.value;
-  if (key === 'Fs' || key === 'Re' || key === 'Vas') return true;
-  if (key === 'Sd' || key === 'Dia') return si.Sd == null;
-  if (Q_KEYS.includes(key)) return Q_KEYS.filter(k => si[k] != null).length < 2;
-  return false;
+  return drv.value.cell(key).error?.level === 'error';
 }
 
 // Which driver fields each graph depends on. Verified against the engine:
@@ -261,9 +227,9 @@ function expandKey(k: string): string[] {
   return [k];
 }
 function tokPresent(tok: Tok): boolean {
-  const si = resolvedSI.value;
-  if (tok.k === 'Q') return ['Qts', 'Qes', 'Qms'].filter(k => si[k] != null).length >= 2;
-  return si[tok.k!] != null; // Sd token covers Sd-or-Dia (both resolve to Sd)
+  const has = (k: string) => drv.value.cell(k).value != null;
+  if (tok.k === 'Q') return ['Qts', 'Qes', 'Qms'].filter(has).length >= 2;
+  return has(tok.k!); // Sd token covers Sd-or-Dia (both resolve to Sd)
 }
 // green = present (graph available); red = required-but-missing; yellow = optional-but-blank.
 function tokClass(tok: Tok): string {
@@ -315,7 +281,13 @@ function resetAll() {
 
 function applyDriver() {
   if (!canApply.value) return;
-  const si = resolvedSI.value;
+  // Resolved SI values (E or C) projected from the Driver — the plain key→value
+  // lookup the raw assembly below expects; dimOnly fields pass through in mm/g.
+  const si: Record<string, number> = {};
+  for (const p of PARAMS) {
+    const v = drv.value.cell(p.key).value;
+    if (typeof v === 'number') si[p.key] = v;
+  }
   const name = drvName.value.trim() ||
     [drvBrand.value, drvModel.value].filter(Boolean).join(' ') || 'Custom Driver';
 
@@ -338,7 +310,7 @@ function applyDriver() {
   if (si.Xmax) raw.Xmax = si.Xmax;
   if (si.Pe)   raw.Pe   = si.Pe;
 
-  // Physical dimension fields (stored in mm/g as-is from resolvedSI, which passes dimOnly through)
+  // Physical dimension fields (stored in mm/g as-is; dimOnly fields pass through un-normalised)
   for (const p of PARAMS.filter(x => x.dimOnly)) {
     const v = si[p.key];
     if (v != null && v > 0) raw[p.key] = v;
