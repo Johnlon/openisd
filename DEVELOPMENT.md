@@ -58,6 +58,7 @@ For all parsing and extraction logic in `scripts/scrapers/`. Fast, deterministic
 - Every parser function (`parse_field_value`, `extract_h1`, `parse_freq_range_str`, field-mapping logic) must have direct unit tests.
 - Network/HTTP concerns (fetching, caching, pagination) are integration concerns — tested against saved HTML fixtures in `scripts/scrapers/fixtures/`, never against the live site.
 - Run: `python -m pytest scripts/scrapers/ -v`
+- **Prerequisites:** the suite needs `pydantic` (schema model in `scripts/wdr_meta_schema.py`) and `pyyaml`. Install once with `pip install pydantic pyyaml` (on a PEP 668 / externally-managed system such as WSL/Ubuntu, add `--break-system-packages`, or use a virtualenv). Without them pytest fails at collection with `ModuleNotFoundError`.
 
 Rules: `.claude/context/testing-python.md`
 

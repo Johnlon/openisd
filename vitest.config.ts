@@ -15,6 +15,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'winisd',
+          root: './packages/winisd',
+          environment: 'node',
+          include: ['test/**/*.test.{mjs,ts}'],
+        },
+      },
+      {
+        test: {
           name: 'ui',
           root: './packages/ui',
           environment: 'node',

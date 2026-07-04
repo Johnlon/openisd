@@ -1,0 +1,19 @@
+{
+  "name": "@openisd/winisd",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "WinISD interop — .wdr parse/serialise and ParState E/C/N provenance. Depends on @openisd/engine physics.",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openisd/engine": "*"
+  }
+}

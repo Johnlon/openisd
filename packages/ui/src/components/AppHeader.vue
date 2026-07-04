@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { state, driver } from '../store.js';
-import { toWdr, parseWdr } from '@openisd/engine';
+import { toWdr, parseWdr } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
 
@@ -64,6 +64,7 @@ function showAbout() {
 
 <template>
   <header>
+    <img class="logo" src="/icon.svg" alt="OpenISD" width="28" height="28">
     <h1>OpenISD<span style="color:var(--acc)"> ~</span> &nbsp;
       <small>open loudspeaker enclosure simulator · community-owned · runs anywhere</small>
     </h1>

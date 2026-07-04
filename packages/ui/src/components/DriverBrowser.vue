@@ -2,7 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { state, DEFAULT_DRIVER } from '../store.js';
 import HelpTip from './HelpTip.vue';
-import { parseWdr } from '@openisd/engine';
+import { parseWdr } from '@openisd/winisd';
 import type { DriverRaw } from '@openisd/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';

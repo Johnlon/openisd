@@ -25,11 +25,16 @@ reactive class + fixed-E overrides + `cell(field)` single per-field accessor). T
 `docs/DRIVER_ADT_DESIGN.md` §"Two things to decide before building" flagged two forks.
 Both are now decided — best design, not lowest-risk:
 
-1. **Reactive class instance** (not a plain-data core). Only a class makes the
-   `enter`/`clear`-only invariant _structural_ — a plain `{ values, marks }` object lets
-   any call site write a mark directly and re-creates the "anemic reactive bag" the design
-   exists to kill. Vue 3 reactivity works with a class instance; the marks/values live in a
-   **private reactive object** inside the instance, exposed only through methods.
+1. **Reactive class instance with framework-free reactivity** (not a plain-data core,
+   not Vue-coupled). Only a class makes the `enter`/`clear`-only invariant _structural_ —
+   a plain `{ values, marks }` object lets any call site write a mark directly and
+   re-creates the "anemic reactive bag" the design exists to kill. The class carries its
+   **own general-purpose change notification** — a `subscribe(listener)` observer that
+   `enter`/`clear` fire — so it is reactive **without importing Vue or any UI framework**.
+   `Driver` is core logic in a lower layer (`@openisd/winisd`); it must not depend on the
+   UI. The Vue binding is glue that lives in the UI layer and *subscribes* to the Driver
+   (arrows point up: ui → winisd → engine, never down). This keeps AD-6's litmus test
+   intact — `@openisd/winisd` stays framework-free and CLI-reusable.
 2. **Fixed-E overrides** (WinISD semantics). Overriding a normally-derived field (Cms, Bl,
    SPL, Mms, Rms, Vd, η₀, c, roo) marks it **E** and the entered value sticks — dependents
    consume it, nothing recomputes around it. This is required for ParState round-trip
