@@ -45,7 +45,7 @@ export function drawOne(
   const Y = (v: number) => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
 
   // frequency grid
-  ctx.strokeStyle = '#243040'; ctx.fillStyle = '#7c8a9c'; ctx.font = '9px Segoe UI'; ctx.lineWidth = 1;
+  ctx.strokeStyle = '#243040'; ctx.fillStyle = '#7c8a9c'; ctx.font = '9px Inter'; ctx.lineWidth = 1;
   for (let dec = Math.floor(lx0); dec <= Math.ceil(lx1); dec++)
     for (const mul of [1,2,3,4,5,6,7,8,9]) {
       const f = mul * Math.pow(10, dec); if (f < f0 || f > f1) continue;
@@ -97,7 +97,7 @@ export function drawOne(
   // legend — only when there are multiple named series
   const namedSeries = plotData.series.filter(s => s.name);
   if (namedSeries.length > 1) {
-    ctx.font = '9px Segoe UI'; ctx.textAlign = 'left';
+    ctx.font = '9px Inter'; ctx.textAlign = 'left';
     const lh = 13, lx = m.l + 6;
     let ly = m.t + 6;
     for (const s of namedSeries) {

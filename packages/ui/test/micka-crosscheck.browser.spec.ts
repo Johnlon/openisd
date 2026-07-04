@@ -15,13 +15,6 @@
  *     physics locally without network dependency)
  *
  * Run: npx playwright test test/micka-crosscheck.browser.spec.js
- *
- * ── Vented box NOT cross-checked here (documented discrepancy) ────────────────
- * For a 5 cm bore, 10 cm physical vent length:
- *   OpenISD: Fb = 37.1 Hz  (Leff = L + 0.85·d, Beranek 1954)
- *   micka.de: Fb = 37.85 Hz (back-calculated: smaller end-correction, ~0.75·d)
- * This ~2% divergence is a known end-correction convention difference, not a bug.
- * See alignments.js tuningFromLength() for OpenISD's documented choice.
  */
 
 import { test, expect } from '@playwright/test';
@@ -47,6 +40,11 @@ for (const S of SCENARIOS) {
     // Fill box-specific inputs
     if (S.box.type === 'sealed' && S.box.Qtc != null) {
       await page.locator('input[name="qtc"]').fill(String(S.box.Qtc));
+    } else if (S.box.type === 'vented' && S.box.Vb != null && S.box.ventD != null && S.box.ventL != null) {
+      // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions
+      await page.locator('input[name="vb2"]').fill(String(S.box.Vb));
+      await page.locator('input[name="rd2"]').fill(String(S.box.ventD));
+      await page.locator('input[name="lv2"]').fill(String(S.box.ventL));
     }
 
     // Submit — full page POST; Playwright waits for network idle before asserting

@@ -3,7 +3,7 @@
   --fg:#dfe6ee; --mut:#8a99ab; --acc:#4fb0ff; --acc2:#ffb454; --good:#5ad17a; --bad:#ff6b6b;
 }
 * { box-sizing: border-box }
-body { margin:0; font:13px/1.45 "Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
+body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
 h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.3px }
 h1 small { color:var(--mut); font-weight:400; font-size:11px }
 header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }

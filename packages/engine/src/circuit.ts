@@ -99,7 +99,7 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
     U0 = UD;
 
   } else if (box === 'vented') {
-    // Port acoustic mass Map = ρ·Leff/Sp, Leff = L + 0.85·d (end correction)
+    // Port acoustic mass Map = ρ·Leff/Sp, Leff = L + END_CORRECTION·d (end correction)
     // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
     const Map = RHO * P.Leff! / P.Sp!, Rap = portLoss(w, Map, P);
     const Zport = cAdd(cx(Rap, 0), cx(0, w * Map));

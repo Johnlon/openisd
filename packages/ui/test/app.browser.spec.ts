@@ -90,15 +90,15 @@ const BUTTERWORTH_FC_HZ  = '68.8'; // toFixed(1) of 68.84 Hz
 // Helmholtz resonator: Fb = (C/2π) × √(Sp / (Leff × Vb))
 //   Sp   = π × (0.025)² = 1.9635×10⁻³ m²          (port cross-section)
 //   d    = 2×√(Sp/π)   = 0.05 m                   (end-correction diameter = port diameter)
-//   Leff = 0.10 + 0.85×0.05 = 0.1425 m             (effective port length)
+//   Leff = 0.10 + END_CORRECTION×0.05 = 0.10 + 0.732×0.05 = 0.1366 m  (flanged one end, free the other — WinISD default)
 //   Cab  = Vb/(RHO×C²) = 0.030/141853 = 2.115×10⁻⁷ m/N
-//   Map  = RHO×Leff/Sp = 1.20095×0.1425/1.9635×10⁻³ = 87.16 kg/m⁴
-//   Fb   = 1/(2π×√(Map×Cab)) = 37.07 Hz → "37.1"
+//   Map  = RHO×Leff/Sp = 1.20095×0.1366/1.9635×10⁻³ = 83.55 kg/m⁴
+//   Fb   = 1/(2π×√(Map×Cab)) = 37.86 Hz → "37.9"
 // Ref: Wikipedia — Helmholtz resonance (https://en.wikipedia.org/wiki/Helmholtz_resonance)
 const VENTED_VB_L    = 30;    // box volume, litres
 const VENT_DIAM_CM   = 5;     // port bore diameter, cm (UI input unit; state stores m = /100)
 const VENT_LENGTH_CM = 10;    // port tube length, cm
-const VENTED_FB_HZ   = '37.1'; // StatBar: fb.toFixed(1)
+const VENTED_FB_HZ   = '37.9'; // StatBar: fb.toFixed(1)
 
 // Helper: locate a NumInput's <input> element by its paired <label> text.
 // NumInput renders a plain <input type="number"> with no id or data-bind;
@@ -160,7 +160,7 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so sta
   await expect(page.locator('#stat')).toContainText(`fc: ${BUTTERWORTH_FC_HZ} Hz`);
 });
 
-test('vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.1Hz (Helmholtz resonator)', async ({ page }) => {
+test('vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.9Hz (Helmholtz resonator)', async ({ page }) => {
   // Fb depends only on box geometry (Vb, port Sp, port Leff) — driver T/S play no role
   await page.locator('#boxtype').selectOption('vented');
 
@@ -176,7 +176,7 @@ test('vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.1Hz (Helmholtz
   await ventLInput.fill(String(VENT_LENGTH_CM)); // scale=100: 10 → stores 0.10 m
   await ventLInput.press('Tab');
 
-  // Helmholtz: Sp=1.9635e-3 m², Leff=0.1425 m, C=343.68 m/s → Fb=37.07Hz → "37.1"
+  // Helmholtz: Sp=1.9635e-3 m², Leff=0.1366 m, C=343.68 m/s → Fb=37.86Hz → "37.9"
   await expect(page.locator('#stat')).toContainText(`Fb: ${VENTED_FB_HZ} Hz`);
 });
 
