@@ -1,7 +1,7 @@
 import { reactive, computed, ref, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
 import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@openisd/engine';
-import { Driver as DriverModel } from '@openisd/winisd';
+import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
 
@@ -68,6 +68,12 @@ export function setDriverFromWdr(text: string): DriverModel {
   setModel(m);
   return m;
 }
+// Restore from a persisted/shared snapshot. v≥2 carries the full DriverJSON (marks +
+// carried fields); a v1 blob carries a flat DriverRaw — routed through fromRaw.
+export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undefined): void {
+  if (d && typeof d === 'object' && 'inputs' in d) setModel(DriverModel.fromJSON(d as DriverJSON));
+  else setModel(DriverModel.fromRaw((d ?? {}) as DriverRaw));
+}
 /** Route a single per-field edit through the ADT (what-if input, rename). */
 export function enterDriverField(field: string, value: number | string): void { _model.enter(field, value); }
 export function clearDriverField(field: string): void { _model.clear(field); }
@@ -82,6 +88,11 @@ export const driver = computed<Driver | null>(() => {
 export const driverRaw = computed<DriverRaw>(() => {
   void _version.value;
   return _model.raw();
+});
+// driverJSON: the full ADT state (marks + carried fields + ParState) for persistence.
+export const driverJSON = computed<DriverJSON>(() => {
+  void _version.value;
+  return _model.toJSON();
 });
 export const driverErrors = computed<DriverError[]>(() => {
   void _version.value;

@@ -1,12 +1,12 @@
-import type { AppState, Design, DriverRaw, SerializedState } from '../types.js';
+import type { AppState, Design, DriverJSON, SerializedState } from '../types.js';
 
 const b64enc = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64dec = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
 
-export function serialize(state: AppState, driverRaw: DriverRaw, compare: Design[]): SerializedState {
+export function serialize(state: AppState, driver: DriverJSON, compare: Design[]): SerializedState {
   return {
-    v: 1,
-    driver: driverRaw,
+    v: 2,
+    driver,
     box: state.box,
     P: state.P,
     graphs: state.graphs,

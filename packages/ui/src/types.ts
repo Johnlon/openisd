@@ -3,6 +3,7 @@
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/engine.
  */
 import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
+import type { DriverJSON } from '@openisd/winisd';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {
@@ -141,11 +142,14 @@ export interface AppState {
 /** The persisted / URL-encoded snapshot shape (persist.ts). */
 export interface SerializedState {
   v: number;
-  driver: DriverRaw;
+  // v≥2: the Driver's full state (entered marks + carried WDR fields + ParState), so
+  // provenance and pass-through fields survive reload/share/save. v1 blobs carry a flat
+  // DriverRaw here instead — handled on load (setDriverFromSerialized).
+  driver: DriverJSON;
   box: BoxType;
   P: UiParams;
   graphs: string[];
   compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string }>;
 }
 
-export type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult };
+export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };

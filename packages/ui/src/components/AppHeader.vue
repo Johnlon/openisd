@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { state, driverRaw, getDriverModel, setDriverFromWdr, setDriverFromRaw } from '../store.js';
+import { state, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized } from '../store.js';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
 
 function shareLink() {
-  const url = stateToUrl(serialize(state, driverRaw.value, state.compare));
+  const url = stateToUrl(serialize(state, driverJSON.value, state.compare));
   try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(
@@ -15,7 +15,7 @@ function shareLink() {
 }
 
 function exportDesign() {
-  const text = JSON.stringify(serialize(state, driverRaw.value, state.compare), null, 2);
+  const text = JSON.stringify(serialize(state, driverJSON.value, state.compare), null, 2);
   dlFile('design.openisd.json', text, 'application/json');
 }
 
@@ -39,7 +39,7 @@ function onFileChange(e: Event) {
         setDriverFromWdr(text);
       } else {
         const o = JSON.parse(text);
-        if (o.driver) setDriverFromRaw(o.driver);
+        if (o.driver) setDriverFromSerialized(o.driver);
         if (o.box) state.box = o.box;
         if (o.P) Object.assign(state.P, o.P);
         if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;

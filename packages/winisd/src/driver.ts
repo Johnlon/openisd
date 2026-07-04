@@ -34,6 +34,17 @@ export interface FieldCell {
 /** A change listener; receives no args — read the Driver after notification. */
 export type DriverListener = () => void;
 
+/**
+ * The Driver's complete serialisable state — the entered bag plus, for a WDR-loaded
+ * driver, the carried pass-through fields and source ParState. This is what persistence
+ * (localStorage / share-link / project JSON) stores so provenance AND carried fields
+ * survive a reload/share, exactly as they survive a .wdr round-trip.
+ */
+export interface DriverJSON {
+  inputs: Record<string, number | string>;
+  carry?: { order: string[]; raw: Record<string, string>; parState?: string };
+}
+
 interface Derivation {
   /** Resolved SI values for every derivable field (core T/S + Dia/Vd/η₀/SPL/c/roo). */
   fields: Record<string, number>;
@@ -134,6 +145,35 @@ export class Driver {
     const { fields, errors } = this.#derive();
     if (errors.some(e => e.level === 'error')) return null;
     return fields as unknown as EngineDriver;
+  }
+
+  /**
+   * The complete serialisable state — the entered bag plus any carried WDR fields and
+   * source ParState. Lossless with fromJSON, so persistence preserves provenance AND the
+   * pass-through fields raw() drops (dimensions, thermal, Hc/Hg, the original ParState).
+   */
+  toJSON(): DriverJSON {
+    const j: DriverJSON = { inputs: { ...this.#inputs } };
+    if (this.#wdrOrder && this.#wdrRaw) {
+      j.carry = { order: [...this.#wdrOrder], raw: { ...this.#wdrRaw } };
+      if (this.#parStateIn !== undefined) j.carry.parState = this.#parStateIn;
+    }
+    return j;
+  }
+
+  /** Rebuild a Driver from toJSON() output — the inverse, lossless. */
+  static fromJSON(j: DriverJSON): Driver {
+    const d = new Driver();
+    for (const [k, v] of Object.entries(j.inputs ?? {})) {
+      if (typeof v === 'number' || typeof v === 'string') d.#inputs[k] = v;
+    }
+    if (j.carry) {
+      d.#wdrOrder    = [...j.carry.order];
+      d.#wdrRaw      = { ...j.carry.raw };
+      d.#parStateIn  = j.carry.parState;
+    }
+    d.#cache = null;
+    return d;
   }
 
   /** Register a change listener; returns an unsubscribe function. */
