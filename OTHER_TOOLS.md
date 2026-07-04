@@ -146,85 +146,63 @@ Minor calculated vs. spec discrepancies are normal (rounding). Significant diffe
 
 ---
 
-## 3. SpeakerBoxLite — second external oracle
+## 3. External cross-check oracle strategy
 
-**Site:** https://speakerboxlite.com · calculator at `/subwoofer-box-calculator/`
+OpenISD validates its box maths against independent calculators (oracles). This section
+records the tools surveyed (2026-07-04), how integrable each is, and the **decisions** about
+which to use. See `PLAN_SBL_CROSSCHECK.md` for the history that led here.
 
-**Role:** Second independent cross-check oracle alongside micka.de, added specifically
-to cover enclosure types micka cannot model. Consumed by
-`packages/ui/test/speakerboxlite-crosscheck.browser.spec.ts` via the `sbl` field on each
-scenario in `packages/ui/test/scenarios.ts`.
+### Decision summary
 
-### Why a second oracle
+- **Sealed + vented:** cross-check against **micka.de** (already wired, passing) and,
+  optionally, **lautsprechershop.de** as an easy second web oracle (candidate — see below).
+- **Passive radiator + bandpass:** **no external web oracle is both easy to integrate and
+  PR-capable.** Validate these against a **synthesized regression baseline** — OpenISD's own
+  engine output, frozen as a golden fixture, with the closed-form Thiele/Small derivation and
+  a literature citation in the test. ⚠ This is a **regression guard, not independent
+  validation**: it catches _changes_ to our result, it does not prove the result is correct.
+  The independent-correctness anchor for PR/bandpass is the primary literature (Small, JAES
+  1972; Beranek, _Acoustics_), reproduced analytically in the test comments.
 
-micka.de's `#ideal` calculator models only sealed and vented boxes — it exposes no
-passive-radiator or bandpass inputs, so it cannot validate the PR and 4th-order-bandpass
-scenarios OpenISD already ships. SpeakerBoxLite covers both.
+### Tool survey
 
-### Enclosure types (verified live 2026-07-04 by fetching the calculator page)
+| Tool                    | Enclosure coverage                 | Integration ease                                                                                                         | Decision                                              |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| **micka.de**            | sealed, vented                     | Easy — server form POST, table output                                                                                    | **Adopted** (sealed/vented) — `micka-crosscheck` spec |
+| **lautsprechershop.de** | sealed, vented                     | Easy — static page, **named inputs** + inline-JS `geschlossen()`, readonly output fields, no cookie banner               | **Candidate** — needs output reconciliation (below)   |
+| **SpeakerBoxLite**      | sealed, vented, 4th/6th BP, PR, TL | Hard — Bootstrap-Vue SPA, unnamed fields, 2 consent overlays, results only on "Draw"                                     | **Rejected as oracle** — too slow/brittle to automate |
+| **Sine Design**         | sealed, ported, bandpass, PR       | Hard — Next.js SPA, computes **client-side, no API** (verified: only `?_rsc=` route-prefetch calls, no compute endpoint) | **Rejected as oracle** — capable tool, but SPA-only   |
+| **mh-audio.nl**         | sealed, vented, **PR**             | N/A — **http-only, unreachable** over HTTPS (site down / no TLS)                                                         | Not usable                                            |
 
-```
-Closed
-Vented
-4th Order Bandpass
-6th Order Bandpass (Parallel)
-6th Order Bandpass (Series)
-Passive Radiator
-Transmission Line
-```
+Others noted but not evaluated in depth: AJ Designer, Sparked Builds, UniBox (desktop),
+AudioGrid, the12volt — all web UIs, none offering a documented API.
 
-Of these, OpenISD's engine implements Closed, Vented, 4th Order Bandpass and Passive
-Radiator (`BoxType` in `packages/engine/src/types.ts`). The 6th-order bandpass
-parallel/series split and Transmission Line are backlog items — see
-`BACKLOG.md` "Enclosure types & box model". The parallel-vs-series distinction is
-new information from SpeakerBoxLite (micka never surfaced it).
+### lautsprechershop.de — reconciliation status
 
-### Rendering & automation — confirmed live 2026-07-04
+`t_box_closed_en.htm` is genuinely easy to drive (`input[name="fs|vas|qts|qbvalue"]`, a
+`Calculate Cabinet` button, readonly outputs `vb/f3/f8/db`). Live drive with
+`fs=37, vas=30, qts=0.38, qbvalue=0.707` returned `Vb = "10 (12)"`, `f3 = 81`, `f8 = 52`,
+`eff = 88 dB`. The gross **Vb ≈ 12** reconciles with micka (12.21 L) and OpenISD (12.18 L),
+but **`f3 = 81 Hz` does not match** OpenISD/micka's 68.8 Hz for Qtc = 0.707 — a units/model/
+compute-trigger difference that must be understood before asserting on `f3`. **Do not wire
+this as a trusted oracle until that is reconciled.**
 
-Driven with a headless Chromium exploration script (`build/` scratch, since deleted).
-All of the following was observed in the rendered DOM, not inferred:
+### SpeakerBoxLite — feature observations (functional gaps it exposed)
 
-- **Client-side SPA (Bootstrap-Vue).** No `<input name>` / stable `id` on fields — every
-  parameter input is `input.form-control`, and many share `id="fieldInput"`. Selectors
-  must key off the row label, e.g. `.input-field-root:has-text("Fs(Hz)") input.form-control`.
-- **Two consent overlays** must be dismissed first: a top cookie bar (`button` "Got it!")
-  and a "Privacy and cookie settings" popup (Quantcast/IAB) that overlaps the left inputs.
-- **Responsive duplicates:** the DOM holds hidden desktop+mobile copies of controls
-  (`d-none d-md-block`); a wide viewport (≈1680×1050) and a `:visible` filter are required,
-  otherwise `.first()` grabs a hidden node.
-- **Left panel is tabbed:** `Speaker | Network | Enclosure | Box | …`.
-  - _Speaker_ tab: driver T/S — `Fs(Hz)`, `Vas(l)`, `Qts`, plus SUB/WOOFER/… ,
-    SIMPLE/COMPLEX computation model, LITE/EXPANDED parameter set, ONE/MULTIPLE/ISOBARIC.
-  - _Enclosure_ tab: enclosure-type dropdown (`button.dropdown-toggle` → `a.dropdown-item`,
-    options exactly the 7 above) plus the box fields (below).
-  - _Box_ tab: physical realisation — `Material thickness(mm)`, `Port outside length(mm)`,
-    `Displacement(l)`.
-- **Enclosure fields per type** (all on the Enclosure tab; `Ql(Box losses)` defaults to 7):
-  - Closed: `Vb(l)`, `Qtc`, `F3(Hz)`
-  - Vented: `Vb(l)`, `Fb(Hz)`, `F3(Hz)`
-  - Passive Radiator: `Vb(l)`, `Fb(Hz)`, `F3(Hz)`
-  - 4th Order Bandpass: `front`, `front`, `rear`, `low`, `high`, `Bandwidth(Hz)`
+Automating SBL was abandoned, but driving it live surfaced enclosure/simulation features
+OpenISD does not yet have. Recorded here and mirrored in `BACKLOG.md`:
 
-### Two blockers to a working crosscheck spec (unresolved)
+- Enclosure types SBL has that OpenISD lacks: **6th-order bandpass — parallel _and_ series**
+  (two distinct alignments; micka never surfaced the distinction) and **transmission line**.
+- A first-class **box-loss input `Ql`** (SBL default 7); OpenISD's loss model is partial
+  (`Qa` is a backlog item).
+- Passive-radiator design helpers on a dedicated panel: PR `Fs / Vas / Qms / Sd / Added Mass`
+  → computed `Fb`, plus **recommended PR area range** and **"Fb needed vs. Fb real"** read-outs.
+- Port options: rectangular/round, **flared/flush end counts**, **multiple ports (1–4)**,
+  port displacement volume.
+- A **computation-model toggle** (simple vs. complex) and construction outputs (cutting map).
 
-1. **No output field to read.** The Enclosure fields (`Vb`, `Qtc`, `Fb`, `F3`) are all
-   _inputs_ — you enter whichever you know. Entering `Qtc=0.707` (or `Vb=12.2`) and clicking
-   **Draw** did **not** populate the others; SBL's authoritative computed numbers are not
-   written back into these inputs. Where SBL surfaces the computed result as parseable text
-   (a values/list panel behind the graph toolbar's list icon, vs. graph pixels only) has not
-   been located. Until it is, the spec has nothing reliable to assert against.
-2. **Model direction likely differs for vented.** SBL's vented Enclosure tab exposes `Fb`
-   as an input field (not a readout), with port length/material/displacement on the Box tab
-   — so it appears to take `Vb` + target `Fb` and compute the port (⚠ inferred from field
-   layout, not confirmed by watching it compute). That is the _inverse_ of OpenISD scenario
-   2, which fixes port geometry (ø5cm×10cm) and computes `Fb=37.9`. A like-for-like `Fb`
-   cross-check may therefore not be directly expressible in SBL's flow.
-
-### Open question (still not decided)
-
-Drive the rendered UI (heavier, and blocked on #1 above) vs. find an API/XHR endpoint that
-returns computed results directly (would sidestep both blockers if one exists). No network
-trace captured yet.
+(These are functional simulation features only. UI-layout comparisons are out of scope here.)
 
 ---
 
