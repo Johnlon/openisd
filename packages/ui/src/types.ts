@@ -4,6 +4,7 @@
  */
 import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 import type { DriverJSON } from '@openisd/winisd';
+import type { SkinId } from './skins.js';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {
@@ -122,6 +123,12 @@ export type SyncedParams = UiParams & { eg: number; Sp?: number; Leff?: number }
 /** Per-chart Y-axis override; absent entry = auto-scale. */
 export interface YRange { min: number; max: number }
 
+/** UI-only preferences (not part of a design). Local to the device — never shared. */
+export interface UiState {
+  /** The chosen presentation skin. See skins.ts. */
+  skin: SkinId;
+}
+
 /** The reactive application state held in the store. */
 export interface AppState {
   box: BoxType;
@@ -137,6 +144,7 @@ export interface AppState {
   defineOpen: boolean;
   driverSource: DriverRaw | null;
   yRanges: Record<string, YRange>;
+  ui: UiState;
 }
 
 /** The persisted / URL-encoded snapshot shape (persist.ts). */
@@ -150,6 +158,9 @@ export interface SerializedState {
   P: UiParams;
   graphs: string[];
   compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string }>;
+  // UI preferences travel with a LOCAL save only. stateToUrl() strips this so a shared
+  // link never forces a skin on the recipient — see persist.ts.
+  ui?: UiState;
 }
 
 export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };

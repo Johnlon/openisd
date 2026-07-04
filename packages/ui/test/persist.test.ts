@@ -9,13 +9,13 @@
  * Oracle: the Driver's own cell().state and toWdr() — independent of persist.ts.
  */
 
-import { describe, it } from 'vitest';
+import { describe, it, beforeAll, afterAll, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Driver } from '@openisd/winisd';
-import { serialize } from '../src/utils/persist.js';
+import { serialize, stateToUrl } from '../src/utils/persist.js';
 import type { AppState, UiParams } from '../src/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -68,5 +68,31 @@ describe('persistence — provenance + carried fields survive a serialize round-
     const back = restore(JSON.parse(JSON.stringify(v1)).driver);
     assert.equal(back.cell('Fs').state, 'E');
     assert.equal(back.cell('Fs').value, 40);
+  });
+});
+
+// The chosen skin is a LOCAL preference — kept in localStorage but excluded from the
+// shareable URL, so a shared design adapts to the recipient's own device/skin.
+describe('skin preference is local-only', () => {
+  const skinState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'], ui: { skin: 'classic' } } as unknown as AppState;
+  const drv = Driver.fromWdr(wdrText).toJSON();
+
+  // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
+  beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
+  afterAll(() => vi.unstubAllGlobals());
+
+  function decodeShare(url: string): Record<string, unknown> {
+    const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+  }
+
+  it('serialize() carries ui.skin so localStorage remembers it', () => {
+    assert.equal(serialize(skinState, drv, []).ui?.skin, 'classic');
+  });
+
+  it('stateToUrl() omits ui — a shared link never forces a skin on the recipient', () => {
+    const shared = decodeShare(stateToUrl(serialize(skinState, drv, [])));
+    assert.equal('ui' in shared, false);
+    assert.equal(shared.box, 'sealed');  // the design itself still travels
   });
 });

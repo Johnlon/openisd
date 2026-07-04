@@ -11,11 +11,16 @@ export function serialize(state: AppState, driver: DriverJSON, compare: Design[]
     P: state.P,
     graphs: state.graphs,
     compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color })),
+    // Local-only UI preference (e.g. skin). Kept for saveLocal; stripped by stateToUrl.
+    ui: state.ui,
   };
 }
 
 export function stateToUrl(serialized: SerializedState): string {
-  return location.origin + location.pathname + '#s=' + b64enc(JSON.stringify(serialized));
+  // Skin (and any other UI preference) is a LOCAL choice — exclude it from the shared
+  // link so a design opened by someone else adapts to THEIR device/skin, not the sender's.
+  const { ui: _ui, ...shareable } = serialized;
+  return location.origin + location.pathname + '#s=' + b64enc(JSON.stringify(shareable));
 }
 
 export function loadFromHash(): SerializedState | null {

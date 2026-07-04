@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { state, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized } from '../store.js';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
+import SkinPicker from './SkinPicker.vue';
 
 function shareLink() {
   const url = stateToUrl(serialize(state, driverJSON.value, state.compare));
@@ -73,6 +74,7 @@ function showAbout() {
     <button id="btnShare" @click="shareLink" title="Copy a shareable URL that encodes the current design — paste into a forum or send to a colleague">Share link</button>
     <button @click="exportDesign" title="Export the full design (driver + box + settings) as an OpenISD .json project file">Export design</button>
     <button @click="showAbout" title="About OpenISD — version, licence, and contributors">About</button>
+    <SkinPicker />
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFileChange">
   </header>
 </template>
