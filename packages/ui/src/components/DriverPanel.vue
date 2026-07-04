@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
-import { state, driver, allIssues, driverShort } from '../store.js';
+import { state, driver, driverRaw, allIssues, driverShort, enterDriverField, setDriverFromRaw } from '../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
 
@@ -20,20 +20,20 @@ const savingMode = ref(false);
 const saveName   = ref('');
 
 function startSave() {
-  saveName.value = state.driverRaw.name || 'Custom Driver';
+  saveName.value = driverRaw.value.name || 'Custom Driver';
   savingMode.value = true;
   nextTick(() => document.querySelector<HTMLInputElement>('.save-name-input')?.select());
 }
 
 function confirmSave() {
-  const name = saveName.value.trim() || state.driverRaw.name || 'Custom Driver';
+  const name = saveName.value.trim() || driverRaw.value.name || 'Custom Driver';
   const list = loadMyDrivers();
-  const entry: MyDriver = { ...state.driverRaw, name, _savedAt: Date.now() };
+  const entry: MyDriver = { ...driverRaw.value, name, _savedAt: Date.now() };
   const idx = list.findIndex(d => d.name === name);
   if (idx >= 0) list[idx] = entry; else list.push(entry);
   saveMyDrivers(list);
-  state.driverRaw.name = name;
-  state.driverSource = { ...state.driverRaw };
+  enterDriverField('name', name);
+  state.driverSource = { ...driverRaw.value };
   state.editDriver = false;
   savingMode.value = false;
 }
@@ -42,17 +42,17 @@ let _skipNextRename = false;
 
 function resetToSource() {
   _skipNextRename = true;
-  state.driverRaw = { ...state.driverSource };
+  setDriverFromRaw(state.driverSource);
   nextTick(() => { _skipNextRename = false; });
 }
 
 const TS_KEYS: NumKey[] = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe'];
 watch(
-  () => TS_KEYS.map(k => state.driverRaw[k]),
+  () => TS_KEYS.map(k => driverRaw.value[k]),
   () => {
     if (_skipNextRename || !state.editDriver || !state.driverSource) return;
-    if (!state.driverRaw.name?.startsWith('Custom - ')) {
-      state.driverRaw.name = 'Custom - ' + (state.driverSource.name || 'Driver');
+    if (!driverRaw.value.name?.startsWith('Custom - ')) {
+      enterDriverField('name', 'Custom - ' + (state.driverSource.name || 'Driver'));
     }
   }
 );
@@ -61,7 +61,7 @@ import { ebp } from '@openisd/engine';
 // Display view of the raw driver. The T/S numeric fields are treated as present
 // for display formatting (the editor binds to them directly); if one is genuinely
 // absent the arithmetic yields NaN exactly as before — the cast is compile-time only.
-const d = computed(() => state.driverRaw as DriverRaw & Record<NumKey, number>);
+const d = computed(() => driverRaw.value as DriverRaw & Record<NumKey, number>);
 const drv = driver;
 
 const ebpVal = computed(() => { const dv = drv.value; return dv ? ebp(dv) : null; });
@@ -78,12 +78,12 @@ watch(driver, () => { dismissed.value = false; });
 const hasError = computed(() => allIssues.value.some(e => e.level === 'error'));
 
 function startEdit() {
-  if (!state.driverSource) state.driverSource = { ...state.driverRaw };
+  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
   state.editDriver = true;
 }
 
 const drvLinks = computed(() => {
-  const r = state.driverRaw;
+  const r = driverRaw.value;
   const links = [];
   if (r.datasheetUrl)  links.push({ href: r.datasheetUrl,  label: 'Datasheet ↗',   title: 'Open manufacturer datasheet PDF' });
   if (r.manuPageUrl)   links.push({ href: r.manuPageUrl,   label: 'Manufacturer ↗', title: 'Open manufacturer product page' });
@@ -132,12 +132,12 @@ function badInput(key: string, formattedVal: string): boolean {
 function numInput(key: NumKey, scale: number, val: string) {
   rawVals[key] = val;
   const parsed = parseFloat(val);
-  if (isFinite(parsed)) state.driverRaw[key] = parsed / scale;
+  if (isFinite(parsed)) enterDriverField(key, parsed / scale);
 }
 function numBlur(key: string) { delete rawVals[key]; }
 
 function applyDefine(raw: DriverRaw) {
-  state.driverRaw = raw;
+  setDriverFromRaw(raw);
   state.driverSource = { ...raw };
   state.defineOpen = false;
 }

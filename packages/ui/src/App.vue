@@ -6,7 +6,7 @@ import GraphArea from './components/GraphArea.vue';
 import StatBar from './components/StatBar.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import Flash from './components/Flash.vue';
-import { state, driver } from './store.js';
+import { state, driverRaw, setDriverFromRaw } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
 import type { SerializedState } from './types.js';
@@ -23,7 +23,7 @@ function handleHashChange() {
 }
 
 function applyState(o: SerializedState) {
-  if (o.driver) state.driverRaw = o.driver;
+  if (o.driver) setDriverFromRaw(o.driver);
   if (o.box) state.box = o.box;
   if (o.P) Object.assign(state.P, o.P);
   if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
@@ -31,7 +31,7 @@ function applyState(o: SerializedState) {
 
 let saveReady = false;
 watch(
-  () => serialize(state, driver.value, state.compare),
+  () => serialize(state, driverRaw.value, state.compare),
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );

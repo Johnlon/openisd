@@ -1,6 +1,7 @@
 import { reactive, computed, ref, watch } from 'vue';
-import { deriveDriver, sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
+import { sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
 import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@openisd/engine';
+import { Driver as DriverModel } from '@openisd/winisd';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
 
@@ -22,7 +23,6 @@ const P_DEFAULTS: UiParams = {
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
 export const state: AppState = reactive({
-  driverRaw: DEFAULT_DRIVER,
   box:       'vented',
   P:         { ...P_DEFAULTS },
   graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
@@ -39,9 +39,54 @@ export const state: AppState = reactive({
 });
 
 
-const _derived = computed(() => deriveDriver(state.driverRaw));
-export const driver       = computed<Driver | null>(() => _derived.value.value);
-export const driverErrors = computed(() => _derived.value.errors);
+// The store's single source of truth for the driver is a long-lived Driver ADT instance
+// (@openisd/winisd). It owns E/C/N provenance and every derivation. Its framework-free
+// subscribe() is bridged to Vue through _version: every enter/clear and every instance
+// swap bumps _version, and the computeds below touch it so they re-derive. winisd stays
+// Vue-free — the arrow points up (ui → winisd), never down.
+const _version = ref(0);
+let _model  = DriverModel.fromRaw(DEFAULT_DRIVER);
+let _unsub  = _model.subscribe(() => { _version.value++; });
+
+/** The current Driver ADT instance — call enter/clear/toWdr on it directly. */
+export function getDriverModel(): DriverModel { return _model; }
+
+// Swap the held instance (load / import / reset). Re-bridge reactivity and bump once.
+function setModel(m: DriverModel): void {
+  _unsub();
+  _model = m;
+  _unsub = _model.subscribe(() => { _version.value++; });
+  _version.value++;
+}
+/** Load a driver from a plain DriverRaw bag (My Drivers, saved project, demo). */
+export function setDriverFromRaw(raw: DriverRaw | null | undefined): void {
+  setModel(DriverModel.fromRaw(raw ?? {}));
+}
+/** Load a driver from WinISD .wdr text (import, library) — returns the new instance. */
+export function setDriverFromWdr(text: string): DriverModel {
+  const m = DriverModel.fromWdr(text);
+  setModel(m);
+  return m;
+}
+/** Route a single per-field edit through the ADT (what-if input, rename). */
+export function enterDriverField(field: string, value: number | string): void { _model.enter(field, value); }
+export function clearDriverField(field: string): void { _model.clear(field); }
+
+export const driver = computed<Driver | null>(() => {
+  void _version.value;                 // re-derive on any enter/clear/instance swap
+  return _model.toDriver();
+});
+// driverRaw: the entered bag back out (E fields + carried metadata) — the DriverRaw view
+// the rest of the UI reads. Computed values (Cms/Mms/Bl) are NOT in it; read `driver` for
+// those. Replaces the old plain state.driverRaw reactive object.
+export const driverRaw = computed<DriverRaw>(() => {
+  void _version.value;
+  return _model.raw();
+});
+export const driverErrors = computed<DriverError[]>(() => {
+  void _version.value;
+  return _model.errors();
+});
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
 
@@ -103,7 +148,7 @@ export function pinCompare(): void {
     P:      p,
     curves: null,
     maxCurves: null,
-    name:   driverShort(state.driverRaw) + ' (' + state.box + ' ' + (p.Vb * 1000).toFixed(0) + 'L)',
+    name:   driverShort(driverRaw.value) + ' (' + state.box + ' ' + (p.Vb * 1000).toFixed(0) + 'L)',
     color:  DPAL[(state.compare.length + 1) % DPAL.length],
   };
   d.curves    = sweep(d.driver!, d.box, d.P);

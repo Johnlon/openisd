@@ -123,7 +123,6 @@ export interface YRange { min: number; max: number }
 
 /** The reactive application state held in the store. */
 export interface AppState {
-  driverRaw: DriverRaw;
   box: BoxType;
   P: UiParams;
   graphs: string[];

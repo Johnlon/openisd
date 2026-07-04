@@ -149,14 +149,12 @@ export class Driver {
    * the built-in demo). Every present field — T/S numerics and metadata strings alike —
    * is entered (E); undefined/null/'' are skipped so they stay N. The inverse of raw().
    */
-  static fromRaw(raw: Record<string, unknown> | null | undefined): Driver {
+  static fromRaw(raw: DriverRaw): Driver {
     const d = new Driver();
-    for (const k in raw) {
-      const v = raw[k];
-      if (v !== undefined && v !== null && v !== '' &&
-          (typeof v === 'number' || typeof v === 'string')) {
-        d.#inputs[k] = v;
-      }
+    // Object.entries iterates a typed object without needing an index signature; the
+    // guard skips undefined/null optional fields and empty strings so they stay N.
+    for (const [k, v] of Object.entries(raw)) {
+      if ((typeof v === 'number' || typeof v === 'string') && v !== '') d.#inputs[k] = v;
     }
     d.#cache = null;
     return d;

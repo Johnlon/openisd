@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
-import { state, DEFAULT_DRIVER } from '../store.js';
+import { state, DEFAULT_DRIVER, setDriverFromRaw, setDriverFromWdr } from '../store.js';
 import HelpTip from './HelpTip.vue';
-import { parseWdr } from '@openisd/winisd';
 import type { DriverRaw } from '@openisd/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import sourcesJson from '../../../../drivers/sources.json';
@@ -508,27 +507,31 @@ const previewData = computed(() => {
 });
 
 function resetToDemo() {
-  state.driverRaw    = { ...DEFAULT_DRIVER };
+  setDriverFromRaw(DEFAULT_DRIVER);
   state.driverSource = { ...DEFAULT_DRIVER };
   close();
 }
 
+// Load WDR text through the Driver ADT (lossless, provenance-preserving) and overlay the
+// library-provided links, which live in the catalogue entry, not the .wdr file itself.
+function applyWdr(text: string, f: FileEntry) {
+  const m = setDriverFromWdr(text);
+  if (f.datasheet)  m.enter('datasheetUrl',  f.datasheet);
+  if (f.manupage)   m.enter('manuPageUrl',   f.manupage);
+  if (f.vendorpage) m.enter('vendorpageUrl', f.vendorpage);
+  if (f.frd)        m.enter('frdUrl',        f.frd);
+  if (f.impedance)  m.enter('impedanceUrl',  f.impedance);
+  state.driverSource = m.raw();
+}
+
 async function loadDriver(f: FileEntry) {
   if (f.myDriverData) {
-    state.driverRaw    = { ...f.myDriverData };
+    setDriverFromRaw(f.myDriverData);
     state.driverSource = { ...f.myDriverData };
     state.browseOpen = false; previewFile.value = null; return;
   }
   if (f.content) {
-    const { value: d } = parseWdr(f.content);
-    if (!d) return;
-    if (f.datasheet)  d.datasheetUrl  = f.datasheet;
-    if (f.manupage)   d.manuPageUrl   = f.manupage;
-    if (f.vendorpage) d.vendorpageUrl = f.vendorpage;
-    if (f.frd)        d.frdUrl        = f.frd;
-    if (f.impedance)  d.impedanceUrl  = f.impedance;
-    state.driverRaw = d;
-    state.driverSource = { ...d };
+    applyWdr(f.content, f);
     state.browseOpen = false; previewFile.value = null; return;
   }
   statusErr.value = false; statusMsg.value = 'Loading ' + f.name + '…';
@@ -536,10 +539,9 @@ async function loadDriver(f: FileEntry) {
   let fetchResult: Response;
   try { fetchResult = await fetch(url); } catch(err) { statusErr.value = true; statusMsg.value = 'Could not load: ' + (err as Error).message; return; }
   if (!fetchResult.ok) { statusErr.value = true; statusMsg.value = 'Could not load: fetch failed (' + fetchResult.status + ')'; return; }
-  const { value: loaded } = parseWdr(await fetchResult.text());
-  if (!loaded) { statusErr.value = true; statusMsg.value = 'Could not load: file did not parse as a WDR'; return; }
-  state.driverRaw = loaded;
-  state.driverSource = { ...loaded };
+  const text = await fetchResult.text();
+  if (!/\[Driver\]/.test(text)) { statusErr.value = true; statusMsg.value = 'Could not load: file did not parse as a WDR'; return; }
+  applyWdr(text, f);
   state.browseOpen = false; previewFile.value = null;
 }
 

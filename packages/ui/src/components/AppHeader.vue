@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { state, driver } from '../store.js';
-import { toWdr, parseWdr } from '@openisd/winisd';
+import { state, driverRaw, getDriverModel, setDriverFromWdr, setDriverFromRaw } from '../store.js';
 import { serialize, stateToUrl } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
 
 function shareLink() {
-  const url = stateToUrl(serialize(state, driver.value, state.compare));
+  const url = stateToUrl(serialize(state, driverRaw.value, state.compare));
   try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(
@@ -16,13 +15,14 @@ function shareLink() {
 }
 
 function exportDesign() {
-  const text = JSON.stringify(serialize(state, driver.value, state.compare), null, 2);
+  const text = JSON.stringify(serialize(state, driverRaw.value, state.compare), null, 2);
   dlFile('design.openisd.json', text, 'application/json');
 }
 
 function exportWdr() {
-  const fn = (state.driverRaw.name || 'driver').replace(/[^\w.-]+/g, '_') + '.wdr';
-  dlFile(fn, toWdr(state.driverRaw), 'text/plain');
+  const fn = (driverRaw.value.name || 'driver').replace(/[^\w.-]+/g, '_') + '.wdr';
+  // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
+  dlFile(fn, getDriverModel().toWdr(), 'text/plain');
 }
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -36,11 +36,10 @@ function onFileChange(e: Event) {
     const text = rd.result as string;
     try {
       if (isWdr || /^\s*\[Driver\]/.test(text)) {
-        const { value: parsed } = parseWdr(text);
-        if (parsed) state.driverRaw = parsed;
+        setDriverFromWdr(text);
       } else {
         const o = JSON.parse(text);
-        if (o.driver) state.driverRaw = o.driver;
+        if (o.driver) setDriverFromRaw(o.driver);
         if (o.box) state.box = o.box;
         if (o.P) Object.assign(state.P, o.P);
         if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
