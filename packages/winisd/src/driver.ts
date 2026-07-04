@@ -13,8 +13,8 @@
  * exists.
  */
 
-import { deriveDriver } from '@openisd/engine';
-import type { DriverRaw, Driver as DerivedDriver, DriverError } from '@openisd/engine';
+import { deriveDriver, C, RHO } from '@openisd/engine';
+import type { DriverRaw, DriverError } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
 
@@ -35,7 +35,8 @@ export interface FieldCell {
 export type DriverListener = () => void;
 
 interface Derivation {
-  derived: DerivedDriver | null;
+  /** Resolved SI values for every derivable field (core T/S + Dia/Vd/η₀/SPL/c/roo). */
+  fields: Record<string, number>;
   errors: DriverError[];
 }
 
@@ -86,12 +87,12 @@ export class Driver {
 
   /** The single per-field read: value + E/C/N state + that field's error, all in sync. */
   cell(field: string): FieldCell {
-    const { derived, errors } = this.#derive();
+    const { fields, errors } = this.#derive();
     const error = this.#errorFor(field, errors);
     if (field in this.#inputs) {
       return { value: this.#inputs[field], state: 'E', error };
     }
-    const dv = derived ? (derived as unknown as Record<string, unknown>)[field] : undefined;
+    const dv = fields[field];
     if (typeof dv === 'number' && isFinite(dv)) {
       return { value: dv, state: 'C', error };
     }
@@ -195,11 +196,48 @@ export class Driver {
 
   #derive(): Derivation {
     if (this.#cache) return this.#cache;
-    // The engine reads only the T/S fields it knows; override fields (e.g. an entered
-    // Cms) are simply ignored by deriveDriver, so a shallow copy is safe to pass.
-    const raw = { ...this.#inputs } as unknown as DriverRaw;
-    const { value, errors } = deriveDriver(raw);
-    this.#cache = { derived: value, errors };
+
+    // Start from the entered SI numerics. Every `== null` guard below means an entered
+    // (E) value is never overwritten by a computed one and instead feeds downstream —
+    // WinISD's fixed-E override semantics. This is the single derivation authority; the
+    // UI must not re-implement any of it.
+    const r: Record<string, number> = {};
+    for (const k in this.#inputs) {
+      const v = this.#inputs[k];
+      if (typeof v === 'number' && isFinite(v)) r[k] = v;
+    }
+
+    // Two passes so a freshly-derived value can feed the next (Cms → Mms → Rms/Bl).
+    for (let pass = 0; pass < 2; pass++) {
+      if (r.Sd == null && r.Dia != null) r.Sd = Math.PI * (r.Dia / 2) ** 2;
+      if (r.Dia == null && r.Sd != null) r.Dia = 2 * Math.sqrt(r.Sd / Math.PI);
+
+      if (r.Qts == null && r.Qes != null && r.Qms != null) r.Qts = r.Qes * r.Qms / (r.Qes + r.Qms);
+      if (r.Qes == null && r.Qts != null && r.Qms != null) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
+      if (r.Qms == null && r.Qts != null && r.Qes != null) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
+
+      if (r.Fs != null && r.Vas != null && r.Sd != null) {
+        const Cas = r.Vas / (RHO * C * C);                 // Cms = Vas/(ρc²·Sd²)
+        if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
+        if (r.Mms == null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
+        if (r.Rms == null && r.Qms != null) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
+        if (r.Bl == null && r.Re != null && r.Qes != null) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
+      }
+      if (r.Vd == null && r.Sd != null && r.Xmax != null) r.Vd = r.Sd * r.Xmax;
+      if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
+        r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
+      if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
+    }
+
+    // Air constants autofill (state C) until overridden — matches the sim's constants.
+    if (r.c == null) r.c = C;
+    if (r.roo == null) r.roo = RHO;
+
+    // Validation comes from the engine (single source of the required-field rules).
+    // The resolved `r` (Sd filled from Dia, third Q filled) is what it checks, so a
+    // Dia-only or two-Q driver validates the same as the editor's canApply did.
+    const { errors } = deriveDriver(r as unknown as DriverRaw);
+    this.#cache = { fields: r, errors };
     return this.#cache;
   }
 
