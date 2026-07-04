@@ -1,0 +1,4 @@
+# Git hooks must stay LF and executable. Under core.autocrlf=true, checkout was
+# rewriting these with CRLF, so the shebang became "#!/bin/sh\r" and the kernel
+# could not exec them ("No such file or directory") — silently skipping the gate.
+scripts/hooks/* text eol=lf
