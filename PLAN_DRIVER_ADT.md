@@ -9,27 +9,74 @@ migration reuses: **extract, do not rewrite**).
 
 ## Status
 
-Design adopted (`docs/DRIVER_ADT_DESIGN.md`, committed `b3da902fd`) and the layering
-decision adopted (`ARCHITECTURE.md`: "Goal adopted. Migration pending — layered on top
-of the `@openisd` rename"). The rename landed (`bc3804282`), so that blocker is clear.
-Nothing below has started: `packages/engine/src/driver.ts` still has the free-function
-shape (`deriveDriver`, `parseWdr`, `toWdr`, `parstate`) and the interim raw-vs-derived
-ParState heuristic (`fe2d49891`) that the design doc says this migration kills. No
-`Driver` class, no `enter`/`clear`, no `fromWdr`, no per-field marks anywhere yet.
+Design adopted (`docs/DRIVER_ADT_DESIGN.md`, committed `b3da902fd`), the layering
+decision adopted (`ARCHITECTURE.md`), and the Phase 0 forks resolved (see below:
+reactive class + fixed-E overrides + `cell(field)` single per-field accessor). The
+`@openisd` rename landed (`bc3804282`), so that blocker is clear. No code has started:
+`packages/engine/src/driver.ts` still has the free-function shape (`deriveDriver`,
+`parseWdr`, `toWdr`, `parstate`) and the interim raw-vs-derived ParState heuristic
+(`fe2d49891`) that this migration kills. No `Driver` class, no `enter`/`clear`, no
+`fromWdr`, no per-field marks anywhere yet.
 
 ---
 
-## Phase 0 — Resolve the two open decisions _(human call, before any code)_
+## Phase 0 — Design decisions _(resolved)_
 
-`docs/DRIVER_ADT_DESIGN.md` §"Two things to decide before building" flags these as
-unresolved. Pick before Phase 2 starts — they change the shape of the class:
+`docs/DRIVER_ADT_DESIGN.md` §"Two things to decide before building" flagged two forks.
+Both are now decided — best design, not lowest-risk:
 
-1. **Vue reactivity over a class** — a reactive class instance, vs. a reactive
-   plain-data core (values + marks) with `enter/clear/state` as free functions over it.
-   The doc's lean: the latter is lower-risk and closer to today's code.
-2. **Override reconciliation** — when a user overrides a normally-derived field (Cms,
-   Bl, SPL, c, roo), does it become a fixed E input (WinISD's behaviour — the doc's
-   default) or do dependents recompute around it? Decide per field if it varies.
+1. **Reactive class instance** (not a plain-data core). Only a class makes the
+   `enter`/`clear`-only invariant _structural_ — a plain `{ values, marks }` object lets
+   any call site write a mark directly and re-creates the "anemic reactive bag" the design
+   exists to kill. Vue 3 reactivity works with a class instance; the marks/values live in a
+   **private reactive object** inside the instance, exposed only through methods.
+2. **Fixed-E overrides** (WinISD semantics). Overriding a normally-derived field (Cms, Bl,
+   SPL, Mms, Rms, Vd, η₀, c, roo) marks it **E** and the entered value sticks — dependents
+   consume it, nothing recomputes around it. This is required for ParState round-trip
+   fidelity (recompute-around would diverge from the reference tool) and is unambiguous
+   (recompute-around has no single correct back-solve). It matches today's editor
+   (`resolvedSI`'s `== null` guards).
+
+**Consequence for the build:** the class must honour an entered derived-value through
+`toWdr` and the sim. The current engine `deriveDriver` unconditionally recomputes
+Cms/Mms/Rms/Bl and would clobber an override — the `Driver` derivation must skip a field
+that is already E.
+
+### API surface (locked)
+
+```ts
+class Driver {
+  enter(field, value): void; // human input → E
+  clear(field): void; // → C (still derivable) or N
+  cell(field): { value; state; error }; // the ONLY per-field read (tied tuple)
+  errors(): DriverError[]; // whole-driver list — Apply gate, summary
+  static fromWdr(text): Driver; // parse all keys + ParState → replay E marks
+  toWdr(): string; // all carried fields + ParState from state
+}
+```
+
+- **One per-field accessor — `cell(field)`.** Value, CNE state, and that field's error are
+  a single tied tuple, always from the same derivation pass, so they cannot drift.
+  `value(f)`/`state(f)`/`errors(f)` are deliberately **not** separate methods — they are
+  `cell(f).value` / `.state` / `.error`.
+- **`errors()` (no arg) is the only aggregate** — a list across all fields, a different
+  shape than the per-field tuple, needed for the Apply gate and the summary.
+- **Per-field errors are alias-aware:** the `Sd` error also surfaces on `cell('Dia')`; the
+  "need two Q" error surfaces on `cell('Qms')`/`cell('Qes')`/`cell('Qts')`. The driver owns
+  this mapping so the UI never re-hardcodes it (kills `isRequiredMissing`).
+
+### Internal shape
+
+```ts
+type FieldState = { value: number | undefined; state: 'E' | 'C' | 'N'; error?: DriverError };
+
+#inputs  = reactive<Record<string, number>>({});   // ONLY mutable state; presence ⇒ E
+#fields  = computed<Record<string, FieldState>>(/* one derivation pass over #inputs */);
+```
+
+`enter`/`clear` mutate `#inputs` only. `cell`/`errors` read `#fields`. The single
+non-derivable fact (what the human entered) is the only thing stored; value, state, and
+error are all derived together.
 
 ## Phase 1 — Package split (`ARCHITECTURE.md` layering)
 
@@ -50,21 +97,24 @@ ParState concern) stays in the physics core. Today `packages/` only has `engine`
 
 ## Phase 2 — Build the `Driver` class (TDD, red→green per `/tdd`)
 
-Per the design doc's API (`enter`, `clear`, `get`, `state`, `errors`, `fromWdr`,
-`toWdr`). Write failing tests first in the new package's test suite for:
+Per the locked API above (`enter`, `clear`, `cell`, `errors`, `fromWdr`, `toWdr`) with
+the `#inputs`→`#fields` internal shape. Write failing tests first for:
 
-- `enter('Fs', 37)` → `state('Fs') === 'E'`, `get('Fs') === 37`.
-- `clear('Fs')` after entering Vas/Sd (enough to derive Fs is NOT how Fs derives —
-  use a genuinely derivable field, e.g. clearing an entered Qts when Qes/Qms are both
-  entered) → reverts to `'C'` with the recomputed value; clearing with no fallback
-  derivation → `'N'`.
-- Overriding a normally-computed field (per the Phase 0 decision) marks it `'E'` and
-  behaves per the decided reconciliation rule.
-- `state()` is the only implementation `stateOf` (editor) and `parstate` (exporter)
-  call — no duplicate logic.
+- `enter('Fs', 37)` → `cell('Fs')` is `{ value: 37, state: 'E' }`.
+- `clear` reverts to C or N: enter Qes+Qms, then the derived `Qts` reads `state 'C'`;
+  clearing a genuinely derivable entered field reverts to `'C'` with the recomputed
+  value; clearing with no fallback derivation → `'N'`.
+- **Fixed-E override:** `enter('Cms', x)` → `cell('Cms').state === 'E'` and `.value === x`
+  even when Fs/Vas/Sd would otherwise compute a different Cms (the derivation skips an
+  already-E field — the behaviour the engine `deriveDriver` does _not_ have today).
+- **Alias-aware per-field errors:** with no Sd/Dia, `cell('Dia').error` is the Sd
+  requirement; with <2 Q entered, `cell('Qms')/('Qes')/('Qts').error` all carry the
+  "need two" error.
+- **One state implementation:** `cell().state` is the only E/C/N logic — `stateOf`
+  (editor) and `parstate` (exporter) both route through it, no duplicate.
 
-**Gate:** these are new tests against new code — no existing behaviour to preserve yet,
-but the full health-check must stay green throughout (nothing else broken).
+**Gate:** new tests against new code — no existing behaviour to preserve yet, but the
+full health-check must stay green throughout (nothing else broken).
 
 ## Phase 3 — Lossless `fromWdr` / `toWdr` (TDD)
 
@@ -83,11 +133,22 @@ with `Driver.fromWdr` that reads every `[Driver]` key and replays E/C/N via
 
 - **Store (`packages/ui/src/store.ts`):** every `state.driverRaw.X = v` becomes
   `driver.enter('X', v)`.
-- **Editor (`packages/ui/src/components/DriverDefineModal.vue`):** the `entered`
-  reactive object, `activeEntered` computed (lines ~103-104), `stateOf` (line ~206),
-  and the `entered[key] = val` / `delete entered[key]` writes (lines ~220-221, clear-all
-  at ~312) all collapse into calls on the `Driver` instance (`driver.enter`/`clear`/
-  `state`). The modal stops owning provenance — it only drives the `Driver`.
+- **Editor (`packages/ui/src/components/DriverDefineModal.vue`) becomes a pure
+  projection of the `Driver` — it keeps _zero_ detection logic.** These all delete,
+  each replaced by a read of the driver:
+  - `entered` bag + `activeEntered` (`~102-104`) → driver `#inputs`
+  - `resolvedSI` (`~163`, the duplicate derivation) → driver `#fields`
+  - `stateOf` (`~206`) → `cell(field).state`
+  - `displayVal` (`~212`) → `fmtSI(key, cell(field).value)`
+  - `isRequiredMissing` (`~234`) → `cell(field).error?.level === 'error'` (alias-aware,
+    so the hardcoded Sd/Dia and Q-trio groupings go)
+  - `canApply` (`~225`) → `driver.errors().every(e => e.level !== 'error')`
+  - `onInput`/`resetAll` writes (`~218-222`, `~312`) → `driver.enter`/`clear`
+- **What the editor legitimately keeps — rendering only, no judgement:** `toSI`/`fmtSI`
+  unit conversion (model is SI; convert at the edges), error-`level`→CSS-class mapping,
+  tooltip formatting (`fmtTip`), the transient in-progress input-text buffer, and the
+  "what each graph needs" affordance (`CHART_DEPS`/`highlightKeys`) — but its presence
+  check `tokPresent` (`~263`) must read `driver.cell(k).state !== 'N'`, not re-derive.
 - **Gate:** `npx playwright test` (driver editor UI paths) + full health-check green.
 
 ## Phase 5 — Persistence carries provenance
@@ -106,7 +167,9 @@ Per the design doc's "What this kills":
 
 - The hardcoded ParState string / presence-based guess / raw-vs-derived interim
   heuristic (`packages/engine/src/driver.ts:176-214`, from `fe2d49891`).
-- Duplicate `stateOf` (editor) vs `parstate` (engine) implementations.
+- Duplicate `stateOf` (editor) vs `parstate` (engine) — one `cell().state`.
+- The editor's duplicate derivation (`resolvedSI`) and detection logic
+  (`isRequiredMissing`, `canApply`, `activeEntered`).
 - The lossy field-subset `parseWdr`.
 
 **Gate:** full health-check green with the old code physically removed (not just
