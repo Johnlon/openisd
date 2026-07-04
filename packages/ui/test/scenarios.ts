@@ -11,7 +11,10 @@
  *     expected outputs.
  *  2. Run `TEST_TARGET=micka npx playwright test test/micka-crosscheck.browser.spec.js`
  *     to let micka.de tell you the correct expected values; fill them in under `micka`.
- *  3. Map from micka's values to OpenISD's display format (toFixed precision) and
+ *     For enclosure types micka cannot model (passive radiator, bandpass) drive the
+ *     SpeakerBoxLite oracle instead and fill them in under `sbl` — see
+ *     test/speakerboxlite-crosscheck.browser.spec.js and OTHER_TOOLS.md.
+ *  3. Map from the oracle's values to OpenISD's display format (toFixed precision) and
  *     fill in under `openisd`.
  *  4. Add the OpenISD UI wiring test to test/app.browser.spec.js.
  *
@@ -25,11 +28,12 @@
  *  Le   mH          voice coil inductance (optional)
  *
  * ── Box field units ───────────────────────────────────────────────────────────
- *  type     'sealed' | 'vented' | 'pr'
+ *  type     'sealed' | 'vented' | 'pr' | 'bandpass4'
  *  Qtc      dimensionless  target system Q (sealed only)
- *  Vb       litres         enclosure volume (manual override)
- *  ventD    cm             port bore diameter (vented)
- *  ventL    cm             port physical length (vented)
+ *  Vb       litres         enclosure volume — sealed/vented; rear chamber for bandpass4
+ *  Vf       litres         front (vented) chamber volume (bandpass4 only)
+ *  ventD    cm             port bore diameter (vented, bandpass4)
+ *  ventL    cm             port physical length (vented, bandpass4)
  */
 
 export interface Scenario {
@@ -37,14 +41,18 @@ export interface Scenario {
   name: string;
   driver: { Fs: number; Qts: number; Vas: number; Qes?: number; Sd?: number; Re?: number; Le?: number };
   box: {
-    type: 'sealed' | 'vented' | 'pr';
+    type: 'sealed' | 'vented' | 'pr' | 'bandpass4';
     Qtc?: number;
     Vb?: number;
+    Vf?: number;
     ventD?: number;
     ventL?: number;
     pr?: { Vb: number; Sd: number; Mms: number; Cms: number; Rms: number; Madd?: number };
   };
+  /** micka.de expected values (sealed/vented only — micka has no PR/bandpass support). */
   micka?: Record<string, string>;
+  /** SpeakerBoxLite expected values — the oracle for PR and bandpass, which micka lacks. */
+  sbl?: Record<string, string>;
   openisd: Record<string, string>;
   /** Filled in by gen-scenarios.ts at generation time. */
   _computed?: Record<string, string>;
@@ -94,6 +102,47 @@ export const SCENARIOS: Scenario[] = [
     // OpenISD stat bar values — toFixed precision as rendered by StatBar.vue
     openisd: {
       Fb: '37.9',   // toFixed(1) of 37.86 Hz
+    },
+  },
+
+  // ── Scenario 3: Passive radiator, 30L box, 50g PR, 0.5mm/N Cms ───────────────
+  // micka.de cannot model passive radiators (its #ideal form exposes no PR mass /
+  // compliance / area fields) — SpeakerBoxLite is the oracle for this scenario.
+  // Fp = prTuning(P) = 1/(2π·√(Map·Cpar)) ≈ 37.87 Hz  [engine alignments.ts]
+  {
+    id:   'pr-30l-50g-0p5cms',
+    name: 'Passive radiator: 30L box, 50g PR, 0.5mm/N Cms, 1.0kg/s Rms',
+    driver: { Fs: 37, Qts: 0.38, Vas: 30 },
+    box: {
+      type: 'pr',
+      Vb: 30,
+      pr: { Vb: 30, Sd: 133, Mms: 50, Cms: 0.5, Rms: 1.0, Madd: 0 },
+    },
+
+    // sbl: filled by driving SpeakerBoxLite's Passive Radiator type (see
+    // speakerboxlite-crosscheck.browser.spec.ts). Left empty until the oracle is run.
+
+    // OpenISD stat bar values — toFixed precision as rendered by StatBar.vue
+    openisd: {
+      Fp: '37.9',   // toFixed(1) of 37.87 Hz
+    },
+  },
+
+  // ── Scenario 4: 4th-order bandpass, 15L rear + 20L front, ø5cm×10cm port ─────
+  // micka.de's #ideal form has no bandpass mode — SpeakerBoxLite is the oracle.
+  // bandpass4 shows no single formula stat; the sweep produces peak port velocity.
+  {
+    id:   'bandpass4-15l-20l-5cm-10cm',
+    name: '4th-order bandpass: 15L rear + 20L front, ø5cm×10cm port',
+    driver: { Fs: 37, Qts: 0.38, Vas: 30 },
+    box: { type: 'bandpass4', Vb: 15, Vf: 20, ventD: 5, ventL: 10 },
+
+    // sbl: filled by driving SpeakerBoxLite's 4th Order Bandpass type. Left empty
+    // until the oracle is run.
+
+    // OpenISD stat bar values — toFixed precision as rendered by StatBar.vue
+    openisd: {
+      Vb: '15.0',   // (0.015 m³ × 1000).toFixed(1)
     },
   },
 
