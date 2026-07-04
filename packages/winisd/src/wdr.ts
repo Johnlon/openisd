@@ -1,78 +1,15 @@
 /**
- * WinISD .wdr interop — parse/serialise and ParState provenance.
+ * WinISD .wdr serialisation + ParState provenance — the fresh-authored export path.
  *
- * This is the WinISD-specific layer (per ARCHITECTURE.md AD-6): file-format and
- * ParState concerns live here, not in the pure-physics @openisd/engine core. The
- * physics (`deriveDriver`) is imported from the engine; nothing here belongs in it.
+ * File-format concerns live here, not in @openisd/engine (ARCHITECTURE.md AD-6). This is
+ * the raw-driver exporter used by Driver.toWdr when there is no carried WDR to echo (a
+ * driver authored in-app rather than loaded from a file). The physics (deriveDriver) is
+ * imported from the engine; nothing here belongs in it. Import/parse is the ADT's job —
+ * Driver.fromWdr — so there is no parser here.
  */
 
 import { deriveDriver } from '@openisd/engine';
-import type { DriverRaw, Driver, Result } from '@openisd/engine';
-
-/**
- * Minimal YAML sidecar parser — supports key:value, null/empty (→ absent),
- * single-quoted strings with '' escape, and block scalars (|).
- * Private — only called from parseWdr.
- */
-function _parseSimpleYaml(text: string): Record<string, string | null> {
-  const r: Record<string, string | null> = {};
-  const lines = text.split(/\r?\n/);
-  let blockKey: string | null = null;
-  const blockLines: string[] = [];
-
-  for (const line of lines) {
-    if (blockKey !== null && line.length > 0 && (line[0] === ' ' || line[0] === '\t')) {
-      blockLines.push(line.trimStart());
-      continue;
-    }
-    if (blockKey !== null) {
-      r[blockKey] = blockLines.join('\n');
-      blockKey = null;
-      blockLines.length = 0;
-    }
-    const i = line.indexOf(':');
-    if (i < 0) continue;
-    const k = line.slice(0, i).trim();
-    let v = line.slice(i + 1).trim();
-    if (v === '|') { blockKey = k; continue; }
-    if (!v || v === 'null') { r[k] = null; continue; }
-    if (v.startsWith("'") && v.endsWith("'")) v = v.slice(1, -1).replace(/''/g, "'");
-    r[k] = v;
-  }
-  if (blockKey !== null) r[blockKey] = blockLines.join('\n');
-  return r;
-}
-
-export function parseWdr(text: string, sidecarText?: string): Result<DriverRaw> {
-  const f: Record<string, string> = {};
-  for (const line of text.split(/\r?\n/)) {
-    const i = line.indexOf('=');
-    if (i < 0 || line[0] === '[') continue;
-    f[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  }
-  const n = (k: string): number | undefined => { const v = parseFloat(f[k]); return isFinite(v) ? v : undefined; };
-  const d: DriverRaw = {};
-  d.Fs = n('Fs'); d.Qts = n('Qts'); d.Qes = n('Qes'); d.Qms = n('Qms');
-  d.Vas = n('Vas'); d.Sd = n('Sd'); d.Re = n('Re'); d.Le = n('Le');
-  d.Xmax = n('Xmax'); d.Pe = n('Pe'); d.Z = n('Znom');
-  if (f.Brand)      d.brand      = f.Brand.trim();
-  if (f.Model)      d.model      = f.Model.trim();
-  const name = [f.Brand, f.Model].filter(x => x && x.length).join(' ').trim();
-  if (name) d.name = name;
-  if (f.ProvidedBy)              d.providedBy    = f.ProvidedBy.trim();
-  if (f.Comment)                 d.comment       = f.Comment.trim();
-  if (sidecarText) {
-    const s = _parseSimpleYaml(sidecarText);
-    if (s.datasheet_url)   d.datasheetUrl  = s.datasheet_url;
-    if (s.vendor_page_url) d.vendorpageUrl = s.vendor_page_url;
-    if (s.source)          d.sourceUrl     = s.source;
-    if (s.frd_url)         d.frdUrl        = s.frd_url;
-    if (s.zma_url)         d.impedanceUrl  = s.zma_url;
-  }
-  const dRec = d as Record<string, unknown>;
-  for (const k in dRec) if (dRec[k] === undefined) delete dRec[k];
-  return { value: d, errors: [] };
-}
+import type { DriverRaw, Driver } from '@openisd/engine';
 
 export function toWdr(raw: DriverRaw): string {
   const { value: d } = deriveDriver(raw);
@@ -95,20 +32,15 @@ export function toWdr(raw: DriverRaw): string {
 }
 
 /**
- * Build WinISD's 49-char ParState string for an exported driver: per-field edit state
- * in WinISD's internal field order — E (a value the human/source ENTERED), C (a value
- * the app COMPUTED), N (absent). Positions are probe-confirmed against real WinISD
- * files (drivers/sample/; see scraper_lib._parstate).
+ * Build WinISD's 49-char ParState string for a fresh-authored exported driver: per-field
+ * edit state in WinISD's internal field order — E (a value the human ENTERED), C (a value
+ * the app COMPUTED), N (absent). Positions are probe-confirmed against real WinISD files
+ * (drivers/sample/; see scraper_lib._parstate).
  *
- * E vs C cannot be told from presence alone — Cms/Mms/Rms/Bl and a derived Q are all
- * "present" in the derived driver but were computed, not entered. So we compare `raw`
- * (what was supplied) against `d` (what deriveDriver produced): in raw → E; derived
- * but not in raw → C; in neither → N.
- *
- * Limitation: for a driver LOADED from a .wdr, `raw` carries no record of which fields
- * were originally E vs C, so every stored field reads as "supplied" (E). Faithful
- * round-tripping would require preserving the imported ParState or tracking per-field
- * edit state in the app — a separate change.
+ * This is the FRESH path only: the driver was authored in-app, so `raw` (what the human
+ * supplied) vs `d` (what deriveDriver produced) unambiguously gives E vs C — there is no
+ * loaded file to misread. A driver LOADED from a .wdr instead replays its own ParState
+ * through the Driver ADT (Driver.fromWdr → cell().state → Driver's #buildParState).
  */
 export function parstate(raw: DriverRaw, d: Driver): string {
   const s = new Array<string>(49).fill('N');
