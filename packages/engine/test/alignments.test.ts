@@ -30,7 +30,7 @@ import {
   prTuning,
   prMassForFp,
 } from '@openisd/engine';
-import { RHO, C } from '@openisd/engine';
+import { RHO, C, END_CORRECTION } from '@openisd/engine';
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout
@@ -203,8 +203,8 @@ describe('QB3 vented alignment (ventedAlignment)', () => {
 describe('Port / vent length calculation (ventLength)', () => {
 
   // Helmholtz resonator: f = (c/2π)·√(Sp/(Vb·L_eq))
-  //   L_eq = L + 0.85·d  (end correction for one flanged open end)
-  //   → L = Map·Sp/ρ − 0.85·d
+  //   L_eq = L + END_CORRECTION·d  (flanged at the baffle, free into the box)
+  //   → L = Map·Sp/ρ − END_CORRECTION·d
   // Ref: [Wiki-Hz]
 
   const Vb_m3  = 0.020;  // m³ = 20 L
@@ -243,7 +243,7 @@ describe('Port / vent length calculation (ventLength)', () => {
 
 describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => {
 
-  // Helmholtz formula: f = (c/2π)·√(Sp/(Vb·Leff)),  Leff = L + 0.85·d
+  // Helmholtz formula: f = (c/2π)·√(Sp/(Vb·Leff)),  Leff = L + END_CORRECTION·d
   // Ref: [Wiki-Hz]
 
   const Vb_m3   = 0.020; // m³
@@ -269,7 +269,7 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
     // Manually compute the expected Fb using the Helmholtz formula.
     const L_m = 0.12; // 120 mm vent
     const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
-    const Leff = L_m + 0.85 * d; // end correction
+    const Leff = L_m + END_CORRECTION * d; // end correction
     const Cab  = Vb_m3 / (RHO * C * C);
     const Map  = RHO * Leff / Sp_m2;
     const EXPECTED_Fb = 1 / (2 * Math.PI * Math.sqrt(Map * Cab));

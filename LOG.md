@@ -8,17 +8,23 @@
 
 ---
 
+## 2026-07-04 — Cross-platform visual test baselines
+
+SPL graph visual tests now pass on any OS, not just Windows. The canvas axis labels and app UI hardcoded `Segoe UI` (a Windows-only system font); on Linux the browser silently fell back to a different font with different glyph widths, shifting pixels enough to fail the screenshot comparison — unrelated to any physics change. Bundled `Inter` (self-hosted via `@fontsource/inter`, SIL OFL licensed) so every OS renders identical glyphs, added a `document.fonts.ready` redraw so the canvas never bakes in a fallback-font first paint, and dropped Playwright's per-OS snapshot suffix (`sealed-spl-win32.png` → `sealed-spl.png`) so one baseline set now covers Windows, Linux, and macOS.
+
 ## 2026-07-03 — Rebrand to OpenISD; safe-tool tooling
 
 Project is now **OpenISD**, served at a real domain. Renamed everything user- and contributor-facing — app title/header/about, PWA manifest, package scope (`@openisd/*`), WDR `ProvidedBy`, docs, and the README (new banner using the app's own SPL/impedance curves). Physics terms (resonator/resonant) deliberately untouched.
 
-No saved work lost in the rename. localStorage keys moved to `openisd_*` with a read-fallback to the old keys, so existing users keep their saved drivers, PR library, and design.
+Rebrand now complete — no brand remnants. Every remaining `Resonate` string was removed: the legacy localStorage read-fallbacks dropped (keys are `openisd_*` only), plus `LICENSE`, the dev-server log line, the demo drivers' `Manufacturer`/`ProvidedBy`, the federated source catalogue, and doc prose. Only the not-yet-renamed git repo URL (`github.com/Johnlon/resonate`) still carries the old name; the physics verb "resonate" is left alone.
 
 Real domain, correct hosting. `openisd.app` set via a `CNAME` file with Vite `base` back to `/`, so the custom apex domain serves at root.
 
 Fewer permission prompts without widening access. `grep_local` — a read-only grep locked to the project tree (relative paths, whitelisted flags, symlink-resolved containment, no `-exec`) — is safe to blanket-allow; the `safe-tools` skill captures the pattern so more such tools get built the same way.
 
 Answers the "vibe-coded" jab head-on. `VIBE_CODING.md` reframes the old self-flagellating doc: it asks the accuser to define the term, then hands over the public trait-by-trait scorecard (tests, guardrails, and the rows still red) and lets the reader judge.
+
+Code-review docs show only open work. Resolved findings are deleted from `CODE_REVIEW.md` (the repo's delete-on-resolve rule, numbers left as gaps so surviving `§N` stay stable), the `VIBE_CODING.md` scorecard is rewritten to describe current state rather than "§X resolved" history, and the stale references in the remediation/engine-hardening docs are repaired — no dangling pointers to removed findings.
 
 ## 2026-07-02 — Engine hardening: degenerate input never a silent blank chart
 

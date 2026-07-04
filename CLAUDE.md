@@ -111,6 +111,16 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 
 ---
 
+## Scratch files — repo-local `build/`, never OS temp paths
+
+**Any throwaway file (exploration scripts, one-off diagnostic output, ad-hoc test harnesses) goes in `build/` at the repo root, never an OS temp directory** (`/tmp`, `$TEMP`, `C:\Users\<user>\AppData\Local\Temp\...`).
+
+**Why:** an absolute OS temp path is invisible to the repo, breaks on any other machine/OS, and is easy to forget to clean up. `build/` is git-ignored (`.gitignore`) so nothing there is ever committed, but it stays inside the project tree — inspectable, relative-pathed, and obviously disposable.
+
+**How to apply:** when writing a quick exploration script (e.g. probing an external site's form fields, a scratch computation) or redirecting command output for later reading, write it to `build/<descriptive-name>` and delete it once its job is done. Never invent a path under `$TEMP`/`%TEMP%`/`/tmp` for anything project-related.
+
+---
+
 ## AI role — build tools, don't perform ad-hoc tasks
 
 **Create reusable scripts for recurring tasks; never write an inline one-liner when a script already exists or should exist.** Check `scripts/` first.

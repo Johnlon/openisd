@@ -6,6 +6,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@openisd/engine": "*",
     "vue": "^3.5.38"
   }

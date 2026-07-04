@@ -322,6 +322,9 @@ onMounted(() => {
   ro = new ResizeObserver(redraw);
   ro.observe(canvasEl.value!);
   document.addEventListener('click', onDocClick);
+  // Canvas text is rasterized at draw time — if Inter loads after the first
+  // paint, that paint used a fallback font. Redraw once the real font is in.
+  document.fonts.ready.then(redraw);
 });
 onUnmounted(() => {
   ro?.disconnect();

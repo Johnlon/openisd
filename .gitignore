@@ -1,6 +1,7 @@
 node_modules/
 dist/
 test-results/
+build/
 .server.pid
 .server.log
 .server-*.pid

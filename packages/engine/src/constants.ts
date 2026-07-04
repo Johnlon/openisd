@@ -13,3 +13,8 @@
 export const RHO = 1.20095;  // air density        kg/m³   (20 °C — WinISD)
 export const C   = 343.68;   // speed of sound      m/s     (20 °C — WinISD)
 export const P0  = 20e-6;    // SPL reference       Pa RMS  (0 dB SPL)
+
+// Port end correction for a vent flanged at one end (baffle) and free at the other
+// (open into the box) — WinISD's own default (Vents tab "End Correction" field;
+// see docs/winisd/view_3_ported.png).
+export const END_CORRECTION = 0.732;  // × vent diameter, per open (unflanged) end

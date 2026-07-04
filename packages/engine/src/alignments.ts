@@ -22,7 +22,7 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { RHO, C } from './constants.js';
+import { RHO, C, END_CORRECTION } from './constants.js';
 import type { Driver, SweepParams } from './types.js';
 
 /** The subset of params the PR helpers read — lets callers pass any params object
@@ -63,7 +63,7 @@ export function ventedAlignment(drv: Pick<Driver, 'Fs' | 'Qts' | 'Vas'>): { Vb: 
 /**
  * Physical vent length for a target tuning frequency.
  * Helmholtz resonator: f = (c/2π) · √(A / (V₀ · L_eq))
- * where L_eq = L + 0.85·d  (end correction for one open flanged end)
+ * where L_eq = L + END_CORRECTION·d  (flanged at the baffle, free into the box)
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
 export function ventLength(Vb: number, fb: number, Sp: number): number {
@@ -71,17 +71,17 @@ export function ventLength(Vb: number, fb: number, Sp: number): number {
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Math.max(Map * Sp / RHO - 0.85 * d, 0.005);
+  return Math.max(Map * Sp / RHO - END_CORRECTION * d, 0.005);
 }
 
 /**
  * Port tuning frequency from physical dimensions.
- * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + 0.85·d
+ * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
 export function tuningFromLength(Vb: number, L: number, Sp: number): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
-  const Leff = L + 0.85 * d;
+  const Leff = L + END_CORRECTION * d;
   const Cab  = Vb / (RHO * C * C);
   const Map  = RHO * Leff / Sp;
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));

@@ -77,4 +77,24 @@ export const SCENARIOS: Scenario[] = [
     },
   },
 
+  // ── Scenario 2: Vented 30L box, ø5cm bore × 10cm port ───────────────────────
+  // Helmholtz resonator with END_CORRECTION = 0.732 (WinISD's one-flanged default)
+  {
+    id:   'vented-30l-5cm-10cm',
+    name: 'Vented 30L box, ø5cm×10cm port: Fs=37Hz, Qts=0.38, Vas=30L',
+    driver: { Fs: 37, Qts: 0.38, Vas: 30 },
+    box:    { type: 'vented', Vb: 30, ventD: 5, ventL: 10 },
+
+    // micka.de values — verified 2026-07-04 by submitting "Your own Box" (Vb=30L,
+    // vent diameter=5cm, vent length=10cm) and reading the results table
+    micka: {
+      Fb: '37.85',
+    },
+
+    // OpenISD stat bar values — toFixed precision as rendered by StatBar.vue
+    openisd: {
+      Fb: '37.9',   // toFixed(1) of 37.86 Hz
+    },
+  },
+
 ];
