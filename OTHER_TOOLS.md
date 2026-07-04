@@ -153,23 +153,52 @@ parallel/series split and Transmission Line are backlog items — see
 `BACKLOG.md` "Enclosure types & box model". The parallel-vs-series distinction is
 new information from SpeakerBoxLite (micka never surfaced it).
 
-### Rendering & automation notes
+### Rendering & automation — confirmed live 2026-07-04
 
-- The calculator is a **client-side SPA** (verified live 2026-07-04): the box/driver
-  inputs are rendered by JavaScript and are **not present as `<input name="...">` in the
-  static HTML**. Stable Playwright selectors must therefore be read from the _rendered_
-  DOM, not from a static fetch.
-- ⚠ Unverified: indicative field labels seen in page text (e.g. `Fs(Hz)`, `Vas(l)`,
-  `Qts`, `Sd(sq.mm)`, `Ql (Box losses)`, `Vb(l)`, `Fb(Hz)`, `Qtc`, `F3(Hz)`, port
-  `Diameter/Length(mm)`). These are **not confirmed selectors** — the per-type field
-  names must be driven live before the crosscheck spec's locators can be trusted.
+Driven with a headless Chromium exploration script (`build/` scratch, since deleted).
+All of the following was observed in the rendered DOM, not inferred:
 
-### Open question (not yet decided)
+- **Client-side SPA (Bootstrap-Vue).** No `<input name>` / stable `id` on fields — every
+  parameter input is `input.form-control`, and many share `id="fieldInput"`. Selectors
+  must key off the row label, e.g. `.input-field-root:has-text("Fs(Hz)") input.form-control`.
+- **Two consent overlays** must be dismissed first: a top cookie bar (`button` "Got it!")
+  and a "Privacy and cookie settings" popup (Quantcast/IAB) that overlaps the left inputs.
+- **Responsive duplicates:** the DOM holds hidden desktop+mobile copies of controls
+  (`d-none d-md-block`); a wide viewport (≈1680×1050) and a `:visible` filter are required,
+  otherwise `.first()` grabs a hidden node.
+- **Left panel is tabbed:** `Speaker | Network | Enclosure | Box | …`.
+  - _Speaker_ tab: driver T/S — `Fs(Hz)`, `Vas(l)`, `Qts`, plus SUB/WOOFER/… ,
+    SIMPLE/COMPLEX computation model, LITE/EXPANDED parameter set, ONE/MULTIPLE/ISOBARIC.
+  - _Enclosure_ tab: enclosure-type dropdown (`button.dropdown-toggle` → `a.dropdown-item`,
+    options exactly the 7 above) plus the box fields (below).
+  - _Box_ tab: physical realisation — `Material thickness(mm)`, `Port outside length(mm)`,
+    `Displacement(l)`.
+- **Enclosure fields per type** (all on the Enclosure tab; `Ql(Box losses)` defaults to 7):
+  - Closed: `Vb(l)`, `Qtc`, `F3(Hz)`
+  - Vented: `Vb(l)`, `Fb(Hz)`, `F3(Hz)`
+  - Passive Radiator: `Vb(l)`, `Fb(Hz)`, `F3(Hz)`
+  - 4th Order Bandpass: `front`, `front`, `rear`, `low`, `high`, `Bandwidth(Hz)`
 
-Should the crosscheck spec drive SpeakerBoxLite's rendered UI (as the micka spec drives
-micka's form — slower, exercises the real page), or is there a lighter-weight path (an
-API/XHR endpoint observed via network trace) that avoids full SPA automation? Not
-investigated.
+### Two blockers to a working crosscheck spec (unresolved)
+
+1. **No output field to read.** The Enclosure fields (`Vb`, `Qtc`, `Fb`, `F3`) are all
+   _inputs_ — you enter whichever you know. Entering `Qtc=0.707` (or `Vb=12.2`) and clicking
+   **Draw** did **not** populate the others; SBL's authoritative computed numbers are not
+   written back into these inputs. Where SBL surfaces the computed result as parseable text
+   (a values/list panel behind the graph toolbar's list icon, vs. graph pixels only) has not
+   been located. Until it is, the spec has nothing reliable to assert against.
+2. **Model direction likely differs for vented.** SBL's vented Enclosure tab exposes `Fb`
+   as an input field (not a readout), with port length/material/displacement on the Box tab
+   — so it appears to take `Vb` + target `Fb` and compute the port (⚠ inferred from field
+   layout, not confirmed by watching it compute). That is the _inverse_ of OpenISD scenario
+   2, which fixes port geometry (ø5cm×10cm) and computes `Fb=37.9`. A like-for-like `Fb`
+   cross-check may therefore not be directly expressible in SBL's flow.
+
+### Open question (still not decided)
+
+Drive the rendered UI (heavier, and blocked on #1 above) vs. find an API/XHR endpoint that
+returns computed results directly (would sidestep both blockers if one exists). No network
+trace captured yet.
 
 ---
 
