@@ -14,7 +14,7 @@
  */
 
 import { deriveDriver, C, RHO } from '@openisd/engine';
-import type { DriverRaw, DriverError } from '@openisd/engine';
+import type { DriverRaw, Driver as EngineDriver, DriverError } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
 
@@ -47,6 +47,16 @@ const ERROR_ALIASES: Record<string, string[]> = {
   Sd:  ['Dia'],
   Qts: ['Qms', 'Qes'],
 };
+
+// WDR header key → app metadata field. These are carried (not simulated), so on import
+// they are marked E and survive to raw()/re-save the same way the design's "carried
+// pass-through fields" do. `name` is composed from Brand + Model (as parseWdr did).
+const WDR_META: ReadonlyArray<[string, string]> = [
+  ['Brand', 'brand'],
+  ['Model', 'model'],
+  ['ProvidedBy', 'providedBy'],
+  ['Comment', 'comment'],
+];
 
 // Format a modeled cell value back to a WDR value string. toPrecision(6) matches the
 // exporter's rounding, so an overlaid value stays numerically equal to the source.
@@ -104,6 +114,28 @@ export class Driver {
     return this.#derive().errors;
   }
 
+  /**
+   * The entered bag back out — every human-supplied value (T/S numerics + carried
+   * metadata strings), keyed by app field name. Computed (C) fields are deliberately
+   * excluded: raw() is "what was entered", so re-saving it (My Drivers, project JSON)
+   * never mistakes a derived value for one the human typed. For the fully-derived set
+   * used by the simulation, use toDriver().
+   */
+  raw(): DriverRaw {
+    return { ...this.#inputs } as unknown as DriverRaw;
+  }
+
+  /**
+   * The fully-derived engine Driver for the simulation — the resolved T/S set with
+   * fixed-E overrides honoured (this is the single derivation authority; the sim must
+   * consume it, not re-derive). Null when a blocking error means nothing can be drawn.
+   */
+  toDriver(): EngineDriver | null {
+    const { fields, errors } = this.#derive();
+    if (errors.some(e => e.level === 'error')) return null;
+    return fields as unknown as EngineDriver;
+  }
+
   /** Register a change listener; returns an unsubscribe function. */
   subscribe(listener: DriverListener): () => void {
     this.#listeners.add(listener);
@@ -111,6 +143,24 @@ export class Driver {
   }
 
   // ── WDR round-trip ────────────────────────────────────────────────────────────
+
+  /**
+   * Build a Driver from a plain DriverRaw bag (My Drivers, a saved project's driver,
+   * the built-in demo). Every present field — T/S numerics and metadata strings alike —
+   * is entered (E); undefined/null/'' are skipped so they stay N. The inverse of raw().
+   */
+  static fromRaw(raw: Record<string, unknown> | null | undefined): Driver {
+    const d = new Driver();
+    for (const k in raw) {
+      const v = raw[k];
+      if (v !== undefined && v !== null && v !== '' &&
+          (typeof v === 'number' || typeof v === 'string')) {
+        d.#inputs[k] = v;
+      }
+    }
+    d.#cache = null;
+    return d;
+  }
 
   /**
    * Parse a WinISD .wdr — reads EVERY [Driver] key and the ParState, carrying them so
@@ -142,6 +192,17 @@ export class Driver {
       const v = parseFloat(raw[m.wdrKey]);
       if (isFinite(v)) d.#inputs[m.field] = v;   // direct: constructing state, no notify
     }
+
+    // Carry the header metadata (brand/model/providedBy/comment + composed name) into
+    // the entered bag so raw() exposes it uniformly, whether the Driver came from a WDR
+    // or a plain DriverRaw. This does not touch toWdr (which echoes #wdrRaw) or ParState.
+    for (const [wdrKey, field] of WDR_META) {
+      const v = raw[wdrKey];
+      if (v != null && v !== '') d.#inputs[field] = v;
+    }
+    const name = [raw.Brand, raw.Model].filter(x => x && x.length).join(' ').trim();
+    if (name) d.#inputs.name = name;
+
     d.#cache = null;
     return d;
   }
@@ -155,7 +216,7 @@ export class Driver {
   toWdr(): string {
     if (!this.#wdrOrder || !this.#wdrRaw) {
       // Fresh-authored driver — no carried WDR. Export from the entered fields.
-      return toWdrRaw(this.#rawSnapshot());
+      return toWdrRaw(this.raw());
     }
     const lines = ['[Driver]'];
     for (const key of this.#wdrOrder) {
@@ -181,11 +242,6 @@ export class Driver {
       : new Array<string>(PARSTATE_LEN).fill('N');
     for (const m of MODELED_SLOTS) base[m.pos] = this.cell(m.field).state;
     return base.join('');
-  }
-
-  // A DriverRaw snapshot of the entered numeric/string fields — for fresh-mode export.
-  #rawSnapshot(): DriverRaw {
-    return { ...this.#inputs } as unknown as DriverRaw;
   }
 
   #invalidate(): void {
