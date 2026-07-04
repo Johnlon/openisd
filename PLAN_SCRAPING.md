@@ -1,7 +1,7 @@
 # Scraping pipeline — plans and open work
 
 Companion to [BACKLOG.md](BACKLOG.md) · [drivers/SCRAPING_RULES.md](drivers/SCRAPING_RULES.md) ·
-[WDR_SCHEMA.md](WDR_SCHEMA.md) · [drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md](drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md).
+[WDR_SCHEMA.md](WDR_SCHEMA.md) · [WDR_FILE_MODEL_AND_WORKFLOWS.md](WDR_FILE_MODEL_AND_WORKFLOWS.md).
 
 ---
 

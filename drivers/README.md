@@ -3,7 +3,7 @@
 Related docs:
 [`WDR_SCHEMA.md`](../WDR_SCHEMA.md) — WDR field spec and `_meta.yml` sidecar format ·
 [`SCRAPING_RULES.md`](SCRAPING_RULES.md) — unit conversions, Xmax conventions, brand names, standard fixes ·
-[`WDR_FILE_MODEL_AND_WORKFLOWS.md`](WDR_FILE_MODEL_AND_WORKFLOWS.md) — link-field workflows, DQ check, scripts reference ·
+[`WDR_FILE_MODEL_AND_WORKFLOWS.md`](../WDR_FILE_MODEL_AND_WORKFLOWS.md) — link-field workflows, DQ check, scripts reference ·
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
 [`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
 

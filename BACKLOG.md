@@ -22,6 +22,8 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## Next — do first
 
+- [ ] **Bookmarkable URL — UI state must live in the URL (reported broken).** The URL should be bookmarkable so that reopening it restores the full UI state (driver, box type, params, graph selection, comparisons). User reports this does **not** work today. Note the contradiction to resolve first: two "Shipped ✓" / Storage entries below already mark **URL-encoded designs** as implemented **and** `[ui]`-tested (`[x] [x] … no server needed [ui]`). So before building anything, **reproduce**: does the URL update as UI state changes, and does pasting that URL into a fresh tab restore that state? If it regressed, the existing `[ui]` test is not catching it — fix the test too. If it never covered bookmarkability (e.g. URL only updates on an explicit "share" action, not live as state changes), that gap is the actual feature. Distinguish "shareable link on demand" from "the address bar always reflects current state so a browser bookmark just works." The user wants the latter.
+
 - [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
 ---
@@ -57,7 +59,7 @@ both live. The description below is preserved for history.
 
 Full plan: [PLAN.md](PLAN.md) ·
 practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
-[references.md](references.md).
+[REFERENCES.md](REFERENCES.md).
 
 - [x] [x] **P0 · Phase 0** Golden-master fixtures: freeze current sweep outputs for
       every box type, assert equality — the net that proves extraction preserves
