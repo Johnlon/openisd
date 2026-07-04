@@ -250,6 +250,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); Python: add `ruff` + `import-linter`; see `OTHER_TOOLS.md`
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
+- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `PLAN_DRIVER_ADT.md`
 - [ ] **P2** Unify DQ and schema validation — single WDR parser, range bounds defined once; see `PLAN_SCRAPING.md`
 - [ ] **P1** Universal value provenance in `_meta.yml` — every field becomes `[value, source_key]` with a `_sources` index; redesign `MetaModel` and scraper write path; see `PLAN_SCRAPING.md`
 - [ ] **P2** Diagnose and fix sb-acoustics `specs: null` — re-run scraper; fix coaxial detection if still broken after fresh run; see `PLAN_SCRAPING.md`

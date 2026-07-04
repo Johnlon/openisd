@@ -353,4 +353,4 @@ is made as framework-agnostic as feasible. See
 [docs/DRIVER_ADT_DESIGN.md](docs/DRIVER_ADT_DESIGN.md).
 
 **Status:** Goal adopted. Migration pending — layered on top of the `@openisd`
-rename, not a rushed pass.
+rename, not a rushed pass. Phased steps: [PLAN_DRIVER_ADT.md](PLAN_DRIVER_ADT.md).
