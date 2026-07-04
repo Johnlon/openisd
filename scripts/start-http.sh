@@ -5,9 +5,13 @@
 #   4000 = human's preview/dev server (default)
 #   4200 = agent-started dev server
 set -euo pipefail
-[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
+# Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+# PowerShell/cmd have no /proc, so they are still rejected.
+{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
 PORT=${1:-4000}
+# Windows Git Bash exposes `python`; WSL/Ubuntu exposes `python3`. Resolve whichever exists.
+PYTHON="$(command -v python || command -v python3)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 PID_FILE="$ROOT_DIR/.server-${PORT}.pid"
@@ -36,7 +40,7 @@ echo "========================================"
 run "ESLint"       npm run lint
 run "Type check"   npm run typecheck
 run "Unit tests"   npm run test:unit
-run "DQ check"     python scripts/dq_check.py
+run "DQ check"     "$PYTHON" scripts/dq_check.py
 
 echo ""
 echo "========================================"

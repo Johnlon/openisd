@@ -8,13 +8,31 @@
 #   4. taskkill /IM node.exe /F  — image-name nuke all node
 # Loops until netstat confirms port is free or 10 attempts exhausted.
 set -euo pipefail
-[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
+# Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+# PowerShell/cmd have no /proc, so they are still rejected.
+{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
 if [ $# -eq 0 ]; then
   echo "ERROR: kill-http.sh requires at least one port argument" >&2
   exit 1
 fi
 ports=("$@")
+
+# On WSL/Linux the dev server is a native Linux process; the Windows kill chain
+# (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
+if [ -z "${MSYSTEM:-}" ]; then
+  for port in "${ports[@]}"; do
+    pids=$(lsof -ti :"$port" 2>/dev/null || true)
+    [ -z "$pids" ] && continue
+    echo "port $port: killing PID(s) $pids"
+    kill $pids 2>/dev/null || true
+    sleep 1
+    pids=$(lsof -ti :"$port" 2>/dev/null || true)
+    [ -n "$pids" ] && kill -9 $pids 2>/dev/null || true
+  done
+  echo "done"
+  exit 0
+fi
 
 _winpids_on_port() {
   netstat -ano 2>/dev/null \

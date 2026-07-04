@@ -93,19 +93,21 @@ Git remains the record of _mechanics_. `LOG.md` is the record of _value_.
 
 ---
 
-## Shell environment — Windows + Git Bash only
+## Shell environment — WSL (or Windows Git Bash)
 
-This project runs on **Windows 11 with Git Bash**. Other OSes have not been considered.
+The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must also keep working under **Windows Git Bash**, since the same tree may be driven from either. PowerShell and cmd are not supported.
 
 **AI must:**
 
 - Always use the **Bash** tool for shell commands. Never PowerShell.
-- Not use WSL commands — WSL processes are in a separate namespace.
-- Include the Git Bash guard in every new script in `scripts/`, immediately after `set -euo pipefail`:
+- Write scripts that work on **both WSL and Git Bash**. Do not hardcode Windows-only tooling (`taskkill`, `tskill`, `ps -W`, `netstat -ano`) without a POSIX branch, and resolve `python` vs `python3` rather than assuming one exists.
+- Include the environment guard in every new script in `scripts/`, immediately after `set -euo pipefail`:
   ```bash
-  [ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
+  # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+  # PowerShell/cmd have no /proc, so they are still rejected.
+  { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
   ```
-  `MSYSTEM` is set by Git Bash (`MINGW64`/`MINGW32`) and absent in WSL, PowerShell, and cmd.
+  `MSYSTEM` is set by Git Bash (`MINGW64`/`MINGW32`); WSL is detected by `microsoft` in `/proc/version`. Both PowerShell and cmd lack `/proc`, so they are rejected.
 
 ---
 
