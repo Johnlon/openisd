@@ -7,6 +7,7 @@ body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--b
 h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.3px }
 h1 small { color:var(--mut); font-weight:400; font-size:11px }
 header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }
+header .logo { flex-shrink:0; display:block; margin-right:-6px }
 header .sp { flex:1 }
 .layout { display:flex; height:calc(100vh - 41px) }
 .side { width:429px; min-width:429px; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; transition:width .15s ease }
