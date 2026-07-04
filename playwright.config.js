@@ -13,7 +13,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4100',
   },
   webServer: {
-    command: 'npm run dev -- --port 4100',
+    command: 'bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100',
     url: 'http://localhost:4100',
     reuseExistingServer: false,
     timeout: 120000,
