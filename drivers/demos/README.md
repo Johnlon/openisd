@@ -1,4 +1,4 @@
-# Resonate demo drivers
+# OpenISD demo drivers
 
 Hand-authored generic demo drivers shipped with the app — **not scraped, not real
 products**. Representative T/S values so a first-time user has something to look at.

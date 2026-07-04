@@ -5,10 +5,9 @@ structure/documentation. Every correctness finding was verified against the
 source before listing. Each finding states the exact file, the failure scenario,
 and a preventative practice.
 
-Finding numbers (`§N`) are **stable IDs**: `VIBE_CODING.md`
-references them, so a resolved finding is marked **✓ RESOLVED** in place (with the
-verifying evidence) rather than deleted and renumbered. New findings take the next
-free number. Verify the two docs agree after any edit.
+Finding numbers (`§N`) are **stable IDs** referenced by `VIBE_CODING.md`; they are
+never reused or renumbered. A resolved finding is removed and its number left as a
+gap. New findings take the next free number. Verify the two docs agree after any edit.
 
 ---
 
@@ -40,19 +39,6 @@ endpoints. `pdf_lib.find_freq_range` already does this — share that logic.
 
 **Preventative:** anchor labels to exact phrases ("frequency range"/"upper
 frequency limit"); don't substring-match "recommended".
-
-### 4. `scripts/scraper_lib.py` — written files not schema-validated — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** `run_scraper` now calls `validate_driver(wdr_path, meta_path)`
-in the shared write path (`scripts/scraper_lib.py:686`) before counting `ok += 1`
-(`:940`). ⚠ Not yet asserted by a test — the preventative below asked for one, so a
-regression could silently reopen this.
-
-_Original:_ `run_scraper` wrote the `.wdr`/`_meta.yml` and counted `ok += 1` with no
-validation call, unlike `scrape_pe.py`. An invalid field was committed reporting "OK".
-
-**Preventative:** validation must live in the single shared write path, asserted
-by a test.
 
 ### 5. `scripts/scraper_lib.py` vs `scripts/scrapers/scraper_lib.py` — two copies — ◐ PARTLY RESOLVED
 
@@ -98,33 +84,6 @@ corrected vendor T/S values are never picked up.
 
 ## Correctness bugs — JavaScript / Vue
 
-### 9. `FiltersPanel.vue` — `nextId` resets to 1 on reload, colliding with persisted filter ids — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** `addFilter` now assigns `id: crypto.randomUUID()`
-(`packages/ui/src/components/FiltersPanel.vue:12`) — no module counter, no reset,
-no collision. ⚠ Not guarded by a lint rule, so a future module-counter id could
-reintroduce it.
-
-_Original:_ `let nextId = 1` was module-local; filters persist with ids from prior
-sessions, so after reload `addFilter` reassigned `id: 1` → duplicate `:key` → Vue
-patched the wrong row.
-
-**Preventative:** stable ids from `crypto.randomUUID()` (done); consider a lint
-rule against module-counter ids for persisted entities.
-
-### 10. `sweep.ts` — NaN propagation when a driver has no `Xmax` — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** `packages/engine/src/sweep.ts:103` now guards
-`(excAt283 > 0 && drv.Xmax != null) ? 2.83 * (drv.Xmax / excAt283) : 1e9` — a
-missing `Xmax` falls back to an effectively-infinite voltage limit, so only the
-`Pe` limit applies and no `NaN` reaches the Max-SPL/Max-Power curves.
-
-_Original:_ `vXmax = 2.83 * (drv.Xmax / excAt283)` with no `Xmax`-present guard made
-`vXmax` NaN → blank graphs.
-
-**Preventative:** skip the Xmax limit (use only the Pe limit) when `Xmax` is
-absent. (done)
-
 ### 11. `packages/engine/src/driver.ts:29-30` — division by zero deriving Qes/Qms
 
 `r.Qes = (Qts*Qms)/(Qms - Qts)` and the Qms line divide by `(Qms − Qts)` /
@@ -136,19 +95,6 @@ absent. (done)
 > a formula change.
 
 **Preventative:** small-denominator guard before the divide.
-
-### 12. `DriverPanel.vue` — manufacturer link reads a property never set — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** the driver-load path now maps `manupage → manuPageUrl`
-(`packages/ui/src/components/DriverBrowser.vue:494`), so a driver selected from the
-library carries `manuPageUrl` and the "Manufacturer ↗" link (`DriverPanel.vue:78`)
-renders. Note the mapping lives in the loader, not `parseWdr` — a driver built
-purely via `parseWdr` still won't have it, but no live path does that.
-
-_Original:_ `r.manuPageUrl` was never produced by any loader, so the link could
-never render.
-
-**Preventative:** map `manupage → manuPageUrl` at the load boundary (done).
 
 ---
 
@@ -193,7 +139,7 @@ Generalised rules worth adding to `CLAUDE.md`/CI:
 1. **One source of truth per concern** — collapse duplicate `scraper_lib.py` and
    duplicate roadmap/canonical docs. (5, 15)
 2. **Validation lives in the shared write path** — never per-scraper; assert with
-   a test. (4)
+   a test.
 3. **Never coerce a missing value into a control-flow bound** — absent ≠ 0/empty.
    (1)
 4. **No bare `except: pass` in scrapers** — log SKU+URL+traceback then continue.
@@ -204,9 +150,9 @@ Generalised rules worth adding to `CLAUDE.md`/CI:
 7. **Share extraction helpers** instead of re-implementing regexes per scraper.
    (2, 3)
 8. **Guard against missing optional fields and zero denominators** before
-   arithmetic in `packages/engine/src`/`sweep`. (10, 11)
+   arithmetic in `packages/engine/src`/`sweep`. (11)
 9. **Stable entity ids** — derive from persisted data, never a module counter that
-   resets. (9)
+   resets.
 10. **CI guards for doc rules** — no-history grep + markdown link-checker. (13, 14)
 
 ---
@@ -251,19 +197,6 @@ boundary instead — see ENGINE_HARDENING.md.)
 A box volume of 0 or an unset `Vb` makes `Zc = cInv(cx(0, 0))` → `Infinity`/`NaN`
 through the entire solve.
 
-### 19. `sweep.ts` — silent fabricated power rating `(drv.Pe || 50)` — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** `packages/engine/src/sweep.ts:98` now uses
-`(drv.Pe != null && drv.Pe > 0) ? drv.Pe * (P.nDrivers || 1) : null` and returns
-`peAbsent: Pe == null` (`:110`); when `Pe` is absent the `Pe` voltage limit is set to
-`Infinity` (only the `Xmax` limit applies) and the UI shows a "Pe not in datasheet"
-warning (`store.js:58-63`, `driverWarnings`). No fabricated 50 W is presented as fact.
-
-_Original:_ a driver with no `Pe` got a fabricated 50 W baked into its
-max-SPL/max-power curves.
-
-**Preventative:** require `Pe`, or surface the absence in the UI (done).
-
 ### 20. `constants.ts:11-12` — values labelled "20 °C" correspond to ~24 °C
 
 `C = 345.0` m/s and `RHO = 1.184` kg/m³ are commented "20 °C", but textbook 20 °C
@@ -281,7 +214,6 @@ builder (as `scraper_lib.py`'s `_parstate` does) would eliminate the literal.
 
 ### Already listed above (engine-related)
 
-- §10 `sweep.ts:103` — `NaN` max curves when `Xmax` absent. ✓ RESOLVED.
 - §11 `driver.ts:29-30` — division by zero when `Qms == Qts`. Still present.
 
 ---
@@ -310,17 +242,3 @@ error — the single-definition fix §16's preventative already called for. See
 
 **Status:** fix in progress (engine input-validation boundary). Re-verify and mark
 resolved once landed.
-
-### 23. Two `localStorage` persistence systems with different keys can disagree — ✓ RESOLVED
-
-**✓ RESOLVED (verified):** app-state persistence now has a single source of truth —
-`openisd.state`, written by `App.vue`'s watch (`saveLocal`, `utils/persist.js:25-26`)
-and restored by `loadLocal()` on mount. `store.js` no longer writes its own
-`resonate_v2` key or runs a competing `setItem` watch; `store.js:19-20` documents the
-single-writer contract. (The separate `MY_DRIVERS_KEY` and PR-library keys are distinct
-concerns, not duplicates of app state.)
-
-_Original:_ `store.js` wrote `resonate_v2` while `persist.js` wrote `openisd.state`;
-both were read at startup and could silently override each other.
-
-**Preventative:** one persistence module, one key, one serialise/restore path (done).

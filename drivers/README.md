@@ -7,7 +7,7 @@ Related docs:
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
 [`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
 
-Resonate's driver data is an open commons. Two ways drivers reach the tool:
+OpenISD's driver data is an open commons. Two ways drivers reach the tool:
 
 1. **Bundled** — `.wdr` files in subfolders here. Each driver has a `_meta.yml` sidecar
    with provenance and quality metadata.

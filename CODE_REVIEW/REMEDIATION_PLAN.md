@@ -2,12 +2,12 @@
 
 ## Context
 
-A full-codebase review (Python scrapers, JS/Vue, structure/docs) produced 15
+A full-codebase review (Python scrapers, JS/Vue, structure/docs) produced a set of
 verified findings and 10 preventative practices. This plan tracks remediation.
 
 **Artifacts:**
 
-- `CODE_REVIEW/CODE_REVIEW.md` — the 15 findings, each with file:line, failure
+- `CODE_REVIEW/CODE_REVIEW.md` — the findings, each with file:line, failure
   scenario, and a preventative practice. Source of truth for this plan.
 - `SDLC.md` (repo root) — the Human/Agent/Tooling workflow these fixes operate
   within.
@@ -21,13 +21,11 @@ verified findings and 10 preventative practices. This plan tracks remediation.
    - `scrape_pe.py:188` pagination truncation (missing `total` → break after page 1)
    - `scrape_pe.py:309` freq regex mis-scales kHz (optional low-end unit)
    - `scrape_wavecor.py:251` label gate reads wattage cell as `freq_high_hz`
-2. **`#5` — Unify `scraper_lib.py` + shared validation** (§4-5). Collapse the two
-   divergent copies (632 vs 834 lines); move validation into the one write path.
+2. **`#5` — Unify `scraper_lib.py`** (§5). Collapse the two divergent copies
+   (632 vs 834 lines) into one canonical module.
 3. **`#6` — Scraper robustness** (§6-8). Replace bare `except: pass` with problem-log
    entries; retry non-`ok` URLs; key OCR cache by content hash/mtime.
-4. **`#7` — JS/Vue bugs** (§9,10,12). `FiltersPanel` id collision; `sweep.ts` NaN
-   when `Xmax` absent; `DriverPanel` dead `manuPageUrl` branch.
-5. **`#9` — Docs/structure + CI guards** (§13-15). Fix history-in-docs violations,
+4. **`#9` — Docs/structure + CI guards** (§13-15). Fix history-in-docs violations,
    broken links, competing canonical sources; add no-history grep + link-checker.
 
 ## Blocked / needs human sign-off

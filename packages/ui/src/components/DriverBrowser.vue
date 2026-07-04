@@ -398,9 +398,8 @@ const previewFile  = ref<FileEntry | null>(null);
 const myDrivers    = ref<MyDriver[]>([]);   // drivers saved by the user to localStorage
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
-const MY_DRIVERS_KEY_LEGACY = 'resonate_my_drivers';   // pre-OpenISD key — read-fallback so saved drivers survive the rename
 function reloadMyDrivers() {
-  try { myDrivers.value = JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? localStorage.getItem(MY_DRIVERS_KEY_LEGACY) ?? '[]'); }
+  try { myDrivers.value = JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? '[]'); }
   catch { myDrivers.value = []; }
 }
 function deleteMyDriver(name: string) {

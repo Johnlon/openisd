@@ -5,10 +5,9 @@ import type { SweepParams } from '@openisd/engine';
 type PRSaveParams = Pick<SweepParams, 'prSd' | 'prMmd' | 'prCms' | 'prRms' | 'prXmax'>;
 
 const KEY = 'openisd_pr_lib';
-const KEY_LEGACY = 'resonate_pr_lib';   // pre-OpenISD key — read-fallback so a saved PR library survives the rename
 
 function load(): PRLibEntry[] {
-  try { return JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem(KEY_LEGACY) ?? '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { return []; }
 }
 
 export function listPRs(): PRLibEntry[] {

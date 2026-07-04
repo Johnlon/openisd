@@ -4,9 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 
-// openisd.app is a custom apex domain served at the site root, so the base is '/'
-// in both dev and the GitHub Pages build (the CNAME file selects the domain).
-const base = '/';
+// Deployed as a GitHub Pages project site at johnlon.github.io/openisd/, so the
+// production build is served under the /openisd/ path. Local dev serves at root.
+const base = process.env.GITHUB_PAGES ? '/openisd/' : '/';
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
@@ -43,7 +43,7 @@ export default defineConfig({
         theme_color: '#11151c',
         background_color: '#11151c',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],

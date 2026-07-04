@@ -70,4 +70,4 @@ WDR for this driver.
 
 These files may be useful as a starting point but each should be verified against the
 manufacturer's datasheet before use in a serious box design. The ParState should be
-regenerated correctly if any file is re-imported through the Resonate scraper pipeline.
+regenerated correctly if any file is re-imported through the OpenISD scraper pipeline.

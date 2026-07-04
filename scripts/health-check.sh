@@ -3,7 +3,12 @@
 # Exit code 0 = all passed. Non-zero = something failed.
 # Add new checks here as they are created — this is the single entry point.
 set -euo pipefail
-[ -z "${MSYSTEM:-}" ] && echo "ERROR: must run in Git Bash on Windows, not WSL or PowerShell" && exit 1
+# Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+# PowerShell/cmd have no /proc, so they are still rejected.
+{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
+
+# Windows Git Bash exposes `python`; WSL/Ubuntu exposes `python3`. Resolve whichever exists.
+PYTHON="$(command -v python || command -v python3)"
 
 PASS=0
 FAIL=0
@@ -32,8 +37,8 @@ run "ESLint"            npm run lint
 run "Type check"        npm run typecheck
 run "Unit tests"        npm run test:unit
 run "Browser tests"     npx playwright test
-run "DQ check"          python scripts/dq_check.py
-run "Scraper tests"     python -m pytest scripts/scrapers/ -v --tb=short
+run "DQ check"          "$PYTHON" scripts/dq_check.py
+run "Scraper tests"     "$PYTHON" -m pytest scripts/scrapers/ -v --tb=short
 
 echo ""
 echo "========================================"

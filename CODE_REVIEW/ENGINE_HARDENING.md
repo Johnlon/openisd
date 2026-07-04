@@ -1,14 +1,14 @@
 # Engine hardening — communicate failure, never emit silent `NaN`
 
 **Status: partially implemented; the rest is specified below.** The
-input-validation boundary (the *precondition*) now exists in `deriveDriver`,
+input-validation boundary (the _precondition_) now exists in `deriveDriver`,
 which returns `{ value, errors }` and the UI renders those as per-chart messages
 (`.gmsg`) and a dismissable issue list (`.drv-issues`). What remains is the
-*postcondition* — catching non-finite results the precondition can't foresee —
+_postcondition_ — catching non-finite results the precondition can't foresee —
 plus a few residual input guards. Items that change computed numbers stay
 sign-off-gated under the calculation-stability rule.
 
-Findings: `CODE_REVIEW.md` §16-21, §10-11.
+Findings: `CODE_REVIEW.md` §11, §16-18, §20-21.
 
 ---
 
@@ -16,7 +16,7 @@ Findings: `CODE_REVIEW.md` §16-21, §10-11.
 
 The physics engine (`packages/engine/src/`) is made of **pure functions**: same
 inputs → same outputs, no side effects. That is good. But pure does not mean
-*safe*. Handed incomplete or degenerate data, a function keeps doing arithmetic
+_safe_. Handed incomplete or degenerate data, a function keeps doing arithmetic
 and produces `NaN` or `Infinity`.
 
 ### Why `NaN` is the worst possible way to fail
@@ -63,7 +63,7 @@ The UI shows `error`s as a per-chart block (`.gmsg`) and `warn`s as a dismissabl
 
 ### Layer 2 — postcondition (to implement)
 
-A precondition on *inputs* cannot prove a denominator never hits zero **mid-sweep**:
+A precondition on _inputs_ cannot prove a denominator never hits zero **mid-sweep**:
 the solver's denominators are frequency-dependent intermediates computed ~400×
 per redraw. A singularity or overflow can appear even with valid inputs (a
 lossless system, parameters that happen to cancel, a grid point landing on a
@@ -79,15 +79,15 @@ returning `Result<SweepResult>`; for this app the store boundary is equivalent
 and far less invasive.)
 
 **Classification — partial vs pervasive (the key nuance):** a non-finite value at
-*one* frequency is almost always the grid unluckily landing on a pole — a
+_one_ frequency is almost always the grid unluckily landing on a pole — a
 measure-zero numerical artifact, not a physical "no output". The renderer
 (`canvas.ts drawOne`) already **breaks the line at non-finite points**, so a
 partial curve draws itself. So:
 
-| Situation | result | UI |
-| --- | --- | --- |
-| Some points non-finite | keep the arrays (with gaps) | partial curve + `warn` naming the frequency ("undefined near ~47 Hz") |
-| **No** finite points at all | treat as unusable | no chart + `error` ("can't simulate — check box volume / parameters") |
+| Situation                   | result                      | UI                                                                    |
+| --------------------------- | --------------------------- | --------------------------------------------------------------------- |
+| Some points non-finite      | keep the arrays (with gaps) | partial curve + `warn` naming the frequency ("undefined near ~47 Hz") |
+| **No** finite points at all | treat as unusable           | no chart + `error` ("can't simulate — check box volume / parameters") |
 
 Rule: **null/error only when the primary series has zero finite points; otherwise
 show the partial data and attach a `warn`.** Never blank a chart that has drawable
@@ -120,8 +120,6 @@ assert-on-zero in dev builds only.)
 
 Not robustness — they change computed output, so they need explicit sign-off:
 
-- **§19 `Pe || 50`** — **done.** The silent 50 W fabrication was removed; when `Pe`
-  is absent the thermal-limit line is simply omitted and a `warn` is surfaced.
 - **§20 constants** — `C`/`RHO` are labelled 20 °C but are ~24 °C values. Decide a
   single reference temperature and correct either the values or the comment. Verify
   exact textbook figures first.
@@ -134,9 +132,8 @@ Not robustness — they change computed output, so they need explicit sign-off:
 - `NaN` is silent, contagious, and fails far from the cause: the worst failure mode
   for a tool whose job is trustworthy numbers.
 - Precondition (implemented): validate inputs in `deriveDriver`, return `{value,
-  errors}`.
+errors}`.
 - Postcondition (to add): after the sweep, classify finiteness at the store
   boundary — partial curve + `warn` for isolated singularities, `error` only when
   nothing finite remains. No throwing.
-- Number-changing items (`Pe` default done; temperature constants) stay
-  sign-off-gated.
+- Number-changing items (temperature constants) stay sign-off-gated.

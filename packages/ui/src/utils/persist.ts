@@ -29,8 +29,7 @@ export function saveLocal(serialized: SerializedState): void {
 }
 
 export function loadLocal(): SerializedState | null {
-  // Read-fallback from the pre-OpenISD key so an existing saved design survives the rename.
-  try { const s = localStorage.getItem('openisd.state') ?? localStorage.getItem('resonate.state'); return s ? JSON.parse(s) : null; } catch { return null; }
+  try { const s = localStorage.getItem('openisd.state'); return s ? JSON.parse(s) : null; } catch { return null; }
 }
 
 export function download(name: string, text: string, mime?: string): void {
