@@ -16,6 +16,8 @@
 
 **Enforcement (git hooks, `core.hooksPath=scripts/hooks`):** `pre-commit` runs lint + unit + golden and **blocks the commit on any red** (so red cannot ride along commit-to-commit); `pre-push` runs the full `npm run ci`. Never bypass with `--no-verify`. Fresh clones must run `git config core.hooksPath scripts/hooks` once.
 
+**Doc-only exception:** when a commit (or the full set of commits in a push) touches **only** `*.md` files, `pre-commit`/`pre-push` skip lint/typecheck/test/CI automatically — a doc-only change has no runtime behaviour for those gates to check. This is enforced by the hooks themselves (they detect doc-only via `git diff --name-only`), not by passing `--no-verify` — any commit/push that includes even one non-`.md` file always runs the full gate. Never use `--no-verify` to get this effect manually.
+
 **TDD — red→green, in this order:**
 
 1. Write a test that reproduces the bug and fails (for the right reason).

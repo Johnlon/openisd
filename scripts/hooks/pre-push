@@ -1,2 +1,25 @@
 #!/bin/sh
+# Exception: if every commit being pushed touches ONLY *.md files, skip the full
+# CI run (lint/typecheck/test:unit/Playwright add no signal for doc-only changes,
+# and the browser suite is the slow part). A brand-new branch/ref, or any push
+# that includes even one non-.md change, always runs the full gate.
+z40=0000000000000000000000000000000000000000
+doc_only=1
+while read local_ref local_oid remote_ref remote_oid; do
+  [ "$local_oid" = "$z40" ] && continue
+  if [ "$remote_oid" = "$z40" ]; then
+    doc_only=0
+    continue
+  fi
+  changed=$(git diff --name-only "$remote_oid..$local_oid" --diff-filter=ACMR)
+  if [ -n "$changed" ] && printf '%s\n' "$changed" | grep -qv '\.md$'; then
+    doc_only=0
+  fi
+done
+
+if [ "$doc_only" = "1" ]; then
+  echo "[pre-push] doc-only push (*.md) — skipping full CI"
+  exit 0
+fi
+
 npm run ci
