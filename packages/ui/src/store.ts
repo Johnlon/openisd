@@ -107,6 +107,11 @@ export const syncedP = computed<SyncedParams>(() => {
   // Users can also set voltage directly in the UI; Pin is back-calculated from V²/Re.
   const eg = Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re ?? 1));
   const p: SyncedParams = { ...state.P, eg };
+  // Deep-copy the filters so this computed depends on each filter's fields (fc/Q/gain)
+  // AND the array length — the shallow `{ ...state.P }` above only captures the array
+  // reference, so editing or adding/removing a filter would not recompute syncedP and
+  // the sweep would never re-run (CLASSIC-SKIN-review.md #1). Mirrors pinCompare's snapshot.
+  p.filters = state.P.filters.map(f => ({ ...f }));
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
     p.Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
