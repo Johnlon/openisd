@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>modern-plus — desktop · OpenISD skin mockup</title>
+<link rel="stylesheet" href="proposal.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- top bar -->
+  <div class="appbar">
+    <div class="brand"><span class="mark">◐</span>OpenISD <small>enclosure simulator</small></div>
+    <div class="grow"></div>
+    <div class="pill sm">Share design</div>
+    <div class="iconbtn" title="Skin & settings">⚙</div>
+    <div class="iconbtn" title="Theme">☾</div>
+  </div>
+
+  <!-- enclosure-type pill row -->
+  <div class="typebar">
+    <span class="lbl">Enclosure</span>
+    <span class="pill">Sealed</span>
+    <span class="pill on">Vented</span>
+    <span class="pill">Bandpass&nbsp;4th</span>
+    <span class="pill">Passive radiator</span>
+    <span class="grow" style="flex:1"></span>
+    <span class="pill sm">＋ Compare</span>
+  </div>
+
+  <div class="split">
+
+    <!-- input column -->
+    <aside class="inputs">
+      <div class="itabs">
+        <span class="itab on">Driver</span>
+        <span class="itab">Box</span>
+        <span class="itab">Port</span>
+        <span class="itab">Signal</span>
+        <span class="itab">Filters</span>
+      </div>
+      <div class="ibody">
+        <div class="drvsum">
+          <span class="nm">Demo — Generic 6.5″ Woofer</span>
+          <span class="ed">Edit</span>
+        </div>
+        <div class="specline">
+          Fs <b>37 Hz</b> · Qts <b>0.378</b> · Vas <b>30 L</b> · Sd <b>133 cm²</b> · Xmax <b>5 mm</b>
+        </div>
+
+        <div class="disclose">
+          <span class="seg">Basic</span>
+          <span class="seg on">Advanced</span>
+        </div>
+
+        <div class="card">
+          <span class="lg">Thiele–Small</span>
+          <div class="frow"><label>Fs</label><span class="val">37.0</span><span class="u">Hz</span></div>
+          <div class="frow"><label>Qts</label><span class="val">0.378</span><span class="u"></span></div>
+          <div class="frow"><label>Qes</label><span class="val">0.400</span><span class="u"></span></div>
+          <div class="frow"><label>Qms</label><span class="val">7.00</span><span class="u"></span></div>
+          <div class="frow"><label>Vas</label><span class="val">30.0</span><span class="u">L</span></div>
+          <div class="frow"><label>Sd</label><span class="val">133</span><span class="u">cm²</span></div>
+          <div class="frow"><label>Re</label><span class="val">5.60</span><span class="u">Ω</span></div>
+          <div class="frow"><label>Le</label><span class="val calc">0.70</span><span class="u">mH</span></div>
+          <div class="frow"><label>Xmax</label><span class="val">5.0</span><span class="u">mm</span></div>
+          <div class="frow"><label>Pe</label><span class="val">60</span><span class="u">W</span></div>
+        </div>
+
+        <div class="card">
+          <span class="lg">Placement</span>
+          <div class="frow"><label>Number of drivers</label><span class="val">1</span><span class="u"></span></div>
+          <div class="frow"><label>Voice-coil wiring</label><span class="val" style="width:auto; text-align:left">parallel</span><span class="u"></span></div>
+          <div class="frow dis"><label>Iso-Barik</label><span class="val">off</span><span class="badge na">not modelled</span></div>
+        </div>
+
+        <div class="btns">
+          <span class="btn">Browse library</span>
+          <span class="btn pri">Pin to compare</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- results -->
+    <main class="results">
+      <div class="rtabs">
+        <span class="rtab on">Graphs</span>
+        <span class="rtab dis">Cut list</span>
+        <span class="rtab dis">Export</span>
+        <span class="grow"></span>
+      </div>
+      <div class="gtoolbar">
+        <span class="gchip on">SPL</span>
+        <span class="gchip on">Excursion</span>
+        <span class="gchip on">Impedance</span>
+        <span class="gchip on">Group delay</span>
+        <span class="gchip">Air velocity</span>
+        <span class="gchip">Max SPL</span>
+        <span class="gchip">Phase</span>
+        <span class="lab">log frequency · half-space</span>
+      </div>
+
+      <div class="ggrid">
+        <!-- SPL -->
+        <div class="gpanel">
+          <span class="gtitle">SPL response (dB)</span>
+          <span class="gread">38.0 Hz&nbsp; <b>84.1 dB</b></span>
+          <svg viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#1b2530" stroke-width="1">
+              <line x1="40" y1="12" x2="40" y2="150"/><line x1="96" y1="12" x2="96" y2="150"/>
+              <line x1="150" y1="12" x2="150" y2="150"/><line x1="205" y1="12" x2="205" y2="150"/>
+              <line x1="260" y1="12" x2="260" y2="150"/><line x1="310" y1="12" x2="310" y2="150"/>
+              <line x1="40" y1="40" x2="310" y2="40"/><line x1="40" y1="72" x2="310" y2="72"/>
+              <line x1="40" y1="104" x2="310" y2="104"/><line x1="40" y1="136" x2="310" y2="136"/>
+            </g>
+            <!-- compare (dashed, pinned sealed) -->
+            <path d="M40,150 C70,132 96,96 120,80 C150,64 185,60 230,59 L310,59"
+                  fill="none" stroke="var(--c-port)" stroke-width="1.6" stroke-dasharray="5 4" opacity=".7"/>
+            <!-- this design: vented, gentle ripple then steep rolloff below Fb -->
+            <path d="M40,150 C60,150 74,120 88,84 C100,60 112,55 130,57 C150,60 150,66 168,62 C200,56 240,58 270,58 L310,58"
+                  fill="none" stroke="var(--c-spl)" stroke-width="2.1"/>
+            <g font-family="var(--mono)" font-size="9" fill="#5a6b7b">
+              <text x="34" y="164">20</text><text x="90" y="164">50</text><text x="142" y="164">100</text>
+              <text x="197" y="164">200</text><text x="252" y="164">500</text><text x="298" y="164">2k</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Excursion -->
+        <div class="gpanel">
+          <span class="gtitle">Cone excursion (mm)</span>
+          <svg viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#1b2530" stroke-width="1">
+              <line x1="40" y1="12" x2="40" y2="150"/><line x1="96" y1="12" x2="96" y2="150"/>
+              <line x1="150" y1="12" x2="150" y2="150"/><line x1="205" y1="12" x2="205" y2="150"/>
+              <line x1="260" y1="12" x2="260" y2="150"/><line x1="310" y1="12" x2="310" y2="150"/>
+              <line x1="40" y1="52" x2="310" y2="52"/><line x1="40" y1="92" x2="310" y2="92"/><line x1="40" y1="132" x2="310" y2="132"/>
+            </g>
+            <!-- Xmax limit line -->
+            <line x1="40" y1="40" x2="310" y2="40" stroke="var(--c-z)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>
+            <!-- vented: rises to low freq, dips (notch) at Fb ~38, rises sharply below -->
+            <path d="M40,44 C58,58 72,120 90,126 C104,131 112,118 122,120 C140,124 150,60 165,46 C190,30 240,20 310,17"
+                  fill="none" stroke="var(--c-exc)" stroke-width="2.1"/>
+            <text x="256" y="36" font-family="var(--mono)" font-size="8.5" fill="var(--c-z)">Xmax 5.0</text>
+            <g font-family="var(--mono)" font-size="9" fill="#5a6b7b">
+              <text x="34" y="164">20</text><text x="90" y="164">50</text><text x="142" y="164">100</text>
+              <text x="197" y="164">200</text><text x="252" y="164">500</text><text x="298" y="164">2k</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Impedance -->
+        <div class="gpanel">
+          <span class="gtitle">Impedance |Z| (Ω)</span>
+          <svg viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#1b2530" stroke-width="1">
+              <line x1="40" y1="12" x2="40" y2="150"/><line x1="96" y1="12" x2="96" y2="150"/>
+              <line x1="150" y1="12" x2="150" y2="150"/><line x1="205" y1="12" x2="205" y2="150"/>
+              <line x1="260" y1="12" x2="260" y2="150"/><line x1="310" y1="12" x2="310" y2="150"/>
+              <line x1="40" y1="52" x2="310" y2="52"/><line x1="40" y1="92" x2="310" y2="92"/><line x1="40" y1="132" x2="310" y2="132"/>
+            </g>
+            <!-- twin peaks with saddle at Fb (vented) -->
+            <path d="M40,120 C52,80 62,34 74,34 C86,34 92,86 104,104 C112,116 120,116 128,104 C140,84 150,30 164,30 C178,30 186,92 200,110 C240,132 270,128 310,120"
+                  fill="none" stroke="var(--c-z)" stroke-width="2.1"/>
+            <g font-family="var(--mono)" font-size="9" fill="#5a6b7b">
+              <text x="34" y="164">20</text><text x="90" y="164">50</text><text x="142" y="164">100</text>
+              <text x="197" y="164">200</text><text x="252" y="164">500</text><text x="298" y="164">2k</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Group delay -->
+        <div class="gpanel">
+          <span class="gtitle">Group delay (ms)</span>
+          <svg viewBox="0 0 320 170" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#1b2530" stroke-width="1">
+              <line x1="40" y1="12" x2="40" y2="150"/><line x1="96" y1="12" x2="96" y2="150"/>
+              <line x1="150" y1="12" x2="150" y2="150"/><line x1="205" y1="12" x2="205" y2="150"/>
+              <line x1="260" y1="12" x2="260" y2="150"/><line x1="310" y1="12" x2="310" y2="150"/>
+              <line x1="40" y1="52" x2="310" y2="52"/><line x1="40" y1="92" x2="310" y2="92"/><line x1="40" y1="132" x2="310" y2="132"/>
+            </g>
+            <path d="M40,132 C60,120 76,44 96,40 C112,37 122,70 140,86 C170,110 210,128 260,136 C280,139 300,140 310,141"
+                  fill="none" stroke="var(--c-gd)" stroke-width="2.1"/>
+            <g font-family="var(--mono)" font-size="9" fill="#5a6b7b">
+              <text x="34" y="164">20</text><text x="90" y="164">50</text><text x="142" y="164">100</text>
+              <text x="197" y="164">200</text><text x="252" y="164">500</text><text x="298" y="164">2k</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:var(--c-spl)"></i>Demo 6.5″ · Vented 30 L</span>
+        <span><i class="dash" style="color:var(--c-port)"></i>Compare · Sealed 20 L</span>
+      </div>
+
+      <div class="statbar">
+        <span><span class="k">F3</span> <b>41.2 Hz</b></span>
+        <span><span class="k">Fb</span> <b>37.9 Hz</b></span>
+        <span><span class="k">peak SPL</span> <b>88.1 dB</b></span>
+        <span><span class="k">Xmax-limited</span> <b>108 W @ 42 Hz</b></span>
+        <span><span class="k">port air</span> <b>17.3 m/s</b></span>
+        <span><span class="k">Vb</span> <b>30.0 L</b></span>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

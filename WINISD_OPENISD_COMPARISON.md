@@ -14,7 +14,10 @@ per-tool prose writeups.
 
 **Confidence markers** (WinISD column only — per the project's anti-hallucination rule):
 
-- ✅ Confirmed — source: WINISD.md, WinISD help file, or direct user observation
+- ✅ Confirmed — source: WINISD.md, WinISD help file, direct user observation, or a
+  WinISD 0.7.0.950 screenshot in [`docs/winisd/`](docs/winisd/) (see
+  [`docs/winisd/INPUT_PARITY.md`](docs/winisd/INPUT_PARITY.md) for the field-by-field
+  evidence ledger tying each fact to a named screenshot)
 - ⚠ Assumed — plausible but not directly verified; see WINISD.md for details
 - ❌ Confirmed absent — observed directly or follows from platform constraints
 
@@ -38,54 +41,75 @@ per-tool prose writeups.
 
 ## Box types & simulation models
 
-| Feature                                     | OpenISD                  | WinISD                                                               |
-| ------------------------------------------- | ------------------------ | -------------------------------------------------------------------- |
-| Sealed (closed)                             | ✅                       | ✅ confirmed                                                         |
-| Vented (bass-reflex)                        | ✅                       | ✅ confirmed                                                         |
-| 4th-order bandpass                          | ✅                       | ✅ confirmed                                                         |
-| 6th-order bandpass (both chambers ported)   | 🚧                       | ⚠ assumed yes                                                        |
-| Passive radiator                            | ✅                       | ✅ confirmed                                                         |
-| Isobaric / compound loading                 | 🚧                       | ⚠ assumed yes                                                        |
-| Multiple drivers (series / parallel wiring) | ✅                       | ✅ confirmed                                                         |
-| Box loss model (Ql leakage, Qa absorption)  | ✅ default Ql=10, Qa=100 | ✅ confirmed — same defaults (WinISD help file + direct observation) |
-| WinISD-compatible circuit model             | ✅ (default mode)        | ✅ confirmed                                                         |
-| Full gyrator (frequency-dependent Le)       | ✅ switchable            | ❌ confirmed — Le excluded from WinISD's acoustic circuit            |
+| Feature                                               | OpenISD                  | WinISD                                                                               |
+| ----------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| Sealed (closed)                                       | ✅                       | ✅ confirmed                                                                         |
+| Vented (bass-reflex)                                  | ✅                       | ✅ confirmed                                                                         |
+| 4th-order bandpass                                    | ✅                       | ✅ confirmed                                                                         |
+| 6th-order bandpass (both chambers ported)             | 🚧                       | ⚠ assumed yes                                                                        |
+| Passive radiator                                      | ✅                       | ✅ confirmed                                                                         |
+| Isobaric / compound loading                           | 🚧                       | ✅ confirmed — Driver tab "Iso-Barik" radio (view_1_driver…iso-barik.png)            |
+| Multiple drivers (series / parallel wiring)           | ✅                       | ✅ confirmed                                                                         |
+| Box loss model (Ql leakage, Qa absorption)            | ✅ default Ql=10, Qa=100 | ✅ confirmed — same defaults (WinISD help file + direct observation)                 |
+| WinISD-compatible circuit model                       | ✅ (default mode)        | ✅ confirmed                                                                         |
+| Full gyrator (frequency-dependent Le)                 | ✅ switchable            | ❌ confirmed — Le excluded from WinISD's acoustic circuit (WINISD.md §9)             |
+| Transmission-line port model                          | 🚧                       | ✅ confirmed — Advanced "Use transmission line-model for port" (view_6_advanced.png) |
+| Environment model (temp / humidity / pressure → c, ρ) | ❌ hardcoded c/ρ         | ✅ confirmed — Advanced pane derives c=343.68 m/s, ρ=1.20095 (view_6_advanced.png)   |
+| Force-flat response                                   | ❌                       | ✅ confirmed — Advanced "Force flat response" toggle (view_6_advanced.png)           |
+| Source-resistance placement (Rg at driver side)       | ❌                       | ✅ confirmed — Advanced "Rg is at driver side" toggle (view_6_advanced.png)          |
+| Xmax-limited SPL toggle                               | ⚠ separate Max-SPL chart | ✅ confirmed — Advanced "SPL graph is Xmax limited" toggle (view_6_advanced.png)     |
 
 ---
 
 ## Simulation curves
 
-| Feature                               | OpenISD             | WinISD                             |
-| ------------------------------------- | ------------------- | ---------------------------------- |
-| SPL (sound pressure level)            | ✅                  | ✅ confirmed                       |
-| Driver excursion (Xmax)               | ✅                  | ✅ confirmed                       |
-| PR excursion                          | ✅                  | ⚠ assumed                          |
-| Port air velocity                     | ✅                  | ⚠ assumed                          |
-| Impedance magnitude                   | ✅                  | ✅ confirmed                       |
-| Impedance phase                       | ✅                  | ⚠ assumed                          |
-| Group delay                           | ✅                  | ✅ confirmed                       |
-| Transfer phase                        | ✅                  | ⚠ assumed                          |
-| Max SPL curve (excursion-limited)     | ✅                  | ⚠ assumed                          |
-| Max power curve (thermal-limited)     | ✅                  | ⚠ assumed                          |
-| Compare / overlay multiple designs    | ✅ pin + overlay    | ❌ confirmed (section 9 WINISD.md) |
-| Cursor with frequency / value readout | ✅                  | ⚠ assumed                          |
-| Cursor peak snap                      | ✅ right-click snap | ❌ confirmed                       |
-| Cursor lock and nudge                 | ✅                  | ❌ assumed                         |
+| Feature                               | OpenISD             | WinISD                                                                                        |
+| ------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------- |
+| SPL (sound pressure level)            | ✅                  | ✅ confirmed                                                                                  |
+| Driver excursion (Xmax)               | ✅                  | ✅ confirmed                                                                                  |
+| PR excursion                          | ✅                  | ✅ confirmed — "Cone excursion (PR)" (chart_dropdown.png)                                     |
+| Port air velocity                     | ✅                  | ✅ confirmed — front/rear port "Air velocity" (chart_dropdown.png)                            |
+| Impedance magnitude                   | ✅                  | ✅ confirmed                                                                                  |
+| Impedance phase                       | ✅                  | ✅ confirmed — "Impedance phase" (chart_dropdown.png)                                         |
+| Group delay                           | ✅                  | ✅ confirmed                                                                                  |
+| Transfer phase                        | ✅                  | ✅ confirmed — "Transfer function phase" (chart_dropdown.png)                                 |
+| Max SPL curve (excursion-limited)     | ✅                  | ✅ confirmed — "Maximum SPL" (chart_dropdown.png)                                             |
+| Max power curve (thermal-limited)     | ✅                  | ✅ confirmed — "Maximum Power" (chart_dropdown.png)                                           |
+| Amplifier apparent load power (VA)    | 🚧                  | ✅ confirmed — "Amplifier apparent load power (VA)" (chart_dropdown.png)                      |
+| Port "Gain" curve                     | 🚧 (velocity only)  | ✅ confirmed — front/rear port "Gain" (chart_dropdown.png)                                    |
+| Compare / overlay multiple designs    | ✅ pin + overlay    | ✅ confirmed — two checked projects, two curves overlaid (view_3_ported.png) — see note below |
+| Cursor with frequency / value readout | ✅                  | ✅ confirmed — header shows "38.01 Hz / −9.896 dB" readout (view_5_signal.png)                |
+| Cursor peak snap                      | ✅ right-click snap | ❌ confirmed                                                                                  |
+| Cursor lock and nudge                 | ✅                  | ❌ assumed                                                                                    |
+
+> **⚠ Correction flagged — WinISD _does_ overlay multiple designs.**
+> `docs/winisd/view_3_ported.png` shows two projects ("Epique15 - pr" and
+> "Epique15-ported") both checked in the Projects pane with both transfer-function
+> curves drawn on one graph. This contradicts the earlier "❌ confirmed (section 9)"
+> claim in `WINISD.md`, which states WinISD cannot compare designs. `WINISD.md` §9
+> needs correcting to match this primary evidence. OpenISD's differentiator is not
+> _whether_ it overlays but _how_ (pin + overlay on a single project vs. WinISD's
+> checkbox-per-project list).
 
 ---
 
 ## Signal chain & drive conditions
 
-| Feature                              | OpenISD | WinISD                             |
-| ------------------------------------ | ------- | ---------------------------------- |
-| Drive voltage (2.83 V IEC reference) | ✅      | ✅ confirmed — `Eg = sqrt(P × Re)` |
-| Arbitrary input power / voltage      | ✅      | ✅ confirmed                       |
-| Series source resistance (Rs)        | ✅      | ✅ confirmed                       |
-| High-pass filter                     | ✅      | ⚠ assumed                          |
-| Low-pass filter                      | ✅      | ⚠ assumed                          |
-| Linkwitz–Riley transform             | ✅      | ⚠ assumed                          |
-| Parametric EQ (peaking)              | ✅      | ⚠ assumed limited                  |
-| Multiple filters in a chain          | ✅      | ⚠ assumed limited                  |
+| Feature                              | OpenISD      | WinISD                                                                                        |
+| ------------------------------------ | ------------ | --------------------------------------------------------------------------------------------- |
+| Drive voltage (2.83 V IEC reference) | ✅           | ✅ confirmed — `Eg = sqrt(P × Re)`                                                            |
+| Arbitrary input power / voltage      | ✅           | ✅ confirmed — Signal pane power/voltage fields (view_5_signal.png)                           |
+| Series source resistance (Rs)        | ✅           | ✅ confirmed — Signal pane "Series resistance" (view_5_signal.png)                            |
+| High-pass filter                     | ✅           | ✅ confirmed — Filter Editor Highpass/Butterworth (view_4_filters_edit_highpass.png)          |
+| Low-pass filter                      | ✅           | ✅ confirmed — "Lowpass (Butterworth, n=2)" in filter list (view_4_filters_edit_highpass.png) |
+| Linkwitz transform                   | ✅           | ✅ confirmed — filter type (view_4_filters_edit_linkwitz_transform.png)                       |
+| Parametric EQ (peaking)              | ✅           | ✅ confirmed — filter type (view_4_filters_edit_parametric_eq.png)                            |
+| Multiple filters in a chain          | ✅           | ✅ confirmed — filter list with Add/Delete/Modify (view_4_filters_edit_highpass.png)          |
+| All-pass filter                      | ❌ (BACKLOG) | ✅ confirmed — filter type (view_4_filters_edit_allpass.png)                                  |
+| DLP raised-cosine (delay) filter     | ❌ (BACKLOG) | ✅ confirmed — filter type (view_4_filters_edit_dlp_raised_cosine.png)                        |
+| Static-gain filter                   | ❌ (BACKLOG) | ✅ confirmed — filter type (view_4_filters_edit_statis_gain.png)                              |
+| Configurable listening distance      | ❌ fixed 1 m | ✅ confirmed — Signal pane "Distance (m)" (view_5_signal.png)                                 |
+| Off-axis listening angle             | ❌           | ✅ confirmed — Signal pane "Angle (rad)" (view_5_signal.png)                                  |
 
 ---
 
@@ -250,8 +274,11 @@ See [BACKLOG.md](BACKLOG.md) to claim one or discuss prioritisation.
 
 ---
 
-_WinISD comparison accurate as of 2026-06-24. WinISD version observed: 0.7.0.950.
+_WinISD comparison accurate as of 2026-07-04. WinISD version observed: 0.7.0.950.
 WinISD confirmation sources: official help files extracted from 0.7 installer,
-direct UI observation, and community reports. See [WINISD.md](WINISD.md) for full citations.
+direct UI observation, community reports, and the annotated 0.7.0.950 screenshots in
+[`docs/winisd/`](docs/winisd/) (field-by-field evidence ledger:
+[`docs/winisd/INPUT_PARITY.md`](docs/winisd/INPUT_PARITY.md)).
+See [WINISD.md](WINISD.md) for full citations.
 Web-based-alternatives matrix captured 2026-07-04 from each tool's own site / roadmap /
 author posts (⚠ unverified — no independent OpenISD testing); see [FEATURES.md](FEATURES.md)._

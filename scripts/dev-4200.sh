@@ -9,3 +9,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/start-http.sh" 4200
+
+# On WSL, also print the interface IP so the app is reachable from Windows (a browser on
+# the Windows host, or another device on the LAN). Vite binds with --host, so it listens
+# on all interfaces. On Git Bash (native Windows) there is no separate WSL IP, so skip.
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  WSL_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')"
+  [ -z "$WSL_IP" ] && WSL_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  if [ -n "$WSL_IP" ]; then
+    echo "========================================"
+    echo "  From Windows / LAN:  http://${WSL_IP}:4200/"
+    echo "  (http://localhost:4200/ also works via WSL2 localhost forwarding)"
+    echo "========================================"
+  fi
+fi
