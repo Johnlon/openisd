@@ -85,8 +85,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
   <div class="classic-root">
     <!-- title bar -->
     <div class="cl-title">
-      <span class="cl-app"></span>
-      <span class="cl-tt">WinISD 0.7.0.950</span>
+      <img class="cl-app" src="/icon.svg" alt="" width="16" height="16">
+      <span class="cl-tt">OpenISD — WinISD Classic Mode</span>
       <span class="cl-wb">&#8211;</span><span class="cl-wb">&#9633;</span><span class="cl-wb cl-x">&#10005;</span>
     </div>
 
@@ -124,7 +124,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
       </label>
       <div class="cl-readout" title="Cursor readout — hover or click the graph to place the marker">
         <div>{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</div>
-        <div>{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '—' }}</div>
+        <div>{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</div>
       </div>
       <SkinPicker />
       <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
@@ -143,7 +143,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <span class="cl-cbx on" role="button" tabindex="0" @click="removeCompare(i)" @keydown.enter="removeCompare(i)">&#10003;</span>{{ d.name }}
           </div>
         </div>
-        <button class="cl-pin" title="Snapshot the current design and overlay it for comparison" @click="pinCompare">+ Add current to comparison</button>
+        <button class="cl-pin" title="Snapshot the current design and overlay it for comparison" @click="pinCompare">＋ Compare</button>
 
         <div class="cl-heading" style="margin-top:12px">Signal Generator</div>
         <div class="cl-sig">
@@ -235,6 +235,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
   --fg: #1b1b1b; --mut: #555; --acc: #2f6db5; --acc2: #b8790f; --good: #2e8b57; --bad: #c62828;
   --chart-bg: #ffffff; --chart-grid: #dde3ea; --chart-text: #5a6b7b;
   --chart-cross: #00000055; --chart-band: rgba(0,0,0,0.05); --chart-band-line: rgba(0,0,0,0.3);
+  --readout-bg: rgba(248,250,252,0.92);
   height: 100vh; display: flex; flex-direction: column;
   background: #ffffff; color: var(--fg);
   font: 13px/1.35 "Segoe UI", Tahoma, system-ui, sans-serif;
@@ -243,7 +244,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 /* title bar */
 .cl-title { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px 0 9px;
   background: #f3ece9; flex-shrink: 0; }
-.cl-app { width: 15px; height: 15px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #4a4a4a, #111); }
+.cl-app { width: 16px; height: 16px; display: block; }
 .cl-tt { flex: 1; font-size: 13px; color: #2a2a2a; }
 .cl-wb { width: 28px; height: 22px; display: grid; place-items: center; color: #333; font-size: 12px; }
 .cl-wb:hover { background: #e3d9d5; }
@@ -266,11 +267,13 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-readout { margin-left: auto; text-align: right; line-height: 1.25; font-variant-numeric: tabular-nums; font-size: 15px; min-width: 120px; }
 
 /* body grid */
-.cl-body { flex: 1; display: grid; grid-template-columns: 322px 1fr; grid-template-rows: 1fr auto; min-height: 0; }
-.cl-tl { border-right: 1px solid var(--line); padding: 8px 12px; display: flex; flex-direction: column; min-height: 0; }
-.cl-tr { padding: 8px 14px; display: flex; flex-direction: column; min-height: 0; }
-.cl-bl { border-right: 1px solid var(--line); border-top: 1px solid var(--line); padding: 8px 12px; display: flex; flex-direction: column; }
-.cl-br { border-top: 1px solid var(--line); background: #fbfbfb; padding: 12px 14px; overflow-y: auto; min-height: 0; }
+/* Freeform whitespace layout — WinISD has NO structural divider rules (no cross that
+   quarters the window). Separation comes only from each control's own border + gaps. */
+.cl-body { flex: 1; display: grid; grid-template-columns: 210px 1fr; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; column-gap: 6px; }
+.cl-tl { padding: 8px 10px; display: flex; flex-direction: column; min-height: 0; }
+.cl-tr { padding: 8px 14px 8px 4px; display: flex; flex-direction: column; min-height: 0; }
+.cl-bl { padding: 4px 10px 8px; display: flex; flex-direction: column; }
+.cl-br { padding: 10px 14px 12px 4px; overflow-y: auto; min-height: 0; }
 .cl-heading { color: var(--acc); font-weight: 600; font-size: 15px; margin: 2px 0 6px; }
 
 /* projects */
@@ -281,12 +284,14 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-cbx.on { cursor: pointer; }
 .cl-pin { margin-top: 8px; font-size: 12px; padding: 5px 8px; background: #f0f0f0; border: 1px solid #c4c4c4; border-radius: 4px; color: #1b1b1b; cursor: pointer; }
 .cl-pin:hover { border-color: var(--acc); }
-.cl-sig { display: flex; align-items: center; gap: 9px; }
-.cl-check { display: flex; align-items: center; gap: 6px; font-size: 14px; }
-.cl-hz { width: 82px; padding: 3px 6px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; }
+.cl-sig { display: flex; align-items: center; gap: 6px; }
+.cl-check { display: flex; align-items: center; gap: 5px; font-size: 14px; }
+.cl-hz { width: 52px; padding: 3px 5px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; }
+.cl-u { font-size: 13px; }
 
-/* chart */
-.cl-chart { flex: 1; min-height: 220px; border: 1px solid #c4c4c4; border-radius: 4px; overflow: hidden; position: relative; }
+/* chart — the reused GraphPanel must fill the whole cell (no empty void below) */
+.cl-chart { flex: 1; min-height: 220px; border: 1px solid #c4c4c4; border-radius: 4px; overflow: hidden; position: relative; display: flex; }
+.cl-chart :deep(.gpanel) { flex: 1; height: 100%; min-height: 0; border: none; border-radius: 0; }
 
 /* tab rail */
 .cl-rail { display: flex; flex-direction: column; gap: 6px; }

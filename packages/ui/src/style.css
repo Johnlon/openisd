@@ -30,7 +30,7 @@ canvas { display:block; width:100%; height:100% }
 .gpanel { position:relative; border:1px solid var(--line); border-radius:6px; background:var(--chart-bg, #0e1218); overflow:hidden; min-height:160px }
 .gpanel canvas { position:absolute; inset:0 }
 .gpanel .gtitle { position:absolute; left:8px; top:5px; font-size:11px; color:var(--mut); pointer-events:none; z-index:2 }
-.gpanel .gread { position:absolute; right:6px; top:5px; font-size:10.5px; background:rgba(10,14,20,.82); border:1px solid var(--line); border-radius:4px; padding:3px 6px; z-index:2; pointer-events:none; display:none; max-width:60% }
+.gpanel .gread { position:absolute; right:6px; top:5px; font-size:10.5px; background:var(--readout-bg, rgba(10,14,20,.82)); color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; z-index:2; pointer-events:none; display:none; max-width:60% }
 .gpanel .gread b { color:var(--fg) }
 .drvsum { display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--panel2); border-radius:5px; cursor:pointer }
 .drvsum .nm { flex:1; font-weight:600; color:var(--fg); font-size:12px }
