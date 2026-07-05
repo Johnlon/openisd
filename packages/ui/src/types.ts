@@ -127,6 +127,10 @@ export interface YRange { min: number; max: number }
 export interface UiState {
   /** The chosen presentation skin. See skins.ts. */
   skin: SkinId;
+  /** Classic skin — the selected Project tab rail entry (persists across reload). */
+  classicProjectTab?: string;
+  /** Classic skin — the selected chart type (persists across reload). */
+  classicChartTab?: string;
 }
 
 /** The reactive application state held in the store. */

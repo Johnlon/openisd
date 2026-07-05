@@ -6,7 +6,10 @@ import { drawOne } from '../utils/canvas.js';
 import { DPAL } from '../presets.js';
 import type { Geo } from '../types.js';
 
-const props = defineProps<{ tabId: string }>();
+// `bare`/`primaryColor` are the classic (WinISD) chart mode: a clean single trace with no
+// F3/F6/F10 reference lines or legend, coloured to match the skin's Color swatch. Both
+// default off so every other consumer (modern's GraphGrid) is unaffected.
+const props = defineProps<{ tabId: string; bare?: boolean; primaryColor?: string }>();
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
@@ -15,13 +18,14 @@ const meta     = computed(() => TABS.find(t => t.id === props.tabId) || { name: 
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value,
-  name: 'Current', color: DPAL[0],
+  name: 'Current', color: props.primaryColor || DPAL[0],
 }));
 
 // buildPlotData returns { value, errors }: value is the drawable bundle (null when the
 // driver is invalid OR the sweep is mid-recompute), errors are the driver issues.
 const plot        = computed(() =>
-  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value)
+  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
+    { bare: props.bare, primaryColor: props.primaryColor })
 );
 const plotData    = computed(() => plot.value.value);
 const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));

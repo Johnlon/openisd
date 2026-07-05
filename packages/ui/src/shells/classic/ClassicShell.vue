@@ -10,7 +10,6 @@
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { state, driver, driverErrors, syncedP, curvesData, maxData, pinCompare, driverShort, driverRaw } from '../../store.js';
 import { TABS, buildPlotData } from '../../utils/series.js';
-import { DPAL } from '../../presets.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
 import BoxPanel from '../../components/BoxPanel.vue';
@@ -19,8 +18,22 @@ import FiltersPanel from '../../components/FiltersPanel.vue';
 import SignalPanel from '../../components/SignalPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
+import DriverEditModal from '../../components/DriverEditModal.vue';
 
 const { exportDesign, exportWdr, importFile, about } = useDesignIO();
+
+// Opens the What-If parameter editor (DriverEditModal) — edits apply only to the
+// current session/project driver, never the shared library. Distinct from the
+// folder icon / "Choose or replace the driver" flow (state.browseOpen), which swaps
+// in a different catalogue driver entirely.
+function startEditDriver() {
+  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
+  state.editDriver = true;
+}
+
+// The classic skin's default trace colour — matches WinISD's own yellow-green plot line
+// (chart_spl.png) rather than OpenISD's blue. Also drives the Color swatch.
+const WINISD_TRACE = '#c9c900';
 
 // toolbar file input (import)
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -32,24 +45,31 @@ function onFile(e: Event) {
   input.value = '';
 }
 
-// chart-type selector drives the single chart
-const chartTab = ref('SPL');
+// chart-type selector drives the single chart — persisted in state.ui so it survives reload
+const chartTab = computed({
+  get: () => state.ui.classicChartTab ?? 'SPL',
+  set: (v: string) => { state.ui.classicChartTab = v; },
+});
 const chartMeta = computed(() => TABS.find(t => t.id === chartTab.value));
 
-// Project tab rail
+// Project tab rail — also persisted in state.ui
 const PROJECT_TABS = ['Driver', 'Box', 'Passive Radiator', 'Filters', 'Signal', 'Advanced', 'Project'] as const;
 type ProjectTab = typeof PROJECT_TABS[number];
-const projectTab = ref<ProjectTab>('Driver');
+const projectTab = computed<ProjectTab>({
+  get: () => (state.ui.classicProjectTab as ProjectTab) ?? 'Driver',
+  set: (v: ProjectTab) => { state.ui.classicProjectTab = v; },
+});
 
 // cursor readout (top-right): frequency + the selected chart's value there
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
-  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: DPAL[0],
+  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE,
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
-  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value).value;
+  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
+    { bare: true, primaryColor: WINISD_TRACE }).value;
   if (!p || f == null) return null;
   const s = p.series.find(x => !x.phantom);
   if (!s || !s.xs.length) return null;
@@ -130,6 +150,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
       <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
     </div>
 
+    <DriverEditModal />
+
     <!-- body: [Projects + SignalGen] [Graph] / [tab rail] [tab content] -->
     <div class="cl-body">
       <div class="cl-tl">
@@ -158,7 +180,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 
       <div class="cl-tr">
         <div class="cl-heading">Graph</div>
-        <div class="cl-chart"><GraphPanel :tabId="chartTab" /></div>
+        <div class="cl-chart"><GraphPanel :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" /></div>
       </div>
 
       <div class="cl-bl">
@@ -168,7 +190,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
                   :title="'Edit the ' + t + ' settings'" @click="projectTab = t">{{ t }}</button>
         </div>
         <div class="cl-color" title="The current design's curve colour on the graph">
-          <span class="cl-sw" :style="{ background: DPAL[0] }"></span>Color
+          <span class="cl-sw" :style="{ background: WINISD_TRACE }"></span>Color
         </div>
       </div>
 
@@ -178,7 +200,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           <div class="cl-drow">
             <div class="cl-fld"><label>Brand</label><input :value="brand" readonly></div>
             <div class="cl-fld"><label>Model</label><input :value="model" readonly></div>
-            <button class="cl-edit" title="Choose or replace the driver from the library" @click="state.browseOpen = true">
+            <button class="cl-edit" title="Edit this driver's T/S parameters for the current project — never overwrites the shared library" @click="startEditDriver">
               <svg width="16" height="16" viewBox="0 0 18 18"><path d="M2 14 l9-9 3 3 -9 9 -3.6 .6 Z" fill="#ffd34d" stroke="#b8901f"/></svg>Edit
             </button>
           </div>
@@ -269,12 +291,22 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 /* body grid */
 /* Freeform whitespace layout — WinISD has NO structural divider rules (no cross that
    quarters the window). Separation comes only from each control's own border + gaps. */
-.cl-body { flex: 1; display: grid; grid-template-columns: 210px 1fr; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; column-gap: 6px; }
+.cl-body { flex: 1; display: grid; grid-template-columns: 210px 1fr; grid-template-rows: minmax(0, 1fr) minmax(150px, 270px); min-height: 0; column-gap: 6px; }
 .cl-tl { padding: 8px 10px; display: flex; flex-direction: column; min-height: 0; }
 .cl-tr { padding: 8px 14px 8px 4px; display: flex; flex-direction: column; min-height: 0; }
-.cl-bl { padding: 4px 10px 8px; display: flex; flex-direction: column; }
-.cl-br { padding: 10px 14px 12px 4px; overflow-y: auto; min-height: 0; }
+.cl-bl { padding: 4px 10px 8px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.cl-br { padding: 6px 14px 8px 4px; min-height: 0; overflow: hidden; }
 .cl-heading { color: var(--acc); font-weight: 600; font-size: 15px; margin: 2px 0 6px; }
+
+/* Shared Box/PR/Filters/Signal panels use the global `.row` layout (style.css),
+   where the label and select both take `flex:1` — correct in modern's narrow
+   sidebar, but in classic's much wider body it stretches the label across empty
+   space and blows the select out full-width. Rein it in here (deep, classic-only)
+   rather than touching the shared component or style.css, so modern is unaffected.
+   Design rule: .claude/context/ui-rules.md "No stretch-fit fields". */
+.cl-br :deep(.row) { max-width: 460px; }
+.cl-br :deep(.row label) { flex: none; width: 150px; }
+.cl-br :deep(.row select) { flex: none; width: 200px; }
 
 /* projects */
 .cl-list { flex: 1; border: 1px solid #c4c4c4; background: #fff; overflow: auto; padding: 2px; min-height: 90px; }
@@ -293,31 +325,41 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-chart { flex: 1; min-height: 220px; border: 1px solid #c4c4c4; border-radius: 4px; overflow: hidden; position: relative; display: flex; }
 .cl-chart :deep(.gpanel) { flex: 1; height: 100%; min-height: 0; border: none; border-radius: 0; }
 
-/* tab rail */
-.cl-rail { display: flex; flex-direction: column; gap: 6px; }
-.cl-rtab { padding: 7px 10px; text-align: center; font-size: 14px; border: none; border-radius: 4px; background: transparent; color: #1b1b1b; cursor: pointer; }
+/* tab rail — same fixed-height budget as .cl-br (no scrolling), so it must stay
+   compact enough that Color never gets pushed past the row cap. */
+.cl-rail { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.cl-rtab { padding: 4px 10px; text-align: center; font-size: 13px; border: none; border-radius: 4px; background: transparent; color: #1b1b1b; cursor: pointer; }
 .cl-rtab:hover { background: #eef2f7; }
 .cl-rtab.on { background: #cfe4f7; font-weight: 600; }
-.cl-color { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 9px 10px; background: #e2e200; border-radius: 4px; font-size: 14px; }
+.cl-color { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; padding: 5px 10px; background: #e2e200; border-radius: 4px; font-size: 13px; flex-shrink: 0; }
 .cl-sw { width: 22px; height: 13px; border: 1px solid #999; }
 
-/* driver tab (WinISD layout) */
-.cl-driver { font-size: 14px; }
-.cl-drow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px 22px; align-items: end; }
-.cl-fld label { display: block; font-size: 13px; margin-bottom: 3px; color: #333; }
-.cl-fld input, .cl-fld select { width: 100%; padding: 5px 8px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; background: #fff; }
+/* driver tab (WinISD layout) — compact: this pane has a fixed height budget (no
+   scrolling, matching WinISD), so spacing here is deliberately tighter than the
+   rest of the skin. */
+.cl-driver { font-size: 13px; }
+.cl-drow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px 16px; align-items: end; }
+.cl-fld label { display: block; font-size: 12px; margin-bottom: 2px; color: #333; }
+/* Fields keep their natural WinISD width — never stretch-fit to the grid column
+   (design rule: .claude/context/ui-rules.md "No stretch-fit fields"). Brand/Model
+   are the one WinISD exception that does fill its column. */
+.cl-fld input, .cl-fld select { padding: 3px 7px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; background: #fff; }
+.cl-drow .cl-fld input { width: 100%; }
+.cl-place select { width: 140px; }
+.cl-unit input { width: 130px; }
 .cl-fld input[readonly], .cl-fld input:disabled, .cl-fld select:disabled { background: #f0f0f0; color: #555; }
-.cl-edit { display: flex; align-items: center; gap: 6px; font-size: 14px; padding: 6px 8px; background: #f0f0f0; border: 1px solid #c4c4c4; border-radius: 4px; cursor: pointer; height: 32px; }
+.cl-edit { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 8px; background: #f0f0f0; border: 1px solid #c4c4c4; border-radius: 4px; cursor: pointer; height: 27px; }
 .cl-edit:hover { border-color: var(--acc); }
-.cl-cols { display: grid; grid-template-columns: 1.05fr .95fr; gap: 8px 22px; margin-top: 6px; }
-.cl-subhdr { background: #e7e7e7; text-align: center; font-size: 14px; padding: 5px 0; border-radius: 2px; margin: 12px 0 8px; color: #333; }
-.cl-place { display: grid; grid-template-columns: 1.35fr .65fr; gap: 8px 14px; align-items: start; }
-.cl-glyph { display: grid; place-items: center; padding-top: 4px; }
-.cl-radio { display: flex; align-items: center; gap: 7px; margin: 6px 0; }
-.cl-radio em { color: #999; font-style: italic; font-size: 12px; }
-.cl-unit { display: flex; align-items: center; gap: 8px; }
-.cl-unit span { color: #333; font-size: 13px; white-space: nowrap; }
-.cl-note { color: #888; font-style: italic; font-size: 12px; margin-top: 8px; }
+.cl-cols { display: grid; grid-template-columns: 1.05fr .95fr; gap: 4px 16px; margin-top: 4px; }
+.cl-subhdr { background: #e7e7e7; text-align: center; font-size: 13px; padding: 3px 0; border-radius: 2px; margin: 6px 0 5px; color: #333; }
+.cl-place { display: grid; grid-template-columns: 1.35fr .65fr; gap: 4px 12px; align-items: start; }
+.cl-glyph { display: grid; place-items: center; padding-top: 2px; }
+.cl-glyph svg { width: 44px; height: 76px; }
+.cl-radio { display: flex; align-items: center; gap: 6px; margin: 3px 0; font-size: 12px; }
+.cl-radio em { color: #999; font-style: italic; font-size: 11px; }
+.cl-unit { display: flex; align-items: center; gap: 6px; }
+.cl-unit span { color: #333; font-size: 12px; white-space: nowrap; }
+.cl-note { color: #888; font-style: italic; font-size: 11px; margin-top: 4px; }
 .cl-dim { opacity: .6; }
 .cl-todo { color: #666; font-style: italic; padding: 10px 2px; }
 </style>

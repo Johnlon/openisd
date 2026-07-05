@@ -19,7 +19,7 @@ export const TABS: TabMeta[] = [
 
 interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string }
 
-export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepParams, sw: SweepResult, mx: MaxCurvesResult): SeriesBundle {
+export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
   const meta = TABS.find(t => t.id === tabId)!;
   let series: Series[] = [], ymin = 0, ymax = 1;
   let logy = false;
@@ -39,10 +39,15 @@ export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepPara
     // F3 / F6: first frequency (low→high) where SPL reaches within N dB of the passband peak.
     // Same reference as StatBar.findF3 — max SPL across the sweep.
     const rolloff = (drop: number): number | null => { for (let i = 0; i < sw.fs.length; i++) if (sw.spl[i] >= mx2 - drop) return sw.fs[i]; return null; };
-    const f3 = rolloff(3), f6 = rolloff(6), f10 = rolloff(10);
-    if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
-    if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
-    if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
+    // Reference lines (F3/F6/F10) + their legend — OpenISD value-add, but WinISD's plot is
+    // a bare trace, so the classic skin passes bare=true to suppress them (also removes the
+    // in-plot legend, since only one named series remains).
+    if (!bare) {
+      const f3 = rolloff(3), f6 = rolloff(6), f10 = rolloff(10);
+      if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
+      if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
+      if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
+    }
   } else if (tabId === 'Excursion') {
     series = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
@@ -112,6 +117,7 @@ export function buildPlotData(
   currentDesign: Design,
   compare: Design[],
   errors: DriverError[] = [],
+  opts: { bare?: boolean; primaryColor?: string } = {},
 ): { value: PlotData | null; errors: DriverError[] } {
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
     return { value: null, errors };
@@ -120,13 +126,15 @@ export function buildPlotData(
   const multi = designs.length > 1;
   let out: PlotData | null = null;
   designs.forEach((d, di) => {
-    const pd = seriesFor(tabId, d.driver!, d.box, d.P, d.curves!, d.maxCurves || ({} as MaxCurvesResult));
+    const pd = seriesFor(tabId, d.driver!, d.box, d.P, d.curves!, d.maxCurves || ({} as MaxCurvesResult), opts.bare);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
     const prim: Series = { ...pd.series[0] };
     if (multi) {
       prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
       if (di > 0) delete prim.xlim; // compare overlays: solid color, no segmented coloring
     }
+    // Classic (WinISD) trace colour for the active project — matches its Color swatch.
+    if (di === 0 && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);
     if (di === 0) for (let k = 1; k < pd.series.length; k++) out.series.push(pd.series[k]);
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
