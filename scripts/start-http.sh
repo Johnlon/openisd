@@ -33,25 +33,31 @@ run() {
   fi
 }
 
-echo "========================================"
-echo "  Health checks — $(date '+%H:%M:%S')"
-echo "========================================"
-
-run "ESLint"       npm run lint
-run "Type check"   npm run typecheck
-run "Unit tests"   npm run test:unit
-run "DQ check"     "$PYTHON" scripts/dq_check.py
-
-echo ""
-echo "========================================"
-if [ "$FAIL" -gt 0 ]; then
-  echo "  $FAIL check(s) FAILED — server not started:"
-  for e in "${ERRORS[@]}"; do echo "    - $e"; done
+if [ -n "${SKIP_HEALTH_CHECKS:-}" ]; then
   echo "========================================"
-  exit 1
+  echo "  SKIP_HEALTH_CHECKS set — skipping lint/typecheck/unit/DQ"
+  echo "========================================"
+else
+  echo "========================================"
+  echo "  Health checks — $(date '+%H:%M:%S')"
+  echo "========================================"
+
+  run "ESLint"       npm run lint
+  run "Type check"   npm run typecheck
+  run "Unit tests"   npm run test:unit
+  run "DQ check"     "$PYTHON" scripts/dq_check.py
+
+  echo ""
+  echo "========================================"
+  if [ "$FAIL" -gt 0 ]; then
+    echo "  $FAIL check(s) FAILED — server not started:"
+    for e in "${ERRORS[@]}"; do echo "    - $e"; done
+    echo "========================================"
+    exit 1
+  fi
+  echo "  All $PASS checks passed — starting server on port $PORT"
+  echo "========================================"
 fi
-echo "  All $PASS checks passed — starting server on port $PORT"
-echo "========================================"
 
 # If a Vite dev server is already up on this port, reuse it
 if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/@vite/client" 2>/dev/null | grep -q "200"; then
