@@ -5,6 +5,32 @@ data sources that OpenISD users interact with or that inform our design decision
 
 ---
 
+## Enclosure / box-type support at a glance
+
+Which enclosure (box) types each surveyed design tool can model. Compiled from the
+per-tool sections below and, for OpenISD, from `FEATURES.md §1` — see each section for the
+source and verification basis of its row.
+
+**Legend:** ✅ supported · 🟡 announced / "coming" · ✖ explicitly not-yet (on roadmap) ·
+— not offered · ? unknown. **BP4** = 4th-order bandpass · **BP6** = 6th-order bandpass ·
+**PR** = passive radiator · **TL** = transmission line.
+
+| Tool                       | Sealed | Vented / ported | BP4 | BP6 | PR  | TL  | Other / notes                                            |
+| -------------------------- | :----: | :-------------: | :-: | :-: | :-: | :-: | -------------------------------------------------------- |
+| **OpenISD** (this project) |   ✅   |       ✅        | ✅  | ⬜  | ✅  | ⬜  | BP6 + TL are backlog (`FEATURES.md §1`)                  |
+| micka.de `#ideal`          |   ✅   |       ✅        |  —  |  —  |  —  |  —  | sealed/vented calculator only                            |
+| SpeakerBoxLite             |   ✅   |       ✅        | ✅  | ✅  | ✅  | ✅  | BP6 both parallel & series — verified live 2026-07-04 §3 |
+| SpeakerDesign.dev          |   ✅   |       ✅        | 🟡  | 🟡  | 🟡  |  —  | bandpass/PR/ABC listed as coming §4                      |
+| Sonella                    |   ✅   |       ✅        |  —  |  —  |  —  |  —  | full-range + crossover focus, not subs §5                |
+| 00 Audio Simulator         |   ✅   |       ✅        | ✅  | ✅  | ✅  |  ✖  | horn also ✖ "not yet" (defers to HornResp) §6            |
+| LoudspeakerLab             |   ✅   |       ✅        |  —  |  —  |  —  |  —  | box subordinate to crossover; B4 default §8              |
+| SoundForm                  |   ?    |        ?        |  ?  |  ?  |  ?  |  ?  | closed beta — no box data published §7                   |
+
+OpenISD uses ⬜ (planned) for BP6 and TL to match `FEATURES.md`'s own backlog legend; every
+other tool's cells are that tool's current published/observed support, not an OpenISD plan.
+
+---
+
 ## 1. loudspeakerdatabase.com scraper — third-party collection
 
 **Collection:** `drivers/loudspeakerdatabase/` (14 WDR files)

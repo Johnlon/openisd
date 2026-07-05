@@ -137,6 +137,9 @@ then use Biquad to design corrective EQ to flatten the result.
 
 ## 1. Enclosure types
 
+> Cross-tool support at a glance (which of these each surveyed tool models) lives in
+> `OTHER_TOOLS.md` → "Enclosure / box-type support at a glance".
+
 - ✅ Sealed (closed box)
 - ✅ Vented / ported (bass-reflex)
 - ✅ 4th-order bandpass (single-ported)
