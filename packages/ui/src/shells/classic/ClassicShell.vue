@@ -188,19 +188,24 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <div class="cl-subhdr">Advanced options</div>
           </div>
           <div class="cl-cols">
-            <div>
-              <div class="cl-fld"><label>Num. of drivers</label>
-                <select v-model.number="state.P.nDrivers" title="Number of identical drivers in the design">
-                  <option v-for="n in 8" :key="n" :value="n">{{ n }}</option>
-                </select>
+            <div class="cl-place">
+              <div>
+                <div class="cl-fld"><label>Num. of drivers</label>
+                  <select v-model.number="state.P.nDrivers" title="Number of identical drivers in the design">
+                    <option v-for="n in 8" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+                <label class="cl-radio" title="Standard placement (both drivers radiate)"><input type="radio" checked disabled> Standard</label>
+                <label class="cl-radio cl-dim" title="Iso-Barik (compound) placement is not modelled in OpenISD"><input type="radio" disabled> Iso-Barik <em>(not modelled)</em></label>
+                <div class="cl-fld"><label>Voice coil connection</label>
+                  <select v-model="state.P.wiring" title="How multiple voice coils are wired">
+                    <option value="parallel">Parallel</option>
+                    <option value="series">Series</option>
+                  </select>
+                </div>
               </div>
-              <label class="cl-radio" title="Standard placement (both drivers radiate)"><input type="radio" checked disabled> Standard</label>
-              <label class="cl-radio cl-dim" title="Iso-Barik (compound) placement is not modelled in OpenISD"><input type="radio" disabled> Iso-Barik <em>(not modelled)</em></label>
-              <div class="cl-fld"><label>Voice coil connection</label>
-                <select v-model="state.P.wiring" title="How multiple voice coils are wired">
-                  <option value="parallel">Parallel</option>
-                  <option value="series">Series</option>
-                </select>
+              <div class="cl-glyph" aria-hidden="true" title="Driver cross-section">
+                <svg width="64" height="110" viewBox="0 0 70 118"><rect x="46" y="2" width="4" height="114" fill="#111"/><path d="M20 40 L46 30 v58 L20 78 Z" fill="#111"/><path d="M12 46 h8 v26 h-8 Z" fill="#111"/></svg>
               </div>
             </div>
             <div>
@@ -301,6 +306,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-edit:hover { border-color: var(--acc); }
 .cl-cols { display: grid; grid-template-columns: 1.05fr .95fr; gap: 8px 22px; margin-top: 6px; }
 .cl-subhdr { background: #e7e7e7; text-align: center; font-size: 14px; padding: 5px 0; border-radius: 2px; margin: 12px 0 8px; color: #333; }
+.cl-place { display: grid; grid-template-columns: 1.35fr .65fr; gap: 8px 14px; align-items: start; }
+.cl-glyph { display: grid; place-items: center; padding-top: 4px; }
 .cl-radio { display: flex; align-items: center; gap: 7px; margin: 6px 0; }
 .cl-radio em { color: #999; font-style: italic; font-size: 12px; }
 .cl-unit { display: flex; align-items: center; gap: 8px; }
