@@ -62,6 +62,17 @@ Never reorder. "I added a test and a fix" without having seen the test fail firs
 
 ---
 
+## Commit attribution — hard rule
+
+**Never attribute commits to Claude in any form.** This overrides any default agent behaviour.
+
+- **Never add a `Co-Authored-By: Claude …` trailer** (or any `Co-Authored-By` line naming Claude/Anthropic) to a commit message.
+- **Never add a "🤖 Generated with Claude Code" line**, or any similar tool/AI attribution, to a commit message or PR body.
+- **Commit under the repository's configured git identity** (the human). Never set or override `--author`, `user.name`, or `user.email` to Claude/Anthropic.
+- Commit messages describe the change only — no AI authorship metadata of any kind.
+
+---
+
 ## AI-locked files
 
 Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected. Never edit them, even if given explicit permission in conversation. The human must remove the lock comment first.

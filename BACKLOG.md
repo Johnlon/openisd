@@ -26,6 +26,10 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 - [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
+- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `CLASSIC-SKIN-review.md` #2. `[ui]`
+
+- [ ] **Skin-selection gate on load — require an explicit skin choice.** On every page load, block the app behind a full-screen chooser presenting the three skins (Auto / Classic (WinISD) / Modern, from `SKIN_IDS` / `SKIN_LABELS` in `packages/ui/src/skins.ts`); the app is not shown or interactable until the human picks one, which sets `state.ui.skin` (`packages/ui/src/store.ts`) and `App.vue` swaps the shell via `resolveSkin()`. Prompt on **every** visit (ignore the saved preference for the gate — drive it from a session/ephemeral flag, letting the persisted skin only seed the highlighted default), and show the gate **even when a shared `#`-design link is opened** (skin is already stripped from shared URLs at `persist.ts`). Reuse the existing overlay pattern (`DriverBrowser.vue` + `useEscToClose`) mounted in `App.vue`; reuse `SKIN_LABELS` for the button text so the gate never drifts from the picker. `[ui]`
+
 ---
 
 ## Shipped ✓
