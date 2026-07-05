@@ -35,6 +35,19 @@ export function drawOne(
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
 
+  // Chart colours are read from CSS custom properties on the canvas (inherited from the
+  // skin root), with the original dark values as defaults — so the modern skin is byte-for-
+  // byte unchanged while the classic (WinISD-light) skin gets a white chart with no fork.
+  const cs = getComputedStyle(canvas);
+  const cvar = (name: string, fallback: string) => (cs.getPropertyValue(name).trim() || fallback);
+  const COL = {
+    grid:     cvar('--chart-grid', '#243040'),
+    text:     cvar('--chart-text', '#7c8a9c'),
+    cross:    cvar('--chart-cross', '#ffffff55'),
+    band:     cvar('--chart-band', 'rgba(255,255,255,0.07)'),
+    bandLine: cvar('--chart-band-line', 'rgba(255,255,255,0.35)'),
+  };
+
   const m = { l:44, r:10, t:18, b:20 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const f0 = plotData.fmin || 10, f1 = plotData.fmax || 1000;
@@ -45,7 +58,7 @@ export function drawOne(
   const Y = (v: number) => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
 
   // frequency grid
-  ctx.strokeStyle = '#243040'; ctx.fillStyle = '#7c8a9c'; ctx.font = '9px Inter'; ctx.lineWidth = 1;
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = '9px Inter'; ctx.lineWidth = 1;
   for (let dec = Math.floor(lx0); dec <= Math.ceil(lx1); dec++)
     for (const mul of [1,2,3,4,5,6,7,8,9]) {
       const f = mul * Math.pow(10, dec); if (f < f0 || f > f1) continue;
@@ -115,9 +128,9 @@ export function drawOne(
   // drag range — shaded band between two frequencies with measurement readout
   if (dragRange) {
     const x1 = X(Math.max(dragRange.fLo, f0)), x2 = X(Math.min(dragRange.fHi, f1));
-    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fillStyle = COL.band;
     ctx.fillRect(x1, m.t, x2 - x1, ph);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = COL.bandLine; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(x1, m.t); ctx.lineTo(x1, m.t + ph); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x2, m.t); ctx.lineTo(x2, m.t + ph); ctx.stroke();
     ctx.setLineDash([]);
@@ -139,7 +152,7 @@ export function drawOne(
     const s0 = plotData.series[0]; let bi = 0, bd = 1e9;
     for (let i = 0; i < s0.xs.length; i++) { const dd = Math.abs(Math.log10(s0.xs[i]) - Math.log10(cursorF)); if (dd < bd) { bd = dd; bi = i; } }
     const fx = s0.xs[bi];
-    ctx.strokeStyle = '#ffffff55'; ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = COL.cross; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke(); ctx.setLineDash([]);
     let html = `<b>${fx.toFixed(fx < 100 ? 1 : 0)}Hz</b>`;
     for (const s of plotData.series) {

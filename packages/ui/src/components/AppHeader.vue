@@ -1,64 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { state, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized } from '../store.js';
-import { serialize, stateToUrl } from '../utils/persist.js';
-import { flash } from '../utils/flash.js';
+import { useDesignIO } from '../composables/useDesignIO.js';
 import SkinPicker from './SkinPicker.vue';
 
-function shareLink() {
-  const url = stateToUrl(serialize(state, driverJSON.value, state.compare));
-  try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(url).then(
-      () => flash('Share link copied to clipboard'),
-      () => prompt('Copy this share link:', url));
-  } else { prompt('Copy this share link:', url); }
-}
-
-function exportDesign() {
-  const text = JSON.stringify(serialize(state, driverJSON.value, state.compare), null, 2);
-  dlFile('design.openisd.json', text, 'application/json');
-}
-
-function exportWdr() {
-  const fn = (driverRaw.value.name || 'driver').replace(/[^\w.-]+/g, '_') + '.wdr';
-  // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
-  dlFile(fn, getDriverModel().toWdr(), 'text/plain');
-}
+// File I/O is shared with the classic skin's toolbar via one composable — no duplication.
+const { shareLink, exportDesign, exportWdr, importFile, about: showAbout } = useDesignIO();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 function importClick() { fileInput.value!.click(); }
 function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement;
-  const f = input.files?.[0]; if (!f) return;
-  const rd = new FileReader();
-  const isWdr = /\.wdr$/i.test(f.name);
-  rd.onload = () => {
-    const text = rd.result as string;
-    try {
-      if (isWdr || /^\s*\[Driver\]/.test(text)) {
-        setDriverFromWdr(text);
-      } else {
-        const o = JSON.parse(text);
-        if (o.driver) setDriverFromSerialized(o.driver);
-        if (o.box) state.box = o.box;
-        if (o.P) Object.assign(state.P, o.P);
-        if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
-      }
-    } catch(err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
-  };
-  rd.readAsText(f);
+  const f = input.files?.[0];
+  if (f) importFile(f);
   input.value = '';
-}
-
-function dlFile(name: string, text: string, mime: string) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
-  a.download = name; a.click();
-}
-
-function showAbout() {
-  alert(`OpenISD — open loudspeaker enclosure simulator\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
 }
 </script>
 

@@ -1,6 +1,10 @@
 :root {
   --bg:#11151c; --panel:#1a2029; --panel2:#222a35; --line:#2e3a48;
   --fg:#dfe6ee; --mut:#8a99ab; --acc:#4fb0ff; --acc2:#ffb454; --good:#5ad17a; --bad:#ff6b6b;
+  /* Chart theming — read by utils/canvas.ts and .gpanel. Defaults = the dark modern look;
+     a skin (e.g. classic) overrides these on its root for a light chart. */
+  --chart-bg:#0e1218; --chart-grid:#243040; --chart-text:#7c8a9c;
+  --chart-cross:#ffffff55; --chart-band:rgba(255,255,255,0.07); --chart-band-line:rgba(255,255,255,0.35);
 }
 * { box-sizing: border-box }
 body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
@@ -23,7 +27,7 @@ canvas { display:block; width:100%; height:100% }
 .gtoolbar .sep { width:1px; align-self:stretch; background:var(--line); margin:0 4px }
 .gtoolbar .lab { font-size:11px; color:var(--mut) }
 .ggrid { flex:1; display:grid; gap:8px; padding:8px 10px; overflow:auto; grid-auto-rows:minmax(160px,1fr) }
-.gpanel { position:relative; border:1px solid var(--line); border-radius:6px; background:#0e1218; overflow:hidden; min-height:160px }
+.gpanel { position:relative; border:1px solid var(--line); border-radius:6px; background:var(--chart-bg, #0e1218); overflow:hidden; min-height:160px }
 .gpanel canvas { position:absolute; inset:0 }
 .gpanel .gtitle { position:absolute; left:8px; top:5px; font-size:11px; color:var(--mut); pointer-events:none; z-index:2 }
 .gpanel .gread { position:absolute; right:6px; top:5px; font-size:10.5px; background:rgba(10,14,20,.82); border:1px solid var(--line); border-radius:4px; padding:3px 6px; z-index:2; pointer-events:none; display:none; max-width:60% }

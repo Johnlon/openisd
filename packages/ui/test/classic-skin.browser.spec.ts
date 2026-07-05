@@ -24,13 +24,15 @@ test('choosing Classic swaps to the WinISD shell (Projects, tab rail, Color)', a
   await expect(page.locator('.cl-color')).toContainText('Color');
 });
 
-test('the tab rail mounts the same editor panels the modern skin uses', async ({ page }) => {
+test('the tab rail switches editors — Driver uses the WinISD layout, Box reuses the shared BoxPanel', async ({ page }) => {
   await page.locator('.skin-picker select').selectOption('classic');
 
-  // Driver tab is default — the shared DriverPanel renders.
-  await expect(page.locator('.cl-br')).toContainText('What-If');
+  // Driver tab is default — WinISD field layout (bound to the shared store).
+  await expect(page.locator('.cl-br')).toContainText('Brand');
+  await expect(page.locator('.cl-br')).toContainText('Placement');
+  await expect(page.locator('.cl-br')).toContainText('Num. of drivers');
 
-  // Switching to Box mounts the shared BoxPanel (shows the Vb control).
+  // Switching to Box mounts the shared BoxPanel (no fork — shows the Vb control).
   await page.locator('.cl-rtab', { hasText: 'Box' }).click();
   await expect(page.locator('.cl-br')).toContainText('Vb');
 });
