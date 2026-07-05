@@ -243,6 +243,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 ## Learning & docs
 
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
+- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `WINISD_OPENISD_COMPARISON.md` + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)
 - [ ] **P3** Worked-example tutorial
 
