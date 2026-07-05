@@ -117,6 +117,11 @@ notes, gaps) live in `OTHER_TOOLS.md`; this is the reference index.
   no public URL, access by author DM.
   <https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
   · see `OTHER_TOOLS.md §7`.
+- **LoudspeakerLab** — automated passive-crossover + system solver (ABCD-matrix model,
+  multi-objective search) on a measurement-based CTA-2034A public driver commons (FRD/ZMA
+  uploads); sealed/vented box modelling is a sub-component. Interchange is FRD/ZMA + SPICE
+  netlist, not `.wdr` — not a cross-check oracle. <https://loudspeakerlab.io/>
+  · see `OTHER_TOOLS.md §8`.
 
 ---
 

@@ -339,15 +339,95 @@ posts — ⚠ unverified, not tested by any OpenISD contributor.
 
 ---
 
-## 8. Open questions
+## 8. LoudspeakerLab — automated crossover + system solver
 
-| #   | Tool/Source        | Question                                                                                                                                                                                                        | Priority                                                  |
-| --- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 1   | micka.de           | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per PLAN_SBL_CROSSCHECK.md live check).                        | [documented in test/scenarios.ts]                         |
-| 2   | SpeakerBoxLite     | Second oracle for PR + bandpass (the types micka lacks). Drive-real-UI vs. API-endpoint approach undecided.                                                                                                     | [see §3; spec: speakerboxlite-crosscheck.browser.spec.ts] |
-| 3   | SpeakerDesign.dev  | Self-described "web-based WinISD alternative" (§4). Does it expose enclosure types beyond ported, WDR/JSON import-export, or a readable computed output? Potential cross-check oracle + build-output reference. | Open                                                      |
-| 4   | Sonella            | Guided full-range design app with crossover + STL (§5). Relevant to OpenISD's missing guided workflow and crossover modelling, not sub cross-check.                                                             | Open                                                      |
-| 5   | 00 Audio Simulator | Closest web competitor — imports `.wdr`, covers sealed/vented/BP/PR (§6). Best cross-check-oracle candidate: is there a readable computed output or an XHR endpoint behind the share-link flow?                 | Open                                                      |
-| 6   | SoundForm          | Closed-beta web WinISD app focused on crossover + multi-driver summation (§7). Re-evaluate when it opens past invite-only; no feature data yet.                                                                 | Open                                                      |
-| 7   | REW                | Impedance + FR measurement reference                                                                                                                                                                            | Open                                                      |
-| 8   | LEAP               | High-end simulation suite comparison                                                                                                                                                                            | Open                                                      |
+**Site:** https://loudspeakerlab.io/ · driver DB at `/drivers`, designs at `/designs`,
+FAQ at `/faq`
+
+**Role:** A free, ad-free, browser-based tool that occupies a **different niche** from
+OpenISD: it is a **full multiway loudspeaker-system designer centred on passive-crossover
+synthesis** ("Design passive speakers with measured drivers"), where the enclosure is one
+sub-component of the chain rather than the whole product. Author not named on the site
+(feedback@loudspeakerlab.io). Worth tracking for the crossover/multi-way arc OpenISD does not
+cover (`FEATURES.md §5`) and for its measurement-based, CTA-2034A driver-data model.
+
+_Findings below were captured by **rendering the SPA with headless Chromium (Playwright)** on
+2026-07-05 — `WebFetch` returns only the empty app shell, so the FAQ accordions were expanded
+and the rendered DOM text read directly (primary evidence). Items still unconfirmed after
+rendering are marked ⚠ unverified._
+
+### What it does (verified from the rendered `/faq`, 2026-07-05)
+
+- **Automated passive-crossover solver.** Multi-objective search over an **ABCD-matrix**
+  circuit model. Rather than a fixed menu, it generates many candidate topologies per driver
+  and combines them into full-system layouts (every woofer topology × every tweeter topology
+  for a 2-way), then screens thousands of system-level sets before refining the best. Filter
+  orders: **HP 0–4th, LP 0–4th**, plus asymmetric slopes (e.g. LP3/HP2). Auxiliary networks:
+  attenuation (series R, L-pad, T-pad, Pi-pad, bypassed R), impedance compensation (R‖L, R‖C,
+  L‖C, Zobel, shunt L/C, damped RL), resonance control (LC traps, parallel-RLC notch,
+  series L-C-R traps). Seeds proven template families (Butterworth / Linkwitz-Riley) for
+  2-way, 3-way, 2.5-way, D'Appolito MTM/WTW, multi-woofer. Values are optimised continuously
+  then **snapped to E-series** (E24 R/C, E12 L) with real parasitics (inductor DCR, cap ESR).
+- **Solver objectives, in default priority order:** on-axis flatness → listening window →
+  directivity uniformity → distortion avoidance → preference rating → simplicity (fewer parts)
+  → amplifier-friendly impedance → sensitivity. Priority ordering is not user-customisable in
+  the web UI.
+- **Measurement-based driver profiles + CTA-2034A.** Public community database; profiles are
+  built from uploaded **FRD** (on-axis SPL+phase; REW/ARTA export), **ZMA** (impedance
+  magnitude+phase; REW/DATS/ARTA/LIMP), optional off-axis FRD, distortion `.txt` (THD +
+  harmonics), and nearfield data. The app computes **CTA-2034A curves, Directivity Index and a
+  Preference Rating**, estimating sparse off-axis angles with a piston-directivity model.
+  Multiple users can upload profiles per driver model; a community accuracy vote surfaces the
+  best. An **Evidence score** grades measurement provenance (not sound quality), and an
+  **Expected Range** band shows prediction uncertainty. An accuracy study benchmarks it
+  against Klippel NFS across five DIY kits.
+- **Enclosure/box modelling — sealed or vented only, subordinate to the crossover.** For
+  drivers with T/S params (Fs, Qts, Vas, optional Qes/Qms) it auto-designs a **vented or
+  sealed** box; the box response is merged into each driver's FR _before_ the solver runs.
+  Default alignment is **B4 vented (Butterworth 4th-order)**; volume/port tuning come from
+  standard alignment tables indexed by Qts, with automatic port-length-fit adjustment. Cabinet
+  depth/bracing/driver-displacement are derived from the required volume and the baffle
+  dimensions (auto-sized or user-set). Baffle step and diffraction are modelled; an infinite-
+  baffle mode disables diffraction. **No bandpass or passive-radiator box types** (contrast
+  OpenISD, which ships both).
+- **Import / export.** Crossovers can be **imported by pasting a SPICE-derived netlist**
+  (Manual mode) and fully analysed without solving; every completed design also **exports a
+  SPICE netlist** to copy into external simulators. The schematic exports as **PNG or SVG**;
+  all plots save as images. Component values are editable with real-time in-browser preview.
+  Estimated parts cost / vendor shopping lists are region-aware (US/CA/EU/UK/AU).
+
+### Gaps / caveats
+
+- **Not a WinISD `.wdr` cross-check oracle.** Its interchange is measurement-based (FRD/ZMA +
+  SPICE netlist), not the lumped-T/S `.wdr` OpenISD reads/writes — so it is **not** a
+  drop-in driver-for-driver comparison without re-entry, unlike 00 Audio Simulator (§6).
+- **No subwoofer-focused enclosure coverage.** Box design is sealed/vented main-speaker
+  alignments; bandpass and passive radiator (OpenISD's shipped types) are absent.
+- ⚠ unverified — **open-source status / licensing not stated** (free + ad-free, driver DB is a
+  public commons, but code licensing is not published). No documented API/XHR endpoint; an
+  account is required to upload/create/solve/vote (browsing is open).
+
+### Why it matters
+
+- The strongest **crossover + system-preference** reference surveyed (ABCD solver + CTA-2034A
+  - preference rating), directly relevant to the multi-way gap in `FEATURES.md §5` and the
+    crossover items other tools only plan (SpeakerBoxLite, SoundForm).
+- Its **public, measurement-based driver commons** with community accuracy voting is a
+  data-model contrast to OpenISD's `.wdr` library and to the closed databases of SpeakerBoxLite
+  / 00 Audio Simulator.
+
+---
+
+## 9. Open questions
+
+| #   | Tool/Source        | Question                                                                                                                                                                                                            | Priority                                                  |
+| --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | micka.de           | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per PLAN_SBL_CROSSCHECK.md live check).                            | [documented in test/scenarios.ts]                         |
+| 2   | SpeakerBoxLite     | Second oracle for PR + bandpass (the types micka lacks). Drive-real-UI vs. API-endpoint approach undecided.                                                                                                         | [see §3; spec: speakerboxlite-crosscheck.browser.spec.ts] |
+| 3   | SpeakerDesign.dev  | Self-described "web-based WinISD alternative" (§4). Does it expose enclosure types beyond ported, WDR/JSON import-export, or a readable computed output? Potential cross-check oracle + build-output reference.     | Open                                                      |
+| 4   | Sonella            | Guided full-range design app with crossover + STL (§5). Relevant to OpenISD's missing guided workflow and crossover modelling, not sub cross-check.                                                                 | Open                                                      |
+| 5   | 00 Audio Simulator | Closest web competitor — imports `.wdr`, covers sealed/vented/BP/PR (§6). Best cross-check-oracle candidate: is there a readable computed output or an XHR endpoint behind the share-link flow?                     | Open                                                      |
+| 6   | SoundForm          | Closed-beta web WinISD app focused on crossover + multi-driver summation (§7). Re-evaluate when it opens past invite-only; no feature data yet.                                                                     | Open                                                      |
+| 7   | LoudspeakerLab     | Automated crossover + system solver on a CTA-2034A driver commons (§8). Not a `.wdr` cross-check oracle (measurement/spinorama data model). Track as prior art for the crossover/multi-way + preference-rating arc. | Open                                                      |
+| 8   | REW                | Impedance + FR measurement reference                                                                                                                                                                                | Open                                                      |
+| 9   | LEAP               | High-end simulation suite comparison                                                                                                                                                                                | Open                                                      |
