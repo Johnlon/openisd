@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Filter simulator examples
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Filter simulator examples
+    </h1>
+    <h2>
+      1. Adding a subsonic filter
+    </h2>
+    <p>
+      A subsonic filter is quite often required in ported systems, due to the fact that driver
+      becomes unloaded below tuning frequency. This is illustrated in graph below. Tuning frequency
+      is 22.65 Hz. Below 20 Hz, cone excursion starts to rise to the sky.
+    </p><img src="images/fsimex01.png" alt="Image" />
+    <p>
+      If the program material should contain low frequency signals below 20 Hz, then driver is
+      driven out of it's linear range and it will produce distorted output, or might be even
+      damaged. Let's add 20 Hz second order subsonic filter, go to the EQ/Filter tab, and click on
+      "Add"-button. Choose "filter type" as highpass and subtype as butterworth. Enter order as 2
+      and cutoff as 20 Hz. Q value does not matter in our case. Then click on "Add". The cone
+      excursion graph should be much better now:
+    </p><img src="images/fsimex02.png" alt="Image" />
+    <h2>
+      2. Simulating a complete filter
+    </h2>
+    <p>
+      One example might be a subwoofer plate amplifier, which is sold under "Simex"-brand here in
+      finland (type BA-480). Same amplifier is sold by Parts Express (300-794). It's subsonic
+      filter has fc of 27.96 Hz and Q value of 1.5811. Lowpass filter's fc is adjustable, from
+      56.90 Hz to 195.66 Hz, with fixed Q value of 0.60486.
+    </p>
+    <table>
+      <tr>
+        <td>
+          <b>filter</b>
+        </td>
+        <td>
+          <b>fc/Hz</b>
+        </td>
+        <td>
+          <b>Q</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          subsonic
+        </td>
+        <td>
+          27.96
+        </td>
+        <td>
+          1.5811
+        </td>
+      </tr>
+      <tr>
+        <td>
+          lowpass (minimum)
+        </td>
+        <td>
+          56.90
+        </td>
+        <td>
+          0.60486
+        </td>
+      </tr>
+      <tr>
+        <td>
+          lowpass (maximum)
+        </td>
+        <td>
+          195.66
+        </td>
+        <td>
+          0.60486
+        </td>
+      </tr>
+    </table>
+    <p>
+      We have to use Special second order section-filter, because of the weird Q-value.
+    </p>
+    <p>
+      Adding these filters to the filter chain and disabling the lower lowpass results following
+      response curve:
+    </p><img src="images/fsimex03.png" alt="Image" /><br />
+    <img src="images/fsimex04.png" alt="Image" />
+    <hr />
+    <p class="footer">
+      This page written by Janne Ahonen (janne@linearteam.org).
+    </p>
+  </body>
+</html>

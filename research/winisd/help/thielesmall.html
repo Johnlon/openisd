@@ -1,0 +1,463 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Thiele/Small Specs - What They Mean
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+    <style type="text/css">
+/*<![CDATA[*/
+    dt.c1 {font-weight: bold}
+    /*]]>*/
+    </style>
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Thiele/Small Specs - What They Mean
+    </h1>
+    <p>
+      The Thiele/Small specs that are constantly being referred to throughout these help files are
+      the product of two Australians...namely A.N. Thiele and Richard Small, who, back in the late
+      '60's and early '70's, applied filter synthesis methods to box design. Before that, it was
+      process of trial and error and some rules of thumb!
+    </p>
+    <p>
+      These two gentlemen deserve some more publicity, so I'll include photographs of theirs into
+      this help file. Here are the personal photographs of Nevielle Thiele and Richard Small:<br />
+      <br />
+    </p>
+    <table>
+      <tr>
+        <td>
+          <img src="images/thiele.jpg" alt="Image" />
+        </td>
+        <td>
+          <img src="images/small.jpg" alt="Image" />
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Neville Thiele
+        </td>
+        <td>
+          Richard Small
+        </td>
+      </tr>
+    </table>
+    <p></p>
+    <p>
+      They accomplished this by equating a woofer in a box to an electronic low or high pass
+      filter. While they weren't the first to discover the aforementioned analogy, they were indeed
+      the most prolific at it. So much so, that even today, speaker designs are almost exclusively
+      based on their research, math, and formulas...ie, the Thiele/Small Specifications that you
+      hear so much about.
+    </p>
+    <p>
+      Here is explanation to various driver parameter encountered in driver editor (from upper left
+      to bottom right):
+    </p>
+    <hr />
+    <h3>
+      <a name="tsparams" id="tsparams">Thiele/Small-Parameters section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        Qes
+      </dt>
+      <dd>
+        Electrical Q (=damping), lower value means higher damping. It describes a drivers ability
+        to resonate at fs based on electrical means.
+      </dd>
+      <dt class="c1">
+        Qms
+      </dt>
+      <dd>
+        Mechanical Q (=damping, lower value means higher damping). It describes a drivers ability
+        to resonate at fs based on mechanical means.
+      </dd>
+      <dt class="c1">
+        Qts
+      </dt>
+      <dd>
+        Total damping (parallel coupling of Qms and Qes).
+      </dd>
+      <dt class="c1">
+        Vas
+      </dt>
+      <dd>
+        Equivalent Volume of air to Cms.
+      </dd>
+      <dt class="c1">
+        Fs
+      </dt>
+      <dd>
+        Free air resonance frequency of driver.
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="emparams" id="emparams">Electro-Mechanical parameter section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        Mms
+      </dt>
+      <dd>
+        Mechanical Mass of the vibrating part of the driver including air load.
+      </dd>
+      <dt class="c1">
+        Cms
+      </dt>
+      <dd>
+        Compliance of driver (inverse of spring stiffness).
+      </dd>
+      <dt class="c1">
+        Rms
+      </dt>
+      <dd>
+        Mechanical damping, gives you the mechanical damping of the diaphragm arising from
+        mechanical friction, including the resistive part of the radiation load. Rms can be
+        compared to Rme, and Rms is similarly related to Qms. Larger Qms gives smaller Rms. For
+        woofers this is normally desired because the suspension then operates closer to a perfect
+        spring.
+      </dd>
+      <dt class="c1">
+        Re
+      </dt>
+      <dd>
+        DC-resistance of voice coil.
+      </dd>
+      <dt class="c1">
+        BL
+      </dt>
+      <dd>
+        Magnetic Induction crossed with wire length in the airgap. (crossing = cross product, a
+        mathematical vector-operation)
+      </dd>
+      <dt class="c1">
+        Dd
+      </dt>
+      <dd>
+        Diameter of Diaphragm.
+      </dd>
+      <dt class="c1">
+        Le
+      </dt>
+      <dd>
+        Voice coil inductance.
+      </dd>
+      <dt class="c1">
+        Sd
+      </dt>
+      <dd>
+        Surface-area of Diaphragm.
+      </dd>
+      <dt class="c1">
+        fLe
+      </dt>
+      <dd>
+        The frequency at which Le and KLe is to be determined.
+      </dd>
+      <dt class="c1">
+        KLe
+      </dt>
+      <dd>
+        Voice coil semi-inductance in [H&#183;sqrt(Hz)], after Vanderkooy
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="lsparams" id="lsparams">Large-Signal Parameter section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        Xmax
+      </dt>
+      <dd>
+        Max linear excursion, usually calculated as abs(Hc-Hg)/2, and sometimes multiplied by a
+        factor (1.15 or 0.87, depending on how much distortion is accepted). WinISD does not
+        multiply with any of these factors. Some manufacturers erroneously gives you Xmax as the
+        damage limit, see Xlim. WinISD needs this as peak value.
+      </dd>
+      <dt class="c1">
+        Xlim
+      </dt>
+      <dd>
+        Damage limit excursion, also a peak value.
+      </dd>
+      <dt class="c1">
+        Hc
+      </dt>
+      <dd>
+        Height of coil.
+      </dd>
+      <dt class="c1">
+        Hg
+      </dt>
+      <dd>
+        Height of airgap.
+      </dd>
+      <dt class="c1">
+        Vd
+      </dt>
+      <dd>
+        Volume Displacement, how much air the driver can move in its linear range.
+      </dd>
+      <dt class="c1">
+        Pe
+      </dt>
+      <dd>
+        Thermal limited max. continuous electric power handling. If a driver is driven continuously
+        above Pe, then it will eventually fail.
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="miscparams" id="miscparams">Miscellaneous parameters section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        no
+      </dt>
+      <dd>
+        Efficiency (n should be the greek letter "eta") in percent [%].
+      </dd>
+      <dt class="c1">
+        Znom
+      </dt>
+      <dd>
+        Nominal impedance of the driver (not used in simulation).
+      </dd>
+      <dt class="c1">
+        USPL
+      </dt>
+      <dd>
+        efficiency in deciBell (SPL = sound pressure level) in [dB/2.83V] dB per 2.83 Volt (similar
+        to 1W into an 8 ohm load). This SPL-measurement is similar to SPL (see above), but gives
+        different values. This shows you the difficulties about matching drivers. With 8 ohm
+        drivers 2.83 Volt gives you 1 Watt and the two figures (SPL and USPL) will be similar, but
+        at lower impedance levels the USPL level will increase. USPL is the socalled voltage
+        sensitivity and is closer to application with voltage amplifiers. To a limited extent you
+        could match drivers for a loudspeaker system with this factor.
+      </dd>
+      <dt class="c1">
+        SPL
+      </dt>
+      <dd>
+        Efficiency in deciBell (SPL = sound pressure level) in [dB] per Watt directly related to
+        no, but definately not an "accurate" figure in applications. In other words, if a speaker
+        driver is specified by the manufacturer to some other value, do not use that value for
+        WinISD unless you need it to calculate some Thiele-Small parameters and approximate values
+        are better than no values at all. WinISD assumes distance 1 meter, radiation into halfspace
+        (2*pi), and voltage driv. SPL is the so-called power-sensitivity, not really related to
+        application, normally voltage amplifiers are used, but can become relevant if you want to
+        compare two similar drivers with different nominal impedance levels.
+      </dd>
+      <dt class="c1">
+        Voicecoils
+      </dt>
+      <dd>
+        Voicecoils is a descriptive parameter. It just tells how many voicecoils there are. So
+        ordinary drivers have 1, DVC drivers have 2 etc.
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="thermparams" id="thermparams">Thermal Parameters Section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        AlfaVC
+      </dt>
+      <dd>
+        AlfaVC is resistance temperature coefficient of voice coil material. It tells what is
+        relative change of voice coil resistance per unit of temperature. Expressed in 1/K.
+        Normally, copper has AlfaVC of about 0.0039 1/K at +20 &#176;C.
+      </dd>
+      <dt class="c1">
+        R(t)
+      </dt>
+      <dd>
+        R(t) is thermal resistance of driver from voice coil to ambient box air in Kelvins/Watt
+        (K/W). This is not used yet in simulations.
+      </dd>
+      <dt class="c1">
+        C(t)
+      </dt>
+      <dd>
+        C(t) is thermal capacity of driver voice coil assembly in Joules/Kelvin. This is not used
+        yet in simulations.
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="fmparams" id="fmparams">"figure of merits" parameters section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        SPLmaxLF
+      </dt>
+      <dd>
+        SPLmaxLF gives how loud driver can play in closed box or infinite baffle into half-space at
+        maximum excursion at 20 Hz. Distance from this imaginary baffle is 1 meter. It gives
+        "feeling" on Vd. Note also, that it doesn't apply to vented or any other assisted
+        enclosure.
+      </dd>
+      <dt class="c1">
+        SPLmax
+      </dt>
+      <dd>
+        Maximum thermal limited SPL in [dB] (at maximum Pe, assuming power compression = 3 dB)
+        playing into 2pi space
+      </dd>
+      <dt class="c1">
+        Rme
+      </dt>
+      <dd>
+        Electromagnetic Damping Factor in [N&#183;s/m] (the unit for viscosity), gives you the
+        mechanical control/damping of the diaphragm arising from the electro-magnetic motor system.
+        Rme is related to Qes in a way similar to how Rms is related to Qms. Rme is often used as a
+        measure for power of the magnetic motor system, see Mpow and Mcost.
+      </dd>
+      <dt class="c1">
+        Gamma
+      </dt>
+      <dd>
+        The acceleration factor (acceleration per ampere) in [m/(s&#178;&#183;A)].
+      </dd>
+      <dt class="c1">
+        Mpow
+      </dt>
+      <dd>
+        Motor power-factor in Newton per square-root Watt [N/sqrt(W)]. Similar to Mcost. I have
+        seen Rme as a measure of motor power, but this is simply the square-root of Rme, and it
+        provides a simple measure in Newton, which I (<b>Claus Futtrup</b>) prefer, and which seems
+        to relate the actual (subjectively perceived) power in a linear way. The square-root Watt
+        unit can be difficult to understand, but should be interpreted as square-root of Volt *
+        Ampere. In this respect it becomes clear that Mpow is independent of the drivers impedance
+        level, and therefore does not prioritize high or low impedance drivers. Mpow is purely a
+        motor system power-factor.
+      </dd>
+      <dt class="c1">
+        Mcost
+      </dt>
+      <dd>
+        Motor cost-factor in [N&#183;s/m] (or [kg/s]). Mcost expresses how powerful the motor system is
+        (based on Rme, Xmax and either Hc or Hg depending on whether the voice coil is overhung or
+        underhung), and the Xmax value includes an indicator of how much efficiency is "lost" in
+        the design. This factor is therefore a description of how expensive the motor system is.
+        This is an indicator on the price of the driver, but please forget about the unit. Other
+        factors comes in, like diaphragm material, manufacturing tolerances etc. This version of
+        Mcost (instead of using Rme) is based on an extension suggested by T. L. Clarke, where the
+        cost of getting a high Bl at low impedance must be even higher when the driver is
+        significantly overhung or underhung.
+      </dd>
+      <dt class="c1">
+        EBP
+      </dt>
+      <dd>
+        Efficiency-Bandwidth-Product in [Hz]
+      </dd>
+      <dt class="c1">
+        Gloss
+      </dt>
+      <dd>
+        Gloss tells how many percent of Xmax driver cone will sag, if driver is mounted
+        horizontally. This figure is only approximate, because surrounding air shifts resonance
+        frequency to somewhat lower value. So result is somewhat over-pessimistic by some amount.
+        Generally, figures of more than five percent tell you that driver in question shouldn't be
+        mounted horizontally. Value of gravity acceleration used when calculating sag is 9.80665
+        m/s&#178;.
+      </dd>
+    </dl>
+    <hr />
+    <h3>
+      <a name="dimparams" id="dimparams">Dimension parameters section</a>
+    </h3>
+    <dl>
+      <dt class="c1">
+        Thick
+      </dt>
+      <dd>
+        The thickness of the basket plate.
+      </dd>
+      <dt class="c1">
+        Depth
+      </dt>
+      <dd>
+        Depth of the driver.
+      </dd>
+      <dt class="c1">
+        Magnet Depth
+      </dt>
+      <dd>
+        Magnet depth/height/thickness (cylinder height).
+      </dd>
+      <dt class="c1">
+        Magnet
+      </dt>
+      <dd>
+        Magnet diameter.
+      </dd>
+      <dt class="c1">
+        Basket
+      </dt>
+      <dd>
+        Basket diameter (the hole to cut in the baffle).
+      </dd>
+      <dt class="c1">
+        Outer
+      </dt>
+      <dd>
+        Outer diameter (the space to make room for on the baffle for the driver).
+      </dd>
+      <dt class="c1">
+        VCd
+      </dt>
+      <dd>
+        Voice coil diameter.
+      </dd>
+      <dt class="c1">
+        Dvol
+      </dt>
+      <dd>
+        Driver displacement volume. Approx. the box volume occupied by the driver, when mounted
+        with magnet pointing into the box.
+      </dd>
+    </dl>
+    <hr />
+    <p>
+      Ultimately, speaker design is more of an art than a science, and as such you could dig up,
+      process, and ponder a lifetime of math, specs, and equations when designing a speaker. In
+      fact, you could spend 1000 years designing, calculating, and crunching numbers in an attempt
+      to create the "perfect" speaker. However, even after spending that 1000 years of planning,
+      somebody would still find something "that could be better", about your box!
+    </p>
+    <p>
+      Therefore, I will not even make an attempt to cover "all" of the speaker design technology
+      here (not only am I under-qualified for such a task, the very field itself lends itself to
+      constant controversy which I refuse to lose sleep over).
+    </p>
+    <p>
+      WinISD was not written/developed as a "this is it, no matter what you say" program. Instead,
+      it is intended to give even the casual audiophile a means to build a GREAT sounding box
+      (using the available technology).
+    </p>
+    <p>
+      Just use the program as it is intended to be used, and enjoy the results, because you WILL
+      end up with one Helluva great sounding box. Leave the constant bickering and "one upsmanship"
+      alone!
+    </p>
+    <hr />
+    <p class="footer">
+      This page written by JJ Richard (JJRichard@linearteam.org) and revised by Janne Ahonen
+      (janne@linearteam.org)<br />
+      Explanation of different driver parameters originally written by <b>Claus Futtrup</b> and
+      used here with permission.
+    </p>
+  </body>
+</html>

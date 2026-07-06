@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Start the dev server on the given port (default: 4000).
+# Runs all quality checks first, then serves with Vite dev.
+# Usage: bash scripts/start-http.sh [port]
+#   4000 = human's preview/dev server (default)
+#   4200 = agent-started dev server
+set -euo pipefail
+# Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+# PowerShell/cmd have no /proc, so they are still rejected.
+{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
+
+PORT=${1:-4000}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+PID_FILE="$ROOT_DIR/.server-${PORT}.pid"
+LOG_FILE="$ROOT_DIR/.server-${PORT}.log"
+
+PASS=0
+FAIL=0
+ERRORS=()
+
+run() {
+  local label="$1"; shift
+  echo ""
+  echo "── $label ──────────────────────────────────"
+  if "$@"; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+    ERRORS+=("$label")
+  fi
+}
+
+if [ -n "${SKIP_HEALTH_CHECKS:-}" ]; then
+  echo "========================================"
+  echo "  SKIP_HEALTH_CHECKS set — skipping lint/typecheck/unit"
+  echo "========================================"
+else
+  echo "========================================"
+  echo "  Health checks — $(date '+%H:%M:%S')"
+  echo "========================================"
+
+  run "ESLint"       npm run lint
+  run "Type check"   npm run typecheck
+  run "Unit tests"   npm run test:unit
+
+  echo ""
+  echo "========================================"
+  if [ "$FAIL" -gt 0 ]; then
+    echo "  $FAIL check(s) FAILED — server not started:"
+    for e in "${ERRORS[@]}"; do echo "    - $e"; done
+    echo "========================================"
+    exit 1
+  fi
+  echo "  All $PASS checks passed — starting server on port $PORT"
+  echo "========================================"
+fi
+
+# If a Vite dev server is already up on this port, reuse it
+if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/@vite/client" 2>/dev/null | grep -q "200"; then
+  echo "========================================"
+  echo "  Server already UP — http://localhost:${PORT}/"
+  echo "========================================"
+  exit 0
+fi
+
+# Kill the specific port and wait until it is confirmed free
+bash "$SCRIPT_DIR/kill-http.sh" "$PORT"
+
+echo ""
+echo "Starting server (log → .server-${PORT}.log, PID → .server-${PORT}.pid)"
+nohup npm run dev -- --port "$PORT" --strictPort --host > "$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+echo "$SERVER_PID" > "$PID_FILE"
+echo "PID: $SERVER_PID"
+
+echo "Waiting for server on http://localhost:${PORT}/ ..."
+for i in $(seq 1 45); do
+  if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/@vite/client" 2>/dev/null | grep -q "200"; then
+    echo "========================================"
+    echo "  Server UP — http://localhost:${PORT}/  (PID $SERVER_PID)"
+    echo "========================================"
+    exit 0
+  fi
+  if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "ERROR: dev server process exited unexpectedly — check .server-${PORT}.log"
+    exit 1
+  fi
+  echo "  waiting... ($i/45)"
+  sleep 2
+done
+
+echo "ERROR: server did not respond on port ${PORT} after 90s — check .server-${PORT}.log"
+kill "$SERVER_PID" 2>/dev/null || true
+rm -f "$PID_FILE"
+exit 1

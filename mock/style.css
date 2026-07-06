@@ -1,0 +1,473 @@
+/* WinISD mock skin — pure look-alike, zero calculation logic */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%; width: 100%;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  overflow: hidden;
+}
+button, select, input { font-family: inherit; font-size: 14px; }
+
+/* Fills whatever frame the browser gives it — like a native app window that's
+   been sized/maximized to the browser pane — and never scrolls internally. */
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: #f2f2f2;
+  overflow: hidden;
+}
+
+/* ---------- Title bar ---------- */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e9e9e9;
+  border-bottom: 1px solid #bbb;
+  padding: 6px 10px;
+  font-size: 15px;
+}
+.titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
+.titlebar .app-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #888, #333 70%);
+  display: inline-block;
+}
+.titlebar .win-controls { display: flex; gap: 14px; color: #555; font-size: 15px; }
+.titlebar .win-controls span { cursor: pointer; padding: 2px 6px; }
+.titlebar .win-controls span:hover { background: #dcdcdc; }
+.titlebar .win-controls .close-btn:hover { background: #e64545; color: #fff; }
+
+/* ---------- Toolbar ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eee;
+  border-bottom: 1px solid #bbb;
+  padding: 8px 12px;
+}
+.toolbar .tb-icons { display: flex; align-items: center; gap: 6px; }
+.tb-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 30px;
+  background: #f7f7f7;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+}
+.tb-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
+.tb-btn.disabled { opacity: .4; cursor: default; }
+.tb-btn.disabled:hover { background: #f7f7f7; border-color: #bbb; }
+.tb-sep { width: 1px; align-self: stretch; background: #ccc; margin: 0 4px; }
+
+.tb-btn svg { display: block; }
+.caret { font-size: 10px; margin-left: 2px; color: #555; }
+
+.chart-select {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid #bbb; border-radius: 3px;
+  background: #fff; padding: 4px 8px; cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+.chart-select:hover { border-color: #7fb3ff; }
+.chart-select .chart-name { font-weight: 600; }
+
+.cursor-readout {
+  text-align: right; line-height: 1.3; color: #222; font-size: 14px; cursor: default;
+}
+
+/* dropdown menus (chart type, folder, info) */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 34px; left: 0;
+  background: #fdfdfd;
+  border: 1px solid #999;
+  box-shadow: 2px 3px 8px rgba(0,0,0,.25);
+  z-index: 50;
+  min-width: 260px;
+  padding: 4px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-menu .menu-item {
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dropdown-menu .menu-item:hover { background: #dbeaff; }
+.dropdown-menu .menu-item.current::before { content: "\25CF"; font-size: 8px; color: #222; width: 10px; display:inline-block; }
+.dropdown-menu .menu-item:not(.current)::before { content: ""; width: 10px; display:inline-block; }
+.dropdown-menu hr { border: none; border-top: 1px solid #ddd; margin: 4px 0; }
+
+/* ---------- Main layout: 2x2 quadrants ----------
+   topleft (Projects/Signal Gen) | graph (top-right)
+   botleft (Project nav tablist) | content-panel (bottom-right)
+   Rows share height pairwise (topleft==graph, botleft==content-panel). */
+.main {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 1fr 260px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.quad-topleft {
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.quad-bottomleft {
+  background: #e2e2e2;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 8px 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+.quad-bottomleft .panel-title,
+.quad-bottomleft .color-btn { margin-right: 8px; flex: none; }
+.panel-title { color: #7d9fc9; font-weight: 600; margin-bottom: 2px; }
+
+.quad-projects-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.quad-signalgen-wrap { flex: none; }
+
+.projects-list { flex: 1 1 auto; min-height: 60px; border: 1px solid #bbb; background: #fff; overflow-y: auto; }
+.project-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 6px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+.project-row:hover { background: #eef4ff; }
+.project-row.selected { background: #1868d1; color: #fff; }
+.project-row input[type=checkbox] { accent-color: #1868d1; }
+
+.signal-gen-row { display: flex; align-items: center; gap: 8px; }
+.signal-gen-row input[type=text] { width: 60px; }
+
+/* Book-of-tabs: each li is a folder tab whose right edge bleeds onto the
+   content-panel's left border so the active one reads as physically
+   attached to (part of) the detail pane, like real tabbed-notebook chrome. */
+.project-nav { list-style: none; margin: 0; padding: 2px 0 0; position: relative; flex: none; }
+.project-nav li {
+  position: relative;
+  background: #ececec;
+  border: 1px solid #bbb;
+  border-right: none;
+  border-radius: 5px 0 0 5px;
+  padding: 4px 8px 4px 12px;
+  line-height: 1.3;
+  margin-bottom: -1px;
+  margin-right: -1px;
+  cursor: pointer;
+  z-index: 1;
+}
+.project-nav li:hover { background: #dbeaff; }
+.project-nav li.active {
+  background: #f7f7f7;
+  border-color: #999;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.color-btn {
+  margin-top: auto;
+  background: #c9c92e;
+  border: 1px solid #999;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+.color-btn:hover { filter: brightness(1.05); }
+
+.graph-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+}
+.graph-wrap { flex: 1 1 auto; min-height: 0; border: 1px solid #999; background: #fff; position: relative; }
+.graph-wrap svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- Bottom-right content panel ---------- */
+.content-panel {
+  background: #f7f7f7;
+  border: 1px solid #999;
+  border-left: none;
+  padding: 10px 16px;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+  z-index: 0;
+}
+.tab-section { display: none; }
+.tab-section.active { display: block; }
+
+.section-header {
+  background: #e2e2e2;
+  border: 1px solid #ccc;
+  padding: 4px 10px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.two-col { display: flex; gap: 24px; }
+.two-col > div { flex: 1; }
+
+/* Left-aligned field columns: every label gets the same min-width so inputs
+   across stacked rows line up into a consistent left-aligned column,
+   instead of drifting based on each label's own text length. */
+.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; justify-content: flex-start; }
+.field { display: flex; align-items: center; gap: 6px; justify-content: flex-start; }
+/* Fixed (not min-) width: min-width only floors short labels, so a longer one
+   in the same column (e.g. "Voice coil resistance TC") still pushes its own
+   row out of line with its siblings. Sized for the longest label in the app
+   ("Driver input voltage (each)" on the Signal tab). */
+.field label { color: #333; display: inline-block; width: 195px; text-align: left; }
+.field input[type=text], .field input[type=number], .field select {
+  border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff;
+  width: 90px;
+}
+.field input.wide { width: 180px; }
+/* Brand/Model on the Driver tab: tight, content-sized labels, not the
+   app-wide fixed column width (this row isn't a stacked-field column, it's
+   a single identity line matching the original PNG's compact proportions). */
+.field.tight label { width: auto; margin-right: 2px; }
+.driver-id-row { align-items: center; gap: 10px; }
+.dd-menu-anchor { position: relative; display: inline-block; }
+.field input.full { width: 100%; }
+.field input.greyed { background: #e9e9e9; color: #777; }
+.field input.entered { color: #1b7d1b; border-color: #1b7d1b; }
+.field input.calculated { color: #1868d1; border-color: #1868d1; }
+.field .unit { color: #555; min-width: 3.5em; }
+
+textarea.comment, textarea.description {
+  width: 100%; border: 1px solid #999; border-radius: 2px; padding: 6px; resize: vertical;
+}
+
+.radio-group { display: flex; align-items: center; gap: 14px; }
+.radio-group label { display: flex; align-items: center; gap: 4px; }
+
+.edit-btn, .link-btn, .action-btn {
+  background: #f0f0f0; border: 1px solid #999; border-radius: 3px;
+  padding: 4px 10px; cursor: pointer;
+}
+.edit-btn:hover, .link-btn:hover, .action-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
+.link-btn { background: none; border: none; color: #1868d1; text-decoration: underline; padding: 2px 0; }
+
+.mini-icon-box {
+  border: 1px dashed #aaa; width: 70px; height: 50px; display: flex; align-items: center; justify-content: center;
+  color: #888; font-size: 22px;
+}
+
+/* filters list */
+.filters-list {
+  border: 1px solid #999; background: #fff; min-height: 90px; max-height: 160px;
+  overflow-y: auto; margin-bottom: 8px;
+}
+.filter-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #eee; }
+.filter-row.selected { background: #dbeaff; }
+.filters-toolbar { display: flex; gap: 16px; }
+.filters-toolbar .action-btn { display: flex; align-items: center; gap: 6px; }
+
+/* checkbox list (advanced tab) */
+.checkbox-col { display: flex; flex-direction: column; gap: 8px; }
+.checkbox-col label { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- Modal overlay ---------- */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.18);
+  z-index: 100;
+  align-items: flex-start;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  margin-top: 8vh;
+  background: #f7f7f7;
+  border: 1px solid #888;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35);
+  width: 620px;
+  max-width: 92vw;
+}
+.modal.wide { width: 900px; }
+.modal.narrow { width: 460px; }
+.modal-titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #e9e9e9; border-bottom: 1px solid #bbb;
+  padding: 8px 12px; font-size: 15px;
+}
+.modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
+.modal-titlebar .win-controls { display: flex; gap: 12px; color: #555; }
+.modal-titlebar .win-controls span { cursor: pointer; padding: 1px 6px; }
+.modal-titlebar .win-controls span:hover { background: #ddd; }
+.modal-titlebar .win-controls .close-btn:hover { background: #e64545; color: #fff; }
+
+.modal-tabs { display: flex; border-bottom: 1px solid #ccc; background: #eee; padding: 6px 6px 0; }
+.modal-tabs .mtab {
+  padding: 7px 16px; cursor: pointer; border: 1px solid transparent; border-bottom: none;
+  margin-right: 2px; border-radius: 3px 3px 0 0; color: #444;
+}
+.modal-tabs .mtab.active { background: #f7f7f7; border-color: #ccc; color: #000; font-weight: 600; }
+.modal-tabs .mtab:hover:not(.active) { background: #ddeaff; }
+
+.modal-body { padding: 16px 20px; max-height: 65vh; overflow: auto; }
+.modal-pane { display: none; }
+.modal-pane.active { display: block; }
+
+.modal-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid #ccc; padding: 10px 20px; background: #eee;
+}
+.legend { display: flex; gap: 14px; align-items: center; font-size: 13px; }
+.legend .swatch { width: 12px; height: 12px; display: inline-block; margin-right: 4px; border: 1px solid #777; }
+.swatch.green { background: #1b7d1b; }
+.swatch.blue { background: #1868d1; }
+.swatch.black { background: #111; }
+.footer-buttons { display: flex; gap: 8px; }
+.footer-buttons button {
+  border: 1px solid #999; background: #f0f0f0; border-radius: 3px; padding: 6px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.footer-buttons button:hover { background: #dbeaff; border-color: #7fb3ff; }
+.footer-buttons button.cancel-btn { color: #b02a2a; }
+.footer-buttons button.ok-btn { color: #1b7d1b; }
+
+/* Parameters / Advanced parameters tabs: a real CSS grid with 4 label|input|unit
+   triples. Every column's width is the max content across ALL rows in that
+   column position, so e.g. every 2nd-field label (Mcost, SPLmax, Cms...) lands
+   in the same place regardless of how wide any one row's own unit text is —
+   that's what was pushing Mcost out of alignment before. */
+.param-grid {
+  display: grid;
+  grid-template-columns: repeat(4, max-content 90px max-content);
+  column-gap: 8px;
+  row-gap: 8px;
+  align-items: center;
+}
+.param-grid .section-header { grid-column: 1 / -1; margin: 4px 0 2px; }
+.param-grid .pg-label { color: #333; white-space: nowrap; }
+.param-grid .pg-input {
+  border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; width: 90px;
+}
+.param-grid .pg-input.entered { color: #1b7d1b; border-color: #1b7d1b; }
+.param-grid .pg-input.calculated { color: #1868d1; border-color: #1868d1; }
+.param-grid .pg-unit { color: #555; white-space: nowrap; padding-right: 16px; }
+
+/* General tab: label-above-field, laid out as a fixed-width 2-col grid so
+   Model and Date added (both col 2) line up vertically with each other. */
+.stack-grid {
+  display: grid;
+  grid-template-columns: 220px 220px;
+  gap: 10px 24px;
+}
+.stack-field { display: flex; flex-direction: column; gap: 3px; }
+.stack-field.span2 { grid-column: 1 / -1; }
+.stack-field label { color: #333; }
+.stack-field input, .stack-field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; width: 100%; }
+.stack-field.span2 input { width: 460px; }
+
+/* Dimensions tab: label to the left of each field (content-sized, not stretched). */
+.dim-fields { width: 230px; }
+.dim-fields .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.dim-fields .field-row label { display: inline-block; min-width: 90px; color: #333; }
+.dim-fields .field-row input { width: 90px; }
+
+.diagram-wrap { flex: 1; display: flex; align-items: center; justify-content: center; }
+.dd-dim-wrap { background: #11151c; border-radius: 4px; padding: 10px; }
+.dd-dim-svg { display: block; width: 100%; max-width: 340px; height: auto; }
+
+/* options plot-window color rows */
+.color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.color-row label { width: 140px; }
+.swatch-box { width: 60px; height: 22px; border: 1px solid #888; }
+.change-btn { border: 1px solid #999; background: #d8d8d8; padding: 4px 10px; cursor: pointer; border-radius: 2px; }
+.change-btn:hover { background: #c8c8c8; }
+.change-btn.red { background: #e34b4b; color: #fff; }
+
+.limits-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.limits-table th { background: #e2e2e2; text-align: left; padding: 4px 8px; border: 1px solid #ccc; }
+.limits-table td { padding: 4px 8px; border: 1px solid #ddd; }
+.limits-table input { width: 80px; }
+
+.enclosure-toggle { display: flex; gap: 16px; align-items: center; margin-bottom: 10px; }
+.hint { color: #888; font-size: 12px; font-style: italic; }
+
+/* ---------- Tune: floating reactive-minimal overlay (not a modal) ---------- */
+.tune-panel {
+  display: none;
+  position: fixed;
+  right: 24px; bottom: 24px;
+  z-index: 60;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #f7f7f7;
+  border: 1px solid #888;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  padding: 10px 14px 14px;
+  font-size: 13px;
+}
+.tune-panel.open { display: block; }
+.tune-titlebar { display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin-bottom: 6px; }
+.tune-titlebar .close-btn { cursor: pointer; padding: 0 4px; }
+.tune-titlebar .close-btn:hover { background: #e64545; color: #fff; }
+.tune-hint { color: #777; font-style: italic; font-size: 11.5px; margin-bottom: 8px; }
+.tune-row { display: flex; gap: 12px; margin: 6px 0; }
+.tune-fld { flex: 1; min-width: 0; }
+.tune-fld label { display: block; font-size: 11px; color: #555; margin-bottom: 2px; }
+.tune-fld .opt-lbl { color: #999; font-style: italic; }
+.tune-unit { display: flex; align-items: center; gap: 4px; }
+.tune-unit input, .tune-roval {
+  width: 100%; padding: 3px 5px; border: 1px solid #999; border-radius: 3px;
+  background: #fff; font: inherit;
+}
+.tune-roval { text-align: right; color: #1868d1; font-style: italic; display: inline-block; }
+.tune-unit span { font-size: 11px; color: #666; white-space: nowrap; }
+.tune-ro label { opacity: .8; }
+.tune-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 10px 0 2px; }
+.tune-save-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.tune-save-row input { flex: 1; border: 1px solid #999; border-radius: 3px; padding: 4px 6px; }
+.tune-btns, .tune-save-row {
+  padding-top: 8px; border-top: 1px solid #ddd; margin-top: 10px;
+}
+.tune-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.tune-btns button, .tune-save-row button {
+  border: 1px solid #999; background: #f0f0f0; border-radius: 3px; padding: 6px 12px; cursor: pointer;
+}
+.tune-btns button:hover, .tune-save-row button:hover { background: #dbeaff; border-color: #7fb3ff; }
+.tune-btns button.footer-buttons-pri, .tune-save-row button.footer-buttons-pri {
+  background: #1868d1; color: #fff; border-color: #1868d1;
+}
+
+/* Select Driver modal — full browsable picker table, not a dropdown. */
+.driver-picker-table { width: 100%; border-collapse: collapse; }
+.driver-picker-table th {
+  background: #e2e2e2; text-align: left; padding: 5px 8px; border: 1px solid #ccc; font-size: 13px;
+}
+.driver-picker-table td { padding: 5px 8px; border: 1px solid #eee; }
+.driver-picker-row { cursor: pointer; }
+.driver-picker-row:hover { background: #eef4ff; }
+.driver-picker-row.selected { background: #dbeaff; }

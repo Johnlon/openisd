@@ -1,0 +1,14 @@
+{
+  "name": "@openisd/ui",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenISD loudspeaker enclosure simulator — Vue 3 UI",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@openisd/engine": "*",
+    "@openisd/winisd": "*",
+    "vue": "^3.5.38"
+  }
+}

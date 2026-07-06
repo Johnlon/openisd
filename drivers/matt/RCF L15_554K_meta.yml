@@ -1,0 +1,15 @@
+quality: H
+issue: filename_convention
+detail: 'Manufacturer name is L15-554K (hyphen). Internal model uses slash; filename uses underscore. See top-level meta.json for transformation note. Source: https://www.rcf.it/en/products/product-detail/l15-554k'
+corrections: null
+reviewed_by: null
+datasheet: null
+manu_page: null
+vendor_page: null
+source: 'https://www.avsforum.com/posts/55004700/'
+frd: null
+impedance: null
+dq_issue: null
+community: null
+fetched_sku: null
+driver_type: subwoofer

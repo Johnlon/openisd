@@ -1,0 +1,21 @@
+[Driver]
+Brand=Demo
+Model=Generic 1" Tweeter
+Manufacturer=OpenISD
+ProvidedBy=OpenISD
+Comment=Generic demo 1-inch dome tweeter — not a real product; representative T/S values for trying the tool.
+DateAdded=20260701
+DateModified=20260701
+Qts=0.69
+Znom=8
+Fs=1000
+Pe=20
+Re=4.5
+Le=0.00005
+Xmax=0.0003
+Qms=3
+Qes=0.9
+Sd=0.0007
+Vas=0.0003
+numVC=1
+VCCon=1

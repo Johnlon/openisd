@@ -1,0 +1,179 @@
+/* OpenISD — modern-plus skin, visual mockup styles.
+   Non-authoritative design sample. Palette + primitives mirror the live app
+   (packages/ui/src/style.css): dark instrument theme, signal-blue accent, the
+   curve palette used by the real charts. Dark-only by deliberate choice — the
+   product commits to a single instrument-screen look. */
+
+:root{
+  --bg:#11151c; --panel:#1a2029; --panel2:#222a35; --panel3:#283241;
+  --line:#2e3a48; --line2:#3a4757;
+  --fg:#dfe6ee; --mut:#8a99ab; --faint:#61707f;
+  --acc:#4fb0ff; --acc-ink:#06223a; --acc2:#ffb454; --good:#5ad17a; --bad:#ff6b6b;
+  --c-spl:#4fb0ff; --c-exc:#ffb454; --c-port:#5ad17a; --c-gd:#c08bff; --c-z:#ff6b6b; --c-zph:#ff9bb0;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --r:8px;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--fg); font:13px/1.45 var(--sans);
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:.2px}
+a{color:var(--acc); text-decoration:none}
+.mono{font-family:var(--mono)}
+
+/* ---------- app frame ---------- */
+.app{display:flex; flex-direction:column; height:100vh; overflow:hidden}
+.appbar{display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel);
+  border-bottom:1px solid var(--line); flex-shrink:0}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; letter-spacing:.3px}
+.brand .mark{width:22px; height:22px; border-radius:50%; display:grid; place-items:center;
+  background:conic-gradient(from 210deg,var(--acc),#2a6fae 55%,var(--acc));
+  color:var(--acc-ink); font-size:13px; font-weight:800}
+.brand small{color:var(--mut); font-weight:400; font-size:11px; margin-left:2px}
+.appbar .grow{flex:1}
+.iconbtn{width:30px; height:28px; border:1px solid var(--line); background:var(--panel2); color:var(--mut);
+  border-radius:6px; display:grid; place-items:center; cursor:pointer; font-size:14px}
+.iconbtn:hover{border-color:var(--acc); color:var(--fg)}
+
+/* enclosure-type pill row */
+.typebar{display:flex; align-items:center; gap:8px; padding:7px 14px; background:var(--panel);
+  border-bottom:1px solid var(--line); flex-shrink:0; overflow-x:auto}
+.typebar .lbl{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-right:2px}
+.pill{padding:4px 12px; border:1px solid var(--line2); border-radius:100px; font-size:12px; color:var(--mut);
+  cursor:pointer; white-space:nowrap; background:transparent}
+.pill:hover{color:var(--fg); border-color:var(--acc)}
+.pill.on{background:var(--acc); color:var(--acc-ink); border-color:var(--acc); font-weight:600}
+.pill.sm{font-size:11px; padding:3px 10px}
+
+/* ---------- body split ---------- */
+.split{flex:1; display:flex; min-height:0}
+.inputs{width:392px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; min-height:0}
+.results{flex:1; display:flex; flex-direction:column; min-height:0}
+
+/* input tabs */
+.itabs{display:flex; gap:2px; padding:8px 10px 0; border-bottom:1px solid var(--line); flex-shrink:0}
+.itab{padding:6px 11px; font-size:12px; color:var(--mut); border:1px solid transparent; border-bottom:none;
+  border-radius:6px 6px 0 0; cursor:pointer; position:relative; top:1px}
+.itab:hover{color:var(--fg)}
+.itab.on{color:var(--fg); background:var(--panel2); border-color:var(--line); font-weight:600}
+.ibody{flex:1; overflow-y:auto; padding:12px}
+
+/* driver summary + specs */
+.drvsum{display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--panel2); border-radius:6px}
+.drvsum .nm{flex:1; font-weight:600; font-size:12.5px}
+.drvsum .ed{font-size:10px; color:var(--acc); border:1px solid var(--line2); border-radius:4px; padding:2px 8px}
+.specline{font-size:11px; color:var(--mut); padding:6px 2px 2px; line-height:1.8}
+.specline b{color:var(--acc2)}
+.disclose{display:flex; gap:4px; margin:10px 0 8px}
+.disclose .seg{flex:1; text-align:center; font-size:11px; padding:5px 0; border:1px solid var(--line2);
+  color:var(--mut); cursor:pointer; background:var(--panel)}
+.disclose .seg:first-child{border-radius:6px 0 0 6px}
+.disclose .seg:last-child{border-radius:0 6px 6px 0; border-left:none}
+.disclose .seg.on{background:var(--panel3); color:var(--fg); border-color:var(--acc); font-weight:600}
+
+/* fieldset card */
+.card{border:1px solid var(--line); border-radius:var(--r); padding:9px 11px 11px; margin:0 0 12px;
+  background:var(--panel)}
+.card > .lg{color:var(--acc); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  display:block; margin-bottom:6px}
+.frow{display:flex; align-items:center; gap:8px; padding:3px 0}
+.frow label{flex:1; color:var(--mut)}
+.frow .val{width:88px; text-align:right; background:var(--panel2); border:1px solid var(--line);
+  border-radius:4px; padding:3px 7px; color:var(--fg); font-variant-numeric:tabular-nums}
+.frow .val.calc{color:var(--acc); border-color:var(--line2)}
+.frow .u{width:32px; color:var(--faint); font-size:11px}
+.frow.dis{opacity:.5}
+.frow.dis .val{font-style:italic; color:var(--faint); background:transparent; border-style:dashed}
+.badge{font-size:9px; text-transform:uppercase; letter-spacing:.05em; border:1px solid; border-radius:3px;
+  padding:1px 5px; white-space:nowrap}
+.badge.calc{color:var(--acc); border-color:var(--acc)}
+.badge.na{color:var(--faint); border-color:var(--line2)}
+.btns{display:flex; gap:8px; margin-top:4px}
+.btn{flex:1; text-align:center; background:var(--panel2); border:1px solid var(--line2); color:var(--fg);
+  border-radius:6px; padding:7px 10px; cursor:pointer; font-size:12px}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc); color:var(--acc-ink); border-color:var(--acc); font-weight:600}
+
+/* results toolbar */
+.rtabs{display:flex; align-items:center; gap:2px; padding:8px 12px 0; background:var(--panel);
+  border-bottom:1px solid var(--line); flex-shrink:0}
+.rtab{padding:6px 12px; font-size:12px; color:var(--mut); border:1px solid transparent; border-bottom:none;
+  border-radius:6px 6px 0 0; cursor:pointer; position:relative; top:1px}
+.rtab.on{color:var(--fg); background:var(--bg); border-color:var(--line); font-weight:600}
+.rtab.dis{color:var(--faint); cursor:default}
+.rtab.dis::after{content:"soon"; font-size:9px; margin-left:5px; color:var(--faint); border:1px solid var(--line2);
+  border-radius:3px; padding:0 4px}
+.rtabs .grow{flex:1}
+.gtoolbar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 12px; background:var(--panel);
+  border-bottom:1px solid var(--line); flex-shrink:0}
+.gchip{padding:3px 9px; border:1px solid var(--line2); border-radius:12px; font-size:11px; color:var(--mut); cursor:pointer}
+.gchip.on{background:var(--acc); color:var(--acc-ink); border-color:var(--acc); font-weight:600}
+.gtoolbar .sep{width:1px; align-self:stretch; background:var(--line); margin:0 3px}
+.gtoolbar .lab{font-size:11px; color:var(--faint); margin-left:auto}
+
+/* graph grid */
+.ggrid{flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px 12px; overflow:auto;
+  background:var(--bg); min-height:0}
+.gpanel{position:relative; border:1px solid var(--line); border-radius:6px; background:#0e1218; overflow:hidden;
+  min-height:150px; display:flex}
+.gpanel .gtitle{position:absolute; left:9px; top:6px; font-size:11px; color:var(--mut); z-index:2}
+.gpanel .gread{position:absolute; right:7px; top:6px; font-size:10.5px; background:rgba(10,14,20,.85);
+  border:1px solid var(--line); border-radius:4px; padding:3px 7px; z-index:2}
+.gpanel .gread b{color:var(--fg)}
+.gpanel svg{position:absolute; inset:0; width:100%; height:100%}
+
+/* stat bar */
+.statbar{display:flex; flex-wrap:wrap; gap:4px 20px; padding:7px 14px; background:var(--panel);
+  border-top:1px solid var(--line); font-size:11.5px; color:var(--mut); flex-shrink:0}
+.statbar b{color:var(--fg); font-variant-numeric:tabular-nums}
+.statbar .k{color:var(--faint)}
+
+/* legend */
+.legend{display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:6px 12px; background:var(--bg);
+  font-size:11px; color:var(--mut); border-top:1px solid var(--line)}
+.legend span{display:inline-flex; align-items:center; gap:5px}
+.legend i{width:14px; height:3px; border-radius:2px; display:inline-block}
+.legend i.dash{background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 7px); height:2px}
+
+/* ---------- mobile phone frames ---------- */
+.phones{display:flex; gap:34px; flex-wrap:wrap; justify-content:center; padding:34px 18px}
+.phone{width:330px; height:680px; border:10px solid #05070a; border-radius:34px; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.5); background:var(--bg); display:flex; flex-direction:column; position:relative}
+.phone .app{height:100%}
+.phone .appbar{padding:9px 12px}
+.mtabbar{display:flex; height:44px; flex-shrink:0; background:var(--panel); border-top:1px solid var(--line)}
+.mtabbar button{flex:1; border:none; background:transparent; color:var(--mut); font:600 13px var(--sans);
+  border-top:2px solid transparent; cursor:pointer}
+.mtabbar button.on{color:var(--acc); border-top-color:var(--acc)}
+.acc-item{border-bottom:1px solid var(--line)}
+.acc-head{display:flex; align-items:center; gap:8px; padding:11px 13px; cursor:pointer; font-weight:600}
+.acc-head .car{color:var(--faint); font-size:11px; width:12px}
+.acc-head .sub{color:var(--faint); font-weight:400; font-size:11px; margin-left:auto}
+.acc-body{padding:2px 13px 12px; background:var(--panel2)}
+.mchart{flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg)}
+.mchart .gpanel{margin:10px 12px; min-height:0; flex:1}
+.caption{max-width:1120px; margin:0 auto; padding:0 22px 34px; color:var(--mut); font-size:13px; line-height:1.7}
+.caption code{font-family:var(--mono); font-size:.85em; background:var(--panel2); border:1px solid var(--line);
+  border-radius:5px; padding:.06em .35em; color:var(--fg)}
+
+/* ---------- doc chrome (index + captions) ---------- */
+.doc{max-width:1120px; margin:0 auto; padding:0 22px}
+.pagehead{padding:46px 22px 26px; max-width:1120px; margin:0 auto}
+.pagehead .eye{font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--acc); font-weight:600}
+.pagehead h1{font-size:clamp(1.8rem,5vw,2.6rem); font-weight:800; margin:.5rem 0 .5rem; letter-spacing:-.02em}
+.pagehead h1 .plus{color:var(--acc); font-family:var(--mono)}
+.pagehead p{color:var(--mut); max-width:64ch; font-size:1.02rem}
+.backlink{display:inline-block; margin:14px 0 0; font-size:12px; font-family:var(--mono); color:var(--mut)}
+.frame-wrap{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:0 22px 10px; max-width:1120px}
+.frame-wrap .app{height:760px}
+.viewport-tag{max-width:1120px; margin:6px auto 0; padding:0 24px; font-family:var(--mono); font-size:11px; color:var(--faint)}
+
+.gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; padding:8px 22px 50px; max-width:1120px; margin:0 auto}
+.gcard{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel); text-decoration:none; color:var(--fg); display:block}
+.gcard:hover{border-color:var(--acc)}
+.gcard .thumb{height:150px; background:var(--bg); border-bottom:1px solid var(--line); display:grid; place-items:center; color:var(--faint); position:relative; overflow:hidden}
+.gcard .meta{padding:12px 14px}
+.gcard .meta h3{font-size:15px; margin-bottom:4px}
+.gcard .meta p{color:var(--mut); font-size:12.5px; margin:0}

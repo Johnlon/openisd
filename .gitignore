@@ -1,0 +1,43 @@
+node_modules/
+dist/
+test-results/
+build/
+.server.pid
+.server.log
+.server-*.pid
+.server-*.log
+dq_report.txt
+
+# Scraper cache dirs — all start with _ and are never committed
+drivers/**/_*/
+
+# Federated collections symlinked in locally from a sibling winisd_drivers
+# checkout (scripts/link-driver-repo.sh) — dev convenience only, never tracked.
+drivers/dayton-audio
+drivers/loudspeakerdatabase
+drivers/parts-express
+drivers/sb-acoustics
+drivers/scan-speak
+drivers/soundimports
+drivers/wavecor
+
+# Generated at build time by scripts/bundle-drivers.mjs
+src/drivers-bundle.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Tool caches
+.playwright-mcp/
+
+# Vitest coverage output
+coverage/

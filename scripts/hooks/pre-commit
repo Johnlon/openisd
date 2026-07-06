@@ -1,0 +1,23 @@
+#!/bin/sh
+# Fast gate on EVERY commit — lint + unit + golden tests. Blocks the commit on any
+# red so a failure cannot ride along commit-to-commit (the "an issue from hours ago
+# persisted" failure mode). These are all fast (no browser, no network, no python).
+#
+# The FULL suite — browser tests, DQ, scraper tests — runs at pre-push
+# (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
+# a change "done". A green pre-commit is necessary, not sufficient.
+#
+# Exception: a commit that touches ONLY *.md files changes no runtime behaviour,
+# so lint/typecheck/test add no signal — skip them. Any commit that touches even
+# one non-.md file runs the full gate as normal.
+set -e
+changed=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
+  echo "[pre-commit] doc-only commit (*.md) — skipping lint/typecheck/test"
+  exit 0
+fi
+echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
+npm run lint
+npm run typecheck
+npm run test:unit
+echo "[pre-commit] all green ✓"

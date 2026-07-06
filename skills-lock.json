@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "tdd": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/tdd/SKILL.md",
+      "computedHash": "7a73c21e015c008ba98166f471030eb1791dea37347624683ddeb0f2c3fdecdc"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+quality: H
+issue: ts_community_measured
+detail: 'Confirmed DCS380-4 by exact Sd (819.4 cm²) and Xmax (8.4 mm) match — physical dimensions that do not vary. T/S params differ from datasheet (e.g. Fs 22.8 vs 21.5 Hz, Qms 3.46 vs 3.79, SPL 89.1 vs 93.6 dB) due to community measurement: break-in softens the suspension shifting Fs/Qms, and different measurement tools (DATS, Woofer Tester, LIMP) extract different values from the same impedance curve. Brand field was corrected from ''Dayton Classic 15"'' to ''Dayton Audio''.'
+corrections: null
+reviewed_by: null
+datasheet: 'https://www.daytonaudio.com/images/resources/295-470-dayton-audio-dcs380-4-specifications-46178.pdf'
+manu_page: null
+vendor_page: null
+source: 'https://www.avsforum.com/posts/55004700/'
+frd: null
+impedance: null
+dq_issue: null
+community: null
+fetched_sku: null
+driver_type: subwoofer
