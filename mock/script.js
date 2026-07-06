@@ -92,13 +92,31 @@ function setPlacement(mode) {
   refreshProjectTraceVisibility();
 }
 
+const ENCLOSURE_TYPES = ['sealed', 'ported', 'pr', 'bp4', 'bp6', 'bp8'];
+
 function setEnclosureType(type) {
   const label = document.getElementById('nav-enclosure-label');
-  const panes = { sealed: 'Sealed', ported: 'Vents', pr: 'Passive Radiator' };
+  const panes = {
+    sealed: 'Sealed', ported: 'Vents', pr: 'Passive Radiator',
+    bp4: '4th Order BP', bp6: '6th Order BP', bp8: 'ABC',
+  };
   label.textContent = panes[type];
   const select = document.getElementById('box-type-select');
   if (select) select.value = type;
-  ['sealed', 'ported', 'pr'].forEach(t => {
+
+  const isDual = type === 'bp4' || type === 'bp6' || type === 'bp8';
+  document.getElementById('box-single-chamber').style.display = isDual ? 'none' : 'block';
+  document.getElementById('box-dual-chamber').style.display = isDual ? 'block' : 'none';
+  if (isDual) {
+    const headings = { bp4: '4th Order Bandpass', bp6: '6th Order Bandpass', bp8: '8th Order Bandpass — ABC (Aperiodic Bi-Chamber)' };
+    document.getElementById('box-dual-heading').textContent = headings[type];
+    document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Chamber 1 (sealed)' : 'Chamber 1 (vented)';
+    document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
+    document.getElementById('box-diagram-abc').style.display = (type === 'bp8') ? 'block' : 'none';
+    document.getElementById('box-diagram-generic').style.display = (type === 'bp8') ? 'none' : 'block';
+  }
+
+  ENCLOSURE_TYPES.forEach(t => {
     const pane = document.getElementById('enclosure-' + t);
     if (pane) pane.style.display = (t === type) ? 'block' : 'none';
   });
@@ -328,24 +346,130 @@ function editCustomDriver() {
   openDriverEditor('mydrivers', d ? d.brand + ' ' + d.model : '');
 }
 
-// Makes explicit, inside the modal itself (not just a tooltip), which of two
-// very different things this editor session is touching:
-//  - 'project': the driver copy embedded in the current project. Edits here
-//    apply live to the project immediately; Save additionally writes an
-//    independent copy to My Drivers, it does not touch the project's copy.
+// Makes explicit, inside the modal itself (not just a tooltip), which of
+// three very different things this editor session is touching, and shows
+// only the footer buttons that make sense for that context:
+//  - 'project': the driver copy embedded in the current project (opened via
+//    the Driver tab's Edit button). Edits apply live to the project; Done
+//    keeps them; Clone... additionally writes an independent copy to My
+//    Drivers; Select Driver swaps in a different driver's values.
 //  - 'mydrivers': a My Drivers entry, opened via Manage Drivers -> Edit
-//    custom driver. Edits/Save here apply directly to that My Drivers entry;
+//    custom driver. Done/Clone... apply directly to that My Drivers entry;
 //    the current project is untouched unless you Select Driver it back in.
+//  - 'toolbar': opened via the toolbar icon, standalone — not tied to any
+//    project or My Drivers entry. Starts empty; Select Driver or Load driver
+//    populate it; Clone detaches from whatever was loaded; Save as to disk /
+//    Save to My Drivers persist it; Create Box spins up a new project from it.
+const DRIVER_EDITOR_BUTTONS_BY_MODE = {
+  project: ['de-btn-done', 'de-btn-clone', 'de-btn-select', 'de-btn-clear', 'de-btn-cancel'],
+  mydrivers: ['de-btn-done', 'de-btn-clone', 'de-btn-clear', 'de-btn-cancel'],
+  toolbar: ['de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'],
+};
+const ALL_DRIVER_EDITOR_BUTTONS = ['de-btn-done', 'de-btn-clone', 'de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'];
+
+let driverEditorMode = 'project';
+let driverEditorOpenSnapshot = null;
+
 function openDriverEditor(mode, name) {
+  driverEditorMode = mode;
   const hint = document.getElementById('driver-editor-context');
+  hint.classList.remove('mydrivers-mode', 'toolbar-mode');
   if (mode === 'mydrivers') {
-    hint.textContent = `Editing My Drivers entry "${name}" directly — Save updates this entry; the current project is unaffected unless you re-select it via Select Driver.`;
+    hint.textContent = `Editing My Drivers entry "${name}" directly — Done updates this entry; the current project is unaffected unless you re-select it via Select Driver.`;
     hint.classList.add('mydrivers-mode');
+  } else if (mode === 'toolbar') {
+    hint.textContent = 'Empty editor — use Select Driver or Load driver to bring in a definition, or fill in fields from scratch.';
+    hint.classList.add('toolbar-mode');
+    clearDriverEditor();
   } else {
-    hint.textContent = 'Editing the driver copy embedded in the current project — changes apply live to the project immediately; Save additionally writes an independent copy to My Drivers.';
-    hint.classList.remove('mydrivers-mode');
+    hint.textContent = 'Editing the driver copy embedded in the current project — changes apply live to the project immediately; Done updates this copy.';
   }
+  const visible = new Set(DRIVER_EDITOR_BUTTONS_BY_MODE[mode] || DRIVER_EDITOR_BUTTONS_BY_MODE.project);
+  ALL_DRIVER_EDITOR_BUTTONS.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.style.display = visible.has(id) ? '' : 'none';
+  });
+  driverEditorOpenSnapshot = document.querySelector('#modal-driver-editor .modal-body').innerHTML;
   openModal('modal-driver-editor');
+}
+
+function doneDriverEditor() {
+  closeModal('modal-driver-editor');
+}
+
+function cancelDriverEditor() {
+  const body = document.querySelector('#modal-driver-editor .modal-body');
+  if (driverEditorOpenSnapshot) body.innerHTML = driverEditorOpenSnapshot;
+  closeModal('modal-driver-editor');
+}
+
+function cloneDriverEditor() {
+  const brandEl = document.getElementById('de-brand-field');
+  const modelEl = document.getElementById('de-model-field');
+  const defaultName = `${brandEl.value || 'Custom'} ${modelEl.value ? modelEl.value + ' (custom)' : 'driver'}`.trim();
+  const name = window.prompt('Save to My Drivers — name for this entry:', defaultName);
+  if (!name) return;
+  const [brand, ...rest] = name.split(' ');
+  addMyDriver(brand || 'Custom', rest.join(' ') || name);
+}
+
+function selectDriverFromEditor() {
+  closeModal('modal-driver-editor');
+  openModal('modal-select-driver');
+}
+
+function loadDriverFromDisk() {
+  document.getElementById('de-load-file-input').click();
+}
+
+function handleDriverFileLoad(inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  inputEl.value = '';
+  if (!file) return;
+  const stem = file.name.replace(/\.[^/.]+$/, '');
+  const [brand, ...rest] = stem.split(/[\s_-]+/);
+  document.getElementById('de-brand-field').value = brand || 'Loaded';
+  document.getElementById('de-model-field').value = rest.join(' ') || stem;
+  window.alert(`Loaded "${file.name}" (mock — Brand/Model seeded from the filename only; contents are not actually parsed).`);
+}
+
+function cloneDetachEditor() {
+  const modelEl = document.getElementById('de-model-field');
+  modelEl.value = modelEl.value ? modelEl.value + ' (clone)' : 'Untitled (clone)';
+  document.getElementById('driver-editor-context').textContent =
+    'Editing a detached clone — not linked back to any loaded driver. Use Save as to disk or Save to My Drivers to keep it.';
+}
+
+function saveDriverAsToDisk() {
+  const brand = document.getElementById('de-brand-field').value || 'Custom';
+  const model = document.getElementById('de-model-field').value || 'driver';
+  const lines = [`Brand: ${brand}`, `Model: ${model}`];
+  document.querySelectorAll('#modal-driver-editor .modal-pane[data-pane="parameters"] .pg-label').forEach(label => {
+    const input = label.nextElementSibling;
+    if (input) lines.push(`${label.textContent}: ${input.value}`);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${brand}_${model}.wdr.txt`.replace(/\s+/g, '_');
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+let createBoxSeq = 0;
+function createBoxFromEditor() {
+  const brand = document.getElementById('de-brand-field').value || 'Custom';
+  const model = document.getElementById('de-model-field').value || 'driver';
+  const id = 'custom' + (++createBoxSeq);
+  const row = document.createElement('div');
+  row.className = 'project-row';
+  row.dataset.project = id;
+  row.setAttribute('onclick', 'selectProjectRow(this)');
+  row.innerHTML = `<input type="checkbox" checked onclick="event.stopPropagation(); toggleProjectTrace(this)"><span>New Project (${brand} ${model})</span>`;
+  document.querySelector('.projects-list').appendChild(row);
+  selectProjectRow(row);
+  closeModal('modal-driver-editor');
 }
 
 function deleteCustomDriver() {
@@ -447,25 +571,18 @@ function cycleColor(btn) {
   btn.style.background = colorPalette[colorIndex];
 }
 
-// Driver editor Reset/Clear: snapshot the modal's pristine markup on load so
-// Reset can restore it exactly (values + ParState colors + active tab),
-// distinct from Clear which just blanks every field.
-let driverEditorSnapshot = null;
+// Clear: blanks every field to default (empty) values. Cancel (not Clear)
+// is what reverts to the values the editor had when it was opened this
+// time — see cancelDriverEditor()/driverEditorOpenSnapshot above.
 function clearDriverEditor() {
   const body = document.querySelector('#modal-driver-editor .modal-body');
   body.querySelectorAll('input[type=text], input[type=number]').forEach(el => el.value = '');
   body.querySelectorAll('textarea').forEach(el => el.value = '');
   body.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
 }
-function resetDriverEditor() {
-  const body = document.querySelector('#modal-driver-editor .modal-body');
-  if (driverEditorSnapshot) body.innerHTML = driverEditorSnapshot;
-}
 
 // Fake, decorative cursor readout — not a real chart engine, just moves the numbers on click.
 document.addEventListener('DOMContentLoaded', () => {
-  driverEditorSnapshot = document.querySelector('#modal-driver-editor .modal-body').innerHTML;
-
   quickAddFilter('Lowpass');
   initSpinners(document);
   refreshProjectTraceVisibility();

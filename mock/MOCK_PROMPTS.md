@@ -210,3 +210,24 @@ Edit Project was better as Edit but it needs a hint or something so its clear yo
 ---
 
 Driver Editor when invoked from rhe project as opposed tothe manage drivers - is editing the project embedded driect - make this clear in the UI
+
+---
+
+Editor popup from within the projet context
+
+Heading : "Editing driver embeeded in current project..."
+Buttons:
+"Done" updates the driver copy embedded in the current project — not the original drived definition.
+"Clone..." creates a new custom driver in My Drivers with whatever the current settings are on this editor and does not affect the current project.
+"Select Driver" allows selection of an alternative driver definition from the database and My Drivers.
+"Clear" sets all fields to default values"
+"Cancel" dismisses the editir without any changes
+
+---
+
+Editor popup from tool bar - opens empty until a Load is made to load off disk or until a driver is selected
+Therefore this modal has these buttons
+Select Driver (from db) / Load driver (from disk) / Clone / Save as to disk / Save to My Drivers (internal) << suggested.
+And special - Create Box ..
+
+Also please add the additional box types and their specific tab and custom field values

@@ -151,8 +151,8 @@ enclosure type, which was already the awkward part of the current
 implementation. Tradeoff: the combined pane needs enough width for two
 columns plus the box illustration, which may push the Box tab layout to
 need its own wider treatment rather than reusing the generic two-column
-pattern. Deferred until the box-type cascade (6 enclosure types) is
-implemented, since this changes that work's shape.
+pattern. The Box tab and Vents tab remain separate for now — not yet
+actioned.
 
 ## Reactive what-if fields: spinners, unit-cycling, ParState color
 
@@ -227,3 +227,70 @@ by checkbox state uniformly. Added the missing second-project SPL trace
 (`#trace-ported-spl`, blue, independent of the Standard/Iso-Barik toggle,
 which only ever applies to project 1's own curve). Both projects' checkboxes
 now drive real chart visibility instead of only the second one working.
+
+## Driver Editor: three distinct modes, not two
+
+Following the project-vs-My-Drivers banner above, the footer buttons
+themselves now also change per mode (`DRIVER_EDITOR_BUTTONS_BY_MODE` in
+`script.js`) — the modal is genuinely different depending on how it's
+opened, not just relabeled:
+
+- **`project`** (Driver tab's Edit button): Done / Clone... / Select Driver
+  / Clear / Cancel. Done keeps the live edits in the project's embedded
+  copy; Clone... additionally writes an independent My Drivers entry;
+  Select Driver swaps the project to a different driver's values entirely.
+- **`mydrivers`** (Manage Drivers → Edit custom driver...): Done / Clone... /
+  Clear / Cancel — no Select Driver, since swapping "which driver the
+  project uses" doesn't apply while editing a My Drivers entry directly.
+- **`toolbar`** (the toolbar's Driver Editor icon): a standalone editor, not
+  tied to any project or My Drivers entry. Opens **blank** (`clearDriverEditor()`
+  runs on open) until populated via Select Driver or Load driver. Buttons:
+  Select Driver (from the database or My Drivers) / Load driver... (from a
+  local file — mock: only the filename seeds Brand/Model, contents aren't
+  parsed) / Clone (detaches this session from whatever was loaded, so
+  further edits aren't tied back to the original — a pure in-session state
+  change, doesn't persist anywhere by itself) / Save as to disk (a real
+  browser download of a plain-text field dump, filenamed
+  `<brand>_<model>.wdr.txt` — deliberately not claiming real WDR binary/XML
+  compatibility) / Save to My Drivers (persists to the in-memory My Drivers
+  array) / Create Box... (spins up a new project row prefilled with this
+  driver's Brand/Model — a fake but working "go design a box around this
+  driver" shortcut).
+
+Cancel now means "revert to how the editor looked when it was opened this
+time" (`driverEditorOpenSnapshot`, captured fresh on every `openDriverEditor()`
+call) — replacing the old `driverEditorSnapshot`/Reset pairing that
+snapshotted once at page load and never changed. Clear is unrelated to
+Cancel: it always blanks every field to defaults, in any mode.
+
+## Box-type cascade: 6 enclosure types
+
+`box-type-select` now offers Sealed / Vented / Passive Radiator / 4th Order
+Bandpass / 6th Order Bandpass / 8th Order Bandpass (ABC), replacing the
+earlier 3-type stand-in. Box tab content splits into two mutually-exclusive
+blocks (`#box-single-chamber` vs `#box-dual-chamber`, toggled by
+`setEnclosureType()`):
+
+- Sealed/Vented/Passive Radiator keep the existing single "Rear chamber"
+  Volume/Fh block, unchanged.
+- The three bandpass types show two chambers side by side instead. Chamber
+  1 is labeled "(sealed)" for 4th order and "(vented)" for 6th/8th order,
+  with its own Fh field only shown when vented. Chamber 2 is always vented.
+  The illustration swaps between a generic two-box icon (4th/6th order) and
+  a distinct ABC icon for 8th order — bigger bottom chamber (matching the
+  "driver mounted on the baffle of the larger chamber" spec), smaller top
+  chamber, "ABC" labeled directly on the bottom one.
+
+The enclosure/Vents tab gained three new panes matching each bandpass
+type's real vent topology (not guessed — matches the rules the user gave
+earlier in this file's now-superseded prompt log): 4th order has only a
+**Front chamber vent** (the rear chamber is sealed, no vent); 6th order has
+**Rear chamber vent + Front chamber vent** (both chambers open to the
+outside, no connection between them); 8th order/ABC has all three —
+**Rear chamber vent + Front chamber vent + Intrachamber vent** (the extra
+port that connects the two chambers internally, per "Aperiodic Bi-Chamber").
+Each vent section reuses the same Number/Diameter/Vent length/1st port
+resonance field pattern already established for the plain Vented type,
+just relabeled per section — hand-written three times rather than
+templated, consistent with this mock's "no premature abstraction" approach
+elsewhere.

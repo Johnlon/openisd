@@ -341,6 +341,7 @@ textarea.comment, textarea.description {
   font-size: 12.5px; padding: 6px 14px;
 }
 .editor-context-hint.mydrivers-mode { background: #fff3e0; border-bottom-color: #f0c987; color: #8a5a00; }
+.editor-context-hint.toolbar-mode { background: #f0f0f0; border-bottom-color: #ccc; color: #555; font-style: italic; }
 .modal-tabs { display: flex; border-bottom: 1px solid #ccc; background: #eee; padding: 6px 6px 0; }
 .modal-tabs .mtab {
   padding: 7px 16px; cursor: pointer; border: 1px solid transparent; border-bottom: none;

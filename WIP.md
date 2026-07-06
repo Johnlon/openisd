@@ -28,18 +28,20 @@ panel, not just the Driver Editor modal. A Manage Drivers toolbar menu
 (Customise/Save-as-new/Edit-custom/Delete-custom/Disable-custom) drives an
 in-memory "My Drivers" list. Multi-project chart traces are generalized via
 `data-project`/`data-trace-for` attributes — both projects' checkboxes now
-independently show/hide their own SPL and transfer-function traces.
+independently show/hide their own SPL and transfer-function traces. The
+Driver Editor modal now has three distinct modes with their own footer
+buttons (project / My Drivers / a standalone toolbar-opened editor that
+starts blank and supports Load-from-disk, Save-as-to-disk, and
+Create-Box-from-this-driver). The Box tab's enclosure selector is a 6-type
+dropdown (Sealed/Vented/Passive Radiator/4th/6th/8th-order bandpass), each
+wired to its own Box-tab chamber layout and Vents-tab vent sections
+(including the ABC illustration with the driver on the larger chamber's
+baffle).
 
 Still open:
 
-- Box-type cascade: expand the enclosure radio to 6 types (Sealed, Vented,
-  Passive Radiator, 4th/6th/8th-order bandpass — "ABC" = Aperiodic
-  Bi-Chamber) and wire the Box tab + Vents tab content per type.
-- ABC box type: driver mounted on the baffle of the larger (bottom) chamber,
-  which also carries the "ABC" label.
 - Box tab / Vents-tab merge (see MOCK_DESIGN.md open question) — recommended
-  but deferred until the box-type cascade work above, since it changes that
-  work's shape.
+  but not yet actioned.
 
 ### 1. Signal chain / EQ (P1 in backlog)
 
