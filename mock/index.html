@@ -253,6 +253,11 @@
     <div class="content-panel">
 
       <div class="parstate-legend">
+        <span class="unsaved-indicator" id="unsaved-indicator" style="display:none;">
+          <span class="unsaved-dot"></span>Unsaved changes
+          <button title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
+          <button title="Downloads the current project's live changes as a file to physical disk." onclick="saveProjectChangesToFile()">Save as file</button>
+        </span>
         <span><span class="swatch green"></span>Entered</span>
         <span><span class="swatch blue"></span>Calculated</span>
         <span><span class="swatch black"></span>Not available</span>
@@ -842,7 +847,14 @@
       </div>
 
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch; gap:8px;">
+      <div class="clone-save-row" id="clone-save-row" style="display:none;">
+        <label>Save to My Drivers as</label>
+        <input type="text" id="clone-save-name">
+        <button class="footer-buttons-pri" onclick="cloneSaveConfirm()">Save</button>
+        <button onclick="cloneSaveCancel()">Cancel</button>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
       <div class="legend">
         <span><span class="swatch green"></span>Entered</span>
         <span><span class="swatch blue"></span>Calculated</span>
@@ -854,13 +866,14 @@
         <button id="de-btn-load" title="Load a driver definition from a local .wdr file (mock — the file's contents are not actually parsed; only its name seeds Brand/Model)." onclick="loadDriverFromDisk()">Load driver...</button>
         <input type="file" id="de-load-file-input" accept=".wdr" style="display:none" onchange="handleDriverFileLoad(this)">
         <button id="de-btn-clone-toolbar" title="Detaches this session from whatever was loaded — further edits are your own, not tied back to the original, until you save them to disk or My Drivers." onclick="cloneDetachEditor()">Clone</button>
-        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Save as to disk</button>
+        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Save to disk</button>
         <button id="de-btn-save-mydrivers" title="Saves these values as a new entry in My Drivers." onclick="cloneDriverEditor()">Save to My Drivers</button>
         <button id="de-btn-createbox" title="Creates a new project (box design) using this driver." onclick="createBoxFromEditor()">Create Box...</button>
         <button id="de-btn-clone" title="Creates a new custom driver in My Drivers with whatever the current settings are on this editor — does not affect the current project." onclick="cloneDriverEditor()">Clone...</button>
         <button id="de-btn-clear" title="Sets all fields to default (blank) values." onclick="clearDriverEditor()">&#9633; Clear</button>
         <button id="de-btn-done" class="ok-btn" title="Updates the driver copy embedded in the current project — not the original driver definition." onclick="doneDriverEditor()">&#10003; Done</button>
         <button id="de-btn-cancel" class="cancel-btn" title="Dismisses the editor without any changes." onclick="cancelDriverEditor()">&#10060; Cancel</button>
+      </div>
       </div>
     </div>
   </div>

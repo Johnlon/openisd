@@ -294,3 +294,59 @@ resonance field pattern already established for the plain Vented type,
 just relabeled per section — hand-written three times rather than
 templated, consistent with this mock's "no premature abstraction" approach
 elsewhere.
+
+## Select Driver from within the editor defers activation
+
+Picking a driver via the Driver Editor's own Select Driver button only
+populates the editor's own Brand/Model fields (`de-brand-field`/
+`de-model-field`) — it does not touch the project's actual driver
+(`driver-brand-field`/`driver-model-field` on the Driver tab) until the
+editor's **Done** is pressed. Mechanically: `selectDriverFromEditor()` sets
+`selectDriverSource = 'editor'` and hides (not closes) the Driver Editor
+modal so its session stays live underneath; `confirmSelectDriver()`
+branches on that source; either path ends by reopening the editor
+(`returnToDriverEditorIfNeeded()`). Direct Select Driver from the Driver tab
+(the common case) is unaffected — it still activates immediately, since
+there's no editor session to defer into.
+
+Footer button order is Select Driver → Clone... → Clear → **Done** →
+Cancel — Done sits second-from-right, immediately before Cancel, matching
+standard OK/Cancel placement (not first-of-the-group, which is where it
+originally landed).
+
+## Nothing is "saved" until Save Changes / Save as file — even Done
+
+Following on from the Select-Driver fix above: Done (Driver Editor),
+Tune's live edits, and a direct Select Driver all only ever update the
+project's **in-memory** state — none of them persist anything. That
+matches the earlier "Can it save into volatile project WPR storage?"
+answer (yes, trivially, that's just JS state) but means there was no
+visible signal that the project had unsaved modifications. Added:
+
+- `projectModified` (in `script.js`) tracks this. Set on: any input event
+  inside the open Tune panel, Driver Editor's Done (project mode only —
+  not My Drivers mode, which doesn't touch "the project"), and a direct
+  Select Driver commit.
+- An **Unsaved changes** indicator (pulsing dot) appears in the
+  `.parstate-legend` bar at the top of the content panel — the same bar
+  that already carries the Entered/Calculated/Not-available legend — with
+  two buttons: **Save Changes** (decorative — a real build would persist to
+  `localStorage`/IndexedDB here) and **Save as file** (a real download of
+  the project's driver + Tune fields, `.wpr.txt`, deliberately not
+  claiming real WPR binary/XML compatibility, same spirit as the Driver
+  Editor's own `.wdr.txt` export). Both clear the indicator.
+- Tune counts as its own edit path, distinct from Edit/Done, per the
+  earlier Edit-vs-Tune decision — it just wasn't wired into "this leaves
+  the project unsaved" until now.
+
+## Clone uses an integrated inline row, not `window.prompt()`
+
+The Driver Editor's Clone.../Save-to-My-Drivers action (`cloneDriverEditor()`)
+now shows an inline "Save to My Drivers as" row in the modal footer
+(prefilled with a suggested name, Save/Cancel buttons) instead of a native
+`window.prompt()` dialog — the same in-place pattern the Tune panel's own
+"Save to My Drivers" flow already used. `saveAsNewDriver()` (the Manage
+Drivers toolbar menu's "Save as new..." item) still uses `window.prompt()`,
+since it's invoked directly from the toolbar with no modal open to host an
+inline row in — a deliberate, narrower scope than fixing every prompt in
+the mock.

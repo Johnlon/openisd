@@ -264,6 +264,7 @@ function confirmSelectDriver() {
     } else {
       document.getElementById('driver-brand-field').value = row.dataset.brand;
       document.getElementById('driver-model-field').value = row.dataset.model;
+      markProjectModified();
     }
   }
   closeModal('modal-select-driver');
@@ -307,6 +308,49 @@ function tuneSaveConfirm() {
 }
 function tuneSaveCancel() {
   document.getElementById('tune-save-row').style.display = 'none';
+}
+
+// ---------------- Unsaved-changes indicator ----------------
+// Nothing is permanently saved for the current project until Save Changes
+// (browser storage) or Save as file (physical disk) is hit — everything
+// else (Tune's live edits, Edit's Done, a direct Select Driver) only ever
+// updates the in-memory project state, same as the volatile-WPR-storage
+// answer in MOCK_DESIGN.md. This tracks that gap and surfaces it in the
+// legend bar at the top of the content panel.
+let projectModified = false;
+
+function markProjectModified() {
+  projectModified = true;
+  document.getElementById('unsaved-indicator').style.display = 'flex';
+}
+
+function clearProjectModified() {
+  projectModified = false;
+  document.getElementById('unsaved-indicator').style.display = 'none';
+}
+
+function saveProjectChangesLocal() {
+  // Fake/decorative — a real build would persist the project's live state
+  // (driver, box, filters, ...) to localStorage/IndexedDB here.
+  clearProjectModified();
+}
+
+function saveProjectChangesToFile() {
+  const brand = document.getElementById('driver-brand-field').value || 'Custom';
+  const model = document.getElementById('driver-model-field').value || 'driver';
+  const lines = [`Brand: ${brand}`, `Model: ${model}`];
+  document.querySelectorAll('#tune-panel .tune-fld:not(.tune-ro) input').forEach(input => {
+    const label = input.closest('.tune-fld').querySelector('label').textContent.replace('opt', '').trim();
+    lines.push(`${label}: ${input.value}`);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${brand}_${model}.wpr.txt`.replace(/\s+/g, '_');
+  a.click();
+  URL.revokeObjectURL(url);
+  clearProjectModified();
 }
 
 // ---------------- Manage Drivers (My Drivers, in-memory only — fake/decorative
@@ -424,6 +468,7 @@ function doneDriverEditor() {
   if (driverEditorMode === 'project') {
     document.getElementById('driver-brand-field').value = brand;
     document.getElementById('driver-model-field').value = model;
+    markProjectModified();
   } else if (driverEditorMode === 'mydrivers' && selectedMyDriverId != null) {
     const d = myDrivers.find(x => x.id === selectedMyDriverId);
     if (d) {
@@ -441,14 +486,26 @@ function cancelDriverEditor() {
   closeModal('modal-driver-editor');
 }
 
+// Integrated inline naming row (not a native window.prompt) — same in-place
+// pattern as the Tune panel's own "Save to My Drivers" flow.
 function cloneDriverEditor() {
   const brandEl = document.getElementById('de-brand-field');
   const modelEl = document.getElementById('de-model-field');
   const defaultName = `${brandEl.value || 'Custom'} ${modelEl.value ? modelEl.value + ' (custom)' : 'driver'}`.trim();
-  const name = window.prompt('Save to My Drivers — name for this entry:', defaultName);
+  document.getElementById('clone-save-name').value = defaultName;
+  document.getElementById('clone-save-row').style.display = 'flex';
+}
+
+function cloneSaveConfirm() {
+  const name = document.getElementById('clone-save-name').value.trim();
+  document.getElementById('clone-save-row').style.display = 'none';
   if (!name) return;
   const [brand, ...rest] = name.split(' ');
   addMyDriver(brand || 'Custom', rest.join(' ') || name);
+}
+
+function cloneSaveCancel() {
+  document.getElementById('clone-save-row').style.display = 'none';
 }
 
 function selectDriverFromEditor() {
@@ -628,6 +685,13 @@ document.addEventListener('DOMContentLoaded', () => {
   quickAddFilter('Lowpass');
   initSpinners(document);
   refreshProjectTraceVisibility();
+
+  // Tune is reactive/live by design (the graph updates as you type), so any
+  // edit there immediately modifies the project's in-memory state — same as
+  // Edit's Done or a direct Select Driver, none of which are "saved" yet.
+  document.getElementById('tune-panel').addEventListener('input', (e) => {
+    if (e.target.matches('input')) markProjectModified();
+  });
 
   document.querySelectorAll('.graph-wrap').forEach(wrap => {
     wrap.addEventListener('click', (e) => {

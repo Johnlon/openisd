@@ -231,3 +231,26 @@ Select Driver (from db) / Load driver (from disk) / Clone / Save as to disk / Sa
 And special - Create Box ..
 
 Also please add the additional box types and their specific tab and custom field values
+
+---
+
+lose thie ' — changes apply live to the project immediately; Done updates this copy.'
+
+---
+
+"Select driver" in the edotor should not instantl dismiss - driver shod not be actually activiated in the project unless done is selected
+
+---
+
+done should ne second from dight as its equove to ok
+
+---
+
+the clone button pops up a strange input dialog for the name - is that just a mock feature as Im eexpecting an more integrated method to ask gthe drive rname
+if tune has been selected then it actually is a different optoion to edit aftwer all - and it leaves the current modell modified but not saved - we need an indicator or unsaved changes somewhere. eg the bar at the top of the detail pane has C N E onthe right - lets put [Save Changes] (save local) [Save as file] (to physical disk) button there if tweeked in any way without having saved in local or physical storage
+
+Save as to disk -> Save to disk'
+
+---
+
+nothing is actually saved to the project permanently unless the Save changes is hit
