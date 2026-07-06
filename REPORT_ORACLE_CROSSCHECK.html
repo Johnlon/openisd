@@ -21,8 +21,8 @@ blockquote { border-left: 4px solid #ccc; margin: 1em 0; padding: .3em 1em; colo
 hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
 </style></head><body>
 <h1>Report — external cross-check oracle for PR / bandpass (SpeakerBoxLite investigation)</h1>
-<p><strong>Branch:</strong> <code>crosscheck-oracle-report</code> (git worktree, isolated from <code>dev</code>) <strong>Date:</strong> 2026-07-04 <strong>Status:</strong> Investigation complete. <strong>No new oracle wired in.</strong> Recommendations below.</p>
-<p>This is a <strong>report</strong>, not a landed change. The two file edits on this branch (<code>OTHER_TOOLS.md</code>, <code>packages/ui/test/scenarios.ts</code>) are here for review only — see "Branch contents" at the end. Nothing here is merged into <code>dev</code>.</p>
+<p><strong>Date:</strong> 2026-07-04 <strong>Status:</strong> Investigation complete. <strong>No new oracle wired in.</strong> Recommendations below.</p>
+<p>This is a <strong>report</strong>, not a functional change — see "Contents & recommended follow-up" at the end for what it does and doesn't cover.</p>
 <hr>
 <h2>1. What was asked vs. what happened</h2>
 <p><code>PLAN_SBL_CROSSCHECK.md</code> proposed adding <strong>SpeakerBoxLite (SBL)</strong> as a second numeric oracle alongside micka.de, specifically to validate the <strong>passive-radiator</strong> and <strong>bandpass</strong> scenarios micka cannot model.</p>
@@ -113,8 +113,8 @@ hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
 </ul>
 <p>(Functional features only — no UI-layout comparison is recorded in tracked docs.)</p>
 <hr>
-<h2>8. Branch contents (review only — not merged)</h2>
-<p>Doc-only branch:</p>
+<h2>8. Contents &amp; recommended follow-up</h2>
+<p>Doc-only:</p>
 <ul>
 <li><code>REPORT_ORACLE_CROSSCHECK.md</code> — this report.</li>
 <li><code>OTHER_TOOLS.md</code> — §3 rewritten from "SpeakerBoxLite = second oracle" into a neutral</li>
