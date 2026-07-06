@@ -18,7 +18,7 @@ import FiltersPanel from '../../components/FiltersPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
-import DriverEditPanel from '../../components/DriverEditPanel.vue';
+import DriverEditorModal from '../../components/DriverEditorModal.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRWhatIfPanel from '../../components/PRWhatIfPanel.vue';
 
@@ -54,12 +54,13 @@ const advTransmissionLine = ref(false);
 const advRgAtDriverSide = ref(false);
 const advSplXmaxLimited = ref(false);
 
-// Two distinct inline panels replace the Driver-tab summary in place (no modal —
-// the graph stays visible and keeps redrawing live). Distinct from the folder
-// icon / "Choose or replace the driver" flow (state.browseOpen), which swaps in a
-// different catalogue driver entirely.
-// - DriverEditPanel: identity/metadata (Brand, Model, Comment, Provided by).
-// - DriverWhatIfPanel: live T/S parameter tweaking.
+// Driver "Edit" (state.editDriverInfo) opens DriverEditorModal — a real popup, since
+// it recreates WinISD's own multi-tab "Driver editor" dialog and doesn't need the
+// graph visible while editing. Driver "What-If?" (state.editDriver) stays an inline
+// panel that replaces the Driver-tab summary in place, so the graph keeps redrawing
+// live as T/S parameters change. Distinct from the folder icon / "Choose or replace
+// the driver" flow (state.browseOpen), which swaps in a different catalogue driver
+// entirely.
 function startWhatIf() {
   if (!state.driverSource) state.driverSource = { ...driverRaw.value };
   state.editDriver = true;
@@ -239,10 +240,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 
       <div class="cl-br">
         <!-- Driver tab — WinISD field layout bound to the shared store -->
-        <div v-if="projectTab === 'Driver' && state.editDriverInfo" class="cl-driver">
-          <DriverEditPanel />
-        </div>
-        <div v-else-if="projectTab === 'Driver' && state.editDriver" class="cl-driver">
+        <div v-if="projectTab === 'Driver' && state.editDriver" class="cl-driver">
           <DriverWhatIfPanel />
         </div>
         <div v-else-if="projectTab === 'Driver'" class="cl-driver">
@@ -387,6 +385,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
         <div v-else class="cl-todo">The <b>{{ projectTab }}</b> tab isn’t modelled in OpenISD yet.</div>
       </div>
     </div>
+
+    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
   </div>
 </template>
 
