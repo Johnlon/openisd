@@ -8,6 +8,25 @@
 
 ---
 
+## 2026-07-06 — Repo split: app, scraper tooling, and driver data now separate projects
+
+Contributing to the app no longer requires cloning 3GB of scraper cache and Python
+tooling. `openisd` keeps only the small hand-curated sample collections
+(`demos`, `matt`, `winisd`, `sample`); the Python scraping pipeline moved to its
+own repo (`winisd_tools`), and the seven scraped driver collections moved to
+their own data repo (`winisd_drivers`), fetched live via the existing
+bundled/federated `sources.json` mechanism — no new plumbing needed, since the
+app already distinguished the two.
+
+Live site restored. `openisd` is a genuinely new GitHub repository (the prior
+one is archived, full history intact, as `openisd_bak`), and new repos on this
+account require the Actions-based GitHub Pages deployment method rather than
+the legacy branch-push one the old `deploy.yml` used — switched to
+`actions/upload-pages-artifact` + `actions/deploy-pages` so pushes to `main`
+reliably publish to https://johnlon.github.io/openisd/ again.
+
+---
+
 ## 2026-07-04 — Cross-platform visual test baselines
 
 SPL graph visual tests now pass on any OS, not just Windows. The canvas axis labels and app UI hardcoded `Segoe UI` (a Windows-only system font); on Linux the browser silently fell back to a different font with different glyph widths, shifting pixels enough to fail the screenshot comparison — unrelated to any physics change. Bundled `Inter` (self-hosted via `@fontsource/inter`, SIL OFL licensed) so every OS renders identical glyphs, added a `document.fonts.ready` redraw so the canvas never bakes in a fallback-font first paint, and dropped Playwright's per-OS snapshot suffix (`sealed-spl-win32.png` → `sealed-spl.png`) so one baseline set now covers Windows, Linux, and macOS.
