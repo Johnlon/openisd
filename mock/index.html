@@ -857,9 +857,9 @@
         <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Save as to disk</button>
         <button id="de-btn-save-mydrivers" title="Saves these values as a new entry in My Drivers." onclick="cloneDriverEditor()">Save to My Drivers</button>
         <button id="de-btn-createbox" title="Creates a new project (box design) using this driver." onclick="createBoxFromEditor()">Create Box...</button>
-        <button id="de-btn-done" class="ok-btn" title="Updates the driver copy embedded in the current project — not the original driver definition." onclick="doneDriverEditor()">&#10003; Done</button>
         <button id="de-btn-clone" title="Creates a new custom driver in My Drivers with whatever the current settings are on this editor — does not affect the current project." onclick="cloneDriverEditor()">Clone...</button>
         <button id="de-btn-clear" title="Sets all fields to default (blank) values." onclick="clearDriverEditor()">&#9633; Clear</button>
+        <button id="de-btn-done" class="ok-btn" title="Updates the driver copy embedded in the current project — not the original driver definition." onclick="doneDriverEditor()">&#10003; Done</button>
         <button id="de-btn-cancel" class="cancel-btn" title="Dismisses the editor without any changes." onclick="cancelDriverEditor()">&#10060; Cancel</button>
       </div>
     </div>
@@ -871,7 +871,7 @@
   <div class="modal wide">
     <div class="modal-titlebar">
       <div class="tb-left"><span class="app-icon"></span><span>Select Driver</span></div>
-      <div class="win-controls"><span>&#8211;</span><span style="color:#aaa">&#9633;</span><span class="close-btn" onclick="closeModal('modal-select-driver')">&#10005;</span></div>
+      <div class="win-controls"><span>&#8211;</span><span style="color:#aaa">&#9633;</span><span class="close-btn" onclick="cancelSelectDriver()">&#10005;</span></div>
     </div>
     <div class="modal-tabs">
       <div class="mtab active" onclick="showModalTab('modal-select-driver','library',this)">Library</div>
@@ -922,7 +922,7 @@
     <div class="modal-footer" style="justify-content:flex-end;">
       <div class="footer-buttons">
         <button class="ok-btn" onclick="confirmSelectDriver()">&#10003; Select</button>
-        <button class="cancel-btn" onclick="closeModal('modal-select-driver')">Cancel</button>
+        <button class="cancel-btn" onclick="cancelSelectDriver()">Cancel</button>
       </div>
     </div>
   </div>

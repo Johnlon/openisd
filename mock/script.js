@@ -248,13 +248,38 @@ function selectPickerRow(row) {
   row.querySelector('input[type=radio]').checked = true;
 }
 
+// Opened directly from the Driver tab, Select Driver activates the pick into
+// the project immediately (that's the whole point of that button). Opened
+// from inside the Driver Editor, it must NOT activate anything yet — the
+// pick only lands in the editor's own fields for review, and only becomes
+// the project's actual driver if the user then presses Done.
+let selectDriverSource = 'project';
+
 function confirmSelectDriver() {
   const row = document.querySelector('.driver-picker-row.selected');
   if (row) {
-    document.getElementById('driver-brand-field').value = row.dataset.brand;
-    document.getElementById('driver-model-field').value = row.dataset.model;
+    if (selectDriverSource === 'editor') {
+      document.getElementById('de-brand-field').value = row.dataset.brand;
+      document.getElementById('de-model-field').value = row.dataset.model;
+    } else {
+      document.getElementById('driver-brand-field').value = row.dataset.brand;
+      document.getElementById('driver-model-field').value = row.dataset.model;
+    }
   }
   closeModal('modal-select-driver');
+  returnToDriverEditorIfNeeded();
+}
+
+function cancelSelectDriver() {
+  closeModal('modal-select-driver');
+  returnToDriverEditorIfNeeded();
+}
+
+function returnToDriverEditorIfNeeded() {
+  if (selectDriverSource === 'editor') {
+    document.getElementById('modal-driver-editor').classList.add('open');
+  }
+  selectDriverSource = 'project';
 }
 
 function openTune() {
@@ -394,6 +419,19 @@ function openDriverEditor(mode, name) {
 }
 
 function doneDriverEditor() {
+  const brand = document.getElementById('de-brand-field').value;
+  const model = document.getElementById('de-model-field').value;
+  if (driverEditorMode === 'project') {
+    document.getElementById('driver-brand-field').value = brand;
+    document.getElementById('driver-model-field').value = model;
+  } else if (driverEditorMode === 'mydrivers' && selectedMyDriverId != null) {
+    const d = myDrivers.find(x => x.id === selectedMyDriverId);
+    if (d) {
+      d.brand = brand || d.brand;
+      d.model = model || d.model;
+      renderMyDrivers();
+    }
+  }
   closeModal('modal-driver-editor');
 }
 
@@ -414,7 +452,11 @@ function cloneDriverEditor() {
 }
 
 function selectDriverFromEditor() {
-  closeModal('modal-driver-editor');
+  selectDriverSource = 'editor';
+  // Hide, don't close: closeModal would be fine visually, but this keeps
+  // the distinction clear that the editor session is still live underneath,
+  // ready to resume once Select Driver is confirmed or cancelled.
+  document.getElementById('modal-driver-editor').classList.remove('open');
   openModal('modal-select-driver');
 }
 
