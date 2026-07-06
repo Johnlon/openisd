@@ -254,3 +254,8 @@ Save as to disk -> Save to disk'
 ---
 
 nothing is actually saved to the project permanently unless the Save changes is hit
+
+---
+
+Unsaved changesSave Changes
+Save as file should be to the left and Export to file shold not dismiss the save button - keep the save button on show adn export but make them yellow and add a labe lif unsaved

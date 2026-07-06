@@ -327,14 +327,20 @@ visible signal that the project had unsaved modifications. Added:
   inside the open Tune panel, Driver Editor's Done (project mode only —
   not My Drivers mode, which doesn't touch "the project"), and a direct
   Select Driver commit.
-- An **Unsaved changes** indicator (pulsing dot) appears in the
-  `.parstate-legend` bar at the top of the content panel — the same bar
-  that already carries the Entered/Calculated/Not-available legend — with
-  two buttons: **Save Changes** (decorative — a real build would persist to
-  `localStorage`/IndexedDB here) and **Save as file** (a real download of
-  the project's driver + Tune fields, `.wpr.txt`, deliberately not
-  claiming real WPR binary/XML compatibility, same spirit as the Driver
-  Editor's own `.wdr.txt` export). Both clear the indicator.
+- **Save Changes** and **Save as file** buttons sit at the **left** of the
+  `.parstate-legend` bar at the top of the content panel (the
+  Entered/Calculated/Not-available legend stays on the right —
+  `justify-content: space-between` across two grouped `<div>`s) and are
+  **always visible**, not conditionally shown — exporting must not make the
+  save controls disappear. Only their styling reacts to `projectModified`:
+  clean = neutral grey; dirty = yellow (`.save-btn.dirty`) plus a pulsing
+  "Unsaved changes" label appears next to them. Save Changes is decorative
+  (a real build would persist to `localStorage`/IndexedDB here); Save as
+  file is a real download of the project's driver + Tune fields
+  (`.wpr.txt`, deliberately not claiming real WPR binary/XML
+  compatibility, same spirit as the Driver Editor's own `.wdr.txt`
+  export). Both clear `projectModified` (back to the neutral styling, not
+  hidden).
 - Tune counts as its own edit path, distinct from Edit/Done, per the
   earlier Edit-vs-Tune decision — it just wasn't wired into "this leaves
   the project unsaved" until now.

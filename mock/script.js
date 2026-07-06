@@ -319,14 +319,20 @@ function tuneSaveCancel() {
 // legend bar at the top of the content panel.
 let projectModified = false;
 
+function updateUnsavedIndicator() {
+  document.getElementById('unsaved-label').style.display = projectModified ? 'flex' : 'none';
+  document.getElementById('btn-save-changes').classList.toggle('dirty', projectModified);
+  document.getElementById('btn-save-file').classList.toggle('dirty', projectModified);
+}
+
 function markProjectModified() {
   projectModified = true;
-  document.getElementById('unsaved-indicator').style.display = 'flex';
+  updateUnsavedIndicator();
 }
 
 function clearProjectModified() {
   projectModified = false;
-  document.getElementById('unsaved-indicator').style.display = 'none';
+  updateUnsavedIndicator();
 }
 
 function saveProjectChangesLocal() {

@@ -496,31 +496,36 @@ textarea.comment, textarea.description {
    modal, which already had its own copy in the footer. ---------- */
 .parstate-legend {
   display: flex; gap: 14px; align-items: center; font-size: 12px; color: #444;
-  justify-content: flex-end; margin-bottom: 8px;
+  justify-content: space-between; margin-bottom: 8px;
 }
+.parstate-swatches { display: flex; gap: 14px; align-items: center; }
 .parstate-legend .swatch { width: 11px; height: 11px; display: inline-block; margin-right: 4px; border: 1px solid #777; }
 .parstate-legend .swatch.green { background: #1b7d1b; }
 .parstate-legend .swatch.blue { background: #1868d1; }
 .parstate-legend .swatch.black { background: #111; }
 .tune-legend { justify-content: flex-start; margin: -4px 0 8px; font-size: 11px; }
 
-/* Unsaved-changes indicator: appears only while the current project has live
-   edits (via Tune, Edit's Done, or a direct Select Driver) that haven't been
-   persisted to either browser storage or a physical file. */
-.unsaved-indicator {
-  display: flex; align-items: center; gap: 6px; color: #8a5a00; font-weight: 600;
-  margin-right: 6px; padding-right: 12px; border-right: 1px solid #ccc;
-}
+/* Save Changes / Save as file: always visible in the legend bar, on the
+   left — not just while dirty. Only their styling (yellow) and the
+   "Unsaved changes" label toggle with projectModified, via markProjectModified()/
+   clearProjectModified() in script.js. Exporting to file must not hide these
+   buttons — they stay on-screen so you can always save/export on demand. */
+.unsaved-indicator { display: flex; align-items: center; gap: 8px; }
+.unsaved-label { display: flex; align-items: center; gap: 6px; color: #8a5a00; font-weight: 600; }
 .unsaved-dot {
   width: 8px; height: 8px; border-radius: 50%; background: #e0a800;
   display: inline-block; animation: unsaved-pulse 1.6s ease-in-out infinite;
 }
 @keyframes unsaved-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-.unsaved-indicator button {
-  border: 1px solid #d9a441; background: #fff3e0; color: #8a5a00; font-weight: 600;
+.save-btn {
+  border: 1px solid #999; background: #f0f0f0; color: #444; font-weight: 600;
   border-radius: 3px; padding: 3px 8px; cursor: pointer; font-size: 12px;
 }
-.unsaved-indicator button:hover { background: #ffe4b0; }
+.save-btn:hover { background: #e4e4e4; }
+.save-btn.dirty {
+  border-color: #d9a441; background: #fff3e0; color: #8a5a00;
+}
+.save-btn.dirty:hover { background: #ffe4b0; }
 
 /* Integrated inline naming row for Driver Editor's Clone/Save-to-My-Drivers —
    replaces a native window.prompt() dialog with the same in-place pattern

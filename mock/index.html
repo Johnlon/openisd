@@ -253,14 +253,16 @@
     <div class="content-panel">
 
       <div class="parstate-legend">
-        <span class="unsaved-indicator" id="unsaved-indicator" style="display:none;">
-          <span class="unsaved-dot"></span>Unsaved changes
-          <button title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
-          <button title="Downloads the current project's live changes as a file to physical disk." onclick="saveProjectChangesToFile()">Save as file</button>
-        </span>
-        <span><span class="swatch green"></span>Entered</span>
-        <span><span class="swatch blue"></span>Calculated</span>
-        <span><span class="swatch black"></span>Not available</span>
+        <div class="unsaved-indicator" id="unsaved-indicator">
+          <span class="unsaved-label" id="unsaved-label" style="display:none;"><span class="unsaved-dot"></span>Unsaved changes</span>
+          <button id="btn-save-changes" class="save-btn" title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
+          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk." onclick="saveProjectChangesToFile()">Save as file</button>
+        </div>
+        <div class="parstate-swatches">
+          <span><span class="swatch green"></span>Entered</span>
+          <span><span class="swatch blue"></span>Calculated</span>
+          <span><span class="swatch black"></span>Not available</span>
+        </div>
       </div>
 
       <!-- ---- Driver tab ---- -->
