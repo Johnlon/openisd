@@ -1,0 +1,127 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oracle Crosscheck Report</title>
+<style>
+:root { color-scheme: light dark; }
+body { font: 16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1.25rem; color: #1a1a1a; background: #fff; }
+@media (prefers-color-scheme: dark){ body{ color:#e6e6e6; background:#141414 } a{color:#6cf} th{background:#222!important} tr:nth-child(even) td{background:#1c1c1c} code{background:#222} blockquote{border-color:#444;color:#bbb} pre{background:#1c1c1c} }
+h1,h2,h3,h4 { line-height: 1.25; margin: 1.6em 0 .5em; }
+h1 { font-size: 2rem; border-bottom: 2px solid #ddd; padding-bottom: .3em; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: .2em; }
+h3 { font-size: 1.2rem; }
+a { color: #06c; }
+code { font: .88em ui-monospace,SFMono-Regular,Consolas,monospace; background: #f2f2f2; padding: .1em .35em; border-radius: 4px; }
+pre { background: #f6f6f6; padding: 1em; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; display: block; overflow-x: auto; }
+th,td { border: 1px solid #ccc; padding: .45em .6em; text-align: left; vertical-align: top; font-size: .92rem; }
+th { background: #f0f0f0; }
+tr:nth-child(even) td { background: #fafafa; }
+blockquote { border-left: 4px solid #ccc; margin: 1em 0; padding: .3em 1em; color: #555; }
+hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+</style></head><body>
+<h1>Report — external cross-check oracle for PR / bandpass (SpeakerBoxLite investigation)</h1>
+<p><strong>Branch:</strong> <code>crosscheck-oracle-report</code> (git worktree, isolated from <code>dev</code>) <strong>Date:</strong> 2026-07-04 <strong>Status:</strong> Investigation complete. <strong>No new oracle wired in.</strong> Recommendations below.</p>
+<p>This is a <strong>report</strong>, not a landed change. The two file edits on this branch (<code>OTHER_TOOLS.md</code>, <code>packages/ui/test/scenarios.ts</code>) are here for review only — see "Branch contents" at the end. Nothing here is merged into <code>dev</code>.</p>
+<hr>
+<h2>1. What was asked vs. what happened</h2>
+<p><code>PLAN_SBL_CROSSCHECK.md</code> proposed adding <strong>SpeakerBoxLite (SBL)</strong> as a second numeric oracle alongside micka.de, specifically to validate the <strong>passive-radiator</strong> and <strong>bandpass</strong> scenarios micka cannot model.</p>
+<p>I implemented it, got it working against the live site, then — on your direction — <strong>backed it out</strong> because driving SBL is slow and brittle, and pivoted to finding a simpler/reputable alternative. The net conclusion:</p>
+<blockquote><strong>No external web tool is both easy to integrate and passive-radiator-capable.</strong> Use micka (+ optionally lautsprechershop) for sealed/vented; validate PR/bandpass against a <strong>synthesized regression baseline</strong> anchored to the Thiele/Small literature.</blockquote>
+<hr>
+<h2>2. SpeakerBoxLite — findings (why it was abandoned)</h2>
+<p>SBL <em>is</em> fully drivable — I validated a sealed cross-check live — but only after substantial reverse-engineering. It is a client-side <strong>Bootstrap-Vue SPA</strong>:</p>
+<ul>
+<li>No stable input <code>name</code>/<code>id</code>; fields are <code>input.form-control</code> keyed only by row label.</li>
+<li><strong>Two consent overlays</strong> (top cookie bar + a late-rendering Quantcast CMP dialog that</li>
+</ul>
+<p>  intercepts clicks).</p>
+<ul>
+<li>Hidden desktop/mobile duplicate controls (needs wide viewport + <code>:visible</code>).</li>
+<li>Tabbed left panel: <strong>Speaker / Network / Enclosure / Port / Radiator / Box</strong>.</li>
+<li><strong>Results compute only on a "Draw" button</strong>, not on blur; computed values are written</li>
+</ul>
+<p>  back into the <em>other</em> input fields.</p>
+<ul>
+<li>Box losses (<code>Ql</code>) must be set lossless (≈1000) to match OpenISD — SBL defaults to <code>Ql=7</code>.</li>
+</ul>
+<p><strong>Validated result (sealed, lossless):</strong> entering the Butterworth volume (≈12.2 L) → SBL <code>Qtc = 0.706</code>, matching OpenISD/target <strong>0.707</strong>. Vb=20 L → SBL <code>Qtc = 0.6</code> vs OpenISD <code>0.601</code>. So the physics agrees; the automation cost is the problem.</p>
+<p><strong>Verdict:</strong> too slow/brittle for a routine oracle. Abandoned.</p>
+<hr>
+<h2>3. ⚠ Discrepancies worth investigating ("there may be bugs")</h2>
+<p>Two independent tools report a <strong>higher −3 dB frequency than OpenISD's <code>fc</code></strong> for the same Butterworth sealed box (Fs=37, Qts=0.38, Vas=30, Qtc≈0.707):</p>
+<table><thead><tr><th>Quantity</th><th>OpenISD</th><th>micka</th><th>SpeakerBoxLite</th><th>lautsprechershop</th></tr></thead><tbody>
+<tr><td><code>Vb</code> (Butterworth)</td><td>12.18 L</td><td>12.21 L</td><td>≈12.2 L</td><td>~12 L (gross)</td></tr>
+<tr><td><code>Qtc</code></td><td>0.707</td><td>—</td><td>0.706</td><td>(target 0.707)</td></tr>
+<tr><td><code>fc</code> / <code>F3</code> (−3 dB)</td><td>68.8 Hz</td><td>68.79</td><td><strong>74.5 Hz</strong></td><td><strong>81 Hz</strong></td></tr>
+</tbody></table>
+<ul>
+<li><strong>Vb and Qtc agree across all four tools</strong> — the closed-box volume maths is sound.</li>
+<li><strong>The −3 dB frequency does not.</strong> For a <em>lossless</em> 2nd-order Butterworth, F3 = fc</li>
+</ul>
+<p>  exactly, so 68.8 Hz is theoretically correct. SBL (74.5) and lautsprechershop (81) both   read higher. <strong>Most likely a definitional difference</strong> (they may fold in driver <code>Le</code>/<code>Re</code>   roll-in, box losses, or define F3 against a different reference) rather than an OpenISD   bug — <strong>but it has not been proven either way and should be checked.</strong> OpenISD's own   stat is <code>fc</code> (system resonance), not a separately-computed <code>F3</code>; confirm whether the UI   should also surface an <code>F3</code> and whether <code>fc</code> is being conflated with <code>F3</code> anywhere.</p>
+<p>This is the main "possible bug" flag from the investigation.</p>
+<hr>
+<h2>4. Oracle survey (2026-07-04)</h2>
+<table><thead><tr><th>Tool</th><th>Coverage</th><th>Integration ease</th><th>PR?</th><th>Verdict</th></tr></thead><tbody>
+<tr><td><strong>micka.de</strong></td><td>sealed, vented</td><td>Easy (form POST)</td><td>❌</td><td><strong>Adopted</strong> (already wired, passing)</td></tr>
+<tr><td><strong>lautsprechershop.de</strong></td><td>sealed, vented</td><td>Easy (static page, named inputs, inline JS, no cookie banner)</td><td>❌</td><td><strong>Candidate</strong> — Vb agrees, <code>f3</code> needs reconciliation (§3)</td></tr>
+<tr><td><strong>SpeakerBoxLite</strong></td><td>sealed, vented, 4th/6th BP, PR, TL</td><td>Hard (SPA, consent, Draw)</td><td>✅</td><td>Rejected as oracle</td></tr>
+<tr><td><strong>Sine Design</strong></td><td>sealed, ported, bandpass, PR</td><td>Hard (Next.js SPA, <strong>no compute API</strong> — verified only <code>?_rsc=</code> route-prefetch, computes client-side/offline)</td><td>✅</td><td>Rejected as oracle; recorded as a capable tool</td></tr>
+<tr><td><strong>mh-audio.nl</strong></td><td>sealed, vented, <strong>PR</strong></td><td>Unusable — <strong>http-only, unreachable over HTTPS</strong></td><td>✅</td><td>Not usable</td></tr>
+</tbody></table>
+<p>Also noted (web UIs, no API, not evaluated deeply): AJ Designer, Sparked Builds, UniBox (desktop), AudioGrid, the12volt.</p>
+<p><strong>Key gap:</strong> every PR-capable tool is a client-side SPA (or offline). There is no easy-to-integrate PR web oracle.</p>
+<hr>
+<h2>5. lautsprechershop.de — integration notes</h2>
+<p><code>https://www.lautsprechershop.de/tools/t_box_closed_en.htm</code> is trivial to drive:</p>
+<ul>
+<li>Inputs: <code>input[name="fs"|"vas"|"qts"|"qbvalue"]</code> (qbvalue = target Qtc).</li>
+<li>Compute: inline JS <code>geschlossen()</code>, fired by the <code>Calculate Cabinet</code> button.</li>
+<li>Outputs (readonly): <code>input[name="vb"|"f3"|"f8"|"db"]</code>. No SPA framework, no cookie banner.</li>
+</ul>
+<p>A ~15-line Playwright spec can fill + click + read. <strong>But</strong> wire it in only after the <code>f3</code> discrepancy in §3 is understood — assert on <code>Vb</code> (which agrees) first, not <code>f3</code>. The vented URL you gave (<code>t_box_vented_hoges_en.htm</code>) returned a sealed-titled page and needs a separate look.</p>
+<hr>
+<h2>6. Recommendation</h2>
+<ol>
+<li><strong>Sealed/vented:</strong> keep micka. Optionally add lautsprechershop as an easy second</li>
+</ol>
+<p>   oracle, asserting <code>Vb</code> only until <code>f3</code> is reconciled.</p>
+<ol>
+<li><strong>PR + bandpass:</strong> add a <strong>synthesized regression baseline</strong> — freeze OpenISD's own</li>
+</ol>
+<p>   engine output as a golden fixture, with the closed-form Thiele/Small derivation and a    literature citation in the test (Small, JAES 1972; Beranek, <em>Acoustics</em>).    ⚠ <strong>This is a regression guard, not independent validation</strong> — label it as such in the    test so no one mistakes "it passes" for "it is correct." The independent anchor is the    analytic formula in the comment, not the frozen number.</p>
+<ol>
+<li><strong>Investigate §3</strong> (the F3/fc discrepancy) before trusting any tool's <code>f3</code>.</li>
+</ol>
+<hr>
+<h2>7. Feature gaps SBL / Sine Design exposed (for BACKLOG / plans)</h2>
+<p>Functional simulation features these tools have that OpenISD lacks (some already in <code>BACKLOG.md</code>):</p>
+<ul>
+<li><strong>6th-order bandpass — parallel <em>and</em> series</strong> (two distinct alignments; the split was</li>
+</ul>
+<p>  new information — micka never surfaced it). <em>(BACKLOG updated.)</em></p>
+<ul>
+<li><strong>Transmission line</strong> enclosure. <em>(already backlog)</em></li>
+<li>First-class <strong>box-loss input <code>Ql</code></strong> (OpenISD's loss model is partial — <code>Qa</code> is backlog).</li>
+<li><strong>PR design helpers:</strong> recommended PR area range, "Fb needed vs Fb real" read-outs,</li>
+</ul>
+<p>  PR parametrised by <code>Fs/Vas/Qms/Sd/Added Mass</code>.</p>
+<ul>
+<li><strong>Port options:</strong> rectangular/round, flared/flush end counts, multiple ports (1–4).</li>
+<li><strong>Computation-model toggle</strong> (simple vs complex) and construction outputs (cutting map).</li>
+</ul>
+<p>(Functional features only — no UI-layout comparison is recorded in tracked docs.)</p>
+<hr>
+<h2>8. Branch contents (review only — not merged)</h2>
+<p>Doc-only branch:</p>
+<ul>
+<li><code>REPORT_ORACLE_CROSSCHECK.md</code> — this report.</li>
+<li><code>OTHER_TOOLS.md</code> — §3 rewritten from "SpeakerBoxLite = second oracle" into a neutral</li>
+</ul>
+<p>  <strong>oracle-strategy + tool-survey</strong> section reflecting the decisions above.</p>
+<p><strong>Recommended follow-up (not applied here):</strong> revert <code>packages/ui/test/scenarios.ts</code> to its pre-SBL baseline — the <code>sbl</code> field, the PR/bandpass scenarios and the <code>bandpass4</code> test type were added on <code>dev</code> only to feed the abandoned SBL spec and are now unused. The SBL spec file was already removed from <code>dev</code>'s working tree (it was never committed).</p>
+<h3>⚠ Note on <code>dev</code>'s already-committed state</h3>
+<p>Before the pivot, some SBL groundwork was <strong>committed to <code>dev</code></strong> (commits <code>725922772</code> and <code>dcfc329b</code>): the earlier <code>OTHER_TOOLS.md</code> "second oracle" framing, the <code>BACKLOG.md</code> parallel/series reword (worth keeping), and the SBL scenarios in <code>scenarios.ts</code>. This branch's reverts are <strong>not</strong> applied to <code>dev</code> — reconcile deliberately if you want <code>dev</code> cleaned, to avoid clashing with the concurrent engine/UI rebuild.</p>
+
+</body></html>
