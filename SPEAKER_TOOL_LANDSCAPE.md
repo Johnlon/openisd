@@ -1,6 +1,6 @@
 # Speaker modelling & design tool landscape
 
-**Compiled:** 2026-07-04 · **Branch:** `crosscheck-oracle-report` (worktree, not on `dev`)
+**Compiled:** 2026-07-04
 
 A wide-ranging survey of loudspeaker enclosure/crossover/measurement tools, their feature
 sets, cost, source-code availability, and community standing. Companion to

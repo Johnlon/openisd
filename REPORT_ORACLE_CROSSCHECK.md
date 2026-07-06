@@ -1,12 +1,10 @@
 # Report — external cross-check oracle for PR / bandpass (SpeakerBoxLite investigation)
 
-**Branch:** `crosscheck-oracle-report` (git worktree, isolated from `dev`)
 **Date:** 2026-07-04
 **Status:** Investigation complete. **No new oracle wired in.** Recommendations below.
 
-This is a **report**, not a landed change. The two file edits on this branch
-(`OTHER_TOOLS.md`, `packages/ui/test/scenarios.ts`) are here for review only — see
-"Branch contents" at the end. Nothing here is merged into `dev`.
+This is a **report**, not a functional change — see "Contents & recommended follow-up"
+at the end for what it does and doesn't cover.
 
 ---
 
@@ -137,9 +135,9 @@ Functional simulation features these tools have that OpenISD lacks (some already
 
 ---
 
-## 8. Branch contents (review only — not merged)
+## 8. Contents & recommended follow-up
 
-Doc-only branch:
+Doc-only:
 
 - `REPORT_ORACLE_CROSSCHECK.md` — this report.
 - `OTHER_TOOLS.md` — §3 rewritten from "SpeakerBoxLite = second oracle" into a neutral
