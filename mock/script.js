@@ -382,7 +382,7 @@ function openDriverEditor(mode, name) {
     hint.classList.add('toolbar-mode');
     clearDriverEditor();
   } else {
-    hint.textContent = 'Editing the driver copy embedded in the current project — changes apply live to the project immediately; Done updates this copy.';
+    hint.textContent = 'Editing the driver copy embedded in the current project.';
   }
   const visible = new Set(DRIVER_EDITOR_BUTTONS_BY_MODE[mode] || DRIVER_EDITOR_BUTTONS_BY_MODE.project);
   ALL_DRIVER_EDITOR_BUTTONS.forEach(id => {
