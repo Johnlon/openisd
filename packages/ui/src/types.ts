@@ -140,6 +140,8 @@ export interface AppState {
   graphs: string[];
   compare: Design[];
   editDriver: boolean;
+  /** Driver EDIT pane (Brand/Model/Comment/Provided by) — distinct from editDriver (What-If T/S tweaking). */
+  editDriverInfo: boolean;
   cursorF: number | null;
   pinnedF: number | null;
   cursorLocked: boolean;
@@ -149,6 +151,15 @@ export interface AppState {
   driverSource: DriverRaw | null;
   yRanges: Record<string, YRange>;
   ui: UiState;
+  /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
+  project: ProjectMeta;
+}
+
+export interface ProjectMeta {
+  creator: string;
+  created: string;
+  modified: string;
+  description: string;
 }
 
 /** The persisted / URL-encoded snapshot shape (persist.ts). */
@@ -165,6 +176,7 @@ export interface SerializedState {
   // UI preferences travel with a LOCAL save only. stateToUrl() strips this so a shared
   // link never forces a skin on the recipient — see persist.ts.
   ui?: UiState;
+  project?: ProjectMeta;
 }
 
 export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };

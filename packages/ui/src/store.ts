@@ -28,6 +28,7 @@ export const state: AppState = reactive({
   graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
   compare:   [],
   editDriver: false,
+  editDriverInfo: false,
   cursorF:     null,
   pinnedF:     null,
   cursorLocked: false,
@@ -37,6 +38,7 @@ export const state: AppState = reactive({
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
   yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
   ui:           { skin: 'auto' },  // local-only presentation preference; never shared (persist.ts)
+  project:      { creator: '', created: '', modified: '', description: '' },
 });
 
 

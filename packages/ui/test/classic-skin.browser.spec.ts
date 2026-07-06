@@ -18,10 +18,28 @@ test('choosing Classic swaps to the WinISD shell (Projects, tab rail, Color)', a
   await expect(page.locator('.classic-root')).toBeVisible();
   await expect(page.locator('.classic-root')).toContainText('Projects');
   await expect(page.locator('.classic-root')).toContainText('Signal Generator');
-  // Vertical Project tab rail + the yellow Color swatch.
+  // Vertical Project tab rail + the yellow Color swatch. The 3rd rail slot's label
+  // tracks the current box type (default: vented) instead of a static "Passive
+  // Radiator" — see the next test for the dynamic-label behaviour itself.
   await expect(page.locator('.cl-rtab', { hasText: 'Driver' })).toBeVisible();
-  await expect(page.locator('.cl-rtab', { hasText: 'Passive Radiator' })).toBeVisible();
+  await expect(page.locator('.cl-rtab', { hasText: 'Vented' })).toBeVisible();
   await expect(page.locator('.cl-color')).toContainText('Color');
+});
+
+test('the 3rd rail tab label tracks the box type (specialist tab)', async ({ page }) => {
+  await page.locator('.skin-picker select').selectOption('classic');
+  await page.locator('.cl-rtab', { hasText: 'Box' }).click();
+
+  await page.locator('select#boxtype').selectOption('pr');
+  await expect(page.locator('.cl-rtab', { hasText: 'Passive Radiator' })).toBeVisible();
+
+  await page.locator('select#boxtype').selectOption('bandpass4');
+  await expect(page.locator('.cl-rtab', { hasText: 'Bandpass' })).toBeVisible();
+
+  await page.locator('select#boxtype').selectOption('sealed');
+  await expect(page.locator('.cl-rtab', { hasText: 'Passive Radiator' })).toBeVisible();
+  await page.locator('.cl-rtab', { hasText: 'Passive Radiator' }).click();
+  await expect(page.locator('.cl-br')).toContainText('Nothing extra for a Sealed box');
 });
 
 test('the tab rail switches editors — Driver uses the WinISD layout, Box reuses the shared BoxPanel', async ({ page }) => {

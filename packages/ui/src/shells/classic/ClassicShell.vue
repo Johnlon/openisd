@@ -12,23 +12,61 @@ import { state, driver, driverErrors, syncedP, curvesData, maxData, pinCompare, 
 import { TABS, buildPlotData } from '../../utils/series.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
+import { RHO, C } from '@openisd/engine';
 import BoxPanel from '../../components/BoxPanel.vue';
-import PRPanel from '../../components/PRPanel.vue';
 import FiltersPanel from '../../components/FiltersPanel.vue';
-import SignalPanel from '../../components/SignalPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
-import DriverEditModal from '../../components/DriverEditModal.vue';
+import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
+import DriverEditPanel from '../../components/DriverEditPanel.vue';
+import PREditModal from '../../components/PREditModal.vue';
+import PRWhatIfPanel from '../../components/PRWhatIfPanel.vue';
 
 const { exportDesign, exportWdr, importFile, about } = useDesignIO();
 
-// Opens the What-If parameter editor (DriverEditModal) — edits apply only to the
-// current session/project driver, never the shared library. Distinct from the
-// folder icon / "Choose or replace the driver" flow (state.browseOpen), which swaps
-// in a different catalogue driver entirely.
-function startEditDriver() {
+// PR "Edit" is a real popup (state.prEditOpen); PR "What-If" (added mass) is an
+// overlay (state.prWhatIfOpen) — same split as the driver's Edit/What-If.
+const prEditOpen = ref(false);
+const prWhatIfOpen = ref(false);
+const prVasSummary = computed(() => state.P.prCms * state.P.prSd * state.P.prSd * RHO * C * C * 1000);
+const prFsSummary = computed(() => {
+  const { prMmd, prCms } = state.P;
+  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
+});
+const prQmsSummary = computed(() => {
+  const { prMmd, prCms, prRms } = state.P;
+  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
+});
+
+// Signal tab — "Signal source" voltage readout (WinISD: "Driver input voltage (each)").
+const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)));
+
+// Advanced tab — environment params are not modelled by the engine yet (screens-first):
+// static WinISD-default values/derived readouts, and the 5 checkboxes are inert for now.
+const advTemp = ref(293.15);
+const advHumidity = ref(30.0);
+const advPressure = ref(101325.0);
+const advSoundVelocity = computed(() => 20.05 * Math.sqrt(advTemp.value));
+const advAirDensity = ref(1.20095);
+const advSimVcInductance = ref(false);
+const advForceFlat = ref(false);
+const advTransmissionLine = ref(false);
+const advRgAtDriverSide = ref(false);
+const advSplXmaxLimited = ref(false);
+
+// Two distinct inline panels replace the Driver-tab summary in place (no modal —
+// the graph stays visible and keeps redrawing live). Distinct from the folder
+// icon / "Choose or replace the driver" flow (state.browseOpen), which swaps in a
+// different catalogue driver entirely.
+// - DriverEditPanel: identity/metadata (Brand, Model, Comment, Provided by).
+// - DriverWhatIfPanel: live T/S parameter tweaking.
+function startWhatIf() {
   if (!state.driverSource) state.driverSource = { ...driverRaw.value };
   state.editDriver = true;
+}
+function startEditInfo() {
+  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
+  state.editDriverInfo = true;
 }
 
 // The classic skin's default trace colour — matches WinISD's own yellow-green plot line
@@ -59,6 +97,13 @@ const projectTab = computed<ProjectTab>({
   get: () => (state.ui.classicProjectTab as ProjectTab) ?? 'Driver',
   set: (v: ProjectTab) => { state.ui.classicProjectTab = v; },
 });
+
+// The 3rd rail slot's identity key stays 'Passive Radiator' (state persistence,
+// tab-content matching), but its displayed label tracks the box type — the
+// type-specific content (vented/bandpass/PR) all lives on this one specialist tab.
+const BOX_TYPE_TAB_LABEL: Record<string, string> = { sealed: 'Passive Radiator', vented: 'Vented', bandpass4: 'Bandpass', pr: 'Passive Radiator' };
+function railLabel(t: string): string { return t === 'Passive Radiator' ? BOX_TYPE_TAB_LABEL[state.box] : t; }
+
 
 // cursor readout (top-right): frequency + the selected chart's value there
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
@@ -150,8 +195,6 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
       <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
     </div>
 
-    <DriverEditModal />
-
     <!-- body: [Projects + SignalGen] [Graph] / [tab rail] [tab content] -->
     <div class="cl-body">
       <div class="cl-tl">
@@ -187,7 +230,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
         <div class="cl-heading">Project</div>
         <div class="cl-rail">
           <button v-for="t in PROJECT_TABS" :key="t" class="cl-rtab" :class="{ on: projectTab === t }"
-                  :title="'Edit the ' + t + ' settings'" @click="projectTab = t">{{ t }}</button>
+                  :title="'Edit the ' + railLabel(t) + ' settings'" @click="projectTab = t">{{ railLabel(t) }}</button>
         </div>
         <div class="cl-color" title="The current design's curve colour on the graph">
           <span class="cl-sw" :style="{ background: WINISD_TRACE }"></span>Color
@@ -196,14 +239,21 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 
       <div class="cl-br">
         <!-- Driver tab — WinISD field layout bound to the shared store -->
-        <div v-if="projectTab === 'Driver'" class="cl-driver">
+        <div v-if="projectTab === 'Driver' && state.editDriverInfo" class="cl-driver">
+          <DriverEditPanel />
+        </div>
+        <div v-else-if="projectTab === 'Driver' && state.editDriver" class="cl-driver">
+          <DriverWhatIfPanel />
+        </div>
+        <div v-else-if="projectTab === 'Driver'" class="cl-driver">
           <div class="cl-drow">
             <div class="cl-fld"><label>Brand</label><input :value="brand" readonly></div>
             <div class="cl-fld"><label>Model</label><input :value="model" readonly></div>
-            <button class="cl-edit" title="Edit this driver's T/S parameters for the current project — never overwrites the shared library" @click="startEditDriver">
+            <button class="cl-edit" title="Edit this driver's Brand/Model/notes for the current project — never overwrites the shared library" @click="startEditInfo">
               <svg width="16" height="16" viewBox="0 0 18 18"><path d="M2 14 l9-9 3 3 -9 9 -3.6 .6 Z" fill="#ffd34d" stroke="#b8901f"/></svg>Edit
             </button>
           </div>
+          <button class="cl-whatif" title="Open the What-If panel — tweak T/S parameters live and watch the graph update, without touching the shared library" @click="startWhatIf">What-If? ✎</button>
 
           <div class="cl-cols">
             <div class="cl-subhdr">Placement</div>
@@ -239,10 +289,101 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           </div>
         </div>
 
-        <BoxPanel v-else-if="projectTab === 'Box'" />
-        <PRPanel v-else-if="projectTab === 'Passive Radiator'" />
+        <BoxPanel v-else-if="projectTab === 'Box'" variant="common" />
+        <!-- 3rd rail slot: specialist tab for whatever box type is selected — vented/
+             bandpass type-specific fields, or the PR unit's own summary/edit/what-if. -->
+        <div v-else-if="projectTab === 'Passive Radiator' && state.box === 'sealed'" class="cl-todo">
+          Nothing extra for a Sealed box — Box volume and losses are on the <b>Box</b> tab.
+        </div>
+        <BoxPanel v-else-if="projectTab === 'Passive Radiator' && (state.box === 'vented' || state.box === 'bandpass4')" variant="type" />
+        <div v-else-if="projectTab === 'Passive Radiator'" class="cl-driver">
+          <div class="drvsum" title="Passive radiator summary">
+            <span class="nm">{{ state.P.prName || 'Custom PR' }}</span>
+          </div>
+          <div class="drvspecs">
+            Sd <b>{{ (state.P.prSd*1e4).toFixed(0) }} cm²</b> ·
+            Fs <b>{{ prFsSummary.toFixed(1) }} Hz</b> ·
+            Qms <b>{{ prQmsSummary.toFixed(2) }}</b> ·
+            Vas <b>{{ prVasSummary.toFixed(2) }} L</b> ·
+            Xmax <b>{{ (state.P.prXmax*1000).toFixed(1) }} mm</b>
+          </div>
+          <button class="cl-edit" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax" @click="prEditOpen = true">
+            <svg width="16" height="16" viewBox="0 0 18 18"><path d="M2 14 l9-9 3 3 -9 9 -3.6 .6 Z" fill="#ffd34d" stroke="#b8901f"/></svg>Edit
+          </button>
+          <button class="cl-whatif" title="Open the What-If overlay — tune added mass live and watch the graph update" @click="prWhatIfOpen = true">What-If? ✎</button>
+          <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
+          <PRWhatIfPanel v-if="prWhatIfOpen" @close="prWhatIfOpen = false" />
+        </div>
         <FiltersPanel v-else-if="projectTab === 'Filters'" />
-        <SignalPanel v-else-if="projectTab === 'Signal'" />
+        <div v-else-if="projectTab === 'Signal'" class="cl-cols">
+          <div>
+            <div class="cl-subhdr">Listening place</div>
+            <div class="row cl-dim" title="Listening distance from the speaker — not modelled yet (near-field/free-space assumption).">
+              <label>Distance</label>
+              <input value="1.000" disabled>
+              <span class="u">m</span>
+            </div>
+            <div class="row cl-dim" title="Off-axis listening angle — not modelled yet.">
+              <label>Angle</label>
+              <input value="0.0000" disabled>
+              <span class="u">rad</span>
+            </div>
+          </div>
+          <div>
+            <div class="cl-subhdr">Signal source</div>
+            <div class="row" title="Total input power. Changing this updates the drive voltage below. WinISD: System input power.">
+              <label>System input power</label>
+              <input type="number" step="0.1" min="0" :value="(state.P.Pin ?? 1).toFixed(1)" @change="e => state.P.Pin = parseFloat((e.target as HTMLInputElement).value)||1">
+              <span class="u">W</span>
+            </div>
+            <div class="row" title="Drive voltage = √(Pin × Re), per driver. WinISD: Driver input voltage (each).">
+              <label>Driver input voltage (each)</label>
+              <input type="text" :value="driveV.toFixed(1)" readonly>
+              <span class="u">V</span>
+            </div>
+            <div class="row" title="Series resistance — wire, crossover DCR, amplifier output impedance. WinISD default: 0.1 Ω.">
+              <label>Series resistance</label>
+              <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
+              <span class="u">ohm</span>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="projectTab === 'Advanced'" class="cl-advanced">
+          <div class="cl-adv-row">
+            <div class="cl-fld"><label>Temperature</label><div class="cl-unit"><input type="number" v-model.number="advTemp"><span>K</span></div></div>
+            <div class="cl-fld"><label>Relative humidity</label><div class="cl-unit"><input type="number" v-model.number="advHumidity"><span>%</span></div></div>
+            <div class="cl-fld"><label>Air pressure</label><div class="cl-unit"><input type="number" v-model.number="advPressure"><span>Pa</span></div></div>
+          </div>
+          <div class="cl-arrow">---&gt;</div>
+          <div class="cl-adv-row">
+            <div class="cl-fld cl-dim"><label>Sound velocity</label><div class="cl-unit"><input type="text" :value="advSoundVelocity.toFixed(2)" readonly><span>m/s</span></div></div>
+            <div class="cl-fld cl-dim"><label>Air density</label><div class="cl-unit"><input type="text" :value="advAirDensity.toFixed(5)" readonly><span>kg/m³</span></div></div>
+          </div>
+          <div class="cl-adv-checks">
+            <label class="cl-check" title="Include voice-coil inductance Le in the acoustic circuit — not modelled yet in this view (see Signal tab's Circuit model).">
+              <input type="checkbox" v-model="advSimVcInductance"> Simulate voice coil inductance
+            </label>
+            <label class="cl-check" title="Force the SPL response to render flat, ignoring driver rolloff — not modelled yet.">
+              <input type="checkbox" v-model="advForceFlat"> Force flat response
+            </label>
+            <label class="cl-check" title="Use a transmission-line model for the vent instead of a simple tube — not modelled yet.">
+              <input type="checkbox" v-model="advTransmissionLine"> Use "transmission line"-model for port simulation
+            </label>
+            <label class="cl-check" title="Places the series (generator) resistance on the driver side of the circuit rather than the amplifier side — not modelled yet.">
+              <input type="checkbox" v-model="advRgAtDriverSide"> Rg is at driver side
+            </label>
+            <label class="cl-check" title="Clip the SPL graph at the excursion (Xmax) limit rather than showing the unbounded curve — not modelled yet.">
+              <input type="checkbox" v-model="advSplXmaxLimited"> SPL graph is Xmax limited
+            </label>
+          </div>
+        </div>
+        <div v-else-if="projectTab === 'Project'" class="cl-project">
+          <div class="row"><label>Creator</label><input type="text" v-model="state.project.creator" placeholder="Your name"></div>
+          <div class="row"><label>Created</label><input type="text" v-model="state.project.created" placeholder="DD/MM/YYYY"></div>
+          <div class="row"><label>Modified</label><input type="text" v-model="state.project.modified" placeholder="DD/MM/YYYY"></div>
+          <div class="cl-subhdr" style="margin-top:8px">Description</div>
+          <textarea class="cl-desc" v-model="state.project.description" placeholder="Notes about this project…"></textarea>
+        </div>
         <div v-else class="cl-todo">The <b>{{ projectTab }}</b> tab isn’t modelled in OpenISD yet.</div>
       </div>
     </div>
@@ -295,7 +436,10 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-tl { padding: 8px 10px; display: flex; flex-direction: column; min-height: 0; }
 .cl-tr { padding: 8px 14px 8px 4px; display: flex; flex-direction: column; min-height: 0; }
 .cl-bl { padding: 4px 10px 8px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.cl-br { padding: 6px 14px 8px 4px; min-height: 0; overflow: hidden; }
+/* auto not hidden: most tabs fit the budget with no scrollbar, but a few genuine
+   cases (bandpass4 + losses expanded, >4 filters) have more content than fits —
+   scroll rather than silently clip. */
+.cl-br { padding: 6px 14px 8px 4px; min-height: 0; overflow-y: auto; }
 .cl-heading { color: var(--acc); font-weight: 600; font-size: 15px; margin: 2px 0 6px; }
 
 /* Shared Box/PR/Filters/Signal panels use the global `.row` layout (style.css),
@@ -337,7 +481,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 /* driver tab (WinISD layout) — compact: this pane has a fixed height budget (no
    scrolling, matching WinISD), so spacing here is deliberately tighter than the
    rest of the skin. */
-.cl-driver { font-size: 13px; }
+.cl-driver { font-size: 13px; position: relative; height: 100%; }
 .cl-drow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px 16px; align-items: end; }
 .cl-fld label { display: block; font-size: 12px; margin-bottom: 2px; color: #333; }
 /* Fields keep their natural WinISD width — never stretch-fit to the grid column
@@ -350,6 +494,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-fld input[readonly], .cl-fld input:disabled, .cl-fld select:disabled { background: #f0f0f0; color: #555; }
 .cl-edit { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 8px; background: #f0f0f0; border: 1px solid #c4c4c4; border-radius: 4px; cursor: pointer; height: 27px; }
 .cl-edit:hover { border-color: var(--acc); }
+.cl-whatif { display: inline-block; margin: 2px 0 4px; padding: 0; background: none; border: none; color: var(--acc2); font-size: 11px; cursor: pointer; text-decoration: underline; }
+.cl-whatif:hover { color: var(--acc); }
 .cl-cols { display: grid; grid-template-columns: 1.05fr .95fr; gap: 4px 16px; margin-top: 4px; }
 .cl-subhdr { background: #e7e7e7; text-align: center; font-size: 13px; padding: 3px 0; border-radius: 2px; margin: 6px 0 5px; color: #333; }
 .cl-place { display: grid; grid-template-columns: 1.35fr .65fr; gap: 4px 12px; align-items: start; }
@@ -362,4 +508,20 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-note { color: #888; font-style: italic; font-size: 11px; margin-top: 4px; }
 .cl-dim { opacity: .6; }
 .cl-todo { color: #666; font-style: italic; padding: 10px 2px; }
+
+/* Signal tab */
+.cl-cols .row { margin: 5px 0; }
+
+/* Advanced tab — horizontal field groups, matching WinISD's env-params row layout */
+.cl-adv-row { display: flex; gap: 22px; }
+.cl-adv-env input, .cl-adv-row .cl-unit input { width: 120px; }
+.cl-arrow { color: var(--mut); font-size: 13px; margin: 6px 0; }
+.cl-adv-checks { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.cl-check { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+
+/* Project tab */
+.cl-project .row { max-width: 500px; }
+.cl-project .row label { flex: none; width: 90px; }
+.cl-project .row input { flex: 1; }
+.cl-desc { width: 100%; min-height: 140px; padding: 6px 8px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; resize: vertical; }
 </style>

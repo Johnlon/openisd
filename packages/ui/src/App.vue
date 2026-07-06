@@ -28,6 +28,7 @@ function applyState(o: SerializedState) {
   if (o.P) Object.assign(state.P, o.P);
   if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
   if (o.ui) Object.assign(state.ui, o.ui);   // local-only prefs: skin + classic tab state (never from a shared URL — stripped there)
+  if (o.project) Object.assign(state.project, o.project);
 }
 
 let saveReady = false;

@@ -13,6 +13,7 @@ export function serialize(state: AppState, driver: DriverJSON, compare: Design[]
     compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color })),
     // Local-only UI preference (e.g. skin). Kept for saveLocal; stripped by stateToUrl.
     ui: state.ui,
+    project: state.project,
   };
 }
 
