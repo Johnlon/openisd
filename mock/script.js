@@ -53,9 +53,30 @@ function selectChartType(name, el) {
   document.getElementById('graph-transferfn').style.display = isTransferFn ? 'block' : 'none';
 }
 
-function toggleProjectOverlay(checkbox) {
-  const overlay = document.getElementById('trace-ported');
-  if (overlay) overlay.style.display = checkbox.checked ? 'block' : 'none';
+// Generalized multi-project chart overlay: every project row carries
+// data-project="<id>"; every trace polyline (in every graph svg) that belongs
+// to that project carries a matching data-trace-for="<id>". Checking a
+// project's box shows all its traces in whichever graph is currently visible;
+// unchecking hides them. The "pr" project's SPL traces are further gated by
+// the Standard/Iso-Barik placement toggle (only one of the two is shown even
+// when the project is checked).
+function refreshProjectTraceVisibility() {
+  document.querySelectorAll('.project-row').forEach(row => {
+    const id = row.dataset.project;
+    const checked = row.querySelector('input[type=checkbox]').checked;
+    document.querySelectorAll('[data-trace-for="' + id + '"]').forEach(el => {
+      if (el.id === 'curve-standard' || el.id === 'curve-isobarik') return; // handled by setPlacement
+      el.style.display = checked ? 'block' : 'none';
+    });
+  });
+  const prChecked = document.querySelector('.project-row[data-project="pr"] input[type=checkbox]').checked;
+  const isIso = document.querySelector('input[name=placement]:checked').value === 'iso';
+  document.getElementById('curve-standard').style.display = (prChecked && !isIso) ? 'block' : 'none';
+  document.getElementById('curve-isobarik').style.display = (prChecked && isIso) ? 'block' : 'none';
+}
+
+function toggleProjectTrace() {
+  refreshProjectTraceVisibility();
 }
 
 function selectProjectRow(row) {
@@ -68,119 +89,139 @@ function setPlacement(mode) {
   document.getElementById('numdrivers-suffix').textContent = isIso ? 'pairs' : 'driver(s)';
   document.getElementById('wiring-standard').style.display = isIso ? 'none' : 'block';
   document.getElementById('wiring-isobarik').style.display = isIso ? 'block' : 'none';
-  document.getElementById('curve-standard').style.display = isIso ? 'none' : 'block';
-  document.getElementById('curve-isobarik').style.display = isIso ? 'block' : 'none';
+  refreshProjectTraceVisibility();
 }
 
 function setEnclosureType(type) {
   const label = document.getElementById('nav-enclosure-label');
   const panes = { sealed: 'Sealed', ported: 'Vents', pr: 'Passive Radiator' };
   label.textContent = panes[type];
-  document.getElementById('box-type-heading').textContent =
-    type === 'pr' ? 'passive radiator' : (type === 'ported' ? 'ported' : 'sealed');
+  const select = document.getElementById('box-type-select');
+  if (select) select.value = type;
   ['sealed', 'ported', 'pr'].forEach(t => {
     const pane = document.getElementById('enclosure-' + t);
     if (pane) pane.style.display = (t === type) ? 'block' : 'none';
   });
 }
 
-const filterFieldSets = {
-  'Allpass': ['order', 'q', 'delay'],
-  'DLP Raised Cosine': ['centerfreq', 'gain', 'bandwidth'],
-  'Highpass': ['subtype', 'order', 'q', 'cutoff'],
-  'Lowpass': ['subtype', 'order', 'q', 'cutoff'],
-  'Linkwitz transform': ['f0', 'fp', 'q0', 'qp'],
-  'Parametric EQ': ['centerfreq2', 'gain2', 'q2'],
-  'Peaking 2nd order highpass': ['peakmag', 'peakfreq'],
-  'Static gain': ['gain3'],
+// Inline, reactive filter rows — no popup editor. Each quick-add button drops
+// in a fully expanded row for its filter type, built from this per-type field
+// list; every field is a spin-field so it stacks with the exponential-accel
+// spinner behaviour, and edits recompute that row's own summary line live.
+const filterFieldDefs = {
+  'Allpass': [
+    { key: 'order', label: 'Order', value: '2.000' },
+    { key: 'q', label: 'Q', value: '0.707' },
+    { key: 'delay', label: 'Delay time', value: '0.001', unit: 's', ug: 'time' },
+  ],
+  'DLP Raised Cosine': [
+    { key: 'centerfreq', label: 'Center freq', value: '100.000', unit: 'Hz', ug: 'freq' },
+    { key: 'gain', label: 'Gain', value: '6.000', unit: 'dB' },
+    { key: 'bandwidth', label: 'Bandwidth', value: '0.333', unit: 'oct' },
+  ],
+  'Highpass': [
+    { key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'] },
+    { key: 'order', label: 'Order', value: '2.000' },
+    { key: 'q', label: 'Q', value: '0.707' },
+    { key: 'cutoff', label: 'Cutoff', value: '50.000', unit: 'Hz', ug: 'freq' },
+  ],
+  'Lowpass': [
+    { key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'] },
+    { key: 'order', label: 'Order', value: '2.000' },
+    { key: 'q', label: 'Q', value: '0.707' },
+    { key: 'cutoff', label: 'Cutoff', value: '50.000', unit: 'Hz', ug: 'freq' },
+  ],
+  'Linkwitz transform': [
+    { key: 'f0', label: 'f0', value: '50.000', unit: 'Hz', ug: 'freq' },
+    { key: 'fp', label: 'fp', value: '20.000', unit: 'Hz', ug: 'freq' },
+    { key: 'q0', label: 'Q0', value: '0.707' },
+    { key: 'qp', label: 'Qp', value: '0.707' },
+  ],
+  'Parametric EQ': [
+    { key: 'centerfreq2', label: 'Center freq', value: '30.000', unit: 'Hz', ug: 'freq' },
+    { key: 'gain2', label: 'Gain', value: '6.000', unit: 'dB' },
+    { key: 'q2', label: 'Q', value: '2.000' },
+  ],
+  'Peaking 2nd order highpass': [
+    { key: 'peakmag', label: 'Peak mag', value: '6.000', unit: 'dB' },
+    { key: 'peakfreq', label: 'Peak freq', value: '20.000', unit: 'Hz', ug: 'freq' },
+  ],
+  'Static gain': [
+    { key: 'gain3', label: 'Gain', value: '0.000', unit: 'dB' },
+  ],
 };
 
-function setFilterType(type) {
-  document.querySelectorAll('#filter-editor-fields [data-field]').forEach(el => el.style.display = 'none');
-  (filterFieldSets[type] || []).forEach(f => {
-    const el = document.querySelector('#filter-editor-fields [data-field="' + f + '"]');
-    if (el) el.style.display = 'flex';
-  });
+function renderFilterFieldsHTML(type) {
+  return (filterFieldDefs[type] || []).map(f => {
+    if (f.select) {
+      const opts = f.select.map(o => `<option>${o}</option>`).join('');
+      return `<div class="field"><label>${f.label}</label><select class="entered" data-key="${f.key}" onchange="updateFilterSummary(this)">${opts}</select></div>`;
+    }
+    const unitSpan = f.unit
+      ? (f.ug
+        ? `<span class="unit unit-cyc" data-ug="${f.ug}" onclick="cycleUnit(this)">${f.unit}</span>`
+        : `<span class="unit">${f.unit}</span>`)
+      : '';
+    return `<div class="field"><label>${f.label}</label><input type="text" class="entered spin-field" data-key="${f.key}" value="${f.value}" oninput="updateFilterSummary(this)">${unitSpan}</div>`;
+  }).join('');
 }
 
-function openFilterEditor(prefillType) {
-  editingFilterRow = null;
-  const select = document.getElementById('filter-type-select');
-  select.value = prefillType || 'Lowpass';
-  setFilterType(select.value);
-  openModal('modal-filter-editor');
-}
-
-function selectFilterRow(row) {
-  document.querySelectorAll('.filter-row').forEach(r => r.classList.remove('selected'));
-  row.classList.add('selected');
-}
-
-function fieldVal(name) {
-  const el = document.querySelector('#filter-editor-fields [data-field="' + name + '"] input');
-  return el ? el.value : '';
-}
-function fieldSelectVal(name) {
-  const el = document.querySelector('#filter-editor-fields [data-field="' + name + '"] select');
-  return el ? el.value : '';
-}
-
-function buildFilterSummary() {
-  const type = document.getElementById('filter-type-select').value;
+function buildFilterSummaryFromRow(row) {
+  const type = row.dataset.type;
+  const val = (key) => {
+    const el = row.querySelector('[data-key="' + key + '"]');
+    return el ? el.value : '';
+  };
   switch (type) {
     case 'Allpass':
-      return `Allpass (n=${fieldVal('order')}, Q=${fieldVal('q')})`;
+      return `Allpass (n=${val('order')}, Q=${val('q')})`;
     case 'DLP Raised Cosine':
-      return `DLP Raised Cosine (fc=${fieldVal('centerfreq')} Hz, gain=${fieldVal('gain')} dB)`;
+      return `DLP Raised Cosine (fc=${val('centerfreq')} Hz, gain=${val('gain')} dB)`;
     case 'Highpass':
     case 'Lowpass':
-      return `${type} (${fieldSelectVal('subtype')}, n=${fieldVal('order')}, fc=${fieldVal('cutoff')} Hz)`;
+      return `${type} (${val('subtype')}, n=${val('order')}, fc=${val('cutoff')} Hz)`;
     case 'Linkwitz transform':
-      return `Linkwitz transform (f0=${fieldVal('f0')} Hz, fp=${fieldVal('fp')} Hz)`;
+      return `Linkwitz transform (f0=${val('f0')} Hz, fp=${val('fp')} Hz)`;
     case 'Parametric EQ':
-      return `Parametric EQ (fc=${fieldVal('centerfreq2')} Hz, gain=${fieldVal('gain2')} dB, Q=${fieldVal('q2')})`;
+      return `Parametric EQ (fc=${val('centerfreq2')} Hz, gain=${val('gain2')} dB, Q=${val('q2')})`;
     case 'Peaking 2nd order highpass':
-      return `Peaking 2nd order highpass (fc=${fieldVal('peakfreq')} Hz, gain=${fieldVal('peakmag')} dB)`;
+      return `Peaking 2nd order highpass (fc=${val('peakfreq')} Hz, gain=${val('peakmag')} dB)`;
     case 'Static gain':
-      return `Static gain (${fieldVal('gain3')} dB)`;
+      return `Static gain (${val('gain3')} dB)`;
     default:
       return type;
   }
 }
 
-let editingFilterRow = null;
-
-function addFilterFromEditor() {
-  const summary = buildFilterSummary();
-  if (editingFilterRow) {
-    editingFilterRow.querySelector('span').textContent = summary;
-    editingFilterRow = null;
-  } else {
-    const row = document.createElement('div');
-    row.className = 'filter-row';
-    row.setAttribute('onclick', 'selectFilterRow(this)');
-    row.innerHTML = '<input type="checkbox" checked onclick="event.stopPropagation()"><span>' + summary + '</span>';
-    document.getElementById('filters-list').appendChild(row);
-    selectFilterRow(row);
-  }
-  closeModal('modal-filter-editor');
+function updateFilterSummary(fieldEl) {
+  const row = fieldEl.closest('.filter-row-inline');
+  if (row) row.querySelector('.filter-summary').textContent = buildFilterSummaryFromRow(row);
 }
 
-function modifySelectedFilterRow() {
-  const row = document.querySelector('.filter-row.selected');
-  if (!row) return;
-  editingFilterRow = row;
-  const text = row.querySelector('span').textContent;
-  const type = text.split(' (')[0];
-  const select = document.getElementById('filter-type-select');
-  if ([...select.options].some(o => o.value === type)) select.value = type;
-  setFilterType(select.value);
-  openModal('modal-filter-editor');
+function quickAddFilter(type) {
+  const row = document.createElement('div');
+  row.className = 'filter-row-inline expanded';
+  row.dataset.type = type;
+  row.innerHTML = `
+    <div class="filter-row-head" onclick="toggleFilterExpand(this)">
+      <input type="checkbox" checked onclick="event.stopPropagation()">
+      <span class="filter-type-badge">${type}</span>
+      <span class="filter-summary"></span>
+      <button class="filter-del" onclick="event.stopPropagation(); removeFilterRow(this)" title="Delete this filter">&#10060;</button>
+    </div>
+    <div class="filter-row-fields">${renderFilterFieldsHTML(type)}</div>
+  `;
+  document.getElementById('filters-list').appendChild(row);
+  row.querySelector('.filter-summary').textContent = buildFilterSummaryFromRow(row);
+  initSpinners(row);
 }
 
-function deleteSelectedFilterRow() {
-  const row = document.querySelector('.filter-row.selected');
-  if (row) row.remove();
+function toggleFilterExpand(headEl) {
+  headEl.closest('.filter-row-inline').classList.toggle('expanded');
+}
+
+function removeFilterRow(btn) {
+  btn.closest('.filter-row-inline').remove();
 }
 
 function selectPickerRow(row) {
@@ -215,11 +256,188 @@ function tuneSaveStart() {
   document.getElementById('tune-save-name').value = document.getElementById('driver-model-field').value + ' (custom)';
 }
 function tuneSaveConfirm() {
+  const name = document.getElementById('tune-save-name').value.trim();
   document.getElementById('tune-save-row').style.display = 'none';
-  // Fake/decorative — a real build would write this into a My Drivers store.
+  if (!name) return;
+  const [brand, ...rest] = name.split(' ');
+  addMyDriver(brand || 'Custom', rest.join(' ') || name);
 }
 function tuneSaveCancel() {
   document.getElementById('tune-save-row').style.display = 'none';
+}
+
+// ---------------- Manage Drivers (My Drivers, in-memory only — fake/decorative
+// persistence is out of scope for this mock; see MOCK_DESIGN.md). ----------------
+let myDrivers = [];
+let myDriversSeq = 0;
+let selectedMyDriverId = null;
+
+function renderMyDrivers() {
+  const hint = document.getElementById('mydrivers-empty-hint');
+  const table = document.getElementById('mydrivers-table');
+  const tbody = document.getElementById('driver-picker-mydrivers');
+  if (!tbody) return;
+  if (myDrivers.length === 0) {
+    hint.style.display = 'block';
+    table.style.display = 'none';
+    return;
+  }
+  hint.style.display = 'none';
+  table.style.display = '';
+  tbody.innerHTML = myDrivers.map(d => `
+    <tr class="driver-picker-row${d.id === selectedMyDriverId ? ' selected' : ''}${d.disabled ? ' disabled' : ''}"
+        onclick="selectMyDriverRow(this, ${d.id})" data-brand="${d.brand}" data-model="${d.model}">
+      <td><input type="radio" name="driverpick" ${d.id === selectedMyDriverId ? 'checked' : ''}></td>
+      <td>${d.brand}</td><td>${d.model}${d.disabled ? ' (disabled)' : ''}</td>
+      <td>${d.fs}</td><td>${d.vas}</td><td>${d.qts}</td><td>${d.sd}</td><td>${d.re}</td>
+    </tr>`).join('');
+}
+
+function selectMyDriverRow(row, id) {
+  selectedMyDriverId = id;
+  document.querySelectorAll('#driver-picker-mydrivers .driver-picker-row').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+  row.querySelector('input[type=radio]').checked = true;
+}
+
+function addMyDriver(brand, model) {
+  myDrivers.push({
+    id: ++myDriversSeq, brand, model,
+    fs: '30.00', vas: '4.80', qts: '0.294', sd: '143.0', re: '3.400',
+    disabled: false,
+  });
+  renderMyDrivers();
+}
+
+function customiseToMyDrivers() {
+  const brand = document.getElementById('driver-brand-field').value || 'Custom';
+  const model = document.getElementById('driver-model-field').value || 'driver';
+  addMyDriver(brand, model + ' (custom)');
+}
+
+function saveAsNewDriver() {
+  const name = window.prompt('Save as new — name for this My Drivers entry:', 'New driver');
+  if (!name) return;
+  const [brand, ...rest] = name.split(' ');
+  addMyDriver(brand || 'Custom', rest.join(' ') || name);
+}
+
+function editCustomDriver() {
+  if (selectedMyDriverId == null) { window.alert('Select a row in Select Driver → My Drivers first.'); return; }
+  const d = myDrivers.find(x => x.id === selectedMyDriverId);
+  openDriverEditor('mydrivers', d ? d.brand + ' ' + d.model : '');
+}
+
+// Makes explicit, inside the modal itself (not just a tooltip), which of two
+// very different things this editor session is touching:
+//  - 'project': the driver copy embedded in the current project. Edits here
+//    apply live to the project immediately; Save additionally writes an
+//    independent copy to My Drivers, it does not touch the project's copy.
+//  - 'mydrivers': a My Drivers entry, opened via Manage Drivers -> Edit
+//    custom driver. Edits/Save here apply directly to that My Drivers entry;
+//    the current project is untouched unless you Select Driver it back in.
+function openDriverEditor(mode, name) {
+  const hint = document.getElementById('driver-editor-context');
+  if (mode === 'mydrivers') {
+    hint.textContent = `Editing My Drivers entry "${name}" directly — Save updates this entry; the current project is unaffected unless you re-select it via Select Driver.`;
+    hint.classList.add('mydrivers-mode');
+  } else {
+    hint.textContent = 'Editing the driver copy embedded in the current project — changes apply live to the project immediately; Save additionally writes an independent copy to My Drivers.';
+    hint.classList.remove('mydrivers-mode');
+  }
+  openModal('modal-driver-editor');
+}
+
+function deleteCustomDriver() {
+  if (selectedMyDriverId == null) { window.alert('Select a row in Select Driver → My Drivers first.'); return; }
+  myDrivers = myDrivers.filter(d => d.id !== selectedMyDriverId);
+  selectedMyDriverId = null;
+  renderMyDrivers();
+}
+
+function disableCustomDriver() {
+  if (selectedMyDriverId == null) { window.alert('Select a row in Select Driver → My Drivers first.'); return; }
+  const d = myDrivers.find(d => d.id === selectedMyDriverId);
+  if (d) d.disabled = !d.disabled;
+  renderMyDrivers();
+}
+
+// ---------------- Clickable unit labels: fake/decorative — cycles the unit
+// text only, never converts the adjacent numeric value (this mock is
+// logic-free), same as every other field here. ----------------
+const UNIT_SETS = {
+  length: ['m', 'cm', 'mm', 'in', 'ft'],
+  volume: ['l', 'cm³', 'in³', 'ft³'],
+  area: ['cm²', 'm²', 'in²'],
+  mass: ['kg', 'g', 'lb', 'oz'],
+  freq: ['Hz', 'kHz'],
+  angle: ['rad', 'deg'],
+  pressure: ['Pa', 'atm', 'psi'],
+  temp: ['K', '°C', '°F'],
+  time: ['s', 'ms'],
+};
+
+function cycleUnit(el) {
+  const set = UNIT_SETS[el.dataset.ug];
+  if (!set) return;
+  const idx = set.indexOf(el.textContent.trim());
+  el.textContent = set[(idx + 1 + set.length) % set.length];
+}
+
+// ---------------- Exponential-accel spinners: attached to every input with
+// class "spin-field" (reactive what-if fields only — never added to one-shot
+// modals like Driver Editor/Options where there's nothing to react to). Holding
+// the button repeats the step with a shrinking interval, so it accelerates
+// the longer you hold, instead of a flat repeat rate. ----------------
+function stepDecimals(value) {
+  const s = String(value);
+  const dot = s.indexOf('.');
+  return dot === -1 ? 0 : s.length - dot - 1;
+}
+
+function wrapSpinner(input) {
+  if (input.closest('.spin-wrap')) return;
+  const wrap = document.createElement('span');
+  wrap.className = 'spin-wrap';
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const arrows = document.createElement('span');
+  arrows.className = 'spin-arrows';
+  arrows.innerHTML = '<button type="button" class="spin-btn spin-up" tabindex="-1">&#9650;</button><button type="button" class="spin-btn spin-down" tabindex="-1">&#9660;</button>';
+  wrap.appendChild(arrows);
+
+  const step = (dir) => {
+    const decimals = Math.max(2, stepDecimals(input.value));
+    const delta = dir * Math.pow(10, -decimals);
+    const next = (parseFloat(input.value) || 0) + delta;
+    input.value = next.toFixed(decimals);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  const startHold = (dir) => {
+    step(dir);
+    let delay = 400;
+    const tick = () => {
+      step(dir);
+      delay = Math.max(35, delay * 0.82);
+      holdTimer = setTimeout(tick, delay);
+    };
+    let holdTimer = setTimeout(tick, delay);
+    const stop = () => {
+      clearTimeout(holdTimer);
+      window.removeEventListener('mouseup', stop);
+      window.removeEventListener('mouseleave', stop);
+    };
+    window.addEventListener('mouseup', stop);
+    window.addEventListener('mouseleave', stop);
+  };
+
+  arrows.querySelector('.spin-up').addEventListener('mousedown', (e) => { e.preventDefault(); startHold(1); });
+  arrows.querySelector('.spin-down').addEventListener('mousedown', (e) => { e.preventDefault(); startHold(-1); });
+}
+
+function initSpinners(root) {
+  (root || document).querySelectorAll('input.spin-field').forEach(wrapSpinner);
 }
 
 const colorPalette = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
@@ -247,6 +465,10 @@ function resetDriverEditor() {
 // Fake, decorative cursor readout — not a real chart engine, just moves the numbers on click.
 document.addEventListener('DOMContentLoaded', () => {
   driverEditorSnapshot = document.querySelector('#modal-driver-editor .modal-body').innerHTML;
+
+  quickAddFilter('Lowpass');
+  initSpinners(document);
+  refreshProjectTraceVisibility();
 
   document.querySelectorAll('.graph-wrap').forEach(wrap => {
     wrap.addEventListener('click', (e) => {

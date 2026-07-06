@@ -89,17 +89,21 @@ Put these and all other previous prompts from me into a new MOCK_PROMPTS.md file
 Editor popup:
 
 The adv tab:
+
 - Input field Mcost is pushed right and out of alignment - this is cos the label N/sqrt(W) is quite wide - so change layout so that the labels to the second col are pushed over to the right to make some space and fix the input field alignments.
 - Also there is a massive gap between labels and field because you are fitting to width - don't fit to width as it looks stupid - all screens this isn't a good approach
 
 Dimensions:
+
 - The label should go to left of field not above
 - Fix the image of the driver - use the svg we have from the main modern skinned app
 
 General:
+
 - Model and date added need to align to each other
 
 All editor views - need to explain the buttons better
+
 - Is save saving to a custom driver image or is it saving to the project or is it overwriting the driver in the common store?
 - Need a reset button to reset to the original values - not just clear which presumably wipes it blank
 
@@ -114,6 +118,7 @@ All screens - make the unit clickable so that it rotates through the units as pr
 All editor / whatif fields / to use the colour coding previously discussed to show what is calculated and which is N or E or error (out of range or impossible)
 
 Standard vs isobaric:
+
 - std - the drivers count is per driver and the label to the right of the input field is 'driver(s)'
 - iso - the label is 'pairs'
 - std mode shows a driver facing out on a baffle
@@ -147,6 +152,7 @@ Driver editor allows 'Customise' which clones into a 'My Drivers' list that is a
 Driver editor save - cannot overwrite internal drivers - but can save a local wdr file - but I don't think local wpr can be automagically accessed by the SPA app can it? User would have to load the WDR. Of course it can save something volatile to local browser storage? And of course it can save into volatile project WPR storage. And we do need the toolbar save button to allow saving WPR to physical and internal storage - but I don't think it can auto load from physical, is that correct? Add these points and question to the MOCK app md file and respond to them.
 
 IMPORTANT REALISATION: What-if is confused.
+
 - All field edits are essentially what-if unless I hit save on the project button.
 - Therefore what-if is actually 'Edit' after all.
 - I think there should be a distinct Select driver button and Edit button on the detail pane.
@@ -163,7 +169,44 @@ IMPORTANT REALISATION: What-if is confused.
 Mock add filter isn't adding filters anymore.
 
 Diff vs winisd -- filter view - keep +LP +HP etc - buttons on screen at bottom of pane or left side as there is space.
+
 - Put filters in scrollable section above.
 - Blue [x] next to each for active/inactive.
 - Put a red 'x' or bin on each filter to delete.
 - Put all the fields for the filters as editable spinners on that panel and ditch the popup — more reactive possible that way (maybe single, maybe multi).
+
+---
+
+continue building the mock - fix 3 4 and 5 and 6 7 8 first
+
+(referring to the tracked task list: #14 exponential-accel spinners, #15
+clickable unit labels, #16 ParState color coding consistently, #20 Manage
+Drivers menu, #21 Filters tab redesign, #22 multi-project chart traces.)
+
+---
+
+you need to screen shot file://wsl.localhost/Ubuntu-22.04/home/john/work/winisd/openisd/mock/index.html and look at the chart - it is generally aligned and narrow
+
+---
+
+Change this button '✎ Edit\n♫ Tune' to Edit Project'
+
+---
+
+This is strange tro hace on then Box tab ...
+
+passive radiator
+(mock control — real WinISD sets this via the enclosure-type project setting)
+Sealed
+Ported
+Passive Radiator
+
+Under Passive Radiator we can chnge the type - seems it ought to be outside. Maybe move Box first above Driver and take that header Passive Radiator off and make the Box Type : [v Passive Radiator] etc?
+
+---
+
+Edit Project was better as Edit but it needs a hint or something so its clear you are editing the copy of the driver woithion the current project not an independent copy - but save would save an indep copy of whatever you have.
+
+---
+
+Driver Editor when invoked from rhe project as opposed tothe manage drivers - is editing the project embedded driect - make this clear in the UI

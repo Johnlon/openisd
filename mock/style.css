@@ -278,15 +278,28 @@ textarea.comment, textarea.description {
   color: #888; font-size: 22px;
 }
 
-/* filters list */
+/* filters list — inline, reactive rows (no popup editor) */
+.filters-quickadd { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .filters-list {
-  border: 1px solid #999; background: #fff; min-height: 90px; max-height: 160px;
+  border: 1px solid #999; background: #fff; min-height: 90px; max-height: calc(100% - 40px);
   overflow-y: auto; margin-bottom: 8px;
 }
-.filter-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #eee; }
-.filter-row.selected { background: #dbeaff; }
-.filters-toolbar { display: flex; gap: 16px; }
-.filters-toolbar .action-btn { display: flex; align-items: center; gap: 6px; }
+.filter-row-inline { border-bottom: 1px solid #eee; }
+.filter-row-head {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer;
+}
+.filter-row-head:hover { background: #f5f8fc; }
+.filter-type-badge { font-weight: 600; }
+.filter-summary { color: #555; flex: 1; }
+.filter-del {
+  border: none; background: none; color: #b02a2a; cursor: pointer; padding: 2px 6px;
+}
+.filter-del:hover { background: #fbdada; border-radius: 3px; }
+.filter-row-fields {
+  display: none; flex-wrap: wrap; gap: 8px 20px; padding: 4px 10px 10px 32px;
+  background: #fafafa;
+}
+.filter-row-inline.expanded .filter-row-fields { display: flex; }
 
 /* checkbox list (advanced tab) */
 .checkbox-col { display: flex; flex-direction: column; gap: 8px; }
@@ -323,6 +336,11 @@ textarea.comment, textarea.description {
 .modal-titlebar .win-controls span:hover { background: #ddd; }
 .modal-titlebar .win-controls .close-btn:hover { background: #e64545; color: #fff; }
 
+.editor-context-hint {
+  background: #eef4ff; border-bottom: 1px solid #bcd6f7; color: #1a4d8f;
+  font-size: 12.5px; padding: 6px 14px;
+}
+.editor-context-hint.mydrivers-mode { background: #fff3e0; border-bottom-color: #f0c987; color: #8a5a00; }
 .modal-tabs { display: flex; border-bottom: 1px solid #ccc; background: #eee; padding: 6px 6px 0; }
 .modal-tabs .mtab {
   padding: 7px 16px; cursor: pointer; border: 1px solid transparent; border-bottom: none;
@@ -410,7 +428,6 @@ textarea.comment, textarea.description {
 .limits-table td { padding: 4px 8px; border: 1px solid #ddd; }
 .limits-table input { width: 80px; }
 
-.enclosure-toggle { display: flex; gap: 16px; align-items: center; margin-bottom: 10px; }
 .hint { color: #888; font-size: 12px; font-style: italic; }
 
 /* ---------- Tune: floating reactive-minimal overlay (not a modal) ---------- */
@@ -471,3 +488,37 @@ textarea.comment, textarea.description {
 .driver-picker-row { cursor: pointer; }
 .driver-picker-row:hover { background: #eef4ff; }
 .driver-picker-row.selected { background: #dbeaff; }
+.driver-picker-row.disabled { opacity: .5; text-decoration: line-through; }
+
+/* ---------- ParState legend (Entered/Calculated/Not available), shown
+   wherever those field colors appear — not just inside the Driver Editor
+   modal, which already had its own copy in the footer. ---------- */
+.parstate-legend {
+  display: flex; gap: 14px; align-items: center; font-size: 12px; color: #444;
+  justify-content: flex-end; margin-bottom: 8px;
+}
+.parstate-legend .swatch { width: 11px; height: 11px; display: inline-block; margin-right: 4px; border: 1px solid #777; }
+.parstate-legend .swatch.green { background: #1b7d1b; }
+.parstate-legend .swatch.blue { background: #1868d1; }
+.parstate-legend .swatch.black { background: #111; }
+.tune-legend { justify-content: flex-start; margin: -4px 0 8px; font-size: 11px; }
+
+/* ---------- Clickable unit labels: cycle through a field's defined unit set.
+   Decorative/fake — swaps the label text only, never converts the value. ---------- */
+.unit-cyc { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.unit-cyc:hover { color: #1868d1; }
+
+/* ---------- Exponential-accel spinners: attached (via JS) to any reactive
+   what-if-eligible numeric field. Holding a button shrinks the repeat
+   interval each tick, so it accelerates the longer you hold it — never added
+   to one-shot modals (Driver Editor/Options) where there's no live what-if. ---------- */
+.spin-wrap { display: inline-flex; align-items: stretch; }
+.spin-wrap input { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; }
+.spin-arrows { display: flex; flex-direction: column; }
+.spin-btn {
+  border: 1px solid #999; background: #eee; cursor: pointer; padding: 0 3px;
+  font-size: 7px; line-height: 1; width: 16px;
+}
+.spin-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
+.spin-btn.spin-up { border-bottom: none; border-radius: 0 2px 0 0; }
+.spin-btn.spin-down { border-radius: 0 0 2px 0; }

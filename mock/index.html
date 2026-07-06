@@ -48,8 +48,24 @@
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="5" y="2" width="12" height="12" rx="1" fill="#f2f2f2" stroke="#999" stroke-width="1.1"/><rect x="3" y="5" width="12" height="12" rx="1" fill="#fff" stroke="#555" stroke-width="1.3"/><rect x="6" y="5" width="6" height="4" fill="none" stroke="#555" stroke-width="1"/></svg>
       </div>
       <div class="tb-sep"></div>
-      <div class="tb-btn" title="Driver editor" onclick="openModal('modal-driver-editor')">
+      <div class="tb-btn" title="Driver editor" onclick="openDriverEditor('project')">
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="2" width="16" height="16" rx="2" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="6" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="2.4" fill="#777"/></svg>
+      </div>
+      <div class="tb-btn has-menu" title="Manage Drivers" style="position:relative" onclick="toggleDropdown('managedrivers-dropdown')">
+        <svg viewBox="0 0 20 20" width="18" height="18">
+          <ellipse cx="10" cy="5" rx="7" ry="2.6" fill="none" stroke="#555" stroke-width="1.3"/>
+          <path d="M3 5 V10 A7 2.6 0 0 0 17 10 V5" fill="none" stroke="#555" stroke-width="1.3"/>
+          <path d="M3 10 V15 A7 2.6 0 0 0 17 15 V10" fill="none" stroke="#555" stroke-width="1.3"/>
+        </svg>
+        <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+        <div class="dropdown-menu" id="managedrivers-dropdown">
+          <div class="menu-item" onclick="customiseToMyDrivers()">Customise current driver &rarr; My Drivers</div>
+          <div class="menu-item" onclick="saveAsNewDriver()">Save as new...</div>
+          <hr>
+          <div class="menu-item" onclick="editCustomDriver()">Edit custom driver...</div>
+          <div class="menu-item" onclick="deleteCustomDriver()">Delete custom driver</div>
+          <div class="menu-item" onclick="disableCustomDriver()">Disable custom driver</div>
+        </div>
       </div>
       <div class="tb-btn" title="Options" onclick="openModal('modal-options')">
         <svg viewBox="0 0 20 20" width="18" height="18"><path d="M14 3 a3 3 0 1 0 -2.9 3.8 L4 14 l2 2 l7.9-7.1 A3 3 0 0 0 14 3 Z" fill="none" stroke="#555" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -107,12 +123,12 @@
       <div class="quad-projects-wrap">
         <div class="panel-title">Projects</div>
         <div class="projects-list">
-          <div class="project-row selected" onclick="selectProjectRow(this)">
-            <input type="checkbox" checked onclick="event.stopPropagation()">
+          <div class="project-row selected" data-project="pr" onclick="selectProjectRow(this)">
+            <input type="checkbox" checked onclick="event.stopPropagation(); toggleProjectTrace(this)">
             <span>Epique15 - pr</span>
           </div>
-          <div class="project-row" onclick="selectProjectRow(this)">
-            <input type="checkbox" onclick="event.stopPropagation(); toggleProjectOverlay(this)">
+          <div class="project-row" data-project="ported" onclick="selectProjectRow(this)">
+            <input type="checkbox" onclick="event.stopPropagation(); toggleProjectTrace(this)">
             <span>Epique15-ported</span>
           </div>
         </div>
@@ -167,11 +183,17 @@
             <text x="790.4" y="632">200</text><text x="1020" y="632">500</text>
           </g>
 
-          <polyline id="curve-standard" fill="none" stroke="#c9c92e" stroke-width="3"
+          <polyline id="curve-standard" data-trace-for="pr" fill="none" stroke="#c9c92e" stroke-width="3"
             points="40,290 105.7,260 172.9,230 213.7,210 269.5,195 315.3,190 354.0,185 387.4,170 417.0,110 443.4,50 467.1,15 489.0,10 527.5,20 561.0,40 590.5,55 616.8,70 662.5,95 718.4,130 790.4,170 846.4,205 892.0,240 930.6,270 964.4,295 994.0,320 1020,340"/>
 
-          <polyline id="curve-isobarik" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
+          <polyline id="curve-isobarik" data-trace-for="pr" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
             points="40,310 213.7,230 315.3,150 387.4,80 443.4,40 489.0,50 527.5,80 561.0,80 590.5,65 616.8,50 662.5,70 718.4,130 790.4,180 846.4,230 892.0,270 930.6,300 964.4,320 994.0,335 1020,350"/>
+
+          <!-- second project's SPL trace (Epique15-ported) — independent of the
+               Standard/Iso-Barik placement toggle above, which only applies to
+               the currently-edited project's own curve. -->
+          <polyline id="trace-ported-spl" data-trace-for="ported" fill="none" stroke="#3a7bd5" stroke-width="3" style="display:none"
+            points="40,330 105.7,300 172.9,265 213.7,235 269.5,205 315.3,175 354.0,140 387.4,95 417.0,55 443.4,25 467.1,15 489.0,20 527.5,45 561.0,75 590.5,100 616.8,120 662.5,150 718.4,185 790.4,220 846.4,250 892.0,275 930.6,295 964.4,315 994.0,330 1020,345"/>
         </svg>
 
         <!-- Transfer function magnitude graph (multi-project overlay demo) -->
@@ -202,10 +224,10 @@
           <line x1="40" y1="141.25" x2="1020" y2="141.25" stroke="#999" stroke-dasharray="6,5"/>
           <text x="46" y="136" font-size="13" fill="#777">-3 dB</text>
 
-          <polyline fill="none" stroke="#2e8b3e" stroke-width="3"
+          <polyline id="trace-pr" data-trace-for="pr" fill="none" stroke="#2e8b3e" stroke-width="3"
             points="40,610 141.5,460 213.7,310 269.5,216.25 315.3,141.25 354.0,103.75 387.4,85 489.0,85 616.8,85 790.4,85 930.6,85 1020,85"/>
 
-          <polyline id="trace-ported" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
+          <polyline id="trace-ported" data-trace-for="ported" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
             points="40,610 213.7,535 315.3,422.5 387.4,347.5 443.4,291.25 489.0,253.75 527.5,225.6 561.0,206.9 590.5,197.5 603.9,216.25 616.8,235 628.9,225.6 662.5,253.75 718.4,310 790.4,385 892.0,478.75 964.4,553.75 1020,610"/>
         </svg>
 
@@ -216,8 +238,8 @@
     <div class="quad-bottomleft">
       <div class="panel-title">Project</div>
       <ul class="project-nav">
-        <li data-tab="driver" class="active" onclick="showTab('driver')">Driver</li>
         <li data-tab="box" onclick="showTab('box')">Box</li>
+        <li data-tab="driver" class="active" onclick="showTab('driver')">Driver</li>
         <li data-tab="enclosure" onclick="showTab('enclosure')"><span id="nav-enclosure-label">Passive Radiator</span></li>
         <li data-tab="filters" onclick="showTab('filters')">Filters</li>
         <li data-tab="signal" onclick="showTab('signal')">Signal</li>
@@ -230,13 +252,19 @@
     <!-- bottom-right quadrant: 7 project tabs -->
     <div class="content-panel">
 
+      <div class="parstate-legend">
+        <span><span class="swatch green"></span>Entered</span>
+        <span><span class="swatch blue"></span>Calculated</span>
+        <span><span class="swatch black"></span>Not available</span>
+      </div>
+
       <!-- ---- Driver tab ---- -->
     <section id="tab-driver" class="tab-section active">
       <div class="field-row driver-id-row">
         <div class="field tight"><label>Brand</label><input type="text" id="driver-brand-field" style="width:130px" value="Dayton Audio"></div>
         <div class="field tight"><label>Model</label><input type="text" id="driver-model-field" style="width:140px" value="E150HE-44"></div>
         <button class="edit-btn" title="Swap in a different driver for this project — does not touch the WDR file or My Drivers." onclick="openModal('modal-select-driver')">Select Driver</button>
-        <button class="edit-btn" title="Full editor: every field of the driver already in this project." onclick="openModal('modal-driver-editor')">&#9998; Edit</button>
+        <button class="edit-btn" title="Full editor for the copy of this driver already loaded into the current project. Changes apply live to this project only, until you press Save — Save writes an independent copy to My Drivers, it does not overwrite the shared driver library." onclick="openDriverEditor('project')">&#9998; Edit</button>
         <button class="edit-btn" title="Reactive minimal editor: tweak the headline T/S params and watch the graph update live." onclick="openTune()">&#9835; Tune</button>
       </div>
       <div class="two-col" style="margin-top:10px;">
@@ -280,13 +308,13 @@
         <div>
           <div class="section-header">Advanced options</div>
           <div class="field-row">
-            <div class="field"><label>Voice coil temp rise</label><input type="text" value="0.00"><span class="unit">K</span></div>
+            <div class="field"><label>Voice coil temp rise</label><input type="text" class="entered spin-field" value="0.00"><span class="unit unit-cyc" data-ug="temp" onclick="cycleUnit(this)">K</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Voice coil resistance TC</label><input type="text" value="3.9000"><span class="unit">1000/K</span></div>
+            <div class="field"><label>Voice coil resistance TC</label><input type="text" class="entered spin-field" value="3.9000"><span class="unit">1000/K</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Added mass to cone</label><input type="text" value="0.00000"><span class="unit">kg</span></div>
+            <div class="field"><label>Added mass to cone</label><input type="text" class="entered spin-field" value="0.00000"><span class="unit unit-cyc" data-ug="mass" onclick="cycleUnit(this)">kg</span></div>
           </div>
         </div>
       </div>
@@ -294,21 +322,24 @@
 
     <!-- ---- Box tab ---- -->
     <section id="tab-box" class="tab-section">
-      <div class="section-header" id="box-type-heading">passive radiator</div>
-      <div class="enclosure-toggle">
+      <div class="field-row">
+        <div class="field"><label>Box Type</label>
+          <select id="box-type-select" style="width:180px" onchange="setEnclosureType(this.value)">
+            <option value="sealed">Sealed</option>
+            <option value="ported">Ported</option>
+            <option value="pr" selected>Passive Radiator</option>
+          </select>
+        </div>
         <span class="hint">(mock control — real WinISD sets this via the enclosure-type project setting)</span>
-        <label><input type="radio" name="enctype" value="sealed" onchange="setEnclosureType('sealed')"> Sealed</label>
-        <label><input type="radio" name="enctype" value="ported" onchange="setEnclosureType('ported')"> Ported</label>
-        <label><input type="radio" name="enctype" value="pr" checked onchange="setEnclosureType('pr')"> Passive Radiator</label>
       </div>
       <div class="two-col">
         <div>
           <div class="section-header">Rear chamber</div>
           <div class="field-row">
-            <div class="field"><label>Volume</label><input type="text" class="calculated" value="6.00"><span class="unit">l</span></div>
+            <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Fh</label><input type="text" class="greyed" value="40.25" readonly><span class="unit">Hz</span></div>
+            <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
           </div>
           <button class="link-btn" onclick="openModal('modal-box-losses')">Advanced-&gt;</button>
         </div>
@@ -337,17 +368,17 @@
               </div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Vent diameter</label><input type="text" value="10.20"><span class="unit">cm</span></div>
+              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="10.20"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
               <div class="field"><label>End Correction</label><select><option>0.732</option><option>0.613</option><option>0.849</option></select></div>
             </div>
           </div>
           <div>
             <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="greyed" value="1.978" readonly><span class="unit">m</span></div>
-              <div class="field"><label>Cross area</label><input type="text" class="greyed" value="0.0082" readonly><span class="unit">m&sup2;</span></div>
+              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="1.978" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+              <div class="field"><label>Cross area</label><input type="text" class="calculated greyed" value="0.0082" readonly><span class="unit unit-cyc" data-ug="area" onclick="cycleUnit(this)">m&sup2;</span></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>1st port resonance</label><input type="text" class="greyed" value="86.87" readonly><span class="unit">Hz</span></div>
+              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="86.87" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
         </div>
@@ -358,27 +389,27 @@
           <div>
             <div class="section-header">Passive radiator parameters</div>
             <div class="field-row">
-              <div class="field"><label>Vas</label><input type="text" class="entered" value="4.80"><span class="unit">l</span></div>
-              <div class="field"><label>Qms</label><input type="text" class="entered" value="3.300"></div>
+              <div class="field"><label>Vas</label><input type="text" class="entered spin-field" value="4.80"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
+              <div class="field"><label>Qms</label><input type="text" class="entered spin-field" value="3.300"></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Fs</label><input type="text" class="entered" value="30.00"><span class="unit">Hz</span></div>
-              <div class="field"><label>Sd</label><input type="text" class="entered" value="95.0"><span class="unit">cm&sup2;</span></div>
+              <div class="field"><label>Fs</label><input type="text" class="entered spin-field" value="30.00"><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
+              <div class="field"><label>Sd</label><input type="text" class="entered spin-field" value="95.0"><span class="unit unit-cyc" data-ug="area" onclick="cycleUnit(this)">cm&sup2;</span></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Xmax</label><input type="text" class="entered" value="19000.0"><span class="unit">mm</span></div>
+              <div class="field"><label>Xmax</label><input type="text" class="entered spin-field" value="19000.0"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">mm</span></div>
             </div>
           </div>
           <div>
             <div class="section-header">User options</div>
             <div class="field-row">
-              <div class="field"><label>Num. of PRs:</label><input type="text" value="1"></div>
+              <div class="field"><label>Num. of PRs:</label><input type="text" class="entered spin-field" value="1"></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Added mass to cone:</label><input type="text" value="0.0"><span class="unit">g</span></div>
+              <div class="field"><label>Added mass to cone:</label><input type="text" class="entered spin-field" value="0.0"><span class="unit unit-cyc" data-ug="mass" onclick="cycleUnit(this)">g</span></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Fs (with added mass):</label><input type="text" class="calculated" value="30.00"><span class="unit">Hz</span></div>
+              <div class="field"><label>Fs (with added mass):</label><input type="text" class="calculated greyed" value="30.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
         </div>
@@ -387,8 +418,8 @@
       <div id="enclosure-sealed" style="display:none">
         <div class="section-header">Rear chamber</div>
         <div class="field-row">
-          <div class="field"><label>Volume</label><input type="text" class="calculated" value="6.00"><span class="unit">l</span></div>
-          <div class="field"><label>Fh</label><input type="text" class="greyed" value="40.25" readonly><span class="unit">Hz</span></div>
+          <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
+          <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
         </div>
         <p class="hint">Sealed enclosure — no vents or passive radiator configured.</p>
       </div>
@@ -396,17 +427,17 @@
 
     <!-- ---- Filters tab ---- -->
     <section id="tab-filters" class="tab-section">
-      <div class="filters-list" id="filters-list">
-        <div class="filter-row selected" onclick="selectFilterRow(this)">
-          <input type="checkbox" checked onclick="event.stopPropagation()">
-          <span>Lowpass (Butterworth, n=2, fc=50.00 Hz)</span>
-        </div>
+      <div class="filters-quickadd">
+        <button class="action-btn" onclick="quickAddFilter('Lowpass')">+ LP</button>
+        <button class="action-btn" onclick="quickAddFilter('Highpass')">+ HP</button>
+        <button class="action-btn" onclick="quickAddFilter('Allpass')">+ AP</button>
+        <button class="action-btn" onclick="quickAddFilter('Linkwitz transform')">+ LT</button>
+        <button class="action-btn" onclick="quickAddFilter('Parametric EQ')">+ PEQ</button>
+        <button class="action-btn" onclick="quickAddFilter('Peaking 2nd order highpass')">+ Peak</button>
+        <button class="action-btn" onclick="quickAddFilter('DLP Raised Cosine')">+ DLP</button>
+        <button class="action-btn" onclick="quickAddFilter('Static gain')">+ Gain</button>
       </div>
-      <div class="filters-toolbar">
-        <button class="action-btn" onclick="openFilterEditor('Allpass')">&#10133; Add</button>
-        <button class="action-btn" onclick="deleteSelectedFilterRow()">&#10060; Delete</button>
-        <button class="action-btn" onclick="modifySelectedFilterRow()">&#9998; Modify</button>
-      </div>
+      <div class="filters-list" id="filters-list"></div>
     </section>
 
     <!-- ---- Signal tab ---- -->
@@ -415,22 +446,22 @@
         <div>
           <div class="section-header">Listening place</div>
           <div class="field-row">
-            <div class="field"><label>Distance</label><input type="text" value="1.000"><span class="unit">m</span></div>
+            <div class="field"><label>Distance</label><input type="text" class="entered spin-field" value="1.000"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Angle</label><input type="text" value="0.0000"><span class="unit">rad</span></div>
+            <div class="field"><label>Angle</label><input type="text" class="entered spin-field" value="0.0000"><span class="unit unit-cyc" data-ug="angle" onclick="cycleUnit(this)">rad</span></div>
           </div>
         </div>
         <div>
           <div class="section-header">Signal source</div>
           <div class="field-row">
-            <div class="field"><label>System input power</label><input type="text" value="140.0"><span class="unit">W</span></div>
+            <div class="field"><label>System input power</label><input type="text" class="entered spin-field" value="140.0"><span class="unit">W</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Driver input voltage (each)</label><input type="text" class="calculated" value="15.2"><span class="unit">V</span></div>
+            <div class="field"><label>Driver input voltage (each)</label><input type="text" class="calculated greyed" value="15.2" readonly><span class="unit">V</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Series resistance</label><input type="text" value="0.100"><span class="unit">ohm</span></div>
+            <div class="field"><label>Series resistance</label><input type="text" class="entered spin-field" value="0.100"><span class="unit">ohm</span></div>
           </div>
         </div>
       </div>
@@ -441,20 +472,20 @@
       <div class="two-col">
         <div>
           <div class="field-row">
-            <div class="field"><label>Temperature</label><input type="text" value="293.15"><span class="unit">K</span></div>
+            <div class="field"><label>Temperature</label><input type="text" class="entered spin-field" value="293.15"><span class="unit unit-cyc" data-ug="temp" onclick="cycleUnit(this)">K</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Relative humidity</label><input type="text" value="30.0000"><span class="unit">%</span></div>
+            <div class="field"><label>Relative humidity</label><input type="text" class="entered spin-field" value="30.0000"><span class="unit">%</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Air pressure</label><input type="text" value="101325.0"><span class="unit">Pa</span></div>
+            <div class="field"><label>Air pressure</label><input type="text" class="entered spin-field" value="101325.0"><span class="unit unit-cyc" data-ug="pressure" onclick="cycleUnit(this)">Pa</span></div>
           </div>
           <p style="margin:4px 0;">&#8594;</p>
           <div class="field-row">
-            <div class="field"><label>Sound velocity</label><input type="text" class="calculated" value="343.68" readonly><span class="unit">m/s</span></div>
+            <div class="field"><label>Sound velocity</label><input type="text" class="calculated greyed" value="343.68" readonly><span class="unit">m/s</span></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Air density</label><input type="text" class="calculated" value="1.20095" readonly><span class="unit">kg/m&sup3;</span></div>
+            <div class="field"><label>Air density</label><input type="text" class="calculated greyed" value="1.20095" readonly><span class="unit">kg/m&sup3;</span></div>
           </div>
         </div>
         <div class="checkbox-col">
@@ -487,6 +518,7 @@
       <div class="tb-left"><span class="app-icon"></span><span>Driver editor</span></div>
       <div class="win-controls"><span>&#8211;</span><span style="color:#aaa">&#9633;</span><span class="close-btn" onclick="closeModal('modal-driver-editor')">&#10005;</span></div>
     </div>
+    <div class="editor-context-hint" id="driver-editor-context"></div>
     <div class="modal-tabs">
       <div class="mtab active" onclick="showModalTab('modal-driver-editor','general',this)">General</div>
       <div class="mtab" onclick="showModalTab('modal-driver-editor','parameters',this)">Parameters</div>
@@ -515,27 +547,27 @@
           <span class="pg-label">Qes</span><input class="pg-input entered" type="text" value="0.320"><span class="pg-unit"></span>
           <span class="pg-label">Qms</span><input class="pg-input entered" type="text" value="3.300"><span class="pg-unit"></span>
           <span class="pg-label">Qts</span><input class="pg-input calculated" type="text" value="0.294" readonly><span class="pg-unit"></span>
-          <span class="pg-label">Fs</span><input class="pg-input entered" type="text" value="30.00"><span class="pg-unit">Hz</span>
-          <span class="pg-label">Vas</span><input class="pg-input entered" type="text" value="293.0"><span class="pg-unit">in&sup3;</span>
+          <span class="pg-label">Fs</span><input class="pg-input entered" type="text" value="30.00"><span class="pg-unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span>
+          <span class="pg-label">Vas</span><input class="pg-input entered" type="text" value="293.0"><span class="pg-unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">in&sup3;</span>
 
           <div class="section-header">Electro-Mechanical parameters</div>
-          <span class="pg-label">Mms</span><input class="pg-input entered" type="text" value="0.03500"><span class="pg-unit">kg</span>
+          <span class="pg-label">Mms</span><input class="pg-input entered" type="text" value="0.03500"><span class="pg-unit unit-cyc" data-ug="mass" onclick="cycleUnit(this)">kg</span>
           <span class="pg-label">Cms</span><input class="pg-input calculated" type="text" value="0.803" readonly><span class="pg-unit">um/N</span>
           <span class="pg-label">Rms</span><input class="pg-input entered" type="text" value="1.25000"><span class="pg-unit">Ns/m</span>
           <span class="pg-label">Re</span><input class="pg-input entered" type="text" value="3.400"><span class="pg-unit">ohm</span>
           <span class="pg-label">BL</span><input class="pg-input entered" type="text" value="10.20000"><span class="pg-unit">Tm</span>
-          <span class="pg-label">Dd</span><input class="pg-input entered" type="text" value="0.133"><span class="pg-unit">m</span>
+          <span class="pg-label">Dd</span><input class="pg-input entered" type="text" value="0.133"><span class="pg-unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span>
           <span class="pg-label">Le</span><input class="pg-input entered" type="text" value="0.000560"><span class="pg-unit">H</span>
-          <span class="pg-label">Sd</span><input class="pg-input calculated" type="text" value="0.0143" readonly><span class="pg-unit">m&sup2;</span>
-          <span class="pg-label">fLe</span><input class="pg-input" type="text" value="1.20000"><span class="pg-unit">kHz</span>
+          <span class="pg-label">Sd</span><input class="pg-input calculated" type="text" value="0.0143" readonly><span class="pg-unit unit-cyc" data-ug="area" onclick="cycleUnit(this)">m&sup2;</span>
+          <span class="pg-label">fLe</span><input class="pg-input" type="text" value="1.20000"><span class="pg-unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">kHz</span>
           <span class="pg-label">KLe</span><input class="pg-input" type="text" value="0.002400"><span class="pg-unit">H&middot;&radic;Hz</span>
 
           <div class="section-header">Large-Signal parameters</div>
           <span class="pg-label">Xmax</span><input class="pg-input entered" type="text" value="0.011"><span class="pg-unit">m peak</span>
-          <span class="pg-label">Hc</span><input class="pg-input" type="text" value="0.010"><span class="pg-unit">m</span>
-          <span class="pg-label">Hg</span><input class="pg-input" type="text" value="0.012"><span class="pg-unit">m</span>
-          <span class="pg-label">Vd</span><input class="pg-input calculated" type="text" value="157" readonly><span class="pg-unit">cm&sup3;</span>
-          <span class="pg-label">Xlim</span><input class="pg-input" type="text" value="0.019"><span class="pg-unit">m</span>
+          <span class="pg-label">Hc</span><input class="pg-input" type="text" value="0.010"><span class="pg-unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span>
+          <span class="pg-label">Hg</span><input class="pg-input" type="text" value="0.012"><span class="pg-unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span>
+          <span class="pg-label">Vd</span><input class="pg-input calculated" type="text" value="157" readonly><span class="pg-unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">cm&sup3;</span>
+          <span class="pg-label">Xlim</span><input class="pg-input" type="text" value="0.019"><span class="pg-unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span>
           <span class="pg-label">Pe</span><input class="pg-input entered" type="text" value="200.0"><span class="pg-unit">W</span>
 
           <div class="section-header">Miscellaneous parameters</div>
@@ -562,7 +594,7 @@
           <span class="pg-label">gamma</span><input class="pg-input calculated" type="text" value="30.60000" readonly><span class="pg-unit">N/(A&middot;kg)</span>
           <span class="pg-label">Mpow</span><input class="pg-input calculated" type="text" value="0.72000" readonly><span class="pg-unit">N/&radic;W</span>
           <span class="pg-label">Mcost</span><input class="pg-input calculated" type="text" value="1.44000" readonly><span class="pg-unit">kg/s</span>
-          <span class="pg-label">EBP</span><input class="pg-input calculated" type="text" value="33.30" readonly><span class="pg-unit">Hz</span>
+          <span class="pg-label">EBP</span><input class="pg-input calculated" type="text" value="33.30" readonly><span class="pg-unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span>
           <span class="pg-label">Gloss</span><input class="pg-input calculated" type="text" value="12.5000" readonly><span class="pg-unit">%</span>
 
           <div class="section-header">Environment parameters</div>
@@ -575,14 +607,14 @@
         <div class="two-col">
           <div class="dim-fields">
             <div class="section-header">Dimensions</div>
-            <div class="field-row"><label>Thick</label><input type="text" value="0.02"><span class="unit">in</span></div>
-            <div class="field-row"><label>Depth</label><input type="text" value="0.185"><span class="unit">m</span></div>
-            <div class="field-row"><label>Magnet Depth</label><input type="text" value="0.045"><span class="unit">m</span></div>
-            <div class="field-row"><label>Magnet</label><input type="text" value="0.140"><span class="unit">m</span></div>
-            <div class="field-row"><label>Basket</label><input type="text" value="0.150"><span class="unit">m</span></div>
-            <div class="field-row"><label>Outer</label><input type="text" value="0.152"><span class="unit">m</span></div>
-            <div class="field-row"><label>VCd</label><input type="text" value="0.038"><span class="unit">m</span></div>
-            <div class="field-row"><label>Dvol</label><input type="text" value="45.0"><span class="unit">in&sup3;</span></div>
+            <div class="field-row"><label>Thick</label><input type="text" value="0.02"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">in</span></div>
+            <div class="field-row"><label>Depth</label><input type="text" value="0.185"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>Magnet Depth</label><input type="text" value="0.045"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>Magnet</label><input type="text" value="0.140"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>Basket</label><input type="text" value="0.150"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>Outer</label><input type="text" value="0.152"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>VCd</label><input type="text" value="0.038"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
+            <div class="field-row"><label>Dvol</label><input type="text" value="45.0"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">in&sup3;</span></div>
           </div>
           <div class="diagram-wrap dd-dim-wrap">
             <!-- Same driver cross-section illustration as the modern skin's
@@ -656,7 +688,7 @@
         <label style="margin-left:14px;"><input type="checkbox" checked> Auto calculate unknowns</label>
       </div>
       <div class="footer-buttons">
-        <button title="Writes these values into this driver's entry in the shared driver library — overwrites the common driver store, not just this project.">&#128190; Save</button>
+        <button title="Writes these values as an independent copy into My Drivers — never overwrites the shared driver library, and does not by itself change what this project uses (use Select Driver to load the saved copy into a project).">&#128190; Save</button>
         <button title="Load a different driver's values from the shared driver library into this editor.">&#128193; Load</button>
         <button title="Blank every field to start a brand-new driver from scratch." onclick="clearDriverEditor()">&#9633; Clear</button>
         <button title="Discard your edits and restore the values this driver had when the editor was opened." onclick="resetDriverEditor()">&#8635; Reset</button>
@@ -709,7 +741,13 @@
       </div>
 
       <div class="modal-pane" data-pane="mydrivers">
-        <p class="hint" style="font-style:normal; color:#666;">No custom drivers yet — use <b>Manage Drivers</b> (toolbar) to customise a library driver into your own editable copy first.</p>
+        <p class="hint" style="font-style:normal; color:#666;" id="mydrivers-empty-hint">No custom drivers yet — use <b>Manage Drivers</b> (toolbar) to customise a library driver into your own editable copy first.</p>
+        <table class="driver-picker-table" id="mydrivers-table" style="display:none">
+          <thead>
+            <tr><th></th><th>Brand</th><th>Model</th><th>Fs (Hz)</th><th>Vas (L)</th><th>Qts</th><th>Sd (cm&sup2;)</th><th>Re (&Omega;)</th></tr>
+          </thead>
+          <tbody id="driver-picker-mydrivers"></tbody>
+        </table>
       </div>
 
     </div>
@@ -717,103 +755,6 @@
       <div class="footer-buttons">
         <button class="ok-btn" onclick="confirmSelectDriver()">&#10003; Select</button>
         <button class="cancel-btn" onclick="closeModal('modal-select-driver')">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= Modal: Filter editor ================= -->
-<div class="overlay" id="modal-filter-editor">
-  <div class="modal narrow">
-    <div class="modal-titlebar">
-      <div class="tb-left"><span class="app-icon"></span><span>Filter Editor</span></div>
-      <div class="win-controls"><span>&#8211;</span><span style="color:#aaa">&#9633;</span><span class="close-btn" onclick="closeModal('modal-filter-editor')">&#10005;</span></div>
-    </div>
-    <div class="modal-body">
-      <div class="field-row">
-        <div class="field">
-          <label>Filter type</label>
-          <select id="filter-type-select" style="width:200px" onchange="setFilterType(this.value)">
-            <option>Allpass</option>
-            <option>DLP Raised Cosine</option>
-            <option>Highpass</option>
-            <option>Linkwitz transform</option>
-            <option selected>Lowpass</option>
-            <option>Parametric EQ</option>
-            <option>Peaking 2nd order highpass</option>
-            <option>Static gain</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="filter-editor-fields" style="margin-top:10px;">
-        <div class="field-row" data-field="subtype">
-          <div class="field"><label>Subtype</label>
-            <select style="width:200px">
-              <option>Butterworth</option>
-              <option>Linkwitz-Riley (4th order only)</option>
-              <option>Bessel</option>
-              <option>SOS, User specified fc and Q</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row" data-field="order">
-          <div class="field"><label>Order</label><input type="text" value="2.000"></div>
-        </div>
-        <div class="field-row" data-field="q">
-          <div class="field"><label>Q</label><input type="text" value="0.707"></div>
-        </div>
-        <div class="field-row" data-field="cutoff">
-          <div class="field"><label>Cutoff</label><input type="text" value="50.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="delay">
-          <div class="field"><label>Delay time</label><input type="text" value="0.001"><span class="unit">s</span></div>
-        </div>
-        <div class="field-row" data-field="centerfreq">
-          <div class="field"><label>Center freq</label><input type="text" value="100.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="gain">
-          <div class="field"><label>Gain</label><input type="text" value="6.000"><span class="unit">dB</span></div>
-        </div>
-        <div class="field-row" data-field="bandwidth">
-          <div class="field"><label>Bandwidth</label><input type="text" value="0.333"><span class="unit">oct</span></div>
-        </div>
-        <div class="field-row" data-field="f0">
-          <div class="field"><label>f0</label><input type="text" value="50.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="fp">
-          <div class="field"><label>fp</label><input type="text" value="20.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="q0">
-          <div class="field"><label>Q0</label><input type="text" value="0.707"></div>
-        </div>
-        <div class="field-row" data-field="qp">
-          <div class="field"><label>Qp</label><input type="text" value="0.707"></div>
-        </div>
-        <div class="field-row" data-field="centerfreq2">
-          <div class="field"><label>Center freq</label><input type="text" value="30.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="gain2">
-          <div class="field"><label>Gain</label><input type="text" value="6.000"><span class="unit">dB</span></div>
-        </div>
-        <div class="field-row" data-field="q2">
-          <div class="field"><label>Q</label><input type="text" value="2.000"></div>
-        </div>
-        <div class="field-row" data-field="peakmag">
-          <div class="field"><label>Peak mag</label><input type="text" value="6.000"><span class="unit">dB</span></div>
-        </div>
-        <div class="field-row" data-field="peakfreq">
-          <div class="field"><label>Peak freq</label><input type="text" value="20.000"><span class="unit">Hz</span></div>
-        </div>
-        <div class="field-row" data-field="gain3">
-          <div class="field"><label>Gain</label><input type="text" value="0.000"><span class="unit">dB</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer" style="justify-content:flex-end;">
-      <div class="footer-buttons">
-        <button class="ok-btn" onclick="addFilterFromEditor()">&#10133; Add</button>
-        <button class="cancel-btn" onclick="closeModal('modal-filter-editor')">Cancel</button>
       </div>
     </div>
   </div>
@@ -924,24 +865,28 @@
     <span class="close-btn" onclick="closeTune()">&#10005;</span>
   </div>
   <div class="tune-hint">Changes apply live to the current project only — the graph updates as you type. The shared driver library is never modified.</div>
+  <div class="parstate-legend tune-legend">
+    <span><span class="swatch green"></span>Entered</span>
+    <span><span class="swatch blue"></span>Calculated</span>
+  </div>
 
   <div class="tune-row">
-    <div class="tune-fld"><label>Fs</label><div class="tune-unit"><input type="number" step="any" value="30.00" data-original="30.00"><span>Hz</span></div></div>
-    <div class="tune-fld"><label>Qts</label><div class="tune-unit"><input type="number" step="any" value="0.294" data-original="0.294"><span></span></div></div>
-    <div class="tune-fld"><label>Qes</label><div class="tune-unit"><input type="number" step="any" value="0.320" data-original="0.320"><span></span></div></div>
-    <div class="tune-fld"><label>Qms</label><div class="tune-unit"><input type="number" step="any" value="3.300" data-original="3.300"><span></span></div></div>
+    <div class="tune-fld"><label>Fs</label><div class="tune-unit"><input class="entered spin-field" type="text" value="30.00" data-original="30.00"><span class="unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
+    <div class="tune-fld"><label>Qts</label><div class="tune-unit"><input class="entered spin-field" type="text" value="0.294" data-original="0.294"><span></span></div></div>
+    <div class="tune-fld"><label>Qes</label><div class="tune-unit"><input class="entered spin-field" type="text" value="0.320" data-original="0.320"><span></span></div></div>
+    <div class="tune-fld"><label>Qms</label><div class="tune-unit"><input class="entered spin-field" type="text" value="3.300" data-original="3.300"><span></span></div></div>
   </div>
   <div class="tune-row">
-    <div class="tune-fld"><label>Vas</label><div class="tune-unit"><input type="number" step="any" value="4.80" data-original="4.80"><span>L</span></div></div>
-    <div class="tune-fld"><label>Sd</label><div class="tune-unit"><input type="number" step="any" value="143.0" data-original="143.0"><span>cm&sup2;</span></div></div>
-    <div class="tune-fld"><label>Re</label><div class="tune-unit"><input type="number" step="any" value="3.400" data-original="3.400"><span>&Omega;</span></div></div>
+    <div class="tune-fld"><label>Vas</label><div class="tune-unit"><input class="entered spin-field" type="text" value="4.80" data-original="4.80"><span class="unit-cyc" data-ug="volume" onclick="cycleUnit(this)">L</span></div></div>
+    <div class="tune-fld"><label>Sd</label><div class="tune-unit"><input class="entered spin-field" type="text" value="143.0" data-original="143.0"><span class="unit-cyc" data-ug="area" onclick="cycleUnit(this)">cm&sup2;</span></div></div>
+    <div class="tune-fld"><label>Re</label><div class="tune-unit"><input class="entered spin-field" type="text" value="3.400" data-original="3.400"><span>&Omega;</span></div></div>
   </div>
 
   <div class="tune-subsect">Optional</div>
   <div class="tune-row">
-    <div class="tune-fld"><label>Le <span class="opt-lbl">opt</span></label><div class="tune-unit"><input type="number" step="any" value="0.560" data-original="0.560"><span>mH</span></div></div>
-    <div class="tune-fld"><label>Xmax <span class="opt-lbl">opt</span></label><div class="tune-unit"><input type="number" step="any" value="11.0" data-original="11.0"><span>mm</span></div></div>
-    <div class="tune-fld"><label>Pe <span class="opt-lbl">opt</span></label><div class="tune-unit"><input type="number" step="any" value="200" data-original="200"><span>W</span></div></div>
+    <div class="tune-fld"><label>Le <span class="opt-lbl">opt</span></label><div class="tune-unit"><input class="spin-field" type="text" value="0.560" data-original="0.560"><span>mH</span></div></div>
+    <div class="tune-fld"><label>Xmax <span class="opt-lbl">opt</span></label><div class="tune-unit"><input class="spin-field" type="text" value="11.0" data-original="11.0"><span class="unit-cyc" data-ug="length" onclick="cycleUnit(this)">mm</span></div></div>
+    <div class="tune-fld"><label>Pe <span class="opt-lbl">opt</span></label><div class="tune-unit"><input class="spin-field" type="text" value="200" data-original="200"><span>W</span></div></div>
   </div>
 
   <div class="tune-subsect">Derived</div>
@@ -970,7 +915,6 @@
   document.addEventListener('DOMContentLoaded', () => {
     setPlacement('standard');
     setEnclosureType('pr');
-    setFilterType('Lowpass');
   });
 </script>
 </body>
