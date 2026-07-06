@@ -152,7 +152,7 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 | `scripts/stop-http.sh [port]`   | Stop server on given port (default 4000).                                                                                            |
 | `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                                                         |
 | `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).                                  |
-| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                                                |
+| `scripts/build-release.sh`      | Production dist build. Release workflow only; never run ad-hoc.                                                |
 | `scripts/health-check.sh`       | All health checks: lint, unit tests, golden tests, browser tests. Single entry point.                                                |
 | `scripts/link-driver-repo.sh`   | Symlinks federated collections into `drivers/` from a sibling `winisd_drivers` checkout. Dev/DQ convenience only — untracked.        |
 

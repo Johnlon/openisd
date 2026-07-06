@@ -128,7 +128,7 @@ bash scripts/dev-4200.sh      # agent dev server: health checks then Vite at htt
 bash scripts/stop-http.sh 4200  # stop the agent dev server
 bash scripts/preview-4000.sh  # human lightweight preview at http://localhost:4000 (no health checks)
 bash scripts/health-check.sh  # full gate: lint + JS unit + golden + DQ + Python scraper tests
-bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
+bash scripts/build-release.sh # production build → packages/ui/dist/
 ```
 
 Individual gates:

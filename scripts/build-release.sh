@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Build the production dist for GitHub Pages deployment.
-# Used by the release-drivers workflow (see .claude/skills/release-drivers.md).
-# Output goes to packages/ui/dist/ — pushed to gh-pages by GitHub Actions.
+# Output goes to packages/ui/dist/ — published to gh-pages by .github/workflows/deploy.yml.
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
 # PowerShell/cmd have no /proc, so they are still rejected.
@@ -11,7 +10,7 @@ echo "========================================"
 echo "  Release build — $(date '+%H:%M:%S')"
 echo "========================================"
 
-GITHUB_PAGES=true npm run build
+npm run build
 
 echo "========================================"
 echo "  Build complete — $(date '+%H:%M:%S')"

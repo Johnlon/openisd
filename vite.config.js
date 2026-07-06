@@ -4,9 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 
-// Deployed as a GitHub Pages project site at johnlon.github.io/openisd/, so the
-// production build is served under the /openisd/ path. Local dev serves at root.
-const base = process.env.GITHUB_PAGES ? '/openisd/' : '/';
+// Served at the custom domain https://openisd.app/ (Pages custom domain, root
+// path) — not the /openisd/ subpath a plain johnlon.github.io project site
+// would use. Base is '/' for both production and local dev.
+const base = '/';
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
