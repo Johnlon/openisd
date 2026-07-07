@@ -359,31 +359,41 @@ since it's invoked directly from the toolbar with no modal open to host an
 inline row in — a deliberate, narrower scope than fixing every prompt in
 the mock.
 
-## Box tab diagrams — potrace vector traces of the real icons, not interpretations
+## Driver-placement diagrams — potrace vector traces of the real icons
 
 `docs/winisd/winisd_boxtypes.md` holds reference screenshots of the real
 WinISD box-editor panels and icons for all 6 enclosure types (plus ABC's
-3D model), and `docs/winisd/box_types/*_icon.png` are the individual icon
-crops. Two earlier attempts at these diagrams were both wrong: a
-hand-drawn geometric approximation (front-on circle, then a simplified
-bowtie/kite) lost all the real basket-frame detail, and a raster `<img>`
-crop reproduced the pixels but doesn't scale/theme like the rest of the
-SVG-based UI.
-
-The diagrams (`#box-diagram-sealed/ported/pr/bp4/bp6/bp8`,
-`#wiring-standard/isobarik`) are now **potrace vector traces of the actual
-reference images** — the `potrace` npm package run once (in a throwaway
-`build/trace-tool/`, not a project dependency) against each source PNG
-(`docs/winisd/box_types/*_icon.png` for the box types; two new crops of
-`docs/winisd/view_1_driver_drivers_standard.png`/`_iso-barik.png` traced
-directly, no intermediate file kept) to produce a faithful `<path>` per
-icon, inlined directly in `index.html`. This reproduces the real basket
-flanges, mounting-tab notches, port lines, and the ABC leak-symbol/label
+3D model). The Driver tab's Standard/Iso-Barik placement diagrams
+(`#wiring-standard`/`#wiring-isobarik`) are **potrace vector traces of the
+actual reference images** — the `potrace` npm package run once (in a
+throwaway `build/trace-tool/`, not a project dependency) against crops of
+`docs/winisd/view_1_driver_drivers_standard.png`/`_iso-barik.png`, to
+produce a faithful `<path>` per icon, inlined directly in `index.html`.
+This reproduces the real basket flanges and mounting-tab notches
 pixel-accurately, as a crisp scalable vector — not a redrawn
 interpretation and not a soft raster crop. Every traced `<path>` needs
 `fill-rule="evenodd"` (potrace's winding convention) — omitting it fills
-the whole silhouette solid black instead of showing the box's hollow
-interior as a hole.
+the whole silhouette solid black instead of showing the hollow interior
+as a hole.
+
+## Box tab diagrams — original artwork, own visual language
+
+The 6 box-type diagrams (`#box-diagram-sealed/ported/pr/bp4/bp6/bp8`) are
+original SVG artwork (navy `#0F4761` line art, not traced from any
+reference), read left-to-right rather than the real WinISD icon's
+front-on driver circle: a right-hand chamber wall carries the driver
+(cone + magnet block) and, where applicable, its own port; bandpass types
+split into two side-by-side chambers matching the "Rear chamber"/"Front
+chamber" field labels used on both this panel and the Vents tab.
+
+**ABC's driver sits on the outer wall, not the internal divider** — per
+`docs/winisd/box_types/abc_3d_model_dimensioned.png`, the driver cutout
+is on the enclosure's external front baffle, firing straight into the
+room, unlike 4th/6th order where the driver is fully enclosed and fires
+into two internal chambers with no outside exposure. So ABC's driver is
+drawn mounted on the front (right) chamber's own outer wall alongside its
+forward-facing port, not straddling the divider between chambers the way
+4th/6th order's fully-enclosed driver does.
 
 Also noted, not acted on: the real app's own Front-chamber Volume field is
 labelled in **m³** while Rear-chamber Volume is in **l** on the same

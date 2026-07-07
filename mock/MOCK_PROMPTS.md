@@ -364,3 +364,25 @@ if you cant turn them into simple SVG then use a more powerful model for that ta
 
 ok commit that
 now I want you to try these images instead .... [user-supplied alternate SVG diagram set: flat teal/navy (#0F4761) card-based cutaway illustrations for all 6 box types, top-loading driver style, different visual language from the WinISD reference icons]
+
+---
+
+side by side matches the names on the UI front/back.
+
+---
+
+the advantage of the top bottom appriach is that the vents always fact to the same side.
+
+---
+
+top/bottom was the wy the legacy diagram wewre drawn so I prefer the left to rigth layout
+
+---
+
+stop renaing stuff - WHAT do the WinIsd images I've uploaded call it - USE THE IMAGES AS THE AUTHORITY IN ALL CASES
+
+(btw the winisd does show Read chamber and Front chamber on the 4th order and 6th and ABC
+
+---
+
+In an ABC (Aperiodic Bi-Chamber) enclosure, the driver is always mounted on the outside face of the baffle, firing directly out into the open room. So our ABC diagram is wrong - put the driver on the right side wall of one of the enclosures - the one with the forward facing port lets say.
