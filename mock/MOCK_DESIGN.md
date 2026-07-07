@@ -356,3 +356,61 @@ Drivers toolbar menu's "Save as new..." item) still uses `window.prompt()`,
 since it's invoked directly from the toolbar with no modal open to host an
 inline row in — a deliberate, narrower scope than fixing every prompt in
 the mock.
+
+## Box tab diagrams — original artwork, not copies of WinISD's icons
+
+`docs/winisd/winisd_boxtypes.md` now holds reference screenshots of the
+real WinISD box-editor panels and icons for all 6 enclosure types (plus
+ABC's 3D model). Comparing them against the mock surfaced real functional
+distinctions the mock's diagrams weren't showing at all — every enclosure
+type previously reused the same plain box+driver SVG regardless of type,
+and the bandpass types never drew a vent line anywhere.
+
+The mock's 6 diagrams (`#box-diagram-sealed/ported/pr` on the single-chamber
+Box pane, `#box-diagram-bp4/bp6/bp8` on the dual-chamber pane, toggled by
+`setEnclosureType()`) are original line art in the mock's own house style
+(thin grey stroke, driver = ring + filled dust-cap), not traced copies of
+WinISD's pixel icons — informed by the reference screenshots' functional
+differences, not their exact drawing:
+
+- **Sealed** — box + driver, nothing else.
+- **Vented** — adds two horizontal lines (a port) below the driver.
+- **Passive radiator** — a second, smaller ring next to the driver with a
+  wavy line across it (no dust cap — it's unpowered) instead of port
+  lines, to read as visually distinct from "vented".
+- **4th order bandpass** — two chambers separated by a shelf, driver
+  straddling the shelf (mounted between them, matching the real icon's
+  shelf-mount rather than the mock's earlier fully-enclosed-in-one-chamber
+  look); only the front/lower chamber gets vent lines (rear stays sealed).
+- **6th order bandpass** — same two-chamber/shelf-mounted-driver layout,
+  vent lines in _both_ chambers now (both are ported).
+- **ABC (8th order)** — same two-chamber layout again (kept consistent
+  with 4th/6th rather than switching to WinISD's more abstract
+  schematic-only preview), plus a small tick-mark pair on the shelf next
+  to the driver standing in for the aperiodic leak path between chambers,
+  and the "ABC" label.
+
+Also noted, not acted on: the real app's own Front-chamber Volume field is
+labelled in **m³** while Rear-chamber Volume is in **l** on the same
+panel (4th/6th/ABC) — an inconsistency in WinISD itself, left as
+observed reference only.
+
+## Bottom content panel — fixed height, never scrolls; chart is the flexible one
+
+The `.main` grid's bottom row (nav tablist + content-panel) was already a
+fixed pixel row rather than `1fr`, but the fixed value (260px) was too
+short for some tab content — every tab's `.tab-section` overflowed it to
+some degree, silently relying on `.content-panel`'s `overflow-y: auto` to
+paper over it with a scrollbar. Worst case was the ABC (8th order
+bandpass) box type: its Box-tab dual-chamber diagram and its Vents-tab
+three vent groups (Rear/Front/Intrachamber) both needed ~380px.
+
+Fixed properly rather than patched: the fixed row grew to **390px** (fits
+the ABC worst case with a couple of pixels to spare, measured via each
+`.tab-section`'s natural `scrollHeight`), `.content-panel` changed from
+`overflow-y: auto` to `overflow: hidden` (so a future regression clips
+instead of silently scrolling — a visible bug, not a hidden one), and the
+graph row stays `1fr` — it absorbs the space the bottom row gave up. The
+graph area only ever shows one chart at a time (a dropdown picks
+SPL/Cone excursion/Impedance/etc, not a 2×2 grid), so shrinking its
+height by ~130px cost nothing in layout quality.
