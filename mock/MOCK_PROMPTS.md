@@ -328,3 +328,39 @@ only Save Changes or Revert clears the unsaved changhes NOT saving as file!!!
 ---
 
 BTW drop down is too narrow
+
+---
+
+FFS those diagrams are crap. Expecially the standard vs isobarik images - just truely awful. I am telling you COPY The diagrams that already exist in the screen shots DO NOT INTERPRET THEM AS YOU ARE AN IDIOT AI
+Compare you crap diagrams to the screen shots critical analysiis
+
+---
+
+Re the chart - dont just bloddy stretch it redraw it to scale out to 20k or something - the fonts are all stretched
+
+---
+
+Save changes and Revert should be yellow Save as file should be Export driver... exerywhere 'Save' means to local storage 'Export' means to disk.
+
+---
+
+update project docs with those meanings
+
+---
+
+is this how the original was laid out [screenshot of real WinISD vented Box panel] Why cant you see that it's different - just look at your vs the original !!!!!! BE MORE CRITICAL
+
+I dont understand why you can't just follow the layout in these existing screenshots and keep going off piste. Look at this 'Box' page for vented... [screenshot] why is it so hard for you to make the 'Rear Chamber' heading match the width of the inpt fields below it and why so difficulty to copy the side on cut thru diagrams properly . I mean look at your stupid vented box diagram - there are a couple of floaring detached blue lines - wtf is that, why isn't there a port as shown in the original, and why isn'y yhe little speaker image look like a little speaker, instead it looks like fuck knows what triangle
+
+---
+
+ok are these SVG or are they simply cut out of the images? I don't want a cut bmp/png - so what are they?
+
+---
+
+if you cant turn them into simple SVG then use a more powerful model for that task
+
+---
+
+ok commit that
+now I want you to try these images instead .... [user-supplied alternate SVG diagram set: flat teal/navy (#0F4761) card-based cutaway illustrations for all 6 box types, top-loading driver style, different visual language from the WinISD reference icons]
