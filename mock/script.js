@@ -107,13 +107,19 @@ function setEnclosureType(type) {
   const isDual = type === 'bp4' || type === 'bp6' || type === 'bp8';
   document.getElementById('box-single-chamber').style.display = isDual ? 'none' : 'block';
   document.getElementById('box-dual-chamber').style.display = isDual ? 'block' : 'none';
+
+  ['box-diagram-sealed', 'box-diagram-ported', 'box-diagram-pr'].forEach(id => {
+    document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
+  });
+
   if (isDual) {
     const headings = { bp4: '4th Order Bandpass', bp6: '6th Order Bandpass', bp8: '8th Order Bandpass — ABC (Aperiodic Bi-Chamber)' };
     document.getElementById('box-dual-heading').textContent = headings[type];
     document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Chamber 1 (sealed)' : 'Chamber 1 (vented)';
     document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
-    document.getElementById('box-diagram-abc').style.display = (type === 'bp8') ? 'block' : 'none';
-    document.getElementById('box-diagram-generic').style.display = (type === 'bp8') ? 'none' : 'block';
+    ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-bp8'].forEach(id => {
+      document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
+    });
   }
 
   ENCLOSURE_TYPES.forEach(t => {

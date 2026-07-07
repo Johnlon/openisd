@@ -115,7 +115,7 @@ button, select, input { font-family: inherit; font-size: 14px; }
 .main {
   display: grid;
   grid-template-columns: 250px 1fr;
-  grid-template-rows: 1fr 260px;
+  grid-template-rows: 1fr 390px;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -214,7 +214,7 @@ button, select, input { font-family: inherit; font-size: 14px; }
   border: 1px solid #999;
   border-left: none;
   padding: 10px 16px;
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
   position: relative;
   z-index: 0;

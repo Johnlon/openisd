@@ -259,3 +259,15 @@ nothing is actually saved to the project permanently unless the Save changes is 
 
 Unsaved changesSave Changes
 Save as file should be to the left and Export to file shold not dismiss the save button - keep the save button on show adn export but make them yellow and add a labe lif unsaved
+
+---
+
+I created docs/winisd/box_types.md to provide detail on the winisd box types and the box diagrams
+
+---
+
+create our own version of the box type diagrams
+
+---
+
+the panel at the bottom must be fixed size and never scroll - chart can be flexi size
