@@ -327,20 +327,22 @@ visible signal that the project had unsaved modifications. Added:
   inside the open Tune panel, Driver Editor's Done (project mode only —
   not My Drivers mode, which doesn't touch "the project"), and a direct
   Select Driver commit.
-- **Save Changes** and **Save as file** buttons sit at the **left** of the
-  `.parstate-legend` bar at the top of the content panel (the
-  Entered/Calculated/Not-available legend stays on the right —
+- **Save Changes**, **Revert**, and **Save as file** buttons sit at the
+  **left** of the `.parstate-legend` bar at the top of the content panel
+  (the Entered/Calculated/Not-available legend stays on the right —
   `justify-content: space-between` across two grouped `<div>`s) and are
   **always visible**, not conditionally shown — exporting must not make the
-  save controls disappear. Only their styling reacts to `projectModified`:
-  clean = neutral grey; dirty = yellow (`.save-btn.dirty`) plus a pulsing
-  "Unsaved changes" label appears next to them. Save Changes is decorative
-  (a real build would persist to `localStorage`/IndexedDB here); Save as
-  file is a real download of the project's driver + Tune fields
-  (`.wpr.txt`, deliberately not claiming real WPR binary/XML
-  compatibility, same spirit as the Driver Editor's own `.wdr.txt`
-  export). Both clear `projectModified` (back to the neutral styling, not
-  hidden).
+  save controls disappear. Only Save Changes/Revert's styling reacts to
+  `projectModified`: clean = neutral grey; dirty = yellow
+  (`.save-btn.dirty`) plus a pulsing "Unsaved changes" label next to them.
+  Save Changes is decorative (a real build would persist to
+  `localStorage`/IndexedDB here) but does capture a `lastSavedSnapshot`
+  (Brand/Model + Tune fields) that Revert restores from. **Only Save
+  Changes and Revert clear `projectModified`** — Save as file is a real
+  download of the project's driver + Tune fields (`.wpr.txt`, deliberately
+  not claiming real WPR binary/XML compatibility, same spirit as the
+  Driver Editor's own `.wdr.txt` export) but is just an export, not a save:
+  it leaves the dirty flag and the last-saved snapshot untouched.
 - Tune counts as its own edit path, distinct from Edit/Done, per the
   earlier Edit-vs-Tune decision — it just wasn't wired into "this leaves
   the project unsaved" until now.
@@ -368,49 +370,69 @@ and the bandpass types never drew a vent line anywhere.
 
 The mock's 6 diagrams (`#box-diagram-sealed/ported/pr` on the single-chamber
 Box pane, `#box-diagram-bp4/bp6/bp8` on the dual-chamber pane, toggled by
-`setEnclosureType()`) are original line art in the mock's own house style
-(thin grey stroke, driver = ring + filled dust-cap), not traced copies of
-WinISD's pixel icons — informed by the reference screenshots' functional
-differences, not their exact drawing:
+`setEnclosureType()`) are **side cut-through cross-sections**, not front
+baffle views — matching how the real WinISD box-type icons
+(`docs/winisd/box_types/*_icon.png`) actually draw them. Original line art
+in the mock's own house style (solid dark shapes on a plain box outline),
+not traced pixel copies, but the same visual language: the driver is drawn
+as its basket/frame profile mounted _through a wall_ in cross-section, not
+a circle facing the viewer.
 
-- **Sealed** — box + driver, nothing else.
-- **Vented** — adds two horizontal lines (a port) below the driver.
-- **Passive radiator** — a second, smaller ring next to the driver with a
-  wavy line across it (no dust cap — it's unpowered) instead of port
-  lines, to read as visually distinct from "vented".
-- **4th order bandpass** — two chambers separated by a shelf, driver
-  straddling the shelf (mounted between them, matching the real icon's
-  shelf-mount rather than the mock's earlier fully-enclosed-in-one-chamber
-  look); only the front/lower chamber gets vent lines (rear stays sealed).
+- **Sealed** — box + a flanged basket profile (tapered kite + two mounting
+  tabs with screw dots) mounted through the right wall. Nothing else.
+- **Vented** — same basket, plus two horizontal lines near the bottom (a
+  port).
+- **Passive radiator** — same basket, plus a jagged zigzag line near the
+  bottom instead of straight port lines, reading as distinct from "vented".
+- **4th order bandpass** — two chambers separated by a shelf, a flanged
+  driver profile straddling the shelf between them; only the front/lower
+  chamber gets vent lines (rear stays sealed).
 - **6th order bandpass** — same two-chamber/shelf-mounted-driver layout,
-  vent lines in _both_ chambers now (both are ported).
-- **ABC (8th order)** — same two-chamber layout again (kept consistent
-  with 4th/6th rather than switching to WinISD's more abstract
-  schematic-only preview), plus a small tick-mark pair on the shelf next
-  to the driver standing in for the aperiodic leak path between chambers,
-  and the "ABC" label.
+  vent lines in _both_ chambers (both are ported).
+- **ABC (8th order)** — same two-chamber layout, plus a small tick-mark
+  pair on the shelf next to the driver standing in for the aperiodic leak
+  path between chambers, and the "ABC" label.
+
+The Driver tab's Standard/Iso-Barik placement diagrams (`#wiring-standard`/
+`#wiring-isobarik`) follow the same cut-through language, matching
+`docs/winisd/view_1_driver_drivers_standard.png`/`_iso-barik.png`: a box
+with a vertical mounting-wall centerline, and the driver's basket profile
+centered on that line (not a front-on circle) — a bowtie/hourglass shape
+for Standard's single driver, a rounder body with a 4-direction arrow
+cross (standing in for the clamshell-coupled chamber) for Iso-Barik's pair.
 
 Also noted, not acted on: the real app's own Front-chamber Volume field is
 labelled in **m³** while Rear-chamber Volume is in **l** on the same
 panel (4th/6th/ABC) — an inconsistency in WinISD itself, left as
 observed reference only.
 
-## Bottom content panel — fixed height, never scrolls; chart is the flexible one
+## Bandpass Vents tab — compact side-by-side vent groups, not stacked
 
-The `.main` grid's bottom row (nav tablist + content-panel) was already a
-fixed pixel row rather than `1fr`, but the fixed value (260px) was too
-short for some tab content — every tab's `.tab-section` overflowed it to
-some degree, silently relying on `.content-panel`'s `overflow-y: auto` to
-paper over it with a scrollbar. Worst case was the ABC (8th order
-bandpass) box type: its Box-tab dual-chamber diagram and its Vents-tab
-three vent groups (Rear/Front/Intrachamber) both needed ~380px.
+The Vents tab's 4th/6th/8th-order panes (`#enclosure-bp4/bp6/bp8`) show
+each chamber's vent as its own narrow column (`.vent-groups`/`.vent-col`)
+side by side under one "Vents" heading, instead of a separate full-width
+`.two-col` block (with its own section-header) per chamber stacked
+vertically. ABC's three vent groups (Rear/Front/Intrachamber) are what
+made stacking too tall to fit without scrolling — three columns side by
+side fit the same content in a third of the height. Each column uses
+narrower field labels than the general `.field` convention (`110px` vs
+`195px`) so three columns comfortably share the content panel's width.
 
-Fixed properly rather than patched: the fixed row grew to **390px** (fits
-the ABC worst case with a couple of pixels to spare, measured via each
-`.tab-section`'s natural `scrollHeight`), `.content-panel` changed from
-`overflow-y: auto` to `overflow: hidden` (so a future regression clips
-instead of silently scrolling — a visible bug, not a hidden one), and the
-graph row stays `1fr` — it absorbs the space the bottom row gave up. The
-graph area only ever shows one chart at a time (a dropdown picks
-SPL/Cone excursion/Impedance/etc, not a 2×2 grid), so shrinking its
-height by ~130px cost nothing in layout quality.
+## Bottom content panel — fixed height, never scrolls; chart fills the rest
+
+The `.main` grid's bottom row (nav tablist + content-panel) is a fixed
+pixel row (currently **290px**), not `1fr` — sized to the tallest tab's
+natural content height (`Driver`, ~232px, plus padding/legend overhead)
+with a small margin, not grown to fit the worst case by inflating the row;
+the Vents-tab compaction above is what keeps the worst case (ABC) inside
+that budget instead of needing a taller row. `.content-panel` uses
+`overflow: hidden` rather than `overflow-y: auto`, so any future tab that
+overflows this budget clips visibly (a bug to fix) instead of silently
+growing a scrollbar. The graph row stays `1fr` and absorbs whatever height
+the bottom row doesn't use.
+
+The graph SVGs (`#graph-spl`, `#graph-transferfn`) use
+`preserveAspectRatio="none"` so they stretch to completely fill
+`.graph-wrap` regardless of its aspect ratio, rather than the SVG default
+(`xMidYMid meet`) letterboxing the chart within empty space when the
+container's aspect ratio doesn't match the viewBox's.

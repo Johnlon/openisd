@@ -271,3 +271,60 @@ create our own version of the box type diagrams
 ---
 
 the panel at the bottom must be fixed size and never scroll - chart can be flexi size
+
+---
+
+what happened to the mock - the bottom panel now takes up 1/2 the screen instead of being minimal non-scrolling
+
+---
+
+andthe chart is still narrow and not filling panel
+
+---
+
+why repear the bo type in a header ...
+
+Box Type
+
+4th Order Bandpass
+(mock control — real WinISD sets this via the enclosure-type project setting)
+4th Order Bandpass
+
+Do not need the drop down AND the tital bar that repeats it just below it - waste of space and move the drop down close to the label 'Box type'
+
+also the diags on hte Driver page for standard ad isobarik are nonsences - look at the origicnal screen shots !!!!! LOOK AT THEM !!!!
+
+---
+
+also I added the screen shots from the box types in docs/winisd and ask for the mockup detail panels to use images that match those in that doco but the diagraps you gave are stuping front on diagrals not side cut thru as in the original
+
+also the diags on hte Driver page for standard ad isobarik are nonsences - look at the origicnal screen shots !!!!! LOOK AT THEM !!!!
+
+---
+
+the chart needs to flow to fill the available space.AND the bottom section needs to be as small as possible without scrolling - you broke this FIX IT and the image onthe box page needs to be a side cut thru LIKE IN THE PNG SCREEN SHOTS AND THE box type doco I provided !!!!!
+
+---
+
+Rear chamber
+Number
+
+->
+Rear chamber
+Number of Vents
+
+---
+
+Tab "Vents" should be "Vented"
+
+---
+
+Save Changes
+Save as file
+Revert is needed
+
+only Save Changes or Revert clears the unsaved changhes NOT saving as file!!!
+
+---
+
+BTW drop down is too narrow

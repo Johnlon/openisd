@@ -97,7 +97,7 @@ const ENCLOSURE_TYPES = ['sealed', 'ported', 'pr', 'bp4', 'bp6', 'bp8'];
 function setEnclosureType(type) {
   const label = document.getElementById('nav-enclosure-label');
   const panes = {
-    sealed: 'Sealed', ported: 'Vents', pr: 'Passive Radiator',
+    sealed: 'Sealed', ported: 'Vented', pr: 'Passive Radiator',
     bp4: '4th Order BP', bp6: '6th Order BP', bp8: 'ABC',
   };
   label.textContent = panes[type];
@@ -113,8 +113,6 @@ function setEnclosureType(type) {
   });
 
   if (isDual) {
-    const headings = { bp4: '4th Order Bandpass', bp6: '6th Order Bandpass', bp8: '8th Order Bandpass — ABC (Aperiodic Bi-Chamber)' };
-    document.getElementById('box-dual-heading').textContent = headings[type];
     document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Chamber 1 (sealed)' : 'Chamber 1 (vented)';
     document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
     ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-bp8'].forEach(id => {
@@ -341,9 +339,32 @@ function clearProjectModified() {
   updateUnsavedIndicator();
 }
 
+// The project's "last saved" state — what Revert restores to. Only
+// Save Changes (and, implicitly, page load) ever update this snapshot;
+// Save as file is just an export and deliberately does not touch it.
+function captureProjectSnapshot() {
+  return {
+    brand: document.getElementById('driver-brand-field').value,
+    model: document.getElementById('driver-model-field').value,
+    tune: Array.from(document.querySelectorAll('#tune-panel .tune-fld:not(.tune-ro) input')).map(i => i.value),
+  };
+}
+let lastSavedSnapshot = null;
+
 function saveProjectChangesLocal() {
   // Fake/decorative — a real build would persist the project's live state
   // (driver, box, filters, ...) to localStorage/IndexedDB here.
+  lastSavedSnapshot = captureProjectSnapshot();
+  clearProjectModified();
+}
+
+function revertProjectChanges() {
+  if (!lastSavedSnapshot) return;
+  document.getElementById('driver-brand-field').value = lastSavedSnapshot.brand;
+  document.getElementById('driver-model-field').value = lastSavedSnapshot.model;
+  document.querySelectorAll('#tune-panel .tune-fld:not(.tune-ro) input').forEach((input, i) => {
+    if (lastSavedSnapshot.tune[i] !== undefined) input.value = lastSavedSnapshot.tune[i];
+  });
   clearProjectModified();
 }
 
@@ -362,7 +383,8 @@ function saveProjectChangesToFile() {
   a.download = `${brand}_${model}.wpr.txt`.replace(/\s+/g, '_');
   a.click();
   URL.revokeObjectURL(url);
-  clearProjectModified();
+  // Deliberately does NOT clear the dirty flag — exporting a file is not
+  // the same as saving; only Save Changes / Revert do that.
 }
 
 // ---------------- Manage Drivers (My Drivers, in-memory only — fake/decorative
@@ -697,6 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   quickAddFilter('Lowpass');
   initSpinners(document);
   refreshProjectTraceVisibility();
+  lastSavedSnapshot = captureProjectSnapshot();
 
   // Tune is reactive/live by design (the graph updates as you type), so any
   // edit there immediately modifies the project's in-memory state — same as
