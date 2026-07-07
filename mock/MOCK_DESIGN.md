@@ -359,52 +359,43 @@ since it's invoked directly from the toolbar with no modal open to host an
 inline row in — a deliberate, narrower scope than fixing every prompt in
 the mock.
 
-## Box tab diagrams — original artwork, not copies of WinISD's icons
+## Box tab diagrams — potrace vector traces of the real icons, not interpretations
 
-`docs/winisd/winisd_boxtypes.md` now holds reference screenshots of the
-real WinISD box-editor panels and icons for all 6 enclosure types (plus
-ABC's 3D model). Comparing them against the mock surfaced real functional
-distinctions the mock's diagrams weren't showing at all — every enclosure
-type previously reused the same plain box+driver SVG regardless of type,
-and the bandpass types never drew a vent line anywhere.
+`docs/winisd/winisd_boxtypes.md` holds reference screenshots of the real
+WinISD box-editor panels and icons for all 6 enclosure types (plus ABC's
+3D model), and `docs/winisd/box_types/*_icon.png` are the individual icon
+crops. Two earlier attempts at these diagrams were both wrong: a
+hand-drawn geometric approximation (front-on circle, then a simplified
+bowtie/kite) lost all the real basket-frame detail, and a raster `<img>`
+crop reproduced the pixels but doesn't scale/theme like the rest of the
+SVG-based UI.
 
-The mock's 6 diagrams (`#box-diagram-sealed/ported/pr` on the single-chamber
-Box pane, `#box-diagram-bp4/bp6/bp8` on the dual-chamber pane, toggled by
-`setEnclosureType()`) are **side cut-through cross-sections**, not front
-baffle views — matching how the real WinISD box-type icons
-(`docs/winisd/box_types/*_icon.png`) actually draw them. Original line art
-in the mock's own house style (solid dark shapes on a plain box outline),
-not traced pixel copies, but the same visual language: the driver is drawn
-as its basket/frame profile mounted _through a wall_ in cross-section, not
-a circle facing the viewer.
-
-- **Sealed** — box + a flanged basket profile (tapered kite + two mounting
-  tabs with screw dots) mounted through the right wall. Nothing else.
-- **Vented** — same basket, plus two horizontal lines near the bottom (a
-  port).
-- **Passive radiator** — same basket, plus a jagged zigzag line near the
-  bottom instead of straight port lines, reading as distinct from "vented".
-- **4th order bandpass** — two chambers separated by a shelf, a flanged
-  driver profile straddling the shelf between them; only the front/lower
-  chamber gets vent lines (rear stays sealed).
-- **6th order bandpass** — same two-chamber/shelf-mounted-driver layout,
-  vent lines in _both_ chambers (both are ported).
-- **ABC (8th order)** — same two-chamber layout, plus a small tick-mark
-  pair on the shelf next to the driver standing in for the aperiodic leak
-  path between chambers, and the "ABC" label.
-
-The Driver tab's Standard/Iso-Barik placement diagrams (`#wiring-standard`/
-`#wiring-isobarik`) follow the same cut-through language, matching
-`docs/winisd/view_1_driver_drivers_standard.png`/`_iso-barik.png`: a box
-with a vertical mounting-wall centerline, and the driver's basket profile
-centered on that line (not a front-on circle) — a bowtie/hourglass shape
-for Standard's single driver, a rounder body with a 4-direction arrow
-cross (standing in for the clamshell-coupled chamber) for Iso-Barik's pair.
+The diagrams (`#box-diagram-sealed/ported/pr/bp4/bp6/bp8`,
+`#wiring-standard/isobarik`) are now **potrace vector traces of the actual
+reference images** — the `potrace` npm package run once (in a throwaway
+`build/trace-tool/`, not a project dependency) against each source PNG
+(`docs/winisd/box_types/*_icon.png` for the box types; two new crops of
+`docs/winisd/view_1_driver_drivers_standard.png`/`_iso-barik.png` traced
+directly, no intermediate file kept) to produce a faithful `<path>` per
+icon, inlined directly in `index.html`. This reproduces the real basket
+flanges, mounting-tab notches, port lines, and the ABC leak-symbol/label
+pixel-accurately, as a crisp scalable vector — not a redrawn
+interpretation and not a soft raster crop. Every traced `<path>` needs
+`fill-rule="evenodd"` (potrace's winding convention) — omitting it fills
+the whole silhouette solid black instead of showing the box's hollow
+interior as a hole.
 
 Also noted, not acted on: the real app's own Front-chamber Volume field is
 labelled in **m³** while Rear-chamber Volume is in **l** on the same
 panel (4th/6th/ABC) — an inconsistency in WinISD itself, left as
 observed reference only.
+
+The Box tab's field column (`.box-fields-col`) is fixed-width (`300px`)
+rather than `flex: 1` — without that, it was the only flex:1 sibling once
+the diagram column went `flex: none`, so it stretched to fill the whole
+remaining row and dragged its `.section-header` bar far wider than the
+actual input fields it labels (the real WinISD panel sizes the header to
+just the field column's width).
 
 ## Bandpass Vents tab — compact side-by-side vent groups, not stacked
 

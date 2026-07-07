@@ -232,6 +232,13 @@ button, select, input { font-family: inherit; font-size: 14px; }
 .two-col { display: flex; gap: 24px; }
 .two-col > div { flex: 1; min-width: 0; }
 
+/* Box tab's field column, paired with a fixed-width diagram-wrap sibling:
+   without this the fields column (the only flex:1 sibling once the
+   diagram is flex:none) stretches to fill the whole remaining row width,
+   dragging its .section-header far wider than the fields it labels —
+   the real WinISD panel sizes the header to just the field column. */
+.box-fields-col { flex: none; width: 300px; }
+
 /* Compact side-by-side vent groups (bandpass Vents tab) — narrower labels
    than the general .field convention so 2-3 groups fit one row's width
    instead of stacking full-width groups vertically. */
