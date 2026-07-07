@@ -148,7 +148,7 @@
       <div class="graph-wrap">
 
         <!-- SPL graph (default) -->
-        <svg id="graph-spl" viewBox="0 0 1040 650" style="display:block">
+        <svg id="graph-spl" viewBox="0 0 1040 650" preserveAspectRatio="none" style="display:block">
           <rect x="40" y="10" width="980" height="600" fill="#fff" stroke="#999"/>
           <!-- horizontal gridlines / dB labels -->
           <g stroke="#e3e3e3">
@@ -197,7 +197,7 @@
         </svg>
 
         <!-- Transfer function magnitude graph (multi-project overlay demo) -->
-        <svg id="graph-transferfn" viewBox="0 0 1040 650" style="display:none">
+        <svg id="graph-transferfn" viewBox="0 0 1040 650" preserveAspectRatio="none" style="display:none">
           <rect x="40" y="10" width="980" height="600" fill="#fff" stroke="#999"/>
           <g stroke="#e3e3e3">
             <line x1="40" y1="610" x2="1020" y2="610"/><line x1="40" y1="460" x2="1020" y2="460"/>
@@ -256,7 +256,8 @@
         <div class="unsaved-indicator" id="unsaved-indicator">
           <span class="unsaved-label" id="unsaved-label" style="display:none;"><span class="unsaved-dot"></span>Unsaved changes</span>
           <button id="btn-save-changes" class="save-btn" title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
-          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk." onclick="saveProjectChangesToFile()">Save as file</button>
+          <button id="btn-revert" class="save-btn" title="Discards live changes, restoring the project to its last-saved state." onclick="revertProjectChanges()">Revert</button>
+          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk. Does not mark the project as saved — Save Changes or Revert are what clear unsaved changes." onclick="saveProjectChangesToFile()">Save as file</button>
         </div>
         <div class="parstate-swatches">
           <span><span class="swatch green"></span>Entered</span>
@@ -293,22 +294,36 @@
             </div>
           </div>
           <div class="field-row" style="margin-top:6px;">
-            <!-- Box illustration, consistent with the Box tab's icon. Standard:
-                 single driver facing out through the baffle. Iso-Barik: two
-                 drivers clamshell-mounted facing in, toward each other. -->
+            <!-- Side cut-through matching docs/winisd/view_1_driver_drivers_*.png:
+                 a box with a vertical mounting-wall centerline and the driver's
+                 basket profile centered on it — not a front baffle view.
+                 Standard: one driver (hourglass/bowtie basket profile).
+                 Iso-Barik: two drivers clamshell-coupled (rounder body, a
+                 4-direction arrow cross standing in for the coupled chamber). -->
             <svg id="wiring-standard" viewBox="0 0 100 70" width="95" height="66" style="display:block">
-              <rect x="10" y="8" width="55" height="54" fill="none" stroke="#555" stroke-width="2"/>
-              <line x1="65" y1="8" x2="65" y2="62" stroke="#555" stroke-width="2"/>
-              <polygon points="65,20 85,28 85,42 65,50" fill="none" stroke="#333" stroke-width="1.6"/>
-              <line x1="70" y1="25" x2="80" y2="30" stroke="#333" stroke-width="1"/>
-              <line x1="70" y1="45" x2="80" y2="40" stroke="#333" stroke-width="1"/>
+              <rect x="10" y="8" width="80" height="54" fill="none" stroke="#555" stroke-width="2"/>
+              <line x1="50" y1="8" x2="50" y2="62" stroke="#555" stroke-width="2"/>
+              <polygon points="36,16 64,16 50,35" fill="#333"/>
+              <polygon points="36,54 64,54 50,35" fill="#333"/>
+              <circle cx="36" cy="16" r="1.6" fill="#fff"/>
+              <circle cx="64" cy="16" r="1.6" fill="#fff"/>
+              <circle cx="36" cy="54" r="1.6" fill="#fff"/>
+              <circle cx="64" cy="54" r="1.6" fill="#fff"/>
             </svg>
             <svg id="wiring-isobarik" viewBox="0 0 100 70" width="95" height="66" style="display:none">
-              <rect x="10" y="8" width="55" height="54" fill="none" stroke="#555" stroke-width="2"/>
-              <line x1="65" y1="8" x2="65" y2="62" stroke="#555" stroke-width="2"/>
-              <polygon points="65,12 85,18 85,32 65,38" fill="none" stroke="#333" stroke-width="1.6"/>
-              <polygon points="65,60 85,54 85,40 65,34" fill="none" stroke="#333" stroke-width="1.6"/>
-              <line x1="80" y1="24" x2="80" y2="46" stroke="#999" stroke-width="1" stroke-dasharray="2,2"/>
+              <rect x="10" y="8" width="80" height="54" fill="none" stroke="#555" stroke-width="2"/>
+              <line x1="50" y1="8" x2="50" y2="62" stroke="#555" stroke-width="2"/>
+              <ellipse cx="50" cy="35" rx="20" ry="17" fill="#333"/>
+              <circle cx="34" cy="20" r="1.6" fill="#fff"/>
+              <circle cx="66" cy="20" r="1.6" fill="#fff"/>
+              <circle cx="34" cy="50" r="1.6" fill="#fff"/>
+              <circle cx="66" cy="50" r="1.6" fill="#fff"/>
+              <line x1="50" y1="22" x2="50" y2="48" stroke="#fff" stroke-width="1.6"/>
+              <line x1="38" y1="35" x2="62" y2="35" stroke="#fff" stroke-width="1.6"/>
+              <polygon points="50,20 47,26 53,26" fill="#fff"/>
+              <polygon points="50,50 47,44 53,44" fill="#fff"/>
+              <polygon points="36,35 42,32 42,38" fill="#fff"/>
+              <polygon points="64,35 58,32 58,38" fill="#fff"/>
             </svg>
           </div>
         </div>
@@ -330,8 +345,8 @@
     <!-- ---- Box tab ---- -->
     <section id="tab-box" class="tab-section">
       <div class="field-row">
-        <div class="field"><label>Box Type</label>
-          <select id="box-type-select" style="width:180px" onchange="setEnclosureType(this.value)">
+        <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
+          <select id="box-type-select" style="width:240px" onchange="setEnclosureType(this.value)">
             <option value="sealed">Sealed</option>
             <option value="ported">Vented</option>
             <option value="pr" selected>Passive Radiator</option>
@@ -356,31 +371,41 @@
             <button class="link-btn" onclick="openModal('modal-box-losses')">Advanced-&gt;</button>
           </div>
           <div class="diagram-wrap">
+            <!-- Side cut-through, not a front baffle view: the driver's basket
+                 profile is mounted through the right wall, matching the real
+                 WinISD box-type icons (docs/winisd/box_types/*_icon.png). -->
             <svg width="110" height="90" id="box-diagram-sealed" style="display:none">
               <rect x="10" y="10" width="70" height="70" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="45" cy="45" r="22" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="45" cy="45" r="9" fill="#999"/>
+              <rect x="77" y="24" width="9" height="8" fill="#333"/>
+              <rect x="77" y="58" width="9" height="8" fill="#333"/>
+              <polygon points="80,28 80,62 56,45" fill="#333"/>
+              <circle cx="81.5" cy="28" r="1.4" fill="#fff"/>
+              <circle cx="81.5" cy="66" r="1.4" fill="#fff"/>
             </svg>
             <svg width="110" height="90" id="box-diagram-ported" style="display:none">
               <rect x="10" y="10" width="70" height="70" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="45" cy="45" r="22" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="45" cy="45" r="9" fill="#999"/>
+              <rect x="77" y="24" width="9" height="8" fill="#333"/>
+              <rect x="77" y="58" width="9" height="8" fill="#333"/>
+              <polygon points="80,28 80,62 56,45" fill="#333"/>
+              <circle cx="81.5" cy="28" r="1.4" fill="#fff"/>
+              <circle cx="81.5" cy="66" r="1.4" fill="#fff"/>
               <line x1="18" y1="70" x2="72" y2="70" stroke="#1868d1" stroke-width="2"/>
-              <line x1="18" y1="76" x2="72" y2="76" stroke="#1868d1" stroke-width="2"/>
+              <line x1="18" y1="75" x2="72" y2="75" stroke="#1868d1" stroke-width="2"/>
             </svg>
             <svg width="110" height="90" id="box-diagram-pr" style="display:none">
               <rect x="10" y="10" width="70" height="70" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="32" cy="45" r="16" fill="none" stroke="#555" stroke-width="2"/>
-              <circle cx="32" cy="45" r="7" fill="#999"/>
-              <circle cx="62" cy="45" r="14" fill="none" stroke="#555" stroke-width="2"/>
-              <path d="M52 45 Q57 38 62 45 T72 45" fill="none" stroke="#555" stroke-width="1.6"/>
+              <rect x="77" y="24" width="9" height="8" fill="#333"/>
+              <rect x="77" y="58" width="9" height="8" fill="#333"/>
+              <polygon points="80,28 80,62 56,45" fill="#333"/>
+              <circle cx="81.5" cy="28" r="1.4" fill="#fff"/>
+              <circle cx="81.5" cy="66" r="1.4" fill="#fff"/>
+              <polyline points="18,72 26,68 34,72 42,68 50,72 58,68 66,72" fill="none" stroke="#555" stroke-width="1.6"/>
             </svg>
           </div>
         </div>
       </div>
 
       <div id="box-dual-chamber" style="display:none">
-        <div class="section-header" id="box-dual-heading">4th Order Bandpass</div>
         <div class="two-col">
           <div>
             <div class="section-header" id="box-chamber1-heading">Chamber 1 (sealed)</div>
@@ -400,39 +425,45 @@
               <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
-        </div>
-        <div class="diagram-wrap">
-          <svg width="110" height="130" id="box-diagram-bp4" style="display:none">
-            <rect x="10" y="10" width="70" height="48" fill="none" stroke="#555" stroke-width="2"/>
-            <rect x="10" y="62" width="70" height="53" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="19" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="8" fill="#999"/>
-            <line x1="20" y1="100" x2="70" y2="100" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="106" x2="70" y2="106" stroke="#1868d1" stroke-width="2"/>
-          </svg>
-          <svg width="110" height="130" id="box-diagram-bp6" style="display:none">
-            <rect x="10" y="10" width="70" height="48" fill="none" stroke="#555" stroke-width="2"/>
-            <rect x="10" y="62" width="70" height="53" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="19" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="8" fill="#999"/>
-            <line x1="20" y1="20" x2="70" y2="20" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="26" x2="70" y2="26" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="100" x2="70" y2="100" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="106" x2="70" y2="106" stroke="#1868d1" stroke-width="2"/>
-          </svg>
-          <svg width="110" height="130" id="box-diagram-bp8" style="display:none">
-            <rect x="10" y="10" width="70" height="48" fill="none" stroke="#555" stroke-width="2"/>
-            <rect x="10" y="62" width="70" height="53" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="19" fill="none" stroke="#555" stroke-width="2"/>
-            <circle cx="45" cy="60" r="8" fill="#999"/>
-            <line x1="66" y1="52" x2="66" y2="68" stroke="#c9972e" stroke-width="2"/>
-            <line x1="72" y1="52" x2="72" y2="68" stroke="#c9972e" stroke-width="2"/>
-            <line x1="20" y1="20" x2="70" y2="20" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="26" x2="70" y2="26" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="100" x2="70" y2="100" stroke="#1868d1" stroke-width="2"/>
-            <line x1="20" y1="106" x2="70" y2="106" stroke="#1868d1" stroke-width="2"/>
-            <text x="45" y="90" font-size="11" text-anchor="middle" fill="#333" font-weight="600">ABC</text>
-          </svg>
+          <div class="diagram-wrap" style="flex:none; width:90px;">
+            <svg width="90" height="110" id="box-diagram-bp4" style="display:none">
+              <rect x="10" y="8" width="70" height="40" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="10" y="52" width="70" height="50" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="28" y="44" width="34" height="9" fill="#333"/>
+              <polygon points="34,53 56,53 45,68" fill="#333"/>
+              <circle cx="32" cy="48.5" r="1.4" fill="#fff"/>
+              <circle cx="58" cy="48.5" r="1.4" fill="#fff"/>
+              <line x1="20" y1="86" x2="70" y2="86" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="92" x2="70" y2="92" stroke="#1868d1" stroke-width="2"/>
+            </svg>
+            <svg width="90" height="110" id="box-diagram-bp6" style="display:none">
+              <rect x="10" y="8" width="70" height="40" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="10" y="52" width="70" height="50" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="28" y="44" width="34" height="9" fill="#333"/>
+              <polygon points="34,53 56,53 45,68" fill="#333"/>
+              <circle cx="32" cy="48.5" r="1.4" fill="#fff"/>
+              <circle cx="58" cy="48.5" r="1.4" fill="#fff"/>
+              <line x1="20" y1="18" x2="70" y2="18" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="24" x2="70" y2="24" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="86" x2="70" y2="86" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="92" x2="70" y2="92" stroke="#1868d1" stroke-width="2"/>
+            </svg>
+            <svg width="90" height="110" id="box-diagram-bp8" style="display:none">
+              <rect x="10" y="8" width="70" height="40" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="10" y="52" width="70" height="50" fill="none" stroke="#555" stroke-width="2"/>
+              <rect x="28" y="44" width="34" height="9" fill="#333"/>
+              <polygon points="34,53 56,53 45,68" fill="#333"/>
+              <circle cx="32" cy="48.5" r="1.4" fill="#fff"/>
+              <circle cx="58" cy="48.5" r="1.4" fill="#fff"/>
+              <line x1="64" y1="42" x2="64" y2="58" stroke="#c9972e" stroke-width="2"/>
+              <line x1="70" y1="42" x2="70" y2="58" stroke="#c9972e" stroke-width="2"/>
+              <line x1="20" y1="18" x2="70" y2="18" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="24" x2="70" y2="24" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="86" x2="70" y2="86" stroke="#1868d1" stroke-width="2"/>
+              <line x1="20" y1="92" x2="70" y2="92" stroke="#1868d1" stroke-width="2"/>
+              <text x="45" y="72" font-size="10" text-anchor="middle" fill="#333" font-weight="600">ABC</text>
+            </svg>
+          </div>
         </div>
       </div>
     </section>
@@ -445,7 +476,7 @@
         <div class="two-col">
           <div>
             <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
+              <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
               <div class="field"><label>Shape</label>
                 <svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg>
                 round
@@ -511,29 +542,14 @@
       <!-- 4th order bandpass: sealed rear chamber + a single vented front
            chamber — only the front chamber has a vent to the outside. -->
       <div id="enclosure-bp4" style="display:none">
-        <div class="section-header">Front chamber vent</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Shape</label>
-                <svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg>
-                round
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-              <div class="field"><label>End Correction</label><select><option>0.732</option><option>0.613</option><option>0.849</option></select></div>
-            </div>
-          </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>Cross area</label><input type="text" class="calculated greyed" value="0.0064" readonly><span class="unit unit-cyc" data-ug="area" onclick="cycleUnit(this)">m&sup2;</span></div>
-            </div>
-            <div class="field-row">
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
+        <div class="section-header">Vents</div>
+        <div class="vent-groups">
+          <div class="vent-col">
+            <div class="vent-col-title">Front chamber</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
         </div>
       </div>
@@ -541,34 +557,21 @@
       <!-- 6th order bandpass: both chambers vented to the outside — a rear
            vent and a front vent, no connection between the chambers. -->
       <div id="enclosure-bp6" style="display:none">
-        <div class="section-header">Rear chamber vent</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="8.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-            </div>
+        <div class="section-header">Vents</div>
+        <div class="vent-groups">
+          <div class="vent-col">
+            <div class="vent-col-title">Rear chamber</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="8.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="1.640" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="48.50" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="1.640" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="48.50" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="section-header">Front chamber vent</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-            </div>
-          </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
+          <div class="vent-col">
+            <div class="vent-col-title">Front chamber</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
         </div>
       </div>
@@ -576,50 +579,29 @@
       <!-- 8th order bandpass — ABC (Aperiodic Bi-Chamber): both chambers
            vented to the outside, PLUS an inter-chamber port connecting them. -->
       <div id="enclosure-bp8" style="display:none">
-        <div class="section-header">Rear chamber vent</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="7.50"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-            </div>
+        <div class="section-header">Vents</div>
+        <div class="vent-groups">
+          <div class="vent-col">
+            <div class="vent-col-title">Rear chamber</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="7.50"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="1.520" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="45.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="1.520" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="45.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
+          <div class="vent-col">
+            <div class="vent-col-title">Front chamber</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
-        </div>
-        <div class="section-header">Front chamber vent</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="9.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-            </div>
-          </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="2.150" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="section-header">Intrachamber vent</div>
-        <div class="hint" style="margin-bottom:8px;">Connects the two chambers internally — not open to the outside.</div>
-        <div class="two-col">
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Number</label><select><option>1</option><option>2</option></select></div>
-              <div class="field"><label>Vent diameter</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div>
-            </div>
-          </div>
-          <div>
-            <div class="field-row">
-              <div class="field"><label>Vent length</label><input type="text" class="calculated greyed" value="1.100" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
-              <div class="field"><label>1st port resonance</label><input type="text" class="calculated greyed" value="61.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
-            </div>
+          <div class="vent-col">
+            <div class="vent-col-title">Intrachamber</div>
+            <div class="vent-col-hint">Connects the chambers — not open to the outside.</div>
+            <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+            <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">cm</span></div></div>
+            <div class="field-row"><div class="field"><label>Length</label><input type="text" class="calculated greyed" value="1.100" readonly><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div></div>
+            <div class="field-row"><div class="field"><label>Resonance</label><input type="text" class="calculated greyed" value="61.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div></div>
           </div>
         </div>
       </div>

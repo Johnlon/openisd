@@ -115,7 +115,7 @@ button, select, input { font-family: inherit; font-size: 14px; }
 .main {
   display: grid;
   grid-template-columns: 250px 1fr;
-  grid-template-rows: 1fr 390px;
+  grid-template-rows: 1fr 290px;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -230,7 +230,17 @@ button, select, input { font-family: inherit; font-size: 14px; }
   margin-bottom: 8px;
 }
 .two-col { display: flex; gap: 24px; }
-.two-col > div { flex: 1; }
+.two-col > div { flex: 1; min-width: 0; }
+
+/* Compact side-by-side vent groups (bandpass Vents tab) — narrower labels
+   than the general .field convention so 2-3 groups fit one row's width
+   instead of stacking full-width groups vertically. */
+.vent-groups { display: flex; gap: 20px; }
+.vent-col { flex: 1; min-width: 0; }
+.vent-col-title { font-weight: 600; color: #444; margin-bottom: 4px; }
+.vent-col-hint { color: #888; font-size: 11px; font-style: italic; margin-bottom: 4px; }
+.vent-col .field label { width: 110px; }
+.vent-col .field input { width: 55px; }
 
 /* Left-aligned field columns: every label gets the same min-width so inputs
    across stacked rows line up into a consistent left-aligned column,
