@@ -326,7 +326,7 @@ let projectModified = false;
 function updateUnsavedIndicator() {
   document.getElementById('unsaved-label').style.display = projectModified ? 'flex' : 'none';
   document.getElementById('btn-save-changes').classList.toggle('dirty', projectModified);
-  document.getElementById('btn-save-file').classList.toggle('dirty', projectModified);
+  document.getElementById('btn-revert').classList.toggle('dirty', projectModified);
 }
 
 function markProjectModified() {
@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const rect = wrap.getBoundingClientRect();
       const fx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const fy = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-      const freq = Math.round((10 * Math.pow(50, fx)) * 100) / 100;
+      const freq = Math.round((10 * Math.pow(2000, fx)) * 100) / 100;
       const db = Math.round((102 - fy * 60) * 1000) / 1000;
       const readout = document.getElementById('cursor-readout');
       if (readout) readout.innerHTML = freq.toFixed(2) + ' Hz<br>' + db.toFixed(3) + ' dB';

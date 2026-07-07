@@ -314,7 +314,7 @@ Cancel — Done sits second-from-right, immediately before Cancel, matching
 standard OK/Cancel placement (not first-of-the-group, which is where it
 originally landed).
 
-## Nothing is "saved" until Save Changes / Save as file — even Done
+## Nothing is "saved" until Save Changes / Export project — even Done
 
 Following on from the Select-Driver fix above: Done (Driver Editor),
 Tune's live edits, and a direct Select Driver all only ever update the
@@ -327,7 +327,7 @@ visible signal that the project had unsaved modifications. Added:
   inside the open Tune panel, Driver Editor's Done (project mode only —
   not My Drivers mode, which doesn't touch "the project"), and a direct
   Select Driver commit.
-- **Save Changes**, **Revert**, and **Save as file** buttons sit at the
+- **Save Changes**, **Revert**, and **Export project** buttons sit at the
   **left** of the `.parstate-legend` bar at the top of the content panel
   (the Entered/Calculated/Not-available legend stays on the right —
   `justify-content: space-between` across two grouped `<div>`s) and are
@@ -338,14 +338,26 @@ visible signal that the project had unsaved modifications. Added:
   Save Changes is decorative (a real build would persist to
   `localStorage`/IndexedDB here) but does capture a `lastSavedSnapshot`
   (Brand/Model + Tune fields) that Revert restores from. **Only Save
-  Changes and Revert clear `projectModified`** — Save as file is a real
+  Changes and Revert clear `projectModified`** — Export project is a real
   download of the project's driver + Tune fields (`.wpr.txt`, deliberately
   not claiming real WPR binary/XML compatibility, same spirit as the
-  Driver Editor's own `.wdr.txt` export) but is just an export, not a save:
-  it leaves the dirty flag and the last-saved snapshot untouched.
+  Driver Editor's own Export-driver `.wdr.txt` export) but is just an
+  export, not a save: it leaves the dirty flag and the last-saved
+  snapshot untouched.
 - Tune counts as its own edit path, distinct from Edit/Done, per the
   earlier Edit-vs-Tune decision — it just wasn't wired into "this leaves
   the project unsaved" until now.
+
+### Naming convention: "Save" = local/browser storage, "Export" = disk
+
+Applied everywhere a button writes state somewhere: **"Save"** means
+browser-local persistence (`localStorage`/IndexedDB — Save Changes, Save
+to My Drivers); **"Export"** means a real file download to physical disk
+(Export project's `.wpr.txt`, the Driver Editor's Export-driver `.wdr.txt`).
+The two are not interchangeable and a button's label should never blur
+them — e.g. the content panel's disk-download button is "Export project",
+not "Save as file", precisely because it does **not** touch browser
+storage or clear the unsaved-changes flag the way an actual Save does.
 
 ## Clone uses an integrated inline row, not `window.prompt()`
 
@@ -432,8 +444,27 @@ overflows this budget clips visibly (a bug to fix) instead of silently
 growing a scrollbar. The graph row stays `1fr` and absorbs whatever height
 the bottom row doesn't use.
 
-The graph SVGs (`#graph-spl`, `#graph-transferfn`) use
-`preserveAspectRatio="none"` so they stretch to completely fill
-`.graph-wrap` regardless of its aspect ratio, rather than the SVG default
-(`xMidYMid meet`) letterboxing the chart within empty space when the
-container's aspect ratio doesn't match the viewBox's.
+## Chart fills the panel via matching aspect ratio + a wider frequency axis, not stretching
+
+The graph SVGs (`#graph-spl`, `#graph-transferfn`) originally letterboxed
+inside `.graph-wrap` (empty margins left/right) because the viewBox
+(`1040×650`, aspect 1.6) didn't match the container's actual aspect
+(~2.0 at this layout). `preserveAspectRatio="none"` "fixed" that by
+stretching non-uniformly — which distorts all the axis-label text (fonts
+stretch horizontally). The real fix is two changes together, not a
+stretch hack:
+
+- **viewBox is now `1160×580`** (aspect 2.0), matching the actual
+  `.graph-wrap` aspect at this layout, so the default `xMidYMid meet`
+  scaling is already uniform and fills the box with no letterboxing and
+  no distortion.
+- **The frequency axis now runs 10 Hz – 20 kHz** (11 gridlines: 10, 20,
+  50, 100, 200, 500, 1k, 2k, 5k, 10k, 20k), not 10–500 Hz. The old
+  500 Hz cutoff was itself too narrow for an "SPL response" chart. Every
+  existing curve's plotted frequencies were remapped onto the new wider
+  log-scale axis exactly (same implied frequency at each point, just
+  repositioned), then extended with a plausible continued rolloff/
+  recovery out to 20 kHz — not just centered in more whitespace.
+- The `.graph-wrap` click handler's frequency readout (`script.js`) was
+  updated to match: `freq = 10 × 2000^fx` (was `10 × 50^fx`, tied to the
+  old 10–500 Hz range).

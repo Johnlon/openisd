@@ -386,3 +386,7 @@ stop renaing stuff - WHAT do the WinIsd images I've uploaded call it - USE THE I
 ---
 
 In an ABC (Aperiodic Bi-Chamber) enclosure, the driver is always mounted on the outside face of the baffle, firing directly out into the open room. So our ABC diagram is wrong - put the driver on the right side wall of one of the enclosures - the one with the forward facing port lets say.
+
+---
+
+go

@@ -148,87 +148,99 @@
       <div class="graph-wrap">
 
         <!-- SPL graph (default) -->
-        <svg id="graph-spl" viewBox="0 0 1040 650" preserveAspectRatio="none" style="display:block">
-          <rect x="40" y="10" width="980" height="600" fill="#fff" stroke="#999"/>
+        <svg id="graph-spl" viewBox="0 0 1160 580" style="display:block">
+          <rect x="40" y="10" width="1110" height="490" fill="#fff" stroke="#999"/>
           <!-- horizontal gridlines / dB labels -->
           <g stroke="#e3e3e3">
-            <line x1="40" y1="610" x2="1020" y2="610"/><line x1="40" y1="570" x2="1020" y2="570"/>
-            <line x1="40" y1="530" x2="1020" y2="530"/><line x1="40" y1="490" x2="1020" y2="490"/>
-            <line x1="40" y1="450" x2="1020" y2="450"/><line x1="40" y1="410" x2="1020" y2="410"/>
-            <line x1="40" y1="370" x2="1020" y2="370"/><line x1="40" y1="330" x2="1020" y2="330"/>
-            <line x1="40" y1="290" x2="1020" y2="290"/><line x1="40" y1="250" x2="1020" y2="250"/>
-            <line x1="40" y1="210" x2="1020" y2="210"/><line x1="40" y1="170" x2="1020" y2="170"/>
-            <line x1="40" y1="130" x2="1020" y2="130"/><line x1="40" y1="90" x2="1020" y2="90"/>
-            <line x1="40" y1="50" x2="1020" y2="50"/><line x1="40" y1="10" x2="1020" y2="10"/>
+            <line x1="40" y1="500" x2="1150" y2="500"/><line x1="40" y1="467.3" x2="1150" y2="467.3"/>
+            <line x1="40" y1="434.7" x2="1150" y2="434.7"/><line x1="40" y1="402" x2="1150" y2="402"/>
+            <line x1="40" y1="369.3" x2="1150" y2="369.3"/><line x1="40" y1="336.7" x2="1150" y2="336.7"/>
+            <line x1="40" y1="304" x2="1150" y2="304"/><line x1="40" y1="271.3" x2="1150" y2="271.3"/>
+            <line x1="40" y1="238.7" x2="1150" y2="238.7"/><line x1="40" y1="206" x2="1150" y2="206"/>
+            <line x1="40" y1="173.3" x2="1150" y2="173.3"/><line x1="40" y1="140.7" x2="1150" y2="140.7"/>
+            <line x1="40" y1="108" x2="1150" y2="108"/><line x1="40" y1="75.3" x2="1150" y2="75.3"/>
+            <line x1="40" y1="42.7" x2="1150" y2="42.7"/><line x1="40" y1="10" x2="1150" y2="10"/>
           </g>
           <g font-size="15" fill="#333" text-anchor="end">
-            <text x="34" y="614">42</text><text x="34" y="574">46</text>
-            <text x="34" y="534">50</text><text x="34" y="494">54</text>
-            <text x="34" y="454">58</text><text x="34" y="414">62</text>
-            <text x="34" y="374">66</text><text x="34" y="334">70</text>
-            <text x="34" y="294">74</text><text x="34" y="254">78</text>
-            <text x="34" y="214">82</text><text x="34" y="174">86</text>
-            <text x="34" y="134">90</text><text x="34" y="94">94</text>
-            <text x="34" y="54">98</text><text x="34" y="14">102</text>
+            <text x="34" y="504">42</text><text x="34" y="471.3">46</text>
+            <text x="34" y="438.7">50</text><text x="34" y="406">54</text>
+            <text x="34" y="373.3">58</text><text x="34" y="340.7">62</text>
+            <text x="34" y="308">66</text><text x="34" y="275.3">70</text>
+            <text x="34" y="242.7">74</text><text x="34" y="210">78</text>
+            <text x="34" y="177.3">82</text><text x="34" y="144.7">86</text>
+            <text x="34" y="112">90</text><text x="34" y="79.3">94</text>
+            <text x="34" y="46.7">98</text><text x="34" y="14">102</text>
           </g>
-          <!-- vertical gridlines / freq labels -->
+          <!-- vertical gridlines / freq labels, log scale 10 Hz - 20 kHz -->
           <g stroke="#e3e3e3">
-            <line x1="40" y1="10" x2="40" y2="610"/><line x1="213.7" y1="10" x2="213.7" y2="610"/>
-            <line x1="443.4" y1="10" x2="443.4" y2="610"/><line x1="616.8" y1="10" x2="616.8" y2="610"/>
-            <line x1="790.4" y1="10" x2="790.4" y2="610"/><line x1="1020" y1="10" x2="1020" y2="610"/>
+            <line x1="40" y1="10" x2="40" y2="500"/><line x1="141.2" y1="10" x2="141.2" y2="500"/>
+            <line x1="275" y1="10" x2="275" y2="500"/><line x1="376.3" y1="10" x2="376.3" y2="500"/>
+            <line x1="477.5" y1="10" x2="477.5" y2="500"/><line x1="611.3" y1="10" x2="611.3" y2="500"/>
+            <line x1="712.5" y1="10" x2="712.5" y2="500"/><line x1="813.7" y1="10" x2="813.7" y2="500"/>
+            <line x1="947.6" y1="10" x2="947.6" y2="500"/><line x1="1048.8" y1="10" x2="1048.8" y2="500"/>
+            <line x1="1150" y1="10" x2="1150" y2="500"/>
           </g>
-          <g font-size="15" fill="#333" text-anchor="middle">
-            <text x="40" y="632">10</text><text x="213.7" y="632">20</text>
-            <text x="443.4" y="632">50</text><text x="616.8" y="632">100</text>
-            <text x="790.4" y="632">200</text><text x="1020" y="632">500</text>
+          <g font-size="14" fill="#333" text-anchor="middle">
+            <text x="40" y="522">10</text><text x="141.2" y="522">20</text>
+            <text x="275" y="522">50</text><text x="376.3" y="522">100</text>
+            <text x="477.5" y="522">200</text><text x="611.3" y="522">500</text>
+            <text x="712.5" y="522">1k</text><text x="813.7" y="522">2k</text>
+            <text x="947.6" y="522">5k</text><text x="1048.8" y="522">10k</text>
+            <text x="1150" y="522">20k</text>
           </g>
 
           <polyline id="curve-standard" data-trace-for="pr" fill="none" stroke="#c9c92e" stroke-width="3"
-            points="40,290 105.7,260 172.9,230 213.7,210 269.5,195 315.3,190 354.0,185 387.4,170 417.0,110 443.4,50 467.1,15 489.0,10 527.5,20 561.0,40 590.5,55 616.8,70 662.5,95 718.4,130 790.4,170 846.4,205 892.0,240 930.6,270 964.4,295 994.0,320 1020,340"/>
+            points="40,238.7 78.3,214.2 117.5,189.7 141.3,173.3 173.8,161.1 200.5,157 223,152.9 242.5,140.7 259.8,91.7 275.2,42.7 289,14.1 301.7,10 324.2,18.2 343.7,34.5 360.9,46.8 376.2,59 402.9,79.4 435.5,108 477.4,140.7 510.1,169.3 536.7,197.8 559.2,222.3 578.9,242.8 596.1,263.2 611.3,279.5 712.5,330 813.8,380 947.6,430 1048.8,460 1150,480"/>
 
           <polyline id="curve-isobarik" data-trace-for="pr" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
-            points="40,310 213.7,230 315.3,150 387.4,80 443.4,40 489.0,50 527.5,80 561.0,80 590.5,65 616.8,50 662.5,70 718.4,130 790.4,180 846.4,230 892.0,270 930.6,300 964.4,320 994.0,335 1020,350"/>
+            points="40,255 141.3,189.7 200.5,124.3 242.5,67.2 275.2,34.5 301.7,42.7 324.2,67.2 343.7,67.2 360.9,54.9 376.2,42.7 402.9,59 435.5,108 477.4,148.8 510.1,189.7 536.7,222.3 559.2,246.8 578.9,263.2 596.1,275.4 611.3,287.7 712.5,340 813.8,390 947.6,440 1048.8,465 1150,485"/>
 
           <!-- second project's SPL trace (Epique15-ported) — independent of the
                Standard/Iso-Barik placement toggle above, which only applies to
                the currently-edited project's own curve. -->
           <polyline id="trace-ported-spl" data-trace-for="ported" fill="none" stroke="#3a7bd5" stroke-width="3" style="display:none"
-            points="40,330 105.7,300 172.9,265 213.7,235 269.5,205 315.3,175 354.0,140 387.4,95 417.0,55 443.4,25 467.1,15 489.0,20 527.5,45 561.0,75 590.5,100 616.8,120 662.5,150 718.4,185 790.4,220 846.4,250 892.0,275 930.6,295 964.4,315 994.0,330 1020,345"/>
+            points="40,271.3 78.3,246.8 117.5,218.3 141.3,193.8 173.8,169.3 200.5,144.8 223,116.2 242.5,79.4 259.8,46.8 275.2,22.3 289,14.1 301.7,18.2 324.2,38.6 343.7,63.1 360.9,83.5 376.2,99.8 402.9,124.3 435.5,152.9 477.4,181.5 510.1,206 536.7,226.4 559.2,242.8 578.9,259.1 596.1,271.3 611.3,283.6 712.5,335 813.8,385 947.6,435 1048.8,462 1150,482"/>
         </svg>
 
         <!-- Transfer function magnitude graph (multi-project overlay demo) -->
-        <svg id="graph-transferfn" viewBox="0 0 1040 650" preserveAspectRatio="none" style="display:none">
-          <rect x="40" y="10" width="980" height="600" fill="#fff" stroke="#999"/>
+        <svg id="graph-transferfn" viewBox="0 0 1160 580" style="display:none">
+          <rect x="40" y="10" width="1110" height="490" fill="#fff" stroke="#999"/>
           <g stroke="#e3e3e3">
-            <line x1="40" y1="610" x2="1020" y2="610"/><line x1="40" y1="460" x2="1020" y2="460"/>
-            <line x1="40" y1="310" x2="1020" y2="310"/><line x1="40" y1="160" x2="1020" y2="160"/>
-            <line x1="40" y1="10" x2="1020" y2="10"/>
+            <line x1="40" y1="500" x2="1150" y2="500"/><line x1="40" y1="377.5" x2="1150" y2="377.5"/>
+            <line x1="40" y1="255" x2="1150" y2="255"/><line x1="40" y1="132.5" x2="1150" y2="132.5"/>
+            <line x1="40" y1="10" x2="1150" y2="10"/>
           </g>
           <g font-size="15" fill="#333" text-anchor="end">
-            <text x="34" y="614">-28</text><text x="34" y="464">-20</text>
-            <text x="34" y="314">-12</text><text x="34" y="164">-4</text><text x="34" y="14">4</text>
+            <text x="34" y="504">-28</text><text x="34" y="381.5">-20</text>
+            <text x="34" y="259">-12</text><text x="34" y="136.5">-4</text><text x="34" y="14">4</text>
           </g>
           <g stroke="#e3e3e3">
-            <line x1="40" y1="10" x2="40" y2="610"/><line x1="213.7" y1="10" x2="213.7" y2="610"/>
-            <line x1="443.4" y1="10" x2="443.4" y2="610"/><line x1="616.8" y1="10" x2="616.8" y2="610"/>
-            <line x1="790.4" y1="10" x2="790.4" y2="610"/><line x1="1020" y1="10" x2="1020" y2="610"/>
+            <line x1="40" y1="10" x2="40" y2="500"/><line x1="141.2" y1="10" x2="141.2" y2="500"/>
+            <line x1="275" y1="10" x2="275" y2="500"/><line x1="376.3" y1="10" x2="376.3" y2="500"/>
+            <line x1="477.5" y1="10" x2="477.5" y2="500"/><line x1="611.3" y1="10" x2="611.3" y2="500"/>
+            <line x1="712.5" y1="10" x2="712.5" y2="500"/><line x1="813.7" y1="10" x2="813.7" y2="500"/>
+            <line x1="947.6" y1="10" x2="947.6" y2="500"/><line x1="1048.8" y1="10" x2="1048.8" y2="500"/>
+            <line x1="1150" y1="10" x2="1150" y2="500"/>
           </g>
-          <g font-size="15" fill="#333" text-anchor="middle">
-            <text x="40" y="632">10</text><text x="213.7" y="632">20</text>
-            <text x="443.4" y="632">50</text><text x="616.8" y="632">100</text>
-            <text x="790.4" y="632">200</text><text x="1020" y="632">500</text>
+          <g font-size="14" fill="#333" text-anchor="middle">
+            <text x="40" y="522">10</text><text x="141.2" y="522">20</text>
+            <text x="275" y="522">50</text><text x="376.3" y="522">100</text>
+            <text x="477.5" y="522">200</text><text x="611.3" y="522">500</text>
+            <text x="712.5" y="522">1k</text><text x="813.7" y="522">2k</text>
+            <text x="947.6" y="522">5k</text><text x="1048.8" y="522">10k</text>
+            <text x="1150" y="522">20k</text>
           </g>
           <!-- dashed reference lines -->
-          <line x1="40" y1="85" x2="1020" y2="85" stroke="#999" stroke-dasharray="6,5"/>
-          <text x="46" y="80" font-size="13" fill="#777">0 dB</text>
-          <line x1="40" y1="141.25" x2="1020" y2="141.25" stroke="#999" stroke-dasharray="6,5"/>
-          <text x="46" y="136" font-size="13" fill="#777">-3 dB</text>
+          <line x1="40" y1="71.3" x2="1150" y2="71.3" stroke="#999" stroke-dasharray="6,5"/>
+          <text x="46" y="66.3" font-size="13" fill="#777">0 dB</text>
+          <line x1="40" y1="117.2" x2="1150" y2="117.2" stroke="#999" stroke-dasharray="6,5"/>
+          <text x="46" y="112.2" font-size="13" fill="#777">-3 dB</text>
 
           <polyline id="trace-pr" data-trace-for="pr" fill="none" stroke="#2e8b3e" stroke-width="3"
-            points="40,610 141.5,460 213.7,310 269.5,216.25 315.3,141.25 354.0,103.75 387.4,85 489.0,85 616.8,85 790.4,85 930.6,85 1020,85"/>
+            points="40,500 99.2,377.5 141.3,255 173.8,178.4 200.5,117.2 223,86.6 242.5,71.3 301.7,71.3 376.2,71.3 477.4,71.3 559.2,71.3 611.3,71.3 712.5,71.3 813.8,71.3 947.6,71.3 1048.8,71.3 1150,71.3"/>
 
           <polyline id="trace-ported" data-trace-for="ported" fill="none" stroke="#c9c92e" stroke-width="3" style="display:none"
-            points="40,610 213.7,535 315.3,422.5 387.4,347.5 443.4,291.25 489.0,253.75 527.5,225.6 561.0,206.9 590.5,197.5 603.9,216.25 616.8,235 628.9,225.6 662.5,253.75 718.4,310 790.4,385 892.0,478.75 964.4,553.75 1020,610"/>
+            points="40,500 141.3,438.8 200.5,346.9 242.5,285.6 275.2,239.7 301.7,209.1 324.2,186.1 343.7,170.8 360.9,163.1 368.7,178.4 376.2,193.8 383.3,186.1 402.9,209.1 435.5,255 477.4,316.3 536.7,392.8 578.9,454.1 611.3,500 660.4,120 712.5,71.3 813.8,71.3 947.6,71.3 1048.8,71.3 1150,71.3"/>
         </svg>
 
       </div>
@@ -257,7 +269,7 @@
           <span class="unsaved-label" id="unsaved-label" style="display:none;"><span class="unsaved-dot"></span>Unsaved changes</span>
           <button id="btn-save-changes" class="save-btn" title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
           <button id="btn-revert" class="save-btn" title="Discards live changes, restoring the project to its last-saved state." onclick="revertProjectChanges()">Revert</button>
-          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk. Does not mark the project as saved — Save Changes or Revert are what clear unsaved changes." onclick="saveProjectChangesToFile()">Save as file</button>
+          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk. Does not mark the project as saved — Save Changes or Revert are what clear unsaved changes." onclick="saveProjectChangesToFile()">Export project</button>
         </div>
         <div class="parstate-swatches">
           <span><span class="swatch green"></span>Entered</span>
@@ -873,7 +885,7 @@
         <button id="de-btn-load" title="Load a driver definition from a local .wdr file (mock — the file's contents are not actually parsed; only its name seeds Brand/Model)." onclick="loadDriverFromDisk()">Load driver...</button>
         <input type="file" id="de-load-file-input" accept=".wdr" style="display:none" onchange="handleDriverFileLoad(this)">
         <button id="de-btn-clone-toolbar" title="Detaches this session from whatever was loaded — further edits are your own, not tied back to the original, until you save them to disk or My Drivers." onclick="cloneDetachEditor()">Clone</button>
-        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Save to disk</button>
+        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Export driver</button>
         <button id="de-btn-save-mydrivers" title="Saves these values as a new entry in My Drivers." onclick="cloneDriverEditor()">Save to My Drivers</button>
         <button id="de-btn-createbox" title="Creates a new project (box design) using this driver." onclick="createBoxFromEditor()">Create Box...</button>
         <button id="de-btn-clone" title="Creates a new custom driver in My Drivers with whatever the current settings are on this editor — does not affect the current project." onclick="cloneDriverEditor()">Clone...</button>
