@@ -113,7 +113,7 @@ function setEnclosureType(type) {
   });
 
   if (isDual) {
-    document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Chamber 1 (sealed)' : 'Chamber 1 (vented)';
+    document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Rear chamber (sealed)' : 'Rear chamber (vented)';
     document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
     ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-bp8'].forEach(id => {
       document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
