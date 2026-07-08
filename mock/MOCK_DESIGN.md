@@ -359,6 +359,71 @@ them — e.g. the content panel's disk-download button is "Export project",
 not "Save as file", precisely because it does **not** touch browser
 storage or clear the unsaved-changes flag the way an actual Save does.
 
+## Design decision: the editing model is "document view + transactional popup layer"
+
+The whole main screen is a **live view onto one document** — the current
+project. This is the single pattern every edit surface obeys, and new edit
+surfaces must be built to fit it rather than inventing their own commit rules.
+
+**Two levels, and only two:**
+
+1. **The document (the project).** Any edit made _directly_ on the main screen
+   mutates the in-memory project immediately and marks it dirty
+   (`markProjectModified()` → the "Unsaved changes" indicator). There is no
+   per-field undo at this level; the only way back is the project-wide
+   **Revert**, and the only way to persist is **Save Changes**. Direct edits
+   include: spinning a box/driver/signal field, and — for filters — toggling a
+   filter's enable checkbox or deleting a filter. These are document edits, so
+   they go dirty on the spot.
+
+2. **A popup is a transaction _on top of_ the document.** A popup editor snapshots
+   what it is editing when it opens, previews changes live against the document,
+   and resolves one of two ways:
+   - **Cancel** discards everything done inside the popup — whether or not it was
+     already live-previewed — restoring the snapshot. The document is left
+     exactly as it was before the popup opened (no dirty change).
+   - **Done** commits the popup's changes down into the document, which then
+     marks it dirty like any other document edit.
+
+   So a popup is strictly an _extra undoable layer_: its value is the Cancel
+   escape hatch. The Tune panel, the Driver Editor, and the Filter Editor are all
+   this kind of transaction.
+
+**Non-modal docking is what keeps the whole thing reactive.** A popup here is a
+docked, _non-modal_ panel (fixed, bottom-right, no dimming overlay), not a modal
+dialog. Because nothing covers the graph, live preview during the transaction is
+free — the reactivity is a property of the panel being non-modal, not of editing
+inline. (This is why moving filter editing out of the list and into a docked
+panel loses no live-update behaviour.)
+
+### The Filter tab is the canonical application of this pattern
+
+- **The list is the document view.** Each row is a **summary-only** line: a bold
+  type badge, an en-dash, then the human-readable parameter summary (the type is
+  never repeated inside the summary). Rows are one line each so the list stays
+  scannable. An enable checkbox (bypass) and delete sit on the row itself and are
+  direct document edits.
+- **Editing is the transaction.** Clicking a row opens the docked **Filter
+  Editor** for it (snapshot → live preview → Cancel/Done). **Add** (+LP/+HP/…)
+  drops a default row and opens the editor immediately in "new" mode, where
+  **Cancel removes the just-added row** (nothing committed) and Done keeps it.
+- **Lowpass/Highpass are subtype-driven.** The Subtype selector
+  (Butterworth / Linkwitz-Riley (4th order only) / Bessel / SOS, user-specified
+  fc and Q) reshapes the field set: Q is a free field **only** for user-specified
+  SOS, and Linkwitz-Riley locks Order to 4 (read-only). The Q-appears-only-for-SOS
+  rule is grounded in the supplied WinISD screenshot (Butterworth summaries carry
+  no Q, "User SOS" ones do); the Order-lock and the exact per-subtype field
+  visibility beyond that are ⚠ **inference, not verified against WinISD** and are
+  marked as such in `script.js` (`filterEditorDefs`).
+
+### Field names in the summary vs the editor
+
+WinISD's own Filter Editor uses different labels from its summary list (summary
+`n`/`t` vs editor `Order`/`Delay time`). That inconsistency is **not** copied:
+the summary uses terse conventional tokens (`n`, `fc`, `Q`, `t`) as a deliberate,
+fixed shorthand for the editor's full labels (`Order`, `Cutoff`, `Q`, `Delay
+time`) — intentional and consistent, not an accidental mismatch.
+
 ## Clone uses an integrated inline row, not `window.prompt()`
 
 The Driver Editor's Clone.../Save-to-My-Drivers action (`cloneDriverEditor()`)

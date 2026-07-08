@@ -1110,6 +1110,26 @@
   </div>
 </div>
 
+<!-- Docked, non-modal Filter Editor: a transaction on the selected filter.
+     Edits preview live on the list behind it; Cancel discards them, Done commits
+     to the project (which then reads as unsaved). Same docking pattern as Tune. -->
+<div class="filter-editor" id="filter-editor">
+  <div class="tune-titlebar">
+    <span>Filter Editor &mdash; <span id="filter-editor-type"></span></span>
+    <span class="close-btn" onclick="filterEditorCancel()">&#10005;</span>
+  </div>
+  <div class="tune-hint">Changes preview live on the list. Cancel discards them; Done applies them to the project (which then needs Save Changes / Revert).</div>
+  <div class="parstate-legend tune-legend">
+    <span><span class="swatch green"></span>Entered</span>
+    <span><span class="swatch blue"></span>Calculated</span>
+  </div>
+  <div id="filter-editor-body"></div>
+  <div class="tune-btns">
+    <button title="Discard the changes made here and close." onclick="filterEditorCancel()">Cancel</button>
+    <button class="footer-buttons-pri" title="Apply these changes to the project and close." onclick="filterEditorDone()">Done</button>
+  </div>
+</div>
+
 <script src="script.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {

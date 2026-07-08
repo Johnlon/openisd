@@ -193,77 +193,183 @@ const filterFieldDefs = {
   ],
 };
 
-function renderFilterFieldsHTML(type) {
-  return (filterFieldDefs[type] || []).map(f => {
-    if (f.select) {
-      const opts = f.select.map(o => `<option>${o}</option>`).join('');
-      return `<div class="field"><label>${f.label}</label><select class="entered" data-key="${f.key}" onchange="updateFilterSummary(this)">${opts}</select></div>`;
-    }
-    const unitSpan = f.unit
-      ? (f.ug
-        ? `<span class="unit unit-cyc" data-ug="${f.ug}" onclick="cycleUnit(this)">${f.unit}</span>`
-        : `<span class="unit">${f.unit}</span>`)
-      : '';
-    return `<div class="field"><label>${f.label}</label><input type="text" class="entered spin-field" data-key="${f.key}" value="${f.value}" oninput="updateFilterSummary(this)">${unitSpan}</div>`;
-  }).join('');
+// The filter LIST shows summary-only rows — one scannable line each. Each row
+// holds its own value object (row._filter); editing happens in the docked,
+// non-modal Filter Editor panel, per the document/transaction model documented
+// in MOCK_DESIGN.md. The list is the document view; the editor is a transaction
+// on top of it (Cancel discards, Done commits and marks the project unsaved).
+
+function defaultFilterValues(type) {
+  const vals = { _enabled: true };
+  (filterFieldDefs[type] || []).forEach(f => {
+    vals[f.key] = f.select ? f.select[0] : f.value;
+  });
+  return vals;
 }
 
-function buildFilterSummaryFromRow(row) {
-  const type = row.dataset.type;
-  const val = (key) => {
-    const el = row.querySelector('[data-key="' + key + '"]');
-    return el ? el.value : '';
-  };
+// Detail portion only — the type name is the row's bold badge, so repeating it
+// here would double it up. Q is listed only for the user-specified-SOS subtype,
+// matching the supplied WinISD screenshot where Butterworth shows no Q and
+// "User SOS" does.
+function filterSummaryText(type, vals) {
+  const v = (k) => vals[k] ?? '';
   switch (type) {
-    case 'Allpass':
-      return `Allpass (n=${val('order')}, Q=${val('q')})`;
-    case 'DLP Raised Cosine':
-      return `DLP Raised Cosine (fc=${val('centerfreq')} Hz, gain=${val('gain')} dB)`;
+    case 'Allpass': return `n=${v('order')}, Q=${v('q')}, t=${v('delay')} s`;
+    case 'DLP Raised Cosine': return `fc=${v('centerfreq')} Hz, gain=${v('gain')} dB`;
     case 'Highpass':
-    case 'Lowpass':
-      return `${type} (${val('subtype')}, n=${val('order')}, fc=${val('cutoff')} Hz)`;
-    case 'Linkwitz transform':
-      return `Linkwitz transform (f0=${val('f0')} Hz, fp=${val('fp')} Hz)`;
-    case 'Parametric EQ':
-      return `Parametric EQ (fc=${val('centerfreq2')} Hz, gain=${val('gain2')} dB, Q=${val('q2')})`;
-    case 'Peaking 2nd order highpass':
-      return `Peaking 2nd order highpass (fc=${val('peakfreq')} Hz, gain=${val('peakmag')} dB)`;
-    case 'Static gain':
-      return `Static gain (${val('gain3')} dB)`;
-    default:
-      return type;
+    case 'Lowpass': {
+      const sub = v('subtype');
+      const qPart = sub === 'SOS, User specified fc and Q' ? `, Q=${v('q')}` : '';
+      return `${sub}, n=${v('order')}, fc=${v('cutoff')} Hz${qPart}`;
+    }
+    case 'Linkwitz transform': return `f0=${v('f0')} Hz, fp=${v('fp')} Hz`;
+    case 'Parametric EQ': return `fc=${v('centerfreq2')} Hz, gain=${v('gain2')} dB, Q=${v('q2')}`;
+    case 'Peaking 2nd order highpass': return `fc=${v('peakfreq')} Hz, gain=${v('peakmag')} dB`;
+    case 'Static gain': return `${v('gain3')} dB`;
+    default: return '';
   }
 }
 
-function updateFilterSummary(fieldEl) {
-  const row = fieldEl.closest('.filter-row-inline');
-  if (row) row.querySelector('.filter-summary').textContent = buildFilterSummaryFromRow(row);
-}
-
-function quickAddFilter(type) {
+function addFilterRow(type, vals) {
   const row = document.createElement('div');
-  row.className = 'filter-row-inline expanded';
+  row.className = 'filter-row-inline';
   row.dataset.type = type;
+  row._filter = vals || defaultFilterValues(type);
   row.innerHTML = `
-    <div class="filter-row-head" onclick="toggleFilterExpand(this)">
-      <input type="checkbox" checked onclick="event.stopPropagation()">
+    <div class="filter-row-head" onclick="openFilterEditor(this.closest('.filter-row-inline'))" title="Click to edit this filter">
+      <input type="checkbox" ${row._filter._enabled ? 'checked' : ''} onclick="event.stopPropagation(); toggleFilterEnabled(this)" title="Enable / bypass this filter">
       <span class="filter-type-badge">${type}</span>
       <span class="filter-summary"></span>
+      <span class="filter-edit-hint" title="Click the row to edit">&#9998;</span>
       <button class="filter-del" onclick="event.stopPropagation(); removeFilterRow(this)" title="Delete this filter">&#10060;</button>
-    </div>
-    <div class="filter-row-fields">${renderFilterFieldsHTML(type)}</div>
-  `;
+    </div>`;
   document.getElementById('filters-list').appendChild(row);
-  row.querySelector('.filter-summary').textContent = buildFilterSummaryFromRow(row);
-  initSpinners(row);
+  refreshFilterRow(row);
+  return row;
 }
 
-function toggleFilterExpand(headEl) {
-  headEl.closest('.filter-row-inline').classList.toggle('expanded');
+function refreshFilterRow(row) {
+  row.querySelector('.filter-summary').textContent = filterSummaryText(row.dataset.type, row._filter);
+  row.classList.toggle('filter-disabled', !row._filter._enabled);
+}
+
+function toggleFilterEnabled(cb) {
+  const row = cb.closest('.filter-row-inline');
+  row._filter._enabled = cb.checked;
+  refreshFilterRow(row);
+  markProjectModified();   // a direct document edit (outside the editor transaction)
 }
 
 function removeFilterRow(btn) {
   btn.closest('.filter-row-inline').remove();
+  markProjectModified();
+}
+
+// Add drops a new default row and immediately opens it for editing; Cancel on
+// that first edit removes the row again (nothing committed), Done keeps it.
+function quickAddFilter(type) {
+  const row = addFilterRow(type);
+  openFilterEditor(row, true);
+}
+
+// ---- Docked Filter Editor: a non-modal transaction on the selected filter ----
+let filterEditRow = null;      // the row being edited
+let filterEditSnapshot = null; // its values at open, restored on Cancel
+let filterEditIsNew = false;   // opened straight from Add?
+
+function openFilterEditor(row, isNew) {
+  filterEditRow = row;
+  filterEditIsNew = !!isNew;
+  filterEditSnapshot = { ...row._filter };
+  document.getElementById('filter-editor-type').textContent = row.dataset.type;
+  renderFilterEditor();
+  closeTune();  // only one docked panel at a time
+  document.getElementById('filter-editor').classList.add('open');
+  document.querySelectorAll('#filters-list .filter-row-inline.editing').forEach(r => r.classList.remove('editing'));
+  row.classList.add('editing');
+}
+
+// Subtype-aware field set for Lowpass/Highpass. ⚠ Inference (NOT verified
+// against WinISD): Q is a free field only for user-specified SOS, and order is
+// fixed at 4 for Linkwitz-Riley ("4th order only") so it shows read-only. The
+// Butterworth-vs-SOS Q difference itself IS grounded in the WinISD screenshot.
+function filterEditorDefs(type, vals) {
+  if (type !== 'Lowpass' && type !== 'Highpass') return filterFieldDefs[type] || [];
+  const sub = vals.subtype || 'Butterworth';
+  const lr = sub === 'Linkwitz-Riley (4th order only)';
+  const sos = sub === 'SOS, User specified fc and Q';
+  const defs = [{ key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'], subtypeChange: true }];
+  defs.push({ key: 'order', label: 'Order', locked: lr });
+  if (sos) defs.push({ key: 'q', label: 'Q' });
+  defs.push({ key: 'cutoff', label: 'Cutoff', unit: 'Hz', ug: 'freq' });
+  return defs;
+}
+
+function renderFilterEditor() {
+  const type = filterEditRow.dataset.type;
+  const vals = filterEditRow._filter;
+  const body = document.getElementById('filter-editor-body');
+  body.innerHTML = filterEditorDefs(type, vals).map(def => {
+    const cur = vals[def.key] ?? (def.select ? def.select[0] : (def.value ?? ''));
+    if (def.select) {
+      const opts = def.select.map(o => `<option${o === cur ? ' selected' : ''}>${o}</option>`).join('');
+      const handler = def.subtypeChange ? 'onFilterSubtypeChange(this)' : 'onFilterEditorInput()';
+      return `<div class="field"><label>${def.label}</label><select class="entered" data-key="${def.key}" onchange="${handler}">${opts}</select></div>`;
+    }
+    const unit = def.unit ? (def.ug
+      ? `<span class="unit unit-cyc" data-ug="${def.ug}" onclick="cycleUnit(this)">${def.unit}</span>`
+      : `<span class="unit">${def.unit}</span>`) : '';
+    const cls = def.locked ? 'calculated greyed' : 'entered spin-field';
+    const lock = def.locked ? 'readonly' : '';
+    return `<div class="field"><label>${def.label}</label><input type="text" class="${cls}" data-key="${def.key}" value="${cur}" ${lock} oninput="onFilterEditorInput()">${unit}</div>`;
+  }).join('');
+  initSpinners(body);
+}
+
+function syncFilterEditor() {
+  const vals = filterEditRow._filter;
+  document.querySelectorAll('#filter-editor-body [data-key]').forEach(el => {
+    vals[el.dataset.key] = el.value;
+  });
+}
+
+function onFilterEditorInput() {
+  syncFilterEditor();
+  refreshFilterRow(filterEditRow);  // live preview on the list behind the panel
+}
+
+function onFilterSubtypeChange() {
+  syncFilterEditor();
+  if (filterEditRow._filter.subtype === 'Linkwitz-Riley (4th order only)') {
+    filterEditRow._filter.order = '4.000';
+  }
+  renderFilterEditor();             // reshape the fields for the new subtype
+  refreshFilterRow(filterEditRow);
+}
+
+function filterEditorDone() {
+  syncFilterEditor();
+  refreshFilterRow(filterEditRow);
+  markProjectModified();            // commit → the document is now unsaved
+  closeFilterEditor();
+}
+
+function filterEditorCancel() {
+  if (filterEditIsNew) {
+    filterEditRow.remove();         // discard the just-added filter, nothing committed
+  } else {
+    filterEditRow._filter = filterEditSnapshot;   // restore pre-edit values
+    refreshFilterRow(filterEditRow);
+  }
+  closeFilterEditor();
+}
+
+function closeFilterEditor() {
+  document.getElementById('filter-editor').classList.remove('open');
+  if (filterEditRow) filterEditRow.classList.remove('editing');
+  filterEditRow = null;
+  filterEditSnapshot = null;
+  filterEditIsNew = false;
 }
 
 function selectPickerRow(row) {
@@ -736,7 +842,7 @@ function clearDriverEditor() {
 
 // Fake, decorative cursor readout — not a real chart engine, just moves the numbers on click.
 document.addEventListener('DOMContentLoaded', () => {
-  quickAddFilter('Lowpass');
+  addFilterRow('Lowpass');   // seed a default filter without opening the editor or marking dirty
   initSpinners(document);
   refreshProjectTraceVisibility();
   lastSavedSnapshot = captureProjectSnapshot();
