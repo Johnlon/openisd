@@ -874,6 +874,51 @@ function wrapSpinner(input) {
 
   arrows.querySelector('.spin-up').addEventListener('mousedown', (e) => { e.preventDefault(); startHold(1); });
   arrows.querySelector('.spin-down').addEventListener('mousedown', (e) => { e.preventDefault(); startHold(-1); });
+
+  // Drag-to-scrub: press the field and drag to spin it. The dominant axis of the
+  // drag sets direction (right / up = increment, left / down = decrement) and the
+  // distance from the press point sets the SPEED — further = faster continuous
+  // spin — like a jog dial. A press with no movement past the deadzone stays a
+  // normal click so the field is still focusable for typing.
+  const DRAG_DEADZONE = 6; // px before a press becomes a scrub (vs a click)
+  input.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    const ox = e.clientX, oy = e.clientY;
+    let scrubbing = false;
+    let disp = 0;          // signed displacement along the dominant axis
+    let timer = null;
+
+    const tick = () => {
+      const level = Math.abs(disp) - DRAG_DEADZONE;
+      if (level > 0) {
+        step(disp > 0 ? 1 : -1);
+        const interval = Math.max(24, 340 - level * 4.2); // further → shorter → faster
+        timer = setTimeout(tick, interval);
+      } else {
+        timer = setTimeout(tick, 40); // inside deadzone: idle, keep polling
+      }
+    };
+    const onMove = (ev) => {
+      const dx = ev.clientX - ox, dy = ev.clientY - oy;
+      disp = Math.abs(dx) >= Math.abs(dy) ? dx : -dy; // dominant axis; up = +, down = −
+      if (!scrubbing && Math.abs(disp) > DRAG_DEADZONE) {
+        scrubbing = true;
+        document.body.style.userSelect = 'none';
+        input.style.cursor = 'ew-resize';
+        if (timer === null) tick();
+      }
+      if (scrubbing) ev.preventDefault();
+    };
+    const onUp = () => {
+      if (timer !== null) clearTimeout(timer);
+      document.body.style.userSelect = '';
+      input.style.cursor = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
 }
 
 function initSpinners(root) {
