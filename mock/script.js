@@ -94,10 +94,24 @@ function setPlacement(mode) {
 
 const ENCLOSURE_TYPES = ['sealed', 'ported', 'pr', 'bp4', 'bp6', 'abc'];
 
+// Per-box-type chamber field labels, matching the WinISD box panels.
+// Single-chamber types: the 2nd field's label, and whether a Qtc row shows.
+const SINGLE_CHAMBER_FIELDS = {
+  sealed: { f2: 'Fsc', qtc: true },
+  ported: { f2: 'Tuning freq', qtc: false },
+  pr: { f2: 'Fh', qtc: false },
+};
+// Dual-chamber types: the Rear and Front chambers' 2nd-field labels.
+const DUAL_CHAMBER_FIELDS = {
+  bp4: { rear: 'Frc', front: 'Tuning freq' },
+  bp6: { rear: 'Tuning freq', front: 'Tuning freq' },
+  abc: { rear: 'Tuning freq', front: 'Tuning freq' },
+};
+
 function setEnclosureType(type) {
   const label = document.getElementById('nav-enclosure-label');
   const panes = {
-    sealed: 'Sealed', ported: 'Vented', pr: 'Passive Radiator',
+    sealed: 'Closed', ported: 'Vented', pr: 'Passive Radiator',
     bp4: '4th Order BP', bp6: '6th Order BP', abc: 'ABC',
   };
   label.textContent = panes[type];
@@ -112,9 +126,14 @@ function setEnclosureType(type) {
     document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
   });
 
-  if (isDual) {
-    document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Rear chamber (sealed)' : 'Rear chamber (vented)';
-    document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
+  if (!isDual) {
+    const cfg = SINGLE_CHAMBER_FIELDS[type];
+    document.getElementById('box-single-f2-label').textContent = cfg.f2;
+    document.getElementById('box-single-qtc-row').style.display = cfg.qtc ? 'flex' : 'none';
+  } else {
+    const cfg = DUAL_CHAMBER_FIELDS[type];
+    document.getElementById('box-rear-f2-label').textContent = cfg.rear;
+    document.getElementById('box-front-f2-label').textContent = cfg.front;
     ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-abc'].forEach(id => {
       document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
     });

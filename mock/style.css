@@ -245,11 +245,13 @@ button, select, input { font-family: inherit; font-size: 14px; }
    the bandpass types. A spacer keeps the single-chamber image at the same x
    as the dual-chamber one — everything fixed-width, like WinISD. */
 .box-layout { display: flex; gap: 24px; align-items: flex-start; }
-.box-fields-col { flex: none; width: 155px; --label-w: 62px; }
+/* Wide enough that "Rear chamber (sealed)" / "Front chamber (vented)"
+   headings sit on one line without wrapping. */
+.box-fields-col { flex: none; width: 194px; --label-w: 62px; }
 /* Two-class specificity so this beats `.diagram-wrap { flex: 1 }` (defined
    later in the file) regardless of source order. */
 .box-layout .box-diagram-col { flex: none; width: 130px; }
-.box-fields-spacer { flex: none; width: 155px; }
+.box-fields-spacer { flex: none; width: 194px; }
 
 /* Compact side-by-side vent groups (bandpass Vents tab) — narrower labels
    than the general .field convention so 2-3 groups fit one row's width
@@ -586,6 +588,9 @@ textarea.comment, textarea.description {
 .spin-btn {
   border: 1px solid #999; background: #eee; cursor: pointer; padding: 0 3px;
   font-size: 7px; line-height: 1; width: 16px;
+  /* Split the input's full height between the two arrows instead of
+     collapsing to the glyph's own tiny height (the "shrunken spinner"). */
+  flex: 1 1 0; display: flex; align-items: center; justify-content: center;
 }
 .spin-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
 .spin-btn.spin-up { border-bottom: none; border-radius: 0 2px 0 0; }
