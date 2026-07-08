@@ -555,7 +555,7 @@ textarea.comment, textarea.description {
   box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 14px 14px; font-size: 13px;
 }
 .filter-editor.open { display: block; }
-#filter-editor-body { --label-w: 64px; margin-top: 4px; }
+#filter-editor-body { --label-w: 96px; margin-top: 4px; }
 #filter-editor-body .field { margin-bottom: 8px; }
 #filter-editor-body .field select { width: 210px; }
 

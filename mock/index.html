@@ -1062,7 +1062,7 @@
 <div class="tune-panel" id="tune-panel">
   <div class="tune-titlebar">
     <span>Tune — reactive minimal</span>
-    <span class="close-btn" onclick="closeTune()">&#10005;</span>
+    <span class="close-btn" onclick="tuneCancel()">&#10005;</span>
   </div>
   <div class="tune-hint">Changes apply live to the current project only — the graph updates as you type. The shared driver library is never modified.</div>
   <div class="parstate-legend tune-legend">
@@ -1105,8 +1105,8 @@
   <div class="tune-btns" id="tune-btns">
     <button title="Reset all parameters back to the common library model." onclick="tuneReset()">Reset</button>
     <button title="Save these specs as a named entry in My Drivers — does not change the current project." onclick="tuneSaveStart()">Save to My Drivers</button>
-    <button title="Discard edits made in this session and close." onclick="closeTune()">Cancel</button>
-    <button class="footer-buttons-pri" title="Keep these edits in the current project and close." onclick="closeTune()">Done</button>
+    <button title="Discard edits made in this session and close." onclick="tuneCancel()">Cancel</button>
+    <button class="footer-buttons-pri" title="Keep these edits in the current project and close." onclick="tuneDone()">Done</button>
   </div>
 </div>
 

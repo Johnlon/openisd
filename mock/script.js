@@ -146,50 +146,73 @@ function setEnclosureType(type) {
   });
 }
 
-// Inline, reactive filter rows — no popup editor. Each quick-add button drops
-// in a fully expanded row for its filter type, built from this per-type field
-// list; every field is a spin-field so it stacks with the exponential-accel
-// spinner behaviour, and edits recompute that row's own summary line live.
+// FILTER_LABEL is the single source of each field's label, so the SAME wording
+// appears in both the Filter Editor panel and the list summary — e.g. "Order (n)"
+// reads identically in both, with the conventional symbol in parentheses instead
+// of a separate shorthand that the two views could drift apart on.
+const FILTER_LABEL = {
+  subtype: 'Subtype',
+  order: 'Order (n)',
+  q: 'Q',
+  cutoff: 'Cutoff (fc)',
+  delay: 'Delay time (t)',
+  centerfreq: 'Center freq (fc)',
+  gain: 'Gain',
+  bandwidth: 'Bandwidth',
+  f0: 'f0', fp: 'fp', q0: 'Q0', qp: 'Qp',
+  centerfreq2: 'Center freq (fc)',
+  gain2: 'Gain',
+  q2: 'Q',
+  peakmag: 'Peak mag',
+  peakfreq: 'Peak freq (fc)',
+  gain3: 'Gain',
+};
+
+const FILTER_SUBTYPES = ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'];
+
+// Per-type field lists: `key` is the value key on row._filter, `label` comes from
+// FILTER_LABEL, `value` is the default, and `unit`/`ug` drive the unit suffix +
+// unit-cycling. Used both to build the editor and to seed default values.
 const filterFieldDefs = {
   'Allpass': [
-    { key: 'order', label: 'Order', value: '2.000' },
-    { key: 'q', label: 'Q', value: '0.707' },
-    { key: 'delay', label: 'Delay time', value: '0.001', unit: 's', ug: 'time' },
+    { key: 'order', label: FILTER_LABEL.order, value: '2.000' },
+    { key: 'q', label: FILTER_LABEL.q, value: '0.707' },
+    { key: 'delay', label: FILTER_LABEL.delay, value: '0.001', unit: 's', ug: 'time' },
   ],
   'DLP Raised Cosine': [
-    { key: 'centerfreq', label: 'Center freq', value: '100.000', unit: 'Hz', ug: 'freq' },
-    { key: 'gain', label: 'Gain', value: '6.000', unit: 'dB' },
-    { key: 'bandwidth', label: 'Bandwidth', value: '0.333', unit: 'oct' },
+    { key: 'centerfreq', label: FILTER_LABEL.centerfreq, value: '100.000', unit: 'Hz', ug: 'freq' },
+    { key: 'gain', label: FILTER_LABEL.gain, value: '6.000', unit: 'dB' },
+    { key: 'bandwidth', label: FILTER_LABEL.bandwidth, value: '0.333', unit: 'oct' },
   ],
   'Highpass': [
-    { key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'] },
-    { key: 'order', label: 'Order', value: '2.000' },
-    { key: 'q', label: 'Q', value: '0.707' },
-    { key: 'cutoff', label: 'Cutoff', value: '50.000', unit: 'Hz', ug: 'freq' },
+    { key: 'subtype', label: FILTER_LABEL.subtype, select: FILTER_SUBTYPES },
+    { key: 'order', label: FILTER_LABEL.order, value: '2.000' },
+    { key: 'q', label: FILTER_LABEL.q, value: '0.707' },
+    { key: 'cutoff', label: FILTER_LABEL.cutoff, value: '50.000', unit: 'Hz', ug: 'freq' },
   ],
   'Lowpass': [
-    { key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'] },
-    { key: 'order', label: 'Order', value: '2.000' },
-    { key: 'q', label: 'Q', value: '0.707' },
-    { key: 'cutoff', label: 'Cutoff', value: '50.000', unit: 'Hz', ug: 'freq' },
+    { key: 'subtype', label: FILTER_LABEL.subtype, select: FILTER_SUBTYPES },
+    { key: 'order', label: FILTER_LABEL.order, value: '2.000' },
+    { key: 'q', label: FILTER_LABEL.q, value: '0.707' },
+    { key: 'cutoff', label: FILTER_LABEL.cutoff, value: '50.000', unit: 'Hz', ug: 'freq' },
   ],
   'Linkwitz transform': [
-    { key: 'f0', label: 'f0', value: '50.000', unit: 'Hz', ug: 'freq' },
-    { key: 'fp', label: 'fp', value: '20.000', unit: 'Hz', ug: 'freq' },
-    { key: 'q0', label: 'Q0', value: '0.707' },
-    { key: 'qp', label: 'Qp', value: '0.707' },
+    { key: 'f0', label: FILTER_LABEL.f0, value: '50.000', unit: 'Hz', ug: 'freq' },
+    { key: 'fp', label: FILTER_LABEL.fp, value: '20.000', unit: 'Hz', ug: 'freq' },
+    { key: 'q0', label: FILTER_LABEL.q0, value: '0.707' },
+    { key: 'qp', label: FILTER_LABEL.qp, value: '0.707' },
   ],
   'Parametric EQ': [
-    { key: 'centerfreq2', label: 'Center freq', value: '30.000', unit: 'Hz', ug: 'freq' },
-    { key: 'gain2', label: 'Gain', value: '6.000', unit: 'dB' },
-    { key: 'q2', label: 'Q', value: '2.000' },
+    { key: 'centerfreq2', label: FILTER_LABEL.centerfreq2, value: '30.000', unit: 'Hz', ug: 'freq' },
+    { key: 'gain2', label: FILTER_LABEL.gain2, value: '6.000', unit: 'dB' },
+    { key: 'q2', label: FILTER_LABEL.q2, value: '2.000' },
   ],
   'Peaking 2nd order highpass': [
-    { key: 'peakmag', label: 'Peak mag', value: '6.000', unit: 'dB' },
-    { key: 'peakfreq', label: 'Peak freq', value: '20.000', unit: 'Hz', ug: 'freq' },
+    { key: 'peakmag', label: FILTER_LABEL.peakmag, value: '6.000', unit: 'dB' },
+    { key: 'peakfreq', label: FILTER_LABEL.peakfreq, value: '20.000', unit: 'Hz', ug: 'freq' },
   ],
   'Static gain': [
-    { key: 'gain3', label: 'Gain', value: '0.000', unit: 'dB' },
+    { key: 'gain3', label: FILTER_LABEL.gain3, value: '0.000', unit: 'dB' },
   ],
 };
 
@@ -208,24 +231,25 @@ function defaultFilterValues(type) {
 }
 
 // Detail portion only — the type name is the row's bold badge, so repeating it
-// here would double it up. Q is listed only for the user-specified-SOS subtype,
-// matching the supplied WinISD screenshot where Butterworth shows no Q and
-// "User SOS" does.
+// here would double it up. Labels come from FILTER_LABEL, identical to the editor
+// field labels. Q is listed only for the user-specified-SOS subtype, matching the
+// supplied WinISD screenshot where Butterworth shows no Q and "User SOS" does.
 function filterSummaryText(type, vals) {
   const v = (k) => vals[k] ?? '';
+  const L = FILTER_LABEL;
   switch (type) {
-    case 'Allpass': return `n=${v('order')}, Q=${v('q')}, t=${v('delay')} s`;
-    case 'DLP Raised Cosine': return `fc=${v('centerfreq')} Hz, gain=${v('gain')} dB`;
+    case 'Allpass': return `${L.order}=${v('order')}, ${L.q}=${v('q')}, ${L.delay}=${v('delay')} s`;
+    case 'DLP Raised Cosine': return `${L.centerfreq}=${v('centerfreq')} Hz, ${L.gain}=${v('gain')} dB`;
     case 'Highpass':
     case 'Lowpass': {
       const sub = v('subtype');
-      const qPart = sub === 'SOS, User specified fc and Q' ? `, Q=${v('q')}` : '';
-      return `${sub}, n=${v('order')}, fc=${v('cutoff')} Hz${qPart}`;
+      const base = `${sub}, ${L.order}=${v('order')}, ${L.cutoff}=${v('cutoff')} Hz`;
+      return sub === 'SOS, User specified fc and Q' ? `${base}, ${L.q}=${v('q')}` : base;
     }
-    case 'Linkwitz transform': return `f0=${v('f0')} Hz, fp=${v('fp')} Hz`;
-    case 'Parametric EQ': return `fc=${v('centerfreq2')} Hz, gain=${v('gain2')} dB, Q=${v('q2')}`;
-    case 'Peaking 2nd order highpass': return `fc=${v('peakfreq')} Hz, gain=${v('peakmag')} dB`;
-    case 'Static gain': return `${v('gain3')} dB`;
+    case 'Linkwitz transform': return `${L.f0}=${v('f0')} Hz, ${L.fp}=${v('fp')} Hz`;
+    case 'Parametric EQ': return `${L.centerfreq2}=${v('centerfreq2')} Hz, ${L.gain2}=${v('gain2')} dB, ${L.q2}=${v('q2')}`;
+    case 'Peaking 2nd order highpass': return `${L.peakfreq}=${v('peakfreq')} Hz, ${L.peakmag}=${v('peakmag')} dB`;
+    case 'Static gain': return `${L.gain3}=${v('gain3')} dB`;
     default: return '';
   }
 }
@@ -279,13 +303,15 @@ let filterEditIsNew = false;   // opened straight from Add?
 let filterEditDirtyBefore = false; // dirty state of Working at open — restored on Cancel
 
 function openFilterEditor(row, isNew) {
+  // Only one docked panel at a time: if Tune is open, drop its Temp layer
+  // (restoring its pre-open dirtiness) BEFORE we snapshot ours below.
+  if (document.getElementById('tune-panel').classList.contains('open')) tuneCancel();
   filterEditRow = row;
   filterEditIsNew = !!isNew;
   filterEditSnapshot = { ...row._filter };
   filterEditDirtyBefore = projectModified;   // remember Working's dirtiness beneath this Temp layer
   document.getElementById('filter-editor-type').textContent = row.dataset.type;
   renderFilterEditor();
-  closeTune();  // only one docked panel at a time
   document.getElementById('filter-editor').classList.add('open');
   document.querySelectorAll('#filters-list .filter-row-inline.editing').forEach(r => r.classList.remove('editing'));
   row.classList.add('editing');
@@ -300,10 +326,10 @@ function filterEditorDefs(type, vals) {
   const sub = vals.subtype || 'Butterworth';
   const lr = sub === 'Linkwitz-Riley (4th order only)';
   const sos = sub === 'SOS, User specified fc and Q';
-  const defs = [{ key: 'subtype', label: 'Subtype', select: ['Butterworth', 'Linkwitz-Riley (4th order only)', 'Bessel', 'SOS, User specified fc and Q'], subtypeChange: true }];
-  defs.push({ key: 'order', label: 'Order', locked: lr });
-  if (sos) defs.push({ key: 'q', label: 'Q' });
-  defs.push({ key: 'cutoff', label: 'Cutoff', unit: 'Hz', ug: 'freq' });
+  const defs = [{ key: 'subtype', label: FILTER_LABEL.subtype, select: FILTER_SUBTYPES, subtypeChange: true }];
+  defs.push({ key: 'order', label: FILTER_LABEL.order, locked: lr });
+  if (sos) defs.push({ key: 'q', label: FILTER_LABEL.q });
+  defs.push({ key: 'cutoff', label: FILTER_LABEL.cutoff, unit: 'Hz', ug: 'freq' });
   return defs;
 }
 
@@ -422,9 +448,31 @@ function returnToDriverEditorIfNeeded() {
   selectDriverSource = 'project';
 }
 
+// Tune is a Temp layer over Working, same model as the Filter Editor: open
+// snapshots the field values + Working's dirtiness, Done keeps the live edits,
+// Cancel drops the layer (restore values + pre-open dirtiness).
+let tuneDirtyBefore = false;
+
 function openTune() {
+  if (filterEditRow) filterEditorCancel();   // drop any open filter Temp layer first
   document.getElementById('tune-panel').classList.add('open');
   document.getElementById('tune-save-row').style.display = 'none';
+  tuneDirtyBefore = projectModified;
+  document.querySelectorAll('#tune-panel input').forEach(el => { el._tuneSnap = el.value; });
+}
+// Done keeps the live edits (already applied to Working) and closes.
+function tuneDone() {
+  closeTune();
+}
+// Cancel restores the field values captured at open and Working's pre-open
+// dirtiness — so yellow clears only if Tune was the sole contributor — then closes.
+function tuneCancel() {
+  document.querySelectorAll('#tune-panel input').forEach(el => {
+    if (el._tuneSnap !== undefined) el.value = el._tuneSnap;
+  });
+  projectModified = tuneDirtyBefore;
+  updateUnsavedIndicator();
+  closeTune();
 }
 function closeTune() {
   document.getElementById('tune-panel').classList.remove('open');
