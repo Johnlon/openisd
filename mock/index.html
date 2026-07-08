@@ -250,8 +250,8 @@
     <div class="quad-bottomleft">
       <div class="panel-title">Project</div>
       <ul class="project-nav">
-        <li data-tab="box" onclick="showTab('box')">Box</li>
-        <li data-tab="driver" class="active" onclick="showTab('driver')">Driver</li>
+        <li data-tab="box" class="active" onclick="showTab('box')">Box</li>
+        <li data-tab="driver" onclick="showTab('driver')">Driver</li>
         <li data-tab="enclosure" onclick="showTab('enclosure')"><span id="nav-enclosure-label">Passive Radiator</span></li>
         <li data-tab="filters" onclick="showTab('filters')">Filters</li>
         <li data-tab="signal" onclick="showTab('signal')">Signal</li>
@@ -279,7 +279,7 @@
       </div>
 
       <!-- ---- Driver tab ---- -->
-    <section id="tab-driver" class="tab-section active">
+    <section id="tab-driver" class="tab-section">
       <div class="field-row driver-id-row">
         <div class="field tight"><label>Brand</label><input type="text" id="driver-brand-field" style="width:130px" value="Dayton Audio"></div>
         <div class="field tight"><label>Model</label><input type="text" id="driver-model-field" style="width:140px" value="E150HE-44"></div>
@@ -288,7 +288,7 @@
         <button class="edit-btn" title="Reactive minimal editor: tweak the headline T/S params and watch the graph update live." onclick="openTune()">&#9835; Tune</button>
       </div>
       <div class="two-col" style="margin-top:10px;">
-        <div>
+        <div style="--label-w:150px;">
           <div class="section-header">Placement</div>
           <div class="field-row">
             <div class="field"><label>Num. of drivers</label>
@@ -312,7 +312,7 @@
             <svg id="wiring-isobarik" viewBox="0 0 190 225" height="90" style="display:none"><path d="M 103 66 C 103 88.696, 102.805 92, 101.467 92 C 99.595 92, 93 98.423, 93 100.246 C 93 100.968, 92.100 102.207, 91 103 C 89.900 103.793, 89 105.143, 89 106 C 89 106.857, 88.100 108.207, 87 109 C 85.900 109.793, 85 111.049, 85 111.792 C 85 113.134, 82.665 116, 81.571 116 C 81.257 116, 81 113.750, 81 111 C 81 106.667, 80.733 106, 79 106 C 77.900 106, 77 105.550, 77 105 C 77 104.450, 75.650 104, 74 104 C 72.350 104, 71 104.450, 71 105 C 71 105.550, 70.518 106, 69.929 106 C 66.314 106, 66 108.315, 66 135 C 66 161.685, 66.314 164, 69.929 164 C 70.518 164, 71 164.450, 71 165 C 71 165.550, 72.350 166, 74 166 C 75.650 166, 77 165.550, 77 165 C 77 164.450, 77.900 164, 79 164 C 80.733 164, 81 163.333, 81 159 C 81 156.250, 81.257 154, 81.571 154 C 82.665 154, 85 156.866, 85 158.208 C 85 158.951, 85.900 160.207, 87 161 C 88.100 161.793, 89 163.143, 89 164 C 89 164.857, 89.900 166.207, 91 167 C 92.100 167.793, 93 169.032, 93 169.754 C 93 171.577, 99.595 178, 101.467 178 C 102.801 178, 103 181.051, 103 201.500 C 103 224.333, 103.057 225, 105 225 C 106.943 225, 107 224.333, 107 201.500 C 107 181.051, 107.199 178, 108.533 178 C 110.405 178, 117 171.577, 117 169.754 C 117 169.032, 117.900 167.793, 119 167 C 120.100 166.207, 121 164.857, 121 164 C 121 163.143, 121.900 161.793, 123 161 C 124.100 160.207, 125 158.951, 125 158.208 C 125 156.866, 127.335 154, 128.429 154 C 128.743 154, 129 156.250, 129 159 C 129 163.333, 129.267 164, 131 164 C 132.100 164, 133 164.450, 133 165 C 133 165.550, 134.350 166, 136 166 C 137.650 166, 139 165.550, 139 165 C 139 164.450, 139.482 164, 140.071 164 C 143.686 164, 144 161.685, 144 135 C 144 108.315, 143.686 106, 140.071 106 C 139.482 106, 139 105.550, 139 105 C 139 104.450, 137.650 104, 136 104 C 134.350 104, 133 104.450, 133 105 C 133 105.550, 132.100 106, 131 106 C 129.267 106, 129 106.667, 129 111 C 129 113.750, 128.743 116, 128.429 116 C 127.335 116, 125 113.134, 125 111.792 C 125 111.049, 124.100 109.793, 123 109 C 121.900 108.207, 121 106.857, 121 106 C 121 105.143, 120.100 103.793, 119 103 C 117.900 102.207, 117 100.968, 117 100.246 C 117 98.423, 110.405 92, 108.533 92 C 107.195 92, 107 88.696, 107 66 C 107 40.667, 106.949 40, 105 40 C 103.051 40, 103 40.667, 103 66 M 94.250 109.496 C 91.244 112.910, 94.353 115.789, 97.571 112.571 C 98.357 111.786, 99 110.436, 99 109.571 C 99 107.626, 95.939 107.577, 94.250 109.496 M 111 111.571 C 111 112.436, 111.643 113.786, 112.429 114.571 C 113.214 115.357, 114.564 116, 115.429 116 C 117.390 116, 117.474 113.331, 115.571 111.429 C 113.669 109.526, 111 109.610, 111 111.571 M 95 131 C 95 131.550, 94.100 132, 93 132 C 91.667 132, 91 132.667, 91 134 C 91 135.333, 91.667 136, 93 136 C 94.100 136, 95 136.450, 95 137 C 95 137.550, 95.900 138, 97 138 C 98.667 138, 99 137.333, 99 134 C 99 130.667, 98.667 130, 97 130 C 95.900 130, 95 130.450, 95 131 M 111 136 C 111 139.333, 111.333 140, 113 140 C 114.100 140, 115 139.550, 115 139 C 115 138.450, 115.900 138, 117 138 C 118.333 138, 119 137.333, 119 136 C 119 134.667, 118.333 134, 117 134 C 115.900 134, 115 133.550, 115 133 C 115 132.450, 114.100 132, 113 132 C 111.333 132, 111 132.667, 111 136 M 93 155.571 C 93 157.592, 95.408 160, 97.429 160 C 99.390 160, 99.474 157.331, 97.571 155.429 C 95.669 153.526, 93 153.610, 93 155.571 M 112.250 157.496 C 110.508 159.474, 110.689 162, 112.571 162 C 114.592 162, 117 159.592, 117 157.571 C 117 155.626, 113.939 155.577, 112.250 157.496" fill="#333" fill-rule="evenodd"/></svg>
           </div>
         </div>
-        <div>
+        <div style="--label-w:172px;">
           <div class="section-header">Advanced options</div>
           <div class="field-row">
             <div class="field"><label>Voice coil temp rise</label><input type="text" class="entered spin-field" value="0.00"><span class="unit unit-cyc" data-ug="temp" onclick="cycleUnit(this)">K</span></div>
@@ -328,7 +328,7 @@
     </section>
 
     <!-- ---- Box tab ---- -->
-    <section id="tab-box" class="tab-section">
+    <section id="tab-box" class="tab-section active">
       <div class="field-row">
         <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
           <select id="box-type-select" style="width:240px" onchange="setEnclosureType(this.value)">
@@ -337,14 +337,13 @@
             <option value="pr" selected>Passive Radiator</option>
             <option value="bp4">4th Order Bandpass</option>
             <option value="bp6">6th Order Bandpass</option>
-            <option value="bp8">8th Order Bandpass (ABC)</option>
+            <option value="abc">ABC (Aperiodic Bi-Chamber)</option>
           </select>
         </div>
-        <span class="hint">(mock control — real WinISD sets this via the enclosure-type project setting)</span>
       </div>
 
       <div id="box-single-chamber">
-        <div class="two-col">
+        <div class="box-layout">
           <div class="box-fields-col">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
@@ -355,13 +354,12 @@
             </div>
             <button class="link-btn" onclick="openModal('modal-box-losses')">Advanced-&gt;</button>
           </div>
-          <div class="diagram-wrap">
-            <!-- Real crops of the actual WinISD box-type icons
-                 (docs/winisd/box_types/*_icon.png) — not a redrawn
-                 interpretation. -->
-            <!-- User-supplied artwork (not traced from a WinISD reference) —
-                 left/right chambers matching the Rear/Front chamber naming
-                 used on this same panel and on the Vents tab. -->
+          <div class="box-fields-spacer"></div>
+          <div class="diagram-wrap box-diagram-col">
+            <!-- Side cutaway, own house style: navy box, blue cone driver on
+                 the right wall firing out to the room. Consistent driver
+                 across every box type; the PR adds a passive radiator drawn
+                 as the same cone but with no magnet block. -->
             <svg id="box-diagram-sealed" viewBox="0 0 200 300" height="120" style="display:none">
               <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
               <line x1="160" y1="40" x2="160" y2="110" stroke="#0F4761" stroke-width="4"/>
@@ -386,14 +384,15 @@
               <line x1="160" y1="240" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
               <path d="M160,60 L130,75 L130,115 L160,130" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               <rect x="110" y="85" width="20" height="20" fill="#0F4761"/>
-              <path d="M160,170 L130,185 L130,225 L160,240" fill="#D3D3D3" stroke="#0F4761" stroke-width="3"/>
+              <!-- Passive radiator: same cone as the driver, no magnet. -->
+              <path d="M160,170 L130,185 L130,225 L160,240" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
             </svg>
           </div>
         </div>
       </div>
 
       <div id="box-dual-chamber" style="display:none">
-        <div class="two-col">
+        <div class="box-layout">
           <div class="box-fields-col">
             <div class="section-header" id="box-chamber1-heading">Rear chamber (sealed)</div>
             <div class="field-row">
@@ -412,9 +411,12 @@
               <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
-          <div class="diagram-wrap" style="flex:none; width:90px;">
-            <!-- Real crops of the actual WinISD box-type icons — not a
-                 redrawn interpretation. -->
+          <div class="diagram-wrap box-diagram-col">
+            <!-- Side cutaway, own house style: navy box split into Rear (left)
+                 and Front (right) chambers by a divider, same blue cone driver
+                 as the single-chamber types. bp4/bp6 mount the driver on the
+                 divider (fully enclosed, firing into the rear chamber); ABC
+                 mounts it on the outer front baffle above the lower port. -->
             <svg id="box-diagram-bp4" viewBox="0 0 200 300" height="130" style="display:none">
               <polyline points="160,200 160,40 40,40 40,260 160,260 160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
               <line x1="100" y1="40" x2="100" y2="110" stroke="#0F4761" stroke-width="4"/>
@@ -440,41 +442,38 @@
               <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
             </svg>
-            <!-- ABC's driver mounts on the OUTER baffle, firing straight into
-                 the room — unlike 4th/6th order where the driver is fully
-                 enclosed on an internal shelf. Per docs/winisd/box_types/
-                 abc_3d_model_dimensioned.png: the driver cutout is on the
-                 external front face of the Driver Chamber (here: the front/
-                 right chamber, which also carries its own forward-facing
-                 port on that same outer wall), not on the divider between
-                 chambers. -->
-            <svg id="box-diagram-bp8" viewBox="0 0 200 300" height="130" style="display:none">
+            <svg id="box-diagram-abc" viewBox="0 0 200 300" height="130" style="display:none">
               <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
               <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
+              <line x1="40" y1="40" x2="40" y2="70" stroke="#0F4761" stroke-width="4"/>
+              <line x1="40" y1="100" x2="40" y2="260" stroke="#0F4761" stroke-width="4"/>
+              <line x1="40" y1="70" x2="80" y2="70" stroke="#0F4761" stroke-width="4"/>
+              <line x1="40" y1="100" x2="80" y2="100" stroke="#0F4761" stroke-width="4"/>
+              <line x1="100" y1="40" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
+              <!-- Front (right) baffle: upper front port, driver below it, then
+                   the lower front port. -->
               <line x1="160" y1="40" x2="160" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="150" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="100" x2="160" y2="160" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="220" x2="160" y2="230" stroke="#0F4761" stroke-width="4"/>
               <line x1="160" y1="230" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="40" x2="40" y2="200" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="230" x2="40" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="100" y1="40" x2="100" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="100" y1="100" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="200" x2="120" y2="200" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="70" x2="120" y2="70" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="100" x2="120" y2="100" stroke="#0F4761" stroke-width="4"/>
               <line x1="160" y1="230" x2="120" y2="230" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="200" x2="80" y2="200" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="230" x2="80" y2="230" stroke="#0F4761" stroke-width="4"/>
-              <line x1="80" y1="70" x2="120" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="80" y1="100" x2="120" y2="100" stroke="#0F4761" stroke-width="4"/>
-              <path d="M160,70 L130,90 L130,130 L160,150" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
-              <rect x="110" y="100" width="20" height="20" fill="#0F4761"/>
+              <line x1="160" y1="250" x2="120" y2="250" stroke="#0F4761" stroke-width="4"/>
+              <!-- Driver on the front baffle, firing out to the room, just
+                   above the lower port. -->
+              <path d="M160,160 L130,175 L130,205 L160,220" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
+              <rect x="110" y="182" width="20" height="16" fill="#0F4761"/>
             </svg>
           </div>
         </div>
+        <p class="hint" id="box-abc-hint" style="display:none; margin-top:8px;">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
       </div>
     </section>
 
     <!-- ---- Vents / Passive Radiator / Sealed tab ---- -->
     <section id="tab-enclosure" class="tab-section">
-      <div id="enclosure-ported" style="display:none">
+      <div id="enclosure-ported" style="display:none; --label-w:120px;">
         <div class="section-header">Rear chamber</div>
         <div class="section-header">Vents</div>
         <div class="two-col">
@@ -505,7 +504,7 @@
 
       <div id="enclosure-pr">
         <div class="two-col">
-          <div>
+          <div style="--label-w:44px;">
             <div class="section-header">Passive radiator parameters</div>
             <div class="field-row">
               <div class="field"><label>Vas</label><input type="text" class="entered spin-field" value="4.80"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
@@ -519,7 +518,7 @@
               <div class="field"><label>Xmax</label><input type="text" class="entered spin-field" value="19000.0"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">mm</span></div>
             </div>
           </div>
-          <div>
+          <div style="--label-w:150px;">
             <div class="section-header">User options</div>
             <div class="field-row">
               <div class="field"><label>Num. of PRs:</label><input type="text" class="entered spin-field" value="1"></div>
@@ -580,9 +579,10 @@
         </div>
       </div>
 
-      <!-- 8th order bandpass — ABC (Aperiodic Bi-Chamber): both chambers
+      <!-- ABC (Aperiodic Bi-Chamber) — not the same box type as a true 8th
+           order bandpass (which is fully internal-driver): both chambers
            vented to the outside, PLUS an inter-chamber port connecting them. -->
-      <div id="enclosure-bp8" style="display:none">
+      <div id="enclosure-abc" style="display:none">
         <div class="section-header">Vents</div>
         <div class="vent-groups">
           <div class="vent-col">
@@ -629,7 +629,7 @@
     <!-- ---- Signal tab ---- -->
     <section id="tab-signal" class="tab-section">
       <div class="two-col">
-        <div>
+        <div style="--label-w:60px;">
           <div class="section-header">Listening place</div>
           <div class="field-row">
             <div class="field"><label>Distance</label><input type="text" class="entered spin-field" value="1.000"><span class="unit unit-cyc" data-ug="length" onclick="cycleUnit(this)">m</span></div>
@@ -638,7 +638,7 @@
             <div class="field"><label>Angle</label><input type="text" class="entered spin-field" value="0.0000"><span class="unit unit-cyc" data-ug="angle" onclick="cycleUnit(this)">rad</span></div>
           </div>
         </div>
-        <div>
+        <div style="--label-w:186px;">
           <div class="section-header">Signal source</div>
           <div class="field-row">
             <div class="field"><label>System input power</label><input type="text" class="entered spin-field" value="140.0"><span class="unit">W</span></div>
@@ -656,7 +656,7 @@
     <!-- ---- Advanced tab ---- -->
     <section id="tab-advanced" class="tab-section">
       <div class="two-col">
-        <div>
+        <div style="--label-w:118px;">
           <div class="field-row">
             <div class="field"><label>Temperature</label><input type="text" class="entered spin-field" value="293.15"><span class="unit unit-cyc" data-ug="temp" onclick="cycleUnit(this)">K</span></div>
           </div>

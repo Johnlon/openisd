@@ -390,3 +390,37 @@ In an ABC (Aperiodic Bi-Chamber) enclosure, the driver is always mounted on the 
 ---
 
 go
+
+---
+
+abd on the ABC box put the driver on the front baffle on the right just above the lower port
+
+---
+
+ok now substitute your crappy speaker image for the nice blue one I was previously using.
+
+---
+
+make box the default tab
+
+can we name this session as "Mock ISD"
+
+---
+
+<option value="bp8">ABC (Aperiodic Bi-Chamber)</option> -> <option value="abc">ABC (Aperiodic Bi-Chamber)</option>
+
+---
+
+explain that ABC driver is external on baffle
+
+---
+
+when box appears it is blank - not painted yet
+
+---
+
+check the allignment fo fields on all detail tabs. On all except ABC it is still stretched to the full width where I asked you to follow winisd where it's pushed to the left, with aligned labels and inputs. the ABC tab looks total scrambled - but the image looks ok fix all that in the background. simultaneously apply the same image of a driver to all the other boxes, and in the case of the PR draw the PR like the driver but without the magnet on the back.
+
+---
+
+on the ported view for instance - this ought to be narrow 'Rear chamber' and remove the comment 'mock control' because in OpenISD WinISD skin I do want to be able to switch type like this. so make 'Rear chamber' narrow like winisd and pull the box image over to the left. the box pane in winisd has the image in a fixed location and all that changes is that in some cases there is a single Rear chamber col and in others there are Rear and Front chambers on the left of the image but everything is fixed width

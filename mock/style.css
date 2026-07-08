@@ -237,7 +237,19 @@ button, select, input { font-family: inherit; font-size: 14px; }
    diagram is flex:none) stretches to fill the whole remaining row width,
    dragging its .section-header far wider than the fields it labels —
    the real WinISD panel sizes the header to just the field column. */
-.box-fields-col { flex: none; width: 300px; }
+/* Box tab uses its own fixed-width flex layout (NOT `.two-col`, whose
+   `.two-col > div { flex: 1 }` rule would stretch these columns to fill the
+   row — that was the long-standing "everything is stretched" bug). Here the
+   image sits at a fixed location and only the chamber columns to its left
+   change: one Rear-chamber column for sealed/vented/PR, or Rear+Front for
+   the bandpass types. A spacer keeps the single-chamber image at the same x
+   as the dual-chamber one — everything fixed-width, like WinISD. */
+.box-layout { display: flex; gap: 24px; align-items: flex-start; }
+.box-fields-col { flex: none; width: 155px; --label-w: 62px; }
+/* Two-class specificity so this beats `.diagram-wrap { flex: 1 }` (defined
+   later in the file) regardless of source order. */
+.box-layout .box-diagram-col { flex: none; width: 130px; }
+.box-fields-spacer { flex: none; width: 155px; }
 
 /* Compact side-by-side vent groups (bandpass Vents tab) — narrower labels
    than the general .field convention so 2-3 groups fit one row's width
@@ -254,11 +266,13 @@ button, select, input { font-family: inherit; font-size: 14px; }
    instead of drifting based on each label's own text length. */
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; justify-content: flex-start; }
 .field { display: flex; align-items: center; gap: 6px; justify-content: flex-start; }
-/* Fixed (not min-) width: min-width only floors short labels, so a longer one
-   in the same column (e.g. "Voice coil resistance TC") still pushes its own
-   row out of line with its siblings. Sized for the longest label in the app
-   ("Driver input voltage (each)" on the Signal tab). */
-.field label { color: #333; display: inline-block; width: 195px; text-align: left; }
+/* Label column width is per-section, not app-wide: each section sets
+   `--label-w` to fit its OWN widest label (like WinISD, which packs labels
+   left and sizes the column to that section's content). A single global
+   width made short-label tabs (Box: "Volume"/"Fh") look stretched, with a
+   big dead gap between label and input. Default is a middling value for any
+   section that doesn't set its own. */
+.field label { color: #333; display: inline-block; width: var(--label-w, 150px); text-align: left; }
 .field input[type=text], .field input[type=number], .field select {
   border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff;
   width: 90px;
