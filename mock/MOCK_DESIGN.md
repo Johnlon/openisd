@@ -359,42 +359,94 @@ them — e.g. the content panel's disk-download button is "Export project",
 not "Save as file", precisely because it does **not** touch browser
 storage or clear the unsaved-changes flag the way an actual Save does.
 
-## Design decision: the editing model is "document view + transactional popup layer"
+## Design decision: three stacked state models (Saved / Working / Temp)
 
-The whole main screen is a **live view onto one document** — the current
-project. This is the single pattern every edit surface obeys, and new edit
-surfaces must be built to fit it rather than inventing their own commit rules.
+Every edit surface obeys one model, and new edit surfaces must be built to fit it
+rather than inventing their own commit rules. The state of a project is a **stack
+of three models**, each a layer on the one below:
 
-**Two levels, and only two:**
+1. **Saved** — the project as persisted in local storage. This is the baseline:
+   what **Save Changes** writes and what **Revert** restores to.
+2. **Working** — the main-view edits layered on Saved (spinning box volume, a
+   driver/signal field, toggling or deleting a filter). This is the live
+   in-memory project.
+3. **Temp** — a tuner/filter **popup's own layer**, on top of Working. It exists
+   only while that popup is open.
 
-1. **The document (the project).** Any edit made _directly_ on the main screen
-   mutates the in-memory project immediately and marks it dirty
-   (`markProjectModified()` → the "Unsaved changes" indicator). There is no
-   per-field undo at this level; the only way back is the project-wide
-   **Revert**, and the only way to persist is **Save Changes**. Direct edits
-   include: spinning a box/driver/signal field, and — for filters — toggling a
-   filter's enable checkbox or deleting a filter. These are document edits, so
-   they go dirty on the spot.
+**The active (topmost) model determines everything at that moment** — both the
+dirty indicator and what the chart calculates from. So while a popup is open, the
+chart and the "Unsaved changes" state reflect the Temp layer's live values; with
+no popup open, they reflect Working.
 
-2. **A popup is a transaction _on top of_ the document.** A popup editor snapshots
-   what it is editing when it opens, previews changes live against the document,
-   and resolves one of two ways:
-   - **Cancel** discards everything done inside the popup — whether or not it was
-     already live-previewed — restoring the snapshot. The document is left
-     exactly as it was before the popup opened (no dirty change).
-   - **Done** commits the popup's changes down into the document, which then
-     marks it dirty like any other document edit.
+**A layer is inputs _plus_ its calculated state — the recalculation lives in the
+layer, not in the app/UI.** Each model layer owns not only the raw inputs (driver,
+box, filters, signal — the driver is just one input among them) but the reactive
+derivations computed from them: the curve data, derived T/S values, EBP, tuning,
+max SPL, everything the chart and read-only fields display. The UI/app code never
+computes these; it reads the active layer's already-computed outputs. Swapping the
+active layer (open/Cancel/Done) therefore swaps the calculated state with it, and
+"live preview" is just the chart re-reading the Temp layer as its inputs change.
+Keeping recomputation inside the layer (never sprinkled through components) is what
+makes the three-model stack coherent — it mirrors the repo's existing
+engine-vs-UI split (`packages/engine` computes, `packages/ui` renders) and the
+rule that lower layers stay framework-free with dependencies pointing only upward.
 
-   So a popup is strictly an _extra undoable layer_: its value is the Cancel
-   escape hatch. The Tune panel, the Driver Editor, and the Filter Editor are all
-   this kind of transaction.
+**Resolving a popup moves layers, it does not set a flag:**
+
+- **Cancel** drops the Temp layer entirely. Working becomes active again exactly
+  as it was before the popup opened — including its dirty state. This is why
+  cancelling is safe even when other edits are outstanding: it reverts only its
+  own layer, and Working's dirtiness (from those other edits) is untouched. This
+  is the precise meaning of "clear dirty only if this popup was the sole
+  contributor" — there is no special case, it falls out of dropping one layer.
+- **Done** merges Temp _down into_ Working (commit), then Temp goes away. Working
+  is now the active model and carries the committed change.
+
+**Dirty is derived, not tracked** — it is simply _active ≠ Saved_. Nothing sets a
+"dirty=true" boolean by hand; each layer knows its own values and the indicator
+compares the active layer to Saved.
+
+> Mock status: the prototype approximates this with a single `projectModified`
+> flag plus a per-popup snapshot of the dirty state at open time, which
+> reproduces the observable behaviour (live yellow while editing in a popup;
+> Cancel restores the pre-open dirty state; Done keeps it dirty). A faithful
+> build should replace the boolean with a real three-layer model where dirty and
+> the chart are computed from the active layer. The **Tune panel's Cancel is a
+> known gap** — it currently only hides the panel instead of dropping its Temp
+> layer, and must be brought onto this model.
 
 **Non-modal docking is what keeps the whole thing reactive.** A popup here is a
 docked, _non-modal_ panel (fixed, bottom-right, no dimming overlay), not a modal
-dialog. Because nothing covers the graph, live preview during the transaction is
+dialog. Because nothing covers the graph, live preview off the Temp layer is
 free — the reactivity is a property of the panel being non-modal, not of editing
 inline. (This is why moving filter editing out of the list and into a docked
-panel loses no live-update behaviour.)
+panel loses no live-update behaviour.) The mock's own chart is decorative
+(`script.js` — "no real chart engine here"), so in the prototype the visible live
+effect of a Temp edit is the summary + dirty state; the real app recomputes the
+graph off the active layer.
+
+### Modal and non-modal popups are the same transaction — only live preview differs
+
+A traditional **modal** popup (the Driver Editor) and the **non-modal docked**
+popups (Tune, Filter Editor) are the _same_ Temp-layer transaction underneath:
+open snapshots a Temp layer, **Done/Save** merges it down into Working (and it
+becomes instantly active), **Cancel** drops the Temp layer. So the Driver Editor
+should use the very same reusable state-layer mechanism as the rest of the app.
+
+The **only real difference is whether the Temp layer is wired to live chart
+recompute** — and that is purely a consequence of presentation:
+
+- **Non-modal docked** leaves the graph visible, so the Temp layer previews live
+  as you edit; Done just makes the already-shown result permanent.
+- **Modal** covers the view and is a blocking transaction, so there is no live
+  preview; the graph jumps to the new state only when Done/Save commits.
+
+Modality (blocking) and live-preview-wiring are independent axes — a modal simply
+conventionally leaves live preview off. One extra wrinkle: the Driver Editor's
+Temp layer does not always sit on the _project_. In its **My Drivers** mode it is
+a transaction over a My Drivers entry instead, so Done there commits to that
+entity's Saved/Working, not the project's — the same mechanism, parameterised by
+which underlying model it layers on.
 
 ### The Filter tab is the canonical application of this pattern
 

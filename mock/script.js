@@ -274,13 +274,15 @@ function quickAddFilter(type) {
 
 // ---- Docked Filter Editor: a non-modal transaction on the selected filter ----
 let filterEditRow = null;      // the row being edited
-let filterEditSnapshot = null; // its values at open, restored on Cancel
+let filterEditSnapshot = null; // its values at open (the Working layer), restored on Cancel
 let filterEditIsNew = false;   // opened straight from Add?
+let filterEditDirtyBefore = false; // dirty state of Working at open — restored on Cancel
 
 function openFilterEditor(row, isNew) {
   filterEditRow = row;
   filterEditIsNew = !!isNew;
   filterEditSnapshot = { ...row._filter };
+  filterEditDirtyBefore = projectModified;   // remember Working's dirtiness beneath this Temp layer
   document.getElementById('filter-editor-type').textContent = row.dataset.type;
   renderFilterEditor();
   closeTune();  // only one docked panel at a time
@@ -336,6 +338,7 @@ function syncFilterEditor() {
 function onFilterEditorInput() {
   syncFilterEditor();
   refreshFilterRow(filterEditRow);  // live preview on the list behind the panel
+  markProjectModified();            // Temp is the active layer → dirty (yellow) live
 }
 
 function onFilterSubtypeChange() {
@@ -345,6 +348,7 @@ function onFilterSubtypeChange() {
   }
   renderFilterEditor();             // reshape the fields for the new subtype
   refreshFilterRow(filterEditRow);
+  markProjectModified();
 }
 
 function filterEditorDone() {
@@ -358,9 +362,14 @@ function filterEditorCancel() {
   if (filterEditIsNew) {
     filterEditRow.remove();         // discard the just-added filter, nothing committed
   } else {
-    filterEditRow._filter = filterEditSnapshot;   // restore pre-edit values
+    filterEditRow._filter = filterEditSnapshot;   // restore the Working-layer values
     refreshFilterRow(filterEditRow);
   }
+  // Drop the Temp layer: Working becomes active again with the dirtiness it had
+  // before this popup opened — so a Cancel clears yellow only if this popup was
+  // the sole contributor, and leaves it set if other edits are still outstanding.
+  projectModified = filterEditDirtyBefore;
+  updateUnsavedIndicator();
   closeFilterEditor();
 }
 

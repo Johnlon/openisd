@@ -244,6 +244,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [x] [ ] **P1** Save / restore graph layout (which graphs, sizes, positions) — graph selection persisted in localStorage
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path
 - [ ] **P2** Keyboard nudge (arrow keys) on numeric inputs
+- [ ] **P2** **Drag-to-scrub on spinner inputs** — press on a numeric spinner field and drag to increment/decrement its value: horizontal (left/right) and/or vertical (up/down) motion counts the value down/up, and dragging further from the start point accelerates the step rate (fine near the origin, coarse far out), mirroring the existing exponential-acceleration of the spinner buttons. The point is fast, tactile value scrubbing while watching the chart update live — a click-drag "scrubber" for live charting, not just click-repeat. Applies to spinner fields everywhere (main-view and popup editors). Release commits the value like any edit (marks the design dirty).
 - [ ] **P2** Mobile / small-screen layout pass
 
 ## Learning & docs
@@ -260,47 +261,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
 - [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `PLAN_DRIVER_ADT.md`
-- [ ] **P2** Unify DQ and schema validation — single WDR parser, range bounds defined once; see `PLAN_SCRAPING.md`
-- [ ] **P1** Universal value provenance in `_meta.yml` — every field becomes `[value, source_key]` with a `_sources` index; redesign `MetaModel` and scraper write path; see `PLAN_SCRAPING.md`
-- [ ] **P2** Diagnose and fix sb-acoustics `specs: null` — re-run scraper; fix coaxial detection if still broken after fresh run; see `PLAN_SCRAPING.md`
-- [ ] **P2** Migrate old-architecture scrapers (dayton, pe, scan-speak, sb-acoustics) to new `scripts/scrapers/scraper_lib.py` so they write `field_provenance`, `freq_low_hz`, `freq_high_hz`; see `PLAN_SCRAPING.md`
-- [ ] **P3** Add `specs` extraction to scrapers where manufacturer pages publish structured non-T/S data; see `PLAN_SCRAPING.md`
 
----
-
-## Physical dimension extraction gap
-
-**Priority:** P2  
-**Status:** Not started  
-**Type:** Feature gap / Scraper enhancement
-
-### Problem
-
-Scraper writes physical dimensions (Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd, DVol) as hardcoded 0.
-
-```python
-# Physical dimensions — 0 (not scraped)
-lines += ["Thick=0", "Depth=0", "MagDepth=0", "Magnet=0", "Basket=0", "Outer=0", "Vcd=0", "DVol=0"]
-```
-
-These measurements are often available in datasheets (PDF dimensions section, mechanical drawings, spec tables). Currently not extracted.
-
-### Gap
-
-- No PDF dimension extraction implemented
-- Physical measurements remain absent from WDR files
-- Users cannot design enclosures that account for driver displacement volume
-- WinISD users can import these; OpenISD cannot
-
-### Known data sources
-
-- PDF datasheets: mechanical drawings, dimension tables
-- Vendor spec sheets (e.g., Parts Express, Mouser pages)
-- Datasheet fields: Dia (cone diameter), Xmax (already scraped), voice coil diameter, magnet depth
-
-### Questions for implementation
-
-1. Which dimensions are most commonly published? (priority order)
-2. How to parse dimension sections in PDFs reliably?
-3. Unit handling (mm, cm, inches)?
-4. Fallback: derive from other measurements (e.g., Sd → cone diameter via Sd=π(Dd/2)²)?
+Data-pipeline backlog items (schema/DQ unification, universal value provenance,
+per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
+`SCRAPING_TODO.md`, not here.
