@@ -468,13 +468,17 @@ which underlying model it layers on.
   visibility beyond that are ⚠ **inference, not verified against WinISD** and are
   marked as such in `script.js` (`filterEditorDefs`).
 
-### Field names in the summary vs the editor
+### Field names are identical in the summary and the editor
 
 WinISD's own Filter Editor uses different labels from its summary list (summary
-`n`/`t` vs editor `Order`/`Delay time`). That inconsistency is **not** copied:
-the summary uses terse conventional tokens (`n`, `fc`, `Q`, `t`) as a deliberate,
-fixed shorthand for the editor's full labels (`Order`, `Cutoff`, `Q`, `Delay
-time`) — intentional and consistent, not an accidental mismatch.
+`n`/`t` vs editor `Order`/`Delay time`). That inconsistency is **not** copied.
+Both views use the _same_ label, sourced from a single `FILTER_LABEL` map in
+`script.js`, with the conventional symbol carried in parentheses on the descriptive
+word — `Order (n)`, `Cutoff (fc)`, `Delay time (t)`, `Q`. So the list summary reads
+`Order (n)=2.000, Cutoff (fc)=50.000 Hz` and the editor field is labelled `Order
+(n)` — no shorthand for the reader to reconcile, and no way for the two views to
+drift apart (one constant feeds both). The trade-off accepted here is a slightly
+longer summary line in exchange for zero label mismatch.
 
 ## Clone uses an integrated inline row, not `window.prompt()`
 
