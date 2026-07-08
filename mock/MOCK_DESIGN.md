@@ -388,36 +388,67 @@ interpretation and not a soft raster crop. Every traced `<path>` needs
 the whole silhouette solid black instead of showing the hollow interior
 as a hole.
 
-## Box tab diagrams — original artwork, own visual language
+## Box tab diagrams — consistent house-style artwork, one driver everywhere
 
-The 6 box-type diagrams (`#box-diagram-sealed/ported/pr/bp4/bp6/bp8`) are
-original SVG artwork (navy `#0F4761` line art, not traced from any
-reference), read left-to-right rather than the real WinISD icon's
-front-on driver circle: a right-hand chamber wall carries the driver
-(cone + magnet block) and, where applicable, its own port; bandpass types
-split into two side-by-side chambers matching the "Rear chamber"/"Front
-chamber" field labels used on both this panel and the Vents tab.
+The 6 box-type diagrams (`#box-diagram-sealed/ported/pr/bp4/bp6/abc`) are
+original SVG artwork (navy `#0F4761` line art), read left-to-right, in a
+single consistent visual language: a box outline in side-cutaway with the
+**same blue cone driver** (cone `#A0B8C6` + navy magnet block) on the
+right wall firing out to the room, plus type-specific ports. Bandpass
+types split into two side-by-side chambers matching the "Rear chamber"
+(left) / "Front chamber" (right) field labels used on both this panel and
+the Vents tab. The passive-radiator type adds a passive radiator drawn as
+the **same cone but with no magnet block**.
 
-**ABC's driver sits on the outer wall, not the internal divider** — per
+**ABC's driver sits on the outer baffle, not the internal divider** — per
 `docs/winisd/box_types/abc_3d_model_dimensioned.png`, the driver cutout
 is on the enclosure's external front baffle, firing straight into the
 room, unlike 4th/6th order where the driver is fully enclosed and fires
-into two internal chambers with no outside exposure. So ABC's driver is
-drawn mounted on the front (right) chamber's own outer wall alongside its
-forward-facing port, not straddling the divider between chambers the way
-4th/6th order's fully-enclosed driver does.
+only into the two internal chambers. So ABC's driver is drawn on the
+front (right) chamber's outer wall, just above its lower forward-facing
+port; 4th/6th order's driver instead straddles the divider between
+chambers (fully enclosed). A hint line under the ABC diagram states this
+in words.
 
-Also noted, not acted on: the real app's own Front-chamber Volume field is
-labelled in **m³** while Rear-chamber Volume is in **l** on the same
-panel (4th/6th/ABC) — an inconsistency in WinISD itself, left as
-observed reference only.
+The box type is chosen with a dropdown (`abc` is the internal value —
+renamed from the old `bp8`, because ABC is a distinct box type from a
+true internal-driver 8th-order bandpass and the label must not conflate
+them). The old "(mock control …)" caveat next to the dropdown was
+removed: switching type live from this dropdown is a real intended
+OpenISD-skin feature, not a mock-only shortcut.
 
-The Box tab's field column (`.box-fields-col`) is fixed-width (`300px`)
-rather than `flex: 1` — without that, it was the only flex:1 sibling once
-the diagram column went `flex: none`, so it stretched to fill the whole
-remaining row and dragged its `.section-header` bar far wider than the
-actual input fields it labels (the real WinISD panel sizes the header to
-just the field column's width).
+**Box layout — fixed widths, image at a fixed location.** The Box tab
+uses its own `.box-layout` flex container, NOT the shared `.two-col`.
+This matters: `.two-col > div { flex: 1 }` has higher CSS specificity
+than `.box-fields-col { flex: none }`, so under `.two-col` every column
+(and the image) was silently stretched to fill the row — the root cause
+of the long-running "everything is stretched to full width" complaint,
+and why the narrow-`--label-w` fix alone didn't visibly help there. With
+`.box-layout`, columns are genuinely fixed-width (`155px` each, so the
+`.section-header` bar is narrow like WinISD), and the image
+(`.box-diagram-col`, `130px`) sits at a fixed x. A `.box-fields-spacer`
+(same 155px) holds the single-chamber image at the same x as the
+dual-chamber one, so only the number of chamber columns changes between
+box types — the image never moves. (`.box-layout .box-diagram-col` is
+written with two-class specificity so it beats the later-defined
+`.diagram-wrap { flex: 1 }` regardless of source order.)
+
+Also noted, not acted on: the real app's own Front-chamber Volume field
+is labelled in **m³** while Rear-chamber Volume is in **l** on the same
+panel (4th/6th/ABC) — an inconsistency in WinISD itself, left as observed
+reference only.
+
+## Field label columns are per-section width, not app-wide
+
+WinISD packs labels tight to the left and sizes each section's label
+column to that section's own widest label. The mock originally used one
+app-wide fixed label width (`195px`, sized for the longest label
+anywhere), which left short-label tabs (Box: "Volume"/"Fh") looking
+stretched with a big dead gap before the input. Now `.field label` width
+is `var(--label-w, 150px)`, and each section column sets its own
+`--label-w` (e.g. `62px` for the Box chambers, `60px`/`186px` for the two
+Signal columns, `150px`/`172px` for the two Driver columns) so labels
+align within a column and pack tight to its content — like WinISD.
 
 ## Bandpass Vents tab — compact side-by-side vent groups, not stacked
 

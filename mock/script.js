@@ -92,19 +92,19 @@ function setPlacement(mode) {
   refreshProjectTraceVisibility();
 }
 
-const ENCLOSURE_TYPES = ['sealed', 'ported', 'pr', 'bp4', 'bp6', 'bp8'];
+const ENCLOSURE_TYPES = ['sealed', 'ported', 'pr', 'bp4', 'bp6', 'abc'];
 
 function setEnclosureType(type) {
   const label = document.getElementById('nav-enclosure-label');
   const panes = {
     sealed: 'Sealed', ported: 'Vented', pr: 'Passive Radiator',
-    bp4: '4th Order BP', bp6: '6th Order BP', bp8: 'ABC',
+    bp4: '4th Order BP', bp6: '6th Order BP', abc: 'ABC',
   };
   label.textContent = panes[type];
   const select = document.getElementById('box-type-select');
   if (select) select.value = type;
 
-  const isDual = type === 'bp4' || type === 'bp6' || type === 'bp8';
+  const isDual = type === 'bp4' || type === 'bp6' || type === 'abc';
   document.getElementById('box-single-chamber').style.display = isDual ? 'none' : 'block';
   document.getElementById('box-dual-chamber').style.display = isDual ? 'block' : 'none';
 
@@ -115,9 +115,10 @@ function setEnclosureType(type) {
   if (isDual) {
     document.getElementById('box-chamber1-heading').textContent = (type === 'bp4') ? 'Rear chamber (sealed)' : 'Rear chamber (vented)';
     document.getElementById('box-chamber1-fh-row').style.display = (type === 'bp4') ? 'none' : 'flex';
-    ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-bp8'].forEach(id => {
+    ['box-diagram-bp4', 'box-diagram-bp6', 'box-diagram-abc'].forEach(id => {
       document.getElementById(id).style.display = (id === 'box-diagram-' + type) ? 'block' : 'none';
     });
+    document.getElementById('box-abc-hint').style.display = (type === 'abc') ? 'block' : 'none';
   }
 
   ENCLOSURE_TYPES.forEach(t => {
