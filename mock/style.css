@@ -356,11 +356,16 @@ textarea.comment, textarea.description {
   border: none; background: none; color: #b02a2a; cursor: pointer; padding: 2px 6px;
 }
 .filter-del:hover { background: #fbdada; border-radius: 3px; }
-.filter-row-fields {
-  display: none; flex-wrap: wrap; gap: 8px 20px; padding: 4px 10px 10px 32px;
-  background: #fafafa;
-}
-.filter-row-inline.expanded .filter-row-fields { display: flex; }
+/* Rows are summary-only (editing is in the docked Filter Editor). A muted
+   en-dash separates the bold type badge from the summary detail so the type
+   isn't repeated. The pencil hint appears on hover; the row being edited is
+   highlighted; a bypassed (unchecked) filter is struck through. */
+.filter-summary::before { content: "\2014\00a0"; color: #bbb; }
+.filter-edit-hint { color: #6a8cae; font-size: 12px; opacity: 0; margin-left: 4px; }
+.filter-row-head:hover .filter-edit-hint { opacity: .8; }
+.filter-row-inline.editing { background: #eef4ff; }
+.filter-disabled .filter-type-badge,
+.filter-disabled .filter-summary { opacity: .45; text-decoration: line-through; }
 
 /* checkbox list (advanced tab) */
 .checkbox-col { display: flex; flex-direction: column; gap: 8px; }
@@ -540,6 +545,19 @@ textarea.comment, textarea.description {
 .tune-btns button.footer-buttons-pri, .tune-save-row button.footer-buttons-pri {
   background: #1868d1; color: #fff; border-color: #1868d1;
 }
+
+/* Filter Editor: same docked, non-modal panel pattern as .tune-panel. */
+.filter-editor {
+  display: none;
+  position: fixed; right: 24px; bottom: 24px; z-index: 60;
+  width: 420px; max-width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto;
+  background: #f7f7f7; border: 1px solid #888; border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 14px 14px; font-size: 13px;
+}
+.filter-editor.open { display: block; }
+#filter-editor-body { --label-w: 64px; margin-top: 4px; }
+#filter-editor-body .field { margin-bottom: 8px; }
+#filter-editor-body .field select { width: 210px; }
 
 /* Select Driver modal — full browsable picker table, not a dropdown. */
 .driver-picker-table { width: 100%; border-collapse: collapse; }
