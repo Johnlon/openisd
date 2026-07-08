@@ -450,6 +450,34 @@ is `var(--label-w, 150px)`, and each section column sets its own
 Signal columns, `150px`/`172px` for the two Driver columns) so labels
 align within a column and pack tight to its content — like WinISD.
 
+## Box chamber fields are per-type, matching the WinISD panels
+
+Each box type shows different chamber fields, driven by
+`SINGLE_CHAMBER_FIELDS` / `DUAL_CHAMBER_FIELDS` in `setEnclosureType()`
+rather than static markup:
+
+- **Closed** (the dropdown/label word, though the internal value is still
+  `sealed`): Rear chamber → Volume, **Fsc**, **Qtc** (the Qtc row only
+  shows for Closed).
+- **Vented**: Rear chamber → Volume, **Tuning freq**.
+- **Passive Radiator**: Rear chamber → Volume, **Fh** (PR-specific params
+  live on the Vents tab).
+- **4th order**: Rear → Volume, **Frc**; Front → Volume, **Tuning freq**.
+- **6th order** and **ABC**: Rear → Volume, **Tuning freq**; Front →
+  Volume, **Tuning freq** (ABC's chamber fields match 6th order).
+
+The `--label-w` for the Box chambers and the `.box-fields-col` width
+(`194px`) are sized so these labels and the "Rear chamber"/"Front chamber"
+headings never wrap.
+
+The **ABC diagram** is a schematic matching the real WinISD icon: a closed
+box with port slots top-right and bottom-right, the aperiodic-coupling
+capacitor symbol at left-centre (this is the inter-chamber port — ABC's
+defining feature), the "ABC" label, and the driver on the right (front)
+baffle just above the lower port. The custom spinner's two arrows use
+`flex: 1 1 0` so they split the input's full height instead of collapsing
+to the glyph's own tiny height (which read as a "shrunken" spinner).
+
 ## Bandpass Vents tab — compact side-by-side vent groups, not stacked
 
 The Vents tab's 4th/6th/8th-order panes (`#enclosure-bp4/bp6/bp8`) show

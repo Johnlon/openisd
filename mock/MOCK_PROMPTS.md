@@ -424,3 +424,52 @@ check the allignment fo fields on all detail tabs. On all except ABC it is still
 ---
 
 on the ported view for instance - this ought to be narrow 'Rear chamber' and remove the comment 'mock control' because in OpenISD WinISD skin I do want to be able to switch type like this. so make 'Rear chamber' narrow like winisd and pull the box image over to the left. the box pane in winisd has the image in a fixed location and all that changes is that in some cases there is a single Rear chamber col and in others there are Rear and Front chambers on the left of the image but everything is fixed width
+
+---
+
+the abc diagram is wrong take another look at [abc_icon.png] and put the driver just above the [lower port] at the bottom right
+
+---
+
+something like this please .. [sketch: closed box, ports top-right and bottom-right, aperiodic-coupling capacitor symbol + "ABC" label at left, blue speaker on the right wall just above the lower port]
+
+---
+
+Also not sure whats happening to the spinner here ... seems shrunken
+
+---
+
+make the Rear chamber\n(sealed) wider so there is no wrapping - maybe 25% wider would do it
+
+---
+
+sealed - rename to Closed
+on closed there is Vol, Fsc, Qtc
+
+---
+
+vented has Vol, Fh [later corrected: Vented should be Rear, Volume, Tuning freq]
+
+---
+
+4th order has Rear, Volume, Frc Front, Volume, Tuning Freq
+
+---
+
+6th has Rear, Volume, Tuning Freq Front, Volume, Tuning Freq
+
+---
+
+ABC is same as 6th
+
+---
+
+Not sure why the port between chambers isnt considered
+
+---
+
+the ABC image needs to be this one [same sketch as above]
+
+---
+
+drop down should say closed too

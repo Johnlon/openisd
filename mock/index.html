@@ -332,7 +332,7 @@
       <div class="field-row">
         <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
           <select id="box-type-select" style="width:240px" onchange="setEnclosureType(this.value)">
-            <option value="sealed">Sealed</option>
+            <option value="sealed">Closed</option>
             <option value="ported">Vented</option>
             <option value="pr" selected>Passive Radiator</option>
             <option value="bp4">4th Order Bandpass</option>
@@ -350,7 +350,10 @@
               <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
+              <div class="field"><label id="box-single-f2-label">Fsc</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
+            </div>
+            <div class="field-row" id="box-single-qtc-row" style="display:none">
+              <div class="field"><label>Qtc</label><input type="text" class="calculated greyed" value="0.707" readonly></div>
             </div>
             <button class="link-btn" onclick="openModal('modal-box-losses')">Advanced-&gt;</button>
           </div>
@@ -394,21 +397,21 @@
       <div id="box-dual-chamber" style="display:none">
         <div class="box-layout">
           <div class="box-fields-col">
-            <div class="section-header" id="box-chamber1-heading">Rear chamber (sealed)</div>
+            <div class="section-header">Rear chamber</div>
             <div class="field-row">
               <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="8.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
-            <div class="field-row" id="box-chamber1-fh-row">
-              <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="48.50" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
+            <div class="field-row">
+              <div class="field"><label id="box-rear-f2-label">Frc</label><input type="text" class="calculated greyed" value="48.50" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
           <div class="box-fields-col">
-            <div class="section-header">Front chamber (vented)</div>
+            <div class="section-header">Front chamber</div>
             <div class="field-row">
               <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="10.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
+              <div class="field"><label id="box-front-f2-label">Tuning freq</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
             </div>
           </div>
           <div class="diagram-wrap box-diagram-col">
@@ -442,28 +445,31 @@
               <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
             </svg>
+            <!-- ABC schematic, matching the real WinISD icon: a closed box
+                 with port slots top-right and bottom-right, the aperiodic-
+                 coupling capacitor symbol at left-centre, the "ABC" label,
+                 and the driver on the right (front) baffle just above the
+                 lower port. -->
             <svg id="box-diagram-abc" viewBox="0 0 200 300" height="130" style="display:none">
-              <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="40" x2="40" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="100" x2="40" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="70" x2="80" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="40" y1="100" x2="80" y2="100" stroke="#0F4761" stroke-width="4"/>
-              <line x1="100" y1="40" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <!-- Front (right) baffle: upper front port, driver below it, then
-                   the lower front port. -->
-              <line x1="160" y1="40" x2="160" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="100" x2="160" y2="160" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="220" x2="160" y2="230" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="230" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="70" x2="120" y2="70" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="100" x2="120" y2="100" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="230" x2="120" y2="230" stroke="#0F4761" stroke-width="4"/>
-              <line x1="160" y1="250" x2="120" y2="250" stroke="#0F4761" stroke-width="4"/>
-              <!-- Driver on the front baffle, firing out to the room, just
-                   above the lower port. -->
-              <path d="M160,160 L130,175 L130,205 L160,220" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
-              <rect x="110" y="182" width="20" height="16" fill="#0F4761"/>
+              <rect x="40" y="40" width="120" height="220" fill="none" stroke="#0F4761" stroke-width="4"/>
+              <!-- top port -->
+              <line x1="160" y1="66" x2="104" y2="66" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="82" x2="104" y2="82" stroke="#0F4761" stroke-width="4"/>
+              <!-- second port -->
+              <line x1="160" y1="104" x2="104" y2="104" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="120" x2="104" y2="120" stroke="#0F4761" stroke-width="4"/>
+              <!-- aperiodic coupling (capacitor symbol) — the inter-chamber port -->
+              <line x1="40" y1="166" x2="52" y2="166" stroke="#0F4761" stroke-width="4"/>
+              <line x1="52" y1="150" x2="52" y2="182" stroke="#0F4761" stroke-width="4"/>
+              <line x1="62" y1="150" x2="62" y2="182" stroke="#0F4761" stroke-width="4"/>
+              <!-- ABC label -->
+              <text x="44" y="214" font-size="26" font-weight="600" fill="#0F4761">ABC</text>
+              <!-- driver on the right (front) baffle, just above the lower port -->
+              <path d="M146,150 L120,138 L120,208 L146,196" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
+              <rect x="146" y="162" width="14" height="22" fill="#0F4761"/>
+              <!-- lower port -->
+              <line x1="160" y1="236" x2="104" y2="236" stroke="#0F4761" stroke-width="4"/>
+              <line x1="160" y1="252" x2="104" y2="252" stroke="#0F4761" stroke-width="4"/>
             </svg>
           </div>
         </div>
@@ -539,7 +545,7 @@
           <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
           <div class="field"><label>Fh</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
         </div>
-        <p class="hint">Sealed enclosure — no vents or passive radiator configured.</p>
+        <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
       </div>
 
       <!-- 4th order bandpass: sealed rear chamber + a single vented front
