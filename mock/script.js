@@ -108,7 +108,38 @@ const DUAL_CHAMBER_FIELDS = {
   abc: { rear: 'Tuning freq', front: 'Tuning freq' },
 };
 
+// Storage for the Box tab's chamber Volume field(s) — the one field per
+// group (single vs dual chamber) that's a *shared* DOM input relabelled
+// between types, rather than each type having its own dedicated element
+// (like every other per-type panel in the app already does). Without this,
+// switching sealed -> ported -> sealed silently clobbers the Volume you'd
+// entered for sealed, because it's the same <input> the whole time. Holding
+// one entry per type here, keyed on the DOM ids above, is what lets the app
+// keep several box types' params around at once with only one active.
+const enclosureFieldState = {
+  sealed: { volume: '6.00' },
+  ported: { volume: '6.00' },
+  pr: { volume: '6.00' },
+  bp4: { rearVolume: '8.00', frontVolume: '10.00' },
+  bp6: { rearVolume: '8.00', frontVolume: '10.00' },
+  abc: { rearVolume: '8.00', frontVolume: '10.00' },
+};
+let activeEnclosureType = null;
+
 function setEnclosureType(type) {
+  // Snapshot the outgoing type's live Volume field(s) before repainting —
+  // must happen before any DOM values below are overwritten.
+  if (activeEnclosureType && activeEnclosureType !== type) {
+    const wasDual = activeEnclosureType === 'bp4' || activeEnclosureType === 'bp6' || activeEnclosureType === 'abc';
+    if (wasDual) {
+      enclosureFieldState[activeEnclosureType].rearVolume = document.getElementById('box-rear-volume-field').value;
+      enclosureFieldState[activeEnclosureType].frontVolume = document.getElementById('box-front-volume-field').value;
+    } else {
+      enclosureFieldState[activeEnclosureType].volume = document.getElementById('box-single-volume-field').value;
+    }
+  }
+  activeEnclosureType = type;
+
   const label = document.getElementById('nav-enclosure-label');
   const panes = {
     sealed: 'Closed', ported: 'Vented', pr: 'Passive Radiator',
@@ -144,6 +175,16 @@ function setEnclosureType(type) {
     const pane = document.getElementById('enclosure-' + t);
     if (pane) pane.style.display = (t === type) ? 'block' : 'none';
   });
+
+  // Restore the incoming type's own stored Volume field(s) — the
+  // counterpart to the snapshot above, so switching back to a type you'd
+  // already edited shows what you left it at, not the previous type's value.
+  if (isDual) {
+    document.getElementById('box-rear-volume-field').value = enclosureFieldState[type].rearVolume;
+    document.getElementById('box-front-volume-field').value = enclosureFieldState[type].frontVolume;
+  } else {
+    document.getElementById('box-single-volume-field').value = enclosureFieldState[type].volume;
+  }
 }
 
 // FILTER_LABEL is the single source of each field's label, so the SAME wording
@@ -448,6 +489,84 @@ function returnToDriverEditorIfNeeded() {
   selectDriverSource = 'project';
 }
 
+// ---------------- Driver library browser (toolbar entry point) ----------------
+// WinISD's own toolbar has exactly one driver-related icon, and it's just a
+// Load/Save/Save-As editor with no library concept at all. OpenISD adds a real
+// personal driver library ("My Drivers") on top of that, so the toolbar icon
+// opens this same Select-Driver modal in a third, standalone mode — browsing
+// only, no project is affected — with its own action row for Import/Export/
+// Customise/Edit/Delete/Disable. The Driver tab's own "Select Driver" and the
+// Driver Editor's own "Select Driver" keep their existing modes unchanged.
+function resetSelectDriverModalChrome() {
+  document.getElementById('driver-library-actions').style.display = 'none';
+  document.querySelector('#modal-select-driver .footer-buttons .ok-btn').style.display = '';
+}
+
+function openSelectDriverForProject() {
+  selectDriverSource = 'project';
+  resetSelectDriverModalChrome();
+  openModal('modal-select-driver');
+}
+
+function openDriverLibrary() {
+  selectDriverSource = 'library';
+  document.getElementById('driver-library-actions').style.display = 'flex';
+  document.querySelector('#modal-select-driver .footer-buttons .ok-btn').style.display = 'none';
+  openModal('modal-select-driver');
+}
+
+function newDriverFromLibrary() {
+  closeModal('modal-select-driver');
+  openDriverEditor('toolbar');
+}
+
+function loadDriverIntoLibrary() {
+  document.getElementById('library-load-file-input').click();
+}
+
+// Import always lands in My Drivers, never directly on a project — and is
+// lossless regardless of source format (.openisd-driver.yml or .wdr), since
+// OpenISD's driver model is a strict superset of WDR's. Only Export is lossy.
+function handleLibraryDriverLoad(inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  inputEl.value = '';
+  if (!file) return;
+  const stem = file.name.replace(/\.[^/.]+$/, '').replace(/\.openisd-driver$/, '');
+  const [brand, ...rest] = stem.split(/[\s_-]+/);
+  addMyDriver(brand || 'Imported', rest.join(' ') || stem);
+  window.alert(`Imported "${file.name}" into My Drivers (mock — Brand/Model seeded from the filename only; contents are not actually parsed).`);
+}
+
+function selectedDriverPickerRow() {
+  return document.querySelector('#modal-select-driver .modal-pane.active .driver-picker-row.selected');
+}
+
+// The lossy direction — a real .wdr can't hold everything OpenISD's own
+// driver model can, so this (not Load/Import) is where fidelity is lost.
+function exportSelectedDriverWdr() {
+  const row = selectedDriverPickerRow();
+  if (!row) { window.alert('Select a driver row first.'); return; }
+  const brand = row.dataset.brand, model = row.dataset.model;
+  downloadText(`${brand}_${model}.wdr.txt`.replace(/\s+/g, '_'), `Brand: ${brand}\nModel: ${model}`);
+}
+
+function customiseSelectedLibraryDriver() {
+  const row = document.querySelector('#driver-picker-library .driver-picker-row.selected');
+  if (!row) { window.alert('Select a driver in the Library tab first.'); return; }
+  addMyDriver(row.dataset.brand, row.dataset.model + ' (custom)');
+  const myDriversTab = document.querySelectorAll('#modal-select-driver .mtab')[1];
+  showModalTab('modal-select-driver', 'mydrivers', myDriversTab);
+}
+
+function editSelectedLibraryDriver() {
+  if (selectedMyDriverId != null) {
+    closeModal('modal-select-driver');
+    editCustomDriver();
+  } else {
+    window.alert("Built-in Library drivers are shipped data and can't be edited directly — use Customise to create an editable My Drivers copy first.");
+  }
+}
+
 // Tune is a Temp layer over Working, same model as the Filter Editor: open
 // snapshots the field values + Working's dirtiness, Done keeps the live edits,
 // Cancel drops the layer (restore values + pre-open dirtiness).
@@ -551,7 +670,188 @@ function revertProjectChanges() {
   clearProjectModified();
 }
 
-function saveProjectChangesToFile() {
+function downloadText(filename, text, mime) {
+  const blob = new Blob([text], { type: mime || 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// The full in-memory model, OpenISD's own lossless shape — every stored
+// enclosure type (see enclosureFieldState above), not just the active one.
+// Still a mock: hand-built YAML text, not a real YAML library, and Filters/
+// Signal/Advanced aren't tracked in JS state yet so they're not included.
+function buildProjectYaml() {
+  const brand = document.getElementById('driver-brand-field').value || 'Custom';
+  const model = document.getElementById('driver-model-field').value || 'driver';
+  const lines = ['kind: project', 'driver:', `  brand: ${brand}`, `  model: ${model}`,
+    `activeEnclosureType: ${activeEnclosureType}`, 'enclosures:'];
+  ENCLOSURE_TYPES.forEach(t => {
+    lines.push(`  ${t}:`);
+    Object.entries(enclosureFieldState[t]).forEach(([k, v]) => lines.push(`    ${k}: ${v}`));
+  });
+  lines.push('tune:');
+  document.querySelectorAll('#tune-panel .tune-fld:not(.tune-ro) input').forEach(input => {
+    const label = input.closest('.tune-fld').querySelector('label').textContent.replace('opt', '').trim();
+    lines.push(`  ${label}: ${input.value}`);
+  });
+  return lines.join('\n') + '\n';
+}
+
+function projectFilenameStem() {
+  const brand = document.getElementById('driver-brand-field').value || 'Custom';
+  const model = document.getElementById('driver-model-field').value || 'driver';
+  return `${brand}_${model}`.replace(/\s+/g, '_');
+}
+
+// Toolbar Save: quick save to OpenISD's own format. Deliberately does NOT
+// clear the browser-local dirty flag (btn-save-changes/btn-revert) — that
+// pair tracks a *different* persistence layer (localStorage autosave) with
+// no WinISD equivalent; disk Save and browser Save Changes are independent.
+function saveProjectNative() {
+  downloadText(`${projectFilenameStem()}.openisd.yml`, buildProjectYaml(), 'text/yaml');
+}
+
+function saveProjectNativeAs() {
+  const chosen = window.prompt('Save project as:', `${projectFilenameStem()}.openisd.yml`);
+  if (!chosen) return;
+  const filename = chosen.endsWith('.openisd.yml') ? chosen : chosen + '.openisd.yml';
+  downloadText(filename, buildProjectYaml(), 'text/yaml');
+}
+
+// Save All: every row in the Projects list. Mock limitation, stated in the
+// file rather than hidden — this is a single-document prototype, so only
+// whichever project is currently selected has real live-edited state;
+// the other row(s) were never loaded this session and have nothing to dump.
+function saveAllProjects() {
+  const liveId = document.querySelector('.project-row.selected')?.dataset.project;
+  document.querySelectorAll('.project-row').forEach(row => {
+    const name = row.querySelector('span').textContent.trim().replace(/\s+/g, '_');
+    if (row.dataset.project === liveId) {
+      downloadText(`${name}.openisd.yml`, buildProjectYaml(), 'text/yaml');
+    } else {
+      downloadText(`${name}.openisd.yml`,
+        `kind: project\n# mock limitation: only the selected project's fields are tracked in\n# this single-document prototype — "${row.querySelector('span').textContent.trim()}"\n# was never loaded this session, so there is nothing real to serialize.\n`,
+        'text/yaml');
+    }
+  });
+}
+
+// ---------------- New Project wizard ----------------
+// Box type and starting Volume are both quick, skippable defaults-setting
+// steps (Next always works, unedited or not); picking a real driver is the
+// one mandatory step, since a box design is meaningless without T/S params
+// to tune around — so it isn't a third wizard pane, it's a hand-off to the
+// same Select-Driver picker the Driver tab's own "Select Driver" uses,
+// rather than duplicating that table/search UI a third time in this app.
+let newProjectWizardStep = 1;
+let newProjectBoxType = 'sealed';
+// Which type the Volume field(s) currently hold values *for* — lets Next
+// only reset to that type's defaults the first time it's shown, not every
+// time Next is pressed, so Back -> Next (box type unchanged) doesn't wipe
+// out a Volume the user already edited on step 2.
+let npwVolumesForType = null;
+
+function startNewProjectWizard() {
+  if (projectModified && !window.confirm('Discard unsaved changes and start a new project?')) return;
+  newProjectBoxType = 'sealed';
+  npwVolumesForType = null;
+  document.getElementById('npw-boxtype-select').value = 'sealed';
+  npwSyncVolumeVisibility('sealed');
+  showNewProjectWizardStep(1);
+  openModal('modal-new-project');
+}
+
+function npwBoxTypeChanged(type) {
+  newProjectBoxType = type;
+}
+
+function npwSyncVolumeVisibility(type) {
+  const isDual = type === 'bp4' || type === 'bp6' || type === 'abc';
+  document.getElementById('npw-volume-single').style.display = isDual ? 'none' : 'flex';
+  document.getElementById('npw-volume-dual').style.display = isDual ? 'block' : 'none';
+}
+
+function npwResetVolumeDefaultsForType(type) {
+  const isDual = type === 'bp4' || type === 'bp6' || type === 'abc';
+  const defaults = ENCLOSURE_FIELD_DEFAULTS[type];
+  if (isDual) {
+    document.getElementById('npw-rear-volume').value = defaults.rearVolume;
+    document.getElementById('npw-front-volume').value = defaults.frontVolume;
+  } else {
+    document.getElementById('npw-volume').value = defaults.volume;
+  }
+  npwVolumesForType = type;
+}
+
+function showNewProjectWizardStep(n) {
+  newProjectWizardStep = n;
+  document.getElementById('npw-step-1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('npw-step-2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('npw-step-indicator').textContent =
+    n === 1 ? 'Step 1 of 2 — Box type' : 'Step 2 of 2 — Starting volume';
+  document.getElementById('npw-btn-back').style.display = n > 1 ? '' : 'none';
+  document.getElementById('npw-btn-next').textContent = n === 2 ? 'Next: Pick Driver >' : 'Next >';
+}
+
+function npwNext() {
+  if (newProjectWizardStep === 1) {
+    npwSyncVolumeVisibility(newProjectBoxType);
+    if (newProjectBoxType !== npwVolumesForType) npwResetVolumeDefaultsForType(newProjectBoxType);
+    showNewProjectWizardStep(2);
+  } else {
+    npwFinishToDriver();
+  }
+}
+
+function npwBack() {
+  showNewProjectWizardStep(1);
+}
+
+// Resets every stored box type to its default (not just the chosen one —
+// otherwise New would leave stale edits sitting in enclosureFieldState for
+// the next project to inherit), applies this wizard's Box-type + starting
+// Volume choices on top, then opens the driver picker. activeEnclosureType
+// is nulled first so setEnclosureType() skips its usual snapshot-the-
+// outgoing-type step — this is a discard, not a switch.
+function npwFinishToDriver() {
+  closeModal('modal-new-project');
+  activeEnclosureType = null;
+  ENCLOSURE_TYPES.forEach(t => { enclosureFieldState[t] = JSON.parse(JSON.stringify(ENCLOSURE_FIELD_DEFAULTS[t])); });
+  const isDual = newProjectBoxType === 'bp4' || newProjectBoxType === 'bp6' || newProjectBoxType === 'abc';
+  if (isDual) {
+    enclosureFieldState[newProjectBoxType].rearVolume = document.getElementById('npw-rear-volume').value;
+    enclosureFieldState[newProjectBoxType].frontVolume = document.getElementById('npw-front-volume').value;
+  } else {
+    enclosureFieldState[newProjectBoxType].volume = document.getElementById('npw-volume').value;
+  }
+  document.getElementById('driver-brand-field').value = 'Custom';
+  document.getElementById('driver-model-field').value = 'driver';
+  setEnclosureType(newProjectBoxType);
+  clearProjectModified();
+  lastSavedSnapshot = captureProjectSnapshot();
+  openSelectDriverForProject();
+}
+
+// Export WPR — the lossy, WinISD-compatible direction. Confirmed against the
+// real .wpr corpus (WINISD_WPR_FILE_SCHEMA.md): one [Box] section, one
+// BType, per file — so only the *active* enclosure type round-trips. Any
+// other type this project has edited values for is silently dropped by the
+// format itself; warn before writing, naming exactly which types are lost.
+const ENCLOSURE_FIELD_DEFAULTS = JSON.parse(JSON.stringify(enclosureFieldState));
+function exportProjectWpr() {
+  const editedOtherTypes = ENCLOSURE_TYPES.filter(t => t !== activeEnclosureType &&
+    JSON.stringify(enclosureFieldState[t]) !== JSON.stringify(ENCLOSURE_FIELD_DEFAULTS[t]));
+  if (editedOtherTypes.length > 0) {
+    const proceed = window.confirm(
+      `WPR only keeps the active box type (${activeEnclosureType}). This project also ` +
+      `has edited values for: ${editedOtherTypes.join(', ')} — those will be lost. Export anyway?`
+    );
+    if (!proceed) return;
+  }
   const brand = document.getElementById('driver-brand-field').value || 'Custom';
   const model = document.getElementById('driver-model-field').value || 'driver';
   const lines = [`Brand: ${brand}`, `Model: ${model}`];
@@ -559,15 +859,9 @@ function saveProjectChangesToFile() {
     const label = input.closest('.tune-fld').querySelector('label').textContent.replace('opt', '').trim();
     lines.push(`${label}: ${input.value}`);
   });
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${brand}_${model}.wpr.txt`.replace(/\s+/g, '_');
-  a.click();
-  URL.revokeObjectURL(url);
-  // Deliberately does NOT clear the dirty flag — exporting a file is not
-  // the same as saving; only Save Changes / Revert do that.
+  downloadText(`${projectFilenameStem()}.wpr.txt`, lines.join('\n'));
+  // Deliberately does NOT clear the browser-local dirty flag — exporting a
+  // file is not the same as saving; only Save Changes / Revert do that.
 }
 
 // ---------------- Manage Drivers (My Drivers, in-memory only — fake/decorative
@@ -613,19 +907,6 @@ function addMyDriver(brand, model) {
   renderMyDrivers();
 }
 
-function customiseToMyDrivers() {
-  const brand = document.getElementById('driver-brand-field').value || 'Custom';
-  const model = document.getElementById('driver-model-field').value || 'driver';
-  addMyDriver(brand, model + ' (custom)');
-}
-
-function saveAsNewDriver() {
-  const name = window.prompt('Save as new — name for this My Drivers entry:', 'New driver');
-  if (!name) return;
-  const [brand, ...rest] = name.split(' ');
-  addMyDriver(brand || 'Custom', rest.join(' ') || name);
-}
-
 function editCustomDriver() {
   if (selectedMyDriverId == null) { window.alert('Select a row in Select Driver → My Drivers first.'); return; }
   const d = myDrivers.find(x => x.id === selectedMyDriverId);
@@ -649,9 +930,9 @@ function editCustomDriver() {
 const DRIVER_EDITOR_BUTTONS_BY_MODE = {
   project: ['de-btn-done', 'de-btn-clone', 'de-btn-select', 'de-btn-clear', 'de-btn-cancel'],
   mydrivers: ['de-btn-done', 'de-btn-clone', 'de-btn-clear', 'de-btn-cancel'],
-  toolbar: ['de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'],
+  toolbar: ['de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-save-native', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'],
 };
-const ALL_DRIVER_EDITOR_BUTTONS = ['de-btn-done', 'de-btn-clone', 'de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'];
+const ALL_DRIVER_EDITOR_BUTTONS = ['de-btn-done', 'de-btn-clone', 'de-btn-select', 'de-btn-load', 'de-btn-clone-toolbar', 'de-btn-save-native', 'de-btn-saveas-disk', 'de-btn-save-mydrivers', 'de-btn-createbox', 'de-btn-clear', 'de-btn-cancel'];
 
 let driverEditorMode = 'project';
 let driverEditorOpenSnapshot = null;
@@ -727,6 +1008,7 @@ function cloneSaveCancel() {
 
 function selectDriverFromEditor() {
   selectDriverSource = 'editor';
+  resetSelectDriverModalChrome();
   // Hide, don't close: closeModal would be fine visually, but this keeps
   // the distinction clear that the editor session is still live underneath,
   // ready to resume once Select Driver is confirmed or cancelled.
@@ -756,7 +1038,7 @@ function cloneDetachEditor() {
     'Editing a detached clone — not linked back to any loaded driver. Use Save as to disk or Save to My Drivers to keep it.';
 }
 
-function saveDriverAsToDisk() {
+function driverEditorFieldLines() {
   const brand = document.getElementById('de-brand-field').value || 'Custom';
   const model = document.getElementById('de-model-field').value || 'driver';
   const lines = [`Brand: ${brand}`, `Model: ${model}`];
@@ -764,13 +1046,24 @@ function saveDriverAsToDisk() {
     const input = label.nextElementSibling;
     if (input) lines.push(`${label.textContent}: ${input.value}`);
   });
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${brand}_${model}.wdr.txt`.replace(/\s+/g, '_');
-  a.click();
-  URL.revokeObjectURL(url);
+  return { brand, model, lines };
+}
+
+// The lossy, WinISD-compatible direction.
+function exportDriverWdr() {
+  const { brand, model, lines } = driverEditorFieldLines();
+  downloadText(`${brand}_${model}.wdr.txt`.replace(/\s+/g, '_'), lines.join('\n'));
+}
+
+// OpenISD's own lossless format — everything captured above, just written
+// with a kind: driver document shape instead of WDR's fixed field set.
+function saveDriverNativeAs() {
+  const { brand, model, lines } = driverEditorFieldLines();
+  const yaml = ['kind: driver', ...lines.map(l => '  ' + l.replace(': ', ': '))].join('\n') + '\n';
+  const chosen = window.prompt('Save driver as:', `${brand}_${model}.openisd-driver.yml`.replace(/\s+/g, '_'));
+  if (!chosen) return;
+  const filename = chosen.endsWith('.openisd-driver.yml') ? chosen : chosen + '.openisd-driver.yml';
+  downloadText(filename, yaml, 'text/yaml');
 }
 
 let createBoxSeq = 0;
