@@ -327,23 +327,25 @@ visible signal that the project had unsaved modifications. Added:
   inside the open Tune panel, Driver Editor's Done (project mode only —
   not My Drivers mode, which doesn't touch "the project"), and a direct
   Select Driver commit.
-- **Save Changes**, **Revert**, and **Export project** buttons sit at the
-  **left** of the `.parstate-legend` bar at the top of the content panel
-  (the Entered/Calculated/Not-available legend stays on the right —
+- **Save Changes** and **Revert** buttons sit at the **left** of the
+  `.parstate-legend` bar at the top of the content panel (the
+  Entered/Calculated/Not-available legend stays on the right —
   `justify-content: space-between` across two grouped `<div>`s) and are
-  **always visible**, not conditionally shown — exporting must not make the
-  save controls disappear. Only Save Changes/Revert's styling reacts to
+  **always visible**, not conditionally shown. Their styling reacts to
   `projectModified`: clean = neutral grey; dirty = yellow
   (`.save-btn.dirty`) plus a pulsing "Unsaved changes" label next to them.
   Save Changes is decorative (a real build would persist to
   `localStorage`/IndexedDB here) but does capture a `lastSavedSnapshot`
   (Brand/Model + Tune fields) that Revert restores from. **Only Save
-  Changes and Revert clear `projectModified`** — Export project is a real
-  download of the project's driver + Tune fields (`.wpr.txt`, deliberately
-  not claiming real WPR binary/XML compatibility, same spirit as the
-  Driver Editor's own Export-driver `.wdr.txt` export) but is just an
-  export, not a save: it leaves the dirty flag and the last-saved
-  snapshot untouched.
+  Changes and Revert clear `projectModified`.**
+- **Export project** is a toolbar item (the header bar's "Save as" icon),
+  not a content-panel control — it operates on the whole project the way
+  WinISD's own toolbar Save/Save As/Save All do, independent of whichever
+  tab is open. It's a real download of the project's driver + Tune fields
+  (`.wpr.txt`, deliberately not claiming real WPR binary/XML compatibility,
+  same spirit as the Driver Editor's own Export-driver `.wdr.txt` export)
+  but is just an export, not a save: it leaves the dirty flag and the
+  last-saved snapshot untouched.
 - Tune counts as its own edit path, distinct from Edit/Done, per the
   earlier Edit-vs-Tune decision — it just wasn't wired into "this leaves
   the project unsaved" until now.
@@ -648,3 +650,189 @@ stretch hack:
 - The `.graph-wrap` click handler's frequency readout (`script.js`) was
   updated to match: `freq = 10 × 2000^fx` (was `10 × 50^fx`, tied to the
   old 10–500 Hz range).
+
+## Concurrent per-box-type storage — one active, others retained
+
+A project can hold live-edited values for **several box types at once**,
+with only one active/visible — switching Box type (sealed/ported/PR/4th
+BP/6th BP/ABC) is a view change, not data loss, so a user can flip between
+types to compare without re-entering shared work.
+
+Most of the app already gets this for free: every box-type-specific panel
+(the Vents/Passive-Radiator/Sealed tab's `enclosure-sealed`/`enclosure-pr`/
+`enclosure-bp4`/etc., the box diagrams) is its **own dedicated DOM block**,
+just shown/hidden by `setEnclosureType()` — nothing is destroyed on switch.
+
+The one place that wasn't safe: the Box tab's chamber **Volume** field(s).
+Single-chamber types (sealed/ported/PR) share one `#box-single-chamber`
+panel and dual-chamber types (4th/6th BP, ABC) share one
+`#box-dual-chamber` panel — same `<input>`, just relabelled per type — so
+switching sealed → ported → sealed used to silently clobber whatever
+Volume had been entered for sealed. Fixed with `enclosureFieldState` in
+`script.js`: a plain object keyed by type (`sealed`, `ported`, `pr`, `bp4`,
+`bp6`, `abc`), each holding that type's own `volume` (single-chamber) or
+`rearVolume`/`frontVolume` (dual-chamber). `setEnclosureType(type)`
+snapshots the outgoing type's live field(s) into this store before
+repainting, then restores the incoming type's stored field(s) afterward —
+`activeEnclosureType` tracks which one is live. `ENCLOSURE_FIELD_DEFAULTS`
+is a frozen copy of the initial state, captured before any user edit, used
+below to detect which types have actually been touched.
+
+Everything else that's box-type-specific (Filters, Signal, Advanced,
+Driver) is project-wide, not per-box-type, and was never in scope here.
+
+## Native vs WinISD-compatible file formats
+
+OpenISD's own model is a strict **superset** of what a `.wpr`/`.wdr` can
+hold (confirmed against the real corpus in `WINISD_WPR_FILE_SCHEMA.md` —
+one `[Box]` section, one `BType`, per file). That asymmetry drives two
+completely different verbs, not one "save" concept:
+
+| Verb                          | Format                   | Fidelity                                                                                                                            | Lands where   |
+| ----------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| **Save / Save As / Save All** | `.openisd.yml` (project) | Lossless — every stored `enclosureFieldState` entry, not just the active type                                                       | Physical disk |
+| **Export WPR project...**     | `.wpr`                   | **Lossy** — only `activeEnclosureType` round-trips; every other populated type is dropped                                           | Physical disk |
+| **Open... / Load driver...**  | either format            | **Lossless both ways** — a `.wpr`/`.wdr`'s single-box-type model is a strict subset of OpenISD's, so importing never loses anything | —             |
+| **Export WDR...**             | `.wdr`                   | **Lossy** — same reasoning as WPR, driver scope                                                                                     | Physical disk |
+
+Because Import/Open never loses data, it needs no format-specific menu
+entry or warning — **"Open..."** (toolbar) and **"Load driver..."** (driver
+editor / library browser) each accept both the native and WinISD format in
+one dialog, auto-detected by content. **Export** is the only direction that
+can lose state, so it's the only one that's separately labelled and (for
+WPR) warns before writing.
+
+Three native suffixes, one per document kind, all sharing the `openisd`
+root so `*.openisd*` finds any of them, none resembling a WinISD extension
+(avoids the false-compatibility-signal risk a form like `.wpr.yml` would
+carry):
+
+- **Project** — `foo.openisd.yml`
+- **Driver** (speaker) — `foo.openisd-driver.yml`
+- **Passive radiator** — `foo.openisd-pr.yml` _(not yet built — see Open
+  questions)_
+
+`buildProjectYaml()` in `script.js` produces the project form (hand-built
+YAML text, not a real YAML library — a mock, per the file's own header
+comment); `driverEditorFieldLines()` + `saveDriverNativeAs()` produce the
+driver form from the standalone Driver Editor.
+
+## Export WPR's lossy warning
+
+`exportProjectWpr()` compares every `enclosureFieldState[type]` against
+`ENCLOSURE_FIELD_DEFAULTS[type]` for every type other than
+`activeEnclosureType`. If any other type has actually been edited, a
+`window.confirm()` names exactly which types would be dropped before the
+download proceeds — not a generic "this may be lossy" notice, the real set.
+Export deliberately does **not** clear the browser-local dirty flag
+(`btn-save-changes`/`btn-revert`) — that pair tracks a different,
+WinISD-has-no-equivalent persistence layer (see below), independent of
+disk Save/Export.
+
+## Toolbar mirrors WinISD's icon footprint, not WinISD's exact button set
+
+The real WinISD toolbar (confirmed from `docs/winisd/view_1_driver_drivers_standard.png`
+and its `.md`) is: **Open▾ · New · Save · Save-As · Save-All · [driver icon]
+· Wrench · Info▾ · Chart▾**, cursor readout far right. OpenISD keeps that
+exact icon count and order, but two of WinISD's plain icons now carry a
+dropdown (matching the pattern already used elsewhere in this toolbar for
+Open/Info):
+
+- **Save** — quick save, `.openisd.yml`, no prompt (Chromium: silent
+  overwrite via a File System Access handle if this session has one; else
+  a fresh download, per the existing Save/Save-As browser-constraint notes
+  above in this file).
+- **Save As ▾** — "Save As... (.openisd.yml)" (`saveProjectNativeAs()`,
+  always prompts a filename) and "Export WPR project..."
+  (`exportProjectWpr()`, the lossy path). These used to be two separate
+  toolbar icons (one of them literally labelled "Export project"); they're
+  now one icon because they're the same _gesture_ (write the project
+  somewhere on disk) with two different _fidelity_ outcomes, not two
+  different gestures.
+- **Save All** — `saveAllProjects()` iterates every row in the Projects
+  list. Mock limitation, stated in the code rather than hidden: this is a
+  single-document prototype, so only the currently **selected** project
+  row has real live-edited state; every other row gets a placeholder file
+  saying so, instead of silently producing fake data for it.
+- **Open ▾** — one plain "Open..." (no separate Import-WPR entry — see the
+  lossless-import point above), a divider, then recents. Recents are
+  browser-tracked (there is no OS-level "recent files" API a web page can
+  read), not a real filesystem listing.
+
+## Manage Drivers collapses to WinISD's single driver icon
+
+WinISD has exactly **one** driver-related toolbar icon, and it does exactly
+one thing: opens the Driver Editor, standalone, with Load/Save/Save-As to
+disk — no library, no "use this driver in a project" action. The mock used
+to have **two** icons (a plain "Driver editor" icon plus a separate
+"Manage Drivers" dropdown for the My-Drivers library) plus a "Create Box..."
+button inside the standalone editor that has no WinISD counterpart at all.
+
+Collapsed to one icon, `openDriverLibrary()`, which opens the existing
+Select-Driver modal (Library/My Drivers tabs, already built for the Driver
+tab's own "Select Driver" flow) in a third mode alongside the existing
+`project`/`editor` sources: `selectDriverSource = 'library'`. This mode
+shows a `#driver-library-actions` row (hidden in the other two modes) and
+hides the modal's own "Select" footer button (picking a driver isn't what
+this mode is for):
+
+- **New driver...** — opens the standalone Driver Editor blank
+  (`openDriverEditor('toolbar')`, unchanged from before).
+- **Load driver...** — `handleLibraryDriverLoad()`; lossless import, always
+  lands in **My Drivers**, never directly on a project (mock: filename-only,
+  contents aren't parsed, same fidelity as every other file "load" in this
+  prototype).
+- **Export WDR...** — `exportSelectedDriverWdr()`; lossy, operates on
+  whichever row is selected in whichever tab is active (Library or My
+  Drivers).
+- **Customise** — `customiseSelectedLibraryDriver()`; clones the selected
+  **Library** row into My Drivers, then switches to the My Drivers tab so
+  the new entry is immediately visible.
+- **Edit** — `editSelectedLibraryDriver()`; opens the full Driver Editor
+  (`mydrivers` mode) on the selected **My Drivers** row. Library rows can't
+  be edited directly (they're shipped data, per the existing "Driver
+  Editor Save doesn't overwrite the built-in store" rule above in this
+  file) — Edit on a Library-only selection prompts to Customise first.
+- **Delete / Disable** — unchanged `deleteCustomDriver()`/`disableCustomDriver()`,
+  My Drivers rows only.
+
+The standalone Driver Editor's own button set (`DRIVER_EDITOR_BUTTONS_BY_MODE.toolbar`)
+picked up the same Save/Export split as the project toolbar: **Save As...
+(.openisd-driver.yml)** (`saveDriverNativeAs()`, new) alongside the
+existing **Export WDR...** (renamed from "Export driver", same
+`.wdr.txt` output, now `exportDriverWdr()`). "Save to My Drivers" and
+"Create Box..." are unchanged.
+
+## Open questions
+
+- **"Create Box..."** (standalone Driver Editor → spins up a new project
+  prefilled with this driver) has no WinISD counterpart — it's the "use
+  this driver" action WinISD's own driver icon doesn't have. Not removed;
+  kept as a deliberate, un-resolved fidelity call.
+- **Passive radiator as its own native file kind** (`.openisd-pr.yml`) vs.
+  folding it into the driver file as `kind: passive_radiator` — PR records
+  are small (Vas/Qms/Fs/Sd/Xmax/Me) and structurally driver-shaped, so
+  folding would reuse all the Import/Export/browse machinery above for
+  free; splitting it out is conceptually cleaner but doubles the format
+  surface for a small record. Not built either way yet.
+- **New Project** is a short wizard (`startNewProjectWizard()` /
+  `#modal-new-project`): Box type → starting Volume → pick a driver. The
+  first two are quick, skippable-via-Next defaults-setting steps (each
+  pane pre-fills sensible values, `npwResetVolumeDefaultsForType()` only
+  re-applies a type's defaults the first time its pane is shown, so Back →
+  Next without changing box type doesn't wipe an edited Volume); the driver
+  step is the one mandatory step and isn't a third wizard pane — it hands
+  off to the existing Select-Driver modal (`openSelectDriverForProject()`)
+  rather than duplicating that table/search UI a third time in this app.
+  For Passive Radiator projects, a PR-browse step would fit the same
+  pattern — but WinISD has no PR library at all (per `BACKLOG.md`'s Storage
+  & sharing section), and there's no scraped PR dataset in `drivers/` yet
+  either, so that step still needs to stay a plain inline form (no browser)
+  until real PR data exists to browse. Not built.
+- **`mydrivers` mode** (editing a My Drivers entry directly) has no
+  Save-As-native/Export-WDR buttons yet — only `toolbar` mode does. Worth
+  extending symmetrically, not done here.
+- **Save Changes / Revert** (content panel, browser-local persistence) are
+  untouched by any of the above and remain their own thing — WinISD has no
+  equivalent at all, since a desktop app's Save already goes to disk
+  directly.

@@ -28,44 +28,32 @@
         <svg viewBox="0 0 20 20" width="18" height="18"><path d="M2 5 L8 5 L10 7 L18 7 L18 16 L2 16 Z" fill="none" stroke="#555" stroke-width="1.3"/></svg>
         <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
         <div class="dropdown-menu" id="folder-dropdown">
-          <div class="menu-item">Open Project...</div>
-          <div class="menu-item">New Project</div>
+          <div class="menu-item" title="Accepts both .openisd.yml (native, lossless) and .wpr (WinISD, lossless to import) — format is auto-detected.">Open...</div>
           <hr>
           <div class="menu-item">Epique15 - pr</div>
           <div class="menu-item">Epique15-ported</div>
         </div>
       </div>
-      <div class="tb-btn" title="New project">
+      <div class="tb-btn" title="New project — a short wizard: box type, starting volume, then pick a driver." onclick="startNewProjectWizard()">
         <svg viewBox="0 0 20 20" width="18" height="18"><path d="M4 2 H12 L16 6 V18 H4 Z" fill="none" stroke="#555" stroke-width="1.3"/><path d="M12 2 V6 H16" fill="none" stroke="#555" stroke-width="1.3"/></svg>
       </div>
-      <div class="tb-btn" title="Save">
+      <div class="tb-btn" id="tb-save" title="Save — writes the full project to disk as OpenISD's own lossless format (.openisd.yml)." onclick="saveProjectNative()">
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="3" width="8" height="5" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="12" width="8" height="4" fill="#555"/></svg>
       </div>
-      <div class="tb-btn" title="Save as">
+      <div class="tb-btn has-menu" id="tb-saveas" title="Save As" style="position:relative" onclick="toggleDropdown('saveas-dropdown')">
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.1"/><line x1="5" y1="15" x2="15" y2="5" stroke="#c9971b" stroke-width="2"/><polygon points="14,4 16,6 15,7 13,5" fill="#c9971b"/></svg>
+        <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+        <div class="dropdown-menu" id="saveas-dropdown">
+          <div class="menu-item" id="tb-saveas-native" title="Full project, lossless, to disk." onclick="saveProjectNativeAs()">Save As... (.openisd.yml)</div>
+          <div class="menu-item" id="tb-export-wpr" title="WinISD-compatible, lossy — only the active box type round-trips." onclick="exportProjectWpr()">Export WPR project...</div>
+        </div>
       </div>
-      <div class="tb-btn" title="Save all">
+      <div class="tb-btn" id="tb-saveall" title="Save all — writes every open project in the Projects list to its own .openisd.yml." onclick="saveAllProjects()">
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="5" y="2" width="12" height="12" rx="1" fill="#f2f2f2" stroke="#999" stroke-width="1.1"/><rect x="3" y="5" width="12" height="12" rx="1" fill="#fff" stroke="#555" stroke-width="1.3"/><rect x="6" y="5" width="6" height="4" fill="none" stroke="#555" stroke-width="1"/></svg>
       </div>
       <div class="tb-sep"></div>
-      <div class="tb-btn" title="Driver editor" onclick="openDriverEditor('toolbar')">
+      <div class="tb-btn" id="tb-manage-drivers" title="Manage Drivers — browse the built-in Library and My Drivers, same single entry point as WinISD's own driver icon." onclick="openDriverLibrary()">
         <svg viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="2" width="16" height="16" rx="2" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="6" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="2.4" fill="#777"/></svg>
-      </div>
-      <div class="tb-btn has-menu" title="Manage Drivers" style="position:relative" onclick="toggleDropdown('managedrivers-dropdown')">
-        <svg viewBox="0 0 20 20" width="18" height="18">
-          <ellipse cx="10" cy="5" rx="7" ry="2.6" fill="none" stroke="#555" stroke-width="1.3"/>
-          <path d="M3 5 V10 A7 2.6 0 0 0 17 10 V5" fill="none" stroke="#555" stroke-width="1.3"/>
-          <path d="M3 10 V15 A7 2.6 0 0 0 17 15 V10" fill="none" stroke="#555" stroke-width="1.3"/>
-        </svg>
-        <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
-        <div class="dropdown-menu" id="managedrivers-dropdown">
-          <div class="menu-item" onclick="customiseToMyDrivers()">Customise current driver &rarr; My Drivers</div>
-          <div class="menu-item" onclick="saveAsNewDriver()">Save as new...</div>
-          <hr>
-          <div class="menu-item" onclick="editCustomDriver()">Edit custom driver...</div>
-          <div class="menu-item" onclick="deleteCustomDriver()">Delete custom driver</div>
-          <div class="menu-item" onclick="disableCustomDriver()">Disable custom driver</div>
-        </div>
       </div>
       <div class="tb-btn" title="Options" onclick="openModal('modal-options')">
         <svg viewBox="0 0 20 20" width="18" height="18"><path d="M14 3 a3 3 0 1 0 -2.9 3.8 L4 14 l2 2 l7.9-7.1 A3 3 0 0 0 14 3 Z" fill="none" stroke="#555" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -269,7 +257,6 @@
           <span class="unsaved-label" id="unsaved-label" style="display:none;"><span class="unsaved-dot"></span>Unsaved changes</span>
           <button id="btn-save-changes" class="save-btn" title="Persists the current project's live changes to browser storage." onclick="saveProjectChangesLocal()">Save Changes</button>
           <button id="btn-revert" class="save-btn" title="Discards live changes, restoring the project to its last-saved state." onclick="revertProjectChanges()">Revert</button>
-          <button id="btn-save-file" class="save-btn" title="Downloads the current project's live changes as a file to physical disk. Does not mark the project as saved — Save Changes or Revert are what clear unsaved changes." onclick="saveProjectChangesToFile()">Export project</button>
         </div>
         <div class="parstate-swatches">
           <span><span class="swatch green"></span>Entered</span>
@@ -283,7 +270,7 @@
       <div class="field-row driver-id-row">
         <div class="field tight"><label>Brand</label><input type="text" id="driver-brand-field" style="width:130px" value="Dayton Audio"></div>
         <div class="field tight"><label>Model</label><input type="text" id="driver-model-field" style="width:140px" value="E150HE-44"></div>
-        <button class="edit-btn" title="Swap in a different driver for this project — does not touch the WDR file or My Drivers." onclick="openModal('modal-select-driver')">Select Driver</button>
+        <button class="edit-btn" title="Swap in a different driver for this project — does not touch the WDR file or My Drivers." onclick="openSelectDriverForProject()">Select Driver</button>
         <button class="edit-btn" title="Full editor for the copy of this driver already loaded into the current project. Changes apply live to this project only; Done keeps them, Clone... additionally writes an independent copy to My Drivers." onclick="openDriverEditor('project')">&#9998; Edit</button>
         <button class="edit-btn" title="Reactive minimal editor: tweak the headline T/S params and watch the graph update live." onclick="openTune()">&#9835; Tune</button>
       </div>
@@ -347,7 +334,7 @@
           <div class="box-fields-col">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
+              <div class="field"><label>Volume</label><input type="text" id="box-single-volume-field" class="entered spin-field" value="6.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
             <div class="field-row">
               <div class="field"><label id="box-single-f2-label">Fsc</label><input type="text" class="calculated greyed" value="40.25" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
@@ -399,7 +386,7 @@
           <div class="box-fields-col">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="8.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
+              <div class="field"><label>Volume</label><input type="text" id="box-rear-volume-field" class="entered spin-field" value="8.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
             <div class="field-row">
               <div class="field"><label id="box-rear-f2-label">Frc</label><input type="text" class="calculated greyed" value="48.50" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
@@ -408,7 +395,7 @@
           <div class="box-fields-col">
             <div class="section-header">Front chamber</div>
             <div class="field-row">
-              <div class="field"><label>Volume</label><input type="text" class="entered spin-field" value="10.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
+              <div class="field"><label>Volume</label><input type="text" id="box-front-volume-field" class="entered spin-field" value="10.00"><span class="unit unit-cyc" data-ug="volume" onclick="cycleUnit(this)">l</span></div>
             </div>
             <div class="field-row">
               <div class="field"><label id="box-front-f2-label">Tuning freq</label><input type="text" class="calculated greyed" value="55.00" readonly><span class="unit unit-cyc" data-ug="freq" onclick="cycleUnit(this)">Hz</span></div>
@@ -882,10 +869,11 @@
       </div>
       <div class="footer-buttons">
         <button id="de-btn-select" title="Opens Select Driver to load a driver definition from the database or My Drivers into this editor." onclick="selectDriverFromEditor()">Select Driver</button>
-        <button id="de-btn-load" title="Load a driver definition from a local .wdr file (mock — the file's contents are not actually parsed; only its name seeds Brand/Model)." onclick="loadDriverFromDisk()">Load driver...</button>
-        <input type="file" id="de-load-file-input" accept=".wdr" style="display:none" onchange="handleDriverFileLoad(this)">
+        <button id="de-btn-load" title="Load a driver definition from disk (mock — the file's contents are not actually parsed; only its name seeds Brand/Model). Accepts .openisd-driver.yml or .wdr, lossless either way." onclick="loadDriverFromDisk()">Load driver...</button>
+        <input type="file" id="de-load-file-input" accept=".yml,.yaml,.wdr" style="display:none" onchange="handleDriverFileLoad(this)">
         <button id="de-btn-clone-toolbar" title="Detaches this session from whatever was loaded — further edits are your own, not tied back to the original, until you save them to disk or My Drivers." onclick="cloneDetachEditor()">Clone</button>
-        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — a fresh file every time, never a silent overwrite." onclick="saveDriverAsToDisk()">Export driver</button>
+        <button id="de-btn-save-native" title="Downloads these values as OpenISD's own lossless format — a fresh file every time, never a silent overwrite." onclick="saveDriverNativeAs()">Save As... (.openisd-driver.yml)</button>
+        <button id="de-btn-saveas-disk" title="Downloads these values as a .wdr file — lossy, WinISD-compatible. A fresh file every time, never a silent overwrite." onclick="exportDriverWdr()">Export WDR...</button>
         <button id="de-btn-save-mydrivers" title="Saves these values as a new entry in My Drivers." onclick="cloneDriverEditor()">Save to My Drivers</button>
         <button id="de-btn-createbox" title="Creates a new project (box design) using this driver." onclick="createBoxFromEditor()">Create Box...</button>
         <button id="de-btn-clone" title="Creates a new custom driver in My Drivers with whatever the current settings are on this editor — does not affect the current project." onclick="cloneDriverEditor()">Clone...</button>
@@ -893,6 +881,57 @@
         <button id="de-btn-done" class="ok-btn" title="Updates the driver copy embedded in the current project — not the original driver definition." onclick="doneDriverEditor()">&#10003; Done</button>
         <button id="de-btn-cancel" class="cancel-btn" title="Dismisses the editor without any changes." onclick="cancelDriverEditor()">&#10060; Cancel</button>
       </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Modal: New Project wizard ================= -->
+<div class="overlay" id="modal-new-project">
+  <div class="modal">
+    <div class="modal-titlebar">
+      <div class="tb-left"><span class="app-icon"></span><span>New Project</span></div>
+      <div class="win-controls"><span>&#8211;</span><span style="color:#aaa">&#9633;</span><span class="close-btn" onclick="closeModal('modal-new-project')">&#10005;</span></div>
+    </div>
+    <div class="modal-body">
+      <p class="hint" id="npw-step-indicator" style="font-style:normal; color:#666; margin-bottom:10px;">Step 1 of 2 — Box type</p>
+
+      <div id="npw-step-1">
+        <div class="field-row">
+          <div class="field"><label>Box type</label>
+            <select id="npw-boxtype-select" style="width:240px" onchange="npwBoxTypeChanged(this.value)">
+              <option value="sealed" selected>Closed</option>
+              <option value="ported">Vented</option>
+              <option value="pr">Passive Radiator</option>
+              <option value="bp4">4th Order Bandpass</option>
+              <option value="bp6">6th Order Bandpass</option>
+              <option value="abc">ABC (Aperiodic Bi-Chamber)</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">Optional — starts at a sensible default (Closed). Change box type any time once the project is open.</p>
+      </div>
+
+      <div id="npw-step-2" style="display:none">
+        <div id="npw-volume-single" class="field-row">
+          <div class="field"><label>Volume</label><input type="text" id="npw-volume" value="6.00"><span class="unit">l</span></div>
+        </div>
+        <div id="npw-volume-dual" style="display:none">
+          <div class="field-row">
+            <div class="field"><label>Rear chamber volume</label><input type="text" id="npw-rear-volume" value="8.00"><span class="unit">l</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Front chamber volume</label><input type="text" id="npw-front-volume" value="10.00"><span class="unit">l</span></div>
+          </div>
+        </div>
+        <p class="hint">Optional — starting volume, refine later once you've picked a driver.</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;">
+      <div class="footer-buttons">
+        <button id="npw-btn-back" class="cancel-btn" style="display:none" onclick="npwBack()">&lt; Back</button>
+        <button id="npw-btn-next" class="ok-btn" onclick="npwNext()">Next &gt;</button>
+        <button class="cancel-btn" onclick="closeModal('modal-new-project')">Cancel</button>
       </div>
     </div>
   </div>
@@ -908,6 +947,16 @@
     <div class="modal-tabs">
       <div class="mtab active" onclick="showModalTab('modal-select-driver','library',this)">Library</div>
       <div class="mtab" onclick="showModalTab('modal-select-driver','mydrivers',this)">My Drivers</div>
+    </div>
+    <div id="driver-library-actions" style="display:none; gap:8px; flex-wrap:wrap; padding:10px 14px 0; border-bottom:1px solid #ddd; margin-bottom:4px;">
+      <button class="edit-btn" title="Opens a blank, standalone Driver Editor — not tied to any project or My Drivers entry." onclick="newDriverFromLibrary()">New driver...</button>
+      <button class="edit-btn" title="Loads a driver definition from disk into My Drivers — accepts .openisd-driver.yml or .wdr, lossless either way (only Export is lossy)." onclick="loadDriverIntoLibrary()">Load driver...</button>
+      <button class="edit-btn" title="Downloads the selected row as a .wdr file — lossy, WinISD-compatible." onclick="exportSelectedDriverWdr()">Export WDR...</button>
+      <button class="edit-btn" title="Clones the selected Library driver into My Drivers as an editable copy." onclick="customiseSelectedLibraryDriver()">Customise</button>
+      <button class="edit-btn" title="Opens the full Driver Editor for the selected My Drivers entry." onclick="editSelectedLibraryDriver()">Edit</button>
+      <button class="edit-btn" title="Removes the selected My Drivers entry." onclick="deleteCustomDriver()">Delete</button>
+      <button class="edit-btn" title="Marks the selected My Drivers entry disabled — excluded from picks, kept in the list." onclick="disableCustomDriver()">Disable</button>
+      <input type="file" id="library-load-file-input" accept=".yml,.yaml,.wdr" style="display:none" onchange="handleLibraryDriverLoad(this)">
     </div>
     <div class="modal-body">
 
