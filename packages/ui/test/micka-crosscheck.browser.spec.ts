@@ -18,9 +18,25 @@
  */
 
 import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { SCENARIOS } from './scenarios.js';
+import type { Scenario } from './scenarios.js';
 
 const TEMP_C = 20; // air temperature — micka's default; matches OpenISD's c = 343.68 m/s (20 °C)
+
+// Which micka.de inputs apply depends on the scenario's box type — this is
+// per-scenario setup, not a runtime test-assertion branch, so it lives in its
+// own function rather than directly in the test body.
+async function fillBoxInputs(page: Page, box: Scenario['box']) {
+  if (box.type === 'sealed' && box.Qtc != null) {
+    await page.locator('input[name="qtc"]').fill(String(box.Qtc));
+  } else if (box.type === 'vented' && box.Vb != null && box.ventD != null && box.ventL != null) {
+    // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions
+    await page.locator('input[name="vb2"]').fill(String(box.Vb));
+    await page.locator('input[name="rd2"]').fill(String(box.ventD));
+    await page.locator('input[name="lv2"]').fill(String(box.ventL));
+  }
+}
 
 for (const S of SCENARIOS) {
   if (!S.micka) continue;
@@ -37,23 +53,21 @@ for (const S of SCENARIOS) {
     await page.locator('input[name="qts"]').fill(String(S.driver.Qts));
     await page.locator('input[name="temp_luft"]').fill(String(TEMP_C));
 
-    // Fill box-specific inputs
-    if (S.box.type === 'sealed' && S.box.Qtc != null) {
-      await page.locator('input[name="qtc"]').fill(String(S.box.Qtc));
-    } else if (S.box.type === 'vented' && S.box.Vb != null && S.box.ventD != null && S.box.ventL != null) {
-      // "Your own Box" (red curve) — arbitrary user-specified enclosure + vent dimensions
-      await page.locator('input[name="vb2"]').fill(String(S.box.Vb));
-      await page.locator('input[name="rd2"]').fill(String(S.box.ventD));
-      await page.locator('input[name="lv2"]').fill(String(S.box.ventL));
-    }
+    await fillBoxInputs(page, S.box);
 
     // Submit — full page POST; Playwright waits for network idle before asserting
     await page.locator('input[type="submit"]').click();
 
-    // Assert micka's computed outputs against scenario's expected values
+    // Assert micka's computed outputs against scenario's expected values —
+    // which fields apply (Vb/fc/Fb) is data-driven per scenario, so this
+    // asserts whatever S.micka actually specifies. The length check guards
+    // against a scenario whose `micka` object is present but empty silently
+    // "passing" by asserting nothing at all.
     const table = page.locator('table.generouscolumns');
-    if (S.micka?.Vb) await expect(table).toContainText(S.micka.Vb);
-    if (S.micka?.fc) await expect(table).toContainText(S.micka.fc);
-    if (S.micka?.Fb) await expect(table).toContainText(S.micka.Fb);
+    const fields = Object.entries(S.micka!);
+    expect(fields.length).toBeGreaterThan(0);
+    for (const [, value] of fields) {
+      await expect(table).toContainText(value);
+    }
   });
 }
