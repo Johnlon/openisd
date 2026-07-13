@@ -3,11 +3,29 @@
   "version": 2,
   "description": "Federated driver-data sources, keyed by a short stable source id. OpenISD links to driver libraries wherever their owners maintain them, instead of copying the files. The in-app driver browser reads this map (and you can paste any GitHub repo ad hoc). A driver's unique identity is its source key + its path within that source — never its display name, which can repeat. Add a source by opening a PR that adds a keyed entry here; the key is the drivers/ folder name for bundled sources, or a short slug for federated ones.",
   "sources": {
+    "demos": {
+      "name": "OpenISD demos",
+      "url": "https://github.com/Johnlon/openisd/tree/main/drivers/demos",
+      "description": "Generic demo drivers shipped with OpenISD (a 6.5\" woofer and a 1\" tweeter) — not real products; representative values for trying the tool. The woofer is the app's default driver.",
+      "license": "public domain (OpenISD demo data)"
+    },
+    "matt": {
+      "name": "Matt (mtg90) / AVS Forum",
+      "url": "https://github.com/Johnlon/openisd/tree/main/drivers/matt",
+      "description": "~430 drivers from the mtg90 AVS Forum collection. See drivers/matt/meta.json for provenance.",
+      "license": "community / factual T/S measurements"
+    },
     "openisd_drivers": {
       "name": "OpenIsd drivers",
       "url": "https://github.com/Johnlon/winisd_drivers/tree/main/datasheets_archive",
       "description": "Federated driver datasheets repository containing thousands of scraped and verified speaker driver definitions.",
       "license": "public product data / factual T/S measurements"
+    },
+    "winisd": {
+      "name": "WinISD",
+      "url": "https://github.com/Johnlon/openisd/tree/main/drivers/winisd",
+      "description": "1121 driver files from the original WinISD distribution (circa 2006 or earlier). Quality=L (obsolete, unchecked). Most drivers are likely subsumed by more recent sources.",
+      "license": "see WinISD project"
     }
   }
 }
