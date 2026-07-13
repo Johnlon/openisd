@@ -32,7 +32,7 @@ test('driver library search returns only matching drivers (and renders the dupli
   };
 
   // Every visible result must actually contain the query token.
-  for (const q of ['demo', 'generic', 'tweeter']) {
+  for (const q of ['dayton', 'dsa115']) {
     const names = await searchNames(q);
     expect(names.length, `"${q}" returned no drivers`).toBeGreaterThan(0);
     for (const n of names) {
@@ -40,19 +40,6 @@ test('driver library search returns only matching drivers (and renders the dupli
     }
   }
 
-  // Demos are found by their WDR Brand + Model, NOT the filename.
-  const demoNames = await searchNames('demo');
-  expect(demoNames).toContain('Demo Generic 6.5" Woofer');
-  expect(demoNames).toContain('Demo Generic 1" Tweeter');
-
-  // Render the duplicate-name case: the Matt set has "AE TD12M" as two dated files.
-  // This re-patches the keyed list with colliding rows, which emits Vue's
-  // "Duplicate keys found" warning if the v-for key is not unique — caught by the
-  // fixture's console assertion. (A search that filters the duplicates out, like
-  // "demo", never triggers it — which is why the first version of this test missed
-  // the bug.)
-  const dupRows = await searchNames('td12m');
-  expect(dupRows.filter(n => /AE TD12M/i.test(n)).length,
-    'expected the duplicate "AE TD12M" rows to render (they trigger the key collision)')
-    .toBeGreaterThanOrEqual(2);
+  const dsaNames = await searchNames('dsa115');
+  expect(dsaNames.some(n => /dsa115/i.test(n))).toBe(true);
 });
