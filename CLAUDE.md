@@ -74,6 +74,20 @@ repos, not here.
 - **Commit under the repository's configured git identity** (the human). Never set or override `--author`, `user.name`, or `user.email` to Claude/Anthropic.
 - Commit messages describe the change only — no AI authorship metadata of any kind.
 
+## Zero Data-Loss and Human Authorization Guardrail — absolute rule
+ 
+Under no circumstances may an AI agent or script perform any destructive operation, edit, or deletion that results in a loss of historical metadata, technical parameters, file telemetry, logs, or timestamps (such as `.done` file timestamps or database entries).
+ 
+ 
+*   **Mandatory Human Confirmation**: To execute any destructive operation or cleanup, the AI must first present a detailed dry-run or backup log highlighting exactly what data is at risk of being lost, and the human **must explicitly state** that it is OK to lose that given value or set of values (e.g., using exact confirming words like "it is OK to lose those values") before any such change is planned or executed on disk.
+ 
+## Rigorous Analysis and Verification — hard rule
+ 
+To prevent critical miscommunications and errors, the AI agent must never guess, assume, or provide theoretical/hearsay answers about the state of files, directories, or database records.
+ 
+*   **Default Behavior (Full Analysis)**: Unless the user explicitly asks to "sample", "find some", "find a", or "where can I see", any question or request regarding data, discrepancies, or file system state **MUST** be treated as a directive to perform a full-scale, database-wide programmatic scan/analysis.
+*   **Verification Prior to Response**: The agent must physically execute verification scripts or CLI checks on the entire target dataset to obtain empirical ground-truth before making any claims or declarations in chat.
+ 
 ---
 
 ## AI-locked files

@@ -91,8 +91,9 @@ Fields the app cannot recompute (dimensions, Hc/Hg, thermal) are carried as-is �
 in practice marked **E** so they persist, since the app has no derivation for them.
 
 **`driver.toWdr()`** — the exact inverse: write every carried field (`get(field)`),
-and build `ParState` from `state(field)` at each probe-confirmed position (see
-`scraper_lib._parstate` for the position map — positions like Qts=14, c=47, roo=48).
+and build `ParState` from `state(field)` at each probe-confirmed position (see the
+sibling `winisd_tools` repo's `scraper_lib._parstate` for the position map —
+positions like Qts=14, c=47, roo=48).
 
 Import → export is lossless by construction, and provenance survives: ParState in
 via `enter`, ParState out via `state()`.

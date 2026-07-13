@@ -71,11 +71,11 @@ IEC sensitivity curves.
 Test driver: **Morel UW 1258** (8Ω nominal). Measured on IEC baffle, Brüel & Kjær 3144 mic.
 Datasheet: **"Sensitivity 2.83V/1m 87 dB SPL"**
 
-| Tool                    | Parameters                  | Voltage | SPL                 |
-| ----------------------- | --------------------------- | ------- | ------------------- |
+| Tool                   | Parameters                 | Voltage | SPL                 |
+| ---------------------- | -------------------------- | ------- | ------------------- |
 | OpenISD 2.83V IEC mode | OpenISD entry              | 2.83V   | **87.0 dB** ✓       |
-| WinISD                  | Built-in Morel DB entry     | 2.83V   | 86.59 dB (−0.41 dB) |
-| WinISD                  | .wdr exported from OpenISD | 2.83V   | **87.1 dB** ✓       |
+| WinISD                 | Built-in Morel DB entry    | 2.83V   | 86.59 dB (−0.41 dB) |
+| WinISD                 | .wdr exported from OpenISD | 2.83V   | **87.1 dB** ✓       |
 
 The 0.41 dB gap with WinISD's built-in entry was a **parameter difference** (different T/S values in
 WinISD's database vs the datasheet). With identical parameters (via .wdr export), both tools agree
@@ -260,9 +260,9 @@ power-to-voltage conversion. OpenISD matches this behaviour.
 **Observation (2026-06-24):** Same driver + PR box, same parameters.
 
 |                   | OpenISD (before) | OpenISD (after) | WinISD 0.7 |
-| ----------------- | ----------------- | ---------------- | ---------- |
-| GD peak frequency | 58.9 Hz           | 60 Hz            | 61.9 Hz    |
-| GD peak magnitude | 11.4 ms           | 12.1 ms          | 12.2 ms    |
+| ----------------- | ---------------- | --------------- | ---------- |
+| GD peak frequency | 58.9 Hz          | 60 Hz           | 61.9 Hz    |
+| GD peak magnitude | 11.4 ms          | 12.1 ms         | 12.2 ms    |
 
 **Root cause:** OpenISD's Ql default was 7; WinISD's confirmed default is 10. Higher loss
 (lower Ql) damps the resonance, shifting the peak down in frequency and reducing its magnitude.
@@ -347,9 +347,9 @@ but diverges slightly from WinISD at frequencies where Le is non-negligible.
 
 With the demo 6.5" driver (Le = 0.7 mH, Re = 5.6 Ω) in a PR box:
 
-| Mode                                           | GD peak freq | GD peak mag |
-| ---------------------------------------------- | ------------ | ----------- |
-| WinISD 0.7.0.950 (observed)                    | 61.9 Hz      | 12.2 ms     |
+| Mode                                          | GD peak freq | GD peak mag |
+| --------------------------------------------- | ------------ | ----------- |
+| WinISD 0.7.0.950 (observed)                   | 61.9 Hz      | 12.2 ms     |
 | OpenISD — WinISD model (confirmed 2026-06-24) | **61 Hz**    | **12 ms**   |
 | OpenISD — Full gyrator                        | 60.0 Hz      | 12.1 ms     |
 
@@ -358,7 +358,7 @@ effective electrical Q and coupled system resonance by ~1.9 Hz in the full gyrat
 
 ### OpenISD advantage over WinISD
 
-| Feature                   | WinISD               | OpenISD                       |
+| Feature                   | WinISD               | OpenISD                        |
 | ------------------------- | -------------------- | ------------------------------ |
 | Le in acoustic circuit    | No (constant Rae)    | Yes (full gyrator, switchable) |
 | Box losses (Ql, Qa)       | Ql + Qa via UI       | Ql + Qa via UI                 |
@@ -448,8 +448,9 @@ by WinISD from other entered values), or `N` (Not set). The mapping of positions
 parameter names has been reverse-engineered via single-parameter probes in `drivers/sample/`
 and is documented in `drivers/sample/README.md`.
 
-**OpenISD's ParState builder** (`scraper_lib.py:_parstate()`) dynamically constructs ParState
-based on which fields were actually sourced from the datasheet:
+**The data pipeline's ParState builder** (sibling `winisd_tools` repo's
+`scraper_lib.py:_parstate()`) dynamically constructs ParState based on which
+fields were actually sourced from the datasheet:
 
 - **E** — field is present and non-zero (user-entered or sourced from datasheet)
 - **C** — field is computed from available dependencies (e.g., Vd from Sd+Xmax, EBP from Fs+Qes+Qms)
@@ -497,20 +498,20 @@ Air properties (standard 20°C, overridable via WinISD UI):
   c=343.684120962152
   roo=1.20095217714682
 
-Physical dimensions (not currently extracted by scrapers):
+Physical dimensions (not currently extracted):
   Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd, DVol
-  (See BACKLOG.md: Physical dimension extraction gap)
+  (See the sibling winisd_tools repo's SCRAPING_TODO.md: Physical dimension extraction gap)
 ```
 
 **Do NOT store Qts** when Qms and Qes are both present — see consistency rule above.
 
 ## 11. Open questions
 
-| #   | Question                                                                                                                                                                                                                                                                                                                                                                                                                                      | Priority |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 1   | ~~Does WinISD use 2.83 V fixed or `sqrt(Pin × Z_nom)`?~~ **RESOLVED: uses `Eg = sqrt(P × Re)`** — confirmed in WinISD help file                                                                                                                                                                                                                                                                                                               | Closed   |
-| 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                       | Closed   |
-| 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                      | Closed   |
+| #   | Question                                                                                                                                                                                                                                                                                                                                                                                                                                     | Priority |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | ~~Does WinISD use 2.83 V fixed or `sqrt(Pin × Z_nom)`?~~ **RESOLVED: uses `Eg = sqrt(P × Re)`** — confirmed in WinISD help file                                                                                                                                                                                                                                                                                                              | Closed   |
+| 2   | ~~Does WinISD include Le in its acoustic circuit model?~~ **RESOLVED: No. Le only for impedance. Source: aboutequivalentcircuits.html**                                                                                                                                                                                                                                                                                                      | Closed   |
+| 3   | ~~Does WinISD model box leakage (Ql)?~~ **RESOLVED: Ql=10, Qa=100, Qp=100; entry via "Advanced->" button in the Box tab panel (not the top-level Advanced tab). Confirmed by help file text + screenshots boxdes05/06.**                                                                                                                                                                                                                     | Closed   |
 | 4   | ~~What radiation model does WinISD use?~~ **RESOLVED: half-space (infinite baffle). Formula `p(r) = ρ·ω·U0/(2π·r)` confirmed in `aboutequivalentcircuits.html`. OpenISD uses identical formula.**                                                                                                                                                                                                                                            | Closed   |
 | 5   | ~~Does WinISD account for air load (radiation mass) on the PR separately from Mms?~~ **RESOLVED: No separate term added. `thielesmall.html` defines Mms as "including air load" for all drivers. For PRs, WinISD derives Mms from Fs+Vas via `Mms = 1/((2π·Fs)²·Cms)` — the measured Fs already encodes air-load implicitly. Neither WinISD nor OpenISD adds an extra radiation-mass term. Source: `research/winisd/help/thielesmall.html`** | Closed   |
 | 6   | ~~Does WinISD's Qms in PR mode mean the same as T/S Qms?~~ **RESOLVED: Yes — standard T/S definition. `aboutequivalentcircuits.html` gives `Ram = 1/(2π·Fs·Qms·Ccas)` applied identically for drivers and PRs. Algebraically equivalent to OpenISD's `Rms = sqrt(Mms/Cms)/Qms`. Source: `research/winisd/help/aboutequivalentcircuits.html`**                                                                                                | Closed   |
@@ -854,20 +855,20 @@ Version: WinISD Pro 0.7 (Linearteam).
 
 ## 16. WDR fields that are non-functional in WinISD — historic parity only
 
-These fields exist in the WDR format and are written by OpenISD scrapers/exporters for
-WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
+These fields exist in the WDR format and are written by the data pipeline / OpenISD's own
+writers for WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
 present purely because real WinISD files contain them and omitting them could prevent correct
 round-trip import. OpenISD includes them for historic parity with WinISD, not because they
 drive any curve or calculation.
 
 ### Confirmed no simulation effect — WinISD help says so explicitly
 
-| Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                 |
-| ---------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                |
+| ---------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
-| **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                              |
-| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                              |
-| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                                |
+| **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                             |
+| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                             |
+| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                               |
 
 ### Pure metadata — no functional role at all
 
@@ -886,8 +887,8 @@ shown on the Dimensions tab for the builder's reference. **WinISD does not subtr
 displacement (DVol) from box volume** — users must do that manually. Source: `faq.html`:
 _"WinISD doesn't take driver displacement into account."_
 
-These are written as `0` by OpenISD scrapers because the data is not yet extracted from
-datasheets. See BACKLOG.md (Physical dimension extraction gap).
+These are written as `0` by the data pipeline because the data is not yet extracted from
+datasheets. See the sibling winisd_tools repo's SCRAPING_TODO.md (Physical dimension extraction gap).
 
 ### Inert in practice — but WOULD affect output if entered
 

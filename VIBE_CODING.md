@@ -67,8 +67,8 @@ unit + golden suite, and block any push that fails the full CI including all 31
 browser tests. GitHub Actions (`.github/workflows/ci.yml`) re-runs lint,
 typecheck, unit + golden, browser, and a production build on every push and pull
 request. `bash scripts/health-check.sh` is the single local entry point: six
-gates — ESLint, typecheck, unit, browser, data-quality validation over the driver
-library, and 50 Python scraper tests.
+gates — ESLint, typecheck, unit, browser. Driver-data quality checks and the
+Python pipeline's own test suite run in the sibling `winisd_tools` repo.
 
 **6. The type system and linter are gates, not decoration.**
 TypeScript `strict: true` across the codebase (`tsconfig.base.json`); the lint
@@ -80,10 +80,11 @@ console reporter, whose output _is_ the console.)
 **7. Numbers are human-gated; data is never hand-patched.**
 No formula or constant in the engine changes without explicit human sign-off.
 Where OpenISD disagrees with another tool, the discrepancy is documented with its
-cause (`WINISD.md`, `COMPARISON.md`) rather than silently "fixed". The 6,405
-driver files in `drivers/` are never edited by hand or by patch script — that is
-a hard rule; a wrong value means fixing the scraper and regenerating, so the same
-error can't creep back on the next run.
+cause (`WINISD.md`, `COMPARISON.md`) rather than silently "fixed". Driver files
+are never edited by hand or by patch script — that is a hard rule; a wrong value
+means fixing the source (the data pipeline for federated collections, this
+repo's own `restore_matt_from_archive.py` transformation rules for `matt/`) and
+regenerating, so the same error can't creep back on the next run.
 
 That is the machinery. Now the honest part.
 
@@ -94,20 +95,20 @@ vibe.** The goal is to move every safeguard from "we try to remember" to "a tool
 fails the build if we don't." That migration isn't finished, and the table says
 so in public. Finding numbers (`§N`) refer to `CODE_REVIEW/CODE_REVIEW.md`.
 
-| #   | The failure mode ("vibe-coded" usually means one of these) | Antidote (what OpenISD does)                                     | Enforced by                                             | OpenISD today                                                                                                                                                       |
-| --- | ---------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Guess-ware** — no enforced rules                         | Explicit rules _and_ a machine that checks them                  | Schema validation in the write path; lint; CLAUDE.md    | ◐ Validation runs in the shared write path; not yet locked by a test                                                                                                |
-| 2   | **Unmaintainable** — change ripples                        | One source of truth per concern; shared helpers                  | One module per concern; review                          | ◐ Single persistence source of truth; scraper infra shared via re-export, but two `scraper_lib.py` modules remain (§5)                                              |
-| 3   | **Security-unsafe** — secrets leak                         | No secrets in code; audit inputs                                 | Secret-scan in CI (e.g. gitleaks)                       | ✓ Clear — none found; **add the scan** so it stays clear                                                                                                            |
-| 4   | **Doesn't scale** — no architecture                        | Generalise the mechanism; don't bolt on special cases            | Architecture review against `ARCHITECTURE.md`/`PLAN.md` | ◐ Mixed — engine (`packages/engine`) modular & clean; scraper side accretive (§5)                                                                                   |
-| 5   | **Impossible to debug**                                    | Timestamped logs, problem logs, tests, fail-loud                 | Script rules; `_problems.log`; test suite               | ⚠ Partial — strong logging mandate, but swallowed errors remain (§6)                                                                                                |
-| 6   | **Silently wrong** — trusts happy path                     | Validate inputs; fail fast/loud; no fabricated defaults          | Boundary guards + output finite-check + schema          | ◐ File-import path rejects incomplete-Q drivers (§16); the live-UI validation boundary is still missing (§22); degenerate cases §11/§17/§18 and scraper §1–3 remain |
-| 7   | **Global mutable vars**                                    | Read-only/derived state; stable ids; single update path          | Lint (no global mutation); `Object.freeze`              | ✓ Engine pure; filter ids from `crypto.randomUUID`; single persistence source                                                                                       |
-| 8   | **Side-effecting "transforms"**                            | Pure functions; isolate I/O at the edges                         | Keep engine pure (verified); centralise persistence     | ◐ Engine pure ✓; edges mixed — write-on-keystroke persistence                                                                                                       |
-| 9   | **No enforcement boundary**                                | Enforce architecture with lint/types/freeze — _not_ file count   | ESLint rules; CI                                        | ⚠ Relies on review today; add ESLint arch rules                                                                                                                     |
-| 10  | **No invariants / no validation**                          | Precondition + postcondition guards at the engine boundary       | `assertValid*` + finite-check + unit tests              | ◐ `parseWdr` guards inputs (§16); the `deriveDriver`/live-UI boundary is still open (§22); §11/§17/§18 remain                                                       |
-| 11  | **Lies about its own state**                               | Docs reflect reality; delete dead code; comments match behaviour | No-history grep; link-check; review                     | ◐ History-in-docs violations remain (§13)                                                                                                                           |
-| 12  | **Rot & staleness**                                        | Content-addressed caches; retry policy; consolidate docs         | Hash/mtime cache keys; markdown link-check CI           | ✗ Guilty — OCR cache (§8), no retry (§7), doc sprawl (§15), broken cross-refs (§14) all remain                                                                      |
+| #   | The failure mode ("vibe-coded" usually means one of these) | Antidote (what OpenISD does)                                     | Enforced by                                             | OpenISD today                                                                                                                                      |
+| --- | ---------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Guess-ware** — no enforced rules                         | Explicit rules _and_ a machine that checks them                  | Schema validation in the write path; lint; CLAUDE.md    | ◐ Validation runs in the shared write path; not yet locked by a test                                                                               |
+| 2   | **Unmaintainable** — change ripples                        | One source of truth per concern; shared helpers                  | One module per concern; review                          | ◐ Single persistence source of truth (module hygiene in the data pipeline is tracked in the sibling `winisd_tools` repo, not scored here)          |
+| 3   | **Security-unsafe** — secrets leak                         | No secrets in code; audit inputs                                 | Secret-scan in CI (e.g. gitleaks)                       | ✓ Clear — none found; **add the scan** so it stays clear                                                                                           |
+| 4   | **Doesn't scale** — no architecture                        | Generalise the mechanism; don't bolt on special cases            | Architecture review against `ARCHITECTURE.md`/`PLAN.md` | ◐ Mixed — engine (`packages/engine`) modular & clean                                                                                               |
+| 5   | **Impossible to debug**                                    | Timestamped logs, problem logs, tests, fail-loud                 | Script rules; `_problems.log`; test suite               | ⚠ Partial — strong logging mandate, but swallowed errors remain (§6)                                                                               |
+| 6   | **Silently wrong** — trusts happy path                     | Validate inputs; fail fast/loud; no fabricated defaults          | Boundary guards + output finite-check + schema          | ◐ File-import path rejects incomplete-Q drivers (§16); the live-UI validation boundary is still missing (§22); degenerate cases §11/§17/§18 remain |
+| 7   | **Global mutable vars**                                    | Read-only/derived state; stable ids; single update path          | Lint (no global mutation); `Object.freeze`              | ✓ Engine pure; filter ids from `crypto.randomUUID`; single persistence source                                                                      |
+| 8   | **Side-effecting "transforms"**                            | Pure functions; isolate I/O at the edges                         | Keep engine pure (verified); centralise persistence     | ◐ Engine pure ✓; edges mixed — write-on-keystroke persistence                                                                                      |
+| 9   | **No enforcement boundary**                                | Enforce architecture with lint/types/freeze — _not_ file count   | ESLint rules; CI                                        | ⚠ Relies on review today; add ESLint arch rules                                                                                                    |
+| 10  | **No invariants / no validation**                          | Precondition + postcondition guards at the engine boundary       | `assertValid*` + finite-check + unit tests              | ◐ `parseWdr` guards inputs (§16); the `deriveDriver`/live-UI boundary is still open (§22); §11/§17/§18 remain                                      |
+| 11  | **Lies about its own state**                               | Docs reflect reality; delete dead code; comments match behaviour | No-history grep; link-check; review                     | ◐ History-in-docs violations remain (§13)                                                                                                          |
+| 12  | **Rot & staleness**                                        | Content-addressed caches; retry policy; consolidate docs         | Hash/mtime cache keys; markdown link-check CI           | ✗ Guilty — OCR cache (§8), no retry (§7), doc sprawl (§15), broken cross-refs (§14) all remain                                                     |
 
 Legend: ✓ clear · ◐ mixed · ⚠ partial · ✗ guilty.
 

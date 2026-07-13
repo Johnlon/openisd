@@ -170,36 +170,13 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
 
 ## Automated DQ check
 
-Run `node scripts/dq-check.mjs` from the repo root after any bulk import, scrape, or manual edit session. It scans every
-WDR file and flags physically impossible or highly suspicious T/S values.
-
-```
-node scripts/dq-check.mjs                     # all collections
-node scripts/dq-check.mjs --collection matt   # one collection only
-```
-
-The script flags issues by rule ID and groups them. **Always triage the output before committing new driver data.**
-Known false-positive patterns:
-
-| Rule      | Known false positives                                                 |
-| --------- | --------------------------------------------------------------------- |
-| `Sd_huge` | Legitimate 21-24" subwoofers have Sd 1600-2300 cm² — not a bug        |
-| `Re_low`  | 1Ω nominal drivers and DVC drivers in parallel can have Re < 1Ω       |
-| `Fs_high` | Very small tweeters (< 10mm) can have Fs 3-6 kHz                      |
-| `Qms_low` | Some compression drivers and waveguide-loaded tweeters have Qms < 0.5 |
-
-Known systematic scraper bugs that this tool catches:
-
-| Rule             | Root cause                                                |
-| ---------------- | --------------------------------------------------------- |
-| `Pe_one`         | Comma number parse bug: "1,000 W" parsed as 1             |
-| `Fs_low`         | Compression/horn tweeters: Fs stored in kHz instead of Hz |
-| `Xmax_huge`      | Xmax stored in mm or μm instead of metres                 |
-| `Qts_impossible` | Scraper stored Qts value in Qes field, or Qms missing     |
-
-**AI + tool together:** The DQ script catches systematic scraper bugs fast and repeatably. Use it first. Then apply AI
-judgement for borderline cases the script flags as suspicious but cannot auto-classify (e.g. Re_low, Qms_low) — the AI
-can fetch the manufacturer datasheet and verify.
+A WDR/`_meta.yml` file must pass the shared DQ check before being treated as
+authoritative — it scans every file and flags physically impossible or highly
+suspicious T/S values by rule ID. The tool and its rule set (thresholds, known
+false-positive calibration, root causes) live in the sibling
+[`winisd_tools`](../winisd_tools) repo's `dq_check.py` — run it against this
+repo's own `drivers/matt/` with `--root ../openisd/drivers` (see that repo's
+`README.md`).
 
 ## Provenance rules
 
@@ -421,63 +398,26 @@ are outside the scope of T/S parameters alone.
 
 ## Provenance sidecar — `_meta.yml`
 
-Each driver has a companion `DriverName_meta.yml` YAML file holding all
-provenance and quality metadata: `quality`, `issue`, `detail`, `corrections`,
-`reviewed_by`, `datasheet`, `manu_page`, `vendor_page`, `source`, `frd`,
-`impedance`, `obsolete`, `dq_issue`, `community`, `fetched_sku`.
+Each driver has a companion `DriverName_meta.yml` YAML file holding all provenance
+and quality metadata. See `WDR_SCHEMA.md` §9 and the sibling `winisd_tools` repo's
+`wdr_meta_schema.py` for the authoritative field list and schema.
 
-This data is kept out of the `.wdr` file entirely — WDR files end at `ParState=`
-and contain no non-WinISD fields. The sidecar is the sole location for provenance;
-the WDR is schema-identical to a native WinISD export.
+**Key fact:** This metadata is kept entirely out of the `.wdr` file — WDR files end at
+`ParState=` and contain no non-WinISD fields. The sidecar is the sole location for
+provenance; the WDR is schema-identical to a native WinISD export.
 
 ## Scripts reference
 
-All tooling lives in `scripts/`. Run from the repo root. Every bulk workflow step should use these scripts rather than
-ad-hoc commands.
+All tooling lives in `scripts/`. Run from the repo root.
 
-| Script                     | Purpose                                                                                                                                                                                                         | When to run                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `backfill_driver_types.py` | Derives `driver_type` from WDR filename + T/S params and writes it to every `_meta.yml` sidecar. Re-run whenever classification rules change. `--dry-run` to preview; `--collection <name>` for one collection. | After any change to classification rules, before bundling     |
-| `enrich_drivers.py`        | Extracts `driver_type`, `freq_low_hz`, `freq_high_hz` from cached HTML / PDF. Writes `_extract.yml` per driver and merges non-null values into `_meta.yml`. Flags: `--dry-run`, `--force`, `--collection`.      | After a new scrape; `--force` after updating `extract_lib.py` |
-| `extract_lib.py`           | Shared extraction helpers (PE/SI/Wavecor HTML parsers, generic PDF parser, cache lookup). Imported by `enrich_drivers.py` and scrapers. Not run directly.                                                       | —                                                             |
-| `bundle-drivers.mjs`       | Bundles all WDR files → `src/drivers-bundle.json` for the UI                                                                                                                                                    | After any WDR add/edit/delete before committing               |
-| `dq-check.mjs`             | T/S parameter DQ check — flags physically impossible values                                                                                                                                                     | After any bulk import or scrape, before committing            |
-| `fetch-pe-specs.mjs`       | Fetches spec PDFs from Parts Express                                                                                                                                                                            | See script header                                             |
-| `refresh-pe-catalog.mjs`   | Re-scrapes Parts Express catalogue                                                                                                                                                                              | Periodic refresh                                              |
-| `refresh-si-catalog.mjs`   | Re-scrapes SoundImports catalogue                                                                                                                                                                               | Periodic refresh                                              |
-| `scrape_dayton.py`         | Scrapes Dayton Audio direct                                                                                                                                                                                     | On-demand                                                     |
-| `scrape_sbacoustics.py`    | Scrapes SB Acoustics                                                                                                                                                                                            | On-demand                                                     |
-| `scrape_scanspeak.py`      | Scrapes Scan-Speak                                                                                                                                                                                              | On-demand                                                     |
-| `scrape_soundimports.py`   | Scrapes SoundImports                                                                                                                                                                                            | On-demand                                                     |
-| `scrape_wavecor.py`        | Scrapes Wavecor                                                                                                                                                                                                 | On-demand                                                     |
-| `scraper_lib.py`           | Shared scraper utilities — not run directly                                                                                                                                                                     | —                                                             |
+| Script                         | Purpose                                                                                                               | When to run                                                     |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `bundle-drivers.mjs`           | Bundles all WDR files under `drivers/` → `src/drivers-bundle.json` for the UI                                         | After any WDR add/edit/delete, before committing                |
+| `link-driver-repo.sh`          | Symlinks the federated collections into `drivers/` from a sibling `winisd_drivers` checkout, for local dev/DQ         | Local dev setup only — untracked, not needed by the running app |
+| `restore_matt_from_archive.py` | Restores the human-curated `drivers/matt/` collection from archive with only its approved transformations (AI-locked) | See `drivers/matt/README.md`                                    |
 
-### Standard workflow for a new bulk import
-
-```
-# 1. Run scraper
-python scripts/scrape_<source>.py
-
-# 2. Backfill driver_type from name + T/S params
-python scripts/backfill_driver_types.py --collection <collection-name>
-
-# 3. Enrich from HTML/PDF cache — populates freq_low_hz, freq_high_hz, refines driver_type
-python scripts/enrich_drivers.py --collection <collection-name>
-
-# 4. DQ check — triage all flagged files before proceeding
-node scripts/dq-check.mjs --collection <collection-name>
-
-# 5. Bundle
-node scripts/bundle-drivers.mjs
-
-# 6. Commit
-git add drivers/<collection>/ src/drivers-bundle.json
-git commit -m "data: import <source> collection"
-```
-
-When classification rules change (patterns updated in `backfill_driver_types.py` and mirrored in `DriverBrowser.vue`), re-run across all collections:
-
-```
-python scripts/backfill_driver_types.py
-node scripts/bundle-drivers.mjs
-```
+The driver collections themselves (`dayton-audio`, `sb-acoustics`, `scan-speak`,
+`soundimports`, `wavecor`, `parts-express`, `loudspeakerdatabase`) are produced and
+maintained by an external scraping/data-quality pipeline in the sibling
+[`winisd_tools`](../winisd_tools) repo, writing into [`winisd_drivers`](../winisd_drivers) —
+see that repo's `README.md` for the scrape/enrich/DQ toolchain and workflow.

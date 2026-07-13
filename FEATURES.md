@@ -208,28 +208,33 @@ then use Biquad to design corrective EQ to flatten the result.
   collections, the entry with the latest `DateModified` is highlighted in accent
   colour; older copies are dimmed so you can see at a glance which measurement to
   trust and where it came from
-- ✅ **Date normalisation** — dates from different scrapers and manual entries
+- ✅ **Date normalisation** — dates from different sources and manual entries
   are canonicalised to `YYYY-MM-DD` for consistent display regardless of origin
 - ✅ **SpeakerBoxLite opt-in** — one click loads ~6,000 community measurements
   from speakerboxlite.com on top of the bundled library (fetched live, CORS-permitting)
 - ✅ **Paste any GitHub repo** — add a custom `owner/repo` or full GitHub URL to
   pull `.wdr` files from any public repository in the browser
 
-### Vendor scrapers (automated data pipelines)
+### Driver data pipeline — automated, external
 
-- ✅ **SB Acoustics** — 194 drivers scraped from sbacoustics.com, including
-  the full Satori and SB series, with datasheet URLs in machine-readable `_meta.json`
-- ✅ **Parts Express** — 1,509 drivers scraped from the PE woofer guide API;
-  T/S parameters taken directly from the PE datasheet fields (not keyed by hand)
-- 🔨 **SoundImports** — European multi-brand distributor; scraper live, data
-  growing (Accuton, HiVi, Faital, Morel, ScanSpeak, Seas, Satori, Wavecor, …)
-- ⬜ **Wavecor**, **Dayton Audio** — scrapers written, pending full run
-- ✅ **Meta file standard** — every scraped `.wdr` gets a `_meta.json` with
-  quality grade (`M` = machine-scraped, unverified), datasheet URL, and scrape
+The larger collections below are produced by an automated fetch/extract/quality-check
+pipeline that lives in the sibling [`winisd_tools`](../winisd_tools) repo, writing into
+[`winisd_drivers`](../winisd_drivers) — see [`drivers/README.md`](drivers/README.md)
+for how OpenISD federates that data in.
+
+- ✅ **SB Acoustics** — 194 drivers, including the full Satori and SB series, with
+  datasheet URLs in machine-readable `_meta.yml`
+- ✅ **Parts Express** — 1,509 drivers; T/S parameters taken directly from the PE
+  datasheet fields (not keyed by hand)
+- 🔨 **SoundImports** — European multi-brand distributor; coverage growing
+  (Accuton, HiVi, Faital, Morel, ScanSpeak, Seas, Satori, Wavecor, …)
+- ⬜ **Wavecor**, **Dayton Audio** — pending full coverage
+- ✅ **Meta file standard** — every automated `.wdr` gets a `_meta.yml` with
+  quality grade (`M` = machine-derived, unverified), datasheet URL, and
   provenance so human reviewers know exactly where each number came from
-- ✅ **WDR schema documentation** (`drivers/README.md`) — canonical field names,
+- ✅ **WDR schema documentation** (`WDR_SCHEMA.md`) — canonical field names,
   SI units, common mistakes table, date semantics, quality review workflow; the
-  single source of truth for scraper authors and human contributors
+  single source of truth for data-pipeline authors and human contributors
 - ⬜ Filter drivers by size / params; richer metadata index — _SpeakerBoxLite has 5,000+ / 300+ brands in one DB_
 - ⬜ Paste raw datasheet text → infer T/S params — _seen in 00 Simulator_
 - ⬜ “Copy from” an existing driver — _seen in 00 Simulator_
@@ -316,7 +321,7 @@ On raw simulation features alone, OpenISD is mid-pack today.
 But the driver library story has changed materially. OpenISD now ships with
 **2,100+ bundled drivers** from SB Acoustics, Parts Express, and community
 measurement collections — loaded instantly from the app bundle, not fetched from a
-rate-limited API. A live scraper pipeline keeps that number growing. No surveyed
+rate-limited API. A live data pipeline keeps that number growing. No surveyed
 competitor offers an open, version-controlled, machine-readable driver commons with
 automated ingestion pipelines and a human-review quality framework.
 
@@ -325,8 +330,8 @@ OpenISD’s defensible edges:
 - **Open source, fully and permanently.** MIT-licensed, public, and forkable
   today. The code belongs to everyone who uses it.
 - **Open _data_, growing.** 2,100+ drivers in a version-controlled commons, with
-  vendor scraper pipelines adding new measurements automatically. The data carries
-  quality grades, datasheet provenance, and scrape timestamps so you know exactly
+  an automated data pipeline adding new measurements continuously. The data carries
+  quality grades, datasheet provenance, and fetch timestamps so you know exactly
   where every number came from. No closed tool opens its aggregated driver data at
   all, let alone federates it.
 - **Federated, not hoarded.** Any `.wdr` repo on GitHub can be linked into
