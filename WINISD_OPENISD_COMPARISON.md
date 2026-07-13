@@ -233,7 +233,7 @@ filled with guesses — see [OTHER_TOOLS.md](OTHER_TOOLS.md) §7.
 | WinISD `.wpr` project import  | 🚧                    | ✅                  | ❌                  | ❌               | ❌            |
 | Datasheet → T/S auto-infer    | ⬜                    | ✅ (paste)          | ❌                  | ⚠                | ❌            |
 | Built-in driver database      | ✅ 2,100+ bundled     | ❌ (import / paste) | ⚠ personal store    | ✅ 5,000+        | ⚠ Dayton only |
-| Open / federated driver data  | ✅ commons + scrapers | ❌                  | ❌                  | ❌ (closed DB)   | ❌            |
+| Open / federated driver data  | ✅ commons + pipeline | ❌                  | ❌                  | ❌ (closed DB)   | ❌            |
 
 ### Construction, crossover & validation
 
@@ -248,8 +248,9 @@ filled with guesses — see [OTHER_TOOLS.md](OTHER_TOOLS.md) §7.
 leads on graphs and format import, SpeakerDesign.dev and SpeakerBoxLite lead on construction
 output, and SpeakerBoxLite alone has transmission line + full crossover. OpenISD's uncontested
 edges are the ones no closed tool offers: **open source (MIT), an open + federated driver
-commons (2,100+, growing via scrapers), and physics validated against closed-form solutions in
-CI.** See [FEATURES.md](FEATURES.md) "Honest competitive position" for the full argument.
+commons (2,100+, growing via an automated data pipeline), and physics validated against
+closed-form solutions in CI.** See [FEATURES.md](FEATURES.md) "Honest competitive position"
+for the full argument.
 
 ---
 

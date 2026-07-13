@@ -8,6 +8,16 @@
 
 ---
 
+## 2026-07-05 — .wpr project file schema documented
+
+Contributors building `.wpr` import/export (the gap called out in `COMPARISON.md`) now have a
+starting map instead of a blank page. `WINISD_WPR_FILE_SCHEMA.md` reverse-engineers the WinISD
+project-file format from 48 real user project files cross-checked against the official WinISD
+help text: confirms `Box.BType` 0/1/4 = closed/vented/passive-radiator, the always-present-but-
+often-inert vent/PR sections, and the filter-chain encoding — with every unconfirmed field (the
+two unseen bandpass `BType` values, the `f`/`c` chamber triplet, `VentIntra`) explicitly flagged
+rather than guessed at.
+
 ## 2026-07-04 — Cross-platform visual test baselines
 
 SPL graph visual tests now pass on any OS, not just Windows. The canvas axis labels and app UI hardcoded `Segoe UI` (a Windows-only system font); on Linux the browser silently fell back to a different font with different glyph widths, shifting pixels enough to fail the screenshot comparison — unrelated to any physics change. Bundled `Inter` (self-hosted via `@fontsource/inter`, SIL OFL licensed) so every OS renders identical glyphs, added a `document.fonts.ready` redraw so the canvas never bakes in a fallback-font first paint, and dropped Playwright's per-OS snapshot suffix (`sealed-spl-win32.png` → `sealed-spl.png`) so one baseline set now covers Windows, Linux, and macOS.

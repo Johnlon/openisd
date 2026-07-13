@@ -31,44 +31,19 @@ other tool's cells are that tool's current published/observed support, not an Op
 
 ---
 
-## 1. loudspeakerdatabase.com scraper — third-party collection
+## 1. loudspeakerdatabase.com — third-party collection
 
-**Collection:** `drivers/loudspeakerdatabase/` (14 WDR files)
+**Collection:** federated from the sibling `winisd_drivers` repo's `loudspeakerdatabase/`.
 
-**Source:** Third-party scraper (not WinISD, not OpenISD's current scraper)
+**Source:** a third-party aggregator, not a manufacturer — its values are not
+independently re-verified against any manufacturer source (see `winisd_drivers`'s
+own `README.md`). Detailed data-quality findings for this and every other
+federated collection live in the sibling `winisd_tools` repo (`SCRAPING_TODO.md`,
+`DISCREPANCIES.md`).
 
-### Quality findings (analysis: 2026-06-28)
-
-**EBP computation broken:**
-
-- 6/14 files: EBP field completely absent
-- 7/14 files: EBP=0 when both Fs and Qes are present and non-zero
-- Example: Beyma 10BR60 V2: Fs=29 Hz, Qes=0.44 → should compute EBP ≈ 66, written as 0
-
-**ParState issues:**
-
-- All 14 files use hardcoded constant: `EEECEENNEENEEEEEEEEEEECENNCCCNNNCCCCECNNNNNNNNECC`
-- Does not match dynamically-computed ParState seen in real WinISD files (matt collection)
-- Suggests use of older OpenISD scraper version or independent implementation
-
-**Metadata issues:**
-
-- Most files dated December 2025 (future dates; likely test or placeholder data)
-- Several files: DateAdded/DateModified fields completely empty
-- VCCon=2 (serial connection) as default (unusual for single-VC drivers)
-
-**Vd/Dd coverage:**
-
-- Vd: 14/14 present, 14 computed, 0 zeros (100% perfect coverage)
-- Dd: 14/14 present, 14 computed, 0 zeros (100% perfect coverage)
-- Contrast with matt (411 real WinISD files): Vd has 9 zeros, Dd has 0 zeros
-
-### Conclusion
-
-loudspeakerdatabase files exhibit data quality issues not seen in real WinISD entries (matt collection).
-**Not suitable as reference** for validating WDR format, scraper correctness, or WinISD behaviour.
-
-**Use matt collection (411 real WinISD files) as authoritative reference.**
+**Use the `matt/` collection (411 real WinISD files, bundled in this repo) as the
+authoritative reference** for validating WDR format or WinISD behaviour —
+loudspeakerdatabase is not suitable for that.
 
 ---
 
@@ -140,7 +115,7 @@ Minor calculated vs. spec discrepancies are normal (rounding). Significant diffe
 
 **Implication for OpenISD:**
 
-1. Scraper must aim for "full entry" level (9 fields) for professional-quality WDR files
+1. The data pipeline should aim for "full entry" level (9 fields) for professional-quality WDR files
 2. Understanding these levels helps validate data quality — files missing multiple core fields may be incomplete
 3. Use entry order + minimal levels to understand ParState patterns in real WinISD files
 

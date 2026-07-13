@@ -21,11 +21,23 @@ fi
 
 COLLECTIONS=(dayton-audio loudspeakerdatabase parts-express sb-acoustics scan-speak soundimports wavecor)
 
+# Map collection name to its subfolder in winisd_drivers/datasheets_archive
+declare -A SUBDIRS=(
+  ["dayton-audio"]="datasheets_archive/dayton_audio"
+  ["loudspeakerdatabase"]="datasheets_archive/loudspeakerdatabase"
+  ["parts-express"]="datasheets_archive/parts-express"
+  ["sb-acoustics"]="datasheets_archive/sb_acoustics"
+  ["scan-speak"]="datasheets_archive/scan-speak"
+  ["soundimports"]="datasheets_archive/soundimports"
+  ["wavecor"]="datasheets_archive/wavecor"
+)
+
 for c in "${COLLECTIONS[@]}"; do
-  if [ ! -d "$SIBLING/$c" ]; then
-    echo "  SKIP $c — not found in $SIBLING"
+  sub="${SUBDIRS[$c]}"
+  if [ ! -d "$SIBLING/$sub" ]; then
+    echo "  SKIP $c — not found in $SIBLING/$sub"
     continue
   fi
-  ln -sfn "../../winisd_drivers/$c" "$ROOT_DIR/drivers/$c"
-  echo "  linked drivers/$c -> ../winisd_drivers/$c"
+  ln -sfn "../../winisd_drivers/$sub" "$ROOT_DIR/drivers/$c"
+  echo "  linked drivers/$c -> ../winisd_drivers/$sub"
 done

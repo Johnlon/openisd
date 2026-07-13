@@ -16,6 +16,7 @@ Generate a compact knowledge map of the codebase — entry points, key modules, 
 Output a structured map with these sections. Keep each entry to one line.
 
 ### 1. Package structure
+
 ```
 packages/
   engine/   — T/S physics calculations, WDR parsing, driver loading
@@ -25,19 +26,25 @@ drivers/    — bundled WDR + _meta.yml files (demos/, matt/, winisd/, sample/);
 ```
 
 ### 2. Engine entry points (packages/engine/src/)
+
 For each key file: `filename — what it exports — what calls it`
 
 ### 3. UI entry points (packages/ui/src/)
+
 For each key component/store: `filename — responsibility — key props/events`
 
 ### 4. Data flow
-Trace the path from raw scraper HTML → WDR file → driver bundle → engine load → chart render. One line per step with the file responsible.
+
+Trace the path from WDR file (federated from `winisd_drivers`, or bundled `matt/`/`demos/`/`sample/`) → driver bundle → engine load → chart render. One line per step with the file responsible.
 
 ### 5. Key symbols
+
 List the 10-15 most-referenced functions/constants/types across the codebase with their file locations. These are the ones a future query is most likely to ask about.
 
 ### 6. Hard constraints summary
+
 One-line reminders of rules that affect multiple files:
+
 - Schema: `wdr_meta_schema.py` (sibling `winisd_tools` repo) is the single source of truth
 - No normalisation scripts on `drivers/`
 - `matt/` is protected
@@ -49,6 +56,7 @@ One-line reminders of rules that affect multiple files:
 ## How to generate
 
 Read these files in parallel:
+
 - `packages/engine/src/` — glob all `.js`/`.mjs` files, read each
 - `packages/ui/src/` — glob all `.vue`/`.js` files, read each
 - `scripts/*.py` — glob and read

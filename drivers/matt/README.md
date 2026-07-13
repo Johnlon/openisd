@@ -17,7 +17,7 @@ These are real measured T/S parameters, not manufacturer spec-sheet data. Varian
 
 - **Keep it in the filename** — it is the contributor's original file name and must not be changed.
 - **Do not carry it into `Brand=` or `Model=`** — strip `WT3 ` from those fields.
-- Every WT3 file has a `_meta.json` recording this provenance for display in the UI.
+- Every WT3 file has a `_meta.yml` recording this provenance for display in the UI.
 
 ---
 

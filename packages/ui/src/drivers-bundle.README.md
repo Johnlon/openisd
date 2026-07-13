@@ -13,8 +13,10 @@ All driver content comes from:
   drivers/**/*.wdr          — Thiele/Small parameters and driver metadata
   drivers/**/_meta.yml      — sidecar fields (URLs, driver_type, freq range, etc.)
 
-To update driver data, modify the scrapers in scripts/scrapers/ and rerun them.
-Do NOT edit WDR or _meta.yml files directly unless explicitly authorised — see CLAUDE.md.
+Federated driver data is produced by the sibling winisd_tools/winisd_drivers
+repos — update it there and re-run link-driver-repo.sh, not here. drivers/matt/
+in this repo is human-curated; do NOT edit any WDR or _meta.yml file directly
+unless explicitly authorised — see CLAUDE.md.
 
 TO REGENERATE MANUALLY
 ----------------------

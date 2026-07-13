@@ -99,7 +99,7 @@ direct analysis of 423 WDR files from `drivers/matt/` (human-curated, authoritat
 | Model        | string |          | **Mandatory.** Driver model number/name verbatim from datasheet.                                   |
 | Manufacturer | string |          | Left blank by scrapers. WinISD-native field; present in the file as `Manufacturer=` with no value. |
 | ProvidedBy   | string |          | Data source attribution, e.g. `SB Acoustics website (scraped 2026-06-27)`.                         |
-| Comment      | string |          | Free text. OpenISD scrapers use this for source URL and caveats.                                  |
+| Comment      | string |          | Free text. OpenISD scrapers use this for source URL and caveats.                                   |
 | DateAdded    | string | YYYYMMDD | Date driver was added; no separators (e.g. `20260627`). See §5.4 for date rules.                   |
 | DateModified | string | YYYYMMDD | Date of last refresh; no separators. Updated by scrapers on each run.                              |
 
@@ -283,8 +283,9 @@ their absence may cause WinISD to apply different defaults.
 ## 6. Unit conventions
 
 All WDR fields use SI units — the canonical unit for each field is in §3. Scrapers
-must convert from datasheet units before writing. See `drivers/SCRAPING_RULES.md` for
-the full conversion table and per-manufacturer Xmax conventions.
+must convert from datasheet units before writing. See the sibling
+[`winisd_tools`](../winisd_tools) repo's `SCRAPING_RULES.md` for the full
+conversion table and per-manufacturer Xmax conventions.
 
 ## 7. Common mistakes
 
@@ -459,99 +460,29 @@ primary component (e.g., woofer T/S for a coaxial).
 - **WDR file** (`SB12PFC25-4-COAX.wdr`): Woofer T/S only (Fs=58 Hz, Qts=0.33, Vas=4.8L, etc.) — for WinISD enclosure design
 - **\_meta.yml** (`SB12PFC25-4-COAX_meta.yml`): Complete metadata including both woofer and tweeter T/S under `specs.woofer` and `specs.tweeter` keys — the human-readable record
 
-**Schema and field definitions:** `scripts/wdr_meta_schema.py` — `MetaModel` (Pydantic v2).
-That file is the single source of truth. Reading it IS reading the `_meta.yml` schema.
+**Schema and field definitions:** The sibling `winisd_tools` repo's `wdr_meta_schema.py` —
+`MetaModel` (Pydantic v2) — is the single source of truth. Reading it IS reading the
+`_meta.yml` schema. It defines all fields (including `discovered_at`, `data_source`),
+validation rules, and field ordering.
 
-**Example 1 — single-component driver** (`drivers/new_ss_tool/Scan-Speak_18WE_4542T00_meta.yml`):
+### 9.1 `scraper_meta` — scraper-method metadata bag (non-canonical)
 
-```yaml
-quality: M
-issue: scraped_not_human_verified
-detail: Automatically scraped from Scan-Speak website. T/S parameters not human-verified.
-corrections: null
-reviewed_by: null
-driver_type: woofer
-nominal_size_cm: 18.0
-source: https://www.scan-speak.dk/product/18we-4542t00/
-datasheet_url: https://www.scan-speak.dk/datasheet/pdf/18we-4542t00.pdf
-adv_datasheet_url: null
-drawing_url: null
-cad_url: null
-manu_page_url: https://www.scan-speak.dk/product/18we-4542t00/
-vendor_page_url: null
-frd_url: null
-zma_url: null
-obsolete: null
-dq_issue: null
-community: null
-fetched_sku: null
-_sources:
-  datasheet: https://www.scan-speak.dk/datasheet/pdf/18we-4542t00.pdf
-  manu_page: https://www.scan-speak.dk/product/18we-4542t00/
-specs:
-  Fs: # free air resonance (Hz)
-    value: 46.0
-    winner: manu_page
-    sources:
-      manu_page: 46.0
-      datasheet: 46.0
-  Re: # DC voice coil resistance (Ω)
-    value: 3.4
-    winner: manu_page
-    sources:
-      manu_page: 3.4
-      datasheet: 3.49
-    note: Datasheet value differs (3.49 Ω); manu_page wins per html_wins=True
-  BL: # force factor (T·m)
-    value: 8.1
-    winner: manu_page
-    sources:
-      manu_page: 8.1
-      datasheet: 8.1
-  Qms: # mechanical Q factor
-    value: 5.62
-    winner: datasheet
-    sources:
-      datasheet: 5.62
-    note: Not in manu_page; value from datasheet
-```
-
-**Example 2 — coaxial driver with separate woofer/tweeter specs** (`drivers/sb-acoustics/SB_Acoustics_SB12PFC25-4-COAX_meta.yml`):
+`scraper_meta` is an optional, namespaced dict for metadata specific to the **scraper method**
+that produced the file, kept separate from canonical data (`specs`, `_sources`). It is
+**never** read by the app and **never** holds T/S values — it is provenance/debugging only.
+Its contents are free-form per method; a scraper may present a concrete object or a plain dict
+on the shared write API and it is serialised here verbatim. Example (AI extraction method):
 
 ```yaml
-quality: M
-issue: scraped_not_human_verified
-detail: Coaxial driver. WDR contains woofer T/S only. Tweeter specs captured in specs.tweeter.
-driver_type: coaxial
-nominal_size_cm: 10.0
-source: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
-datasheet_url: https://sbacoustics.com/wp-content/uploads/2020/11/4in-SB12PFC25-4-COAX-OEM-only.pdf
-manu_page_url: https://sbacoustics.com/product/4in-sb12pfc25-4-coax-paper/
-specs:
-  woofer:
-    Fs: 58 # Informational comment: Hz
-    Qts: 0.33 # Informational comment: dimensionless
-    Qms: 4.07
-    Qes: 0.36
-    Mms: 0.0045 # Informational comment: kg (4.5 g)
-    Cms: 0.00166 # Informational comment: m/N (1.66 mm/N)
-    Sd: 0.0045 # Informational comment: m² (45 cm²)
-    Vas: 0.0048 # Informational comment: m³ (4.8 liters)
-    BL: 3.8 # Informational comment: T·m
-    Re: 3.1 # Informational comment: Ω
-    Le: 0.00026 # Informational comment: H (0.26 mH)
-    Pe: 30 # Informational comment: W
-    sensitivity_dB: 87 # Informational comment: dB @ 2.83V/1m
-  tweeter:
-    Fs: 1300 # Informational comment: Hz
-    Pe: 10 # Informational comment: W
-    sensitivity_dB: 89 # Informational comment: dB @ 2.83V/1m
-    Re: 3.0 # Informational comment: Ω
+scraper_meta:
+  method: ai
+  model_id: claude-opus-4-8
+  effort: high
+  read_record: reads/12P80NdV2_claude_opus-4-8.md
 ```
 
-**Units convention:** All values in `specs:` use SI units (Hz, Ω, H, T·m, kg, m², m³, m/N, W, dB), same as WDR fields (see §3 and §6). Inline YAML comments are **informational only** — they show the unit and (optionally) the equivalent in datasheet units for human readability. The comments are not part of the data model.
-
-The WDR file (`SB12PFC25-4-COAX.wdr`) contains only woofer T/S parameters for WinISD compatibility. The complete datasheet specs (both components) live in the sidecar's `specs:` block.
+Because `MetaModel` is `extra="forbid"`, every method's bag lives under this one key rather
+than adding method-specific top-level fields — the canonical schema stays method-agnostic.
 
 ## 10. WinISD simulation model — key facts
 

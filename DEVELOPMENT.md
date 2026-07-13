@@ -48,19 +48,11 @@ imported directly in Node for testing without stubs or jsdom.
 
 ---
 
-## 3. Testing strategy — three suites, all required
+## 3. Testing strategy — two suites, both required
 
-### Python scraper tests — `pytest` (unit)
-
-For all parsing and extraction logic in `scripts/scrapers/`. Fast, deterministic, no network.
-
-- Tests live alongside the code: `scripts/scrapers/test_<module>.py`.
-- Every parser function (`parse_field_value`, `extract_h1`, `parse_freq_range_str`, field-mapping logic) must have direct unit tests.
-- Network/HTTP concerns (fetching, caching, pagination) are integration concerns — tested against saved HTML fixtures in `scripts/scrapers/fixtures/`, never against the live site.
-- Run: `python -m pytest scripts/scrapers/ -v`
-- **Prerequisites:** the suite needs `pydantic` (schema model in `scripts/wdr_meta_schema.py`) and `pyyaml`. Install once with `pip install pydantic pyyaml` (on a PEP 668 / externally-managed system such as WSL/Ubuntu, add `--break-system-packages`, or use a virtualenv). Without them pytest fails at collection with `ModuleNotFoundError`.
-
-Rules: `.claude/context/testing-python.md`
+Python testing for the driver data pipeline (parsing/extraction `pytest` unit
+tests) lives in the sibling [`winisd_tools`](../winisd_tools) repo, not here —
+see its `testing-python.md`.
 
 ### JS core tests — Vitest + `node:assert`
 
@@ -81,15 +73,14 @@ Run: `npx playwright test`
 
 Rules: `.claude/context/testing-js-ui.md`
 
-**Tooling is deliberately minimal: `pytest` + Vitest + Playwright, nothing else.** Do not add another test runner (Jest / Mocha / etc.).
+**Tooling is deliberately minimal: Vitest + Playwright, nothing else.** Do not add another test runner (Jest / Mocha / etc.).
 
 ---
 
 ## 4. Definition of done (PR checklist)
 
 - [ ] Core logic has **no DOM references**
-- [ ] New scraper parsing logic has `pytest` unit tests; new core logic has Vitest unit tests; new UI behaviour has a Playwright browser test
-- [ ] `python -m pytest scripts/scrapers/ -v` passes (scraper tests)
+- [ ] New core logic has Vitest unit tests; new UI behaviour has a Playwright browser test
 - [ ] `npm run test:unit` passes (JS core tests)
 - [ ] `npx playwright test` passes (browser tests)
 - [ ] `npm run lint` is 0 errors
@@ -127,16 +118,13 @@ Always use the project scripts — do not run `npm run dev`, `vite`, or ad-hoc c
 bash scripts/dev-4200.sh      # agent dev server: health checks then Vite at http://localhost:4200
 bash scripts/stop-http.sh 4200  # stop the agent dev server
 bash scripts/preview-4000.sh  # human lightweight preview at http://localhost:4000 (no health checks)
-bash scripts/health-check.sh  # full gate: lint + JS unit + golden + DQ + Python scraper tests
+bash scripts/health-check.sh  # full gate: lint + typecheck + JS unit + browser tests
 bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
 ```
 
 Individual gates:
 
 ```bash
-# Python scraper tests
-python -m pytest scripts/scrapers/ -v
-
 # JS core unit tests
 npm run test:unit
 
