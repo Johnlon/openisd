@@ -26,6 +26,7 @@ const sources = JSON.parse(
 // Sources whose URLs match this repo are bundled locally.
 // Accepts both repo names so bundling keeps working across the GitHub rename.
 const REPO_RE = /github\.com\/Johnlon\/(?:resonate|openisd)\/tree\/[^/]+\/(.+)/i;
+const DRIVERS_REPO_RE = /github\.com\/Johnlon\/winisd_drivers\/tree\/[^/]+\/(.+)/i;
 
 function walkWdr(dir) {
   const files = [];
@@ -47,10 +48,18 @@ const bundle = {
 };
 
 for (const [key, src] of Object.entries(sources)) {
+  let localPath;
   const m = src.url?.match(REPO_RE);
-  if (!m) continue;
+  if (m) {
+    localPath = join(ROOT, m[1]);
+  } else {
+    const mDrivers = src.url?.match(DRIVERS_REPO_RE);
+    if (mDrivers) {
+      localPath = join(ROOT, '..', 'winisd_drivers', mDrivers[1]);
+    }
+  }
+  if (!localPath) continue;
 
-  const localPath = join(ROOT, m[1]);
   let wdrPaths;
   try { wdrPaths = walkWdr(localPath); }
   catch { console.warn(`  SKIP ${src.name} — path not found: ${localPath}`); continue; }
