@@ -15,53 +15,11 @@
       "description": "~430 drivers from the mtg90 AVS Forum collection. See drivers/matt/meta.json for provenance.",
       "license": "community / factual T/S measurements"
     },
-    "loudspeakerdatabase": {
-      "name": "loudspeakerdatabase",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/loudspeakerdatabase",
-      "description": "Drivers derived from loudspeakerdatabase.com, a third-party aggregator — not independently re-verified against any manufacturer source. Maintained by the winisd_tools pipeline (private).",
-      "license": "No license — no warranty on accuracy. See loudspeakerdatabase.com for its own terms."
-    },
-    "mwisbest-winisd": {
-      "name": "MWisBest/WinISDDrivers git repo",
-      "url": "https://github.com/MWisBest/WinISDDrivers",
-      "description": "~108 subwoofer driver files for WinISD.",
-      "license": "see repository"
-    },
-    "dayton-audio": {
-      "name": "Dayton Audio",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/dayton-audio",
-      "description": "Drivers derived from the daytonaudio.com product page specification table. Maintained by the winisd_tools pipeline (private). Refresh with: python scrape_dayton.py",
-      "license": "No license — no warranty on accuracy. Values are derived from daytonaudio.com's public product pages."
-    },
-    "sb-acoustics": {
-      "name": "SB Acoustics",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/sb-acoustics",
-      "description": "201 drivers derived from the manufacturer's datasheet PDF (primary source), with the sbacoustics.com product page filling any gaps. Covers SB Acoustics and Satori lines — woofers, midrange, tweeters. PDF datasheets linked in _meta.json. All quality=M (not human-verified). Maintained by the winisd_tools pipeline (private). Refresh with: python scrapers/scrape_sbacoustics.py",
-      "license": "No license — no warranty on accuracy. Values are derived from public SB Acoustics datasheets and product pages."
-    },
-    "scan-speak": {
-      "name": "Scan-Speak",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/scan-speak",
-      "description": "114 drivers derived from the manufacturer's datasheet PDF (primary source), with the scan-speak.dk product page filling any gaps — woofers, midrange, tweeters, and Revelator/Ellipticor lines. PDF datasheets and ZIP measurement files (SPL + impedance) downloaded locally. Quality=M (not human-verified). Maintained by the winisd_tools pipeline (private). Refresh with: python scrapers/scrape_scanspeak.py --refresh",
-      "license": "No license — no warranty on accuracy. Values are derived from public Scan-Speak datasheets and product pages."
-    },
-    "soundimports": {
-      "name": "SoundImports",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/soundimports",
-      "description": "Drivers derived from the soundimports.eu product page specification table. Maintained by the winisd_tools pipeline (private). Refresh with: python scrapers/scrape_soundimports.py",
-      "license": "No license — no warranty on accuracy. Values are derived from soundimports.eu's public product pages."
-    },
-    "wavecor": {
-      "name": "Wavecor",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/wavecor",
-      "description": "73 drivers derived from the wavecor.com product page specification table — woofers, subwoofers, and full-range drivers (WF/SW/FR series). Datasheet PDF and SPL/impedance TXT measurement files also downloaded and linked, not just the WDR values. Quality=M (not human-verified). Maintained by the winisd_tools pipeline (private). Refresh with: python scrapers/scrape_wavecor.py --refresh",
-      "license": "No license — no warranty on accuracy. Values are derived from public Wavecor product pages and datasheets."
-    },
-    "parts-express": {
-      "name": "Parts Express woofer guide",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/parts-express",
-      "description": "1673 drivers whose T/S values are derived from the manufacturer's datasheet PDF (primary), falling back to the product page's own T/S table. The Parts Express product API (https://www.parts-express.com/api/items?q={sku}&fieldset=details) is used only to discover which drivers exist — its own bare spec fields are not used as values. Covers woofers, subwoofers, tweeters, midrange/full-range, passive radiators, planar/ribbon, car audio, and pro audio drivers. Brands: Aurum Cantus, B&C Speakers, Beyma, Celestion, Ciare, CSS, Dayton Audio, EPIQUE, Eminence Speaker, FaitalPRO, Goldwood, GRS, HiVi, JBL Professional, Lavoce, Morel, Peerless by Tymphany, PRV Audio, Selenium, Tang Band, Tectonic, Timpano Audio, Visaton, Wavecor and others. See meta.json for quality flags. Maintained by the winisd_tools pipeline (private). Refresh with: python scrapers/scrape_pe.py",
-      "license": "No license — no warranty on accuracy. Values are derived from public manufacturer datasheets and product pages; parts-express.com is used only to discover which drivers exist."
+    "winisd-drivers": {
+      "name": "WinISD Drivers Archive",
+      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/datasheets_archive",
+      "description": "Federated driver datasheets repository containing thousands of scraped and verified speaker driver definitions.",
+      "license": "public product data / factual T/S measurements"
     },
     "winisd": {
       "name": "WinISD",
