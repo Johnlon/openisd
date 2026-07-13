@@ -15,8 +15,8 @@
       "description": "~430 drivers from the mtg90 AVS Forum collection. See drivers/matt/meta.json for provenance.",
       "license": "community / factual T/S measurements"
     },
-    "winisd-drivers": {
-      "name": "WinISD Drivers Archive",
+    "openisd_drivers": {
+      "name": "OpenIsd drivers",
       "url": "https://github.com/Johnlon/winisd_drivers/tree/main/datasheets_archive",
       "description": "Federated driver datasheets repository containing thousands of scraped and verified speaker driver definitions.",
       "license": "public product data / factual T/S measurements"
