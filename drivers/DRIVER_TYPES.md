@@ -44,6 +44,14 @@ driver that carries that label.
 
 ## Classification priority
 
+0. **Manufacturer navigation / breadcrumb category — MOST authoritative, above name
+   parsing.** Where a driver is filed by the manufacturer/distributor
+   ("Loudspeaker Drivers By Type / **Tweeters** / …") IS its type, and it beats any
+   keyword found in the product name. Example: `ND25FW-4` sits under **Tweeters**, so
+   it is a **tweeter** even though its name contains "Waveguide" (a feature, not the
+   type). Use the discovery nav/category first; fall back to name parsing (step 3)
+   only when no nav category is available, and alert on a nav-vs-name conflict.
+   (See TODO.md "Missed signal — discovery navigation / URL".)
 1. **PR keyword** → `['pr']` and stop (orthogonal to all frequency categories)
 2. **Coaxial keyword** → `['coax', 'woofer', 'bass', 'mid', 'tweet']` and stop (combined driver, appears in all frequency filter chips)
 3. **Name-based detection** (manufacturer's own label — most reliable):
