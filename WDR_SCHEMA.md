@@ -460,12 +460,16 @@ primary component (e.g., woofer T/S for a coaxial).
 - **WDR file** (`SB12PFC25-4-COAX.wdr`): Woofer T/S only (Fs=58 Hz, Qts=0.33, Vas=4.8L, etc.) — for WinISD enclosure design
 - **\_meta.yml** (`SB12PFC25-4-COAX_meta.yml`): Complete metadata including both woofer and tweeter T/S under `specs.woofer` and `specs.tweeter` keys — the human-readable record
 
-**Schema and field definitions:** The sibling `winisd_tools` repo's `wdr_meta_schema.py` —
-`MetaModel` (Pydantic v2) — is the single source of truth. Reading it IS reading the
-`_meta.yml` schema. It defines all fields (including `discovered_at`, `data_source`),
-validation rules, and field ordering.
+**Schema and field definitions:** The sibling `winisd_tools` repo's
+`phase3_extract/scripts/model_openisd.py` — `MetaFile` (Pydantic v2) — is the single source of
+truth for `_meta.yml`. Reading it IS reading the `_meta.yml` schema. It defines all fields
+(including `discovered_at`, `data_source`), validation rules, and field ordering. `MetaFile` is
+a projection of `phase3_extract/scripts/model_metadata.py`'s `MetadataFile` — the internal
+`metadata.yml` database record produced by the extraction pipeline, which is the SSOT for all
+extracted data (superset of `_meta.yml`, see §9.1). `MetaFile.from_metadata()` builds a
+`_meta.yml` from a `MetadataFile` record.
 
-### 9.1 `scraper_meta` — scraper-method metadata bag (non-canonical)
+### 9.1 `scraper_meta` — scraper-method metadata bag (internal-only, non-canonical)
 
 `scraper_meta` is an optional, namespaced dict for metadata specific to the **scraper method**
 that produced the file, kept separate from canonical data (`specs`, `_sources`). It is
@@ -481,8 +485,19 @@ scraper_meta:
   read_record: reads/12P80NdV2_claude_opus-4-8.md
 ```
 
-Because `MetaModel` is `extra="forbid"`, every method's bag lives under this one key rather
+`scraper_meta` lives ONLY in `metadata.yml` (the `MetadataFile` record) — it is **not**
+serialized into `_meta.yml`. `MetaFile.from_metadata()` explicitly drops the key when
+projecting, so the app-facing sidecar never carries it. Because `MetadataFile` and `MetaFile`
+are both `extra="forbid"`, every method's bag lives under this one key in `metadata.yml` rather
 than adding method-specific top-level fields — the canonical schema stays method-agnostic.
+
+### 9.2 Special URL/Link Placeholders
+
+The metadata URL/link fields (`datasheet_url`, `frd_url`, `zma_url`, etc.) are defined as `Optional[str]` in the schema and accept standard HTTP URLs. However, they also officially support and record two descriptive special-case strings to explain a resource's absence:
+
+* **`CHECKED_NON_EXISTENT`**: Strictly reserved for cases where we have exhaustively searched the official manufacturer page, ran high-priority search-engine sweeps, checked all deterministic URL construction patterns, and verified that absolutely no matching resource or curve diagram exists. This explicitly documents total absence across all possible sources and stops future redundant crawler searches.
+* **`SEE DATASHEET DIAGRAM`**: Recorded in `frd_url` or `zma_url` fields when the manufacturer does not publish raw computer-readable `.frd`/`.zma` data files (or they cannot be located), but the datasheet PDF *does* physically contain the visual frequency response and/or impedance curve diagrams. This documents the lack of raw text files while acting as a direct reminder that the curves are available and can be manually or programmatically extracted from the visual datasheet drawings later.
+
 
 ## 10. WinISD simulation model — key facts
 

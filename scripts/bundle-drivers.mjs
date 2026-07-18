@@ -82,6 +82,8 @@ for (const [key, src] of Object.entries(sources)) {
     const driver_type  = ymlVal('driver_type');
     const freq_low_hz  = ymlVal('freq_low_hz');
     const freq_high_hz = ymlVal('freq_high_hz');
+    const has_woofer   = /^\s+woofer:\s*$/m.test(sidecar);
+    const has_tweeter  = /^\s+tweeter:\s*$/m.test(sidecar);
     return {
       // path within the source (forward-slashed) — the unique id together with the
       // source key; never rely on the display name, which can repeat across files.
@@ -97,6 +99,8 @@ for (const [key, src] of Object.entries(sources)) {
       ...(driver_type  ? { driver_type }  : {}),
       ...(freq_low_hz  ? { freq_low_hz }  : {}),
       ...(freq_high_hz ? { freq_high_hz } : {}),
+      ...(has_woofer   ? { has_woofer }   : {}),
+      ...(has_tweeter  ? { has_tweeter }  : {}),
     };
   });
 
