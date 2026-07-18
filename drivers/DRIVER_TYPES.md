@@ -88,6 +88,53 @@ PR       ◯ orthogonal — no frequency range
 - BMR = mid + tweet only — Tectonic (BMR inventor) sells separate woofers for bass
 - AMT = a type of tweeter (Air Motion Transformer, can cross as low as 650 Hz)
 
+## Device-type index — INCLUDED vs EXCLUDED (the master list)
+
+Every device type we have encountered in a manufacturer/distributor catalog,
+recorded here so an excluded one is never silently re-added. This is the single
+source of truth for "is this a driver we model?". The INCLUDED set corresponds
+1:1 to the `DriverType` enum (`winisd_tools/scrapers/scrapers/driver_type.py` +
+`openisd/packages/ui/src/driverType.ts` — kept in parity by
+`test_driver_type_enum_parity.py`).
+
+### INCLUDED — modelled driver types (the `DriverType` enum)
+
+Direct-radiating transducers with box/Thiele-Small parameters WinISD can model.
+
+| driver_type | notes |
+| --- | --- |
+| `woofer` | LF cone driver |
+| `subwoofer` | woofer optimised for very low frequencies |
+| `mid-bass` | woofer that also covers mid (a.k.a. mid-woofer term — see AGENT NOTE in the enum) |
+| `mid-woofer` | kept separate from `mid-bass` only as a conservative union — may be the same type |
+| `midrange` | cone mid, no LF extension |
+| `full-range` | woofer + mid + tweet in one |
+| `bmr` | Balanced Mode Radiator (mid + tweet) |
+| `coaxial` | cone + dome sharing an axis → carries BOTH `specs.woofer` and `specs.tweeter` |
+| `tweeter` | HF dome/ribbon/planar (incl. a tweeter that has a waveguide faceplate, e.g. Dayton ND25FW) |
+| `amt` | Air Motion Transformer (a type of tweeter) |
+| `passive-radiator` | no motor; mechanical T/S only (Fs/Mms/Cms/Sd/Vas), no electrical params |
+| `unclassified` | fallback when a driver cannot be positively typed → abort + alert |
+
+### EXCLUDED — real products we deliberately DO NOT scrape as drivers
+
+These EXIST in catalogs (documented so we know they're real) but are filtered out
+at discovery (by manufacturer category / breadcrumb) and must NEVER become a
+`driver_type`. Grounds given per row.
+
+| device | what it is | ground for exclusion | example |
+| --- | --- | --- | --- |
+| **Waveguide** | a shaped cone/form mounted on the **front of a tweeter/driver** to control HF dispersion | passive accessory — no motor/voice coil/**no T/S** | Dayton H6512, H08RW, H07E, H45E ("Horns/Waveguides" category) |
+| **Horn** (bare) | a bare horn/flare | passive accessory — no T/S | Dayton "Horns/Waveguides" category |
+| **Compression driver** | horn-loaded HF transducer (has Re/Fs) | **not box/T-S-modellable in WinISD** (no Sd/Vas/Xmax for enclosure design); horn-loaded, niche | Dayton ND-series compression drivers |
+| **Cell adapter / mounting hardware** | bracket to mount a driver | mounting hardware, not a transducer | Accuton cell-adapter (106/130/82 mm) |
+| **DSP / amplifier module** | electronics | not a transducer at all | Accuton DSP192-4-111 |
+
+Removed from the `DriverType` enum on 2026-07-17 on these grounds: `horn`,
+`waveguide` (accessories), `compression` (not box-modellable). Re-adding any of
+them requires overturning the ground above AND a both-repo enum edit (parity
+rule) — do not put them back casually.
+
 ## Sources
 
 - Parts Express categories: [Hi-Fi Woofers, Subwoofers, Midranges & Tweeters](https://www.parts-express.com/speaker-components/hi-fi-woofers-subwoofers-midranges-tweeters)
