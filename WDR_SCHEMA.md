@@ -11,8 +11,8 @@
 | Section header      | `[Driver]` — must be the first line; no other sections                                                                                                                     |
 | Field separator     | `=` with no spaces (`Key=Value`)                                                                                                                                           |
 | Decimal separator   | `.` (period)                                                                                                                                                               |
-| Encoding            | UTF-8 (⚠ assumption — not directly verified from WinISD source code)                                                                                                       |
-| Line endings        | CRLF (⚠ assumption — Windows application)                                                                                                                                  |
+| Encoding            | **UTF-8** — VERIFIED: `drivers/sample/driver-with-unicode-text.wdr` stores `Model=…Euro € Kanji 漢字` etc. as valid UTF-8 (€ = `E2 82 AC`, 漢字 = `E6 BC A2 E5 AD 97`) and WinISD reads it back correctly. See §1.1. |
+| Line endings        | **CRLF between fields** — VERIFIED across the `drivers/sample/*.wdr` set. (An in-field newline is NOT CRLF — see §1.1.)                                                     |
 | Field order         | **Observed consistent** across 423 `drivers/matt/` files and 53 WinISD-generated probe files — whether WinISD enforces order on read is untested                           |
 | Total native fields | 56 (7 metadata + 48 numeric/string + 1 ParState) — WinISD always writes all 56 on save; scraper-generated files may have only 27–29 (core T/S block) and WinISD loads them |
 | Custom fields       | Observed after `ParState=` only — not verified that WinISD ignores pre-ParState unknowns                                                                                   |
@@ -21,6 +21,34 @@ WDR files contain only WinISD-native fields. All provenance and quality metadata
 the companion `_meta.yml` sidecar (see §9).
 
 Source for structural claims: direct analysis of 423 `drivers/matt/` files plus 53 WinISD-generated single-field probe files from `drivers/sample/` (2026-06-28).
+
+### 1.1 Text encoding and the in-field newline (`0xA4`)
+
+Two properties, both VERIFIED against WinISD-written samples in `drivers/sample/`
+(`driver-with-unicode-text.wdr`, `driver-with-latin-text.wdr`), not assumed:
+
+- **Unicode is supported — field values are UTF-8.** A `Brand`/`Model`/`Manufacturer`/
+  `Comment` may carry any Unicode text; WinISD stores it as UTF-8 and reads it back
+  intact. Example (byte-verified): `Model=driver with unicode text Euro € Kanji 漢字`
+  where `€` = `E2 82 AC`, `漢` = `E6 BC A2`, `字` = `E5 AD 97` — i.e. correct UTF-8.
+
+- **A newline WITHIN a field value is encoded as a single `0xA4` byte** — NOT a CRLF
+  (CRLF separates *fields*; a literal newline mid-value would break the line-per-field
+  INI structure). This is WinISD's own convention and is **independent of Unicode**:
+  - unicode sample, Comment `Euro €`⏎`Kanji 漢字`⏎ → `Comment=Euro €<A4>Kanji 漢字<A4>`
+  - latin sample, Comment `multi line`⏎`comment `⏎`in plain ascii` → `Comment=multi line <A4>comment <A4>in plain ascii`
+
+  There is one `0xA4` byte per embedded newline (including a trailing one). Because a
+  bare `0xA4` is not valid UTF-8, a `.wdr` that contains a multi-line field value is
+  **UTF-8 for all its text except those `0xA4` newline markers** — i.e. not strictly
+  UTF-8-decodable as a whole. Readers must treat `0xA4` as a newline within a value;
+  writers must emit the raw single byte `0xA4` (note: `U+00A4` in UTF-8 is the two-byte
+  `C2 A4`, which is WRONG — the on-disk marker is the single byte `A4`).
+
+  The OpenISD scraper implements exactly this in `winisd_tools`
+  `scrapers/scrapers/lib/model_openisd.py` (`WdrFile.to_bytes()` / `_wdr_field()`):
+  it carries an in-field newline as a private-use sentinel through serialisation and
+  lowers it to the raw `0xA4` byte at the final encode.
 
 ## 2. Canonical field order
 
