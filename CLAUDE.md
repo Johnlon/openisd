@@ -1,5 +1,8 @@
 # Claude Code rules for this project
 
+> [!IMPORTANT]
+> **Coding Patterns & Guidelines**: The agent **MUST** read and adhere to the active patterns listed in [CODING_PATTERNS.md](file:///home/john/work/winisd/openisd/CODING_PATTERNS.md) whenever writing, refactoring, or reviewing application code.
+
 ## Quality gates — non-negotiable
 
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + unit + golden + browser) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
@@ -293,3 +296,56 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 - **Provenance — which values a human supplied vs the app computed — is sourced where entry happens** (the UI/edit session), not reconstructed downstream from "is it present." Presence cannot distinguish Entered from Calculated.
 
 **When the user pushes for speed ("do all", "just do it"), that raises the verification bar, not lowers it.** A confident wrong commit is worse than a slower correct one.
+
+## Auto-Documentation of Behavioral Constraints and Coding Patterns — standing rule
+
+- Whenever the user tells the agent to **stop** doing something behavioral (or corrects their interaction/behavior), the agent **MUST** immediately append that constraint as a new standing rule in `CLAUDE.md`.
+- Whenever the user instructs, corrects, or defines a **coding pattern**, the agent **MUST** immediately document it inside [CODING_PATTERNS.md](file:///home/john/work/winisd/openisd/CODING_PATTERNS.md).
+
+## Bug/Discrepancy Investigation vs. Fixing Boundaries — standing rule
+
+When a user points the agent at a file, directory, log, or code discrepancy to draw attention to it, ask an exploratory question, or explicitly state that a bug exists, this is **NOT** an instruction to start changing or fixing things. Under these circumstances:
+- The agent **MAY** investigate, search, audit, write analysis/probing scripts, and explain findings in full.
+- The agent **MUST** present the user with a clear, structured list of options/recommendations for next steps.
+- The agent **MUST NOT** initiate any code fixes, directory structural cleanups, restorations, file deletions, or database writes.
+- The agent **MUST** wait for the user to explicitly select an option or instruct them to execute a fix, change, or restoration before making any modifications on disk.
+- **Sole Exception**: The agent may perform direct modifications or edits only if the user explicitly instructs the agent to make the specific change or manually edit the file.
+
+## Strict Conciseness — standing rule
+
+- Keep all responses extremely brief, direct, and focused.
+- Use bullet points instead of long paragraphs.
+- Omit conversational filler, extensive introductions, and unsolicited diagrams.
+
+## Traceable Claims (Verification Links) — standing rule
+
+- If making any claims about file contents, URLs, or data, the agent **MUST** provide the exact reference URL or local file path with line numbers (`file:///absolute/path/to/file#L123-L145`) so the human can instantly understand and verify.
+  - *Example*: "The scraper resolved the incorrect PDF URL [https://doc.soundimports.nl/...pdf](https://doc.soundimports.nl/pdf_visaton.pdf) on the distributor page [https://www.soundimports.eu/...html](https://www.soundimports.eu/visaton.html) as recorded in [phase2_resolve/discover.py:L198-L215](file:///home/john/work/winisd/winisd_tools/phase2_resolve/discover.py#L198-L215)."
+
+## Root Cause Analysis Focus — standing rule
+
+- When investigating bugs, data corruption, or discrepancies, focus analysis entirely on the **root cause** (the initial failure/input introduction) rather than downstream inevitable consequences (the execution steps that followed the bad input).
+
+## Unsuppressed Bug & Corruption Reporting — standing rule
+
+- Under no circumstances may the agent suppress, ignore, or gloss over any discovery of file corruptions, bugs, or data discrepancies, regardless of any other directive, speed request, or limitation in the `CLAUDE.md` file. All findings of this nature must be surfaced transparently.
+
+## Terminal Environment Naming — standing rule
+
+- Never refer to the local execution environment as a "sandbox". Always refer to it as **WSL2**.
+
+## driver-type enum parity — cross-repo hard rule
+
+The closed set of `driver_type` values is declared as an enum in BOTH sibling repos:
+- TypeScript (the values this UI's `classifyTypes()` reads): `packages/ui/src/driverType.ts` — `DriverType`.
+- Python (the SSOT the scraper writes into `_meta.yml`): `../winisd_tools/scrapers/scrapers/driver_type.py` — `DriverType`.
+
+Their string values (kebab-case, e.g. `passive-radiator`, `full-range`, `mid-bass`)
+are the on-disk `driver_type` wire contract and **MUST stay identical between the
+two files**. **Editing either enum REQUIRES editing the other in the SAME change.**
+Parity is enforced by `../winisd_tools/scrapers/tests/test_driver_type_enum_parity.py`,
+which reads this repo's `driverType.ts` and hard-fails on any drift — that test
+MUST pass. When a `driver_type` value is added/renamed/removed, also update
+`classifyTypes()` in `packages/ui/src/components/DriverBrowser.vue` and the
+mapping table in `drivers/DRIVER_TYPES.md`. The enum member NAMES (`PascalCase`)
+are a TS convenience and are NOT part of the contract — only the string values are.

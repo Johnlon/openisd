@@ -4,6 +4,7 @@ import { state, DEFAULT_DRIVER, setDriverFromRaw, setDriverFromWdr } from '../st
 import HelpTip from './HelpTip.vue';
 import type { DriverRaw } from '@openisd/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
+import { DriverType } from '../driverType';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
@@ -106,7 +107,7 @@ const COAX_PAT     = /\bcoax(ial)?\b|coaxial/i;
 // types  = functional chip IDs for filtering
 // canonical = the normalised product-type name for display (e.g. "Subwoofer", "Midrange")
 // driverType = scraper-derived type written to _meta.yml (e.g. 'coaxial', 'subwoofer')
-function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, driverType?: string): { types: string[]; canonical: string } {
+function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, driverType?: string, hasWoofer?: boolean, hasTweeter?: boolean): { types: string[]; canonical: string } {
   const nm = nameStr || '';
   // Scrapers may write compound values like "midwoofer, automotive" — take the primary
   // type token only; secondary qualifiers (automotive, marine, etc.) are not type tags.
@@ -114,12 +115,12 @@ function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, dr
   const types = new Set<string>();
   const canonical: string[] = [];
 
-  if (PR_PAT.test(nm) || dt === 'pr' || dt === 'passive radiator' || dt === 'passive_radiator')
+  if (PR_PAT.test(nm) || dt === DriverType.PassiveRadiator || dt === 'pr' || dt === 'passive radiator' || dt === 'passive_radiator')
     return { types: ['pr'], canonical: 'Passive Radiator' };
-  if (COAX_PAT.test(nm) || dt === 'coaxial' || dt === 'coax')
+  if (COAX_PAT.test(nm) || dt === 'coaxial' || dt === 'coax' || (hasWoofer && hasTweeter))
     return { types: ['coax', 'woofer', 'bass', 'mid', 'tweet'], canonical: 'Coaxial' };
 
-  if (TWEET_PAT.test(nm) || dt === 'tweeter') {
+  if (TWEET_PAT.test(nm) || dt === DriverType.Tweeter || dt === DriverType.Amt || hasTweeter) {
     types.add('tweet');
     if (/\bAMT\b|air.motion/i.test(nm))          canonical.push('AMT');
     else if (/\bribbon\b/i.test(nm))              canonical.push('Ribbon Tweeter');
@@ -129,9 +130,9 @@ function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, dr
   if (SUB_PAT.test(nm) || dt === 'subwoofer' || dt === 'sub')
     { types.add('sub'); types.add('woofer'); types.add('bass'); canonical.push('Subwoofer'); }
   // "midwoofer" is Scan-Speak's category name for mid-bass cone drivers — same chip mapping
-  if (MIDBASS_PAT.test(nm) || dt === 'mid-bass' || dt === 'midbass' || dt === 'midwoofer')
+  if (MIDBASS_PAT.test(nm) || dt === DriverType.MidBass || dt === DriverType.MidWoofer || dt === 'midbass' || dt === 'midwoofer')
     { types.add('woofer'); types.add('mid'); types.add('bass'); canonical.push('Mid-bass'); }
-  if ((WOOFER_PAT.test(nm) || dt === 'woofer') && !MIDBASS_PAT.test(nm))
+  if (((WOOFER_PAT.test(nm) || dt === 'woofer' || hasWoofer) && !MIDBASS_PAT.test(nm)) && !SUB_PAT.test(nm))
     { types.add('woofer'); types.add('bass'); canonical.push('Woofer'); }
   if (MIDRANGE_PAT.test(nm) || dt === 'midrange')
     { types.add('mid'); types.add('woofer'); canonical.push('Midrange'); }
@@ -316,6 +317,7 @@ interface BundleFile {
   name: string; content: string; date?: string;
   datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
   path?: string; driver_type?: string; freq_low_hz?: string; freq_high_hz?: string;
+  has_woofer?: boolean; has_tweeter?: boolean;
 }
 const bundledByKey: Record<string, BundleFile[]> = Object.fromEntries(
   (bundleJson.sources || []).map((s: { key: string; files: BundleFile[] }) => [s.key, s.files])
@@ -355,7 +357,7 @@ async function init() {
         sourceDesc: src.description || '',
         _Fs: qp.Fs, _Sd: qp.Sd, _Re: qp.Re, _Znom: qp.Znom, _Pe: qp.Pe,
         _freqRange: (() => { const lo = parseFloat(f.freq_low_hz || ''), hi = parseFloat(f.freq_high_hz || ''); return (isFinite(lo) && isFinite(hi)) ? { lo, hi } : null; })(),
-        ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(qp.Fs, qp.Sd, nameStr, f.driver_type)),
+        ...(({ types, canonical }) => ({ _types: types, _canonical: canonical }))(classifyTypes(qp.Fs, qp.Sd, nameStr, f.driver_type, f.has_woofer, f.has_tweeter)),
       };
     });
     allFiles.value = [...allFiles.value, ...entries];
