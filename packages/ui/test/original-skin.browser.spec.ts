@@ -155,6 +155,26 @@ test('a compare overlay can be removed with its ✕ button', async ({ page }) =>
   await expect(rows).toHaveCount(1); // back to just the current design
 });
 
+test('the Filters tab quick-adds real filter types and drives the store', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Filters' }).click();
+  const panel = page.locator('.content-panel');
+  // Only the four engine-supported types (the mock's other 4 buttons have no engine model).
+  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(4);
+
+  await panel.locator('.action-btn', { hasText: '+ HP' }).click();
+  await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(1);
+  await expect(panel.locator('.filter-type-badge')).toContainText('HP');
+  const n = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.state.P.filters.length;
+  });
+  expect(n).toBe(1);
+
+  await panel.locator('.filter-del').click();
+  await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();

@@ -29,7 +29,7 @@ import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
-import FiltersPanel from '../../components/FiltersPanel.vue';
+import OgFilters from './OgFilters.vue';
 import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
 
@@ -662,9 +662,9 @@ function cycleUnit(key: string, group: string) {
           </div>
         </section>
 
-        <!-- ===== Filters tab (shared FiltersPanel = real filter logic) ===== -->
+        <!-- ===== Filters tab — mock-styled OgFilters, wired to the same state.P.filters ===== -->
         <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
-          <FiltersPanel />
+          <OgFilters />
         </section>
 
         <!-- ===== Signal tab ===== -->
