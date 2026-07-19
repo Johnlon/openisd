@@ -98,20 +98,25 @@ test('the box-losses modal opens from the Box tab and closes', async ({ page }) 
   await expect(page.locator('.overlay.open')).toHaveCount(0);
 });
 
-test('the Color button cycles the current design trace colour', async ({ page }) => {
+test('the Color button cycles the current design trace colour (and wraps)', async ({ page }) => {
   const swatch = page.locator('.color-btn');
-  const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+  const bg = () => swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+  const before = await bg();
   await swatch.click();
-  const after = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
-  expect(after).not.toBe(before);
+  expect(await bg()).not.toBe(before);
+  // The mock palette has 7 colours, so 7 clicks total returns to the start.
+  for (let i = 0; i < 6; i++) await swatch.click();
+  expect(await bg()).toBe(before);
 });
 
-test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts', async ({ page }) => {
+test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('bandpass4');
   const panel = page.locator('.content-panel');
-  await expect(panel).toContainText('Frc');
-  await expect(panel).toContainText('Tuning freq');
+  // Assert the readouts show real computed Hz values (not just the labels) — this fails
+  // if the underlying computeds regress to a literal or null.
+  await expect(panel.locator('.field').filter({ hasText: 'Frc' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
+  await expect(panel.locator('.field').filter({ hasText: 'Tuning freq' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
 });
 
 test('the Vented pane labels the tuning readout "1st port resonance"', async ({ page }) => {

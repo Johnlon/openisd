@@ -39,7 +39,8 @@ const { exportDesign, exportWdr, importFile, about } = useDesignIO();
 // The current design's trace colour. The Color button cycles it through a small
 // palette (WinISD's yellow-green first) and it feeds the shared GraphPanel's
 // primaryColor live — self-contained to this skin (no store/shared-component change).
-const TRACE_PALETTE = ['#c9c92e', '#2f6db5', '#c0392b', '#27ae60', '#8e44ad', '#e67e22'];
+// The mock's own palette (mock/script.js `colorPalette`) — kept identical for fidelity.
+const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
 const traceIdx = ref(0);
 const WINISD_TRACE = computed(() => TRACE_PALETTE[traceIdx.value]);
 function cycleColor() { traceIdx.value = (traceIdx.value + 1) % TRACE_PALETTE.length; }
@@ -440,13 +441,13 @@ function cycleUnit(key: string, group: string) {
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('frc','freq')">{{ unit('frc','freq') }}</span></div></div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, 2)" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('ftune','freq')">{{ unit('ftune','freq') }}</span></div></div>
               </div>
             </template>
 
