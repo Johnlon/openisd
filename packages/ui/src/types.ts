@@ -156,6 +156,8 @@ export interface UiState {
   originalProjectTab?: string;
   /** Original skin — the selected chart type (persists across reload). */
   originalChartTab?: string;
+  /** Original skin — the chosen chart menu label (may name an engine-unavailable chart). */
+  originalChartLabel?: string;
 }
 
 /** The reactive application state held in the store. */
