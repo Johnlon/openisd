@@ -126,6 +126,35 @@ test('the Vented pane labels the tuning readout "1st port resonance"', async ({ 
   await expect(page.locator('.content-panel')).toContainText('1st port resonance');
 });
 
+test('the projects checkbox toggles a compare overlay trace visibility (not delete)', async ({ page }) => {
+  await page.locator('.link-btn', { hasText: 'Compare' }).click(); // ＋ Compare — pin a snapshot
+  const rows = page.locator('.projects-list .project-row');
+  await expect(rows).toHaveCount(2); // current design + 1 comparison
+
+  const cbx = rows.nth(1).locator('input[type=checkbox]');
+  await expect(cbx).toBeChecked();
+  await cbx.uncheck();
+  await expect(rows).toHaveCount(2); // NOT deleted — still there
+  await expect(rows.nth(1)).toHaveClass(/trace-hidden/);
+  const flag = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.state.compare[0].visible;
+  });
+  expect(flag).toBe(false);
+
+  await cbx.check();
+  await expect(rows.nth(1)).not.toHaveClass(/trace-hidden/);
+});
+
+test('a compare overlay can be removed with its ✕ button', async ({ page }) => {
+  await page.locator('.link-btn', { hasText: 'Compare' }).click();
+  const rows = page.locator('.projects-list .project-row');
+  await expect(rows).toHaveCount(2);
+  await rows.nth(1).locator('.row-remove').click();
+  await expect(rows).toHaveCount(1); // back to just the current design
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();

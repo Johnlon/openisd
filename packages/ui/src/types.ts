@@ -39,6 +39,9 @@ export interface Design {
   maxCurves: MaxCurvesResult | null;
   name?: string;
   color?: string;
+  /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
+   * the graph. Additive: designs without this field are always drawn (Modern default). */
+  visible?: boolean;
 }
 
 /** Stats over a selected band (canvas reads ripple/peak/trough; peakF/avg are extra). */

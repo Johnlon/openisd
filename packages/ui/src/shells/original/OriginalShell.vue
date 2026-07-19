@@ -352,9 +352,13 @@ function cycleUnit(key: string, group: string) {
               <input type="checkbox" checked disabled>
               <span>{{ driverShort(driverRaw) }}</span>
             </div>
-            <div v-for="(d, i) in state.compare" :key="i" class="project-row" :title="'Comparison overlay — untick to remove ' + d.name">
-              <input type="checkbox" checked @click="removeCompare(i)">
+            <div v-for="(d, i) in state.compare" :key="i" class="project-row"
+                 :class="{ 'trace-hidden': d.visible === false }"
+                 :title="'Comparison overlay — untick to hide its trace, ✕ to remove ' + d.name">
+              <input type="checkbox" :checked="d.visible !== false" @change="d.visible = ($event.target as HTMLInputElement).checked"
+                     title="Show/hide this overlay's trace on the graph">
               <span>{{ d.name }}</span>
+              <button class="row-remove" title="Remove this comparison overlay" @click="removeCompare(i)">✕</button>
             </div>
           </div>
           <button class="link-btn" style="margin-top:6px" title="Snapshot the current design and overlay it" @click="pinCompare">＋ Compare</button>
@@ -808,6 +812,11 @@ function cycleUnit(key: string, group: string) {
 .project-row:hover { background:#eef4ff; }
 .project-row.selected { background:#1868d1; color:#fff; }
 .project-row input[type=checkbox] { accent-color:#1868d1; }
+.project-row span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
+.row-remove { border:none; background:none; color:#b02a2a; cursor:pointer; padding:0 4px; font-size:12px; line-height:1; opacity:0; }
+.project-row:hover .row-remove { opacity:.85; }
+.row-remove:hover { color:#fff; background:#e64545; border-radius:3px; }
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
 .signal-gen-row input[type=number] { width:70px; }
 .project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }

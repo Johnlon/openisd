@@ -122,7 +122,10 @@ export function buildPlotData(
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
     return { value: null, errors };
 
-  const designs = [currentDesign, ...compare];
+  // Compare overlays may be hidden (visible === false) without being removed. Additive:
+  // the current design is always drawn, and any overlay lacking the flag stays visible —
+  // so Modern (which never sets `visible`) renders exactly as before.
+  const designs = [currentDesign, ...compare.filter(d => d.visible !== false)];
   const multi = designs.length > 1;
   let out: PlotData | null = null;
   designs.forEach((d, di) => {
