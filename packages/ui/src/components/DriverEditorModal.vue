@@ -4,6 +4,7 @@ import { driver, driverRaw, enterDriverField, setDriverFromRaw, getDriverModel }
 import { ebp, RHO, C } from '@openisd/engine';
 import type { DriverRaw } from '@openisd/engine';
 import NumInput from './NumInput.vue';
+import { useEscToClose } from '../composables/useEscToClose.js';
 
 // Driver editor — a real modal (unlike DriverWhatIfPanel, an inline overlay that keeps
 // the graph visible). Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):
@@ -50,6 +51,10 @@ function ebpVal(): number | null {
 function close() { emit('close'); }
 function cancel() { setDriverFromRaw(sessionSnapshot); emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) cancel(); }
+
+// Mounted only while open (ClassicShell v-if). Escape mirrors backdrop-click/Cancel:
+// revert this session's edits rather than keeping them.
+useEscToClose(() => true, cancel);
 </script>
 
 <template>

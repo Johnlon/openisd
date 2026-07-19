@@ -5,6 +5,7 @@ import { RHO, C } from '@openisd/engine';
 import { savePR, listPRs, deletePR } from '../utils/prLibrary.js';
 import type { PRLibEntry } from '../types.js';
 import NumInput from './NumInput.vue';
+import { useEscToClose } from '../composables/useEscToClose.js';
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
@@ -65,6 +66,9 @@ function removePR(id: number) { prLib.value = deletePR(id); }
 
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
+
+// Mounted only while open (parent v-if), so it is always "open" for Escape purposes.
+useEscToClose(() => true, close);
 </script>
 
 <template>

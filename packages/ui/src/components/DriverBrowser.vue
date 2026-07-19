@@ -22,7 +22,7 @@ interface FileEntry {
   fileName?: string;
   content?: string;
   date?: string;
-  datasheet?: string; manupage?: string; distributorpage?: string; frd?: string; impedance?: string;
+  datasheet?: string; manu_page_url?: string; distributor_page_url?: string; frd?: string; impedance?: string;
   path?: string; repo?: string | null; branch?: string | null;
   sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
   _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
@@ -315,7 +315,7 @@ function parseRepoInput(s: string): SourceEntry | null {
 // Shape of a pre-bundled driver entry in drivers-bundle.json.
 interface BundleFile {
   name: string; content: string; date?: string;
-  datasheet?: string; manupage?: string; distributorpage?: string; frd?: string; impedance?: string;
+  datasheet?: string; manu_page_url?: string; distributor_page_url?: string; frd?: string; impedance?: string;
   path?: string; driver_type?: string; freq_low_hz?: string; freq_high_hz?: string;
   has_woofer?: boolean; has_tweeter?: boolean;
 }
@@ -346,8 +346,8 @@ async function init() {
         content: f.content,
         date: f.date || '',
         datasheet:   f.datasheet   || '',
-        manupage:    f.manupage    || '',
-        distributorpage:  f.distributorpage  || '',
+        manu_page_url:    f.manu_page_url    || '',
+        distributor_page_url:  f.distributor_page_url  || '',
         frd:         f.frd         || '',
         impedance:   f.impedance   || '',
         path: f.path, repo: null, branch: null,
@@ -438,8 +438,8 @@ const previewData = computed(() => {
 
   const links = [];
   if (f.datasheet) links.push({ href: f.datasheet, label: 'Datasheet (PDF)' });
-  if (f.manupage)  links.push({ href: f.manupage,  label: 'Manufacturer page' });
-  if (f.distributorpage && f.distributorpage !== f.manupage) links.push({ href: f.distributorpage, label: 'Distributor page' });
+  if (f.manu_page_url)  links.push({ href: f.manu_page_url,  label: 'Manufacturer page' });
+  if (f.distributor_page_url && f.distributor_page_url !== f.manu_page_url) links.push({ href: f.distributor_page_url, label: 'Distributor page' });
   if (f.frd)       links.push({ href: f.frd,        label: 'FRD / ZMA data' });
 
   if (f.myDriverData) {
@@ -519,8 +519,8 @@ function resetToDemo() {
 function applyWdr(text: string, f: FileEntry) {
   const m = setDriverFromWdr(text);
   if (f.datasheet)  m.enter('datasheetUrl',  f.datasheet);
-  if (f.manupage)   m.enter('manuPageUrl',   f.manupage);
-  if (f.distributorpage) m.enter('distributorPageUrl', f.distributorpage);
+  if (f.manu_page_url)   m.enter('manuPageUrl',   f.manu_page_url);
+  if (f.distributor_page_url) m.enter('distributorPageUrl', f.distributor_page_url);
   if (f.frd)        m.enter('frdUrl',        f.frd);
   if (f.impedance)  m.enter('impedanceUrl',  f.impedance);
   state.driverSource = m.raw();
@@ -739,11 +739,11 @@ async function openDefine() {
               <a v-if="f.datasheet" class="dpdf"
                  :href="f.datasheet" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
-              <a v-if="f.manupage" class="dpdf"
-                 :href="f.manupage" target="_blank" rel="noopener"
+              <a v-if="f.manu_page_url" class="dpdf"
+                 :href="f.manu_page_url" target="_blank" rel="noopener"
                  title="Open manufacturer product page" @click.stop>Manu ↗</a>
-              <a v-if="f.distributorpage && f.distributorpage !== f.manupage" class="dpdf"
-                 :href="f.distributorpage" target="_blank" rel="noopener"
+              <a v-if="f.distributor_page_url && f.distributor_page_url !== f.manu_page_url" class="dpdf"
+                 :href="f.distributor_page_url" target="_blank" rel="noopener"
                  title="Open distributor/retailer product listing" @click.stop>Distributor ↗</a>
               <a v-if="f.frd" class="dpdf"
                  :href="f.frd" target="_blank" rel="noopener"
