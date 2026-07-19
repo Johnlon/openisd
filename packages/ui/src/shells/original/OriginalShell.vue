@@ -782,7 +782,10 @@ function cycleUnit(key: string, group: string) {
 /* ---------- Main: 2x2 quadrants ---------- */
 .main { display:grid; grid-template-columns:250px 1fr; grid-template-rows:1fr 290px; flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { border-right:1px solid #ccc; border-bottom:1px solid #ccc; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; min-height:0; }
-.quad-bottomleft { background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; overflow:hidden; }
+/* overflow:visible + a stacking context ABOVE the content panel lets the active
+   tab extend past the column edge and paint over the panel's left spine, so it
+   reads as one continuous shape with the panel (the break-through notch). */
+.quad-bottomleft { background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; overflow:visible; position:relative; z-index:3; }
 .quad-bottomleft .panel-title, .quad-bottomleft .color-btn { margin-right:8px; flex:none; }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
@@ -795,9 +798,13 @@ function cycleUnit(key: string, group: string) {
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
 .signal-gen-row input[type=number] { width:70px; }
 .project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }
-.project-nav li { position:relative; background:#ececec; border:1px solid #bbb; border-right:none; border-radius:5px 0 0 5px; padding:4px 8px 4px 12px; line-height:1.3; margin-bottom:-1px; margin-right:-1px; cursor:pointer; z-index:1; }
-.project-nav li:hover { background:#dbeaff; }
-.project-nav li.active { background:#f7f7f7; border-color:#999; font-weight:600; z-index:2; }
+/* Book-of-tabs: inactive tabs stop at the panel's left spine; the active tab
+   shares the panel's fill and breaks 2px through the spine so it reads as a
+   physical notch of the panel. The panel's #888 left border is the unifying
+   vertical line the tabs hang off. */
+.project-nav li { position:relative; background:#e4e4e4; border:1px solid #888; border-right:none; border-radius:7px 0 0 7px; padding:5px 8px 5px 12px; line-height:1.3; margin:0 0 -1px 0; cursor:pointer; z-index:1; box-shadow:inset -6px 0 6px -6px rgba(0,0,0,.12); }
+.project-nav li:hover:not(.active) { background:#dbeaff; }
+.project-nav li.active { background:#f7f7f7; font-weight:600; margin-right:-6px; padding-right:14px; z-index:2; box-shadow:none; }
 .color-btn { margin-top:auto; border:1px solid #999; padding:8px; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
 .graph-area { flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
@@ -807,7 +814,7 @@ function cycleUnit(key: string, group: string) {
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
 /* ---------- Content panel ---------- */
-.content-panel { background:#f7f7f7; border:1px solid #999; border-left:none; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
+.content-panel { background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
 .tab-section { display:none; }
 .tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
