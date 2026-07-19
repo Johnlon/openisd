@@ -63,7 +63,7 @@ function autoVentAlign() {
       </div>
       <div class="row" title="Net acoustic internal volume — excludes driver displacement, port tube volume, and bracing. WinISD also uses net volume. Add ~0.5–1 L per 6.5&quot; driver when sizing the physical box.">
         <label>Box volume Vb</label>
-        <NumInput v-model="state.P.Vb" :scale="1000" :precision="4" />
+        <NumInput v-model="state.P.Vb" :scale="1000" :precision="2" />
         <span class="u">L</span>
       </div>
       <div class="btns" style="margin-bottom:2px">
@@ -75,18 +75,18 @@ function autoVentAlign() {
       <template v-if="showLosses">
         <div class="row" title="Leakage loss — enclosure sealing and driver surround leaks. WinISD default: 10. Lower = more leakage.">
           <label>Leakage Ql</label>
-          <NumInput v-model="state.P.Ql" :scale="1" :precision="3" />
+          <NumInput v-model="state.P.Ql" :scale="1" :precision="1" />
           <span class="u"></span>
         </div>
         <div class="row" title="Absorption loss from stuffing material. WinISD default: 100 (no stuffing).">
           <label>Absorption Qa</label>
-          <NumInput v-model="state.P.Qa" :scale="1" :precision="3" />
+          <NumInput v-model="state.P.Qa" :scale="1" :precision="1" />
           <span class="u"></span>
         </div>
         <div class="row" v-if="state.box === 'vented' || state.box === 'bandpass4'"
           title="Port loss Q — air friction and turbulence in the vent tube. WinISD default: 100 (low-loss port). Lower values increase vent damping and broaden the bass-reflex peak.">
           <label>Port loss Qp</label>
-          <NumInput v-model="state.P.Qp" :scale="1" :precision="3" />
+          <NumInput v-model="state.P.Qp" :scale="1" :precision="1" />
           <span class="u"></span>
         </div>
         <div class="losses-guide">
@@ -107,19 +107,19 @@ function autoVentAlign() {
       <template v-if="state.box === 'bandpass4'">
         <div class="row">
           <label>Front chamber Vf</label>
-          <NumInput v-model="state.P.Vf" :scale="1000" :precision="3" />
+          <NumInput v-model="state.P.Vf" :scale="1000" :precision="2" />
           <span class="u">L</span>
         </div>
       </template>
       <template v-if="state.box === 'vented' || state.box === 'bandpass4'">
         <div class="row">
           <label>Vent diameter</label>
-          <NumInput v-model="state.P.ventD" :scale="100" :precision="3" />
+          <NumInput v-model="state.P.ventD" :scale="100" :precision="1" />
           <span class="u">cm</span>
         </div>
         <div class="row">
           <label>Vent length</label>
-          <NumInput v-model="state.P.ventL" :scale="100" :precision="4" />
+          <NumInput v-model="state.P.ventL" :scale="100" :precision="1" />
           <span class="u">cm</span>
         </div>
         <div class="row">
