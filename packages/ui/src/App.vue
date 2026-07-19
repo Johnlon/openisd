@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, watch } from 'vue';
 import ModernShell from './shells/modern/ModernShell.vue';
 import ClassicShell from './shells/classic/ClassicShell.vue';
+import OriginalShell from './shells/original/OriginalShell.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import Flash from './components/Flash.vue';
 import { state, driverJSON, setDriverFromSerialized } from './store.js';
@@ -13,9 +14,12 @@ import type { SerializedState } from './types.js';
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays, and swaps the presentation shell by resolved skin. The shells
 // only arrange the shared components — no lifecycle or logic is duplicated per skin.
-const shellComponent = computed(() =>
-  resolveSkin(state.ui.skin) === 'classic' ? ClassicShell : ModernShell,
-);
+const shellComponent = computed(() => {
+  const shell = resolveSkin(state.ui.skin);
+  if (shell === 'classic') return ClassicShell;
+  if (shell === 'original') return OriginalShell;
+  return ModernShell;
+});
 
 function handleHashChange() {
   const saved = loadFromHash();

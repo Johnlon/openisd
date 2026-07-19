@@ -152,6 +152,10 @@ export interface UiState {
   classicProjectTab?: string;
   /** Classic skin — the selected chart type (persists across reload). */
   classicChartTab?: string;
+  /** Original skin — the selected Project tab rail entry (persists across reload). */
+  originalProjectTab?: string;
+  /** Original skin — the selected chart type (persists across reload). */
+  originalChartTab?: string;
 }
 
 /** The reactive application state held in the store. */
