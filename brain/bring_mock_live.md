@@ -170,6 +170,10 @@ audit stops churning on them:
    the pending state as the finished target, not a gap.
 4. **Fixed decimal precision** — matches the WinISD screenshots (`docs/winisd/`), which may
    differ from the mock's arbitrary literals. The screenshots win, not the mock.
+5. **Projects-list affordances** — a hidden overlay's row is dimmed + struck-through
+   (`.trace-hidden`), and each overlay has a ✕ remove button. The mock has neither (its
+   projects were fixed fake rows with no hide-state styling and no remove). Both are
+   deliberate usability additions for the real, dynamic compare list.
 
 ### My strategic view — the crux and the risk
 
