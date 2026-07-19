@@ -22,7 +22,7 @@ interface FileEntry {
   fileName?: string;
   content?: string;
   date?: string;
-  datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
+  datasheet?: string; manupage?: string; distributorpage?: string; frd?: string; impedance?: string;
   path?: string; repo?: string | null; branch?: string | null;
   sourceKey?: string; sourceName?: string; sourceUrl?: string; sourceDesc?: string;
   _Fs?: number | null; _Sd?: number | null; _Re?: number | null; _Znom?: number | null; _Pe?: number | null;
@@ -315,7 +315,7 @@ function parseRepoInput(s: string): SourceEntry | null {
 // Shape of a pre-bundled driver entry in drivers-bundle.json.
 interface BundleFile {
   name: string; content: string; date?: string;
-  datasheet?: string; manupage?: string; vendorpage?: string; frd?: string; impedance?: string;
+  datasheet?: string; manupage?: string; distributorpage?: string; frd?: string; impedance?: string;
   path?: string; driver_type?: string; freq_low_hz?: string; freq_high_hz?: string;
   has_woofer?: boolean; has_tweeter?: boolean;
 }
@@ -347,7 +347,7 @@ async function init() {
         date: f.date || '',
         datasheet:   f.datasheet   || '',
         manupage:    f.manupage    || '',
-        vendorpage:  f.vendorpage  || '',
+        distributorpage:  f.distributorpage  || '',
         frd:         f.frd         || '',
         impedance:   f.impedance   || '',
         path: f.path, repo: null, branch: null,
@@ -439,7 +439,7 @@ const previewData = computed(() => {
   const links = [];
   if (f.datasheet) links.push({ href: f.datasheet, label: 'Datasheet (PDF)' });
   if (f.manupage)  links.push({ href: f.manupage,  label: 'Manufacturer page' });
-  if (f.vendorpage && f.vendorpage !== f.manupage) links.push({ href: f.vendorpage, label: 'Vendor page' });
+  if (f.distributorpage && f.distributorpage !== f.manupage) links.push({ href: f.distributorpage, label: 'Distributor page' });
   if (f.frd)       links.push({ href: f.frd,        label: 'FRD / ZMA data' });
 
   if (f.myDriverData) {
@@ -520,7 +520,7 @@ function applyWdr(text: string, f: FileEntry) {
   const m = setDriverFromWdr(text);
   if (f.datasheet)  m.enter('datasheetUrl',  f.datasheet);
   if (f.manupage)   m.enter('manuPageUrl',   f.manupage);
-  if (f.vendorpage) m.enter('vendorpageUrl', f.vendorpage);
+  if (f.distributorpage) m.enter('distributorPageUrl', f.distributorpage);
   if (f.frd)        m.enter('frdUrl',        f.frd);
   if (f.impedance)  m.enter('impedanceUrl',  f.impedance);
   state.driverSource = m.raw();
@@ -742,9 +742,9 @@ async function openDefine() {
               <a v-if="f.manupage" class="dpdf"
                  :href="f.manupage" target="_blank" rel="noopener"
                  title="Open manufacturer product page" @click.stop>Manu ↗</a>
-              <a v-if="f.vendorpage && f.vendorpage !== f.manupage" class="dpdf"
-                 :href="f.vendorpage" target="_blank" rel="noopener"
-                 title="Open vendor/retailer product listing" @click.stop>Vendor ↗</a>
+              <a v-if="f.distributorpage && f.distributorpage !== f.manupage" class="dpdf"
+                 :href="f.distributorpage" target="_blank" rel="noopener"
+                 title="Open distributor/retailer product listing" @click.stop>Distributor ↗</a>
               <a v-if="f.frd" class="dpdf"
                  :href="f.frd" target="_blank" rel="noopener"
                  title="Download frequency response & impedance data (FRD/ZMA)" @click.stop>FRD ↗</a>

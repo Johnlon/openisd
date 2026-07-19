@@ -56,7 +56,7 @@ export interface DriverRaw {
   comment?: string;
   datasheetUrl?: string;
   manuPageUrl?: string;
-  vendorpageUrl?: string;
+  distributorPageUrl?: string;
   sourceUrl?: string;
   frdUrl?: string;
   impedanceUrl?: string;
