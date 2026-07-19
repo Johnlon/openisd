@@ -14,14 +14,58 @@ the mock's fake state. The vehicle already exists — the **`original` skin**
 - Audit mandate: `.claude/agents/arch-reviewer.md` **step 3a** (Original ↔ mock fidelity).
 - Fine-grained divergences (with mock line numbers): `CODE_REVIEW/ARCH_REVIEW_LOG.md` §3a.
 
+## INVARIANTS — hard, non-negotiable
+
+1. **Modern must not change in EFFECT.** Modern's function and appearance must stay
+   identical — proven by its browser tests (`app.browser.spec.ts`, `visual.browser.spec.ts`
+   snapshots, `chart-zoom`, etc.) staying green and its rendered output unchanged. This is
+   about the OUTCOME, not the file: you **may** edit a shared component that Modern renders
+   (`BoxPanel.vue`, `DriverPanel.vue`, `PRPanel.vue`, …) **when the change is additive and
+   default-preserving** — a new optional skin/`variant` prop, or a `switchable` CSS branch —
+   so that Modern's existing render path is byte-for-byte unaffected. That is genuine reuse
+   and is encouraged. What is **forbidden** is any change that alters what Modern draws or
+   does (like the restructure that removed Modern's PR-edit affordance and broke its tests —
+   `CODE_REVIEW/POST_MORTEM.md`). Rule of thumb: **additive + default unchanged = OK;
+   restructuring shared behaviour = NOT OK.** The precedent already in the tree:
+   `BoxPanel.vue`'s `variant` prop — Classic passes it, Modern omits it and renders exactly
+   as before.
+2. **The calculations engine must NOT be changed.** No edits under `packages/engine/**`
+   (nor `packages/winisd/**` ADT math). The Original port consumes the engine/ADT exactly
+   as-is. (6th-order-bandpass / ABC engine models are a SEPARATE, later task — NOT part of
+   this port; until they land, those box types stay in the pending state.)
+
+**Proof obligation for any shared-component edit:** Modern's + Classic's browser/visual
+tests stay green, AND the edit is visibly additive (default path untouched). If you can't
+show Modern is unchanged, the edit fails Invariant 1.
+
 ## The one hard rule (why past attempts regressed)
 
 Port the **mock's own markup + `mock/style.css` wholesale**: `onclick`→`@click`,
-`value`→`v-model` bound to the shared store/ADT. The **only** sanctioned divergence is
-fake-state → shared-engine. **Never edit shared components** (`BoxPanel.vue`,
-`DriverPanel.vue`, `PRPanel.vue`) to make Original match the mock — doing so regressed
-the Modern skin once (see `CODE_REVIEW/POST_MORTEM.md`). Reusing a shared component
-inside Original is _not_ the sanctioned port even though it's "good engineering."
+`value`→`v-model` bound to the shared store/ADT. The **only** sanctioned divergence from
+the mock is fake-state → shared-engine. Prefer authoring the port's own markup inside
+`packages/ui/src/shells/original/` and wiring it to the shared `store.ts` / composables /
+ADT / engine APIs. When you DO reuse or extend a shared component, it must satisfy
+Invariant 1 (additive + Modern unchanged) — the failure mode to avoid is _restructuring_ a
+shared component's default behaviour to suit Original, which regressed Modern once
+(`CODE_REVIEW/POST_MORTEM.md`).
+
+### Decision rule — share only when clean, otherwise fork a NEW component
+
+For each panel/modal, choose:
+
+- **Reuse / additively extend the shared component** — only when the extension is small,
+  additive, and leaves Modern's default render byte-identical (e.g. a `variant` prop, a
+  guarded CSS branch). Clean fit → reuse.
+- **Create a NEW Original-owned component** (under `packages/ui/src/shells/original/`) —
+  **whenever sharing would compromise either side**: the mock markup fights Modern's layout,
+  the two need divergent behaviour, or the shared file would fill with `if skin === …`
+  conditionals. A clean new component wired to the same shared `store.ts`/composables/ADT/
+  engine is STRONGLY PREFERRED over a contorted shared one. Duplicated _markup_ is fine;
+  never duplicate _logic_ — both components call the same shared store/engine APIs.
+
+In short: **do not force Original and Modern to share a component if it makes either worse.
+When in doubt, make a new Original component.** Logic stays single-sourced (the store/engine);
+only presentation is per-skin.
 
 > NOTE: the parallel session is actively expanding `OriginalShell.vue` (it has grown
 > well past the 404-line state the arch-review was written against). **Re-audit the
@@ -135,22 +179,25 @@ audit stops churning on them:
   means re-hosting that logic under mock-faithful DOM. The failure mode already burned us: the
   prior agent "made it match" by editing the shared `BoxPanel`/`PRPanel` and regressed Modern
   (`CODE_REVIEW/POST_MORTEM.md`).
-- **Recommended pattern to thread the needle:** build **Original-owned** modal components under
-  `packages/ui/src/shells/original/` that render the **mock's markup** but call the **shared
-  composables/store functions** (e.g. the filter store ops, `DriverModel` ADT `enter/clear`,
-  the driver-library loader) — import the _logic_, not the shared `.vue`. This keeps markup
-  mock-faithful, logic un-forked, and shared components untouched. If a needed piece of logic
-  only exists _inside_ a shared `.vue`, extract it to a composable first (its own commit,
-  covered by the existing shared-component tests) — never edit the shared `.vue` to change
-  what Modern/Classic render.
+- **Recommended pattern (per the Decision rule above):** for each modal/panel, first try a
+  clean additive reuse of the shared component (Invariant 1); if that would compromise
+  either skin, build a **new Original-owned** component under
+  `packages/ui/src/shells/original/` that renders the **mock's markup** and calls the
+  **shared store/composables/ADT/engine APIs** directly (e.g. `state.P.filters` ops, the
+  `DriverModel` ADT `enter/clear`, the bundled-driver loader) — duplicate presentation, never
+  logic. Logic that a Modern `.vue` uses is reached through the store/engine API that `.vue`
+  itself calls, so Original needs no edit to that file. Only add a NEW composable/util (a new
+  file) if the API genuinely doesn't exist yet — never modify a Modern-rendered file except
+  as a proven-additive, default-preserving change.
 - **Sequence low-logic → high-logic**, one green + arch-reviewed commit each: (1) projects
   checkbox toggle, Color cycle, Vented End-Correction + label, dual-chamber Frc/Tuning
   readouts, Save-bar Revert/Unsaved — small, mostly presentational; then (2) Options modal
   (near-static); then (3) Select Driver picker table + New Project wizard (moderate, reuse the
   bundled-driver loader); then (4) the logic-heavy Driver Editor, Tune, Filters last.
-- **Gate every chunk** with the arch-reviewer 3a _and_ the full `original-skin.browser.spec.ts`
-  - health-check; verify `git show --stat` touches only `shells/original/` (+ any deliberate
-    composable extraction) — that check is what would have caught the prior regression.
+- **Gate every chunk:** arch-reviewer 3a + the full `original-skin.browser.spec.ts` +
+  `bash scripts/health-check.sh`. Any commit that edits a shared/Modern file MUST show
+  Modern's + Classic's browser/visual tests green and the change additive; otherwise scope it
+  to `shells/original/` + new files only. `git show --stat` on every commit is the guard.
 
 ---
 
