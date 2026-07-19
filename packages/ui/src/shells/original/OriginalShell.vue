@@ -22,7 +22,7 @@ import {
 } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
-import { RHO, C } from '@openisd/engine';
+import { RHO, C, END_CORRECTION } from '@openisd/engine';
 import { TABS, buildPlotData } from '../../utils/series.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
@@ -88,7 +88,7 @@ const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           /
 const ventFb = computed<number | null>(() => {
   if (!(state.P.Vb > 0) || !(ventArea.value > 0)) return null;
   const Sp = ventArea.value;
-  const Leff = state.P.ventL + 0.732 * state.P.ventD;
+  const Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
   const Map = RHO * Leff / Sp, Cab = state.P.Vb / (RHO * C * C);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 });
