@@ -129,11 +129,33 @@ const _doSweep = () => {
   _max.value    = d ? maxCurves(d, state.box, syncedP.value) : null;
 };
 _doSweep();
+// Leading-edge throttle (was a pure trailing debounce): the chart curves must
+// redraw DURING a held/rapid spinner drag, not only after release. A pure
+// `setTimeout(_doSweep, 80)` cleared on every change starves the sweep while the
+// value keeps changing faster than 80ms, so the graph froze until you let go
+// (the bottom stat numbers, which read `driver`/`syncedP` directly, stayed live —
+// that mismatch was the tell). Here the first change runs immediately, then at
+// most once per _SWEEP_MS while changes keep coming, with a trailing run to catch
+// the final value.
+const _SWEEP_MS = 32;   // ~30 fps — live-feeling without resweeping every event
 let _sweepTimer: ReturnType<typeof setTimeout> | null = null;
-watch([driver, syncedP, () => state.box], () => {
-  if (_sweepTimer) clearTimeout(_sweepTimer);
-  _sweepTimer = setTimeout(_doSweep, 80);
-});
+let _lastSweep = 0;
+function _scheduleSweep(): void {
+  const now = performance.now();
+  const wait = _SWEEP_MS - (now - _lastSweep);
+  if (wait <= 0) {
+    if (_sweepTimer) { clearTimeout(_sweepTimer); _sweepTimer = null; }
+    _lastSweep = now;
+    _doSweep();
+  } else if (_sweepTimer === null) {
+    _sweepTimer = setTimeout(() => {
+      _sweepTimer = null;
+      _lastSweep = performance.now();
+      _doSweep();
+    }, wait);
+  }
+}
+watch([driver, syncedP, () => state.box], _scheduleSweep);
 export const curvesData = _curves;
 export const maxData    = _max;
 

@@ -196,49 +196,49 @@ function applyDefine(raw: DriverRaw) {
         Tweak specs for what-if analysis. Hit <b>Save to My Drivers</b> to keep this as a custom model, or <b>Done</b> to close without saving.
       </div>
       <div class="row"><label>Fs</label>
-        <input type="number" step="any" min="1" max="5000"
+        <input v-expo-step type="number" step="any" min="1" max="5000"
                :value="rawOrFmt('Fs',(+d.Fs).toFixed(1))"
                :class="{ 'inp-bad': badInput('Fs',(+d.Fs).toFixed(1)) }"
                @input="e => numInput('Fs',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Fs')"
                title="Free-air resonance frequency — from datasheet. WinISD: Fs. Must be 1–5000 Hz">
         <span class="u">Hz</span></div>
       <div class="row"><label>Qts</label>
-        <input type="number" step="any" min="0.01" max="20"
+        <input v-expo-step type="number" step="any" min="0.01" max="20"
                :value="rawOrFmt('Qts',(+d.Qts).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qts',(+d.Qts).toPrecision(3)) }"
                @input="e => numInput('Qts',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qts')"
                title="Total Q factor = Qes·Qms/(Qes+Qms) — from datasheet. WinISD: Qts. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qes</label>
-        <input type="number" step="any" min="0.01" max="20"
+        <input v-expo-step type="number" step="any" min="0.01" max="20"
                :value="rawOrFmt('Qes',(+d.Qes).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qes',(+d.Qes).toPrecision(3)) }"
                @input="e => numInput('Qes',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qes')"
                title="Electrical Q factor — motor damping. From datasheet. WinISD: Qes. Must be 0.01–20">
         <span class="u"></span></div>
       <div class="row"><label>Qms</label>
-        <input type="number" step="any" min="0.05" max="200"
+        <input v-expo-step type="number" step="any" min="0.05" max="200"
                :value="rawOrFmt('Qms',(+d.Qms).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Qms',(+d.Qms).toPrecision(3)) }"
                @input="e => numInput('Qms',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qms')"
                title="Mechanical Q factor — suspension damping. From datasheet. WinISD: Qms. Must be 0.05–200">
         <span class="u"></span></div>
       <div class="row"><label>Vas</label>
-        <input type="number" step="any" min="0.001" max="10000"
+        <input v-expo-step type="number" step="any" min="0.001" max="10000"
                :value="rawOrFmt('Vas',(d.Vas*1000).toPrecision(4))"
                :class="{ 'inp-bad': badInput('Vas',(d.Vas*1000).toPrecision(4)) }"
                @input="e => numInput('Vas',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Vas')"
                title="Equivalent compliance volume — from datasheet. WinISD: Vas. Must be 0.001–10000 L">
         <span class="u">L</span></div>
       <div class="row"><label>Sd</label>
-        <input type="number" step="any" min="0.5" max="6000"
+        <input v-expo-step type="number" step="any" min="0.5" max="6000"
                :value="rawOrFmt('Sd',(d.Sd*1e4).toPrecision(4))"
                :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toPrecision(4)) }"
                @input="e => numInput('Sd',1e4,(e.target as HTMLInputElement).value)" @blur="numBlur('Sd')"
                title="Effective piston area — from datasheet. WinISD: Sd. Must be 0.5–6000 cm²">
         <span class="u">cm²</span></div>
       <div class="row"><label>Re</label>
-        <input type="number" step="any" min="0.1" max="300"
+        <input v-expo-step type="number" step="any" min="0.1" max="300"
                :value="rawOrFmt('Re',(+d.Re).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Re',(+d.Re).toPrecision(3)) }"
                @input="e => numInput('Re',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Re')"
@@ -249,7 +249,7 @@ function applyDefine(raw: DriverRaw) {
       <div class="row"
            title="Voice coil inductance. Leave as 0 for a resistive-only model — affects only high-frequency impedance shape, not SPL or excursion. WinISD: Le. 0–100 mH">
         <label>Le <span class="opt-lbl">opt</span></label>
-        <input type="number" step="any" min="0" max="100"
+        <input v-expo-step type="number" step="any" min="0" max="100"
                :value="rawOrFmt('Le',(d.Le*1000).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Le',(d.Le*1000).toPrecision(3)) }"
                @input="e => numInput('Le',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Le')">
@@ -257,7 +257,7 @@ function applyDefine(raw: DriverRaw) {
       <div class="row"
            title="Peak one-way linear excursion. Required to show the Excursion and Max-SPL curves — omit if not on the datasheet. WinISD: Xmax. 0.1–500 mm">
         <label>Xmax <span class="opt-lbl">opt</span></label>
-        <input type="number" step="any" min="0.1" max="500"
+        <input v-expo-step type="number" step="any" min="0.1" max="500"
                :value="rawOrFmt('Xmax',(d.Xmax*1000).toPrecision(3))"
                :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toPrecision(3)) }"
                @input="e => numInput('Xmax',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Xmax')">
@@ -265,7 +265,7 @@ function applyDefine(raw: DriverRaw) {
       <div class="row"
            title="Rated continuous power handling. Required to show the Max-Power curve — omit if not on the datasheet. WinISD: Pe. 0.1–50000 W">
         <label>Pe <span class="opt-lbl">opt</span></label>
-        <input type="number" step="any" min="0.1" max="50000"
+        <input v-expo-step type="number" step="any" min="0.1" max="50000"
                :value="rawOrFmt('Pe',String(+d.Pe||0))"
                :class="{ 'inp-bad': badInput('Pe',String(+d.Pe||0)) }"
                @input="e => numInput('Pe',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Pe')">
