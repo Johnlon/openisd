@@ -865,8 +865,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .parstate-legend .swatch.blue { background:#1868d1; }
 .parstate-legend .swatch.black { background:#111; }
 .unsaved-indicator { display:flex; align-items:center; gap:8px; }
-.save-btn { border:1px solid #999; background:#f0f0f0; color:#444; font-weight:600; border-radius:3px; padding:3px 8px; cursor:pointer; font-size:12px; }
-.save-btn:hover { background:#e4e4e4; }
+/* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
+   so they don't dominate the panel like a native WinISD control would. */
+.save-btn { border:1px solid #ccc; background:#f4f4f4; color:#666; font-weight:400; border-radius:3px; padding:1px 7px; cursor:pointer; font-size:11px; }
+.save-btn:hover { background:#e9e9e9; color:#333; border-color:#aaa; }
 
 /* ---------- Modal overlay ---------- */
 .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.18); z-index:100; align-items:flex-start; justify-content:center; }
