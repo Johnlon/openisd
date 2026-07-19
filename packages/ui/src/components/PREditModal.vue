@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue';
 import { state } from '../store.js';
 import { RHO, C } from '@openisd/engine';
-import { savePR, listPRs, deletePR } from '../utils/prLibrary.js';
-import type { PRLibEntry } from '../types.js';
+import { savePR, listPRs, deletePR, listBundledPRs } from '../utils/prLibrary.js';
+import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
 
@@ -48,6 +48,7 @@ function setWinIsdVas(newVasL: number) {
 }
 
 const prLib = ref(listPRs());
+const bundledPRs = listBundledPRs();
 const showPRLib = ref(false);
 function saveCurrentPR() {
   const name = (state.P.prName || '').trim() || 'Custom PR';
@@ -63,6 +64,18 @@ function loadPR(entry: PRLibEntry) {
   showPRLib.value = false;
 }
 function removePR(id: number) { prLib.value = deletePR(id); }
+
+// Bundled PRs publish only Sd/Cms (Vas derives from them). Fs/Mms/Rms/Xmax are
+// not in the datasheet, so they are blanked rather than left stale or fabricated.
+function loadBundledPR(pr: BundledPR) {
+  state.P.prName = pr.name;
+  if (pr.Sd  != null) state.P.prSd  = pr.Sd;
+  if (pr.Cms != null) state.P.prCms = pr.Cms;
+  state.P.prMmd  = 0;
+  state.P.prRms  = 0;
+  state.P.prXmax = 0;
+  showPRLib.value = false;
+}
 
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
@@ -81,7 +94,13 @@ useEscToClose(() => true, close);
           {{ showPRLib ? 'Hide PR library ▾' : 'Browse PR library… ▸' }}
         </button>
         <div v-if="showPRLib" class="pr-lib" style="margin:6px 0">
-          <div v-if="!prLib.length" style="color:var(--mut);font-size:11px;padding:4px 0">No saved PRs yet — fill in the fields below and click Save.</div>
+          <div v-if="bundledPRs.length" class="pr-lib-hdr" title="Passive radiators bundled from the driver collections. Datasheets publish Sd/Cms/Vas only — Fs/Mms/Rms/Xmax are left blank for you to supply.">Bundled passive radiators</div>
+          <div v-for="pr in bundledPRs" :key="pr.key + '/' + pr.path" class="pr-lib-item">
+            <span class="pr-lib-name" @click="loadBundledPR(pr)"
+              :title="'Load ' + pr.name + ' — Sd/Cms/Vas from the datasheet; Fs/Mms/Rms/Xmax not published, left blank'">{{ pr.name }}</span>
+          </div>
+          <div v-if="prLib.length" class="pr-lib-hdr">Saved</div>
+          <div v-if="!prLib.length && !bundledPRs.length" style="color:var(--mut);font-size:11px;padding:4px 0">No saved PRs yet — fill in the fields below and click Save.</div>
           <div v-for="e in prLib" :key="e.id" class="pr-lib-item">
             <span class="pr-lib-name" @click="loadPR(e)">{{ e.name }}</span>
             <button class="pr-lib-del" @click="removePR(e.id)" title="Remove this PR from the library">✕</button>

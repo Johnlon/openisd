@@ -19,8 +19,13 @@ interface SourcesJson {
   version: number;
   sources: Record<string, { name?: string; url?: string }>;
 }
+interface BundlePR {
+  key: string; path: string; name?: string; model?: string;
+  Sd?: number | null; Cms?: number | null; Vas?: number | null;
+}
 interface BundleJson {
   sources: Array<{ key: string; files: Array<{ name?: string; path?: string }> }>;
+  passiveRadiators?: BundlePR[];
 }
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..');
@@ -76,6 +81,36 @@ describe('drivers-bundle.json — driver identity = sourceKey + path', () => {
           'The browser v-for :key would collide and render phantom/duplicated rows.',
         );
         seen.set(id, f.name);
+      }
+    }
+  });
+});
+
+describe('drivers-bundle.json — passive radiators (meta-only, no WDR)', () => {
+  const prs = bundle.passiveRadiators ?? [];
+
+  it('bundles passive radiators as a separate list (never mixed into source files)', () => {
+    assert.ok(Array.isArray(bundle.passiveRadiators), 'bundle must carry a passiveRadiators array');
+    // The wavecor collection has 7 PR metas; guard against silent regressions to 0.
+    assert.ok(prs.length > 0, 'expected at least one bundled passive radiator');
+  });
+
+  it('every PR has a unique (key, path) identity and a display name', () => {
+    const seen = new Set<string>();
+    for (const pr of prs) {
+      assert.ok(pr.key && pr.path, `PR missing key/path: ${JSON.stringify(pr)}`);
+      const id = pr.key + '/' + pr.path;
+      assert.equal(seen.has(id), false, `duplicate PR identity "${id}"`);
+      seen.add(id);
+      assert.ok(pr.name || pr.model, `PR "${id}" has no name/model`);
+    }
+  });
+
+  it('PR spec fields are numeric-or-absent — never fabricated placeholders', () => {
+    for (const pr of prs) {
+      for (const k of ['Sd', 'Cms', 'Vas'] as const) {
+        const v = pr[k];
+        assert.ok(v == null || typeof v === 'number', `PR "${pr.key}/${pr.path}" ${k} must be a number or null (got ${JSON.stringify(v)})`);
       }
     }
   });

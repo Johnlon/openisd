@@ -117,6 +117,7 @@ a { color:var(--acc) }
 .pr-lib-name:hover { color:var(--acc) }
 .pr-lib-del { background:none; border:none; color:var(--mut); cursor:pointer; padding:0 4px; font-size:13px }
 .pr-lib-del:hover { color:var(--bad) }
+.pr-lib-hdr { padding:4px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); background:var(--panel2); border-bottom:1px solid var(--line) }
 .status { font-size:12px; color:var(--mut); padding:8px 2px }
 .status.err { color:var(--bad) }
 .status.loading { padding:24px 8px; text-align:center; animation:pulse 1.4s ease-in-out infinite }
