@@ -87,9 +87,9 @@ const drvLinks = computed(() => {
   const links = [];
   if (r.datasheetUrl)  links.push({ href: r.datasheetUrl,  label: 'Datasheet ↗',   title: 'Open manufacturer datasheet PDF' });
   if (r.manuPageUrl)   links.push({ href: r.manuPageUrl,   label: 'Manufacturer ↗', title: 'Open manufacturer product page' });
-  if (r.vendorpageUrl && r.vendorpageUrl !== r.manuPageUrl)
-    links.push({ href: r.vendorpageUrl, label: 'Vendor ↗', title: 'Open vendor/retailer product listing' });
-  if (r.sourceUrl && r.sourceUrl !== r.vendorpageUrl && r.sourceUrl !== r.manuPageUrl)
+  if (r.distributorPageUrl && r.distributorPageUrl !== r.manuPageUrl)
+    links.push({ href: r.distributorPageUrl, label: 'Distributor ↗', title: 'Open distributor/retailer product listing' });
+  if (r.sourceUrl && r.sourceUrl !== r.distributorPageUrl && r.sourceUrl !== r.manuPageUrl)
     links.push({ href: r.sourceUrl, label: 'Source ↗', title: 'Source where T/S data was obtained' });
   if (r.frdUrl)        links.push({ href: r.frdUrl,        label: 'FRD/ZMA ↗',     title: 'Download frequency response & impedance measurement data' });
   if (r.impedanceUrl && r.impedanceUrl !== r.frdUrl)
