@@ -81,6 +81,27 @@ export interface PRLibEntry {
 }
 
 /**
+ * A bundled passive radiator (from a driver collection's openisd_meta.yml). PRs
+ * have no WDR — WinISD doesn't model them — so they are bundled separately and
+ * shown only in the Browse-PR popup. Manufacturers publish only Sd/Cms/Vas/weight
+ * for a PR; Fs/Mms/Rms/Xmax are typically absent (null), never fabricated.
+ */
+export interface BundledPR {
+  key: string;
+  sourceName: string;
+  path: string;
+  name: string;
+  brand: string;
+  model: string;
+  Sd: number | null;
+  Cms: number | null;
+  Vas: number | null;
+  weightKg: number | null;
+  datasheet: string;
+  manu_page_url: string;
+}
+
+/**
  * UI-side parameters held in the store. A superset of the engine's SweepParams:
  * it adds view-only inputs (ventD/ventL geometry, Pin drive power, prName/prMode)
  * and omits the derived fields (eg, Sp, Leff) that syncedP computes on the fly.

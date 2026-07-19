@@ -1,5 +1,11 @@
-import type { PRLibEntry } from '../types.js';
+import type { PRLibEntry, BundledPR } from '../types.js';
 import type { SweepParams } from '@openisd/engine';
+import bundleJson from '../drivers-bundle.json';
+
+/** Passive radiators pre-bundled from the driver collections (read-only). */
+export function listBundledPRs(): BundledPR[] {
+  return (bundleJson as { passiveRadiators?: BundledPR[] }).passiveRadiators ?? [];
+}
 
 /** The PR fields savePR persists — accepts any params object carrying them. */
 type PRSaveParams = Pick<SweepParams, 'prSd' | 'prMmd' | 'prCms' | 'prRms' | 'prXmax'>;
