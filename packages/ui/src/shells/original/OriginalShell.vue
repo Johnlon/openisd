@@ -804,7 +804,17 @@ function cycleUnit(key: string, group: string) {
    vertical line the tabs hang off. */
 .project-nav li { position:relative; background:#e4e4e4; border:1px solid #888; border-right:none; border-radius:7px 0 0 7px; padding:5px 8px 5px 12px; line-height:1.3; margin:0 0 -1px 0; cursor:pointer; z-index:1; box-shadow:inset -6px 0 6px -6px rgba(0,0,0,.12); }
 .project-nav li:hover:not(.active) { background:#dbeaff; }
-.project-nav li.active { background:#f7f7f7; font-weight:600; border-radius:7px 8px 8px 7px; margin-right:-3px; padding-right:14px; z-index:2; box-shadow:none; }
+/* Active tab flares OUT into the panel with concave fillets (top-right + bottom-
+   right), like a notebook tab, rather than convex corners poking in. The fillets
+   are pseudo-elements: a rounded transparent box whose box-shadow spreads the
+   panel fill around the curve, carving the concave. */
+.project-nav li.active { background:#f7f7f7; font-weight:600; border-radius:7px 0 0 7px; margin-right:-2px; padding-right:14px; z-index:2; box-shadow:none; }
+.project-nav li.active::before,
+.project-nav li.active::after {
+  content:""; position:absolute; right:-1px; width:8px; height:8px; background:transparent;
+}
+.project-nav li.active::before { top:-8px; border-bottom-right-radius:8px; box-shadow:3px 3px 0 3px #f7f7f7; }
+.project-nav li.active::after  { bottom:-8px; border-top-right-radius:8px; box-shadow:3px -3px 0 3px #f7f7f7; }
 .color-btn { margin-top:auto; border:1px solid #999; padding:8px; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
 .graph-area { flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
