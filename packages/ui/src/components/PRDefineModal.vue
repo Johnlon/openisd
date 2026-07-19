@@ -108,6 +108,11 @@ function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); 
 <style scoped>
 /* Narrow — these are short numeric fields, not a full-width form. */
 .modal { width: min(320px, 92vw); }
+/* No spinners on Define-New panels — they are not live-connected to the graphs
+   (UX rule). Values are typed and applied on Create. Mirrors DriverDefineModal .dd-val. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .pri { background: var(--acc); color:#fff; border-color: var(--acc); }
 .pri:disabled { opacity:.5; cursor:not-allowed; }
 </style>
