@@ -39,6 +39,30 @@ test('the Box tab exposes all six box types and drives the shared store for supp
   await expect(page.locator('.original-root')).toContainText(/response model pending/i);
 });
 
+test('an externally loaded box type re-syncs the Box tab (no desync while a pending type is shown)', async ({ page }) => {
+  await page.locator('.skin-picker select').selectOption('original');
+  await page.locator('.og-nav li', { hasText: 'Box' }).click();
+
+  // Select an engine-unsupported type → the pending state shows, no curve drawn.
+  await page.locator('select#og-box-type').selectOption('abc');
+  await expect(page.locator('.original-root')).toContainText(/response model pending/i);
+
+  // An external load changes the shared store's box while the shell stays mounted
+  // (exactly App.vue's hashchange path: `state.box = o.box`). The Box tab must follow.
+  await page.evaluate(async () => {
+    // Dynamic path (not a static literal) so TS doesn't try to resolve the dev-server URL;
+    // Vite serves the same singleton store module the app uses, so this mutation is the
+    // real external-load path, not a separate copy.
+    const modPath = '/src/store.ts';
+    const store = await import(/* @vite-ignore */ modPath);
+    store.state.box = 'sealed';
+  });
+
+  await expect(page.locator('.original-root')).not.toContainText(/response model pending/i);
+  await expect(page.locator('#og-box-diagram-sealed')).toBeVisible();
+  await expect(page.locator('.og-chart .gpanel')).toBeVisible();
+});
+
 test('the chart-type selector re-renders the shared GraphPanel', async ({ page }) => {
   await page.locator('.skin-picker select').selectOption('original');
 

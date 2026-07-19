@@ -13,10 +13,11 @@
  * show an explicit "response model pending" state rather than a fabricated curve. When
  * the engine gains those branches, `SUPPORTED_BOX` grows and the pending state clears.
  */
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { state, driver, driverRaw, driverShort, pinCompare } from '../../store.js';
 import type { BoxType } from '@openisd/engine';
 import { TABS } from '../../utils/series.js';
+import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
@@ -44,18 +45,25 @@ const BOX_OPTIONS: { id: OgBox; label: string }[] = [
 const SUPPORTED_BOX = new Set<OgBox>(['sealed', 'vented', 'pr', 'bandpass4']);
 const DUAL_CHAMBER = new Set<OgBox>(['bandpass4', 'bandpass6', 'abc']);
 
-// Selected box lives locally because it can hold values (bandpass6/abc) the engine
-// BoxType cannot yet represent. Supported selections mirror into the shared store;
+// selectedBox is the Box tab's source of truth: it can hold values (bandpass6/abc) the
+// engine BoxType cannot yet represent. Supported selections mirror into the shared store;
 // unsupported ones leave state.box on its last valid value and raise `pending`.
 const selectedBox = ref<OgBox>(state.box);
-watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; }, { immediate: true });
-// Keep the local selection in step if the box is changed elsewhere (e.g. a shared link).
-watch(() => state.box, (b) => { if (selectedBox.value !== b && SUPPORTED_BOX.has(selectedBox.value)) selectedBox.value = b; });
+watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; });
+// Follow any EXTERNAL change to the store's box — e.g. a design loaded via App.vue's
+// hashchange path (`state.box = o.box`) — even while a pending type is selected. This
+// watcher fires only on a real store change; the one above only writes state.box when it
+// differs, so the two never ping-pong. Unconditional sync here fixes the desync where a
+// loaded, curve-producing box was hidden behind a stale ABC/pending view.
+watch(() => state.box, (b) => { if (selectedBox.value !== b) selectedBox.value = b; });
 
 const pending = computed(() => !SUPPORTED_BOX.has(selectedBox.value));
 const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
 
-// The single-chamber second readout label tracks the box type (WinISD: Fsc / Fh).
+// The single-chamber second readout label tracks the box type. These are the mock's own
+// WinISD labels (mock/index.html SINGLE_CHAMBER_FIELDS): 'Fsc' for a closed box, 'Fh' for
+// a passive-radiator rear chamber — kept verbatim for skin fidelity, hence the divergence
+// from BoxPanel.vue's 'Fc'/'Fh'.
 const singleF2Label = computed(() => (selectedBox.value === 'sealed' ? 'Fsc' : 'Fh'));
 
 // Live resonances from the engine's own closed forms — never faked literals.
@@ -84,9 +92,21 @@ const projectTab = computed<ProjectTab>({
 // ---- Projects list -------------------------------------------------------------
 function removeCompare(i: number) { state.compare.splice(i, 1); }
 
-// ---- Signal Generator (real tone) ---------------------------------------------
 const brand = computed(() => driverRaw.value.brand || '');
 const model = computed(() => driverRaw.value.model || driverShort(driverRaw.value));
+
+// ---- Signal Generator ----------------------------------------------------------
+// The mock's Signal Generator plays a real audible sine tone out of the machine's audio
+// output for testing speakers — Generate on/off + frequency in Hz. Uses the shared,
+// gesture-gated tone util (same as the Classic skin); NOT a power/voltage control.
+const genOn = ref(false);
+const genHz = ref(1000);
+let tone: ToneGenerator | null = null;
+function toggleGenerate() { tone ??= createToneGenerator(); if (genOn.value) tone.start(genHz.value); else tone.stop(); }
+watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
+onUnmounted(() => tone?.stop());
+
+// Signal tab: drive voltage = √(Pin × Re) per driver (WinISD: "Driver input voltage").
 const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)));
 </script>
 
@@ -130,12 +150,12 @@ const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re |
 
         <div class="og-ptitle" style="margin-top:10px">Signal Generator</div>
         <div class="og-sig">
-          <label class="og-check" title="Total input power (drives the voltage readout below)">
-            <span>Power</span>
-            <NumInput v-model="state.P.Pin" :scale="1" :precision="1" />
-            <span class="og-u">W</span>
+          <label class="og-check" title="Play a real sine tone out of your machine's audio output at the set frequency — for testing speakers. Starts on click; stops when unticked.">
+            <input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate
           </label>
-          <div class="og-drivev" title="Drive voltage = √(Pin × Re), per driver">{{ driveV.toFixed(1) }} V</div>
+          <input class="og-hz" type="number" min="20" max="20000" step="1" v-model.number="genHz"
+                 title="Tone frequency in Hz (audible range 20–20000)">
+          <span class="og-u">Hz</span>
         </div>
       </div>
 
@@ -363,7 +383,7 @@ const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re |
 .og-pin:hover { border-color:var(--acc); }
 .og-sig { display:flex; align-items:center; gap:10px; }
 .og-check { display:flex; align-items:center; gap:6px; font-size:13px; }
-.og-drivev { font-size:13px; color:var(--mut); font-variant-numeric:tabular-nums; }
+.og-hz { width:64px; padding:3px 5px; border:1px solid #c4c4c4; border-radius:2px; font:inherit; }
 .og-u { font-size:12px; color:#333; }
 
 /* chart */
