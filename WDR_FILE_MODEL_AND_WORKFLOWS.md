@@ -80,12 +80,12 @@ them in order. **Do not skip the inspection steps.**
 8. **If no PDF is found** → leave `datasheet_url` unset. Set
    `manu_page_url` so a human reviewer can find the datasheet later.
 
-### `manu_page_url` and `vendor_page_url`
+### `manu_page_url` and `distributor_page_url`
 
 The directory a WDR lives in tells you what kind of site was scraped. Use that
 to decide which field(s) to fill:
 
-| Directory / scraped site                                                  | `manu_page_url`                                | `vendor_page_url`    |
+| Directory / scraped site                                                  | `manu_page_url`                                | `distributor_page_url` |
 | ------------------------------------------------------------------------- | ---------------------------------------------- | -------------------- |
 | `sb-acoustics/`, `scan-speak/`, `wavecor/` — manufacturer sells direct    | ✓ set to scraped URL                           | leave unset          |
 | `parts-express/`, `soundimports/` — third-party retailer                  | leave unset (manu page unknown at scrape time) | ✓ set to scraped URL |
@@ -104,11 +104,11 @@ Rules:
 
 Generic provenance field — always set, regardless of site type.
 
-For scraped drivers this is typically the same URL as `vendor_page_url`
+For scraped drivers this is typically the same URL as `distributor_page_url`
 or `manu_page_url` (whichever applies). It exists as a separate field to
 cover sources that are neither vendor nor manufacturer listings — a GitHub repo
 of community measurements, an AVS Forum post, a raw datasheet. In those cases
-`vendor_page_url` and `manu_page_url` may be unset while
+`distributor_page_url` and `manu_page_url` may be unset while
 `source` still records where the numbers came from.
 
 **If in doubt:** `source` = the URL you would give someone who asked
@@ -156,7 +156,7 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
 
 | Situation                                                              | Correct action                                                                                                       |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Product page has no PDF link and no separate FRD file                  | Set `manu_page_url`, `vendor_page_url`, and `source`. Leave `datasheet_url` and `frd_url` unset                      |
+| Product page has no PDF link and no separate FRD file                  | Set `manu_page_url`, `distributor_page_url`, and `source`. Leave `datasheet_url` and `frd_url` unset                      |
 | ZIP found on vendor site — contents unknown                            | Download it, list contents (see `frd_url` step 3), then decide. Never set `frd_url` without inspection               |
 | ZIP contains CAD files only                                            | Download and cache locally. Set no `_meta.yml` field (no mechanical-file field is defined yet). Do not set `frd_url` |
 | FRD data is only available as a PDF graph (not raw data)               | Do not set `frd_url`. A rendered graph is not machine-readable data                                                  |
