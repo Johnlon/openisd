@@ -75,8 +75,8 @@ for (const [key, src] of Object.entries(sources)) {
     const sidecar = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : '';
     const ymlVal = key => { const m = sidecar.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); if (!m) return ''; const v = m[1].trim(); return (v === 'null' || v === '~') ? '' : v; };
     const datasheet    = ymlVal('datasheet_url');
-    const manupage     = ymlVal('manu_page_url');
-    const distributorpage   = ymlVal('distributor_page_url');
+    const manu_page_url     = ymlVal('manu_page_url');
+    const distributor_page_url   = ymlVal('distributor_page_url');
     const frd          = ymlVal('frd_url');
     const impedance    = ymlVal('zma_url');
     const driver_type  = ymlVal('driver_type');
@@ -92,8 +92,8 @@ for (const [key, src] of Object.entries(sources)) {
       date,
       content,
       ...(datasheet    ? { datasheet }    : {}),
-      ...(manupage     ? { manupage }     : {}),
-      ...(distributorpage   ? { distributorpage }   : {}),
+      ...(manu_page_url     ? { manu_page_url }     : {}),
+      ...(distributor_page_url   ? { distributor_page_url }   : {}),
       ...(frd          ? { frd }          : {}),
       ...(impedance    ? { impedance }    : {}),
       ...(driver_type  ? { driver_type }  : {}),

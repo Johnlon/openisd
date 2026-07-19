@@ -9,7 +9,10 @@ import { test, expect } from './fixtures.js';
 // Library rows only (exclude the "My Drivers" section rows).
 const LIB_ITEM = '.ditem:not(.my-ditem) b';
 
-test('driver library search returns only matching drivers (and renders the duplicate-name case)', async ({ page }) => {
+// Skipped for now: searches for Dayton/DSA115, which live in the openisd_drivers
+// (winisd_drivers) collection not yet present in this checkout. Re-enable once that
+// driver data is added and linked into drivers/.
+test.skip('driver library search returns only matching drivers (and renders the duplicate-name case)', async ({ page }) => {
   await page.goto('/');
 
   await page.getByRole('button', { name: /Browse \/ Select/ }).click();

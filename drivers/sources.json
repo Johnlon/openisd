@@ -5,7 +5,7 @@
   "sources": {
     "openisd_drivers": {
       "name": "OpenIsd drivers",
-      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/datasheets_archive",
+      "url": "https://github.com/Johnlon/winisd_drivers/tree/main/db/datasheets",
       "description": "Federated driver datasheets repository containing thousands of scraped and verified speaker driver definitions.",
       "license": "public product data / factual T/S measurements"
     }
