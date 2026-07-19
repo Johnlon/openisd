@@ -22,8 +22,12 @@ describe('skin resolution', () => {
     assert.equal(resolveSkin('auto'), 'modern');
   });
 
+  it('original passes straight through to the original shell (the mock recreation)', () => {
+    assert.equal(resolveSkin('original'), 'original');
+  });
+
   it('SKIN_IDS lists exactly the selectable skins, auto first', () => {
-    const expected: SkinId[] = ['auto', 'classic', 'modern'];
+    const expected: SkinId[] = ['auto', 'classic', 'original', 'modern'];
     assert.deepEqual(SKIN_IDS, expected);
   });
 });
