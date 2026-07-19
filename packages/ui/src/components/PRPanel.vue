@@ -3,9 +3,11 @@ import { computed, ref } from 'vue';
 import { state, driver } from '../store.js';
 import { prTuning, prMassForFp, ventedAlignment } from '@openisd/engine';
 import { RHO, C } from '@openisd/engine';
-import { savePR, listPRs, deletePR } from '../utils/prLibrary.js';
-import type { PRLibEntry } from '../types.js';
+import { savePR } from '../utils/prLibrary.js';
+import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
+import PRBrowser from './PRBrowser.vue';
+import PRDefineModal from './PRDefineModal.vue';
 
 const P = computed(() => state.P);
 const drv = driver;
@@ -63,14 +65,14 @@ function autoPRMass() {
 }
 
 const editPR = ref(false);
-const prLib = ref(listPRs());
-const showPRLib = ref(false);
+const browseOpen = ref(false);
 
 function saveCurrentPR() {
   const name = (state.P.prName || '').trim() || 'Custom PR';
-  prLib.value = savePR(name, state.P);
+  savePR(name, state.P);
 }
 
+// Load a saved PR-library entry into the current design.
 function loadPR(entry: PRLibEntry) {
   state.P.prName = entry.name;
   state.P.prSd   = entry.prSd;
@@ -78,30 +80,46 @@ function loadPR(entry: PRLibEntry) {
   state.P.prCms  = entry.prCms;
   state.P.prRms  = entry.prRms;
   state.P.prXmax = entry.prXmax;
-  showPRLib.value = false;
+  browseOpen.value = false;
   editPR.value = false;
 }
 
-function removePR(id: number) {
-  prLib.value = deletePR(id);
+// Load a bundled PR. Datasheets publish only Sd/Cms (Vas derives) — Fs/Mms/Rms/Xmax
+// are not on the sheet, so they are blanked rather than left stale or fabricated
+// (mirrors PREditModal.loadBundledPR).
+function loadBundledPR(pr: BundledPR) {
+  state.P.prName = pr.name;
+  if (pr.Sd  != null) state.P.prSd  = pr.Sd;
+  if (pr.Cms != null) state.P.prCms = pr.Cms;
+  state.P.prMmd  = 0;
+  state.P.prRms  = 0;
+  state.P.prXmax = 0;
+  browseOpen.value = false;
+  editPR.value = true;   // open the editor so the user can supply the blank fields
+}
+
+// Define a brand-new PR from scratch — open a BLANK buffered define modal (the PR
+// analogue of the driver browser's "Add new Driver" → DriverDefineModal, which comes
+// up empty). It only writes to the live design on Create, so blank fields never
+// corrupt state.P mid-entry.
+const defineOpen = ref(false);
+function defineNewPR() {
+  browseOpen.value = false;
+  defineOpen.value = true;
 }
 </script>
 
 <template>
-  <!-- PR library — browse at top, mirroring the driver section -->
-  <div style="margin-bottom:4px">
-    <button style="width:100%" @click="showPRLib = !showPRLib"
-      title="Browse your saved passive radiators and load one into the current design — like 'Browse driver library' for PRs">
-      {{ showPRLib ? 'Hide PR library ▾' : 'Browse PR library… ▸' }}
-    </button>
+  <!-- PR library — two buttons mirroring the Driver panel (Browse / Define new) -->
+  <div class="row" style="margin-bottom:6px">
+    <button style="flex:1" @click="browseOpen = true"
+      title="Browse bundled + saved passive radiators — click one to load it into the current design">Browse / Select…</button>
+    <button style="flex:1" @click="defineOpen = true"
+      title="Enter parameters from a datasheet to create a new custom passive radiator">Define new…</button>
   </div>
-  <div v-if="showPRLib" class="pr-lib" style="margin-bottom:6px">
-    <div v-if="!prLib.length" style="color:var(--mut);font-size:11px;padding:4px 0">No saved PRs yet — edit the PR below and click Save to add one.</div>
-    <div v-for="e in prLib" :key="e.id" class="pr-lib-item">
-      <span class="pr-lib-name" @click="loadPR(e)" :title="`Click to load — Sd=${(e.prSd*1e4).toFixed(0)}cm² Mms=${(e.prMmd*1000).toFixed(1)}g Cms=${(e.prCms*1000).toFixed(2)}mm/N`">{{ e.name }}</span>
-      <button class="pr-lib-del" @click="removePR(e.id)" title="Remove this PR from the library">✕</button>
-    </div>
-  </div>
+  <PRBrowser v-if="browseOpen" @close="browseOpen = false"
+    @load="loadPR" @load-bundled="loadBundledPR" @define="defineNewPR" />
+  <PRDefineModal v-if="defineOpen" @close="defineOpen = false" />
 
   <!-- PR name + summary (collapsed) or fields (expanded), mirroring DriverPanel -->
   <template v-if="!editPR">

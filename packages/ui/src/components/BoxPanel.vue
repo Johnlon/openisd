@@ -134,10 +134,14 @@ function autoVentAlign() {
         </div>
       </template>
       <template v-if="state.box === 'pr'">
-        <!-- The PR unit's own specs — full editor. Classic bypasses this branch
-             entirely (its dedicated Passive Radiator rail tab has its own
-             summary/edit-popup/what-if-overlay); this is modern's only path. -->
-        <PRPanel />
+        <!-- The PR unit's own specs — full editor, in its own labelled box nested
+             inside the Enclosure. Classic bypasses this branch entirely (its
+             dedicated Passive Radiator rail tab has its own summary/edit-popup/
+             what-if-overlay); this is modern's only path. -->
+        <fieldset class="pr-box">
+          <legend>Passive Radiator</legend>
+          <PRPanel />
+        </fieldset>
       </template>
     </template>
     <div class="btns" v-if="showCommon">
@@ -150,6 +154,8 @@ function autoVentAlign() {
 </template>
 
 <style scoped>
+/* Nested "Passive Radiator" box inside the Enclosure fieldset. */
+.pr-box { margin-top: 8px; }
 .losses-toggle {
   font-size: 11px;
   padding: 1px 6px;

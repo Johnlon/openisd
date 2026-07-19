@@ -780,7 +780,7 @@ async function openDefine() {
         <div class="browser-footer">
           <button @click="openDefine"
                   title="Define a new driver model from datasheet T/S parameters">
-            Add new Driver
+            ＋ Add new Driver
           </button>
           <a href="https://speakerboxlite.com/manufacturers/shared" target="_blank" rel="noopener"
              title="Browse shared WinISD driver files on SpeakerBoxLite">
@@ -839,7 +839,7 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .browser-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:4px 0 2px; flex-wrap:wrap; }
 .browser-footer a { font-size:11px; color:var(--mut); text-decoration:none; }
 .browser-footer a:hover { color:var(--acc); }
-.browser-footer button { font-size:11px; padding:3px 10px; }
+.browser-footer button { padding:5px 10px; }
 .src-row { position:relative; }
 .src-wrap { position:relative; display:inline-block; }
 .src-btn { font-size:11px; padding:3px 8px; background:var(--bg); border:1px solid var(--mut); border-radius:4px; color:var(--mut); cursor:pointer; white-space:nowrap; }
@@ -892,7 +892,7 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .spec-lbl { color:var(--mut); }
 .spec-val { font-variant-numeric:tabular-nums; }
 .spec-unit { color:var(--mut); font-size:10px; }
-.prev-links { display:flex; flex-direction:column; gap:5px; }
+.prev-links { display:flex; flex-flow:row wrap; gap:5px; }
 .prev-link { font-size:12px; color:var(--acc); text-decoration:none; padding:5px 8px; border:1px solid var(--acc); border-radius:4px; }
 .prev-link:hover { background:var(--acc); color:var(--bg); }
 .prev-source { font-size:11px; color:var(--mut); margin-top:2px; }
