@@ -76,7 +76,7 @@ for (const [key, src] of Object.entries(sources)) {
     const ymlVal = key => { const m = sidecar.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); if (!m) return ''; const v = m[1].trim(); return (v === 'null' || v === '~') ? '' : v; };
     const datasheet    = ymlVal('datasheet_url');
     const manupage     = ymlVal('manu_page_url');
-    const vendorpage   = ymlVal('vendor_page_url');
+    const vendorpage   = ymlVal('distributor_page_url');
     const frd          = ymlVal('frd_url');
     const impedance    = ymlVal('zma_url');
     const driver_type  = ymlVal('driver_type');
