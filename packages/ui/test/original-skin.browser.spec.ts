@@ -98,6 +98,29 @@ test('the box-losses modal opens from the Box tab and closes', async ({ page }) 
   await expect(page.locator('.overlay.open')).toHaveCount(0);
 });
 
+test('the Color button cycles the current design trace colour', async ({ page }) => {
+  const swatch = page.locator('.color-btn');
+  const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+  await swatch.click();
+  const after = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(after).not.toBe(before);
+});
+
+test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('bandpass4');
+  const panel = page.locator('.content-panel');
+  await expect(panel).toContainText('Frc');
+  await expect(panel).toContainText('Tuning freq');
+});
+
+test('the Vented pane labels the tuning readout "1st port resonance"', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('vented');
+  await page.locator('.project-nav li').nth(2).click(); // the dynamic enclosure/Vents tab
+  await expect(page.locator('.content-panel')).toContainText('1st port resonance');
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
