@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<{
   min?: number;
 }>(), {
   scale: 1,
-  precision: 4,
+  precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
   min: 0,   // physical quantities are non-negative by default; pass :min to override
 });
@@ -18,9 +18,13 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
 
 const focused = ref(false);
 
+// Fixed-decimal display (WinISD convention): `precision` is the number of DECIMAL
+// places, so the field width doesn't jump as the value changes (e.g. Vb always
+// "6.00", never "6" then "6.003"). Was toPrecision (significant figures) which gave
+// variable decimals.
 function fmt(v: number): string {
   const s = v * props.scale;
-  return isFinite(s) ? (+s.toPrecision(props.precision)).toString() : '';
+  return isFinite(s) ? s.toFixed(props.precision) : '';
 }
 
 // The displayed string: raw while editing, formatted otherwise

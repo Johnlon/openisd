@@ -143,17 +143,17 @@ function defineNewPR() {
 
     <div class="row" title="Number of passive radiators. Multiple PRs in parallel lower the effective acoustic impedance of the PR branch, increasing output without changing the tuning frequency Fp. WinISD: 'Number of radiators'.">
       <label>PR count</label>
-      <NumInput v-model="state.P.prNum" :scale="1" :precision="2" step="1" :min="1" />
+      <NumInput v-model="state.P.prNum" :scale="1" :precision="0" step="1" :min="1" />
       <span class="u"></span>
     </div>
     <div class="row" title="Effective piston area of the passive radiator cone (from datasheet). WinISD: Sd.">
       <label>Sd</label>
-      <NumInput v-model="state.P.prSd" :scale="1e4" :precision="4" />
+      <NumInput v-model="state.P.prSd" :scale="1e4" :precision="1" />
       <span class="u">cm²</span>
     </div>
     <div class="row" title="Maximum linear one-way cone excursion before distortion (from datasheet). WinISD: Xmax.">
       <label>Xmax</label>
-      <NumInput v-model="state.P.prXmax" :scale="1000" :precision="3" />
+      <NumInput v-model="state.P.prXmax" :scale="1000" :precision="1" />
       <span class="u">mm</span>
     </div>
 
@@ -169,7 +169,7 @@ function defineNewPR() {
     <template v-if="P.prMode === 'winisd'">
       <div class="row" title="PR free-air resonance (no added mass, no box).">
         <label>Fs</label>
-        <NumInput :model-value="prFsDisplay" :scale="1" :precision="4" @update:model-value="setWinIsdFs" />
+        <NumInput :model-value="prFsDisplay" :scale="1" :precision="2" @update:model-value="setWinIsdFs" />
         <span class="u">Hz</span>
       </div>
       <div class="row" title="Mechanical Q of the PR suspension.">
@@ -179,24 +179,24 @@ function defineNewPR() {
       </div>
       <div class="row" title="Compliance volume. Holds Fs and Qms fixed; updates Cms and Mms.">
         <label>Vas</label>
-        <NumInput :model-value="prVas" :scale="1" :precision="3" @update:model-value="setWinIsdVas" />
+        <NumInput :model-value="prVas" :scale="1" :precision="2" @update:model-value="setWinIsdVas" />
         <span class="u">L</span>
       </div>
     </template>
     <template v-else>
       <div class="row" title="Total moving mass — diaphragm + surround + entrained air. No added weight.">
         <label>Mms</label>
-        <NumInput v-model="state.P.prMmd" :scale="1000" :precision="4" />
+        <NumInput v-model="state.P.prMmd" :scale="1000" :precision="2" />
         <span class="u">g</span>
       </div>
       <div class="row" title="Mechanical compliance of the PR suspension. Higher Cms → lower Fp.">
         <label>Cms</label>
-        <NumInput v-model="state.P.prCms" :scale="1000" :precision="3" />
+        <NumInput v-model="state.P.prCms" :scale="1000" :precision="4" />
         <span class="u">mm/N</span>
       </div>
       <div class="row" title="Mechanical damping of the PR suspension.">
         <label>Rms</label>
-        <NumInput v-model="state.P.prRms" :scale="1" :precision="3" />
+        <NumInput v-model="state.P.prRms" :scale="1" :precision="4" />
         <span class="u">kg/s</span>
       </div>
     </template>
@@ -247,7 +247,7 @@ function defineNewPR() {
   <div class="subsect">PR tuning</div>
   <div class="row" title="Extra mass physically bolted to the PR cone (e.g. steel washer, lead shot). Shifts the tuning frequency down without changing the PR's other parameters. WinISD: 'Added mass'.">
     <label>Added mass <span style="color:var(--mut);font-size:10px">(tunable)</span></label>
-    <NumInput v-model="state.P.prMadd" :scale="1000" :precision="4" />
+    <NumInput v-model="state.P.prMadd" :scale="1000" :precision="1" />
     <span class="u">g</span>
   </div>
   <div class="row" title="Total moving mass = Mms + added mass. This is what the acoustic circuit uses.">
