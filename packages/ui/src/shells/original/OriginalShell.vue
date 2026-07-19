@@ -1,22 +1,29 @@
 <script setup lang="ts">
 /**
- * Original shell — the fuller WinISD 0.7.0.950 recreation, ported from the `mock/`
- * prototype (mock/index.html + script.js). Unlike the mock, NOTHING here fakes state
- * or physics: the chart is the shared GraphPanel, box volumes/losses bind to the shared
- * store, and box resonances are computed live from the engine. The mock's distinctive
- * look — six box types, per-type cut-through diagrams, single/dual-chamber layouts — is
- * ported as presentation only; the logic is the same store + engine every skin shares.
+ * Original shell — a faithful wholesale port of the `mock/` WinISD 0.7.0.950
+ * recreation (mock/index.html + mock/style.css), wired to the shared store + engine.
+ *
+ * Fidelity rule: the markup, class names, layout and chrome match the mock region by
+ * region. The ONE sanctioned divergence is that the mock's fake state/physics are
+ * replaced by the shared store + engine — the static graph SVG becomes the shared
+ * GraphPanel, every `.calculated` literal becomes a live engine value, and every
+ * `.entered` field is v-model-bound to the store.
  *
  * Box-type scope: the engine solver (packages/engine/src/circuit.ts) models four types
- * (sealed, vented, pr, bandpass4). 6th-order bandpass and ABC are ported here as UI
- * (diagram + chamber fields) but their response model is not implemented yet, so they
- * show an explicit "response model pending" state rather than a fabricated curve. When
- * the engine gains those branches, `SUPPORTED_BOX` grows and the pending state clears.
+ * (sealed, vented, pr, bandpass4). 6th-order bandpass and ABC are ported as UI (diagram +
+ * chamber/vent fields) but have no engine model yet, so they show an explicit "response
+ * model pending" state instead of a fabricated curve. When the engine gains those
+ * branches, add them to `SUPPORTED_BOX` and the pending state clears.
  */
-import { ref, computed, watch, onUnmounted } from 'vue';
-import { state, driver, driverRaw, driverShort, pinCompare } from '../../store.js';
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
+import {
+  state, driver, driverRaw, driverShort, pinCompare,
+  syncedP, curvesData, maxData, driverErrors,
+} from '../../store.js';
+import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
-import { TABS } from '../../utils/series.js';
+import { RHO, C } from '@openisd/engine';
+import { TABS, buildPlotData } from '../../utils/series.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -24,15 +31,18 @@ import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
 import FiltersPanel from '../../components/FiltersPanel.vue';
 import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
+import DriverEditorModal from '../../components/DriverEditorModal.vue';
 
-const { exportDesign, about } = useDesignIO();
+const { exportDesign, exportWdr, importFile, about } = useDesignIO();
 
-// The Original skin's default trace colour — WinISD's yellow-green plot line.
+// WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 const WINISD_TRACE = '#c9c92e';
 
+function fmt(n: number | null | undefined, dp: number): string {
+  return n != null && isFinite(n) ? n.toFixed(dp) : '—';
+}
+
 // ---- Box types -----------------------------------------------------------------
-// Display list (mock order) mapped onto the engine's BoxType where one exists.
-// 6th-order bandpass and ABC have no engine model yet → not in SUPPORTED_BOX.
 type OgBox = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';
 const BOX_OPTIONS: { id: OgBox; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
@@ -51,54 +61,157 @@ const DUAL_CHAMBER = new Set<OgBox>(['bandpass4', 'bandpass6', 'abc']);
 const selectedBox = ref<OgBox>(state.box);
 watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; });
 // Follow any EXTERNAL change to the store's box — e.g. a design loaded via App.vue's
-// hashchange path (`state.box = o.box`) — even while a pending type is selected. This
-// watcher fires only on a real store change; the one above only writes state.box when it
-// differs, so the two never ping-pong. Unconditional sync here fixes the desync where a
-// loaded, curve-producing box was hidden behind a stale ABC/pending view.
+// hashchange path (`state.box = o.box`) — even while a pending type is selected. Fires only
+// on a real store change; the watcher above only writes state.box when it differs, so the
+// two never ping-pong. Fixes the desync where a loaded, curve-producing box was hidden
+// behind a stale pending view.
 watch(() => state.box, (b) => { if (selectedBox.value !== b) selectedBox.value = b; });
 
 const pending = computed(() => !SUPPORTED_BOX.has(selectedBox.value));
 const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
+const boxLabel = computed(() => BOX_OPTIONS.find(o => o.id === selectedBox.value)?.label ?? 'Box');
+// The 3rd nav tab (id 'enclosure') tracks the box type, WinISD-style.
+const enclosureNavLabel = computed(() =>
+  selectedBox.value === 'pr' ? 'Passive Radiator'
+    : selectedBox.value === 'sealed' ? 'Closed'
+      : boxLabel.value);
 
-// The single-chamber second readout label tracks the box type. These are the mock's own
-// WinISD labels (mock/index.html SINGLE_CHAMBER_FIELDS): 'Fsc' for a closed box, 'Fh' for
-// a passive-radiator rear chamber — kept verbatim for skin fidelity, hence the divergence
-// from BoxPanel.vue's 'Fc'/'Fh'.
-const singleF2Label = computed(() => (selectedBox.value === 'sealed' ? 'Fsc' : 'Fh'));
-
-// Live resonances from the engine's own closed forms — never faked literals.
+// ---- Live engine-derived readouts (never faked literals) -----------------------
 // Sealed/PR rear-chamber resonance: Fc = Fs·√(1 + Vas/Vb).
 const rearResonance = computed<number | null>(() => {
   const d = driver.value;
   if (!d || !(state.P.Vb > 0)) return null;
   return d.Fs * Math.sqrt(1 + d.Vas / state.P.Vb);
 });
+// Vent geometry (vented / bandpass4): cross-sectional area and Helmholtz tuning.
+const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           // m²
+const ventFb = computed<number | null>(() => {
+  if (!(state.P.Vb > 0) || !(ventArea.value > 0)) return null;
+  const Sp = ventArea.value;
+  const Leff = state.P.ventL + 0.732 * state.P.ventD;
+  const Map = RHO * Leff / Sp, Cab = state.P.Vb / (RHO * C * C);
+  return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
+});
+// Passive-radiator derived params (from the stored PR T/S bag).
+const prVas = computed(() => state.P.prCms * state.P.prSd * state.P.prSd * RHO * C * C * 1000);
+const prFs = computed(() => {
+  const { prMmd, prCms } = state.P;
+  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
+});
+const prFsMass = computed(() => {
+  const { prMmd, prMadd, prCms } = state.P;
+  const m = prMmd + prMadd;
+  return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;
+});
+const prQms = computed(() => {
+  const { prMmd, prCms, prRms } = state.P;
+  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
+});
 
-// ---- Chart selector (persisted in state.ui) ------------------------------------
+// ---- Chart selector ------------------------------------------------------------
+// The mock's full chart menu; each maps to a real engine curve id (TABS) or null.
+// Null items stay listed (fidelity) but draw no fabricated curve — the graph shows a
+// clean "not available" state, honest about what the engine can and can't compute.
+type ChartItem = { label: string; tab: string | null; sep?: boolean };
+const CHART_ITEMS: ChartItem[] = [
+  { label: 'Transfer function magnitude', tab: 'SPL' },
+  { label: 'Transfer function phase', tab: 'Phase' },
+  { label: 'Group Delay', tab: 'GD' },
+  { label: 'Maximum Power', tab: 'MaxPwr' },
+  { label: 'Maximum SPL', tab: 'MaxSPL' },
+  { label: 'Amplifier apparent load power (VA)', tab: null },
+  { label: 'SPL', tab: 'SPL' },
+  { label: 'Cone excursion', tab: 'Excursion', sep: true },
+  { label: 'Impedance', tab: 'Zmag' },
+  { label: 'Impedance phase', tab: 'Zph' },
+  { label: 'Transfer function magnitude (PR)', tab: null, sep: true },
+  { label: 'Transfer function phase (PR)', tab: null },
+  { label: 'Cone excursion (PR)', tab: 'Excursion' },
+  { label: 'Rear port - Air velocity', tab: 'Port', sep: true },
+  { label: 'Rear port - Gain', tab: null },
+  { label: 'Front port - Air velocity', tab: 'Port' },
+  { label: 'Front port - Gain', tab: null },
+  { label: 'Intrachamber Port - Air velocity', tab: null },
+  { label: 'Transfer function magnitude (EQ/Filter)', tab: null, sep: true },
+  { label: 'Transfer function phase (EQ/Filter)', tab: null },
+  { label: 'Group Delay (EQ/Filter)', tab: null },
+];
 const chartTab = computed({
   get: () => state.ui.originalChartTab ?? 'SPL',
   set: (v: string) => { state.ui.originalChartTab = v; },
 });
+// The currently-chosen chart label (persisted separately so a "not available" pick sticks).
+const chartLabel = computed({
+  get: () => state.ui.originalChartLabel ?? 'SPL',
+  set: (v: string) => { state.ui.originalChartLabel = v; },
+});
 const chartMeta = computed(() => TABS.find(t => t.id === chartTab.value));
+const chartUnavailable = computed(() => {
+  const item = CHART_ITEMS.find(i => i.label === chartLabel.value);
+  return item != null && item.tab == null;
+});
+function selectChart(item: ChartItem) {
+  chartLabel.value = item.label;
+  if (item.tab) chartTab.value = item.tab;
+  closeDropdown();
+}
+
+// ---- Toolbar dropdown menus (folder / saveas / info / chart) -------------------
+const openDd = ref<string | null>(null);
+function toggleDropdown(id: string) { openDd.value = openDd.value === id ? null : id; }
+function closeDropdown() { openDd.value = null; }
+function onDocClick() { closeDropdown(); }
+onMounted(() => document.addEventListener('click', onDocClick));
+onUnmounted(() => document.removeEventListener('click', onDocClick));
+
+// toolbar file input (Open…)
+const fileInput = ref<HTMLInputElement | null>(null);
+function openClick() { fileInput.value!.click(); }
+function onFile(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const f = input.files?.[0];
+  if (f) importFile(f);
+  input.value = '';
+}
+
+// ---- Cursor readout (top-right) — real interpolation of the selected curve ------
+const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
+const currentDesign = computed(() => ({
+  driver: driver.value, box: state.box, P: syncedP.value,
+  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE,
+}));
+const cursorVal = computed<number | null>(() => {
+  const f = cursorHz.value;
+  if (pending.value || chartUnavailable.value || f == null) return null;
+  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
+    { bare: true, primaryColor: WINISD_TRACE }).value;
+  if (!p) return null;
+  const s = p.series.find(x => !x.phantom);
+  if (!s || !s.xs.length) return null;
+  const { xs, ys } = s;
+  if (f <= xs[0]) return ys[0];
+  if (f >= xs[xs.length - 1]) return ys[ys.length - 1];
+  let i = 1;
+  while (i < xs.length && xs[i] < f) i++;
+  const t = (f - xs[i - 1]) / (xs[i] - xs[i - 1]);
+  return ys[i - 1] + t * (ys[i] - ys[i - 1]);
+});
 
 // ---- Tab rail (persisted) ------------------------------------------------------
-const PROJECT_TABS = ['Box', 'Driver', 'Vents', 'Filters', 'Signal', 'Advanced', 'Project'] as const;
-type ProjectTab = typeof PROJECT_TABS[number];
-const projectTab = computed<ProjectTab>({
-  get: () => (state.ui.originalProjectTab as ProjectTab) ?? 'Box',
-  set: (v: ProjectTab) => { state.ui.originalProjectTab = v; },
+type TabId = 'box' | 'driver' | 'enclosure' | 'filters' | 'signal' | 'advanced' | 'project';
+const activeTab = computed<TabId>({
+  get: () => (state.ui.originalProjectTab as TabId) ?? 'box',
+  set: (v: TabId) => { state.ui.originalProjectTab = v; },
 });
 
 // ---- Projects list -------------------------------------------------------------
 function removeCompare(i: number) { state.compare.splice(i, 1); }
 
+// ---- Driver identity + placement ----------------------------------------------
 const brand = computed(() => driverRaw.value.brand || '');
 const model = computed(() => driverRaw.value.model || driverShort(driverRaw.value));
 
-// ---- Signal Generator ----------------------------------------------------------
-// The mock's Signal Generator plays a real audible sine tone out of the machine's audio
-// output for testing speakers — Generate on/off + frequency in Hz. Uses the shared,
-// gesture-gated tone util (same as the Classic skin); NOT a power/voltage control.
+// ---- Signal Generator (real audio-out tone) ------------------------------------
 const genOn = ref(false);
 const genHz = ref(1000);
 let tone: ToneGenerator | null = null;
@@ -106,122 +219,227 @@ function toggleGenerate() { tone ??= createToneGenerator(); if (genOn.value) ton
 watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
 onUnmounted(() => tone?.stop());
 
-// Signal tab: drive voltage = √(Pin × Re) per driver (WinISD: "Driver input voltage").
+// ---- Signal tab: drive voltage = √(Pin × Re) per driver ------------------------
 const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)));
+
+// ---- Advanced tab: environment (not modelled by the engine yet — honest static
+// defaults + one live derivation). The 5 checkboxes are inert placeholders, as in the
+// Classic skin: shown for parity, clearly not wired to the sweep. -------------------
+const advTemp = ref(293.15);
+const advHumidity = ref(30.0);
+const advPressure = ref(101325.0);
+const advSoundVelocity = computed(() => 20.05 * Math.sqrt(advTemp.value));
+const advChecks = reactive({ vc: false, flat: false, tl: false, rg: false, xmax: false });
+
+// ---- Placement (Signal path multipliers already in the store) ------------------
+// Standard vs Iso-Barik: only Standard is modelled; the radio is shown for parity.
+const placement = ref<'standard' | 'iso'>('standard');
+
+// ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
+const boxLossesOpen = ref(false);
+
+// Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
+// Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
+function startTune() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriver = true; }
+function startEdit() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriverInfo = true; }
+
+// ---- Decorative unit-cycling (mock parity): rotates the label text only, never
+// converts the value — identical to the mock's cycleUnit. Keyed per field. --------
+const UNIT_SETS: Record<string, string[]> = {
+  volume: ['l', 'cuft', 'cuin'], length: ['cm', 'mm', 'in'], freq: ['Hz', 'kHz'],
+  area: ['cm²', 'm²', 'in²'], mass: ['g', 'kg', 'oz'], temp: ['K', '°C', '°F'],
+  pressure: ['Pa', 'kPa', 'atm'], angle: ['rad', 'deg'],
+};
+const unitLabels = reactive<Record<string, string>>({});
+function unit(key: string, group: string): string { return unitLabels[key] ?? UNIT_SETS[group][0]; }
+function cycleUnit(key: string, group: string) {
+  const set = UNIT_SETS[group];
+  const cur = unitLabels[key] ?? set[0];
+  unitLabels[key] = set[(set.indexOf(cur) + 1) % set.length];
+}
 </script>
 
 <template>
   <div class="original-root">
-    <!-- title bar -->
-    <div class="og-title">
-      <span class="og-app" aria-hidden="true"></span>
-      <span class="og-tt">OpenISD — WinISD Original Mode</span>
-      <span class="og-wc">&#8211;</span><span class="og-wc">&#9633;</span><span class="og-wc og-x">&#10005;</span>
+    <!-- ================= Title bar ================= -->
+    <div class="titlebar">
+      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode</span></div>
+      <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
     </div>
 
-    <!-- toolbar -->
-    <div class="og-toolbar">
-      <button class="og-btn" title="Choose a driver from the library" @click="state.browseOpen = true">Drivers…</button>
-      <button class="og-btn" title="Save the design as a .json project" @click="exportDesign">Save</button>
-      <span class="og-sep"></span>
-      <label class="og-chartsel" title="Choose which curve the graph shows">
-        <select v-model="chartTab" title="Select the graph curve">
-          <option v-for="t in TABS" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-      </label>
-      <button class="og-btn" title="About OpenISD" @click="about">Info</button>
-      <SkinPicker />
-    </div>
-
-    <!-- 2×2 body -->
-    <div class="og-main">
-      <!-- top-left: projects + signal generator -->
-      <div class="og-tl">
-        <div class="og-ptitle">Projects</div>
-        <div class="og-projects">
-          <div class="og-prow selected" :title="'Current design — ' + driverShort(driverRaw)">
-            <span class="og-cbx on">&#10003;</span>{{ driverShort(driverRaw) }}
-          </div>
-          <div v-for="(d, i) in state.compare" :key="i" class="og-prow" :title="'Comparison overlay — untick to remove ' + d.name">
-            <span class="og-cbx on" role="button" tabindex="0" @click="removeCompare(i)" @keydown.enter="removeCompare(i)">&#10003;</span>{{ d.name }}
+    <!-- ================= Toolbar ================= -->
+    <div class="toolbar">
+      <div class="tb-icons">
+        <div class="tb-btn has-menu" title="Open project" style="position:relative" @click.stop="toggleDropdown('folder-dropdown')">
+          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M2 5 L8 5 L10 7 L18 7 L18 16 L2 16 Z" fill="none" stroke="#555" stroke-width="1.3"/></svg>
+          <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+          <div class="dropdown-menu" :class="{ open: openDd === 'folder-dropdown' }" @click.stop>
+            <div class="menu-item" title="Import a .wdr driver or .json design." @click="openClick(); closeDropdown()">Open...</div>
+            <hr>
+            <div class="menu-item">{{ driverShort(driverRaw) }}</div>
           </div>
         </div>
-        <button class="og-pin" title="Snapshot the current design and overlay it for comparison" @click="pinCompare">＋ Compare</button>
+        <div class="tb-btn" title="New project — pick a driver from the library." @click="state.browseOpen = true">
+          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M4 2 H12 L16 6 V18 H4 Z" fill="none" stroke="#555" stroke-width="1.3"/><path d="M12 2 V6 H16" fill="none" stroke="#555" stroke-width="1.3"/></svg>
+        </div>
+        <div class="tb-btn" title="Save — the full design as a .json project." @click="exportDesign">
+          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="3" width="8" height="5" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="12" width="8" height="4" fill="#555"/></svg>
+        </div>
+        <div class="tb-btn has-menu" title="Save As" style="position:relative" @click.stop="toggleDropdown('saveas-dropdown')">
+          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.1"/><line x1="5" y1="15" x2="15" y2="5" stroke="#c9971b" stroke-width="2"/><polygon points="14,4 16,6 15,7 13,5" fill="#c9971b"/></svg>
+          <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+          <div class="dropdown-menu" :class="{ open: openDd === 'saveas-dropdown' }" @click.stop>
+            <div class="menu-item" title="Full design as a .json project." @click="exportDesign(); closeDropdown()">Save As... (.json)</div>
+            <div class="menu-item" title="Export the driver as a WinISD .wdr file." @click="exportWdr(); closeDropdown()">Export driver (.wdr)</div>
+          </div>
+        </div>
+        <div class="tb-btn" title="Save the design as a .json project." @click="exportDesign">
+          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="5" y="2" width="12" height="12" rx="1" fill="#f2f2f2" stroke="#999" stroke-width="1.1"/><rect x="3" y="5" width="12" height="12" rx="1" fill="#fff" stroke="#555" stroke-width="1.3"/><rect x="6" y="5" width="6" height="4" fill="none" stroke="#555" stroke-width="1"/></svg>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn" title="Manage Drivers — browse the library." @click="state.browseOpen = true">
+          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="2" width="16" height="16" rx="2" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="6" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="2.4" fill="#777"/></svg>
+        </div>
+        <div class="tb-btn disabled" title="Options — not yet in OpenISD.">
+          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M14 3 a3 3 0 1 0 -2.9 3.8 L4 14 l2 2 l7.9-7.1 A3 3 0 0 0 14 3 Z" fill="none" stroke="#555" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="tb-btn has-menu" title="Info" style="position:relative" @click.stop="toggleDropdown('info-dropdown')">
+          <svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="#2b7fd9"/><rect x="9" y="8.5" width="2" height="6" fill="#fff"/><rect x="9" y="5" width="2" height="2" fill="#fff"/></svg>
+          <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+          <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
+            <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+          </div>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which curve the graph shows">
+          <svg viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 2,2" fill="none" stroke="#555" stroke-width="1.2"/><polyline points="2,16 18,16" fill="none" stroke="#555" stroke-width="1.2"/><polyline points="3,13 7,9 11,11 17,4" fill="none" stroke="#c9972e" stroke-width="1.6"/></svg>
+          <span class="chart-name">{{ chartLabel }}</span>
+          <span class="caret">&#9662;</span>
+          <div class="dropdown-menu" :class="{ open: openDd === 'chart-dropdown' }" @click.stop>
+            <template v-for="item in CHART_ITEMS" :key="item.label">
+              <hr v-if="item.sep">
+              <div class="menu-item" :class="{ current: item.label === chartLabel }" @click="selectChart(item)">{{ item.label }}</div>
+            </template>
+          </div>
+        </div>
+      </div>
+      <div class="cursor-readout">
+        {{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}<br>
+        {{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}
+        <SkinPicker />
+      </div>
+    </div>
 
-        <div class="og-ptitle" style="margin-top:10px">Signal Generator</div>
-        <div class="og-sig">
-          <label class="og-check" title="Play a real sine tone out of your machine's audio output at the set frequency — for testing speakers. Starts on click; stops when unticked.">
-            <input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate
-          </label>
-          <input class="og-hz" type="number" min="20" max="20000" step="1" v-model.number="genHz"
-                 title="Tone frequency in Hz (audible range 20–20000)">
-          <span class="og-u">Hz</span>
+    <!-- ================= Main: 2×2 quadrants ================= -->
+    <div class="main">
+      <!-- top-left quadrant -->
+      <div class="quad-topleft">
+        <div class="quad-projects-wrap">
+          <div class="panel-title">Projects</div>
+          <div class="projects-list">
+            <div class="project-row selected" :title="'Current design — ' + driverShort(driverRaw)">
+              <input type="checkbox" checked disabled>
+              <span>{{ driverShort(driverRaw) }}</span>
+            </div>
+            <div v-for="(d, i) in state.compare" :key="i" class="project-row" :title="'Comparison overlay — untick to remove ' + d.name">
+              <input type="checkbox" checked @click="removeCompare(i)">
+              <span>{{ d.name }}</span>
+            </div>
+          </div>
+          <button class="link-btn" style="margin-top:6px" title="Snapshot the current design and overlay it" @click="pinCompare">＋ Compare</button>
+        </div>
+
+        <div class="quad-signalgen-wrap">
+          <div class="panel-title">Signal Generator</div>
+          <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
+            <label><input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate</label>
+            <input type="number" min="20" max="20000" step="1" v-model.number="genHz"> <span class="unit">Hz</span>
+          </div>
         </div>
       </div>
 
-      <!-- top-right: graph -->
-      <div class="og-tr">
-        <div class="og-ptitle">Graph</div>
-        <div class="og-chart">
-          <GraphPanel v-if="!pending" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" />
-          <div v-else class="og-chart-pending">
-            <div class="og-pend-h">{{ BOX_OPTIONS.find(o => o.id === selectedBox)?.label }}</div>
-            <p>Response model pending — this enclosure type isn't modelled by the engine yet, so no curve is drawn.</p>
-            <p class="og-pend-sub">{{ chartMeta?.name }} will appear here once the {{ selectedBox === 'abc' ? 'ABC' : '6th-order bandpass' }} model lands.</p>
+      <!-- top-right quadrant: graph -->
+      <div class="graph-area">
+        <div class="graph-wrap">
+          <GraphPanel v-if="!pending && !chartUnavailable" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" />
+          <div v-else class="graph-empty">
+            <template v-if="pending">
+              <div class="graph-empty-h">{{ boxLabel }}</div>
+              <p>Response model pending — this enclosure type isn't modelled by the engine yet, so no curve is drawn.</p>
+            </template>
+            <template v-else>
+              <div class="graph-empty-h">{{ chartLabel }}</div>
+              <p>This chart isn't available in the engine yet.</p>
+            </template>
           </div>
         </div>
       </div>
 
-      <!-- bottom-left: tab rail -->
-      <div class="og-bl">
-        <div class="og-ptitle">Project</div>
-        <ul class="og-nav">
-          <li v-for="t in PROJECT_TABS" :key="t" :class="{ active: projectTab === t }"
-              :title="'Edit the ' + t + ' settings'" @click="projectTab = t">{{ t }}</li>
+      <!-- bottom-left quadrant: tab rail -->
+      <div class="quad-bottomleft">
+        <div class="panel-title">Project</div>
+        <ul class="project-nav">
+          <li :class="{ active: activeTab === 'box' }" @click="activeTab = 'box'">Box</li>
+          <li :class="{ active: activeTab === 'driver' }" @click="activeTab = 'driver'">Driver</li>
+          <li :class="{ active: activeTab === 'enclosure' }" @click="activeTab = 'enclosure'">{{ enclosureNavLabel }}</li>
+          <li :class="{ active: activeTab === 'filters' }" @click="activeTab = 'filters'">Filters</li>
+          <li :class="{ active: activeTab === 'signal' }" @click="activeTab = 'signal'">Signal</li>
+          <li :class="{ active: activeTab === 'advanced' }" @click="activeTab = 'advanced'">Advanced</li>
+          <li :class="{ active: activeTab === 'project' }" @click="activeTab = 'project'">Project</li>
         </ul>
-        <div class="og-color" title="The current design's curve colour on the graph">
-          <span class="og-sw" :style="{ background: WINISD_TRACE }"></span>Color
-        </div>
+        <div class="color-btn" :style="{ background: WINISD_TRACE }" title="The current design's curve colour">Color</div>
       </div>
 
-      <!-- bottom-right: tab content -->
-      <div class="og-br">
+      <!-- bottom-right quadrant: 7 tabs -->
+      <div class="content-panel">
+        <div class="parstate-legend">
+          <div class="unsaved-indicator">
+            <button class="save-btn" title="Save the full design to a .json project." @click="exportDesign">Save Changes</button>
+            <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
+          </div>
+          <div class="parstate-swatches">
+            <span><span class="swatch green"></span>Entered</span>
+            <span><span class="swatch blue"></span>Calculated</span>
+            <span><span class="swatch black"></span>Not available</span>
+          </div>
+        </div>
+
         <!-- ===== Box tab ===== -->
-        <section v-if="projectTab === 'Box'" class="og-tab">
-          <div class="og-field-row">
-            <label class="og-lbl-auto">Box Type</label>
-            <select id="og-box-type" v-model="selectedBox" style="width:240px" title="Enclosure type">
-              <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
-            </select>
+        <section v-show="activeTab === 'box'" class="tab-section" :class="{ active: activeTab === 'box' }">
+          <div class="field-row">
+            <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
+              <select id="og-box-type" v-model="selectedBox" style="width:240px">
+                <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
+              </select>
+            </div>
           </div>
 
-          <div class="og-box-layout">
-            <div class="og-box-fields">
-              <!-- single chamber (sealed / vented / pr) -->
-              <template v-if="!isDual">
-                <div class="og-shdr">Rear chamber</div>
-                <div class="og-field"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="og-u">l</span></div>
-                <div class="og-field"><label>{{ singleF2Label }}</label>
-                  <span class="og-calc">{{ rearResonance != null ? rearResonance.toFixed(2) : '—' }}</span><span class="og-u">Hz</span>
-                </div>
-              </template>
-              <!-- dual chamber (bandpass4 / bandpass6 / abc) -->
-              <template v-else>
-                <div class="og-dual">
-                  <div>
-                    <div class="og-shdr">Rear chamber</div>
-                    <div class="og-field"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="og-u">l</span></div>
-                  </div>
-                  <div>
-                    <div class="og-shdr">Front chamber</div>
-                    <div class="og-field"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="2" /><span class="og-u">l</span></div>
-                  </div>
-                </div>
-              </template>
+          <div class="box-layout">
+            <div v-if="!isDual" class="box-fields-col">
+              <div class="section-header">Rear chamber</div>
+              <div class="field-row">
+                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fc','freq')">{{ unit('fc','freq') }}</span></div>
+              </div>
+              <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
 
-            <!-- per-type cut-through diagram (ported from the mock, house style) -->
-            <div class="og-diagram">
+            <template v-else>
+              <div class="box-fields-col">
+                <div class="section-header">Rear chamber</div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
+                <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
+              </div>
+              <div class="box-fields-col">
+                <div class="section-header">Front chamber</div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
+              </div>
+            </template>
+
+            <div class="box-fields-spacer" v-if="!isDual"></div>
+            <div class="box-diagram-col">
               <svg v-show="selectedBox === 'sealed'" id="og-box-diagram-sealed" viewBox="0 0 200 300" height="120">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="110" stroke="#0F4761" stroke-width="4"/>
@@ -286,139 +504,377 @@ const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re |
               </svg>
             </div>
           </div>
-
-          <p v-if="selectedBox === 'abc'" class="og-hint">
-            ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.
-          </p>
-          <p v-if="pending" class="og-pending-note">
-            <b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no SPL/impedance curve is computed. Tracked for a future engine phase.
-          </p>
+          <p v-if="selectedBox === 'abc'" class="hint" style="margin-top:8px;">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
+          <p v-if="pending" class="hint" style="margin-top:8px; color:#7a5b1a;"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
         </section>
 
         <!-- ===== Driver tab ===== -->
-        <section v-else-if="projectTab === 'Driver'" class="og-tab">
-          <div class="og-field-row">
-            <div class="og-field"><label>Brand</label><input :value="brand" readonly></div>
-            <div class="og-field"><label>Model</label><input :value="model" readonly></div>
+        <section v-show="activeTab === 'driver'" class="tab-section" :class="{ active: activeTab === 'driver' }">
+          <div class="field-row driver-id-row">
+            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="brand" readonly></div>
+            <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
+            <button class="edit-btn" title="Swap in a different driver for this project." @click="state.browseOpen = true">Select Driver</button>
+            <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
+            <button class="edit-btn" title="Reactive minimal editor: tweak headline T/S params and watch the graph." @click="startTune">&#9835; Tune</button>
           </div>
-          <button class="og-btn" title="Choose or replace the driver from the library" @click="state.browseOpen = true">Choose driver…</button>
-          <DriverWhatIfPanel v-if="state.editDriver" />
-          <button v-else class="og-linkbtn" @click="state.editDriver = true">What-If? ✎</button>
+          <div class="two-col" style="margin-top:10px;">
+            <div style="--label-w:150px;">
+              <div class="section-header">Placement</div>
+              <div class="field-row">
+                <div class="field"><label>Num. of drivers</label>
+                  <select v-model.number="state.P.nDrivers"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
+                  <span>driver(s)</span>
+                </div>
+              </div>
+              <div class="radio-group field-row">
+                <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
+                <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Voice coil connection</label>
+                  <select v-model="state.P.wiring"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                </div>
+              </div>
+            </div>
+            <div style="--label-w:172px;">
+              <div class="section-header">Advanced options</div>
+              <div class="field-row"><div class="field"><label>Voice coil temp rise</label><input type="text" class="greyed" value="0.00" disabled><span class="unit unit-cyc" @click="cycleUnit('vctr','temp')">{{ unit('vctr','temp') }}</span></div></div>
+              <div class="field-row"><div class="field"><label>Voice coil resistance TC</label><input type="text" class="greyed" value="3.9000" disabled><span class="unit">1000/K</span></div></div>
+              <div class="field-row"><div class="field"><label>Added mass to cone</label><input type="text" class="greyed" value="0.00000" disabled><span class="unit unit-cyc" @click="cycleUnit('amc','mass')">{{ unit('amc','mass') }}</span></div></div>
+              <p class="hint">Thermal &amp; added-mass options are not modelled yet.</p>
+            </div>
+          </div>
         </section>
 
-        <!-- ===== Filters tab ===== -->
-        <FiltersPanel v-else-if="projectTab === 'Filters'" />
+        <!-- ===== Enclosure / Vents tab ===== -->
+        <section v-show="activeTab === 'enclosure'" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
+          <!-- vented -->
+          <div v-if="selectedBox === 'vented'" style="--label-w:120px;">
+            <div class="section-header">Vents</div>
+            <div class="two-col">
+              <div>
+                <div class="field-row">
+                  <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
+                  <div class="field"><label>Shape</label><svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg> round</div>
+                </div>
+                <div class="field-row">
+                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="3" /><span class="unit unit-cyc" @click="cycleUnit('vd','length')">{{ unit('vd','length') }}</span></div>
+                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="3" /><span class="unit unit-cyc" @click="cycleUnit('vl','length')">{{ unit('vl','length') }}</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="field-row">
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, 4)" readonly><span class="unit">m²</span></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Port resonance Fb</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- passive radiator -->
+          <div v-else-if="selectedBox === 'pr'">
+            <div class="two-col">
+              <div style="--label-w:44px;">
+                <div class="section-header">Passive radiator parameters</div>
+                <div class="field-row">
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmt(prVas, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('prvas','volume')">{{ unit('prvas','volume') }}</span></div>
+                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, 3)" readonly></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmt(prFs, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('prfs','freq')">{{ unit('prfs','freq') }}</span></div>
+                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" :scale="10000" :precision="3" /><span class="unit unit-cyc" @click="cycleUnit('prsd','area')">{{ unit('prsd','area') }}</span></div>
+                </div>
+                <div class="field-row">
+                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('prxmax','length')">mm</span></div>
+                </div>
+              </div>
+              <div style="--label-w:150px;">
+                <div class="section-header">User options</div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="1" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" :scale="1000" :precision="2" /><span class="unit">g</span></div></div>
+                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmt(prFsMass, 2)" readonly><span class="unit">Hz</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bandpass4: single front vent (real) -->
+          <div v-else-if="selectedBox === 'bandpass4'">
+            <div class="section-header">Vents</div>
+            <div class="vent-groups">
+              <div class="vent-col">
+                <div class="vent-col-title">Front chamber</div>
+                <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
+                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="3" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="3" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
+                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit">Hz</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- closed box: no vents -->
+          <div v-else-if="selectedBox === 'sealed'">
+            <div class="section-header">Rear chamber</div>
+            <div class="field-row">
+              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('svb','volume')">{{ unit('svb','volume') }}</span></div>
+              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit">Hz</span></div>
+            </div>
+            <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
+          </div>
+
+          <!-- bandpass6 / abc: vents shown, pending (no engine model) -->
+          <div v-else>
+            <div class="section-header">Vents</div>
+            <p class="hint" style="margin-bottom:8px; color:#7a5b1a;"><b>Response model pending.</b> These vent fields are shown for parity but are not yet wired to the engine for this enclosure type.</p>
+            <div class="vent-groups">
+              <div class="vent-col">
+                <div class="vent-col-title">Rear chamber</div>
+                <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="greyed" value="8.00" disabled><span class="unit">cm</span></div></div>
+              </div>
+              <div class="vent-col">
+                <div class="vent-col-title">Front chamber</div>
+                <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="greyed" value="9.00" disabled><span class="unit">cm</span></div></div>
+              </div>
+              <div v-if="selectedBox === 'abc'" class="vent-col">
+                <div class="vent-col-title">Intrachamber</div>
+                <div class="vent-col-hint">Connects the chambers — not open to the outside.</div>
+                <div class="field-row"><div class="field"><label>Diameter</label><input type="text" class="greyed" value="6.00" disabled><span class="unit">cm</span></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Filters tab (shared FiltersPanel = real filter logic) ===== -->
+        <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
+          <FiltersPanel />
+        </section>
 
         <!-- ===== Signal tab ===== -->
-        <section v-else-if="projectTab === 'Signal'" class="og-tab">
-          <div class="og-shdr">Signal source</div>
-          <div class="og-field"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="1" /><span class="og-u">W</span></div>
-          <div class="og-field"><label>Driver input voltage</label><span class="og-calc">{{ driveV.toFixed(1) }}</span><span class="og-u">V</span></div>
-          <div class="og-field"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="3" /><span class="og-u">ohm</span></div>
+        <section v-show="activeTab === 'signal'" class="tab-section" :class="{ active: activeTab === 'signal' }">
+          <div class="two-col">
+            <div style="--label-w:60px;">
+              <div class="section-header">Listening place</div>
+              <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" value="1.000" disabled><span class="unit">m</span></div></div>
+              <div class="field-row"><div class="field"><label>Angle</label><input type="text" class="greyed" value="0.0000" disabled><span class="unit">rad</span></div></div>
+              <p class="hint">Listening distance/angle are not modelled yet.</p>
+            </div>
+            <div style="--label-w:186px;">
+              <div class="section-header">Signal source</div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="1" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field"><label>Driver input voltage (each)</label><input class="calculated greyed" :value="fmt(driveV, 1)" readonly><span class="unit">V</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="3" /><span class="unit">ohm</span></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Advanced tab ===== -->
+        <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
+          <div class="two-col">
+            <div style="--label-w:118px;">
+              <div class="field-row"><div class="field entered"><label>Temperature</label><input type="number" v-model.number="advTemp"><span class="unit unit-cyc" @click="cycleUnit('temp','temp')">{{ unit('temp','temp') }}</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Relative humidity</label><input type="number" v-model.number="advHumidity"><span class="unit">%</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Air pressure</label><input type="number" v-model.number="advPressure"><span class="unit unit-cyc" @click="cycleUnit('pres','pressure')">{{ unit('pres','pressure') }}</span></div></div>
+              <p style="margin:4px 0;">&#8594;</p>
+              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, 2)" readonly><span class="unit">m/s</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(5)" readonly><span class="unit">kg/m³</span></div></div>
+            </div>
+            <div class="checkbox-col">
+              <label><input type="checkbox" v-model="advChecks.vc"> Simulate voice coil inductance</label>
+              <label><input type="checkbox" v-model="advChecks.flat"> Force flat response</label>
+              <label><input type="checkbox" v-model="advChecks.tl"> Use "transmission line"-model for port simulation</label>
+              <label><input type="checkbox" v-model="advChecks.rg"> Rg is at driver side</label>
+              <label><input type="checkbox" v-model="advChecks.xmax"> SPL graph is Xmax limited</label>
+              <p class="hint">Environment &amp; these options are not modelled by the sweep yet.</p>
+            </div>
+          </div>
         </section>
 
         <!-- ===== Project tab ===== -->
-        <section v-else-if="projectTab === 'Project'" class="og-tab">
-          <div class="og-field"><label>Creator</label><input type="text" v-model="state.project.creator" placeholder="Your name"></div>
-          <div class="og-field"><label>Created</label><input type="text" v-model="state.project.created" placeholder="DD/MM/YYYY"></div>
-          <div class="og-field"><label>Modified</label><input type="text" v-model="state.project.modified" placeholder="DD/MM/YYYY"></div>
-          <div class="og-shdr" style="margin-top:8px">Description</div>
-          <textarea class="og-desc" v-model="state.project.description" placeholder="Notes about this project…"></textarea>
-        </section>
-
-        <!-- ===== Not-yet-ported tabs ===== -->
-        <section v-else class="og-tab og-todo">
-          The <b>{{ projectTab }}</b> tab is ported in a later phase of the Original skin.
+        <section v-show="activeTab === 'project'" class="tab-section" :class="{ active: activeTab === 'project' }">
+          <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="state.project.creator"></div></div>
+          <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="state.project.created"></div></div>
+          <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="state.project.modified"></div></div>
+          <label>Description</label>
+          <textarea class="description" rows="6" v-model="state.project.description"></textarea>
         </section>
       </div>
     </div>
+
+    <!-- ===== Box losses modal (real: Ql / Qa / Qp) ===== -->
+    <div class="overlay" :class="{ open: boxLossesOpen }" @click.self="boxLossesOpen = false">
+      <div class="modal narrow">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Box losses</span></div>
+          <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput v-model="state.P.Ql" :scale="1" :precision="3" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput v-model="state.P.Qa" :scale="1" :precision="3" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput v-model="state.P.Qp" :scale="1" :precision="3" /></div></div>
+          <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
+        </div>
+        <div class="modal-footer">
+          <span class="hint">Changes apply live to the graph.</span>
+          <div class="footer-buttons"><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tune (docked What-If) + full Driver editor (reused shared modals) ===== -->
+    <DriverWhatIfPanel v-if="state.editDriver" />
+    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+
+    <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
   </div>
 </template>
 
 <style scoped>
-/* WinISD-light palette + chart theming — overriding the shared custom properties makes
-   every reused panel AND the shared canvas render light with no fork. */
+/* Ported wholesale from mock/style.css — same class names, layout and chrome, so the
+   Original skin renders identically to the mock. The only additions are the WinISD-light
+   palette + --chart-* custom properties (so the shared GraphPanel/canvas render light with
+   no fork) and `:deep(input)` rules so the shared NumInput's inner <input> picks up the
+   mock's `.field` field styling. */
+.original-root *, .original-root *::before, .original-root *::after { box-sizing: border-box; }
 .original-root {
-  --bg:#f2f2f2; --panel:#f7f7f7; --panel2:#ececec; --line:#bbb;
-  --fg:#1b1b1b; --mut:#555; --acc:#1868d1; --acc2:#b8790f; --good:#2e8b57; --bad:#c62828;
   --chart-bg:#ffffff; --chart-grid:#dde3ea; --chart-text:#5a6b7b;
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
-  height:100vh; display:flex; flex-direction:column;
-  background:var(--bg); color:var(--fg);
-  font:13px/1.35 "Segoe UI", Tahoma, system-ui, sans-serif;
+  display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
+  overflow:hidden; color:#1a1a1a; font-family:"Segoe UI", Tahoma, Arial, sans-serif; font-size:14px;
 }
+.original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
-/* title bar */
-.og-title { display:flex; align-items:center; gap:8px; height:28px; padding:0 8px; background:#e9e9e9; flex-shrink:0; }
-.og-app { width:14px; height:14px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); }
-.og-tt { flex:1; font-size:13px; color:#2a2a2a; }
-.og-wc { padding:2px 6px; color:#555; cursor:default; }
-.og-x:hover { background:#e64545; color:#fff; }
+/* ---------- Title bar ---------- */
+.titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:6px 10px; font-size:15px; }
+.titlebar .tb-left { display:flex; align-items:center; gap:8px; }
+.app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
+.titlebar .win-controls { display:flex; gap:14px; color:#555; font-size:15px; }
+.titlebar .win-controls span { cursor:pointer; padding:2px 6px; }
+.titlebar .win-controls span:hover { background:#dcdcdc; }
+.titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 
-/* toolbar */
-.og-toolbar { display:flex; align-items:center; gap:6px; height:40px; padding:0 10px; background:#eee; border-bottom:1px solid var(--line); flex-shrink:0; }
-.og-btn { font:inherit; font-size:12px; padding:4px 10px; background:#f7f7f7; border:1px solid #bbb; border-radius:4px; cursor:pointer; color:#1b1b1b; }
-.og-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
-.og-sep { width:1px; align-self:stretch; background:#ccc; margin:6px 4px; }
-.og-chartsel select { font:inherit; font-size:13px; padding:3px 6px; border:1px solid #c4c4c4; border-radius:4px; background:#fff; cursor:pointer; }
-.og-toolbar .skin-picker { margin-left:auto; }
+/* ---------- Toolbar ---------- */
+.toolbar { display:flex; align-items:center; justify-content:space-between; background:#eee; border-bottom:1px solid #bbb; padding:8px 12px; }
+.tb-icons { display:flex; align-items:center; gap:6px; }
+.tb-btn { display:flex; align-items:center; justify-content:center; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
+.tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+.tb-btn.disabled { opacity:.4; cursor:default; }
+.tb-btn.disabled:hover { background:#f7f7f7; border-color:#bbb; }
+.tb-sep { width:1px; align-self:stretch; background:#ccc; margin:0 4px; }
+.tb-btn svg { display:block; }
+.caret { font-size:10px; margin-left:2px; color:#555; }
+.chart-select { display:flex; align-items:center; gap:6px; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.chart-select:hover { border-color:#7fb3ff; }
+.chart-select .chart-name { font-weight:600; }
+.cursor-readout { text-align:right; line-height:1.3; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.cursor-readout :deep(.skin-picker) { margin-top:2px; }
 
-/* 2×2 body */
-.og-main { flex:1; display:grid; grid-template-columns:250px 1fr; grid-template-rows:minmax(0,1fr) minmax(150px,290px); min-height:0; gap:6px; padding:6px; }
-.og-tl { display:flex; flex-direction:column; min-height:0; }
-.og-tr { display:flex; flex-direction:column; min-height:0; }
-.og-bl { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
-.og-br { min-height:0; overflow-y:auto; background:#f7f7f7; border:1px solid var(--line); border-radius:4px; padding:8px 12px; }
-.og-ptitle { color:var(--acc); font-weight:600; font-size:14px; margin:2px 0 5px; }
+/* dropdown menus */
+.dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; }
+.dropdown-menu.open { display:block; }
+.dropdown-menu .menu-item { padding:6px 14px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+.dropdown-menu .menu-item:hover { background:#dbeaff; }
+.dropdown-menu .menu-item.current::before { content:"\25CF"; font-size:8px; color:#222; width:10px; display:inline-block; }
+.dropdown-menu .menu-item:not(.current)::before { content:""; width:10px; display:inline-block; }
+.dropdown-menu hr { border:none; border-top:1px solid #ddd; margin:4px 0; }
 
-/* projects */
-.og-projects { flex:1; border:1px solid var(--line); background:#fff; overflow-y:auto; min-height:60px; }
-.og-prow { display:flex; align-items:center; gap:8px; padding:5px 8px; font-size:13px; }
-.og-prow:hover { background:#eef4ff; }
-.og-prow.selected { background:#1868d1; color:#fff; }
-.og-cbx { width:15px; height:15px; border:1px solid #8aa; background:#fff; border-radius:2px; display:grid; place-items:center; font-size:11px; color:#1868d1; }
-.og-cbx.on { cursor:pointer; }
-.og-pin { margin-top:8px; font-size:12px; padding:5px 8px; background:#f0f0f0; border:1px solid var(--line); border-radius:4px; color:#1b1b1b; cursor:pointer; }
-.og-pin:hover { border-color:var(--acc); }
-.og-sig { display:flex; align-items:center; gap:10px; }
-.og-check { display:flex; align-items:center; gap:6px; font-size:13px; }
-.og-hz { width:64px; padding:3px 5px; border:1px solid #c4c4c4; border-radius:2px; font:inherit; }
-.og-u { font-size:12px; color:#333; }
+/* ---------- Main: 2x2 quadrants ---------- */
+.main { display:grid; grid-template-columns:250px 1fr; grid-template-rows:1fr 290px; flex:1 1 auto; min-height:0; overflow:hidden; }
+.quad-topleft { border-right:1px solid #ccc; border-bottom:1px solid #ccc; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; min-height:0; }
+.quad-bottomleft { background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; overflow:hidden; }
+.quad-bottomleft .panel-title, .quad-bottomleft .color-btn { margin-right:8px; flex:none; }
+.panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
+.quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+.quad-signalgen-wrap { flex:none; }
+.projects-list { flex:1 1 auto; min-height:60px; border:1px solid #bbb; background:#fff; overflow-y:auto; }
+.project-row { display:flex; align-items:center; gap:6px; padding:5px 6px; cursor:pointer; border-bottom:1px solid #eee; }
+.project-row:hover { background:#eef4ff; }
+.project-row.selected { background:#1868d1; color:#fff; }
+.project-row input[type=checkbox] { accent-color:#1868d1; }
+.signal-gen-row { display:flex; align-items:center; gap:8px; }
+.signal-gen-row input[type=number] { width:70px; }
+.project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }
+.project-nav li { position:relative; background:#ececec; border:1px solid #bbb; border-right:none; border-radius:5px 0 0 5px; padding:4px 8px 4px 12px; line-height:1.3; margin-bottom:-1px; margin-right:-1px; cursor:pointer; z-index:1; }
+.project-nav li:hover { background:#dbeaff; }
+.project-nav li.active { background:#f7f7f7; border-color:#999; font-weight:600; z-index:2; }
+.color-btn { margin-top:auto; border:1px solid #999; padding:8px; text-align:center; cursor:pointer; font-weight:600; }
+.color-btn:hover { filter:brightness(1.05); }
+.graph-area { flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
+.graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
+.graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
+.graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
+.graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
-/* chart */
-.og-chart { flex:1; min-height:220px; border:1px solid #999; border-radius:4px; overflow:hidden; position:relative; display:flex; background:#fff; }
-.og-chart :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
-.og-chart-pending { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:var(--mut); gap:6px; }
-.og-pend-h { font-size:16px; font-weight:600; color:#1b1b1b; }
-.og-pend-sub { font-size:12px; font-style:italic; }
+/* ---------- Content panel ---------- */
+.content-panel { background:#f7f7f7; border:1px solid #999; border-left:none; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
+.tab-section { display:none; }
+.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
+.section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
+.two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
+.two-col > div { flex:0 1 auto; min-width:0; }
+.box-layout { display:flex; gap:24px; align-items:flex-start; }
+.box-fields-col { flex:none; width:194px; --label-w:62px; }
+.box-layout .box-diagram-col { flex:none; width:130px; display:flex; align-items:center; justify-content:center; }
+.box-fields-spacer { flex:none; width:194px; }
+.vent-groups { display:flex; gap:20px; }
+.vent-col { flex:1; min-width:0; }
+.vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
+.vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
+.vent-col .field label { width:110px; }
+.field-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; justify-content:flex-start; }
+.field { display:flex; align-items:center; gap:6px; justify-content:flex-start; }
+.field label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; }
+.field input[type=text], .field input[type=number], .field select,
+.field :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; }
+.field.tight label { width:auto; margin-right:2px; }
+.driver-id-row { align-items:center; gap:10px; }
+.field input.greyed { background:#e9e9e9; color:#777; }
+.field input.calculated { color:#1868d1; border-color:#1868d1; }
+.field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
+.field .unit { color:#555; min-width:3.5em; }
+textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }
+.radio-group { display:flex; align-items:center; gap:14px; }
+.radio-group label { display:flex; align-items:center; gap:4px; }
+.edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
+.edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+.link-btn { background:none; border:none; color:#1868d1; text-decoration:underline; padding:2px 0; }
+.hint { color:#888; font-size:12px; font-style:italic; }
+.checkbox-col { display:flex; flex-direction:column; gap:8px; }
+.checkbox-col label { display:flex; align-items:center; gap:6px; }
 
-/* tab rail */
-.og-nav { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; flex:none; }
-.og-nav li { padding:5px 10px; font-size:13px; background:#ececec; border:1px solid #d5d5d5; border-radius:3px; cursor:pointer; }
-.og-nav li:hover { background:#dbeaff; }
-.og-nav li.active { background:#f7f7f7; font-weight:600; border-color:var(--acc); }
-.og-color { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding:5px 10px; background:#c9c92e; border-radius:4px; font-size:13px; flex:none; }
-.og-sw { width:22px; height:13px; border:1px solid #999; }
+/* filters tab fills the panel */
+.tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
 
-/* tab content */
-.og-tab { font-size:13px; }
-.og-field-row { display:flex; gap:16px; align-items:flex-end; margin-bottom:6px; }
-.og-field { display:flex; align-items:center; gap:6px; margin:4px 0; }
-.og-field label { width:150px; font-size:12px; color:#333; }
-.og-lbl-auto { width:auto !important; margin-right:6px; }
-.og-field input { padding:3px 7px; border:1px solid #c4c4c4; border-radius:2px; font:inherit; background:#fff; width:150px; }
-.og-field input[readonly] { background:#f0f0f0; color:#555; }
-.og-calc { display:inline-block; min-width:80px; padding:3px 7px; border:1px solid #c4c4c4; border-radius:2px; background:#eef2f7; color:#1868d1; font-variant-numeric:tabular-nums; }
-.og-shdr { background:#e2e2e2; text-align:center; font-size:12px; padding:3px 0; border-radius:2px; margin:6px 0 5px; color:#333; }
-.og-box-layout { display:flex; gap:24px; align-items:flex-start; }
-.og-box-fields { flex:1; }
-.og-dual { display:flex; gap:24px; }
-.og-diagram { flex:none; width:130px; display:grid; place-items:center; }
-.og-hint, .og-pending-note { font-size:12px; color:var(--mut); margin-top:8px; line-height:1.5; }
-.og-pending-note { background:#fff6e5; border:1px solid #e0c48a; border-radius:4px; padding:8px 10px; color:#7a5b1a; }
-.og-linkbtn { background:none; border:none; color:var(--acc2); font-size:11px; cursor:pointer; text-decoration:underline; padding:2px 0; }
-.og-linkbtn:hover { color:var(--acc); }
-.og-desc { width:100%; min-height:120px; padding:6px 8px; border:1px solid #c4c4c4; border-radius:2px; font:inherit; resize:vertical; }
-.og-todo { color:#666; font-style:italic; padding:10px 2px; }
+/* unit-cycling label */
+.unit-cyc { cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
+.unit-cyc:hover { color:#1868d1; }
+
+/* ---------- parstate legend + save bar ---------- */
+.parstate-legend { flex:none; display:flex; gap:14px; align-items:center; font-size:12px; color:#444; justify-content:space-between; margin-bottom:8px; }
+.parstate-swatches { display:flex; gap:14px; align-items:center; }
+.parstate-legend .swatch { width:11px; height:11px; display:inline-block; margin-right:4px; border:1px solid #777; }
+.parstate-legend .swatch.green { background:#1b7d1b; }
+.parstate-legend .swatch.blue { background:#1868d1; }
+.parstate-legend .swatch.black { background:#111; }
+.unsaved-indicator { display:flex; align-items:center; gap:8px; }
+.save-btn { border:1px solid #999; background:#f0f0f0; color:#444; font-weight:600; border-radius:3px; padding:3px 8px; cursor:pointer; font-size:12px; }
+.save-btn:hover { background:#e4e4e4; }
+
+/* ---------- Modal overlay ---------- */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.18); z-index:100; align-items:flex-start; justify-content:center; }
+.overlay.open { display:flex; }
+.modal { margin-top:8vh; background:#f7f7f7; border:1px solid #888; box-shadow:3px 6px 18px rgba(0,0,0,.35); width:620px; max-width:92vw; }
+.modal.narrow { width:460px; }
+.modal-titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:8px 12px; font-size:15px; }
+.modal-titlebar .tb-left { display:flex; align-items:center; gap:8px; }
+.modal-titlebar .win-controls { display:flex; gap:12px; color:#555; }
+.modal-titlebar .win-controls span { cursor:pointer; padding:1px 6px; }
+.modal-titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
+.modal-body { padding:16px 20px; max-height:65vh; overflow:auto; }
+.modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }
+.footer-buttons { display:flex; gap:8px; }
+.footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }
+.footer-buttons button:hover { background:#dbeaff; border-color:#7fb3ff; }
+.footer-buttons button.ok-btn { color:#1b7d1b; }
 </style>
