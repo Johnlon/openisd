@@ -36,7 +36,13 @@ import DriverEditorModal from '../../components/DriverEditorModal.vue';
 const { exportDesign, exportWdr, importFile, about } = useDesignIO();
 
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
-const WINISD_TRACE = '#c9c92e';
+// The current design's trace colour. The Color button cycles it through a small
+// palette (WinISD's yellow-green first) and it feeds the shared GraphPanel's
+// primaryColor live — self-contained to this skin (no store/shared-component change).
+const TRACE_PALETTE = ['#c9c92e', '#2f6db5', '#c0392b', '#27ae60', '#8e44ad', '#e67e22'];
+const traceIdx = ref(0);
+const WINISD_TRACE = computed(() => TRACE_PALETTE[traceIdx.value]);
+function cycleColor() { traceIdx.value = (traceIdx.value + 1) % TRACE_PALETTE.length; }
 
 function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
@@ -85,13 +91,17 @@ const rearResonance = computed<number | null>(() => {
 });
 // Vent geometry (vented / bandpass4): cross-sectional area and Helmholtz tuning.
 const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           // m²
-const ventFb = computed<number | null>(() => {
-  if (!(state.P.Vb > 0) || !(ventArea.value > 0)) return null;
+function helmholtzFb(volume: number): number | null {
+  if (!(volume > 0) || !(ventArea.value > 0)) return null;
   const Sp = ventArea.value;
   const Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
-  const Map = RHO * Leff / Sp, Cab = state.P.Vb / (RHO * C * C);
+  const Map = RHO * Leff / Sp, Cab = volume / (RHO * C * C);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
-});
+}
+// Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
+// tunes on its own front volume Vf. Same closed form the engine's circuit uses.
+const ventFb = computed<number | null>(() => helmholtzFb(state.P.Vb));
+const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
 // Passive-radiator derived params (from the stored PR T/S bag).
 const prVas = computed(() => state.P.prCms * state.P.prSd * state.P.prSd * RHO * C * C * 1000);
 const prFs = computed(() => {
@@ -178,13 +188,13 @@ function onFile(e: Event) {
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
-  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE,
+  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
   if (pending.value || chartUnavailable.value || f == null) return null;
   const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
-    { bare: true, primaryColor: WINISD_TRACE }).value;
+    { bare: true, primaryColor: WINISD_TRACE.value }).value;
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
   if (!s || !s.xs.length) return null;
@@ -387,7 +397,7 @@ function cycleUnit(key: string, group: string) {
           <li :class="{ active: activeTab === 'advanced' }" @click="activeTab = 'advanced'">Advanced</li>
           <li :class="{ active: activeTab === 'project' }" @click="activeTab = 'project'">Project</li>
         </ul>
-        <div class="color-btn" :style="{ background: WINISD_TRACE }" title="The current design's curve colour">Color</div>
+        <div class="color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
       </div>
 
       <!-- bottom-right quadrant: 7 tabs -->
@@ -430,11 +440,13 @@ function cycleUnit(key: string, group: string) {
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
+                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit">Hz</span></div></div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
+                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, 2)" readonly><span class="unit">Hz</span></div></div>
               </div>
             </template>
 
@@ -567,7 +579,7 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, 4)" readonly><span class="unit">m²</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Port resonance Fb</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
                 </div>
               </div>
             </div>
