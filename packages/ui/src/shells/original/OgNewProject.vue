@@ -23,8 +23,11 @@ const BOX_OPTIONS: { id: BoxType; label: string }[] = [
 
 const step = ref(1);
 const boxType = ref<BoxType>('sealed');
-const vol = ref(6);        // single-chamber / rear volume, litres
-const frontVol = ref(10);  // front chamber (bandpass), litres
+// Per-box-type starting defaults, matching the mock: single-chamber 6 l, bandpass
+// rear 8 l + front 10 l.
+const vol = ref(6);        // single-chamber volume, litres
+const rearVol = ref(8);    // bandpass rear chamber, litres
+const frontVol = ref(10);  // bandpass front chamber, litres
 const isDual = computed(() => boxType.value === 'bandpass4');
 
 function next() { if (step.value === 1) step.value = 2; }
@@ -32,7 +35,7 @@ function back() { if (step.value === 2) step.value = 1; }
 
 function create() {
   state.box = boxType.value;
-  state.P.Vb = vol.value / 1000;                 // L → m³
+  state.P.Vb = (isDual.value ? rearVol.value : vol.value) / 1000; // L → m³
   if (isDual.value) state.P.Vf = frontVol.value / 1000;
   emit('close');
   state.browseOpen = true;                        // hand off to the driver picker
@@ -58,7 +61,7 @@ function create() {
               </select>
             </div>
           </div>
-          <p class="hint">Change the box type any time once the project is open.</p>
+          <p class="hint">Optional — starts at Closed; change the box type any time once the project is open.</p>
         </div>
 
         <div v-else>
@@ -66,10 +69,10 @@ function create() {
             <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.1" v-model.number="vol"><span class="unit">l</span></div></div>
           </template>
           <template v-else>
-            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" min="0" step="0.1" v-model.number="vol"><span class="unit">l</span></div></div>
+            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" min="0" step="0.1" v-model.number="rearVol"><span class="unit">l</span></div></div>
             <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" min="0" step="0.1" v-model.number="frontVol"><span class="unit">l</span></div></div>
           </template>
-          <p class="hint">Starting volume — refine later once you've picked a driver.</p>
+          <p class="hint">Optional — starting volume, refine later once you've picked a driver.</p>
         </div>
       </div>
 
@@ -77,7 +80,7 @@ function create() {
         <div class="footer-buttons">
           <button v-if="step === 2" class="cancel-btn" title="Back to box type" @click="back">&lt; Back</button>
           <button v-if="step === 1" class="ok-btn" title="Next — choose the starting volume" @click="next">Next &gt;</button>
-          <button v-else class="ok-btn" title="Create the design and pick a driver" @click="create">Create</button>
+          <button v-else class="ok-btn" title="Create the design and pick a driver" @click="create">Pick Driver &gt;</button>
           <button class="cancel-btn" title="Cancel — discard, keep the current design" @click="emit('close')">Cancel</button>
         </div>
       </div>
