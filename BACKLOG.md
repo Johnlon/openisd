@@ -44,7 +44,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 - [ ] **Bug — New Project wizard should ask for the project name first.** The wizard (`OgNewProject.vue`) currently starts at step 1 = box type, step 2 = volume, with no name step; it should collect the project name before box type. Pairs with the fresh-start bug above. `[ui]`
 
-- [ ] **Session-context persistence & sharing — two requirements over ONE "session context" object.** Both requirements serialize the same _session context_: the design PLUS the view/UI context that defines "what the user is looking at". They differ only in the sink (localStorage vs URL) and in which fields are device-local. `[ui]`
+- [x] **Session-context persistence & sharing — two requirements over ONE "session context" object.** Both requirements serialize the same _session context_: the design PLUS the view/UI context that defines "what the user is looking at". They differ only in the sink (localStorage vs URL) and in which fields are device-local. **R1 (refresh fidelity) DONE** — design + tab + chart already persisted; open Tune + uncommitted what-if now restored across reload (Original-scoped). **R2 (share link) DONE** — `stateToUrl` now keeps tab/chart, still drops skin + open-editor buffer. _Remaining nicety:_ also preserve an open **Driver Editor** (editDriverInfo) across refresh, and surface a "Copy share link" button in the Original toolbar. `[ui]`
 
   **Session context taxonomy** (what must be captured) — _decisions confirmed_:
   - **Design** — driver (full ADT JSON), box type, params `P` (incl. filters), comparison traces. _Persisted today_ (`serialize()`, `persist.ts`).

@@ -20,8 +20,11 @@ and asks for a project name first (shown in the titlebar and Project tab).
 
 Refreshing the page keeps your place. The design, active tab, and selected chart already
 survived a reload; now an open Tune with unsaved what-if values is restored too, reopened
-mid-edit exactly as you left it — without dirtying the project. (A shared-context share link
-that carries the same UI state is specified and next.)
+mid-edit exactly as you left it — without dirtying the project.
+
+Share a link that opens on the same page. A share link now carries the view context (active
+tab + selected chart) alongside the design, so the recipient lands where you were — while
+still keeping their own skin and not inheriting your half-finished edits.
 
 Spinners hold their precision, robustly. Every number field — via the shared NumInput and the
 v-expo-step directive — keeps its fixed decimal places while you spin and steps on a tidy grid
