@@ -293,6 +293,12 @@ test('Original save bar is no taller than its buttons (compact legend)', async (
   expect(legendH).toBeLessThanOrEqual(btnH + 4); // bar hugs the button height, no extra vertical bulk
 });
 
+test('Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Signal' }).click();
+  const rs = page.locator('.field', { hasText: 'Series resistance' }).locator('input');
+  await expect(rs).toHaveValue(/^\d+\.\d{3}$/); // WinISD shows series resistance to 3 dp
+});
+
 test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   const re = await page.evaluate(async () => {
