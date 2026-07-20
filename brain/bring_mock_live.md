@@ -144,7 +144,10 @@ I re-audited the live shell against every item above. Current truth:
   (`:282,300,516`); the mock's picker table + 2-step wizard are absent.
 - **Options modal** — button is `.tb-btn disabled` "not yet in OpenISD" (`:303`); not ported.
 - **Save bar** — shows the two OpenISD buttons only; the mock's **Unsaved indicator +
-  Revert** are absent (`:396-398`).
+  Revert/Reset** are absent (`:396-398`). This is **deferred pending `../STATE_MODEL.md`**
+  (the ground→modified→what-if state model) — once the modified-state layer exists, the
+  Unsaved indicator + Save + Reset become truthful and should be wired to it. NOT permanently
+  fake (that earlier characterisation is superseded by STATE_MODEL.md).
 - **Color button** — static swatch, no `cycleColor` (`:390`).
 - **Projects checkbox** — deletes the compare row (`removeCompare`, `:345`) instead of
   toggling trace visibility.
