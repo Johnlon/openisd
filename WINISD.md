@@ -543,6 +543,23 @@ is pure WDR metadata, not part of WinISD's 49-position internal state machine.
 when the user has selected series wiring. The save bug is WinISD-specific — OpenISD's own writer should write the
 correct value. See BACKLOG.md.
 
+## 12b. Air Pressure field — clearing it triggers an unrecoverable crash loop (user-reported 2026-07-20)
+
+**Bug:** In the environment inputs (Advanced pane / Options → General, where Air pressure is
+entered, e.g. `101325.0` Pa), **clearing the Air Pressure field** puts WinISD into an
+inescapable modal error loop reporting **"Cannot convert floating point number"**. The dialog
+re-raises on every interaction, so the field can never be corrected — the only way out is to
+**force-crash / kill the app**. An empty air-pressure value is evidently parsed as a float with
+no empty-string guard, and the error handler re-enters the same parse.
+
+**Source:** direct observation by the human (john), 2026-07-20. Not yet re-verified by an
+automated probe here.
+
+**Implication for OpenISD:** the equivalent field (`advPressure` in the field registry) must
+guard an empty/blank entry — never parse a blank as a float and never leave the user trapped.
+NumInput already reverts an invalid entry to the last valid value on blur; keep that behaviour
+and cover it with a test so OpenISD cannot reproduce the WinISD trap.
+
 ## 11. SpeakerBoxLite API — CORS finding
 
 **Verified 2026-06-24** via curl.

@@ -178,10 +178,11 @@ const outPath = join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json');
 
 // Guard: never overwrite a non-empty bundle with an EMPTY one. When the source data is
 // incomplete — a sibling driver repo mid-rebuild, or a source URL that no longer resolves —
-// the walk yields zero drivers and/or zero passive radiators. Writing that would silently
-// wipe the committed bundle, break the app + `drivers-bundle.test.ts`, and be easy to commit
-// by accident. Refuse, and point at the SOURCE (not the bundle) as the thing to fix. To
-// intentionally publish an empty bundle, delete the existing file first to opt out of the guard.
+// the walk yields zero drivers and/or zero passive radiators. This runs on dev/test server
+// startup, so a hard failure would block the server; instead KEEP the last-good bundle, warn
+// loudly, and exit 0 so the app still boots with real data. A genuinely-empty publish is opted
+// into by deleting the existing file first (then there is nothing to protect).
+let wouldEmpty = false;
 if (existsSync(outPath)) {
   let prev = null;
   try { prev = JSON.parse(readFileSync(outPath, 'utf8')); } catch { /* unparseable → treat as no prior */ }
@@ -191,21 +192,24 @@ if (existsSync(outPath)) {
     const emptiesDrivers = total === 0 && prevTotal > 0;
     const emptiesPrs = bundle.passiveRadiators.length === 0 && prevPr > 0;
     if (emptiesDrivers || emptiesPrs) {
-      console.error(
-        `\nERROR: refusing to overwrite ${relative(ROOT, outPath)} with an empty build ` +
+      wouldEmpty = true;
+      console.warn(
+        `\nWARNING: keeping the existing ${relative(ROOT, outPath)} — this build is empty where it was not ` +
         `(drivers ${prevTotal}→${total}, passive radiators ${prevPr}→${bundle.passiveRadiators.length}).`,
       );
-      console.error(
+      console.warn(
         '  The SOURCE data looks incomplete — check the sibling winisd_drivers checkout / source URLs. ' +
-        'This is not a bundler bug and not something to "fix" in the bundle. ' +
-        `To force a genuinely-empty bundle, delete ${relative(ROOT, outPath)} first.`,
+        'The bundle is left UNCHANGED (not wiped). ' +
+        `To force a genuinely-empty bundle, delete ${relative(ROOT, outPath)} first, then re-run.`,
       );
-      process.exit(1);
     }
   }
 }
 
-writeFileSync(outPath, JSON.stringify(bundle));
-
-const kb = Math.round(JSON.stringify(bundle).length / 1024);
-console.log(`\nBundled ${total} WDR files + ${bundle.passiveRadiators.length} passive radiators → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
+if (wouldEmpty) {
+  console.log('\nBundle left unchanged (empty-build guard). Existing driver data preserved.');
+} else {
+  writeFileSync(outPath, JSON.stringify(bundle));
+  const kb = Math.round(JSON.stringify(bundle).length / 1024);
+  console.log(`\nBundled ${total} WDR files + ${bundle.passiveRadiators.length} passive radiators → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
+}
