@@ -181,6 +181,8 @@ export const allIssues = computed<DriverError[]>(() => [...driverErrors.value, .
 // priorityState proxy layers are built on top of it separately. Additive — components keep
 // reading state.P/state.box directly; this only observes and can restore them.
 function projectFingerprint(): string {
+  // Order-deterministic: state.P keeps its P_DEFAULTS key order and the ADT's toJSON()
+  // preserves input insertion order, so JSON.stringify yields a stable string to diff.
   return JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value });
 }
 const _ground = ref(projectFingerprint());

@@ -197,6 +197,14 @@ audit stops churning on them:
    (`.trace-hidden`), and each overlay has a ✕ remove button. The mock has neither (its
    projects were fixed fake rows with no hide-state styling and no remove). Both are
    deliberate usability additions for the real, dynamic compare list.
+6. **Closed box hides the enclosure/Vents tab** — for a Closed (sealed) box the enclosure
+   tab is dropped entirely (it would only duplicate the Box tab's Volume). This diverges
+   from BOTH the mock (which keeps a `#enclosure-sealed` sub-panel) AND the current Classic
+   skin (which keeps the tab with a "Nothing extra…" placeholder). It is a **direct
+   user request** — the human's opening report of this whole effort was "there should be no
+   tab for Sealed." A spec encodes it. (Classic still shows the placeholder tab — that
+   original bug is unfixed there, and Classic is slated for retirement anyway; do NOT claim
+   Original "matches Classic" here.)
 
 ### My strategic view — the crux and the risk
 
