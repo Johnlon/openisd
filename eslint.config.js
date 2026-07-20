@@ -147,6 +147,9 @@ export default [
       ...pluginPlaywright.configs['flat/recommended'].rules,
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
+      // The spinner-sweep tests assert inside helper functions, not the test body — teach
+      // expect-expect to recognise them so it doesn't false-flag "Test has no assertions".
+      'playwright/expect-expect': ['warn', { assertFunctionNames: ['assertSpinnerHoldsDp', 'sweepActiveTab'] }],
       ...noUnusedVars,
     },
   },
