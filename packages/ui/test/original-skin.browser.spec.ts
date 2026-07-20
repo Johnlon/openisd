@@ -72,6 +72,21 @@ test('the Box tab exposes all six box types and drives the shared store for supp
   await expect(boxTab).toContainText(/response model pending/i);
 });
 
+test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ page }) => {
+  const nav = page.locator('.project-nav li');
+  await expect(nav).toHaveCount(7); // vented default shows the dynamic enclosure/Vents tab
+
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('sealed');
+
+  // For a closed box the enclosure tab only duplicated the Box tab's Volume — it is dropped.
+  await expect(nav).toHaveCount(6);
+  await expect(nav.filter({ hasText: 'Closed' })).toHaveCount(0);
+
+  // Volume is still editable on the Box tab.
+  await expect(page.locator('.tab-section.active')).toContainText('Volume');
+});
+
 test('an externally loaded box type re-syncs the Box tab (no desync while pending)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const boxTab = page.locator('.tab-section.active');
@@ -245,6 +260,30 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   expect(st.box).toBe('vented');
   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
   expect(st.browse).toBe(true); // hands off to the driver picker
+});
+
+test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+
+  const unsaved = page.locator('.unsaved-label');
+  const boxSel = page.locator('select#og-box-type');
+  await expect(unsaved).toBeHidden(); // fresh load = ground = clean
+
+  await boxSel.selectOption('sealed');            // change the design → modified
+  await expect(unsaved).toBeVisible();
+
+  await page.locator('.save-btn', { hasText: 'Reset state' }).click(); // revert to ground
+  await expect(unsaved).toBeHidden();
+  await expect(boxSel).toHaveValue('vented');     // back to the ground box type
+
+  await boxSel.selectOption('sealed');            // change again
+  await expect(unsaved).toBeVisible();
+  await page.locator('.save-btn', { hasText: 'Save Changes' }).click(); // adopt as ground
+  await expect(unsaved).toBeHidden();
+  await expect(boxSel).toHaveValue('sealed');     // kept the change; now it's the ground
 });
 
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {

@@ -5,7 +5,7 @@ import ClassicShell from './shells/classic/ClassicShell.vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import Flash from './components/Flash.vue';
-import { state, driverJSON, setDriverFromSerialized } from './store.js';
+import { state, driverJSON, setDriverFromSerialized, markProjectSaved } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
 import { resolveSkin } from './skins.js';
@@ -50,6 +50,7 @@ onMounted(() => {
   } else {
     applyState(fromUrl);
   }
+  markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
   saveReady = true;
   runSelfTest();
   window.addEventListener('hashchange', handleHashChange);

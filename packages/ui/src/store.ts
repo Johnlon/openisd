@@ -1,6 +1,6 @@
 import { reactive, computed, ref, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
-import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult } from '@openisd/engine';
+import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
@@ -173,6 +173,28 @@ export const curveIssues = computed<DriverError[]>(() => {
 
 // The full issue list the UI shows: driver-derivation issues + sweep-finiteness issues.
 export const allIssues = computed<DriverError[]>(() => [...driverErrors.value, ...curveIssues.value]);
+
+// ---- Project state: ground ↔ modified layer (STATE_MODEL.md) ----------------------
+// A project fingerprint captures the whole design (box + params + driver). "Ground" is
+// the last loaded/saved fingerprint; the project is "modified" when the live design
+// differs from it. This is the ground↔modified layer of STATE_MODEL.md; the what-if/edit
+// priorityState proxy layers are built on top of it separately. Additive — components keep
+// reading state.P/state.box directly; this only observes and can restore them.
+function projectFingerprint(): string {
+  return JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value });
+}
+const _ground = ref(projectFingerprint());
+/** True when the live design differs from the last loaded/saved (ground) state. */
+export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
+/** Adopt the current design as ground (call after load, and after a successful save). */
+export function markProjectSaved(): void { _ground.value = projectFingerprint(); }
+/** Discard unsaved changes: restore the design to the ground state. */
+export function resetProjectToGround(): void {
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverJSON };
+  state.box = g.box;
+  Object.assign(state.P, g.P);
+  setDriverFromSerialized(g.driver);
+}
 
 export function driverShort(raw: DriverRaw | null | undefined): string {
   return ((raw?.name) || [raw?.brand, raw?.model].filter(Boolean).join(' ') || 'Driver')
