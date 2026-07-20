@@ -9,7 +9,7 @@
  * DriverWhatIfPanel, so Modern is untouched (Invariant 1) and the what-if logic stays
  * single-sourced in the store/ADT.
  */
-import { computed, onMounted } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { state, driver, driverRaw, enterDriverField, setDriverFromRaw } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import { ebp } from '@openisd/engine';
@@ -31,14 +31,24 @@ const OPTIONAL: { key: NumKey; label: string; scale: number; dp: number; unit: s
   { key: 'Pe',   label: 'Pe',   scale: 1,    dp: 0, unit: 'W' },
 ];
 
+// While a field is focused, echo the RAW typed string (so mid-typing values like
+// "4" → "42" aren't reformatted out from under the caret); reformat on blur. Same
+// buffer pattern the shared DriverWhatIfPanel uses.
+const rawVals = reactive<Record<string, string>>({});
 function disp(key: NumKey, scale: number, dp: number): string {
   const v = driverRaw.value[key];
   return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(dp) : '';
 }
+function fieldVal(key: NumKey, scale: number, dp: number): string {
+  return key in rawVals ? rawVals[key] : disp(key, scale, dp);
+}
 function onField(key: NumKey, scale: number, e: Event) {
-  const v = parseFloat((e.target as HTMLInputElement).value);
+  const raw = (e.target as HTMLInputElement).value;
+  rawVals[key] = raw;
+  const v = parseFloat(raw);
   if (isFinite(v)) enterDriverField(key, v / scale);
 }
+function onBlur(key: NumKey) { delete rawVals[key]; }
 
 const bl = computed(() => driver.value?.Bl ?? null);
 const mms = computed(() => driver.value?.Mms ?? null);
@@ -46,8 +56,10 @@ const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
 // Snapshot the driver as Tune opens; Cancel reverts to exactly this (pre-Tune) state.
+// The watch (immediate) survives a future switch from v-if to v-show, matching the
+// shared DriverWhatIfPanel's pattern.
 let snapshot: DriverRaw = { ...driverRaw.value };
-onMounted(() => { snapshot = { ...driverRaw.value }; });
+watch(() => state.editDriver, (open) => { if (open) snapshot = { ...driverRaw.value }; }, { immediate: true });
 
 function keep()   { state.editDriver = false; }                      // live edits already applied → keep
 function cancel() { setDriverFromRaw(snapshot); state.editDriver = false; } // revert what-if
@@ -66,7 +78,7 @@ function reset()  { if (state.driverSource) setDriverFromRaw(state.driverSource)
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="disp(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)">
+          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -77,7 +89,7 @@ function reset()  { if (state.driverSource) setDriverFromRaw(state.driverSource)
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="disp(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)">
+          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>

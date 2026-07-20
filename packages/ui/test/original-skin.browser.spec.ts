@@ -200,6 +200,22 @@ test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per s
   expect(await readFs()).toBeCloseTo(before, 1); // Cancel reverted the what-if
 });
 
+test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
+  await fsInput.click();
+  await fsInput.press('Control+a');
+  await fsInput.pressSequentially('42'); // type char-by-char, like a real user
+  await expect(fsInput).toHaveValue('42');
+  const fs = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.driverRaw.value.Fs;
+  });
+  expect(fs).toBeCloseTo(42, 1);
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
