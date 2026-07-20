@@ -16,7 +16,7 @@ Legend: ✅ OpenISD has an input/feature · ❌ OpenISD lacks it · ⚠️ parti
 WinISD's own colour legend on this tab is the ParState model verbatim:
 **🟩 Entered · 🟦 Calculated · ⬛ Not available**, plus an "Auto calculate unknowns" toggle.
 
-| WinISD field                                              | OpenISD             |
+| WinISD field                                              | OpenISD              |
 | --------------------------------------------------------- | -------------------- |
 | Fs, Vas, Qms, Qes, Qts                                    | ✅                   |
 | Mms, Cms, Rms, BL, Le, Re, Sd, Dd                         | ✅                   |
@@ -29,17 +29,17 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 ## Driver editor → Advanced parameters tab (`edit_driver_pg3_advanced_parameters.png`)
 
 | WinISD field                                                          | OpenISD                                                    |
-| --------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Thermal: AlfaVC, R(t), C(t)                                           | ✅ (raw; not simulated)                                     |
-| Environment: c, roo                                                   | ⚠️ has fields, but **hardcoded** — see §Constants           |
-| Figure-of-merit: EBP                                                  | ⚠️ computed as a gauge, not an editable field               |
+| --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Thermal: AlfaVC, R(t), C(t)                                           | ✅ (raw; not simulated)                                    |
+| Environment: c, roo                                                   | ⚠️ has fields, but **hardcoded** — see §Constants          |
+| Figure-of-merit: EBP                                                  | ⚠️ computed as a gauge, not an editable field              |
 | Figure-of-merit: **SPLmaxLF, SPLmax, Rme, gamma, Mpow, Mcost, Gloss** | ❌ (WinISD shows these derived values; OpenISD shows none) |
 
 ## Driver editor → Dimensions tab (`edit_driver_pg4_dimensions.png`)
 
 | WinISD field                                           | OpenISD                                 |
-| ------------------------------------------------------ | ---------------------------------------- |
-| Thick, Depth, Magnet Depth, Magnet, Basket, Outer, VCd | ✅                                       |
+| ------------------------------------------------------ | --------------------------------------- |
+| Thick, Depth, Magnet Depth, Magnet, Basket, Outer, VCd | ✅                                      |
 | **Dvol** (driver displacement volume)                  | ❌ (OpenISD has a Weight field instead) |
 
 ## Driver editor → General tab (`edit_driver_pg1_text.png`) — not detailed here (metadata: brand/model/comment).
@@ -48,7 +48,7 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 
 ## Driver project pane (`spl.png`, `tx_fn_mag.png`)
 
-| WinISD field                                         | OpenISD                                |
+| WinISD field                                         | OpenISD                                 |
 | ---------------------------------------------------- | --------------------------------------- |
 | Brand, Model, Num. of drivers, Voice coil connection | ✅                                      |
 | **Iso-Barik** (isobaric loading, vs "Standard")      | ❌ (BACKLOG P2)                         |
@@ -68,7 +68,7 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 
 ## Signal pane (`view_5_signal.png`)
 
-| WinISD field                                                | OpenISD                     |
+| WinISD field                                                | OpenISD                      |
 | ----------------------------------------------------------- | ---------------------------- |
 | System input power, Driver input voltage, Series resistance | ✅                           |
 | **Listening Distance** (m)                                  | ❌ fixed at 1 m (BACKLOG P1) |
@@ -76,20 +76,20 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 
 ## Advanced (project) pane (`view_6_advanced.png`)
 
-| WinISD field / toggle                                                                   | OpenISD                                              |
+| WinISD field / toggle                                                                   | OpenISD                                               |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ❌ none — OpenISD hardcodes c/roo                    |
+| **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ❌ none — OpenISD hardcodes c/roo                     |
 | Simulate voice coil inductance                                                          | ⚠️ equivalent via WinISD/gyrator circuit-model switch |
 | **Force flat response**                                                                 | ❌                                                    |
 | **Use "transmission line" model for port**                                              | ❌ (TL is BACKLOG P3)                                 |
 | **Rg is at driver side** (source-resistance placement)                                  | ❌                                                    |
-| **SPL graph is Xmax limited**                                                           | ❌ (OpenISD has a separate Max-SPL chart)            |
+| **SPL graph is Xmax limited**                                                           | ❌ (OpenISD has a separate Max-SPL chart)             |
 
 ## Project pane (`view_7_advanced.png`) — Creator/Created/Modified/Description metadata. OpenISD saves projects but has no per-project author/date/description fields. ⚠️
 
 ## App Options (`options_general.png`)
 
-| WinISD                                                         | OpenISD          |
+| WinISD                                                         | OpenISD           |
 | -------------------------------------------------------------- | ----------------- |
 | Environment defaults (Temp/Humidity/Pressure → Sound velocity) | ❌                |
 | **Units: metric ↔ imperial**                                   | ❌ metric only    |
@@ -102,7 +102,7 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 WinISD offers: **allpass, DLP raised-cosine, highpass, Linkwitz transform, lowpass,
 parametric EQ, peaking / 2nd-order highpass, static gain.**
 
-| Filter                            | OpenISD        |
+| Filter                            | OpenISD         |
 | --------------------------------- | --------------- |
 | High-pass, Low-pass (Butterworth) | ✅              |
 | Linkwitz transform                | ✅              |
@@ -144,6 +144,21 @@ brings OpenISD in line with WinISD. Cost: every result shifts ~0.4 %, so the gol
 baseline must be regenerated as a deliberate one-time reset.
 
 ---
+
+## Field decimal places (WinISD screenshots) — the SSOT for `:precision`
+
+Per-field display precision, read from the WinISD 0.7.0.950 screenshots in this folder. Skins
+set each field's `NumInput :precision` (or readout `.toFixed(n)`) to match. Fill in more rows as
+each field is confirmed against a screenshot — do not guess a dp without the evidence.
+
+| Field                   | WinISD example | dp  | Source screenshot    |
+| ----------------------- | -------------- | --- | -------------------- |
+| System input power      | `140.0 W`      | 1   | signal / main window |
+| Driver input voltage    | `15.2 V`       | 1   | signal / main window |
+| Series resistance       | `0.100 ohm`    | 3   | signal / main window |
+| Box volume              | `6.00 l`       | 2   | box tab              |
+| Tuning / resonance freq | `40.25 Hz`     | 2   | box tab              |
+| Qtc                     | `0.707`        | 3   | box tab              |
 
 ## Biggest real gaps (priority view)
 

@@ -697,7 +697,7 @@ function cycleUnit(key: string, group: string) {
               <div class="section-header">Signal source</div>
               <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="1" /><span class="unit">W</span></div></div>
               <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="1" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="1" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="3" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
