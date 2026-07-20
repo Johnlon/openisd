@@ -3,7 +3,7 @@
 Screenshot: `docs/winisd/view_3_ported.png`
 View: Main window, left nav "Vents" tab selected (Project section), two projects loaded and both checked/overlaid on one graph
 
-This screenshot is the primary evidence cited in `WINISD_OPENISD_COMPARISON.md` (correction: WinISD _does_ overlay multiple designs) — see that file for the significance. Layout only, below.
+This screenshot is the primary evidence cited in `FEATURE_COMPARISON.md` (§"Merged from WINISD_OPENISD_COMPARISON.md") (correction: WinISD _does_ overlay multiple designs) — see that file for the significance. Layout only, below.
 
 ## Fields & controls visible
 

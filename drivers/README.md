@@ -2,7 +2,7 @@
 
 Related docs:
 [`WDR_SCHEMA.md`](../WDR_SCHEMA.md) — WDR field spec and `_meta.yml` sidecar format ·
-[`WDR_FILE_MODEL_AND_WORKFLOWS.md`](../WDR_FILE_MODEL_AND_WORKFLOWS.md) — link-field workflows, DQ check, scripts reference ·
+[`WDR_SCHEMA.md` appendix "file model & link-field workflows"](../WDR_SCHEMA.md) — link-field workflows, DQ check, scripts reference ·
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules
 
 Scraper-side docs (unit conversions, Xmax/brand-name conventions, vendor API

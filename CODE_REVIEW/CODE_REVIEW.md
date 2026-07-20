@@ -118,6 +118,9 @@ Referenced from `CLAUDE.md:145`, `PLAN_SCRAPING.md:4`, `drivers/README.md:6`,
 **Preventative:** move the file to `drivers/` (matches all four refs) and add a
 markdown link-checker to CI.
 
+_(2026-07-20 update: `WDR_FILE_MODEL_AND_WORKFLOWS.md` was merged into `WDR_SCHEMA.md`
+as its "Appendix — file model & link-field workflows"; inbound refs repointed there.)_
+
 ### 15. Competing "canonical" / roadmap sources
 
 `FEATURES.md:190` names `drivers/README.md` canonical while `WDR_SCHEMA.md:3` and
@@ -129,6 +132,9 @@ dir.
 **Preventative:** one roadmap (`BACKLOG.md`), one canonical schema doc
 (`WDR_SCHEMA.md`); other docs link rather than restate. Consolidate root docs into
 `docs/` or remove the empty dir.
+
+_(2026-07-20 update: `FEATURES.md`, `WINISD_OPENISD_COMPARISON.md`, `OTHER_TOOLS.md`,
+`SPEAKER_TOOL_LANDSCAPE.md` were merged into `FEATURE_COMPARISON.md`.)_
 
 ---
 

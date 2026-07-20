@@ -15,7 +15,7 @@ Instruct the subagent to:
 1. Run `npx vitest run --project engine packages/engine/test/architecture.test.ts` (the
    mechanical AD-3 engine-purity guard) and report mechanical failures.
 2. Read `ARCHITECTURE.md` (AD-1..AD-5 + four-layer refinement, UI-1/2/3), `CONTRACT.md`,
-   and `CODING_PATTERNS.md`.
+   and `DEVELOPMENT.md` §8 "Standing coding patterns".
 3. Review the given commit range for design-intent violations: AD-3 boundary crossings
    (engine touching DOM/Vue, physics in components, core calling UI), CONTRACT.md drift,
    `driverType.ts` wire-contract drift vs the sibling `winisd_tools` Python enum, AD-4

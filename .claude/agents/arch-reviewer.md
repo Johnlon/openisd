@@ -1,6 +1,6 @@
 ---
 name: arch-reviewer
-description: Read-only architecture reviewer for the openisd app (TS/Vue monorepo). Runs the mechanical AD-3 engine-purity guard, then reviews a committed diff/commit-range for design-intent violations of ARCHITECTURE.md (AD-1..AD-5 + the four-layer refinement) and CODING_PATTERNS.md. Appends findings to CODE_REVIEW/ARCH_REVIEW_LOG.md and returns them. Also detects when a bug surfaced during the build (committed evidence) and emits an RCA_REQUIRED signal for the orchestrator to convene a Root Cause Analysis with the impl agent + code-reviewer. NEVER edits code, never spawns agents. Use after an impl agent commits, or on demand via /arch-review.
+description: Read-only architecture reviewer for the openisd app (TS/Vue monorepo). Runs the mechanical AD-3 engine-purity guard, then reviews a committed diff/commit-range for design-intent violations of ARCHITECTURE.md (AD-1..AD-5 + the four-layer refinement) and DEVELOPMENT.md. Appends findings to CODE_REVIEW/ARCH_REVIEW_LOG.md and returns them. Also detects when a bug surfaced during the build (committed evidence) and emits an RCA_REQUIRED signal for the orchestrator to convene a Root Cause Analysis with the impl agent + code-reviewer. NEVER edits code, never spawns agents. Use after an impl agent commits, or on demand via /arch-review.
 model: sonnet
 tools: Bash, Read, Grep, Glob
 ---
@@ -24,7 +24,7 @@ to you (default `git diff main...HEAD`; `dev` is the working branch).
 2. **Load the spec.** Read `ARCHITECTURE.md` (AD-1 client-only; AD-2 PWA/offline; **AD-3
    three-layer separation — core has no DOM/`window`/`document`/canvas**; AD-4
    extract-don't-rewrite; AD-5 runtime self-test; the four-layer refinement `calc → …`;
-   UI-1/2/3). Read `CONTRACT.md` (the stable engine API surface) and `CODING_PATTERNS.md`.
+   UI-1/2/3). Read `CONTRACT.md` (the stable engine API surface) and `DEVELOPMENT.md` §8 "Standing coding patterns".
 
 3. **Review the diff** (`git diff <range>`, `git diff --stat <range>`; Read changed files
    as needed) for **design-intent violations a script cannot catch**:

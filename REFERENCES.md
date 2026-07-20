@@ -96,32 +96,32 @@ sanity oracles_ already established this session, not a single magic number:
 
 Comparable end-user enclosure/design tools — used as cross-check oracles and as
 prior-art reference for features. Detailed per-tool findings (fields, automation
-notes, gaps) live in `OTHER_TOOLS.md`; this is the reference index.
+notes, gaps) live in `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md"); this is the reference index.
 
 - **WinISD** — the desktop incumbent OpenISD emulates; `.wdr` file format is our
   interchange baseline. <http://www.linearteam.org/> · see `WINISD.md`.
 - **micka.de** — sealed + vented cross-check oracle (`#ideal` calculator; no
-  PR/bandpass). <https://www.micka.de/en/index.php> · see `OTHER_TOOLS.md §2/§6` and
-  `PLAN_SBL_CROSSCHECK.md`.
+  PR/bandpass). <https://www.micka.de/en/index.php> · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §2/§6 and
+  `archive/PLAN_SBL_CROSSCHECK.md`.
 - **SpeakerBoxLite** — second oracle covering PR + bandpass.
-  <https://speakerboxlite.com/subwoofer-box-calculator/> · see `OTHER_TOOLS.md §3`.
+  <https://speakerboxlite.com/subwoofer-box-calculator/> · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §3.
 - **SpeakerDesign.dev** — free browser toolkit self-billed as a "web-based WinISD
   alternative" (box sim + cutlist + 3D). <https://speakerdesign.dev/> · see
-  `OTHER_TOOLS.md §4`.
+  `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §4.
 - **Sonella** — guided DIY full-range design app (Dayton drivers, crossover, STL
-  export). <https://sonella.app/> · see `OTHER_TOOLS.md §5`.
+  export). <https://sonella.app/> · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §5.
 - **00 Audio Simulator** — closest web competitor; imports `.wdr`, covers
   sealed/vented/bandpass/PR, adds port velocity + on-graph EQ + share links.
-  <https://simulator.00aud.io/> · see `OTHER_TOOLS.md §6`.
+  <https://simulator.00aud.io/> · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §6.
 - **SoundForm** — closed-beta web WinISD app (crossover + multi-driver summation focus);
   no public URL, access by author DM.
   <https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
-  · see `OTHER_TOOLS.md §7`.
+  · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §7.
 - **LoudspeakerLab** — automated passive-crossover + system solver (ABCD-matrix model,
   multi-objective search) on a measurement-based CTA-2034A public driver commons (FRD/ZMA
   uploads); sealed/vented box modelling is a sub-component. Interchange is FRD/ZMA + SPICE
   netlist, not `.wdr` — not a cross-check oracle. <https://loudspeakerlab.io/>
-  · see `OTHER_TOOLS.md §8`.
+  · see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md") §8.
 
 ---
 

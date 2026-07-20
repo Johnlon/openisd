@@ -15,7 +15,9 @@ _How the app is implemented._ A **hub** linking the authoritative specs. See
 
 ## Data model & file formats
 
-- **`../WDR_SCHEMA.md`** — the `.wdr` + `_meta.yml` format spec (canonical WDR SSOT).
+- **`../WDR_SCHEMA.md`** — the `.wdr` + `_meta.yml` format spec (canonical WDR SSOT);
+  includes the "Appendix — file model & link-field workflows" (merged 2026-07-20 from
+  WDR_FILE_MODEL_AND_WORKFLOWS.md).
 - **`../WINISD_WPR_FILE_SCHEMA.md`** — reverse-engineered `.wpr` project-file schema.
 - **`../DRIVER_ADT_DESIGN.md`** — driver-model ADT (E/C/N provenance).
 - **`../drivers/sources.schema.md`** — `sources.json` registry schema.
@@ -24,6 +26,5 @@ _How the app is implemented._ A **hub** linking the authoritative specs. See
 
 - `../.claude/context/{js-patterns,driver-data-rules,engine-rules}.md`,
   `../.claude/context/{testing-js-core,testing-js-ui}.md`.
-
-_(Plan §B: fold `WDR_FILE_MODEL_AND_WORKFLOWS.md` into `WDR_SCHEMA.md`; `CODING_PATTERNS.md`
-into `DEVELOPMENT.md`.)_
+- Standing coding patterns live in `../DEVELOPMENT.md` §8 (merged 2026-07-20 from
+  CODING_PATTERNS.md).

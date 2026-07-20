@@ -1,13 +1,15 @@
 # UX design — openisd (the app)
 
 *How the user interacts, and how it's presented.* A **hub**. See [`INDEX.md`](INDEX.md).
-Two sub-parts: **§UX** = interaction model (views/dialogs/flows/inputs); **§UI** = the look
-(visual/component design).
+
+**The UI/UX design SSOT entrypoint is [`../UI_UX_DESIGN.md`](../UI_UX_DESIGN.md)**
+(created 2026-07-20) — it indexes both sub-parts in full, including a per-file
+description of the 26-file `../docs/winisd/info/` corpus. Summary of the two sub-parts:
 
 ## §UX — interaction model
 - **`../docs/winisd/info/*.md`** (26 files) — per-view/dialog field + flow inventories of
-  the original WinISD app: the interaction model being reproduced. The de-facto UX SSOT
-  (currently scattered; this hub indexes it).
+  the original WinISD app: the interaction model being reproduced (indexed file-by-file in
+  `../UI_UX_DESIGN.md`).
 - **`../docs/winisd/INPUT_PARITY.md`** — field-by-field WinISD ↔ OpenISD input parity ledger.
 - **`../docs/winisd/SCREENSHOTS_INDEX.md`** — reference-screenshot catalogue.
 
@@ -16,6 +18,8 @@ Two sub-parts: **§UX** = interaction model (views/dialogs/flows/inputs); **§UI
 - **`../.claude/context/ui-rules.md`** — enforced Vue component/visual rules (tooltips,
   symmetry, …).
 - **`../docs/winisd/winisd_boxtypes.md`** — box-type panel/icon visual reference.
-- Skin work: `../PLAN_CLASSIC_SKIN.md`, `../CLASSIC-SKIN-review.md` (build artifacts).
+- Completed skin build artifacts: `../archive/PLAN_CLASSIC_SKIN.md`,
+  `../archive/CLASSIC-SKIN-review.md` (archived 2026-07-20).
 
-*(Plan: `mock/OLD_MOCK_DESIGN.md` is a stale duplicate — delete-candidate pending human OK.)*
+*(`mock/OLD_MOCK_DESIGN.md` — stale prior copy of MOCK_DESIGN.md — was archived to
+`../archive/OLD_MOCK_DESIGN.md`, 2026-07-20.)*

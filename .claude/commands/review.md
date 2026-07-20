@@ -18,7 +18,7 @@ Instruct the subagent to:
 2. Review for clarity, transparency, conciseness, maintainability, accuracy, and
    CLEAN-code principles — reading for the next developer. Challenge obscurity, magic
    numbers/literals, opaque assertions, hidden coupling, silent error handling, Vue
-   reactivity traps. Respect the house rules in `CLAUDE.md`/`CODING_PATTERNS.md` (no
+   reactivity traps. Respect the house rules in `CLAUDE.md`/`DEVELOPMENT.md` §8 "Standing coding patterns" (no
    `eslint-disable`, no `_foo` dodge, no delete-to-silence-lint, TS strict, no fabricated
    test data, no silent masking).
 3. **Append** a new timestamped findings section to `CODE_REVIEW/CODE_REVIEW_LOG.md` AND
