@@ -320,6 +320,21 @@ test('NumInput spinner keeps fixed decimal places (no compounding float precisio
   expect(val).toMatch(/^\d+(\.\d{1,2})?$/); // at most 2 dp — never a long compounding float
 });
 
+test('NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const vol = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
+  await vol.click();
+  await vol.fill('6.123456'); // more decimals than the field's 2 dp
+  await vol.blur();
+  await expect(vol).toHaveValue('6.12'); // DISPLAY is formatted to 2 dp
+  const vb = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.state.P.Vb; // stored in m³ (display L ÷ 1000)
+  });
+  expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp "0.00612"
+});
+
 test('class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {
   test.setTimeout(120_000); // exhaustive sweep: 4 box types × every tab × 18 key-presses per field
   // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
