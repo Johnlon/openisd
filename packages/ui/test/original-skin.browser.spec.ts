@@ -323,6 +323,25 @@ test('Original skin buttons have readable dark text on their light fill', async 
   expect(rgbSum).toBeLessThan(300);
 });
 
+test('New Project collects the project name first and shows it in the titlebar', async ({ page }) => {
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const modal = page.locator('.overlay.open');
+  await expect(modal).toContainText('Project name'); // step 1 is the name, before box type
+  await modal.locator('input').first().fill('My Sub Build');
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('select').selectOption('sealed'); // step 2 = box type
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 = volume → create
+
+  const name = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.state.project.name;
+  });
+  expect(name).toBe('My Sub Build');
+  await expect(page.locator('.titlebar')).toContainText('My Sub Build');
+});
+
 test('New Project starts fresh — it discards the previous design (filters, compare, params)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -340,9 +359,10 @@ test('New Project starts fresh — it discards the previous design (filters, com
   await page.locator('.tb-btn[title*="New project"]').click();
   const modal = page.locator('.overlay.open');
   await expect(modal.locator('.np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes
-  await modal.locator('select').selectOption('sealed');
+  await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip
+  await modal.locator('select').selectOption('sealed');        // step 2 box type
   await modal.locator('button', { hasText: 'Next' }).click();
-  await modal.locator('button', { hasText: 'Pick Driver' }).click();
+  await modal.locator('button', { hasText: 'Pick Driver' }).click(); // step 3 volume → create
 
   const st = await page.evaluate(async () => {
     const modPath = '/src/store.ts';
@@ -359,9 +379,10 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   const modal = page.locator('.overlay.open');
   await expect(modal).toContainText('New Project');
 
-  await modal.locator('select').selectOption('vented');
+  await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip
+  await modal.locator('select').selectOption('vented');        // step 2 box type
   await modal.locator('button', { hasText: 'Next' }).click();
-  await modal.locator('input').first().fill('42');
+  await modal.locator('input').first().fill('42');             // step 3 volume
   await modal.locator('button', { hasText: 'Pick Driver' }).click();
 
   const st = await page.evaluate(async () => {

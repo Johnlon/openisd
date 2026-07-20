@@ -186,6 +186,7 @@ export interface AppState {
 }
 
 export interface ProjectMeta {
+  name: string;
   creator: string;
   created: string;
   modified: string;
