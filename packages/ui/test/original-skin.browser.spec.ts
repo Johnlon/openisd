@@ -467,6 +467,13 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   expect(st.browse).toBe(true); // hands off to the driver picker
 });
 
+test('Original toolbar: Copy share link writes the design into the address bar', async ({ page }) => {
+  page.on('dialog', (d) => d.dismiss().catch(() => {})); // if clipboard is blocked, shareLink falls back to prompt()
+  await page.locator('.tb-btn[title="Save As"]').click();
+  await page.locator('.menu-item', { hasText: 'Copy share link' }).click();
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
+});
+
 test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
