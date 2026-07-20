@@ -37,7 +37,7 @@ import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
 
-const { exportDesign, exportWdr, importFile, about } = useDesignIO();
+const { exportDesign, exportWdr, importFile, about, shareLink } = useDesignIO();
 
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 // The current design's trace colour. The Color button cycles it through a small
@@ -341,6 +341,7 @@ function cycleUnit(key: string, group: string) {
           <div class="dropdown-menu" :class="{ open: openDd === 'saveas-dropdown' }" @click.stop>
             <div class="menu-item" title="Full design as a .json project." @click="exportDesign(); closeDropdown()">Save As... (.json)</div>
             <div class="menu-item" title="Export the driver as a WinISD .wdr file." @click="exportWdr(); closeDropdown()">Export driver (.wdr)</div>
+            <div class="menu-item" title="Copy a link that reopens this design (and your tab/chart) — the address bar updates and the link is copied to the clipboard." @click="shareLink(); closeDropdown()">Copy share link</div>
           </div>
         </div>
         <div class="tb-btn" title="Save the design as a .json project." @click="exportDesign">
