@@ -19,13 +19,14 @@ function decimalsOf(s: string): number {
 // places over what the field shows at rest. Each field has a fixed display precision; a
 // step that turns "6.00" into "8.94924452476786" is the bug. Asserted over every
 // input[type=number] so no field (or second spinner mechanism) can regress unnoticed.
-async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<void> {
-  if (!(await input.isVisible()) || !(await input.isEditable())) return;
+// Returns 1 if the field was actually spun-and-checked, 0 if skipped (hidden / non-numeric).
+async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<number> {
+  if (!(await input.isVisible()) || !(await input.isEditable())) return 0;
   await input.scrollIntoViewIfNeeded();
   const fieldName = await input.evaluate((el) => el.closest('.field')?.querySelector('label')?.textContent?.trim() || el.getAttribute('aria-label') || '?');
   label = `${label} [${fieldName}]`;
   const before = (await input.inputValue()).trim();
-  if (!/^-?\d+(\.\d+)?$/.test(before)) return; // skip empty / non-numeric fields
+  if (!/^-?\d+(\.\d+)?$/.test(before)) return 0; // skip empty / non-numeric fields
   const dpBefore = decimalsOf(before);
   await input.focus();
   for (let i = 0; i < 6; i++) await input.press('ArrowUp'); // compounding up-steps
@@ -34,12 +35,15 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<void
   const down = (await input.inputValue()).trim();
   expect(decimalsOf(up), `${label}: gained decimals spinning UP  "${before}" → "${up}"`).toBeLessThanOrEqual(dpBefore);
   expect(decimalsOf(down), `${label}: gained decimals spinning DOWN "${before}" → "${down}"`).toBeLessThanOrEqual(dpBefore);
+  return 1;
 }
 
-// Sweep every visible numeric spinner on the currently-active project tab.
-async function sweepActiveTab(page: Page, context: string): Promise<void> {
+// Sweep every visible numeric spinner on the currently-active project tab; returns the count checked.
+async function sweepActiveTab(page: Page, context: string): Promise<number> {
   const inputs = await page.locator('.original-root .tab-section.active input[type="number"]').all();
-  for (let i = 0; i < inputs.length; i++) await assertSpinnerHoldsDp(inputs[i], `${context} #${i}`);
+  let n = 0;
+  for (let i = 0; i < inputs.length; i++) n += await assertSpinnerHoldsDp(inputs[i], `${context} #${i}`);
+  return n;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -320,6 +324,7 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   test.setTimeout(120_000); // exhaustive sweep: 4 box types × every tab × 18 key-presses per field
   // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
   // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
+  let checked = 0;
   for (const boxType of ['sealed', 'vented', 'pr', 'bandpass4'] as const) {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption(boxType);
@@ -329,14 +334,18 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
       const li = page.locator('.project-nav li').nth(t);
       const name = ((await li.textContent()) || `tab${t}`).trim();
       await li.click();
-      await sweepActiveTab(page, `${boxType}/${name}`);
+      checked += await sweepActiveTab(page, `${boxType}/${name}`);
     }
   }
   // The docked Tune panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
   const tuneInputs = await page.locator('.tune-panel input[type="number"]').all();
-  for (let i = 0; i < tuneInputs.length; i++) await assertSpinnerHoldsDp(tuneInputs[i], `Tune #${i}`);
+  for (let i = 0; i < tuneInputs.length; i++) checked += await assertSpinnerHoldsDp(tuneInputs[i], `Tune #${i}`);
+
+  // Guard against a selector that silently matches nothing (which would make the sweep a no-op
+  // and pass vacuously). The Original skin has well over a dozen numeric spinners across types.
+  expect(checked, 'class-level sweep visited too few spinners — selector likely drifted').toBeGreaterThan(12);
 });
 
 test('Original save bar is no taller than its buttons (compact legend)', async ({ page }) => {
@@ -485,6 +494,20 @@ test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STAT
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
+});
+
+test('R1: an open Driver Editor is reopened after a reload', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await expect(page.locator('.overlay.on')).toContainText('Driver editor');
+
+  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalEditorOpen'),
+    undefined, { timeout: 5000 });
+  await page.reload();
+  await expect(page.locator('.overlay.on')).toContainText('Driver editor'); // reopened after refresh
 });
 
 test('R1: an open Tune with uncommitted what-if values is preserved across a reload', async ({ page }) => {

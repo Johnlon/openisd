@@ -166,6 +166,8 @@ export interface UiState {
   /** Original skin — the open Tune's uncommitted what-if buffer (overlay), so a refresh
    *  restores the in-progress values. Local-only (stripped from share links via stateToUrl). */
   originalWhatIf?: DriverJSON | null;
+  /** Original skin — the Driver Editor modal is open. Persisted so a refresh reopens it. */
+  originalEditorOpen?: boolean;
 }
 
 /** The reactive application state held in the store. */

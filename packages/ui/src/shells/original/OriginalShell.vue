@@ -31,6 +31,7 @@ import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
+import { precision as fieldDp } from '../../fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
@@ -286,6 +287,12 @@ watch(() => state.ui.originalTuneOpen, (open) => {
   }
 }, { immediate: true });
 
+// Same for the Driver Editor modal — it edits the committed design live (no separate buffer),
+// so preserving it across refresh is just persisting the open flag and reopening. Original-
+// scoped (Modern/Classic never set originalEditorOpen).
+watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
+watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverInfo = true; }, { immediate: true });
+
 // ---- Decorative unit-cycling (mock parity): rotates the label text only, never
 // converts the value — identical to the mock's cycleUnit. Keyed per field. --------
 const UNIT_SETS: Record<string, string[]> = {
@@ -469,7 +476,7 @@ function cycleUnit(key: string, group: string) {
             <div v-if="!isDual" class="box-fields-col">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div>
+                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div>
               </div>
               <div class="field-row">
                 <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fc','freq')">{{ unit('fc','freq') }}</span></div>
@@ -480,13 +487,13 @@ function cycleUnit(key: string, group: string) {
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
                 <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('frc','freq')">{{ unit('frc','freq') }}</span></div></div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="fieldDp('Vf')" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
                 <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('ftune','freq')">{{ unit('ftune','freq') }}</span></div></div>
               </div>
             </template>
@@ -611,8 +618,8 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Shape</label><svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg> round</div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('vd','length')">{{ unit('vd','length') }}</span></div>
-                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('vl','length')">{{ unit('vl','length') }}</span></div>
+                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('vd','length')">{{ unit('vd','length') }}</span></div>
+                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('vl','length')">{{ unit('vl','length') }}</span></div>
                 </div>
               </div>
               <div>
@@ -637,16 +644,16 @@ function cycleUnit(key: string, group: string) {
                 </div>
                 <div class="field-row">
                   <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmt(prFs, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('prfs','freq')">{{ unit('prfs','freq') }}</span></div>
-                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" :scale="10000" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('prsd','area')">{{ unit('prsd','area') }}</span></div>
+                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" :scale="10000" :precision="fieldDp('prSd')" /><span class="unit unit-cyc" @click="cycleUnit('prsd','area')">{{ unit('prsd','area') }}</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" :scale="1000" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('prxmax','length')">mm</span></div>
+                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" :scale="1000" :precision="fieldDp('prXmax')" /><span class="unit unit-cyc" @click="cycleUnit('prxmax','length')">mm</span></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="0" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" :scale="1000" :precision="1" /><span class="unit">g</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" /><span class="unit">g</span></div></div>
                 <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmt(prFsMass, 2)" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
@@ -659,8 +666,8 @@ function cycleUnit(key: string, group: string) {
               <div class="vent-col">
                 <div class="vent-col-title">Front chamber</div>
                 <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
-                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
-                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="1" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
                 <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
@@ -670,7 +677,7 @@ function cycleUnit(key: string, group: string) {
           <div v-else-if="selectedBox === 'sealed'">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="2" /><span class="unit unit-cyc" @click="cycleUnit('svb','volume')">{{ unit('svb','volume') }}</span></div>
+              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('svb','volume')">{{ unit('svb','volume') }}</span></div>
               <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit">Hz</span></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
@@ -714,9 +721,9 @@ function cycleUnit(key: string, group: string) {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="1" /><span class="unit">W</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="1" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="3" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="fieldDp('Pin')" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="fieldDp('driveV')" /><span class="unit">V</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
@@ -763,9 +770,9 @@ function cycleUnit(key: string, group: string) {
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput v-model="state.P.Ql" :scale="1" :precision="1" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput v-model="state.P.Qa" :scale="1" :precision="1" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput v-model="state.P.Qp" :scale="1" :precision="1" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput v-model="state.P.Ql" :scale="1" :precision="fieldDp('Ql')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput v-model="state.P.Qa" :scale="1" :precision="fieldDp('Qa')" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput v-model="state.P.Qp" :scale="1" :precision="fieldDp('Qp')" /></div></div>
           <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">

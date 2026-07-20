@@ -145,11 +145,20 @@ baseline must be regenerated as a deliberate one-time reset.
 
 ---
 
-## Field decimal places (WinISD screenshots) — the SSOT for `:precision`
+## Field decimal places (WinISD screenshots)
 
-Per-field display precision, read from the WinISD 0.7.0.950 screenshots in this folder. Skins
-set each field's `NumInput :precision` (or readout `.toFixed(n)`) to match. Fill in more rows as
-each field is confirmed against a screenshot — do not guess a dp without the evidence.
+Per-field display precision, read from the WinISD 0.7.0.950 screenshots in this folder. This
+table is the **evidence log**: it records the screenshot each dp came from so a value can be
+audited. The **machine-readable SSOT the UI and tests actually consume** is the field registry
+`packages/ui/src/fields/fieldRegistry.ts` (`precision(id)`) — skins read `NumInput :precision`
+from it rather than hardcoding a literal, and `fieldRegistry.test.ts` anchors the registry back
+to the rows below. Add a field to the registry AND record its screenshot evidence here; do not
+guess a dp without the evidence.
+
+Spinners must **hold their fixed dp while being spun** (Arrow keys / wheel), including below
+1.0 — the step is floored at the field's own resolution so it never gains a decimal
+(`NumInput.vue` `stepAttr`, `directives/expoStep.ts`); guarded by the class-level test in
+`original-skin.browser.spec.ts`.
 
 | Field                   | WinISD example | dp  | Source screenshot    |
 | ----------------------- | -------------- | --- | -------------------- |
