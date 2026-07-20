@@ -335,7 +335,7 @@ const FIELDS: FieldSpec[] = [
   { id: 'SPLref', label: 'SPL', pane: 'Driver: Parameters', kind: 'number', unit: 'dB', precision: 2, provenance: 'calculated', modeled: false, appliesTo: 'all', description: 'Reference sensitivity SPL (WinISD 2 dp).' },
   { id: 'Voicecoils', label: 'Voicecoils', pane: 'Driver: Parameters', kind: 'number', unit: '', precision: 0, min: 1, max: 4, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Number of voice coils (WinISD integer). OpenISD single-VC only.' },
   { id: 'Connection', label: 'Connection', pane: 'Driver: Parameters', kind: 'enum', unit: '', provenance: 'entered', modeled: false, appliesTo: 'all', options: ['Parallel', 'Series'], description: 'Dual-VC wiring (WinISD). OpenISD models multi-driver wiring separately.' },
-  { id: 'AlfaVC', label: 'AlfaVC', pane: 'Driver: Advanced', kind: 'number', unit: '1000/K', precision: 4, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Voice-coil resistance temperature coefficient (WinISD 4 dp). Stored, not simulated.' },
+  { id: 'AlfaVC', label: 'AlfaVC', pane: 'Driver: Advanced', kind: 'number', unit: '1000/K', precision: 4, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Voice-coil resistance temperature coefficient. Editable in WinISD; labelled "Voice coil resistance TC" on the Driver placement pane (typical copper value 3.9000), "AlfaVC" on the editor Advanced tab; 4 dp. Stored, not simulated by OpenISD.' },
   { id: 'Rt', label: 'R(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'K/W', precision: 5, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Thermal resistance (WinISD 5 dp). Not simulated.' },
   { id: 'Ct', label: 'C(t)', pane: 'Driver: Advanced', kind: 'number', unit: 'J/K', precision: 5, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Thermal capacitance (WinISD 5 dp). Not simulated.' },
   { id: 'EBP', label: 'EBP', pane: 'Driver: Advanced', kind: 'number', unit: 'Hz', precision: 2, min: 0, provenance: 'calculated', modeled: true, appliesTo: 'all', formula: 'EBP = Fs/Qes', dependsOn: ['Fs', 'Qes'], description: 'Efficiency bandwidth product (WinISD 2 dp). OpenISD shows it as a gauge.' },
@@ -361,8 +361,8 @@ const FIELDS: FieldSpec[] = [
     provenance: 'entered', modeled: true, appliesTo: 'all',
     description: 'Number of drivers in the system (integer). Drives SPL summation.',
   },
-  { id: 'vcTempRise', label: 'Voice coil temp rise', pane: 'Driver', kind: 'number', unit: 'K', precision: 2, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Power-compression temperature rise (WinISD 2 dp). Not modelled.' },
-  { id: 'driverAddedMass', label: 'Added mass to cone', pane: 'Driver', kind: 'number', unit: 'g', precision: 2, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Driver-side added cone mass (WinISD kg 5 dp → g 2 dp). OpenISD models PR added mass only.' },
+  { id: 'vcTempRise', label: 'Voice coil temp rise', pane: 'Driver', kind: 'number', unit: 'K', precision: 2, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Voice-coil temperature rise for power-compression (editable in WinISD, shown 0.00 K, 2 dp). OpenISD does not model thermal power compression yet.' },
+  { id: 'driverAddedMass', label: 'Added mass to cone', pane: 'Driver', kind: 'number', unit: 'g', precision: 5, min: 0, provenance: 'entered', modeled: false, appliesTo: 'all', description: 'Driver-side added cone mass (editable in WinISD, shown 0.00000 g, 5 dp — native grams, NOT unit-adjusted). OpenISD models PR added mass only, not driver-side added mass.' },
 
   // ============================ FILTERS ============================
   // OpenISD models 4 filter types (highpass, lowpass, linkwitz, peaking). WinISD's filter fields
