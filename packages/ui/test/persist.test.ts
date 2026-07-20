@@ -80,7 +80,7 @@ describe('share link carries view context but not device/working state', () => {
     ui: {
       skin: 'classic',
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
-      originalTuneOpen: true, originalWhatIf: { inputs: {} },
+      originalTuneOpen: true, originalWhatIf: { inputs: {} }, originalEditorOpen: true,
     },
   } as unknown as AppState;
   const drv = Driver.fromWdr(wdrText).toJSON();
@@ -108,6 +108,7 @@ describe('share link carries view context but not device/working state', () => {
     assert.equal('skin' in ui!, false);                   // recipient keeps their own skin
     assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
     assert.equal('originalWhatIf' in ui!, false);
+    assert.equal('originalEditorOpen' in ui!, false);
     assert.equal(shared.box, 'sealed');                   // the design itself still travels
   });
 });

@@ -32,8 +32,13 @@ that is never finer than the field can show, so values below 1.0 no longer sprou
 decimals and the down-arrow no longer sticks near zero. A class-wide test spins every field in
 every box type to keep it that way. Verified across Modern and Classic too (shared code).
 
-Series resistance now reads to 3 dp (0.100 ohm) like WinISD; a field→decimal-places table in
-docs/winisd/INPUT_PARITY.md is the shared source of truth for the rest.
+Series resistance now reads to 3 dp (0.100 ohm) like WinISD. One place decides every field's
+decimal places. A typed field registry (packages/ui/src/fields/fieldRegistry.ts) is the source
+of truth the Original skin reads its NumInput precision from — no more per-field literals to
+drift — and a unit test anchors it back to the WinISD-screenshot evidence in
+docs/winisd/INPUT_PARITY.md. Each entry also carries the field's unit, provenance
+(entered/calculated), and — for calculated fields — its formula and dependencies, seeding a
+small knowledge graph of the design's quantities.
 
 Edit voltage OR power on the Signal tab. Driver input voltage is now editable and drives
 System input power (P = V²/Re), matching WinISD's bidirectional pair.
