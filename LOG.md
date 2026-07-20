@@ -8,6 +8,24 @@
 
 ---
 
+## 2026-07-20 — Original skin: truthful what-if + New-Project + spinner fixes
+
+Preview a driver tweak without lying about the save state. STATE_MODEL Increment 2 adds a
+driver what-if overlay: the charts and the Tune panel preview a live copy while the committed
+design — and so the Unsaved indicator — stays put until you press Keep. Cancel discards it.
+
+"New Project" now actually starts fresh. It previously kept the old design's filters, compare
+traces, power and vents; now it resets to defaults, warns before discarding unsaved changes,
+and asks for a project name first (shown in the titlebar and Project tab).
+
+Spinners stop showing gibberish precision. Every number field — via the shared NumInput and
+the v-expo-step directive — now holds its fixed decimal places while you spin and steps on a
+tidy power-of-ten grid, so the down-arrow no longer sticks near zero. Verified across Modern
+and Classic too, since the fix is in shared code.
+
+Edit voltage OR power on the Signal tab. Driver input voltage is now editable and drives
+System input power (P = V²/Re), matching WinISD's bidirectional pair.
+
 ## 2026-07-05 — .wpr project file schema documented
 
 Contributors building `.wpr` import/export (the gap called out in `COMPARISON.md`) now have a
