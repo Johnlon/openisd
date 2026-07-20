@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver } from '../store.js';
+import { precision as fieldDp } from '../fields/fieldRegistry.js';
 import { prTuning, prMassForFp, ventedAlignment } from '@openisd/engine';
 import NumInput from './NumInput.vue';
 
@@ -31,7 +32,7 @@ function close() { emit('close'); }
     <div class="whatif-hint">What-If: added mass updates the graph live.</div>
     <div class="row" title="Extra mass bolted to the PR cone. Shifts Fp down. WinISD: 'Added mass'.">
       <label>Added mass</label>
-      <NumInput v-model="state.P.prMadd" :scale="1000" :precision="1" />
+      <NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" />
       <span class="u">g</span>
     </div>
     <div class="row" title="Total moving mass = Mms + added mass.">

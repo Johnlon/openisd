@@ -13,34 +13,37 @@ import { computed, reactive, watch } from 'vue';
 import { state, driver, driverRaw, enterDriverField,
          startDriverWhatIf, keepDriverWhatIf, cancelDriverWhatIf, setWhatIfFromRaw } from '../../store.js';
 import { ebp } from '@openisd/engine';
+import { precision as fieldDp } from '../../fields/fieldRegistry.js';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
 // scale = display/SI factor (raw driver values are SI: Vas m³, Sd m², Le H, Xmax m).
-const MAIN: { key: NumKey; label: string; scale: number; dp: number; unit: string }[] = [
-  { key: 'Fs',  label: 'Fs',  scale: 1,    dp: 2, unit: 'Hz' },
-  { key: 'Qts', label: 'Qts', scale: 1,    dp: 3, unit: '' },
-  { key: 'Qes', label: 'Qes', scale: 1,    dp: 3, unit: '' },
-  { key: 'Qms', label: 'Qms', scale: 1,    dp: 2, unit: '' },
-  { key: 'Vas', label: 'Vas', scale: 1000, dp: 2, unit: 'l' },
-  { key: 'Sd',  label: 'Sd',  scale: 1e4,  dp: 1, unit: 'cm²' },
-  { key: 'Re',  label: 'Re',  scale: 1,    dp: 2, unit: 'Ω' },
+// Decimal places come from the field registry (fieldDp) — the single source of truth — so
+// these units' dp match every other skin. The units here MUST match the registry's unit.
+const MAIN: { key: NumKey; label: string; scale: number; unit: string }[] = [
+  { key: 'Fs',  label: 'Fs',  scale: 1,    unit: 'Hz' },
+  { key: 'Qts', label: 'Qts', scale: 1,    unit: '' },
+  { key: 'Qes', label: 'Qes', scale: 1,    unit: '' },
+  { key: 'Qms', label: 'Qms', scale: 1,    unit: '' },
+  { key: 'Vas', label: 'Vas', scale: 1000, unit: 'l' },
+  { key: 'Sd',  label: 'Sd',  scale: 1e4,  unit: 'cm²' },
+  { key: 'Re',  label: 'Re',  scale: 1,    unit: 'Ω' },
 ];
-const OPTIONAL: { key: NumKey; label: string; scale: number; dp: number; unit: string }[] = [
-  { key: 'Le',   label: 'Le',   scale: 1000, dp: 3, unit: 'mH' },
-  { key: 'Xmax', label: 'Xmax', scale: 1000, dp: 1, unit: 'mm' },
-  { key: 'Pe',   label: 'Pe',   scale: 1,    dp: 0, unit: 'W' },
+const OPTIONAL: { key: NumKey; label: string; scale: number; unit: string }[] = [
+  { key: 'Le',   label: 'Le',   scale: 1000, unit: 'mH' },
+  { key: 'Xmax', label: 'Xmax', scale: 1000, unit: 'mm' },
+  { key: 'Pe',   label: 'Pe',   scale: 1,    unit: 'W' },
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
 // "4" → "42" aren't reformatted out from under the caret); reformat on blur. Same
 // buffer pattern the shared DriverWhatIfPanel uses.
 const rawVals = reactive<Record<string, string>>({});
-function disp(key: NumKey, scale: number, dp: number): string {
+function disp(key: NumKey, scale: number): string {
   const v = driverRaw.value[key];
-  return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(dp) : '';
+  return typeof v === 'number' && isFinite(v) ? (v * scale).toFixed(fieldDp(key)) : '';
 }
-function fieldVal(key: NumKey, scale: number, dp: number): string {
-  return key in rawVals ? rawVals[key] : disp(key, scale, dp);
+function fieldVal(key: NumKey, scale: number): string {
+  return key in rawVals ? rawVals[key] : disp(key, scale);
 }
 function onField(key: NumKey, scale: number, e: Event) {
   const raw = (e.target as HTMLInputElement).value;
@@ -79,7 +82,7 @@ function reset()  { if (state.driverSource) setWhatIfFromRaw(state.driverSource)
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -90,7 +93,7 @@ function reset()  { if (state.driverSource) setWhatIfFromRaw(state.driverSource)
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale, f.dp)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
