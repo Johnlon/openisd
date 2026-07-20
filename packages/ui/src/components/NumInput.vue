@@ -60,10 +60,19 @@ function valid(v: number): boolean { return isFinite(v) && v >= props.min; }
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
   const v = parseFloat(t.value);   // display-space (already scaled)
-  // Typing → echo raw so the caret isn't disturbed. A spinner/arrow/wheel step → reformat
-  // to `precision` so the field never shows a long compounding float.
-  display.value = typing.value || !isFinite(v) ? t.value : v.toFixed(props.precision);
-  if (valid(v)) emit('update:modelValue', v / props.scale);   // reject < min (e.g. negatives)
+  if (typing.value || !isFinite(v)) {
+    display.value = t.value;                                   // raw echo while typing (caret-safe)
+    if (valid(v)) emit('update:modelValue', v / props.scale); // reject < min (e.g. negatives)
+    return;
+  }
+  // Spinner/arrow/wheel step: ROUND to precision so neither the model nor the field gains
+  // decimals, and force the DOM to the formatted string (the native spinner leaves it raw,
+  // and when the reformatted string is unchanged Vue's :value diff would not repaint it).
+  const rounded = Number(v.toFixed(props.precision));
+  const s = rounded.toFixed(props.precision);
+  display.value = s;
+  t.value = s;
+  if (valid(rounded)) emit('update:modelValue', rounded / props.scale);
 }
 
 function onBlur(e: Event) {
@@ -90,7 +99,11 @@ const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
   const dv = Math.abs(props.modelValue * props.scale);
   if (!(dv > 0)) return 'any';
-  return Math.pow(10, Math.floor(Math.log10(dv)) - 1);
+  const decade = Math.pow(10, Math.floor(Math.log10(dv)) - 1);
+  // Never finer than the field's own decimal places: a sub-precision step (e.g. 0.01 on a
+  // 1-dp field once the value drops below 1.0) would add decimals the field can't show and
+  // stall the arrow. Clamp up to 10^-precision.
+  return Math.max(decade, Math.pow(10, -props.precision));
 });
 </script>
 

@@ -18,7 +18,14 @@ import type { Directive } from 'vue';
 // (those are not live-connected and, per the UX rule, carry no spinners at all).
 function syncStep(el: HTMLInputElement): void {
   const v = Math.abs(parseFloat(el.value));
-  el.step = v > 0 ? String(Math.pow(10, Math.floor(Math.log10(v)) - 1)) : 'any';
+  if (!(v > 0)) { el.step = 'any'; return; }
+  const decade = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  // Clamp so the step is never finer than the decimals the field currently shows — otherwise
+  // a value below 1.0 would get a sub-display step (0.01 under "0.7") and gain a decimal.
+  // These raw inputs carry no `precision` prop, so infer the floor from the shown decimals.
+  const shownDp = (el.value.split('.')[1] || '').length;
+  const minStep = shownDp > 0 ? Math.pow(10, -shownDp) : 1;
+  el.step = String(Math.max(decade, minStep));
 }
 
 const HANDLER = Symbol('expoStepHandler');
