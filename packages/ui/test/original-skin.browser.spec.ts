@@ -215,6 +215,37 @@ test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per s
   expect(await readFs()).toBeCloseTo(before, 1); // Cancel reverted the what-if
 });
 
+test('a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+
+  const unsaved = page.locator('.unsaved-label');
+  await expect(unsaved).toBeHidden(); // fresh load = ground = clean
+
+  const readFs = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.driverRaw.value.Fs;
+  });
+  const before = await readFs();
+
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const tune = page.locator('.tune-panel');
+  const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
+  await fsInput.fill(String(before + 6));
+  await fsInput.dispatchEvent('input');
+
+  expect(await readFs()).toBeCloseTo(before + 6, 1); // effective driver previews the what-if live
+  await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied yet
+
+  await tune.locator('button', { hasText: 'Keep' }).click();
+  await expect(tune).toBeHidden();
+  await expect(unsaved).toBeVisible();               // Keep commits it → now modified
+  expect(await readFs()).toBeCloseTo(before + 6, 1); // and the value stuck
+});
+
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Tune' }).click();
