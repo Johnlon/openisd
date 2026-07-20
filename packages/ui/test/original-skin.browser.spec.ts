@@ -262,6 +262,17 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   expect(fs).toBeCloseTo(42, 1);
 });
 
+test('Original save bar is no taller than its buttons (compact legend)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const { legendH, btnH } = await page.evaluate(() => {
+    const legend = document.querySelector('.parstate-legend') as HTMLElement;
+    const btns = [...document.querySelectorAll('.parstate-legend .save-btn')] as HTMLElement[];
+    const btnH = Math.max(...btns.map((b) => b.getBoundingClientRect().height));
+    return { legendH: legend.getBoundingClientRect().height, btnH };
+  });
+  expect(legendH).toBeLessThanOrEqual(btnH + 4); // bar hugs the button height, no extra vertical bulk
+});
+
 test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   const re = await page.evaluate(async () => {
