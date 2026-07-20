@@ -238,7 +238,12 @@ watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
 onUnmounted(() => tone?.stop());
 
 // ---- Signal tab: drive voltage = √(Pin × Re) per driver ------------------------
-const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)));
+// Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
+// WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
+const driveV = computed<number>({
+  get: () => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)),
+  set: (v) => { state.P.Pin = (v * v) / (driver.value?.Re || 8); },
+});
 
 // ---- Advanced tab: environment (not modelled by the engine yet — honest static
 // defaults + one live derivation). The 5 checkboxes are inert placeholders, as in the
@@ -691,7 +696,7 @@ function cycleUnit(key: string, group: string) {
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
               <div class="field-row"><div class="field entered"><label>System input power</label><NumInput v-model="state.P.Pin" :scale="1" :precision="1" /><span class="unit">W</span></div></div>
-              <div class="field-row"><div class="field"><label>Driver input voltage (each)</label><input class="calculated greyed" :value="fmt(driveV, 1)" readonly><span class="unit">V</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Driver input voltage (each)</label><NumInput v-model="driveV" :scale="1" :precision="1" /><span class="unit">V</span></div></div>
               <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="state.P.Rs" :scale="1" :precision="1" /><span class="unit">ohm</span></div></div>
             </div>
           </div>

@@ -262,6 +262,25 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   expect(fs).toBeCloseTo(42, 1);
 });
 
+test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Signal' }).click();
+  const re = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.driver.value.Re;
+  });
+  const vInput = page.locator('.field', { hasText: 'Driver input voltage' }).locator('input');
+  await vInput.fill('20');
+  await vInput.dispatchEvent('input');
+  await vInput.blur();
+  const pin = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.state.P.Pin;
+  });
+  expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re
+});
+
 test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   const btn = page.locator('.edit-btn', { hasText: 'Select Driver' });
