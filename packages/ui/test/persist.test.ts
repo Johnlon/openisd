@@ -71,10 +71,18 @@ describe('persistence — provenance + carried fields survive a serialize round-
   });
 });
 
-// The chosen skin is a LOCAL preference — kept in localStorage but excluded from the
-// shareable URL, so a shared design adapts to the recipient's own device/skin.
-describe('skin preference is local-only', () => {
-  const skinState = { box: 'sealed', P: {} as UiParams, graphs: ['SPL'], ui: { skin: 'classic' } } as unknown as AppState;
+// A share link carries the shareable VIEW context (active tab, selected chart) so the
+// recipient lands on the same page — but NOT device-local prefs (skin) or personal working
+// state (an open editor + its uncommitted buffer). See the session-context decisions.
+describe('share link carries view context but not device/working state', () => {
+  const uiState = {
+    box: 'sealed', P: {} as UiParams, graphs: ['SPL'],
+    ui: {
+      skin: 'classic',
+      originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
+      originalTuneOpen: true, originalWhatIf: { inputs: {} },
+    },
+  } as unknown as AppState;
   const drv = Driver.fromWdr(wdrText).toJSON();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
@@ -86,13 +94,20 @@ describe('skin preference is local-only', () => {
     return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
   }
 
-  it('serialize() carries ui.skin so localStorage remembers it', () => {
-    assert.equal(serialize(skinState, drv, []).ui?.skin, 'classic');
+  it('serialize() carries the full ui (incl. skin) so localStorage remembers everything', () => {
+    assert.equal(serialize(uiState, drv, []).ui?.skin, 'classic');
   });
 
-  it('stateToUrl() omits ui — a shared link never forces a skin on the recipient', () => {
-    const shared = decodeShare(stateToUrl(serialize(skinState, drv, [])));
-    assert.equal('ui' in shared, false);
-    assert.equal(shared.box, 'sealed');  // the design itself still travels
+  it('stateToUrl() keeps active tab + chart but drops skin and the open-editor buffer', () => {
+    const shared = decodeShare(stateToUrl(serialize(uiState, drv, [])));
+    const ui = shared.ui as Record<string, unknown> | undefined;
+    assert.ok(ui, 'shareable view context (ui) travels');
+    assert.equal(ui!.originalProjectTab, 'signal');       // land on the same tab
+    assert.equal(ui!.originalChartTab, 'Excursion');      // and the same chart
+    assert.equal(ui!.originalChartLabel, 'Cone excursion');
+    assert.equal('skin' in ui!, false);                   // recipient keeps their own skin
+    assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
+    assert.equal('originalWhatIf' in ui!, false);
+    assert.equal(shared.box, 'sealed');                   // the design itself still travels
   });
 });

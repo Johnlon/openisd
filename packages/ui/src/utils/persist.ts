@@ -1,4 +1,4 @@
-import type { AppState, Design, DriverJSON, SerializedState } from '../types.js';
+import type { AppState, Design, DriverJSON, SerializedState, UiState } from '../types.js';
 
 const b64enc = (s: string) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64dec = (s: string) => decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
@@ -18,9 +18,16 @@ export function serialize(state: AppState, driver: DriverJSON, compare: Design[]
 }
 
 export function stateToUrl(serialized: SerializedState): string {
-  // Skin (and any other UI preference) is a LOCAL choice — exclude it from the shared
-  // link so a design opened by someone else adapts to THEIR device/skin, not the sender's.
-  const { ui: _ui, ...shareable } = serialized;
+  // A share link carries the shareable VIEW context (active tab, selected chart) so the
+  // recipient lands on the same page — but NOT device-local prefs (skin, which adapts to the
+  // recipient's own device) nor personal working state (an open editor + its uncommitted
+  // what-if buffer). Strip those from ui; keep the rest.
+  const { ui, ...rest } = serialized;
+  const shareable: Omit<SerializedState, 'ui'> & { ui?: Partial<UiState> } = rest;
+  if (ui) {
+    const { skin: _skin, originalTuneOpen: _t, originalWhatIf: _w, ...shareableUi } = ui;
+    shareable.ui = shareableUi;   // Partial<UiState> — skin + open-editor buffer dropped
+  }
   return location.origin + location.pathname + '#s=' + b64enc(JSON.stringify(shareable));
 }
 
