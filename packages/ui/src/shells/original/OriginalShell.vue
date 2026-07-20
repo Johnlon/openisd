@@ -20,6 +20,7 @@ import {
   state, driver, driverRaw, driverShort, pinCompare,
   syncedP, curvesData, maxData, driverErrors,
   isModified, markProjectSaved, resetProjectToGround,
+  isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
 } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
@@ -266,6 +267,24 @@ const newProjectOpen = ref(false);
 // Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
 function startTune() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriver = true; }
 function startEdit() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriverInfo = true; }
+
+// R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
+// reload. Original-scoped: only this shell reads/writes these state.ui fields, so Modern and
+// Classic refresh behaviour is unchanged (they never set originalTuneOpen). These live in
+// state.ui, so they persist to localStorage (refresh) but stateToUrl strips ui (excluded from
+// share links, per the session-context decisions).
+watch([isDriverWhatIfActive, whatIfJSON], ([active, json]) => {
+  state.ui.originalTuneOpen = active;
+  state.ui.originalWhatIf = active ? json : null;
+});
+// App.vue applies persisted state.ui AFTER this child mounts, so react when originalTuneOpen
+// lands: re-create the overlay from the saved buffer and re-open the Tune panel.
+watch(() => state.ui.originalTuneOpen, (open) => {
+  if (open && !isDriverWhatIfActive.value && state.ui.originalWhatIf) {
+    restoreDriverWhatIf(state.ui.originalWhatIf);
+    state.editDriver = true;
+  }
+}, { immediate: true });
 
 // ---- Decorative unit-cycling (mock parity): rotates the label text only, never
 // converts the value — identical to the mock's cycleUnit. Keyed per field. --------
