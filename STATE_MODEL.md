@@ -12,12 +12,19 @@ This governs unsaved-change tracking, what-if previews, edit dialogs, and — cr
 >   skin's Save bar is wired to it: an Unsaved indicator, **Save Changes** (adopt current as
 >   ground), **Reset state** (revert to ground). This is additive — components still read
 >   `state.P`/`state.box` directly; the layer only observes/restores them.
-> - **Increment 2 — what-if / edit priorityState proxy (TODO):** a constant-identity accessor
->   the reactive components read, delegating to the active layer. **What-if/modified/ground**
->   swap it (charts react live); **edit** does NOT (charts ignore the edit buffer until
->   Accept). Today what-if is already effectively handled per-editor (e.g. OgTune's live edit +
->   pre-open snapshot for Cancel); Increment 2 formalises it into the shared layer so every
->   editor and skin shares one implementation.
+> - **Increment 2 — driver what-if priorityState overlay (DONE):** `store.ts` holds a driver
+>   what-if overlay (`startDriverWhatIf` / `keepDriverWhatIf` / `cancelDriverWhatIf` /
+>   `setWhatIfFromRaw` / `isDriverWhatIfActive`). The **effective** accessors (`driver`,
+>   `driverRaw`, `driverErrors`) resolve to the overlay when active, else the committed model —
+>   this IS the priorityState indirection: reactive readers hang off the effective accessors and
+>   start/keep/cancel just swap which layer they resolve to. **`driverJSON` stays
+>   committed-only** (persistence + the ground fingerprint), so a live what-if previews on the
+>   charts but never dirties the modified/ground state until **Keep**. OgTune drives the
+>   lifecycle; Modern/Classic never start an overlay, so effective ≡ committed there (Invariant 1).
+> - **Increment 3 — edit-dialog buffer + box/params what-if (TODO):** the **edit** dialog
+>   (charts ignore the buffer until **Accept**) still runs through the shared DriverEditorModal;
+>   and the overlay is currently **driver-only** — box-type / param what-ifs are not yet routed
+>   through a layer. Both extend the same priorityState machinery.
 
 ## The state layers
 
