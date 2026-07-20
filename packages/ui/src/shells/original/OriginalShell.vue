@@ -754,6 +754,11 @@ function cycleUnit(key: string, group: string) {
    mock's `.field` field styling. */
 .original-root *, .original-root *::before, .original-root *::after { box-sizing: border-box; }
 .original-root {
+  /* Light-theme palette overrides — like .classic-root. Without these, reused
+     components + the global `button { color: var(--fg) }` reset inherit the app's
+     dark-theme --fg (near-white) and render invisibly on the skin's light fills. */
+  --bg:#f2f2f2; --panel:#f7f7f7; --panel2:#ececec; --line:#bbb;
+  --fg:#1a1a1a; --mut:#555; --acc:#1868d1; --acc2:#b8790f; --good:#1b7d1b; --bad:#b02a2a;
   --chart-bg:#ffffff; --chart-grid:#dde3ea; --chart-text:#5a6b7b;
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
