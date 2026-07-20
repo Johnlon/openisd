@@ -76,8 +76,15 @@ only presentation is per-skin.
 
 ### Modals — port the mock's markup, don't reuse shared components
 
-- [ ] **Filters tab** → mock `.filters-quickadd` list (currently mounts shared `FiltersPanel.vue`).
-- [ ] **Tune panel** → mock docked `.tune-panel` (currently shared `DriverWhatIfPanel.vue`).
+- [x] **Filters tab** → ported as `shells/original/OgFilters.vue` (mock `.filters-quickadd` +
+      `.filters-list`, wired to `state.P.filters`, 4 engine types only). **Follow-up:** port the
+      mock's docked, transactional Filter Editor (`.filter-editor`, Cancel/Done + snapshot revert)
+      instead of the current inline in-row editing.
+- [x] **Tune panel** → ported as `shells/original/OgTune.vue` (mock docked `.tune-panel`,
+      live what-if via `enterDriverField`, Keep/Cancel/Reset per `STATE_MODEL.md`). **Follow-ups:**
+      add the "Save to My Drivers" flow; the Entered/Calculated provenance legend + per-field
+      colour coding (from the ADT's provenance); unit-cycling on Fs/Vas/Sd/Xmax; derived-field
+      units/hints (Bl "T·m", EBP "→ sealed/vented").
 - [ ] **Driver Editor** → mock 4-tab `.modal-tabs` / `.param-grid` (currently shared `DriverEditorModal.vue`).
 - [ ] **Select Driver modal** → mock Library / My-Drivers picker table + action row (`mock/index.html:940-1011`); today opens shared `DriverBrowser.vue`.
 - [ ] **New Project wizard** → 2-step box-type / volume flow (`mock/index.html:889-938`); missing — New button currently opens the driver browser.

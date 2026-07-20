@@ -15,14 +15,18 @@ import { ref } from 'vue';
 import { state } from '../../store.js';
 import type { Filter, FilterType } from '@openisd/engine';
 
-const QUICK_ADD: { type: FilterType; label: string; badge: string }[] = [
-  { type: 'highpass', label: '+ HP',  badge: 'HP' },
-  { type: 'lowpass',  label: '+ LP',  badge: 'LP' },
-  { type: 'linkwitz', label: '+ LT',  badge: 'LT' },
-  { type: 'peaking',  label: '+ PEQ', badge: 'PEQ' },
+// Order follows the mock's quick-add row (LP, HP, …, LT, …, PEQ) with the four
+// engine-unsupported types (AP, Peak, DLP, Gain) omitted — see honesty note above.
+const QUICK_ADD: { type: FilterType; label: string }[] = [
+  { type: 'lowpass',  label: '+ LP' },
+  { type: 'highpass', label: '+ HP' },
+  { type: 'linkwitz', label: '+ LT' },
+  { type: 'peaking',  label: '+ PEQ' },
 ];
 const BADGE: Record<FilterType, string> = { highpass: 'HP', lowpass: 'LP', linkwitz: 'LT', peaking: 'PEQ' };
-// Same field defaults the shared FiltersPanel uses — one source of truth for the shape.
+// Mirrors the shared FiltersPanel's defaults. NOT a shared constant: single-sourcing it
+// would mean editing FiltersPanel (a Modern-rendered component), which Invariant 1 forbids
+// for a cosmetic reason — so this is a deliberate per-skin copy; keep in sync if either moves.
 const DEFAULTS: Record<FilterType, Record<string, number>> = {
   highpass: { fc: 80,  Q: 0.7071 },
   lowpass:  { fc: 200, Q: 0.7071 },
