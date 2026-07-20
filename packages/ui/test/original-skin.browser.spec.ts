@@ -429,3 +429,24 @@ test('the chosen skin is remembered across a reload (local preference)', async (
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
 });
+
+test('R1 refresh fidelity: box type, active tab, and selected chart survive a reload', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('sealed');
+  await page.locator('.project-nav li', { hasText: 'Signal' }).click();
+  await page.locator('.chart-select').click();
+  await page.locator('.chart-select .menu-item', { hasText: /^Cone excursion$/ }).click();
+
+  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('Cone excursion')); // persist flushed
+  await page.reload();
+
+  await expect(page.locator('.original-root')).toBeVisible();
+  await expect(page.locator('.project-nav li.active')).toHaveText('Signal');        // active tab restored
+  await expect(page.locator('.chart-select .chart-name')).toHaveText('Cone excursion'); // chart restored
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await expect(page.locator('select#og-box-type')).toHaveValue('sealed');           // box restored
+});
