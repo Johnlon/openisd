@@ -18,10 +18,19 @@ design — and so the Unsaved indicator — stays put until you press Keep. Canc
 traces, power and vents; now it resets to defaults, warns before discarding unsaved changes,
 and asks for a project name first (shown in the titlebar and Project tab).
 
-Spinners stop showing gibberish precision. Every number field — via the shared NumInput and
-the v-expo-step directive — now holds its fixed decimal places while you spin and steps on a
-tidy power-of-ten grid, so the down-arrow no longer sticks near zero. Verified across Modern
-and Classic too, since the fix is in shared code.
+Refreshing the page keeps your place. The design, active tab, and selected chart already
+survived a reload; now an open Tune with unsaved what-if values is restored too, reopened
+mid-edit exactly as you left it — without dirtying the project. (A shared-context share link
+that carries the same UI state is specified and next.)
+
+Spinners hold their precision, robustly. Every number field — via the shared NumInput and the
+v-expo-step directive — keeps its fixed decimal places while you spin and steps on a tidy grid
+that is never finer than the field can show, so values below 1.0 no longer sprout extra
+decimals and the down-arrow no longer sticks near zero. A class-wide test spins every field in
+every box type to keep it that way. Verified across Modern and Classic too (shared code).
+
+Series resistance now reads to 3 dp (0.100 ohm) like WinISD; a field→decimal-places table in
+docs/winisd/INPUT_PARITY.md is the shared source of truth for the rest.
 
 Edit voltage OR power on the Signal tab. Driver input voltage is now editable and drives
 System input power (P = V²/Re), matching WinISD's bidirectional pair.
