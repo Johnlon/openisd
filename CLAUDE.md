@@ -1,7 +1,7 @@
 # Claude Code rules for this project
 
 > [!IMPORTANT]
-> **Coding Patterns & Guidelines**: The agent **MUST** read and adhere to the active patterns listed in [CODING_PATTERNS.md](file:///home/john/work/winisd/openisd/CODING_PATTERNS.md) whenever writing, refactoring, or reviewing application code.
+> **Coding Patterns & Guidelines**: The agent **MUST** read and adhere to the active patterns listed in [DEVELOPMENT.md §8 "Standing coding patterns"](file:///home/john/work/winisd/openisd/DEVELOPMENT.md) whenever writing, refactoring, or reviewing application code.
 
 ## Quality gates — non-negotiable
 
@@ -206,6 +206,8 @@ Before starting any server: kill the target port first with `bash scripts/kill-h
 - **After starting, verify the page loads.** `curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/` → must be 200.
 - **Unregister any stale service worker** before handing off to the user — run `const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs) await r.unregister();` on `http://localhost:4200`.
 
+- **Test/dev-server infrastructure issues self-heal in the scripts — never surface them to the human.** Port-in-use, a stale Playwright server on 4100, a leftover process — these are not findings to report or ask about. Fix them once, in the shell scripts, so they never recur (e.g. `health-check.sh` frees port 4100 before `npx playwright test`, since Playwright's `reuseExistingServer:false` errors on a busy port before running its own kill). If such an issue appears, the correct response is to harden the script, not to explain the issue.
+
 ---
 
 ## Driver collection subdirectories — hard rule
@@ -237,7 +239,7 @@ Before starting work, always read:
 - `PLAN.md` — re-architecture phases and scope guards (read before touching `packages/engine/src/` or any structural change)
 - `ARCHITECTURE.md` — hard architectural decisions
 - `DEVELOPMENT.md` — coding practices and testing contract
-- For driver data tasks: `WDR_SCHEMA.md`, `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md`
+- For driver data tasks: `WDR_SCHEMA.md` (incl. its "Appendix — file model & link-field workflows")
 - For WinISD-related tasks: `WINISD.md`
 
 **Load the relevant context file for the task domain:**
@@ -301,7 +303,7 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 ## Auto-Documentation of Behavioral Constraints and Coding Patterns — standing rule
 
 - Whenever the user tells the agent to **stop** doing something behavioral (or corrects their interaction/behavior), the agent **MUST** immediately append that constraint as a new standing rule in `CLAUDE.md`.
-- Whenever the user instructs, corrects, or defines a **coding pattern**, the agent **MUST** immediately document it inside [CODING_PATTERNS.md](file:///home/john/work/winisd/openisd/CODING_PATTERNS.md).
+- Whenever the user instructs, corrects, or defines a **coding pattern**, the agent **MUST** immediately document it inside [DEVELOPMENT.md §8 "Standing coding patterns"](file:///home/john/work/winisd/openisd/DEVELOPMENT.md).
 
 ## Bug/Discrepancy Investigation vs. Fixing Boundaries — standing rule
 
