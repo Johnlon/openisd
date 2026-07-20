@@ -7,12 +7,12 @@
 
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + unit + golden + browser) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
 
-| Domain                           | Gate              | Command                                 |
-| -------------------------------- | ----------------- | --------------------------------------- |
-| JS core (`packages/engine/src/`) | unit tests        | `npm run test:unit`                     |
-| JS UI (Vue/Playwright)           | browser suite     | `npx playwright test`                   |
-| All code                         | lint              | `npm run lint` (0 errors)               |
-| All                              | full health check | `bash scripts/health-check.sh`          |
+| Domain                           | Gate              | Command                        |
+| -------------------------------- | ----------------- | ------------------------------ |
+| JS core (`packages/engine/src/`) | unit tests        | `npm run test:unit`            |
+| JS UI (Vue/Playwright)           | browser suite     | `npx playwright test`          |
+| All code                         | lint              | `npm run lint` (0 errors)      |
+| All                              | full health check | `bash scripts/health-check.sh` |
 
 The scraping pipeline and its own pytest/DQ gates live in the sibling `winisd_tools`
 repo, not here — see its own `CLAUDE.md`.
@@ -78,19 +78,18 @@ repos, not here.
 - Commit messages describe the change only — no AI authorship metadata of any kind.
 
 ## Zero Data-Loss and Human Authorization Guardrail — absolute rule
- 
+
 Under no circumstances may an AI agent or script perform any destructive operation, edit, or deletion that results in a loss of historical metadata, technical parameters, file telemetry, logs, or timestamps (such as `.done` file timestamps or database entries).
- 
- 
-*   **Mandatory Human Confirmation**: To execute any destructive operation or cleanup, the AI must first present a detailed dry-run or backup log highlighting exactly what data is at risk of being lost, and the human **must explicitly state** that it is OK to lose that given value or set of values (e.g., using exact confirming words like "it is OK to lose those values") before any such change is planned or executed on disk.
- 
+
+- **Mandatory Human Confirmation**: To execute any destructive operation or cleanup, the AI must first present a detailed dry-run or backup log highlighting exactly what data is at risk of being lost, and the human **must explicitly state** that it is OK to lose that given value or set of values (e.g., using exact confirming words like "it is OK to lose those values") before any such change is planned or executed on disk.
+
 ## Rigorous Analysis and Verification — hard rule
- 
+
 To prevent critical miscommunications and errors, the AI agent must never guess, assume, or provide theoretical/hearsay answers about the state of files, directories, or database records.
- 
-*   **Default Behavior (Full Analysis)**: Unless the user explicitly asks to "sample", "find some", "find a", or "where can I see", any question or request regarding data, discrepancies, or file system state **MUST** be treated as a directive to perform a full-scale, database-wide programmatic scan/analysis.
-*   **Verification Prior to Response**: The agent must physically execute verification scripts or CLI checks on the entire target dataset to obtain empirical ground-truth before making any claims or declarations in chat.
- 
+
+- **Default Behavior (Full Analysis)**: Unless the user explicitly asks to "sample", "find some", "find a", or "where can I see", any question or request regarding data, discrepancies, or file system state **MUST** be treated as a directive to perform a full-scale, database-wide programmatic scan/analysis.
+- **Verification Prior to Response**: The agent must physically execute verification scripts or CLI checks on the entire target dataset to obtain empirical ground-truth before making any claims or declarations in chat.
+
 ---
 
 ## AI-locked files
@@ -151,6 +150,8 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 **Why:** an absolute OS temp path is invisible to the repo, breaks on any other machine/OS, and is easy to forget to clean up. `build/` is git-ignored (`.gitignore`) so nothing there is ever committed, but it stays inside the project tree — inspectable, relative-pathed, and obviously disposable.
 
 **How to apply:** when writing a quick exploration script (e.g. probing an external site's form fields, a scratch computation) or redirecting command output for later reading, write it to `build/<descriptive-name>` and delete it once its job is done. Never invent a path under `$TEMP`/`%TEMP%`/`/tmp` for anything project-related.
+
+**Standing order — the release build purges `build/`.** `scripts/build-release.sh` wipes `build/` wholesale at its start (recreating it empty) so stale scratch never accumulates. `build/` holds nothing the build needs (dist → `packages/ui/dist/`), so a clean-slate release build is always safe. Don't stash anything you want to keep in `build/` across a release build.
 
 ---
 
@@ -241,14 +242,14 @@ Before starting work, always read:
 
 **Load the relevant context file for the task domain:**
 
-| Task type                                                      | Load                                                                         |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Python scraper work (parsing, extraction, field mapping)       | sibling `winisd_tools` repo — its `scraping-rules.md` · `testing-python.md`  |
-| Driver data files (WDR / `_meta.yml`)                          | `.claude/context/driver-data-rules.md`                                       |
-| JS core functions (`packages/engine/src/`, engine, alignments) | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`     |
-| Vue components, CSS, stores, UI wiring                         | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`           |
-| JS I/O or calculation functions (engine.js, loaders)           | `.claude/context/js-patterns.md`                                             |
-| Any change claimed "ready to check"                            | `.claude/context/testing-js-ui.md` (post-deploy smoke test)                  |
+| Task type                                                      | Load                                                                        |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Python scraper work (parsing, extraction, field mapping)       | sibling `winisd_tools` repo — its `scraping-rules.md` · `testing-python.md` |
+| Driver data files (WDR / `_meta.yml`)                          | `.claude/context/driver-data-rules.md`                                      |
+| JS core functions (`packages/engine/src/`, engine, alignments) | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`    |
+| Vue components, CSS, stores, UI wiring                         | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`          |
+| JS I/O or calculation functions (engine.js, loaders)           | `.claude/context/js-patterns.md`                                            |
+| Any change claimed "ready to check"                            | `.claude/context/testing-js-ui.md` (post-deploy smoke test)                 |
 
 ---
 
@@ -305,6 +306,7 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 ## Bug/Discrepancy Investigation vs. Fixing Boundaries — standing rule
 
 When a user points the agent at a file, directory, log, or code discrepancy to draw attention to it, ask an exploratory question, or explicitly state that a bug exists, this is **NOT** an instruction to start changing or fixing things. Under these circumstances:
+
 - The agent **MAY** investigate, search, audit, write analysis/probing scripts, and explain findings in full.
 - The agent **MUST** present the user with a clear, structured list of options/recommendations for next steps.
 - The agent **MUST NOT** initiate any code fixes, directory structural cleanups, restorations, file deletions, or database writes.
@@ -320,7 +322,7 @@ When a user points the agent at a file, directory, log, or code discrepancy to d
 ## Traceable Claims (Verification Links) — standing rule
 
 - If making any claims about file contents, URLs, or data, the agent **MUST** provide the exact reference URL or local file path with line numbers (`file:///absolute/path/to/file#L123-L145`) so the human can instantly understand and verify.
-  - *Example*: "The scraper resolved the incorrect PDF URL [https://doc.soundimports.nl/...pdf](https://doc.soundimports.nl/pdf_visaton.pdf) on the distributor page [https://www.soundimports.eu/...html](https://www.soundimports.eu/visaton.html) as recorded in [phase2_resolve/discover.py:L198-L215](file:///home/john/work/winisd/winisd_tools/phase2_resolve/discover.py#L198-L215)."
+  - _Example_: "The scraper resolved the incorrect PDF URL [https://doc.soundimports.nl/...pdf](https://doc.soundimports.nl/pdf_visaton.pdf) on the distributor page [https://www.soundimports.eu/...html](https://www.soundimports.eu/visaton.html) as recorded in [phase2_resolve/discover.py:L198-L215](file:///home/john/work/winisd/winisd_tools/phase2_resolve/discover.py#L198-L215)."
 
 ## Root Cause Analysis Focus — standing rule
 
@@ -337,6 +339,7 @@ When a user points the agent at a file, directory, log, or code discrepancy to d
 ## driver-type enum parity — cross-repo hard rule
 
 The closed set of `driver_type` values is declared as an enum in BOTH sibling repos:
+
 - TypeScript (the values this UI's `classifyTypes()` reads): `packages/ui/src/driverType.ts` — `DriverType`.
 - Python (the SSOT the scraper writes into `_meta.yml`): `../winisd_tools/scrapers/scrapers/driver_type.py` — `DriverType`.
 

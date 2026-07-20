@@ -11,6 +11,16 @@ echo "========================================"
 echo "  Release build — $(date '+%H:%M:%S')"
 echo "========================================"
 
+# Standing order: a release build starts from a clean scratch dir. build/ is the repo-local,
+# gitignored throwaway (screenshots, probe scripts, stale nested checkouts) — purge it wholesale
+# so old crap never accumulates. Nothing the release build produces lives here (dist → packages/ui/dist/).
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -d "$ROOT/build" ]; then
+  echo "  Cleaning scratch: removing build/ ($(du -sh "$ROOT/build" 2>/dev/null | cut -f1 || echo '?'))"
+  rm -rf "$ROOT/build"
+fi
+mkdir -p "$ROOT/build"   # keep the empty dir as the sanctioned scratch location
+
 GITHUB_PAGES=true npm run build
 
 echo "========================================"
