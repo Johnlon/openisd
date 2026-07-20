@@ -9,7 +9,7 @@ the mock's fake state. The vehicle already exists — the **`original` skin**
 ## Source of truth
 
 - Target: `mock/index.html` (~1190 lines), `mock/script.js` (~1263), `mock/style.css` (~644).
-- Design intent: `mock/MOCK_DESIGN.md`, `mock/MOCK_PROMPTS.md`.
+- Design intent: `mock/MOCK_DESIGN.md`, `archive/MOCK_PROMPTS.md`.
 - Port under audit: `packages/ui/src/shells/original/OriginalShell.vue`.
 - Audit mandate: `.claude/agents/arch-reviewer.md` **step 3a** (Original ↔ mock fidelity).
 - Fine-grained divergences (with mock line numbers): `CODE_REVIEW/ARCH_REVIEW_LOG.md` §3a.

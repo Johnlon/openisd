@@ -43,7 +43,7 @@ human reader?":
   that can't be hit or hides the real error, a Vue reactivity trap (mutating a prop,
   a missing `:key`, a computed with side effects).
 - **CLEAN-code & house rules (hard rules — a breach is a finding).** From `CLAUDE.md` and
-  `CODING_PATTERNS.md`: **never `eslint-disable`**, never rename to `_foo` to dodge
+  `DEVELOPMENT.md` §8 "Standing coding patterns": **never `eslint-disable`**, never rename to `_foo` to dodge
   no-unused-vars, never delete code to silence lint; TS `strict` with no new type gaps;
   no `console` in engine (UI: warn only); errors raised loudly, never silently
   defaulted/masked; no fabricated test data or softened assertions; no dated/changelog

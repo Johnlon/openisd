@@ -10,7 +10,7 @@ run them all, only pausing for a genuine design/scope decision that is the human
 
 ## 1. Figure it out & implement
 - Scope the change: read the relevant code, find the right place (reuse existing
-  helpers/patterns; obey `CLAUDE.md` + `CODING_PATTERNS.md` + `ARCHITECTURE.md`).
+  helpers/patterns; obey `CLAUDE.md` + `DEVELOPMENT.md` §8 "Standing coding patterns" + `ARCHITECTURE.md`).
 - Make the edits. Write the failing test FIRST (this repo is TDD, red→green). Work on
   `dev` (never commit/push `main`).
 - Run the relevant tests + `npm run lint` + `npm run typecheck` on the change until GREEN

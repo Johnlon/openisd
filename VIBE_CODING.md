@@ -135,7 +135,7 @@ Result: a clear message ("driver needs Qms to derive Bl") instead of a blank
 graph — _fast, loud, near the cause._ No formula changes.
 
 Full design: `CODE_REVIEW/ENGINE_HARDENING.md`.
-Action checklist: `CODE_REVIEW/ENGINE_HARDENING_TODO.md`.
+Action checklist: the "TODO" section of `CODE_REVIEW/ENGINE_HARDENING.md`.
 
 ## Don't take this document's word for it
 

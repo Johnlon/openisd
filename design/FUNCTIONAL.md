@@ -10,11 +10,10 @@ physics (SPL, transfer function, impedance, cone excursion, port velocity, group
 with filters/signal-chain and shareable state.
 
 ## Authoritative sources
-- **`../FEATURES.md`** — feature list / capabilities.
-- **`../WINISD_OPENISD_COMPARISON.md`** — feature parity vs WinISD & web tools.
-- **`../OTHER_TOOLS.md`**, **`../SPEAKER_TOOL_LANDSCAPE.md`** — the tool landscape.
-- **`../BACKLOG.md`** — prioritised functional backlog (what's built / next).
+- **`../FEATURE_COMPARISON.md`** — the consolidated feature/tool-comparison reference
+  (merged 2026-07-20 from FEATURES.md + WINISD_OPENISD_COMPARISON.md + OTHER_TOOLS.md +
+  SPEAKER_TOOL_LANDSCAPE.md — one section per former doc): capabilities, WinISD parity,
+  web-alternatives matrices, external-tool research, landscape survey.
+- **`../BACKLOG.md`** — prioritised functional backlog (what's built / next; also carries
+  the ad-hoc notes merged from WIP.md, 2026-07-20).
 - **`../REFERENCES.md`** — the physics theory canon + test oracles the calculations honour.
-
-*(Plan §B: merge FEATURES + WINISD_OPENISD_COMPARISON + OTHER_TOOLS + SPEAKER_TOOL_LANDSCAPE
-into one `FEATURE_COMPARISON.md` reference companion to this hub.)*

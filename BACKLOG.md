@@ -66,7 +66,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 - [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
-- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `CLASSIC-SKIN-review.md` #2. `[ui]`
+- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `archive/CLASSIC-SKIN-review.md` #2. `[ui]`
 
 - [ ] **Classic-skin vented view — support both rectangular and circular ports.** The classic (WinISD) skin's Vented/Bandpass port fields (`BoxPanel.vue` `showType`, rendered on `ClassicShell.vue`'s dynamic 3rd rail tab) only model a single **circular** vent (`state.P.ventD` diameter + `ventL` length; `fb` computed from `π·(ventD/2)²`). WinISD lets the user choose a **rectangular** (slot) port as well, entered as width × height instead of diameter. Add a port-shape selector and rectangular dimensions, feed the resulting port cross-sectional area into the shared tuning math (`tuningFromLength` / `ventLength` already take an area, so the engine needs no change — only the area derivation and the UI inputs). Applies to both `vented` and `bandpass4`. `[ui]`
 
@@ -230,7 +230,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 ## Enclosure types & box model
 
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set). Route `Ql`/`Qa`/`Qp` into the vented & bandpass transfer function — QSpeakers' `system.cpp` `response()` shows the loss-Q coefficients explicitly (reimplement from the physics, not the GPL code).
-- [ ] **P1** `F3` (−3 dB) read-out — the engine surfaces `fc` (system resonance) only; add the true −3 dB frequency. Sealed closed form: `F3 = fc·√((1/Qtc²−2+√((2−1/Qtc²)²+4))/2)` (equals `fc` only at Qtc=0.707). This is a display gap, **not** a calc bug: external tools' higher f3 (SpeakerBoxLite 74.5, lautsprechershop 81) come from empirical/leakage models, while our `fc` matches the theoretical −3 dB — see `REPORT_ORACLE_CROSSCHECK.md`.
+- [ ] **P1** `F3` (−3 dB) read-out — the engine surfaces `fc` (system resonance) only; add the true −3 dB frequency. Sealed closed form: `F3 = fc·√((1/Qtc²−2+√((2−1/Qtc²)²+4))/2)` (equals `fc` only at Qtc=0.707). This is a display gap, **not** a calc bug: external tools' higher f3 (SpeakerBoxLite 74.5, lautsprechershop 81) come from empirical/leakage models, while our `fc` matches the theoretical −3 dB — see `archive/REPORT_ORACLE_CROSSCHECK.md`.
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
@@ -313,17 +313,17 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 ## Learning & docs
 
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
-- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `WINISD_OPENISD_COMPARISON.md` + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
+- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `FEATURE_COMPARISON.md` (§"Merged from WINISD_OPENISD_COMPARISON.md") + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)
 - [ ] **P3** Worked-example tutorial
 
 ## Quality / infrastructure
 
 - [ ] **P1** Fix existing code-review / vibe-coding issues before adding new features — run `/code-review` and clear all findings first
-- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); Python: add `ruff` + `import-linter`; see `OTHER_TOOLS.md`
+- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); Python: add `ruff` + `import-linter`; see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md")
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
-- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `PLAN_DRIVER_ADT.md`
+- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `archive/PLAN_DRIVER_ADT.md`
 
 Data-pipeline backlog items (schema/DQ unification, universal value provenance,
 per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
@@ -333,3 +333,66 @@ per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
 
 - [ ] **P3** Replace `has_woofer` / `has_tweeter` booleans with a single `sections: [...]` array in the drivers bundle. Today `scripts/bundle-drivers.mjs:85-86` bakes two booleans by regex-testing the `_meta.yml` sidecar for `specs.woofer` / `specs.tweeter` section keys (i.e. they are _literally_ "does `specs.<section>` exist"), consumed by `packages/ui/src/components/DriverBrowser.vue` `classifyTypes()` (`:119` coax = `hasWoofer && hasTweeter`, `:122` tweet fallback, `:134` woofer fallback). Asymmetry: there is **no** `has_passive_radiator` — PR is handled only via name-regex/`driver_type`. A `sections` array (faithful projection of the sidecar's `specs.*` keys) is more consistent (absorbs `passive_radiator` and any future section with no new field), extends without schema churn, and simplifies the coax test to `sections.includes('woofer') && sections.includes('tweeter')`. Processing is not harder (`.includes()` ≈ boolean). Cost: small bundle-size increase (omit when empty, as booleans are already omitted when false). Two-file change: producer `bundle-drivers.mjs` + consumer `DriverBrowser.vue`. Prompted 2026-07-17.
 - [ ] **P3** Shared driver-type taxonomy (single source of truth) — cross-repo with `winisd_tools`. `classifyTypes()`'s `driver_type → chips` slice duplicates the `driver_type → spec section` mapping the scraper already owns in `winisd_tools` `emit_metadata.py` `_specs_for()`. A canonical taxonomy table (`driver_type → {section, chips, search synonyms}`) consumed by both the Python emitter and this bundle build would de-duplicate the `driver_type` fact. The name-regex + Fs/Sd numeric fallbacks (`DriverBrowser.vue:145-147`) must stay — they classify sources with a missing/unreliable `driver_type` (matt/, PE, community) that no lookup can cover. Full write-up in `winisd_tools/TODO.md` (New-pipeline backlog).
+
+---
+
+## Ad-hoc notes (merged from WIP.md, 2026-07-20)
+
+
+---
+
+## Open — do these next
+
+### 0. Resume `mock/` — WinISD UI mockup (logic-free HTML/CSS/JS)
+
+A static, calculation-free mockup of the WinISD UI lives in `mock/` (not part
+of the real app — pure look-alike screens with fake values), committed on
+`dev`. Read `archive/MOCK_PROMPTS.md` (verbatim prompt history) and
+`mock/MOCK_DESIGN.md` (design decisions + open questions, including
+unresolved ones like the Box/Vents-tab merge) before continuing.
+
+Landed already (don't redo): 2x2 quadrant layout with book-of-tabs nav
+(Box tab now first, before Driver), fills the browser frame with no
+scrolling, Driver Editor modal (all 4 tabs column-aligned, with an in-UI
+banner distinguishing "editing the project's embedded driver" vs "editing a
+My Drivers entry directly"), a full Select Driver picker modal (search +
+spec table, plus a working My Drivers tab) — not a dropdown, the Tune
+reactive-minimal overlay (custom accelerating spinners, not native), and
+Standard/Iso-Barik driver-placement illustrations. The old popup Filter
+Editor modal is gone — filters are now inline, reactive rows on the Filters
+tab (quick-add buttons, spin-field inputs, inline delete). Exponential-accel
+spinners, clickable unit-cycling labels, and the Entered/Calculated/Not-
+available ParState legend are now applied across every tab and the Tune
+panel, not just the Driver Editor modal. A Manage Drivers toolbar menu
+(Customise/Save-as-new/Edit-custom/Delete-custom/Disable-custom) drives an
+in-memory "My Drivers" list. Multi-project chart traces are generalized via
+`data-project`/`data-trace-for` attributes — both projects' checkboxes now
+independently show/hide their own SPL and transfer-function traces. The
+Driver Editor modal now has three distinct modes with their own footer
+buttons (project / My Drivers / a standalone toolbar-opened editor that
+starts blank and supports Load-from-disk, Save-as-to-disk, and
+Create-Box-from-this-driver). The Box tab's enclosure selector is a 6-type
+dropdown (Sealed/Vented/Passive Radiator/4th/6th/8th-order bandpass), each
+wired to its own Box-tab chamber layout and Vents-tab vent sections
+(including the ABC illustration with the driver on the larger chamber's
+baffle).
+
+Still open:
+
+- Box tab / Vents-tab merge (see MOCK_DESIGN.md open question) — recommended
+  but not yet actioned.
+
+### 1. Signal chain / EQ (P1 in backlog)
+
+Filters panel (HP, LP, Linkwitz, Peaking EQ) is already fully implemented in the UI
+(`FiltersPanel.vue`) and engine (`filters.ts`). High-shelf and low-shelf are NOT yet
+built. Listening distance is fixed at 1 m (not user-configurable yet).
+
+---
+
+## Reference — architecture decisions
+
+- `matt/` collection is human-curated — never touch without explicit per-session permission.
+- All calculation changes require explicit human approval before touching `packages/engine/src/`.
+- Two valid authorities for any sidecar field: (1) scraper writes at scrape time from HTML/PDF;
+  (2) `write_driver()` computes at write time from already-extracted fields. No third option.

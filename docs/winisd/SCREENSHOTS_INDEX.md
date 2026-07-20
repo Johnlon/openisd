@@ -8,7 +8,7 @@ Index of the reference screenshots in `docs/winisd/`, grouped by area. Each row 
 | ------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `view_1_driver_drivers_standard.png`        | Driver tab, Standard placement  | Brand/Model, Placement (Standard/Iso-Barik), Num. of drivers, Voice coil connection, Advanced options (temp rise, VC resistance TC, added mass) | [info/view_1_driver_drivers_standard.md](info/view_1_driver_drivers_standard.md)   |
 | `view_1_driver_drivers_iso-barik.png`       | Driver tab, Iso-Barik placement | Same pane with Iso-Barik selected — pair(s) unit suffix, criss-cross wiring icon, two-project overlay                                           | [info/view_1_driver_drivers_iso-barik.md](info/view_1_driver_drivers_iso-barik.md) |
-| `view_1_driver_drivers_standard_actual.png` | —                               | **Not a WinISD screenshot.** OpenISD's own Classic-skin comparison capture; see [CLASSIC-SKIN-review.md](../../CLASSIC-SKIN-review.md)          | —                                                                                  |
+| `view_1_driver_drivers_standard_actual.png` | —                               | **Not a WinISD screenshot.** OpenISD's own Classic-skin comparison capture; see [archive/CLASSIC-SKIN-review.md](../../archive/CLASSIC-SKIN-review.md)          | —                                                                                  |
 
 ## Driver editor (modal dialog, 4 tabs)
 

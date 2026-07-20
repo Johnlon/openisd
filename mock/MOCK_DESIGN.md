@@ -1,7 +1,7 @@
 # Mock design notes / open questions
 
 Running tracker for design decisions and open questions raised while building
-`mock/`. Distinct from `MOCK_PROMPTS.md` (verbatim prompt log) — this file is
+`mock/`. Distinct from `../archive/MOCK_PROMPTS.md` (verbatim prompt log) — this file is
 the _answers and decisions_, kept up to date as things get resolved.
 
 ## Answered questions

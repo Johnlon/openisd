@@ -136,3 +136,14 @@ npm run lint
 ```
 
 CI runs lint, unit tests, and Playwright on every push.
+
+---
+
+## 8. Standing coding patterns (merged from CODING_PATTERNS.md, 2026-07-20)
+
+This section maintains version-controlled coding patterns and design systems for the OpenISD application.
+
+### Domain-Specific Testing
+
+- Core TS logic (`packages/engine/src/`): unit tests in vitest (`npm run test:unit`)
+- UI and E2E integration: Playwright tests (`npx playwright test`)
