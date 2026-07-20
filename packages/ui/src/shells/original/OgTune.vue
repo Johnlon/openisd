@@ -10,8 +10,8 @@
  * single-sourced in the store/ADT.
  */
 import { computed, reactive, watch } from 'vue';
-import { state, driver, driverRaw, enterDriverField, setDriverFromRaw } from '../../store.js';
-import type { DriverRaw } from '@openisd/engine';
+import { state, driver, driverRaw, enterDriverField,
+         startDriverWhatIf, keepDriverWhatIf, cancelDriverWhatIf, setWhatIfFromRaw } from '../../store.js';
 import { ebp } from '@openisd/engine';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
@@ -55,15 +55,16 @@ const mms = computed(() => driver.value?.Mms ?? null);
 const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
-// Snapshot the driver as Tune opens; Cancel reverts to exactly this (pre-Tune) state.
-// The watch (immediate) survives a future switch from v-if to v-show, matching the
-// shared DriverWhatIfPanel's pattern.
-let snapshot: DriverRaw = { ...driverRaw.value };
-watch(() => state.editDriver, (open) => { if (open) snapshot = { ...driverRaw.value }; }, { immediate: true });
+// Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview
+// live but the committed project stays clean until Keep (STATE_MODEL what-if ≠ modified).
+// The watch (immediate) survives a future switch from v-if to v-show.
+// On close by any path other than Keep (which commits+clears first), discard the overlay so
+// a stray close can never strand the charts on an abandoned what-if.
+watch(() => state.editDriver, (open) => { if (open) startDriverWhatIf(); else cancelDriverWhatIf(); }, { immediate: true });
 
-function keep()   { state.editDriver = false; }                      // live edits already applied → keep
-function cancel() { setDriverFromRaw(snapshot); state.editDriver = false; } // revert what-if
-function reset()  { if (state.driverSource) setDriverFromRaw(state.driverSource); } // back to library values
+function keep()   { keepDriverWhatIf();   state.editDriver = false; } // commit what-if → modified
+function cancel() { cancelDriverWhatIf(); state.editDriver = false; } // discard what-if overlay
+function reset()  { if (state.driverSource) setWhatIfFromRaw(state.driverSource); } // overlay ← library values
 </script>
 
 <template>

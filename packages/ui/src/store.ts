@@ -1,4 +1,4 @@
-import { reactive, computed, ref, watch } from 'vue';
+import { reactive, computed, ref, shallowRef, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
 import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
@@ -77,29 +77,81 @@ export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undef
   if (d && typeof d === 'object' && 'inputs' in d) setModel(DriverModel.fromJSON(d as DriverJSON));
   else setModel(DriverModel.fromRaw((d ?? {}) as DriverRaw));
 }
-/** Route a single per-field edit through the ADT (what-if input, rename). */
-export function enterDriverField(field: string, value: number | string): void { _model.enter(field, value); }
-export function clearDriverField(field: string): void { _model.clear(field); }
+// ---- What-if overlay (STATE_MODEL.md, Increment 2) ---------------------------------
+// A driver-only what-if is a live COPY of the committed model. While active, the charts,
+// StatBar, and the open editor read the copy (via the effective accessors below), so the
+// preview updates live; but the committed `_model` — and therefore persistence and the
+// ground fingerprint — is untouched, so scrubbing a what-if never dirties the project.
+// `priorityState` (STATE_MODEL): the effective model IS the highest-priority layer that
+// exists — what-if overlay when active, else the committed model. Reactive readers hang off
+// the effective accessors; start/keep/cancel just swap which layer they resolve to.
+// Modern/Classic never start a what-if here, so effective ≡ committed there (Invariant 1).
+const _whatIf       = shallowRef<DriverModel | null>(null);
+const _whatIfVersion = ref(0);
+let _whatIfUnsub: (() => void) | null = null;
+function _effModel(): DriverModel { return _whatIf.value ?? _model; }
 
+/** Begin a driver what-if: overlay a live copy of the committed model. Idempotent. */
+export function startDriverWhatIf(): void {
+  if (_whatIf.value) return;
+  const m = DriverModel.fromJSON(_model.toJSON());   // deep copy of the committed driver
+  _whatIfUnsub = m.subscribe(() => { _whatIfVersion.value++; });
+  _whatIf.value = m;
+  _whatIfVersion.value++;
+}
+function _clearWhatIf(): void {
+  if (_whatIfUnsub) { _whatIfUnsub(); _whatIfUnsub = null; }
+  _whatIf.value = null;
+  _whatIfVersion.value++;
+}
+/** Keep: commit the what-if overlay as the live driver (→ modified), then drop the overlay. */
+export function keepDriverWhatIf(): void {
+  if (!_whatIf.value) return;
+  const j = _whatIf.value.toJSON();
+  _clearWhatIf();
+  setModel(DriverModel.fromJSON(j));   // becomes the committed model → project is now modified
+}
+/** Cancel: discard the what-if overlay; the committed driver is unchanged. */
+export function cancelDriverWhatIf(): void { _clearWhatIf(); }
+/** Set the what-if overlay's driver from a raw bag (e.g. Tune's "Reset to library"). */
+export function setWhatIfFromRaw(raw: DriverRaw | null | undefined): void {
+  if (!_whatIf.value) return;
+  if (_whatIfUnsub) _whatIfUnsub();
+  _whatIf.value = DriverModel.fromRaw(raw ?? {});
+  _whatIfUnsub = _whatIf.value.subscribe(() => { _whatIfVersion.value++; });
+  _whatIfVersion.value++;
+}
+export const isDriverWhatIfActive = computed<boolean>(() => _whatIf.value !== null);
+
+/** Route a single per-field edit through the ADT (what-if input, rename). During an active
+ *  what-if it edits the overlay; otherwise the committed model. */
+export function enterDriverField(field: string, value: number | string): void { _effModel().enter(field, value); }
+export function clearDriverField(field: string): void { _effModel().clear(field); }
+
+// driver / driverRaw / driverErrors are EFFECTIVE: they resolve to the what-if overlay when
+// one is active, else the committed model. They touch both version refs so they re-derive on
+// a committed edit, a what-if edit, or an overlay start/keep/cancel.
 export const driver = computed<Driver | null>(() => {
-  void _version.value;                 // re-derive on any enter/clear/instance swap
-  return _model.toDriver();
+  void _version.value; void _whatIfVersion.value;
+  return _effModel().toDriver();
 });
 // driverRaw: the entered bag back out (E fields + carried metadata) — the DriverRaw view
 // the rest of the UI reads. Computed values (Cms/Mms/Bl) are NOT in it; read `driver` for
 // those. Replaces the old plain state.driverRaw reactive object.
 export const driverRaw = computed<DriverRaw>(() => {
-  void _version.value;
-  return _model.raw();
+  void _version.value; void _whatIfVersion.value;
+  return _effModel().raw();
 });
-// driverJSON: the full ADT state (marks + carried fields + ParState) for persistence.
+// driverJSON: the full ADT state (marks + carried fields + ParState) for persistence. This is
+// COMMITTED-only (never the what-if overlay) so a live what-if is not persisted and does not
+// move the ground fingerprint — the modified state stays isolated from the what-if.
 export const driverJSON = computed<DriverJSON>(() => {
   void _version.value;
   return _model.toJSON();
 });
 export const driverErrors = computed<DriverError[]>(() => {
-  void _version.value;
-  return _model.errors();
+  void _version.value; void _whatIfVersion.value;
+  return _effModel().errors();
 });
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));
