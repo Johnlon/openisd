@@ -175,6 +175,31 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);
 });
 
+test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const tune = page.locator('.tune-panel');
+  await expect(tune).toBeVisible();
+  await expect(tune.locator('button', { hasText: 'Keep' })).toBeVisible();
+  await expect(tune.locator('button', { hasText: 'Cancel' })).toBeVisible();
+
+  const readFs = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return s.driverRaw.value.Fs;
+  });
+  const before = await readFs();
+
+  const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
+  await fsInput.fill(String(before + 6));
+  await fsInput.dispatchEvent('input');
+  expect(await readFs()).toBeCloseTo(before + 6, 1); // live preview updated the shared store
+
+  await tune.locator('button', { hasText: 'Cancel' }).click();
+  await expect(tune).toBeHidden();
+  expect(await readFs()).toBeCloseTo(before, 1); // Cancel reverted the what-if
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
