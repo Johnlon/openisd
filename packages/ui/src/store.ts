@@ -249,6 +249,19 @@ export function resetProjectToGround(): void {
   Object.assign(state.P, g.P);
   setDriverFromSerialized(g.driver);
 }
+/** Start a brand-new project from the app's initial defaults — NOT the ground state. Clears
+ *  the whole design (params incl. filters, compare traces, per-chart zoom, driver source) so
+ *  a "new" project never inherits the previous one, then adopts the fresh design as ground.
+ *  Callers (the New Project wizard) apply the chosen box type + volume on top afterwards. */
+export function newProject(): void {
+  state.box = 'vented';
+  Object.assign(state.P, { ...P_DEFAULTS, filters: [] });   // fresh filters array, not the shared default ref
+  state.compare = [];
+  state.driverSource = null;
+  state.yRanges = {};
+  setDriverFromRaw(DEFAULT_DRIVER);
+  markProjectSaved();                                       // the fresh design is the new clean ground
+}
 
 export function driverShort(raw: DriverRaw | null | undefined): string {
   return ((raw?.name) || [raw?.brand, raw?.model].filter(Boolean).join(' ') || 'Driver')

@@ -273,6 +273,37 @@ test('Original skin buttons have readable dark text on their light fill', async 
   expect(rgbSum).toBeLessThan(300);
 });
 
+test('New Project starts fresh — it discards the previous design (filters, compare, params)', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+
+  // Dirty the current design: a filter, a pinned compare trace, a non-default power.
+  await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    s.state.P.filters.push({ type: 'highpass', fc: 30, Q: 0.7, gain: 0 });
+    s.state.P.Pin = 250;
+    s.pinCompare();
+  });
+
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const modal = page.locator('.overlay.open');
+  await expect(modal.locator('.np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes
+  await modal.locator('select').selectOption('sealed');
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('button', { hasText: 'Pick Driver' }).click();
+
+  const st = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return { filters: s.state.P.filters.length, compare: s.state.compare.length, pin: s.state.P.Pin };
+  });
+  expect(st.filters).toBe(0);  // fresh project — no inherited filters
+  expect(st.compare).toBe(0);  // no inherited compare traces
+  expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
+});
+
 test('the New Project wizard sets box type + volume then opens the driver picker', async ({ page }) => {
   await page.locator('.tb-btn[title*="New project"]').click();
   const modal = page.locator('.overlay.open');
