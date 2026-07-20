@@ -38,7 +38,7 @@ export const state: AppState = reactive({
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
   yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
   ui:           { skin: 'auto' },  // local-only presentation preference; never shared (persist.ts)
-  project:      { creator: '', created: '', modified: '', description: '' },
+  project:      { name: '', creator: '', created: '', modified: '', description: '' },
 });
 
 
@@ -259,6 +259,7 @@ export function newProject(): void {
   state.compare = [];
   state.driverSource = null;
   state.yRanges = {};
+  state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
   setDriverFromRaw(DEFAULT_DRIVER);
   markProjectSaved();                                       // the fresh design is the new clean ground
 }

@@ -22,6 +22,8 @@ const BOX_OPTIONS: { id: BoxType; label: string }[] = [
 ];
 
 const step = ref(1);
+const STEP_LABELS = ['Project name', 'Box type', 'Starting volume'];
+const projName = ref('');
 const boxType = ref<BoxType>('sealed');
 // Per-box-type starting defaults, matching the mock: single-chamber 6 l, bandpass
 // rear 8 l + front 10 l.
@@ -30,18 +32,19 @@ const rearVol = ref(8);    // bandpass rear chamber, litres
 const frontVol = ref(10);  // bandpass front chamber, litres
 const isDual = computed(() => boxType.value === 'bandpass4');
 
-function next() { if (step.value === 1) step.value = 2; }
-function back() { if (step.value === 2) step.value = 1; }
+function next() { if (step.value < 3) step.value++; }
+function back() { if (step.value > 1) step.value--; }
 
 // Warn (data-loss guard) if the current project has unsaved changes — Create discards them.
 const hadUnsaved = computed(() => isModified.value);
 
 function create() {
   newProject();                                   // wipe the previous design to fresh defaults
+  state.project.name = projName.value.trim();
   state.box = boxType.value;
   state.P.Vb = (isDual.value ? rearVol.value : vol.value) / 1000; // L → m³
   if (isDual.value) state.P.Vf = frontVol.value / 1000;
-  markProjectSaved();                             // the new design (box + volume) is the clean ground
+  markProjectSaved();                             // the new design (name + box + volume) is the clean ground
   emit('close');
   state.browseOpen = true;                        // hand off to the driver picker
 }
@@ -57,9 +60,18 @@ function create() {
 
       <div class="modal-body">
         <p v-if="hadUnsaved" class="np-warn" title="Creating a new project discards the current design.">⚠ You have unsaved changes — creating a new project will discard them.</p>
-        <p class="np-step">Step {{ step }} of 2 — {{ step === 1 ? 'Box type' : 'Starting volume' }}</p>
+        <p class="np-step">Step {{ step }} of 3 — {{ STEP_LABELS[step - 1] }}</p>
 
         <div v-if="step === 1">
+          <div class="field-row">
+            <div class="field"><label>Project name</label>
+              <input type="text" style="width:240px" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="next">
+            </div>
+          </div>
+          <p class="hint">Optional — a label for this design; you can change it later on the Project tab.</p>
+        </div>
+
+        <div v-else-if="step === 2">
           <div class="field-row">
             <div class="field"><label>Box type</label>
               <select v-model="boxType" style="width:240px">
@@ -70,7 +82,7 @@ function create() {
           <p class="hint">Optional — starts at Closed; change the box type any time once the project is open.</p>
         </div>
 
-        <div v-else>
+        <div v-else-if="step === 3">
           <template v-if="!isDual">
             <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.1" v-model.number="vol"><span class="unit">l</span></div></div>
           </template>
@@ -84,8 +96,8 @@ function create() {
 
       <div class="modal-footer">
         <div class="footer-buttons">
-          <button v-if="step === 2" class="cancel-btn" title="Back to box type" @click="back">&lt; Back</button>
-          <button v-if="step === 1" class="ok-btn" title="Next — choose the starting volume" @click="next">Next &gt;</button>
+          <button v-if="step > 1" class="cancel-btn" title="Back to the previous step" @click="back">&lt; Back</button>
+          <button v-if="step < 3" class="ok-btn" title="Next step" @click="next">Next &gt;</button>
           <button v-else class="ok-btn" title="Create the design and pick a driver" @click="create">Pick Driver &gt;</button>
           <button class="cancel-btn" title="Cancel — discard, keep the current design" @click="emit('close')">Cancel</button>
         </div>

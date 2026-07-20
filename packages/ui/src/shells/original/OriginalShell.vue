@@ -287,7 +287,7 @@ function cycleUnit(key: string, group: string) {
   <div class="original-root">
     <!-- ================= Title bar ================= -->
     <div class="titlebar">
-      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode</span></div>
+      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode<template v-if="state.project.name"> — {{ state.project.name }}</template></span></div>
       <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
     </div>
 
@@ -726,6 +726,7 @@ function cycleUnit(key: string, group: string) {
 
         <!-- ===== Project tab ===== -->
         <section v-show="activeTab === 'project'" class="tab-section" :class="{ active: activeTab === 'project' }">
+          <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="state.project.name"></div></div>
           <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="state.project.creator"></div></div>
           <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="state.project.created"></div></div>
           <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="state.project.modified"></div></div>
