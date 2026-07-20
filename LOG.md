@@ -43,6 +43,20 @@ small knowledge graph of the design's quantities.
 Edit voltage OR power on the Signal tab. Driver input voltage is now editable and drives
 System input power (P = V²/Re), matching WinISD's bidirectional pair.
 
+One place defines every field. `fieldRegistry.ts` is now the canonical catalogue of every
+field on the WinISD screens — description, derivation, dependencies, unit, precision, and
+min/max sanity bounds — split into what OpenISD models vs. WinISD-only reference. Skins, tests,
+UI design, and data-quality checks all read from it instead of hardcoding. Decimal places are
+sourced from the WinISD screenshots (vent diameter corrected to 2 dp; humidity/pressure given
+sane values with the divergence documented).
+
+Physics lives in the engine, not five copies. The PR Vas/Fs/Qms, drive-voltage, and
+sound-velocity formulas that were pasted across five components are now single engine functions
+with their own tests — no drift, identical results in every skin.
+
+Logged a WinISD crash: clearing its Air Pressure field traps the app in a "Cannot convert
+floating point number" loop; OpenISD's equivalent field must guard empty input.
+
 ## 2026-07-05 — .wpr project file schema documented
 
 Contributors building `.wpr` import/export (the gap called out in `COMPARISON.md`) now have a
