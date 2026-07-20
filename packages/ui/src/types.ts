@@ -161,6 +161,11 @@ export interface UiState {
   originalChartTab?: string;
   /** Original skin — the chosen chart menu label (may name an engine-unavailable chart). */
   originalChartLabel?: string;
+  /** Original skin — a Tune (what-if) panel is open. Persisted so a refresh reopens it. */
+  originalTuneOpen?: boolean;
+  /** Original skin — the open Tune's uncommitted what-if buffer (overlay), so a refresh
+   *  restores the in-progress values. Local-only (stripped from share links via stateToUrl). */
+  originalWhatIf?: DriverJSON | null;
 }
 
 /** The reactive application state held in the store. */

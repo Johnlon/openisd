@@ -7,6 +7,40 @@
  * The auto console/network guardrail (fixtures) asserts the skin swap raises no errors.
  */
 import { test, expect } from './fixtures.js';
+import type { Locator, Page } from '@playwright/test';
+
+// Decimal places shown in a numeric-input string ("6.10" → 2, "55" → 0, "" → 0).
+function decimalsOf(s: string): number {
+  const m = s.trim().match(/^-?\d*\.(\d+)$/);
+  return m ? m[1].length : 0;
+}
+
+// Class-level spinner invariant: a spinner step (Arrow Up/Down) must never GAIN decimal
+// places over what the field shows at rest. Each field has a fixed display precision; a
+// step that turns "6.00" into "8.94924452476786" is the bug. Asserted over every
+// input[type=number] so no field (or second spinner mechanism) can regress unnoticed.
+async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<void> {
+  if (!(await input.isVisible()) || !(await input.isEditable())) return;
+  await input.scrollIntoViewIfNeeded();
+  const fieldName = await input.evaluate((el) => el.closest('.field')?.querySelector('label')?.textContent?.trim() || el.getAttribute('aria-label') || '?');
+  label = `${label} [${fieldName}]`;
+  const before = (await input.inputValue()).trim();
+  if (!/^-?\d+(\.\d+)?$/.test(before)) return; // skip empty / non-numeric fields
+  const dpBefore = decimalsOf(before);
+  await input.focus();
+  for (let i = 0; i < 6; i++) await input.press('ArrowUp'); // compounding up-steps
+  const up = (await input.inputValue()).trim();
+  for (let i = 0; i < 12; i++) await input.press('ArrowDown'); // back down through the base
+  const down = (await input.inputValue()).trim();
+  expect(decimalsOf(up), `${label}: gained decimals spinning UP  "${before}" → "${up}"`).toBeLessThanOrEqual(dpBefore);
+  expect(decimalsOf(down), `${label}: gained decimals spinning DOWN "${before}" → "${down}"`).toBeLessThanOrEqual(dpBefore);
+}
+
+// Sweep every visible numeric spinner on the currently-active project tab.
+async function sweepActiveTab(page: Page, context: string): Promise<void> {
+  const inputs = await page.locator('.original-root .tab-section.active input[type="number"]').all();
+  for (let i = 0; i < inputs.length; i++) await assertSpinnerHoldsDp(inputs[i], `${context} #${i}`);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -282,6 +316,29 @@ test('NumInput spinner keeps fixed decimal places (no compounding float precisio
   expect(val).toMatch(/^\d+(\.\d{1,2})?$/); // at most 2 dp — never a long compounding float
 });
 
+test('class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {
+  test.setTimeout(120_000); // exhaustive sweep: 4 box types × every tab × 18 key-presses per field
+  // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
+  // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
+  for (const boxType of ['sealed', 'vented', 'pr', 'bandpass4'] as const) {
+    await page.locator('.project-nav li', { hasText: 'Box' }).click();
+    await page.locator('select#og-box-type').selectOption(boxType);
+    // Sweep every project tab that exists for this box type (the tab set changes per type).
+    const tabCount = await page.locator('.project-nav li').count();
+    for (let t = 0; t < tabCount; t++) {
+      const li = page.locator('.project-nav li').nth(t);
+      const name = ((await li.textContent()) || `tab${t}`).trim();
+      await li.click();
+      await sweepActiveTab(page, `${boxType}/${name}`);
+    }
+  }
+  // The docked Tune panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const tuneInputs = await page.locator('.tune-panel input[type="number"]').all();
+  for (let i = 0; i < tuneInputs.length; i++) await assertSpinnerHoldsDp(tuneInputs[i], `Tune #${i}`);
+});
+
 test('Original save bar is no taller than its buttons (compact legend)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const { legendH, btnH } = await page.evaluate(() => {
@@ -428,6 +485,27 @@ test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STAT
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
+});
+
+test('R1: an open Tune with uncommitted what-if values is preserved across a reload', async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('.skin-picker select').selectOption('original');
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
+  const before = Number(await fsInput.inputValue());
+  await fsInput.fill(String(before + 7));
+  await fsInput.dispatchEvent('input');
+
+  await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalTuneOpen'),
+    undefined, { timeout: 5000 }); // the open Tune + overlay get persisted
+  await page.reload();
+
+  const fs2 = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
+  await expect(page.locator('.tune-panel')).toBeVisible();          // Tune reopened
+  await expect(fs2).toHaveValue((before + 7).toFixed(2));           // with the pending what-if value (Fs shows 2 dp)
+  await expect(page.locator('.unsaved-label')).toBeHidden();        // still uncommitted → project not dirtied
 });
 
 test('R1 refresh fidelity: box type, active tab, and selected chart survive a reload', async ({ page }) => {

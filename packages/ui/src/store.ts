@@ -122,6 +122,20 @@ export function setWhatIfFromRaw(raw: DriverRaw | null | undefined): void {
   _whatIfVersion.value++;
 }
 export const isDriverWhatIfActive = computed<boolean>(() => _whatIf.value !== null);
+// The active overlay serialized (or null) — lets a skin persist an in-progress what-if so a
+// refresh can restore it. Committed persistence still uses driverJSON (committed-only).
+export const whatIfJSON = computed<DriverJSON | null>(() => {
+  void _whatIfVersion.value;
+  return _whatIf.value ? _whatIf.value.toJSON() : null;
+});
+/** Re-create the what-if overlay from a persisted snapshot (refresh restore). Unlike
+ *  startDriverWhatIf (which copies the committed model), this adopts the given buffer. */
+export function restoreDriverWhatIf(json: DriverJSON): void {
+  if (_whatIfUnsub) _whatIfUnsub();
+  _whatIf.value = DriverModel.fromJSON(json);
+  _whatIfUnsub = _whatIf.value.subscribe(() => { _whatIfVersion.value++; });
+  _whatIfVersion.value++;
+}
 
 /** Route a single per-field edit through the ADT (what-if input, rename). During an active
  *  what-if it edits the overlay; otherwise the committed model. */
