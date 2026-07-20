@@ -216,6 +216,17 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   expect(fs).toBeCloseTo(42, 1);
 });
 
+test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  const btn = page.locator('.edit-btn', { hasText: 'Select Driver' });
+  const rgbSum = await btn.evaluate((el) => {
+    const m = getComputedStyle(el).color.match(/\d+/g);
+    return m ? Number(m[0]) + Number(m[1]) + Number(m[2]) : 999;
+  });
+  // Dark text (#1a1a1a → ~78) passes; the near-white --fg bug (#dfe6ee → ~691) fails.
+  expect(rgbSum).toBeLessThan(300);
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
