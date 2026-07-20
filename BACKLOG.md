@@ -48,7 +48,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
   - **Select Driver modal** — port the mock's Library/My-Drivers picker table + action row (`mock/index.html:940-1011`); today it opens the shared `DriverBrowser.vue`.
   - **Select Driver / Driver Editor** — accepted reuse of the shared `DriverBrowser`/`DriverEditorModal` (logic trapped in them; re-skin to mock markup only after extracting that logic to composables — see `brain/bring_mock_live.md`).
   - **Options modal** — not ported (button disabled).
-  - **Save bar** — add the Unsaved-changes indicator + Revert button (`mock/index.html:255-260`); the port shows "Export .wdr" in their place.
+  - ~~Save bar~~ — DONE (STATE_MODEL Increment 1): Unsaved indicator + Save Changes (adopt as ground) + Reset state (revert), wired to the store's real `isModified`/`markProjectSaved`/`resetProjectToGround`.
   - **Color button** — wire the mock's `cycleColor` click behaviour (`mock/index.html:249`); currently static.
   - **Projects-list checkbox** — should toggle trace visibility (`toggleProjectTrace`), not delete the compare row.
   - **Vented pane** — add the "End Correction" select and rename the readout to "1st port resonance" to match `mock/index.html`.

@@ -418,9 +418,9 @@ function cycleUnit(key: string, group: string) {
         <div class="parstate-legend">
           <div class="unsaved-indicator">
             <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
-            <button class="save-btn" :class="{ dirty: isModified }" :disabled="!isModified"
+            <button class="save-btn" :class="{ dirty: isModified }"
                     title="Save Changes — adopt the current design as the saved (ground) state." @click="markProjectSaved">Save Changes</button>
-            <button class="save-btn" :disabled="!isModified"
+            <button class="save-btn"
                     title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
             <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
           </div>
