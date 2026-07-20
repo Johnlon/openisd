@@ -17,6 +17,11 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
 
 const focused = ref(false);
+// Distinguish keyboard TYPING (echo the raw keystrokes so we don't fight the caret) from
+// a SPINNER/arrow/wheel STEP (reformat to `precision` so the field never shows a long
+// compounding float like 7.98600001). Typing sets this true; focus / Arrow-Up-Down / wheel
+// reset it, so a step always reformats.
+const typing = ref(false);
 
 // Fixed-decimal display (WinISD convention): `precision` is the number of DECIMAL
 // places, so the field width doesn't jump as the value changes (e.g. Vb always
@@ -37,9 +42,16 @@ watch(() => props.modelValue, (v) => {
 
 function onFocus() {
   focused.value = true;
+  typing.value = false;   // a step done right after focusing must still reformat
   // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
   display.value = fmt(props.modelValue);
 }
+
+// Text-editing keys mean "typing" → echo raw. Arrow up/down are spinner steps → reformat.
+function onKeydown(e: KeyboardEvent) {
+  typing.value = e.key !== 'ArrowUp' && e.key !== 'ArrowDown';
+}
+function onWheel() { typing.value = false; }   // wheel over the field is a step → reformat
 
 // A value is acceptable only if finite AND at or above the minimum (default 0) —
 // this is what blocks negatives from ever reaching the model/sim.
@@ -47,8 +59,10 @@ function valid(v: number): boolean { return isFinite(v) && v >= props.min; }
 
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
-  display.value = t.value;   // track what the user actually typed
-  const v = parseFloat(t.value);
+  const v = parseFloat(t.value);   // display-space (already scaled)
+  // Typing → echo raw so the caret isn't disturbed. A spinner/arrow/wheel step → reformat
+  // to `precision` so the field never shows a long compounding float.
+  display.value = typing.value || !isFinite(v) ? t.value : v.toFixed(props.precision);
   if (valid(v)) emit('update:modelValue', v / props.scale);   // reject < min (e.g. negatives)
 }
 
@@ -65,23 +79,25 @@ const invalid = computed(() => {
   return !valid(parseFloat(display.value));
 });
 
-// Spinner step scales with the value: ~10% of the current magnitude so each click
-// moves proportionally (compounding → geometric ±10%/click), instead of a fixed
-// absolute amount that is far too coarse for milli-scale values and too fine for
-// kilo-scale ones. A caller-supplied explicit `step` (e.g. integer counts) wins.
-// step ≈ value/10 keeps the value ~10 step-units above min=0, so native stepping
-// stays aligned (no step-snapping surprises).
+// Spinner step ≈ one decade below the value's magnitude (a power of ten), so it feels
+// proportional across scales (~10–100 steps per decade) WITHOUT the two bugs of a raw
+// value×0.1 step: (1) value×0.1 is an arbitrary float, so it compounds into long decimals;
+// (2) it shifts every click and is not a clean multiple of `min=0`, so the browser's
+// step-snapping refuses stepDown near min (the "down-arrow sticks" symptom). A power of ten
+// is always a clean multiple of 0, so stepping stays grid-aligned and never stalls. A
+// caller-supplied explicit `step` (e.g. integer counts) still wins.
 const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
   const dv = Math.abs(props.modelValue * props.scale);
-  return dv > 0 ? dv * 0.1 : 'any';
+  if (!(dv > 0)) return 'any';
+  return Math.pow(10, Math.floor(Math.log10(dv)) - 1);
 });
 </script>
 
 <template>
   <input type="number" :step="stepAttr" :min="min" :value="display"
     :class="{ 'inp-bad': invalid }"
-    @focus="onFocus" @input="onInput" @blur="onBlur">
+    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
 </template>
 
 <style scoped>

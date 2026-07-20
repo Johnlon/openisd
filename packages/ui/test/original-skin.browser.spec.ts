@@ -262,6 +262,16 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   expect(fs).toBeCloseTo(42, 1);
 });
 
+test('NumInput spinner keeps fixed decimal places (no compounding float precision)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const vol = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
+  await vol.click();
+  await vol.fill('6');
+  for (let i = 0; i < 3; i++) await vol.press('ArrowUp'); // native spinner steps, compounding
+  const val = await vol.inputValue();
+  expect(val).toMatch(/^\d+(\.\d{1,2})?$/); // at most 2 dp — never a long compounding float
+});
+
 test('Original save bar is no taller than its buttons (compact legend)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const { legendH, btnH } = await page.evaluate(() => {
