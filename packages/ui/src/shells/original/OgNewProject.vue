@@ -9,7 +9,7 @@
  * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
  */
 import { ref, computed } from 'vue';
-import { state } from '../../store.js';
+import { state, isModified, newProject, markProjectSaved } from '../../store.js';
 import type { BoxType } from '@openisd/engine';
 
 const emit = defineEmits<{ close: [] }>();
@@ -33,10 +33,15 @@ const isDual = computed(() => boxType.value === 'bandpass4');
 function next() { if (step.value === 1) step.value = 2; }
 function back() { if (step.value === 2) step.value = 1; }
 
+// Warn (data-loss guard) if the current project has unsaved changes — Create discards them.
+const hadUnsaved = computed(() => isModified.value);
+
 function create() {
+  newProject();                                   // wipe the previous design to fresh defaults
   state.box = boxType.value;
   state.P.Vb = (isDual.value ? rearVol.value : vol.value) / 1000; // L → m³
   if (isDual.value) state.P.Vf = frontVol.value / 1000;
+  markProjectSaved();                             // the new design (box + volume) is the clean ground
   emit('close');
   state.browseOpen = true;                        // hand off to the driver picker
 }
@@ -51,6 +56,7 @@ function create() {
       </div>
 
       <div class="modal-body">
+        <p v-if="hadUnsaved" class="np-warn" title="Creating a new project discards the current design.">⚠ You have unsaved changes — creating a new project will discard them.</p>
         <p class="np-step">Step {{ step }} of 2 — {{ step === 1 ? 'Box type' : 'Starting volume' }}</p>
 
         <div v-if="step === 1">
@@ -99,6 +105,7 @@ function create() {
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
 .modal-body { padding: 16px 20px; }
 .np-step { color: #666; margin-bottom: 10px; }
+.np-warn { color: #8a4b00; background: #fff3e0; border: 1px solid #f0c088; border-radius: 3px; padding: 6px 10px; margin-bottom: 10px; font-size: 12.5px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
