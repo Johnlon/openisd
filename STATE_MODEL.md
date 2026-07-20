@@ -92,8 +92,8 @@ the user must be able to see the consequence before clicking.
 
 - **What-if dialog / expander** — changes **preview live** on the charts (via the what-if
   state) while you scrub.
-- **Edit dialog** — changes affect the charts **only when accepted** (OK) and the dialog is
-  dismissed (via edit state → modified state).
+- **Edit dialog** — changes affect the charts **only when accepted** (**Accept**) and the
+  dialog is dismissed (via edit state → modified state).
 
 This is the contract every skin's editors must honour: what-if is immediate; edit is
 commit-on-accept.
