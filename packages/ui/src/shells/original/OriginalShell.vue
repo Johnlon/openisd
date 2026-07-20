@@ -24,7 +24,9 @@ import {
 } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
-import { RHO, C, END_CORRECTION } from '@openisd/engine';
+import { RHO, C, END_CORRECTION,
+         prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
+         driveVoltage, soundVelocity } from '@openisd/engine';
 import { TABS, buildPlotData } from '../../utils/series.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
@@ -111,20 +113,10 @@ function helmholtzFb(volume: number): number | null {
 const ventFb = computed<number | null>(() => helmholtzFb(state.P.Vb));
 const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
 // Passive-radiator derived params (from the stored PR T/S bag).
-const prVas = computed(() => state.P.prCms * state.P.prSd * state.P.prSd * RHO * C * C * 1000);
-const prFs = computed(() => {
-  const { prMmd, prCms } = state.P;
-  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
-});
-const prFsMass = computed(() => {
-  const { prMmd, prMadd, prCms } = state.P;
-  const m = prMmd + prMadd;
-  return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;
-});
-const prQms = computed(() => {
-  const { prMmd, prCms, prRms } = state.P;
-  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-});
+const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
+const prFs = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
+const prFsMass = computed(() => calcPrFsMass(state.P.prMmd, state.P.prMadd, state.P.prCms));
+const prQms = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prRms));
 
 // ---- Chart selector ------------------------------------------------------------
 // The mock's full chart menu; each maps to a real engine curve id (TABS) or null.
@@ -243,7 +235,7 @@ onUnmounted(() => tone?.stop());
 // Drive voltage ↔ system power are two views of the same energy: V = √(P·Re), P = V²/Re.
 // WinISD lets you edit EITHER (each recomputes the other); Pin is the stored source of truth.
 const driveV = computed<number>({
-  get: () => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)),
+  get: () => driveVoltage(state.P.Pin ?? 1, driver.value?.Re || 8),
   set: (v) => { state.P.Pin = (v * v) / (driver.value?.Re || 8); },
 });
 
@@ -253,7 +245,7 @@ const driveV = computed<number>({
 const advTemp = ref(293.15);
 const advHumidity = ref(30.0);
 const advPressure = ref(101325.0);
-const advSoundVelocity = computed(() => 20.05 * Math.sqrt(advTemp.value));
+const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
 const advChecks = reactive({ vc: false, flat: false, tl: false, rg: false, xmax: false });
 
 // ---- Placement (Signal path multipliers already in the store) ------------------

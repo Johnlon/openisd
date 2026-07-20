@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state, driver } from '../store.js';
-import { prTuning, prMassForFp, ventedAlignment } from '@openisd/engine';
-import { RHO, C } from '@openisd/engine';
+import { prTuning, prMassForFp, ventedAlignment, RHO, C,
+         prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms } from '@openisd/engine';
 import { savePR } from '../utils/prLibrary.js';
 import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
@@ -14,22 +14,11 @@ const drv = driver;
 
 const fp = computed(() => prTuning(P.value));
 
-const prVas = computed(() => P.value.prCms * P.value.prSd * P.value.prSd * RHO * C * C * 1000);
-
-const prFsDisplay = computed(() => {
-  const { prMmd, prCms } = P.value;
-  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
-});
-const prQmsDisplay = computed(() => {
-  const { prMmd, prCms, prRms } = P.value;
-  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-});
+const prVas = computed(() => calcPrVas(P.value.prCms, P.value.prSd));
+const prFsDisplay = computed(() => calcPrFs(P.value.prMmd, P.value.prCms));
+const prQmsDisplay = computed(() => calcPrQms(P.value.prMmd, P.value.prCms, P.value.prRms));
 // Free-air resonance with added mass (no box) — WinISD "Fs with added mass" cross-check
-const prFsLoaded = computed(() => {
-  const { prMmd, prMadd, prCms } = P.value;
-  const m = prMmd + prMadd;
-  return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;
-});
+const prFsLoaded = computed(() => calcPrFsMass(P.value.prMmd, P.value.prMadd, P.value.prCms));
 
 // WinISD mode handlers — each reads Fs/Qms from canonical T/S at full precision,
 // then rewrites the affected T/S fields while holding the other two WinISD params fixed.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state } from '../store.js';
-import { RHO, C } from '@openisd/engine';
+import { RHO, C, prVas as calcPrVas, prFs as calcPrFs, prQms as calcPrQms } from '@openisd/engine';
 import { savePR, listPRs, deletePR, listBundledPRs } from '../utils/prLibrary.js';
 import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
@@ -15,15 +15,9 @@ import { useEscToClose } from '../composables/useEscToClose.js';
 const emit = defineEmits<{ close: [] }>();
 
 const P = computed(() => state.P);
-const prVas = computed(() => P.value.prCms * P.value.prSd * P.value.prSd * RHO * C * C * 1000);
-const prFsDisplay = computed(() => {
-  const { prMmd, prCms } = P.value;
-  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
-});
-const prQmsDisplay = computed(() => {
-  const { prMmd, prCms, prRms } = P.value;
-  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-});
+const prVas = computed(() => calcPrVas(P.value.prCms, P.value.prSd));
+const prFsDisplay = computed(() => calcPrFs(P.value.prMmd, P.value.prCms));
+const prQmsDisplay = computed(() => calcPrQms(P.value.prMmd, P.value.prCms, P.value.prRms));
 
 function setWinIsdFs(newFsHz: number) {
   if (!(newFsHz > 0)) return;
