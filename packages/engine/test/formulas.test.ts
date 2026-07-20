@@ -6,7 +6,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { RHO, C, prVas, prFs, prFsWithMass, prQms, driveVoltage, soundVelocity } from '../src/index.js';
+import { prVas, prFs, prFsWithMass, prQms, driveVoltage, soundVelocity } from '../src/index.js';
 
 describe('formulas — drive voltage V = √(Pin·Re)', () => {
   it('√(100·4) = 20 V', () => assert.equal(driveVoltage(100, 4), 20));
@@ -21,18 +21,20 @@ describe('formulas — speed of sound c = 20.05·√(T[K])', () => {
 describe('formulas — passive radiator derivations', () => {
   const Cms = 0.0008, Sd = 0.0133, Mmd = 0.010, Madd = 0.005, Rms = 1.0;
 
-  it('prVas = Cms·Sd²·ρ·c²·1000 (litres)', () => {
-    assert.ok(Math.abs(prVas(Cms, Sd) - (Cms * Sd * Sd * RHO * C * C * 1000)) < 1e-9);
+  // Expected values computed BY HAND (independent of the implementation), so a shared algebra
+  // error in the formula would fail here rather than agree with a self-derived expectation.
+  it('prVas ≈ 20.07 l for Cms=0.0008, Sd=0.0133 (hand-computed)', () => {
+    assert.ok(Math.abs(prVas(Cms, Sd) - 20.0714) < 0.01, `got ${prVas(Cms, Sd)}`);
   });
-  it('prFs = 1/(2π√(Mmd·Cms))', () => {
-    assert.ok(Math.abs(prFs(Mmd, Cms) - 1 / (2 * Math.PI * Math.sqrt(Mmd * Cms))) < 1e-9);
+  it('prFs ≈ 56.27 Hz for Mmd=0.010, Cms=0.0008 (hand-computed)', () => {
+    assert.ok(Math.abs(prFs(Mmd, Cms) - 56.271) < 0.01, `got ${prFs(Mmd, Cms)}`);
   });
-  it('prFsWithMass uses (Mmd + Madd) → a lower resonance than prFs', () => {
-    assert.ok(Math.abs(prFsWithMass(Mmd, Madd, Cms) - 1 / (2 * Math.PI * Math.sqrt((Mmd + Madd) * Cms))) < 1e-9);
+  it('prFsWithMass ≈ 45.94 Hz for +5 g mass, and is lower than prFs (hand-computed)', () => {
+    assert.ok(Math.abs(prFsWithMass(Mmd, Madd, Cms) - 45.944) < 0.01, `got ${prFsWithMass(Mmd, Madd, Cms)}`);
     assert.ok(prFsWithMass(Mmd, Madd, Cms) < prFs(Mmd, Cms));
   });
-  it('prQms = √(Mmd/Cms)/Rms', () => {
-    assert.ok(Math.abs(prQms(Mmd, Cms, Rms) - Math.sqrt(Mmd / Cms) / Rms) < 1e-9);
+  it('prQms = √12.5 ≈ 3.5355 for Mmd=0.010, Cms=0.0008, Rms=1 (hand-computed)', () => {
+    assert.ok(Math.abs(prQms(Mmd, Cms, Rms) - 3.53553) < 1e-4, `got ${prQms(Mmd, Cms, Rms)}`);
   });
 
   // Guards: undefined inputs return 0 (matches the UI computeds that showed a blank/0 readout).

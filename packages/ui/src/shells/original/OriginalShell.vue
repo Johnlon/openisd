@@ -620,7 +620,7 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, fieldDp('ventCrossArea'))" readonly><span class="unit">m²</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('portResonance'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
                 </div>
               </div>
             </div>
@@ -661,7 +661,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
                 <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
                 <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('portResonance'))" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
           </div>
