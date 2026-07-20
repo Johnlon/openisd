@@ -65,21 +65,24 @@ function onInput(e: Event) {
     if (valid(v)) emit('update:modelValue', v / props.scale); // reject < min (e.g. negatives)
     return;
   }
-  // Spinner/arrow/wheel step: ROUND to precision so neither the model nor the field gains
-  // decimals, and force the DOM to the formatted string (the native spinner leaves it raw,
-  // and when the reformatted string is unchanged Vue's :value diff would not repaint it).
-  const rounded = Number(v.toFixed(props.precision));
-  const s = rounded.toFixed(props.precision);
+  // Spinner/arrow/wheel step: format the DISPLAY to precision (screen-only) so the field never
+  // shows a long float, and force the DOM to that string (the native spinner leaves it raw, and
+  // an unchanged reformat wouldn't repaint via Vue's :value diff). But EMIT THE ACTUAL VALUE —
+  // never a dp-truncated one — so calculations always receive full precision. The grid-aligned
+  // step keeps the value at the field's resolution anyway; dp is presentation, not the model.
+  const s = v.toFixed(props.precision);
   display.value = s;
   t.value = s;
-  if (valid(rounded)) emit('update:modelValue', rounded / props.scale);
+  if (valid(v)) emit('update:modelValue', v / props.scale);
 }
 
-function onBlur(e: Event) {
+function onBlur() {
   focused.value = false;
-  const v = parseFloat((e.target as HTMLInputElement).value);
-  if (valid(v)) emit('update:modelValue', v / props.scale);
-  display.value = fmt(props.modelValue);   // an invalid entry reverts to the last valid value
+  // Do NOT re-parse the DOM here: onInput already emitted the actual (full-precision) value on
+  // every valid change, and the spinner path formats the DOM string to dp — re-parsing it would
+  // truncate the model to dp (dp is presentation only). Just reformat the display from the model;
+  // an invalid in-progress entry reverts to the last valid value the same way.
+  display.value = fmt(props.modelValue);
 }
 
 // Red-flag an in-progress invalid entry ('' and a lone '-' are neutral while typing).
