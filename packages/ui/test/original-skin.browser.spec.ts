@@ -227,6 +227,26 @@ test('Original skin buttons have readable dark text on their light fill', async 
   expect(rgbSum).toBeLessThan(300);
 });
 
+test('the New Project wizard sets box type + volume then opens the driver picker', async ({ page }) => {
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const modal = page.locator('.overlay.open');
+  await expect(modal).toContainText('New Project');
+
+  await modal.locator('select').selectOption('vented');
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('input').first().fill('42');
+  await modal.locator('button', { hasText: 'Create' }).click();
+
+  const st = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return { box: s.state.box, vb: s.state.P.Vb, browse: s.state.browseOpen };
+  });
+  expect(st.box).toBe('vented');
+  expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³
+  expect(st.browse).toBe(true); // hands off to the driver picker
+});
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();

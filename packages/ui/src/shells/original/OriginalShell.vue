@@ -31,6 +31,7 @@ import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
+import OgNewProject from './OgNewProject.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
 
 const { exportDesign, exportWdr, importFile, about } = useDesignIO();
@@ -248,6 +249,7 @@ const placement = ref<'standard' | 'iso'>('standard');
 
 // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
 const boxLossesOpen = ref(false);
+const newProjectOpen = ref(false);
 
 // Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
 // Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
@@ -290,7 +292,7 @@ function cycleUnit(key: string, group: string) {
             <div class="menu-item">{{ driverShort(driverRaw) }}</div>
           </div>
         </div>
-        <div class="tb-btn" title="New project — pick a driver from the library." @click="state.browseOpen = true">
+        <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="newProjectOpen = true">
           <svg viewBox="0 0 20 20" width="18" height="18"><path d="M4 2 H12 L16 6 V18 H4 Z" fill="none" stroke="#555" stroke-width="1.3"/><path d="M12 2 V6 H16" fill="none" stroke="#555" stroke-width="1.3"/></svg>
         </div>
         <div class="tb-btn" title="Save — the full design as a .json project." @click="exportDesign">
@@ -741,6 +743,7 @@ function cycleUnit(key: string, group: string) {
     <!-- ===== Tune (mock-styled docked What-If) + full Driver editor (shared, for now) ===== -->
     <OgTune v-if="state.editDriver" />
     <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+    <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
   </div>
