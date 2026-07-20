@@ -5,6 +5,7 @@ import { ebp, RHO, C } from '@openisd/engine';
 import type { DriverRaw } from '@openisd/engine';
 import NumInput from './NumInput.vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
+import { precision as fieldDp } from '../fields/fieldRegistry.js';
 
 // Driver editor — a real modal (unlike DriverWhatIfPanel, an inline overlay that keeps
 // the graph visible). Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):
@@ -111,12 +112,12 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="Electrical Q factor — motor damping. WinISD: Qes">
                   <label>Qes</label>
-                  <NumInput :class="cellClass('Qes')" :model-value="driverRaw.Qes ?? 0" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
+                  <NumInput :class="cellClass('Qes')" :model-value="driverRaw.Qes ?? 0" :scale="1" :precision="fieldDp('Qes')" @update:model-value="v => setNum('Qes', v)">
                   </NumInput>
                 </div>
                 <div class="de-fld" title="Equivalent compliance volume. WinISD: Vas">
                   <label>Vas</label>
-                  <NumInput :class="cellClass('Vas')" :model-value="driverRaw.Vas ?? 0" :scale="1000" :precision="3" @update:model-value="v => setNum('Vas', v)">
+                  <NumInput :class="cellClass('Vas')" :model-value="driverRaw.Vas ?? 0" :scale="1000" :precision="fieldDp('Vas')" @update:model-value="v => setNum('Vas', v)">
                   </NumInput>
                   <span class="u">L</span>
                 </div>
@@ -124,21 +125,21 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="Mechanical Q factor — suspension damping. WinISD: Qms">
                   <label>Qms</label>
-                  <NumInput :class="cellClass('Qms')" :model-value="driverRaw.Qms ?? 0" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
+                  <NumInput :class="cellClass('Qms')" :model-value="driverRaw.Qms ?? 0" :scale="1" :precision="fieldDp('Qms')" @update:model-value="v => setNum('Qms', v)">
                   </NumInput>
                 </div>
               </div>
               <div class="de-col">
                 <div class="de-fld" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
                   <label>Qts</label>
-                  <NumInput :class="cellClass('Qts')" :model-value="driverRaw.Qts ?? 0" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
+                  <NumInput :class="cellClass('Qts')" :model-value="driverRaw.Qts ?? 0" :scale="1" :precision="fieldDp('Qts')" @update:model-value="v => setNum('Qts', v)">
                   </NumInput>
                 </div>
               </div>
               <div class="de-col">
                 <div class="de-fld" title="Free-air resonance frequency. WinISD: Fs">
                   <label>Fs</label>
-                  <NumInput :class="cellClass('Fs')" :model-value="driverRaw.Fs ?? 0" :scale="1" :precision="2" @update:model-value="v => setNum('Fs', v)">
+                  <NumInput :class="cellClass('Fs')" :model-value="driverRaw.Fs ?? 0" :scale="1" :precision="fieldDp('Fs')" @update:model-value="v => setNum('Fs', v)">
                   </NumInput>
                   <span class="u">Hz</span>
                 </div>
@@ -184,7 +185,7 @@ useEscToClose(() => true, cancel);
                 </div>
                 <div class="de-fld" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
                   <label>Le</label>
-                  <NumInput :class="cellClass('Le')" :model-value="driverRaw.Le ?? 0" :scale="1000" :precision="3" @update:model-value="v => setNum('Le', v)">
+                  <NumInput :class="cellClass('Le')" :model-value="driverRaw.Le ?? 0" :scale="1000" :precision="fieldDp('Le')" @update:model-value="v => setNum('Le', v)">
                   </NumInput>
                   <span class="u">mH</span>
                 </div>
@@ -192,13 +193,13 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="DC voice coil resistance. WinISD: Re">
                   <label>Re</label>
-                  <NumInput :class="cellClass('Re')" :model-value="driverRaw.Re ?? 0" :scale="1" :precision="3" @update:model-value="v => setNum('Re', v)">
+                  <NumInput :class="cellClass('Re')" :model-value="driverRaw.Re ?? 0" :scale="1" :precision="fieldDp('Re')" @update:model-value="v => setNum('Re', v)">
                   </NumInput>
                   <span class="u">ohm</span>
                 </div>
                 <div class="de-fld" title="Effective piston area. WinISD: Sd">
                   <label>Sd</label>
-                  <NumInput :class="cellClass('Sd')" :model-value="driverRaw.Sd ?? 0" :scale="1e4" :precision="4" @update:model-value="v => setNum('Sd', v)">
+                  <NumInput :class="cellClass('Sd')" :model-value="driverRaw.Sd ?? 0" :scale="1e4" :precision="fieldDp('Sd')" @update:model-value="v => setNum('Sd', v)">
                   </NumInput>
                   <span class="u">cm²</span>
                 </div>
@@ -212,7 +213,7 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="Peak one-way linear excursion. WinISD: Xmax">
                   <label>Xmax</label>
-                  <NumInput :class="cellClass('Xmax')" :model-value="driverRaw.Xmax ?? 0" :scale="1000" :precision="3" @update:model-value="v => setNum('Xmax', v)">
+                  <NumInput :class="cellClass('Xmax')" :model-value="driverRaw.Xmax ?? 0" :scale="1000" :precision="fieldDp('Xmax')" @update:model-value="v => setNum('Xmax', v)">
                   </NumInput>
                   <span class="u">mm peak</span>
                 </div>
@@ -228,7 +229,7 @@ useEscToClose(() => true, cancel);
                 </div>
                 <div class="de-fld" title="Rated continuous power handling. WinISD: Pe">
                   <label>Pe</label>
-                  <NumInput :class="cellClass('Pe')" :model-value="driverRaw.Pe ?? 0" :scale="1" :precision="1" @update:model-value="v => setNum('Pe', v)">
+                  <NumInput :class="cellClass('Pe')" :model-value="driverRaw.Pe ?? 0" :scale="1" :precision="fieldDp('Pe')" @update:model-value="v => setNum('Pe', v)">
                   </NumInput>
                   <span class="u">W</span>
                 </div>
@@ -268,7 +269,7 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="Nominal impedance — label only, not used in simulation. WinISD: Znom. OpenISD field: Z">
                   <label>Znom</label>
-                  <NumInput :class="cellClass('Z')" :model-value="driverRaw.Z ?? 0" :scale="1" :precision="3" @update:model-value="v => setNum('Z', v)">
+                  <NumInput :class="cellClass('Z')" :model-value="driverRaw.Z ?? 0" :scale="1" :precision="fieldDp('Z')" @update:model-value="v => setNum('Z', v)">
                   </NumInput>
                   <span class="u">ohm</span>
                 </div>

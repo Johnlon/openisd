@@ -37,6 +37,14 @@ test('box type change to vented shows vent controls', async ({ page }) => {
   await expect(page.locator('#side')).toContainText('Fb');
 });
 
+test('shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp)', async ({ page }) => {
+  await page.locator('#boxtype').selectOption('vented');
+  const ventD = numInputByLabel(page, 'Vent diameter');
+  await ventD.fill('5');
+  await ventD.press('Tab');
+  await expect(ventD).toHaveValue('5.00'); // registry ventD precision = 2 (WinISD 10.20 cm), not the old literal 1 dp
+});
+
 test('share link encodes state in URL hash', async ({ page }) => {
   await page.locator('#btnShare').click();
   await expect(page).toHaveURL(/#s=/);

@@ -6,6 +6,7 @@ import { savePR, listPRs, deletePR, listBundledPRs } from '../utils/prLibrary.js
 import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
+import { precision as fieldDp } from '../fields/fieldRegistry.js';
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
@@ -107,32 +108,32 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" title="Number of passive radiators in parallel">
           <label>PR count</label>
-          <NumInput v-model="state.P.prNum" :scale="1" :precision="2" step="1" :min="1" />
+          <NumInput v-model="state.P.prNum" :scale="1" :precision="fieldDp('prNum')" step="1" :min="1" />
           <span class="u"></span>
         </div>
         <div class="row" title="Effective piston area (from datasheet). WinISD: Sd.">
           <label>Sd</label>
-          <NumInput v-model="state.P.prSd" :scale="1e4" :precision="4" />
+          <NumInput v-model="state.P.prSd" :scale="1e4" :precision="fieldDp('prSd')" />
           <span class="u">cm²</span>
         </div>
         <div class="row" title="Maximum linear one-way cone excursion (from datasheet). WinISD: Xmax.">
           <label>Xmax</label>
-          <NumInput v-model="state.P.prXmax" :scale="1000" :precision="3" />
+          <NumInput v-model="state.P.prXmax" :scale="1000" :precision="fieldDp('prXmax')" />
           <span class="u">mm</span>
         </div>
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs.">
           <label>Fs</label>
-          <NumInput :model-value="prFsDisplay" :scale="1" :precision="4" @update:model-value="setWinIsdFs" />
+          <NumInput :model-value="prFsDisplay" :scale="1" :precision="fieldDp('prFs')" @update:model-value="setWinIsdFs" />
           <span class="u">Hz</span>
         </div>
         <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms.">
           <label>Qms</label>
-          <NumInput :model-value="prQmsDisplay" :scale="1" :precision="3" @update:model-value="setWinIsdQms" />
+          <NumInput :model-value="prQmsDisplay" :scale="1" :precision="fieldDp('prQms')" @update:model-value="setWinIsdQms" />
           <span class="u"></span>
         </div>
         <div class="row" title="Compliance volume. WinISD: Vas.">
           <label>Vas</label>
-          <NumInput :model-value="prVas" :scale="1" :precision="3" @update:model-value="setWinIsdVas" />
+          <NumInput :model-value="prVas" :scale="1" :precision="fieldDp('prVas')" @update:model-value="setWinIsdVas" />
           <span class="u">L</span>
         </div>
 

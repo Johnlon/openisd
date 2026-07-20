@@ -472,7 +472,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div>
               </div>
               <div class="field-row">
-                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fc','freq')">{{ unit('fc','freq') }}</span></div>
+                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fc','freq')">{{ unit('fc','freq') }}</span></div>
               </div>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
@@ -481,13 +481,13 @@ function cycleUnit(key: string, group: string) {
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('frc','freq')">{{ unit('frc','freq') }}</span></div></div>
+                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('frc','freq')">{{ unit('frc','freq') }}</span></div></div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="fieldDp('Vf')" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('ftune','freq')">{{ unit('ftune','freq') }}</span></div></div>
+                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('ftune','freq')">{{ unit('ftune','freq') }}</span></div></div>
               </div>
             </template>
 
@@ -617,10 +617,10 @@ function cycleUnit(key: string, group: string) {
               </div>
               <div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, 4)" readonly><span class="unit">m²</span></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, fieldDp('ventCrossArea'))" readonly><span class="unit">m²</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('portResonance'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
                 </div>
               </div>
             </div>
@@ -632,11 +632,11 @@ function cycleUnit(key: string, group: string) {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmt(prVas, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('prvas','volume')">{{ unit('prvas','volume') }}</span></div>
-                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, 3)" readonly></div>
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmt(prVas, fieldDp('prVas'))" readonly><span class="unit unit-cyc" @click="cycleUnit('prvas','volume')">{{ unit('prvas','volume') }}</span></div>
+                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmt(prFs, 2)" readonly><span class="unit unit-cyc" @click="cycleUnit('prfs','freq')">{{ unit('prfs','freq') }}</span></div>
+                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmt(prFs, fieldDp('prFs'))" readonly><span class="unit unit-cyc" @click="cycleUnit('prfs','freq')">{{ unit('prfs','freq') }}</span></div>
                   <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" :scale="10000" :precision="fieldDp('prSd')" /><span class="unit unit-cyc" @click="cycleUnit('prsd','area')">{{ unit('prsd','area') }}</span></div>
                 </div>
                 <div class="field-row">
@@ -647,7 +647,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" /><span class="unit">g</span></div></div>
-                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmt(prFsMass, 2)" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmt(prFsMass, fieldDp('prFsMass'))" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
           </div>
@@ -661,7 +661,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
                 <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
                 <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, 2)" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('portResonance'))" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
           </div>
@@ -671,7 +671,7 @@ function cycleUnit(key: string, group: string) {
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
               <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('svb','volume')">{{ unit('svb','volume') }}</span></div>
-              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, 2)" readonly><span class="unit">Hz</span></div>
+              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
           </div>
@@ -729,8 +729,8 @@ function cycleUnit(key: string, group: string) {
               <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-model.number="advHumidity"><span class="unit">%</span></div></div>
               <div class="field-row"><div class="field entered"><label>Air pressure</label><input v-expo-step type="number" v-model.number="advPressure"><span class="unit unit-cyc" @click="cycleUnit('pres','pressure')">{{ unit('pres','pressure') }}</span></div></div>
               <p style="margin:4px 0;">&#8594;</p>
-              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, 2)" readonly><span class="unit">m/s</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(5)" readonly><span class="unit">kg/m³</span></div></div>
+              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
             </div>
             <div class="checkbox-col">
               <label><input type="checkbox" v-model="advChecks.vc"> Simulate voice coil inductance</label>
