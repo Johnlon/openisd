@@ -12,7 +12,8 @@ import { state, driver, driverErrors, syncedP, curvesData, maxData, pinCompare, 
 import { TABS, buildPlotData } from '../../utils/series.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
-import { RHO, C } from '@openisd/engine';
+import { prVas as calcPrVas, prFs as calcPrFs, prQms as calcPrQms,
+         driveVoltage, soundVelocity } from '@openisd/engine';
 import BoxPanel from '../../components/BoxPanel.vue';
 import FiltersPanel from '../../components/FiltersPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -28,25 +29,19 @@ const { exportDesign, exportWdr, importFile, about } = useDesignIO();
 // overlay (state.prWhatIfOpen) — same split as the driver's Edit/What-If.
 const prEditOpen = ref(false);
 const prWhatIfOpen = ref(false);
-const prVasSummary = computed(() => state.P.prCms * state.P.prSd * state.P.prSd * RHO * C * C * 1000);
-const prFsSummary = computed(() => {
-  const { prMmd, prCms } = state.P;
-  return prMmd > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(prMmd * prCms)) : 0;
-});
-const prQmsSummary = computed(() => {
-  const { prMmd, prCms, prRms } = state.P;
-  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-});
+const prVasSummary = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
+const prFsSummary = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
+const prQmsSummary = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prRms));
 
 // Signal tab — "Signal source" voltage readout (WinISD: "Driver input voltage (each)").
-const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (driver.value?.Re || 8)));
+const driveV = computed(() => driveVoltage(state.P.Pin ?? 1, driver.value?.Re || 8));
 
 // Advanced tab — environment params are not modelled by the engine yet (screens-first):
 // static WinISD-default values/derived readouts, and the 5 checkboxes are inert for now.
 const advTemp = ref(293.15);
 const advHumidity = ref(30.0);
 const advPressure = ref(101325.0);
-const advSoundVelocity = computed(() => 20.05 * Math.sqrt(advTemp.value));
+const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
 const advAirDensity = ref(1.20095);
 const advSimVcInductance = ref(false);
 const advForceFlat = ref(false);

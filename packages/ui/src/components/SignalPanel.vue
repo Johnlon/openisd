@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { driveVoltage } from '@openisd/engine';
 import { state, driver } from '../store.js';
 import HelpTip from './HelpTip.vue';
 
 const drv = driver;
 
-const driveV = computed(() => Math.sqrt((state.P.Pin ?? 1) * (drv.value?.Re || 8)));
+const driveV = computed(() => driveVoltage(state.P.Pin ?? 1, drv.value?.Re || 8));
 
 function onVoltageInput(e: Event) {
   const v = parseFloat((e.target as HTMLInputElement).value);
