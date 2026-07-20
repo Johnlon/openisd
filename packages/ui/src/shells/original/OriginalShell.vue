@@ -30,7 +30,7 @@ import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
 import OgFilters from './OgFilters.vue';
-import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
+import OgTune from './OgTune.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
 
 const { exportDesign, exportWdr, importFile, about } = useDesignIO();
@@ -738,8 +738,8 @@ function cycleUnit(key: string, group: string) {
       </div>
     </div>
 
-    <!-- ===== Tune (docked What-If) + full Driver editor (reused shared modals) ===== -->
-    <DriverWhatIfPanel v-if="state.editDriver" />
+    <!-- ===== Tune (mock-styled docked What-If) + full Driver editor (shared, for now) ===== -->
+    <OgTune v-if="state.editDriver" />
     <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
 
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
