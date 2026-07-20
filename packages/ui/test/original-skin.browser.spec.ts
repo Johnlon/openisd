@@ -235,7 +235,7 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   await modal.locator('select').selectOption('vented');
   await modal.locator('button', { hasText: 'Next' }).click();
   await modal.locator('input').first().fill('42');
-  await modal.locator('button', { hasText: 'Create' }).click();
+  await modal.locator('button', { hasText: 'Pick Driver' }).click();
 
   const st = await page.evaluate(async () => {
     const modPath = '/src/store.ts';
