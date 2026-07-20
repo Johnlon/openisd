@@ -262,6 +262,16 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   expect(fs).toBeCloseTo(42, 1);
 });
 
+test('v-expo-step fields keep clean decimals while spinning (grid-aligned step)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+  const hum = page.locator('.tab-section.active .field', { hasText: 'Relative humidity' }).locator('input');
+  await hum.click();
+  await hum.fill('50');
+  for (let i = 0; i < 4; i++) await hum.press('ArrowUp'); // compounding steps
+  const val = await hum.inputValue();
+  expect(val).toMatch(/^\d+(\.\d{1,2})?$/); // clean grid value, never a long compounding float
+});
+
 test('NumInput spinner keeps fixed decimal places (no compounding float precision)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const vol = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
