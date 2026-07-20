@@ -243,6 +243,8 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Slot / rectangular vents (in addition to round)
 - [ ] **P1** Selectable end-correction (free/flanged combinations, custom value)
 - [ ] **P2** Drag-to-adjust Vb / Fb directly on a graph, with lock-one
+- [ ] **P2** The Original Vents pane's "1st port resonance" readout shows `ventFb` = `helmholtzFb(Vb)`, which is the box **Helmholtz tuning** (Fb), NOT the vent's organ-pipe first resonance (≈ c/2L) that WinISD labels "1st port resonance". Either compute the real pipe resonance (and register `portResonance` as `modeled: true`), or relabel the readout to "Tuning (Fb)". Pre-existing mislabel surfaced during the dp-registry review. `[ui]`
+- [ ] **P3** `NumInput`: clicking the native spinner buttons (not Arrow keys/wheel) isn't tracked, so clicking a spinner mid-type can transiently show an unformatted display for one frame (the model stays correct). Track pointerdown on the spinner region, or reformat on the step regardless. Low impact. `[ui]`
 
 ## Driver data & T/S
 
@@ -337,7 +339,6 @@ per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
 ---
 
 ## Ad-hoc notes (merged from WIP.md, 2026-07-20)
-
 
 ---
 

@@ -101,9 +101,9 @@ const FIELDS: FieldSpec[] = [
   },
   {
     id: 'ventCrossArea', label: 'Cross area', pane: 'Vents', kind: 'number', unit: 'm²', precision: 4, min: 0,
-    provenance: 'calculated', modeled: false, appliesTo: ['vented', 'bandpass4'],
+    provenance: 'calculated', modeled: true, appliesTo: ['vented', 'bandpass4'],
     formula: 'π·(ventD/2)²', dependsOn: ['ventD'],
-    description: 'Port cross-sectional area (WinISD derived readout, 4 dp). OpenISD computes area internally but does not surface it as a field yet.',
+    description: 'Port cross-sectional area (WinISD derived readout, 4 dp). Surfaced as a readonly readout on the Original Vents pane.',
   },
   {
     id: 'portResonance', label: '1st port resonance', pane: 'Vents', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 2000,
@@ -234,7 +234,7 @@ const FIELDS: FieldSpec[] = [
     provenance: 'calculated', modeled: true, appliesTo: 'all',
     formula: 'ρ = f(T, RH, P) — ideal-gas air density from the environment inputs',
     dependsOn: ['advTemp', 'advHumidity', 'advPressure'],
-    description: 'Derived air density. WinISD 5 dp (1.20095 kg/m³).',
+    description: 'Air density readout. WinISD 5 dp (1.20095 kg/m³) derived from T/RH/P. NOTE: OpenISD currently DISPLAYS the fixed RHO constant at this dp — the T/RH/P environment model (the formula/dependsOn above) is not yet implemented (BACKLOG); the dependency edges document the intended derivation, not today\'s behaviour.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================
@@ -370,7 +370,7 @@ const FIELDS: FieldSpec[] = [
   { id: 'filterFc', label: 'Cutoff / Center freq', pane: 'Filters', kind: 'number', unit: 'Hz', precision: 3, min: 0, max: 20000, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Filter cutoff / centre frequency. WinISD 3 dp.' },
   { id: 'filterQ', label: 'Q', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 0, max: 100, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Filter Q. WinISD 3 dp (0.707).' },
   { id: 'filterGain', label: 'Gain', pane: 'Filters', kind: 'number', unit: 'dB', precision: 3, min: -60, max: 60, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Filter gain (peaking/EQ/static). WinISD 3 dp.' },
-  { id: 'filterOrder', label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 8, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Filter order. WinISD 3 dp.' },
+  { id: 'filterOrder', label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 8, provenance: 'entered', modeled: true, appliesTo: 'all', description: 'Filter order. Semantically an integer, but WinISD literally displays it at 3 dp (e.g. "2.000") — precision 3 matches that evidence.' },
 ];
 
 const BY_ID = new Map<string, FieldSpec>(FIELDS.map((f) => [f.id, f]));

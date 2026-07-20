@@ -160,14 +160,28 @@ Spinners must **hold their fixed dp while being spun** (Arrow keys / wheel), inc
 (`NumInput.vue` `stepAttr`, `directives/expoStep.ts`); guarded by the class-level test in
 `original-skin.browser.spec.ts`.
 
-| Field                   | WinISD example | dp  | Source screenshot    |
-| ----------------------- | -------------- | --- | -------------------- |
-| System input power      | `140.0 W`      | 1   | signal / main window |
-| Driver input voltage    | `15.2 V`       | 1   | signal / main window |
-| Series resistance       | `0.100 ohm`    | 3   | signal / main window |
-| Box volume              | `6.00 l`       | 2   | box tab              |
-| Tuning / resonance freq | `40.25 Hz`     | 2   | box tab              |
-| Qtc                     | `0.707`        | 3   | box tab              |
+**The COMPLETE, machine-readable catalogue is `packages/ui/src/fields/fieldRegistry.ts`** — every
+field (modeled + WinISD-only reference), each with unit, precision, min/max sanity bounds,
+derivation, and dependencies. The table below is the human-readable dp evidence subset; where
+OpenISD shows a different unit than WinISD the registry carries the unit-adjusted dp (noted there).
+
+| Field                   | WinISD example               | dp        | Source screenshot          | OpenISD dp (if different)              |
+| ----------------------- | ---------------------------- | --------- | -------------------------- | -------------------------------------- |
+| System input power      | `140.0 W`                    | 1         | signal / main window       | 1                                      |
+| Driver input voltage    | `15.2 V`                     | 1         | signal / main window       | 1                                      |
+| Series resistance       | `0.100 ohm`                  | 3         | signal / main window       | 3                                      |
+| Box volume              | `6.00 l`                     | 2         | box tab                    | 2                                      |
+| Tuning / resonance freq | `40.25 Hz`                   | 2         | box tab                    | 2                                      |
+| Vent diameter           | `10.20 cm`                   | 2         | view_3_ported              | 2                                      |
+| Cross area              | `0.0082 m²`                  | 4         | view_3_ported              | 4                                      |
+| PR Vas / Fs / Qms       | `4.80 / 30.00 / 3.300`       | 2 / 2 / 3 | view_3_passive_radiator    | 2 / 2 / 3                              |
+| Temperature             | `293.15 K`                   | 2         | view_6_advanced            | 2                                      |
+| Sound velocity          | `343.68 m/s`                 | 2         | view_6_advanced            | 2                                      |
+| Air density             | `1.20095 kg/m³`              | 5         | view_6_advanced            | 5                                      |
+| Relative humidity       | `30.0000 %`                  | 4         | view_6_advanced            | **1** (WinISD's 4 dp is spurious)      |
+| Air pressure            | `101325.0 Pa`                | 1         | view_6_advanced            | **2 (kPa)** (unit-adjusted)            |
+| Driver Vas / Sd / Xmax  | `in³ / m² / m` (imperial/SI) | 1 / 4 / 3 | edit_driver_pg2_parameters | **2 l / 1 cm² / 1 mm** (unit-adjusted) |
+| Driver Mms / Le         | `kg 5 dp / H 6 dp`           | 5 / 6     | edit_driver_pg2_parameters | **2 g / 3 mH** (unit-adjusted)         |
 
 ## Biggest real gaps (priority view)
 

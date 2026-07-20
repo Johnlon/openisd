@@ -518,6 +518,22 @@ test('the chosen skin is remembered across a reload (local preference)', async (
   await expect(page.locator('.original-root')).toBeVisible();
 });
 
+test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  const modal = page.locator('.overlay.on');
+  await expect(modal).toContainText('Driver editor');
+  await modal.locator('.de-tab', { hasText: 'Parameters' }).first().click(); // Vas/Sd live on the Parameters tab
+  const vas = modal.locator('.de-fld', { hasText: 'Vas' }).locator('input').first();
+  await vas.fill('20');
+  await vas.blur();
+  await expect(vas).toHaveValue('20.00'); // registry Vas = 2 dp (was a 3-dp literal)
+  const sd = modal.locator('.de-fld', { hasText: 'Sd' }).locator('input').first();
+  await sd.fill('130');
+  await sd.blur();
+  await expect(sd).toHaveValue('130.0'); // registry Sd = 1 dp (was a 4-dp literal)
+});
+
 test('R1: an open Driver Editor is reopened after a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
