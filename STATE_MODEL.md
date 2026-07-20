@@ -4,12 +4,20 @@ Layered project state — **ground → modified → what-if**, plus a parallel *
 This governs unsaved-change tracking, what-if previews, edit dialogs, and — critically —
 **which state the charts render**.
 
-> Status: **target design, not yet implemented.** Today the store holds a single flat
-> state and `App.vue` auto-persists every change to `localStorage`. This model is the
-> prerequisite for a truthful Unsaved / Save-Changes / Reset bar and for correct what-if
-> vs edit semantics across all skins. (It supersedes the note in
-> `brain/bring_mock_live.md` that called the Unsaved/Revert bar "fiction" — it is
-> **deferred pending this model**, not permanently fake.)
+> Status: **being implemented incrementally.**
+>
+> - **Increment 1 — ground↔modified (DONE):** the store tracks a **ground** fingerprint
+>   (`store.ts` `markProjectSaved` / `isModified` / `resetProjectToGround`). `App.vue` marks
+>   the just-loaded design as ground; the design is **modified** when it differs. The Original
+>   skin's Save bar is wired to it: an Unsaved indicator, **Save Changes** (adopt current as
+>   ground), **Reset state** (revert to ground). This is additive — components still read
+>   `state.P`/`state.box` directly; the layer only observes/restores them.
+> - **Increment 2 — what-if / edit priorityState proxy (TODO):** a constant-identity accessor
+>   the reactive components read, delegating to the active layer. **What-if/modified/ground**
+>   swap it (charts react live); **edit** does NOT (charts ignore the edit buffer until
+>   Accept). Today what-if is already effectively handled per-editor (e.g. OgTune's live edit +
+>   pre-open snapshot for Cancel); Increment 2 formalises it into the shared layer so every
+>   editor and skin shares one implementation.
 
 ## The state layers
 

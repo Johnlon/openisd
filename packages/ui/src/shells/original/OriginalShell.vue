@@ -19,6 +19,7 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   state, driver, driverRaw, driverShort, pinCompare,
   syncedP, curvesData, maxData, driverErrors,
+  isModified, markProjectSaved, resetProjectToGround,
 } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
@@ -83,6 +84,9 @@ const enclosureNavLabel = computed(() =>
   selectedBox.value === 'pr' ? 'Passive Radiator'
     : selectedBox.value === 'sealed' ? 'Closed'
       : boxLabel.value);
+// A Closed box has no vents/PR — its enclosure tab would only duplicate the Box tab's
+// Volume, so it's dropped (matching the Classic skin's sealed-box behaviour).
+const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
 // ---- Live engine-derived readouts (never faked literals) -----------------------
 // Sealed/PR rear-chamber resonance: Fc = Fs·√(1 + Vas/Vb).
@@ -215,6 +219,8 @@ const activeTab = computed<TabId>({
   get: () => (state.ui.originalProjectTab as TabId) ?? 'box',
   set: (v: TabId) => { state.ui.originalProjectTab = v; },
 });
+// If the enclosure tab is dropped (Closed box) while it's active, fall back to the Box tab.
+watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
 // ---- Projects list -------------------------------------------------------------
 function removeCompare(i: number) { state.compare.splice(i, 1); }
@@ -398,7 +404,7 @@ function cycleUnit(key: string, group: string) {
         <ul class="project-nav">
           <li :class="{ active: activeTab === 'box' }" @click="activeTab = 'box'">Box</li>
           <li :class="{ active: activeTab === 'driver' }" @click="activeTab = 'driver'">Driver</li>
-          <li :class="{ active: activeTab === 'enclosure' }" @click="activeTab = 'enclosure'">{{ enclosureNavLabel }}</li>
+          <li v-if="showEnclosureTab" :class="{ active: activeTab === 'enclosure' }" @click="activeTab = 'enclosure'">{{ enclosureNavLabel }}</li>
           <li :class="{ active: activeTab === 'filters' }" @click="activeTab = 'filters'">Filters</li>
           <li :class="{ active: activeTab === 'signal' }" @click="activeTab = 'signal'">Signal</li>
           <li :class="{ active: activeTab === 'advanced' }" @click="activeTab = 'advanced'">Advanced</li>
@@ -411,7 +417,11 @@ function cycleUnit(key: string, group: string) {
       <div class="content-panel">
         <div class="parstate-legend">
           <div class="unsaved-indicator">
-            <button class="save-btn" title="Save the full design to a .json project." @click="exportDesign">Save Changes</button>
+            <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
+            <button class="save-btn" :class="{ dirty: isModified }" :disabled="!isModified"
+                    title="Save Changes — adopt the current design as the saved (ground) state." @click="markProjectSaved">Save Changes</button>
+            <button class="save-btn" :disabled="!isModified"
+                    title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
             <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
           </div>
           <div class="parstate-swatches">
@@ -908,7 +918,13 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
    so they don't dominate the panel like a native WinISD control would. */
 .save-btn { border:1px solid #ccc; background:#f4f4f4; color:#666; font-weight:400; border-radius:3px; padding:1px 7px; cursor:pointer; font-size:11px; }
-.save-btn:hover { background:#e9e9e9; color:#333; border-color:#aaa; }
+.save-btn:hover:not(:disabled) { background:#e9e9e9; color:#333; border-color:#aaa; }
+.save-btn:disabled { opacity:.45; cursor:default; }
+.save-btn.dirty { border-color:#d9a441; background:#fff3e0; color:#8a5a00; font-weight:600; }
+.save-btn.dirty:hover:not(:disabled) { background:#ffe4b0; }
+.unsaved-label { display:flex; align-items:center; gap:6px; color:#8a5a00; font-weight:600; font-size:12px; }
+.unsaved-dot { width:8px; height:8px; border-radius:50%; background:#e0a800; display:inline-block; animation:unsaved-pulse 1.6s ease-in-out infinite; }
+@keyframes unsaved-pulse { 0%, 100% { opacity:1; } 50% { opacity:.35; } }
 
 /* ---------- Modal overlay ---------- */
 .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.18); z-index:100; align-items:flex-start; justify-content:center; }

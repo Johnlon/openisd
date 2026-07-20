@@ -103,7 +103,9 @@ only presentation is per-skin.
 
 ### Top-bar / chrome
 
-- [ ] **Save bar** → add Unsaved-changes indicator + Revert button (`mock/index.html:255-260`); port currently shows "Export .wdr" in their place.
+- [x] **Save bar** → done (STATE_MODEL Increment 1): Unsaved-changes indicator + **Save Changes**
+      (adopt as ground) + **Reset state** (revert to ground), wired to the store's real
+      `isModified`/`markProjectSaved`/`resetProjectToGround`. Export .wdr kept alongside.
 - [ ] **Color button** → wire the mock's `cycleColor` click (`mock/index.html:249`); currently static.
 - [ ] Confirm toolbar = 8 icons + chart dropdown + live cursor Hz/dB readout (arch-review §3a flagged the toolbar as a rewrite; re-check current state).
 
