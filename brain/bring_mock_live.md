@@ -85,10 +85,21 @@ only presentation is per-skin.
       add the "Save to My Drivers" flow; the Entered/Calculated provenance legend + per-field
       colour coding (from the ADT's provenance); unit-cycling on Fs/Vas/Sd/Xmax; derived-field
       units/hints (Bl "T·m", EBP "→ sealed/vented").
-- [ ] **Driver Editor** → mock 4-tab `.modal-tabs` / `.param-grid` (currently shared `DriverEditorModal.vue`).
-- [ ] **Select Driver modal** → mock Library / My-Drivers picker table + action row (`mock/index.html:940-1011`); today opens shared `DriverBrowser.vue`.
-- [ ] **New Project wizard** → 2-step box-type / volume flow (`mock/index.html:889-938`); missing — New button currently opens the driver browser.
-- [ ] **Options modal** → not ported (button disabled).
+- [~] **Driver Editor** → **accepted reuse of shared `DriverEditorModal.vue`** (its multi-tab
+  edit logic is substantial and trapped in the shared component). Per the Decision rule,
+  re-skinning to the mock's 4-tab `.param-grid` would either duplicate that logic (forbidden)
+  or need a large extraction of a Modern-rendered component (Invariant 1 risk). Traded off:
+  functional parity via reuse now; mock-visual re-skin only if the edit logic is first
+  extracted to a composable. Not a blocking gap.
+- [~] **Select Driver modal** → **accepted reuse of shared `DriverBrowser.vue`** (a complete
+  working picker; its ~250-line catalog-build + WDR-parse logic is trapped in the shared
+  component). Same trade-off as Driver Editor — reuse now, re-skin only after a logic
+  extraction. Not a blocking gap.
+- [x] **New Project wizard** → ported as `shells/original/OgNewProject.vue` (2-step box-type /
+      volume, applies to the store, hands off to the driver picker; 4 engine-modelled box types).
+- [ ] **Options modal** → intentionally NOT ported — the mock's Options is entirely inert
+      (dead OK/Cancel, no real settings backing). Porting it would ship fake controls (no-fake-data
+      rule). Revisit only when a real preferences store exists.
 
 ### Top-bar / chrome
 
