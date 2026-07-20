@@ -175,6 +175,36 @@ for (const [key, src] of Object.entries(sources)) {
 
 const total = bundle.sources.reduce((n, s) => n + s.files.length, 0);
 const outPath = join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json');
+
+// Guard: never overwrite a non-empty bundle with an EMPTY one. When the source data is
+// incomplete — a sibling driver repo mid-rebuild, or a source URL that no longer resolves —
+// the walk yields zero drivers and/or zero passive radiators. Writing that would silently
+// wipe the committed bundle, break the app + `drivers-bundle.test.ts`, and be easy to commit
+// by accident. Refuse, and point at the SOURCE (not the bundle) as the thing to fix. To
+// intentionally publish an empty bundle, delete the existing file first to opt out of the guard.
+if (existsSync(outPath)) {
+  let prev = null;
+  try { prev = JSON.parse(readFileSync(outPath, 'utf8')); } catch { /* unparseable → treat as no prior */ }
+  if (prev) {
+    const prevTotal = (prev.sources || []).reduce((n, s) => n + (s.files?.length || 0), 0);
+    const prevPr = (prev.passiveRadiators || []).length;
+    const emptiesDrivers = total === 0 && prevTotal > 0;
+    const emptiesPrs = bundle.passiveRadiators.length === 0 && prevPr > 0;
+    if (emptiesDrivers || emptiesPrs) {
+      console.error(
+        `\nERROR: refusing to overwrite ${relative(ROOT, outPath)} with an empty build ` +
+        `(drivers ${prevTotal}→${total}, passive radiators ${prevPr}→${bundle.passiveRadiators.length}).`,
+      );
+      console.error(
+        '  The SOURCE data looks incomplete — check the sibling winisd_drivers checkout / source URLs. ' +
+        'This is not a bundler bug and not something to "fix" in the bundle. ' +
+        `To force a genuinely-empty bundle, delete ${relative(ROOT, outPath)} first.`,
+      );
+      process.exit(1);
+    }
+  }
+}
+
 writeFileSync(outPath, JSON.stringify(bundle));
 
 const kb = Math.round(JSON.stringify(bundle).length / 1024);
