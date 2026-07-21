@@ -172,14 +172,14 @@ test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real val
   await expect(panel.locator('.field').filter({ hasText: 'Tuning freq' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
 });
 
-test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·Leff), not the box tuning', async ({ page }) => {
+test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('vented');
   await page.locator('.project-nav li').nth(2).click(); // dynamic Vents tab
   const field = page.locator('.field', { hasText: '1st port resonance' }).locator('input');
   const v = Number(await field.inputValue());
-  // Default ~10 cm vent → open-open pipe fundamental ≈ 1.2 kHz — far above the box Helmholtz
-  // tuning (~tens of Hz), which is what the field used to (wrongly) show.
+  // WinISD's "1st port resonance" = c/(2·physical vent length). A ~10 cm vent → ~1.7 kHz — far
+  // above the box Helmholtz tuning (~tens of Hz), which is what the field used to (wrongly) show.
   expect(v).toBeGreaterThan(500);
 });
 
