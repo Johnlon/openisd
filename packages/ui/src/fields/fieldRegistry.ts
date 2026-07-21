@@ -63,6 +63,17 @@ export interface FieldSpec {
   description: string;
 }
 
+/**
+ * Port end-correction presets (WinISD parity) — the SINGLE source for the coefficient values
+ * and their labels, consumed by every skin's End Correction dropdown. Coefficient × vent
+ * diameter is added to the physical length to get the acoustic Leff that sets tuning Fb.
+ */
+export const END_CORRECTION_OPTIONS = [
+  { value: 0.613, label: 'Two free ends' },
+  { value: 0.732, label: 'One flanged end' },
+  { value: 0.849, label: 'Two flanged ends' },
+] as const;
+
 const FIELDS: FieldSpec[] = [
   // ============================ BOX / ENCLOSURE ============================
   {
@@ -96,7 +107,7 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'endCorrection', label: 'End Correction', pane: 'Vents', kind: 'enum', unit: '',
     provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
-    options: ['0.613', '0.732', '0.849'],
+    options: END_CORRECTION_OPTIONS.map((o) => String(o.value)),
     description: 'Port end-correction coefficient × vent diameter, added to the physical length to get the acoustic Leff that sets tuning Fb. Two free ends 0.613 / one flanged 0.732 (default) / two flanged 0.849. Selectable on every skin (Original Vents pane + shared BoxPanel → Modern/Classic); default 0.732 is a no-op vs before. WinISD parity.',
   },
   {
