@@ -23,8 +23,11 @@ drivers/scan-speak
 drivers/soundimports
 drivers/wavecor
 
-# Generated at build time by scripts/bundle-drivers.mjs
-src/drivers-bundle.json
+# Generated at build time by scripts/bundle-drivers.mjs — NEVER track it (human ruling
+# 2026-07-21: CI uses BOTH repos and regenerates; a derived bundle is not checked in).
+# (The old pattern `src/drivers-bundle.json` was root-anchored and matched nothing,
+# so the file stayed tracked until 2026-07-21.)
+packages/ui/src/drivers-bundle.json
 
 # OS / editor cruft
 .DS_Store
