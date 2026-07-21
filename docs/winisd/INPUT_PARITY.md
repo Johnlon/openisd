@@ -30,7 +30,7 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 
 | WinISD field                                                          | OpenISD                                                    |
 | --------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Thermal: AlfaVC, R(t), C(t)                                           | ✅ (raw; not simulated)                                    |
+| Thermal: AlfaVC, R(t), C(t)                                           | ✅ AlfaVC **simulated** (power compression); R(t)/C(t) raw |
 | Environment: c, roo                                                   | ⚠️ has fields, but **hardcoded** — see §Constants          |
 | Figure-of-merit: EBP                                                  | ⚠️ computed as a gauge, not an editable field              |
 | Figure-of-merit: **SPLmaxLF, SPLmax, Rme, gamma, Mpow, Mcost, Gloss** | ❌ (WinISD shows these derived values; OpenISD shows none) |
@@ -52,9 +52,9 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 | ---------------------------------------------------- | --------------------------------------- |
 | Brand, Model, Num. of drivers, Voice coil connection | ✅                                      |
 | **Iso-Barik** (isobaric loading, vs "Standard")      | ❌ (BACKLOG P2)                         |
-| **Voice coil temp rise (K)**                         | ❌ (no thermal/power-compression input) |
+| **Voice coil temp rise (K)**                         | ✅ models power compression (hot Re)    |
 | Voice coil resistance TC = AlfaVC                    | ✅ (stored, not simulated)              |
-| **Added mass to cone (kg)** — driver                 | ❌ (only PR added-mass exists)          |
+| **Added mass to cone (kg)** — driver                 | ✅ withAddedMass (Mms↑ → Fs↓)           |
 | Placement (button)                                   | ❔ contents not captured in these shots |
 
 ## Box pane (`view_2_box.png`) — parity
