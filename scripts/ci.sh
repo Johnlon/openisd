@@ -6,7 +6,9 @@
 set -u
 mkdir -p ci-logs
 LOG="ci-logs/ci-$(date -u +%Y%m%dT%H%M%SZ).log"
-{ npm run lint && npm run typecheck && npm run test; } 2>&1 | tee "$LOG"
+# The drivers bundle is DERIVED and untracked (human ruling 2026-07-21): CI uses both
+# repos — regenerate it from the sibling winisd_drivers checkout before testing.
+{ node scripts/bundle-drivers.mjs && npm run lint && npm run typecheck && npm run test; } 2>&1 | tee "$LOG"
 status=${PIPESTATUS[0]}
 echo "ci: exit ${status} — log retained at ${LOG}" | tee -a "$LOG"
 exit "${status}"
