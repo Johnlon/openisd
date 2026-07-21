@@ -83,21 +83,24 @@ Runs a frequency sweep and returns all simulation curves.
 
 #### Common parameters (all box types)
 
-| Field          | Type     | Unit | Default      | Description                                                            |
-| -------------- | -------- | ---- | ------------ | ---------------------------------------------------------------------- |
-| `Vb`           | number   | m³   | 0.030        | Net acoustic box volume (excludes driver/port displacement)            |
-| `Ql`           | number   | —    | 10           | Leakage loss Q. WinISD default: 10                                     |
-| `Qa`           | number   | —    | 100          | Absorption loss Q (stuffing). WinISD default: 100                      |
-| `Qp`           | number   | —    | 100          | Port loss Q. WinISD default: 100                                       |
-| `eg`           | number   | V    | —            | Drive voltage (RMS). Use `sqrt(Pin × Re)` to match WinISD              |
-| `nDrivers`     | integer  | —    | 1            | Number of identical drivers                                            |
-| `wiring`       | string   | —    | `'parallel'` | `'parallel'` or `'series'`                                             |
-| `Rs`           | number   | Ω    | 0.1          | Source (amplifier + cable) resistance                                  |
-| `fmin`         | number   | Hz   | 10           | Sweep start frequency                                                  |
-| `fmax`         | number   | Hz   | 1000         | Sweep end frequency                                                    |
-| `N`            | integer  | —    | 400          | Number of frequency points                                             |
-| `filters`      | Filter[] | —    | `[]`         | Filter chain (see §4)                                                  |
-| `circuitModel` | string   | —    | `'winisd'`   | `'winisd'` (constant elements) or `'gyrator'` (frequency-dependent Le) |
+| Field             | Type     | Unit | Default      | Description                                                                  |
+| ----------------- | -------- | ---- | ------------ | ---------------------------------------------------------------------------- |
+| `Vb`              | number   | m³   | 0.030        | Net acoustic box volume (excludes driver/port displacement)                  |
+| `Ql`              | number   | —    | 10           | Leakage loss Q. WinISD default: 10                                           |
+| `Qa`              | number   | —    | 100          | Absorption loss Q (stuffing). WinISD default: 100                            |
+| `Qp`              | number   | —    | 100          | Port loss Q. WinISD default: 100                                             |
+| `eg`              | number   | V    | —            | Drive voltage (RMS). Use `sqrt(Pin × Re)` to match WinISD                    |
+| `nDrivers`        | integer  | —    | 1            | Number of identical drivers                                                  |
+| `wiring`          | string   | —    | `'parallel'` | `'parallel'` or `'series'`                                                   |
+| `Rs`              | number   | Ω    | 0.1          | Source (amplifier + cable) resistance                                        |
+| `fmin`            | number   | Hz   | 10           | Sweep start frequency                                                        |
+| `fmax`            | number   | Hz   | 1000         | Sweep end frequency                                                          |
+| `N`               | integer  | —    | 400          | Number of frequency points                                                   |
+| `filters`         | Filter[] | —    | `[]`         | Filter chain (see §4)                                                        |
+| `circuitModel`    | string   | —    | `'winisd'`   | `'winisd'` (constant elements) or `'gyrator'` (frequency-dependent Le)       |
+| `driverAddedMass` | number   | kg   | 0            | Mass added to the driver cone → raises Mms, lowers Fs. 0 = no-op             |
+| `vcTempRise`      | number   | K    | 0            | Voice-coil temperature rise → hot Re (power compression). 0 = no-op          |
+| `alfaVC`          | number   | /K   | 0            | VC resistance temp-coefficient (SI; copper ≈ 0.0039). Used with `vcTempRise` |
 
 #### Vented / bandpass4 additional parameters
 
@@ -204,6 +207,13 @@ Pure display/derivation forms shared by every skin (extracted from duplicated co
 | `prQms(prMmd, prCms, prRms)`         | `numbers → number` | PR mechanical Q; 0 if Rms ≤ 0                |
 | `driveVoltage(pin, re)`              | `numbers → number` | Drive voltage V = √(Pin·Re)                  |
 | `soundVelocity(tempKelvin)`          | `number → number`  | Speed of sound c = 20.05·√(T) (m/s)          |
+
+## 5b. Driver transforms (`driver.ts`)
+
+| Function                        | Signature                 | Returns                                                                                    |
+| ------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| `withAddedMass(driver, MaddKg)` | `Driver, number → Driver` | Copy with `Mms += Madd`, Fs/Q's recomputed (Cms/Rms/Bl/Re/Sd fixed). `Madd ≤ 0` = identity |
+| `hotRe(Re, alfaVC, dT)`         | `numbers → number`        | `Re·(1 + alfaVC·ΔT)` — voice-coil resistance at temperature. ΔT/alfaVC = 0 → `Re`          |
 
 ---
 
