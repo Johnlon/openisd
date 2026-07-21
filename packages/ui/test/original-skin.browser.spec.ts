@@ -518,6 +518,33 @@ test('the chosen skin is remembered across a reload (local preference)', async (
   await expect(page.locator('.original-root')).toBeVisible();
 });
 
+test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg, resonance drops)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('select#og-box-type').selectOption('sealed');
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  const peakHz = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    const z = s.curvesData.value.zmag as number[], f = s.curvesData.value.fs as number[];
+    // The impedance resonance peak lives in the bass region; above it, Le makes |Z| climb to
+    // fmax, so restrict the search to < 300 Hz to find the resonance, not the inductive rise.
+    let bi = 0, bz = -1;
+    for (let i = 0; i < f.length; i++) if (f[i] < 300 && z[i] > bz) { bz = z[i]; bi = i; }
+    return f[bi];
+  });
+  const before = await peakHz();
+  const amc = page.locator('.field', { hasText: 'Added mass to cone' }).locator('input');
+  await amc.fill('50');
+  await amc.dispatchEvent('input');
+  await amc.blur();
+  const madd = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;
+  });
+  expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model
+  expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)
+});
+
 test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();

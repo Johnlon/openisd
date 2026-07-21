@@ -135,6 +135,11 @@ export interface UiParams {
   N: number;
   circuitModel: 'winisd' | 'gyrator';
   filters: Filter[];
+  // WinISD-parity driver inputs (WINISD.md §12c). SI/engine units: vcTempRise K, alfaVC /K
+  // (UI shows 1000/K), driverAddedMass kg (UI shows g). All 0-safe: no-op at the default.
+  vcTempRise: number;
+  alfaVC: number;
+  driverAddedMass: number;
 }
 
 /**

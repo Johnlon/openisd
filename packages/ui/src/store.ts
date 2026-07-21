@@ -17,6 +17,7 @@ const P_DEFAULTS: UiParams = {
   fmin:1, fmax:20000, N:400,
   circuitModel: 'winisd',
   filters: [],
+  vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
 };
 
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
