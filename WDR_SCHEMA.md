@@ -471,6 +471,22 @@ in `drivers/sample/PARSTATE-FINDINGS.md` (which carries a WARNING that its posit
 Conclusion: The field ordering is independent of the ParState, which is reasonable as this
 is a K/V pair file format order should not matter.
 
+## 8.9 Scraper-side field coverage (mirror note, 2026-07-21)
+
+The scraper repo's `SpecSection` (winisd_tools `scrapers/scrapers/lib/model_metadata.py`)
+now models EVERY datasheet-publishable WinISD field (human directive 2026-07-21):
+the T/S set plus `Xlim` (ParState-only in WinISD — stored in `metadata.yml` only,
+never a WDR key), `fLe`, `KLe`, `Dd`, `EBP`, `numVC`, `VCCon`, `Hc`/`Hg`
+(as `Hc_mm`/`Hg_mm`) and the mechanical-dimension block
+(`thick_mm/depth_mm/magnet_depth_mm/magnet_dia_mm/basket_dia_mm/outer_dia_mm/
+driver_volume_l` → WDR `Thick/Depth/MagDepth/Magnet/Basket/Outer/DVol`;
+`voice_coil_dia_mm` → `Vcd`). The projection writes stored values into those WDR
+keys (previously hardcoded 0) and flags them `E` at their ParState positions;
+published `Dd`/`EBP` override the computed path (`E` not `C`). Computed-only
+fields (`Vd, no, SPLmax, SPLmaxLF, USPL, gamma, Rme, Mpow, Mcost, Gloss,
+alfaVC, Rt, Ct`) and environment (`c`, `roo`) remain app-computed, never stored.
+Guard: winisd_tools `scrapers/tests/lib/test_winisd_field_coverage.py`.
+
 ## 9. Provenance sidecar — `_meta.yml`
 
 Each WDR file has a companion `<stem>_meta.yml` in the same directory. The sidecar holds all
