@@ -52,6 +52,9 @@ function onKeydown(e: KeyboardEvent) {
   typing.value = e.key !== 'ArrowUp' && e.key !== 'ArrowDown';
 }
 function onWheel() { typing.value = false; }   // wheel over the field is a step → reformat
+// A mouse press (incl. on the native ▲▼ spinner buttons) is not typing → reformat on the
+// resulting step. If the press is to place the caret, the next keydown flips typing back on.
+function onPointerDown() { typing.value = false; }
 
 // A value is acceptable only if finite AND at or above the minimum (default 0) —
 // this is what blocks negatives from ever reaching the model/sim.
@@ -113,7 +116,7 @@ const stepAttr = computed<string | number>(() => {
 <template>
   <input type="number" :step="stepAttr" :min="min" :value="display"
     :class="{ 'inp-bad': invalid }"
-    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
+    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
 </template>
 
 <style scoped>

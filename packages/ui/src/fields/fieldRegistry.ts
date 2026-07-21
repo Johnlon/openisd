@@ -106,9 +106,11 @@ const FIELDS: FieldSpec[] = [
     description: 'Port cross-sectional area (WinISD derived readout, 4 dp). Surfaced as a readonly readout on the Original Vents pane.',
   },
   {
-    id: 'portResonance', label: '1st port resonance', pane: 'Vents', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 2000,
-    provenance: 'calculated', modeled: false, appliesTo: ['vented', 'bandpass4'],
-    description: 'First pipe/organ resonance of the vent (WinISD derived, 2 dp, 86.87 Hz). Not yet surfaced in OpenISD.',
+    id: 'portResonance', label: '1st port resonance', pane: 'Vents', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 20000,
+    provenance: 'calculated', modeled: true, appliesTo: ['vented', 'bandpass4'],
+    formula: 'c / (2·Leff) — open-open duct fundamental; Leff = ventL + END_CORRECTION·ventD',
+    dependsOn: ['ventL', 'ventD'],
+    description: 'First organ-pipe (standing-wave) resonance of the vent tube itself — distinct from the box Helmholtz tuning (Fb). Surfaced on the Original Vents pane. WinISD 2 dp (86.87 Hz).',
   },
 
   // ============================ PASSIVE RADIATOR ============================
