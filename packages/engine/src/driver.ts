@@ -74,3 +74,23 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
 
   return { value: r, errors };
 }
+
+/**
+ * Return a copy of the driver with `MaddKg` kilograms added to the cone's moving mass
+ * (driver-side added mass — the WinISD "Added mass to cone" field, verified used in
+ * WINISD.md §12c). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by
+ * the mass; the resonance and Q's follow from the heavier Mms:
+ *   Mms' = Mms + Madd,  Fs' = 1/(2π√(Mms'·Cms)),
+ *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
+ * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
+ */
+export function withAddedMass(drv: Driver, MaddKg: number): Driver {
+  if (!(MaddKg > 0)) return { ...drv };
+  const Mms = drv.Mms + MaddKg;
+  const ws  = 1 / Math.sqrt(Mms * drv.Cms);          // ωs = 1/√(Mms·Cms)
+  const Fs  = ws / (2 * Math.PI);
+  const Qms = ws * Mms / drv.Rms;                    // ωs·Mms/Rms
+  const Qes = ws * Mms * drv.Re / (drv.Bl * drv.Bl); // ωs·Mms·Re/Bl²
+  const Qts = (Qes * Qms) / (Qes + Qms);
+  return { ...drv, Mms, Fs, Qms, Qes, Qts };
+}
