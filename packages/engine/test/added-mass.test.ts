@@ -16,11 +16,13 @@ function drv(): Driver {
 }
 
 describe('withAddedMass — driver-side cone mass', () => {
-  it('Madd = 0 is an exact no-op (golden safety)', () => {
+  it('Madd ≤ 0 is an exact no-op (0 and negative) — golden safety', () => {
     const d = drv();
-    const d0 = withAddedMass(d, 0);
-    for (const k of ['Fs', 'Mms', 'Cms', 'Rms', 'Bl', 'Re', 'Sd', 'Qts', 'Qes', 'Qms'] as const) {
-      assert.equal(d0[k], d[k], `${k} must be unchanged at Madd=0`);
+    for (const Madd of [0, -0.01]) {
+      const d0 = withAddedMass(d, Madd);
+      for (const k of ['Fs', 'Mms', 'Cms', 'Rms', 'Bl', 'Re', 'Sd', 'Qts', 'Qes', 'Qms'] as const) {
+        assert.equal(d0[k], d[k], `${k} must be unchanged at Madd=${Madd}`);
+      }
     }
   });
 

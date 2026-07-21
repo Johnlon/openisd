@@ -68,7 +68,7 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     const UD  = cMul(s.UD, Hf);
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
-    const Sdt = d.Sd * (P.nDrivers || 1);
+    const Sdt = d.Sd * (P.nDrivers || 1); // d.Sd === drv.Sd (withAddedMass leaves Sd untouched)
     const area = box === 'pr' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
