@@ -15,6 +15,7 @@
 import { RHO, P0 } from './constants.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
+import { withAddedMass } from './driver.js';
 import { applyFilters } from './filters.js';
 import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 
@@ -51,11 +52,14 @@ export function unwrap(p: number[]): number[] {
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
 export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
+  // Driver-side added mass (WINISD.md §12c) shifts Mms/Fs/Q's before the circuit sees it.
+  // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
+  const d = withAddedMass(drv, P.driverAddedMass ?? 0);
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], gd = [], phase = [];
   for (let i = 0; i <= N; i++) {
     const f   = f0 * Math.pow(f1 / f0, i / N);
-    const s   = solve(f, drv, box, P);
+    const s   = solve(f, d, box, P);
     const w   = 2 * Math.PI * f;
     // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
     // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
@@ -64,7 +68,7 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     const UD  = cMul(s.UD, Hf);
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
-    const Sdt = drv.Sd * (P.nDrivers || 1);
+    const Sdt = d.Sd * (P.nDrivers || 1);
     const area = box === 'pr' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
