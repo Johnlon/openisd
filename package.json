@@ -14,7 +14,7 @@
     "typecheck:winisd": "tsc -p packages/winisd --noEmit",
     "typecheck:ui": "vue-tsc -p packages/ui --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:unit",
-    "ci": "npm run lint && npm run typecheck && npm run test",
+    "ci": "bash scripts/ci.sh",
     "predev": "node scripts/bundle-drivers.mjs && npm run lint",
     "dev": "vite",
     "prebuild": "node scripts/bundle-drivers.mjs && npm run lint",
