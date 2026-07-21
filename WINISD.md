@@ -560,6 +560,31 @@ guard an empty/blank entry — never parse a blank as a float and never leave th
 NumInput already reverts an invalid entry to the last valid value on blur; keep that behaviour
 and cover it with a test so OpenISD cannot reproduce the WinISD trap.
 
+## 12c. Thermal power-compression + driver added-mass ARE simulated (directly verified 2026-07-21)
+
+The human ran controlled single-field tests in WinISD 0.7.0.950 (Driver pane → Advanced options),
+watching the Impedance/SPL charts. This is **primary evidence** and overrides WinISD's own stale
+help text (`thielesmall.html`) which claims the thermal params are "not used yet in simulations".
+
+| Field changed                         | Observed                                          | Conclusion                                               |
+| ------------------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| **Voice coil temp rise**              | Impedance floor rose ~21 → 23 Ω; SPL curve flexed | Hot `Re` is applied → **power compression is simulated** |
+| **Voice coil resistance TC (AlfaVC)** | Impedance rose (with a temp rise set)             | AlfaVC scales the hot-`Re` term → **used**               |
+| **Added mass to cone = 100 g**        | Impedance resonance peak moved 70 → 25 Hz         | Added straight into `Mms` → **used**                     |
+
+The added-mass result also settles the **unit = grams**: `Fs ∝ 1/√Mms`, so 70→25 Hz means
+`Mms` rose `(70/25)² = 7.84×`; a +100 g add implies `Mms_old ≈ 14.6 g` (a plausible cone mass).
+100 kg would be nonsensical — confirms the field is grams, not kg (the screenshot transcription of
+`view_1_driver_drivers_standard.md` wrongly reads "kg").
+
+**Model:** `Re(hot) = Re·(1 + AlfaVC·ΔT)`, then all Re-dependent quantities (Qes, Qts, sensitivity,
+impedance floor, Max-SPL) recompute from the hot Re. Added mass: `Mms += Madd`, then Fs/Qts/Vas-behaviour
+follow. `R(t)`/`C(t)` (time-evolution of ΔT) were NOT tested and are bypassed when ΔT is entered directly.
+
+**Implication for OpenISD:** these are genuine feature gaps, not WinISD-only inert inputs — OpenISD's
+sweep assumes a cold, constant `Re` and ignores driver added-mass. See BACKLOG (power-compression model;
+driver-side added mass). The field registry entries stay `modeled: false` until implemented.
+
 ## 11. SpeakerBoxLite API — CORS finding
 
 **Verified 2026-06-24** via curl.
@@ -719,11 +744,18 @@ actually uses each field — verified against `packages/engine`.
 - **SPL** — Power sensitivity [dB/W], 1 m, half-space (2π); directly related to η₀.
 - **Voicecoils (numVC)** — Descriptive: number of voice coils (1 normal, 2 = dual-voice-coil).
 
-**Thermal** — WinISD notes these are "not used yet in simulations":
+**Thermal** — power-compression IS simulated (directly verified 2026-07-21, WinISD 0.7.0.950,
+by the human — see §12c). WinISD's legacy `thielesmall.html` help text claims the thermal params are
+"not used yet in simulations", but that text is **stale for this version**: the empirical test
+below shows the impedance and SPL curves change when the thermal inputs change.
 
-- **AlfaVC** — VC resistance temperature coefficient [1/K]; copper ≈ 0.0039.
-- **R(t)** — Thermal resistance, voice coil → ambient [K/W].
-- **C(t)** — Thermal capacity of the voice-coil assembly [J/K].
+- **Voice coil temp rise** [K] (Driver pane → Advanced options) — the static coil ΔT above ambient.
+  **USED**: raising it lifts hot `Re`, so the impedance floor rises and SPL drops (power compression).
+- **AlfaVC** — VC resistance temperature coefficient [1/K]; copper ≈ 0.0039. **USED**: with a
+  non-zero temp rise, `Re(hot) = Re·(1 + AlfaVC·ΔT)`; raising AlfaVC raises the impedance.
+- **R(t)** — Thermal resistance, voice coil → ambient [K/W]. Governs how ΔT _evolves_ over time from
+  power; **untested** — with temp rise set directly this is bypassed, so likely still inert.
+- **C(t)** — Thermal capacity of the voice-coil assembly [J/K]. Same — time-domain dynamics, untested.
 
 **Figure of merit** — all derived/read-only:
 
@@ -880,12 +912,12 @@ drive any curve or calculation.
 
 ### Confirmed no simulation effect — WinISD help says so explicitly
 
-| Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                |
-| ---------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
-| **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                             |
-| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                             |
-| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                               |
+| Field      | Source                                                                                         | What WinISD actually does with it                                                                                                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Znom**   | `thielesmall.html`: _"not used in simulation"_                                                 | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
+| **alfaVC** | WinISD legacy help text says _"not used yet"_ but **directly verified USED** 2026-07-21 (§12c) | VC resistance temperature coefficient. With a non-zero Voice-coil-temp-rise it scales hot `Re = Re·(1+AlfaVC·ΔT)` — raising it raises the impedance curve. WinISD's legacy help text is stale for 0.7.0.950.     |
+| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ (untested)                                 | Thermal resistance (VC→ambient). Governs time-evolution of ΔT; bypassed when temp rise is set directly. Not re-tested.                                                                                           |
+| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ (untested)                                 | Thermal capacity. Same time-domain dynamics — not re-tested.                                                                                                                                                     |
 
 ### Pure metadata — no functional role at all
 
