@@ -69,6 +69,11 @@ instead of as another solo project that dies in a year.
 - **Design aids:** EBP box-type gauge, Qtc / QB3-B4 alignment helpers, vent
   length ↔ tuning solver, passive-radiator Fp tuning + mass auto-tune,
   multiple drivers (series / parallel)
+- **Physical realism:** voice-coil thermal power compression (SPL sags at
+  high power as the hot coil resists more current) and driver added-mass
+  tuning (weight the cone to lower Fs) — both WinISD-verified
+- **UI:** switchable skins including an "Original" mode that recreates the
+  WinISD 0.7 window; a page refresh restores your exact place
 - **Files:** import **and** export WinISD `.wdr` driver files; save/load whole
   projects as JSON
 

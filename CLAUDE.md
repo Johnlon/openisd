@@ -98,6 +98,14 @@ Files with a header comment containing "AI LOCKED — DO NOT EDIT" are protected
 
 ---
 
+## Keep docs current + planned state — hard rule
+
+**Docs describe the CURRENT and PLANNED state of the app, never the past.** The human is not interested in what things used to be — only what they are now and what is intended next.
+
+- **Keep docs up to date as part of the work.** When a change lands that alters what the app does, has, or lacks, update the affected docs in the SAME session — feature lists (`FEATURE_COMPARISON.md`, `README.md`), parity tables (`docs/winisd/INPUT_PARITY.md`), the field registry, `CONTRACT.md`, `PLAN.md`, `BACKLOG.md`. A shipped capability that no doc reflects is an incomplete change.
+- **Write only current + planned state.** Present tense for what exists; "planned/`⬜`/backlog" for what's intended. No "was X, now Y", no migration notes, no "previously…". If you catch a doc claiming something the code no longer does (or now does), correct it to the truth outright — do not annotate the change.
+- This subsumes and reinforces the no-history rule below.
+
 ## No history in documentation — hard rule
 
 **Never write history into any `.md` file.** No "As of \<date\>…", no "What was removed / what replaced X" blocks, no closed-item records `[x]` with a **Closed:** description, no "Previously this was called…" notes.

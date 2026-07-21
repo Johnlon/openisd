@@ -211,6 +211,7 @@ then use Biquad to design corrective EQ to flatten the result.
 - ✅ EBP box-type gauge
 - ✅ Driver presets
 - ✅ Multiple drivers (series / parallel)
+- ✅ **Driver-side added mass to cone** — weight the cone to lower Fs / raise Qts (WinISD parity)
 - ✅ **WinISD `.wdr` import**
 - ✅ **WinISD `.wdr` export** — _00 Simulator also exports WinISD-compatible files_
 - ⬜ WinISD `.wpr` project import — _00 Simulator does this; `.wpr` is plain INI text in current WinISD (sections decoded), so this is feasible_
@@ -264,8 +265,9 @@ for how OpenISD federates that data in.
 
 ## 4. Electronics & signal chain
 
-- ✅ Input drive voltage / power
+- ✅ Input drive voltage / power (editable, bidirectional W ↔ V)
 - ✅ Series / source resistance (amp + cabling)
+- ✅ **Voice-coil thermal power compression** — coil temp rise × resistance TC raise hot Re, so SPL sags and the impedance floor lifts at power (WinISD parity)
 - ⬜ Configurable listening distance (currently fixed 1 m) — _seen in SpeakerDesign.dev, 00 Sim_
 - ⬜ Frequency-range presets (sub / woofer / wide / custom) — _seen in SpeakerDesign.dev_
 - ✅ EQ: parametric (peaking)
@@ -297,6 +299,9 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 ## 7. Platform & UX
 
 - ✅ Runs anywhere with a browser (desktop, tablet, phone), no install, no login
+- ✅ **Multiple UI skins** — an **"Original"** skin faithfully recreating the WinISD 0.7 window (chrome, 8-icon toolbar, 7-tab project rail, per-box-type diagrams), plus Modern and Classic; switchable, same engine underneath
+- ✅ **Refresh keeps your place** — a page reload restores the exact context (design, active tab, selected chart, and an open Tune with its uncommitted what-if)
+- ✅ **Live what-if / edit model** — Tune previews changes on the charts immediately; edits commit only on Accept; a truthful Unsaved / Save / Reset bar
 - ✅ Dark theme
 - ✅ Hover crosshair + value readout on every graph
 - ✅ Alignment helpers (Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
@@ -310,7 +315,7 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 - ✅ JSON project save / load
 - ✅ **Federated driver data** — `drivers/sources.json` links external `.wdr`
   repos; add one via PR, no re-hosting
-- ✅ **URL-encoded shareable designs** — paste a design as a link
+- ✅ **URL-encoded shareable designs** — a "Copy share link" carries the design **and** your view context (active tab + chart), so the recipient lands on the same page
 - ✅ **Community contribution flow** — PR a `.wdr` file or a new source URL;
   WDR schema + meta standard documented so contributors know exactly what's expected
 - ✅ Static hosting on GitHub Pages (<https://openisd.app/>)
@@ -1081,7 +1086,7 @@ rendering are marked ⚠ unverified._
 
 | #   | Tool/Source        | Question                                                                                                                                                                                                            | Priority                                                  |
 | --- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 1   | micka.de           | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per archive/PLAN_SBL_CROSSCHECK.md live check).                            | [documented in test/scenarios.ts]                         |
+| 1   | micka.de           | Cross-check oracle for sealed + vented simulations. ⚠ No PR/bandpass support — its `#ideal` form exposes no passive-radiator or bandpass fields (per archive/PLAN_SBL_CROSSCHECK.md live check).                    | [documented in test/scenarios.ts]                         |
 | 2   | SpeakerBoxLite     | Second oracle for PR + bandpass (the types micka lacks). Drive-real-UI vs. API-endpoint approach undecided.                                                                                                         | [see §3; spec: speakerboxlite-crosscheck.browser.spec.ts] |
 | 3   | SpeakerDesign.dev  | Self-described "web-based WinISD alternative" (§4). Does it expose enclosure types beyond ported, WDR/JSON import-export, or a readable computed output? Potential cross-check oracle + build-output reference.     | Open                                                      |
 | 4   | Sonella            | Guided full-range design app with crossover + STL (§5). Relevant to OpenISD's missing guided workflow and crossover modelling, not sub cross-check.                                                                 | Open                                                      |
