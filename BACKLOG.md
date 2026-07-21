@@ -248,6 +248,25 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Driver data & T/S
 
+- [ ] **P2** **Voice-coil thermal power compression** (WinISD parity — verified WinISD simulates it, `WINISD.md §12c`). At high drive the voice coil heats, its DC resistance rises, and output drops — a real, audible effect WinISD models and OpenISD currently ignores (it assumes a cold, constant `Re`). `[unit]` + `[ui]`
+  - **Inputs:** `Voice coil temp rise` ΔT (K) and `AlfaVC` (temperature coefficient; displayed as `1000/K`, so SI `α = AlfaVC/1000` — copper 3.9000 → 0.0039/K). Both are already catalogued in `fieldRegistry.ts` (`vcTempRise`, `AlfaVC`, currently `modeled:false`).
+  - **Model:** `Re_hot = Re · (1 + α·ΔT)`. Thread `Re_hot` through the electrical branch in `circuit.ts` (`Zcoil = Re_hot + Rs + jωLe`); everything Re-dependent then follows — impedance floor rises, drive current falls so SPL drops, `Qes`/`Qts` rise, and the Max-SPL/Max-power limit lines shift. **ΔT=0 must be an exact no-op** (identical to today) so it is backward-compatible.
+  - **Engine change:** add `hotRe(Re, alfaVC_SI, dT)` helper + plumb `vcTempRise`/`alfaVC` into `SweepParams`. This is an engine physics change → needs oracle validation and explicit engine-change sign-off.
+  - **Automated test strategy:**
+    - _Unit (closed-form):_ `hotRe(6, 0.0039, 100) === 8.34` Ω (hand-computed); `hotRe(Re, α, 0) === Re` (no-op).
+    - _Unit (sweep monotonicity):_ for ΔT>0 vs ΔT=0 on the same driver — impedance minimum RISES by `Re_hot/Re`; SPL at a mid-band reference frequency DROPS; both strictly monotonic in ΔT. `hotRe` factor asserted numerically.
+    - _Golden:_ existing goldens (ΔT=0) MUST be byte-identical (regression guard on the no-op); add one new golden fixture at a fixed non-zero ΔT.
+    - _Oracle (WinISD cross-check, per engine-rules — physics needs it):_ pick a driver + ΔT, read WinISD's impedance-floor and SPL, assert the engine matches within tolerance. Seed value: the human's observation of the impedance floor rising ~21→23 Ω (`WINISD.md §12c`).
+    - _UI (`[ui]`):_ a temp-rise field; increasing it visibly lifts the impedance curve and lowers SPL; at 0 the curves are unchanged.
+- [ ] **P2** **Driver-side added mass to cone** (WinISD parity — verified, `WINISD.md §12c`). Mass added to the _active driver's_ cone raises `Mms`, lowering `Fs` and raising `Qts` — WinISD applies it to the sweep; OpenISD only models PR added-mass, not driver-side. `[unit]` + `[ui]`
+  - **Input:** `Added mass to cone` in **grams** (`driverAddedMass`, catalogued `modeled:false`). Unit confirmed grams by the Fs-shift math in `WINISD.md §12c`.
+  - **Model:** effective driver = `Mms += Madd`, holding `Cms`, `Bl`, `Re` fixed; then `Fs = 1/(2π√(Mms·Cms))` (lower), `Qms`/`Qes`/`Qts ∝ √Mms` (higher). Implement as a pure `withAddedMass(driver, Madd) → driver` transform in the Driver ADT/engine, applied before the box sim. **Madd=0 = exact no-op.**
+  - **Automated test strategy:**
+    - _Unit (closed-form):_ `withAddedMass(drv, 0)` deep-equals `drv`; `Mms_new === Mms + Madd` exactly; `Cms/Bl/Re` unchanged; `Qts` increases.
+    - _Unit (oracle-anchored):_ the human's WinISD result is a ready oracle — for `Mms≈14.6 g`, `withAddedMass(drv, 100 g).Fs` must reproduce **70 → 25 Hz** (`Fs·√(Mms/(Mms+Madd))`), asserted to ±0.5 Hz.
+    - _Golden:_ Madd=0 goldens byte-identical; one new fixture with a non-zero added mass.
+    - _UI (`[ui]`):_ added-mass field on the Driver pane; increasing it slides the impedance resonance peak down in frequency; at 0 no change.
+
 - [ ] **P1** Guided parameter entry — step-by-step flow following the WinISD-recommended order (Mms+Cms → Sd+BL+Re → Qms → Hc/Hg/Pe → numVC → Znom). Each step shows which fields to fill, why they matter, and what WinISD computes from them. Minimum viable path (Qts+Vas+Fs) clearly signposted. WinISD gives you a blank form with no guidance; this should be meaningfully better.
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
 - [x] [x] **P1** In-app driver database search / filter (by size, brand, parameters) `[ui]`
