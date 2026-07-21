@@ -95,9 +95,9 @@ const FIELDS: FieldSpec[] = [
   },
   {
     id: 'endCorrection', label: 'End Correction', pane: 'Vents', kind: 'enum', unit: '',
-    provenance: 'entered', modeled: false, appliesTo: ['vented', 'bandpass4'],
+    provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
     options: ['0.613', '0.732', '0.849'],
-    description: 'Port end-correction coefficient (one-free/one-flanged variants). OpenISD uses a fixed 0.732; the selector is WinISD-only for now.',
+    description: 'Port end-correction coefficient × vent diameter, added to the physical length to get the acoustic Leff that sets tuning Fb. Two free ends 0.613 / one flanged 0.732 (default) / two flanged 0.849. Selectable on every skin (Original Vents pane + shared BoxPanel → Modern/Classic); default 0.732 is a no-op vs before. WinISD parity.',
   },
   {
     id: 'ventCrossArea', label: 'Cross area', pane: 'Vents', kind: 'number', unit: 'm²', precision: 4, min: 0,

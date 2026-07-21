@@ -376,3 +376,20 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
   });
 
 });
+
+describe('selectable port end correction (WinISD parity — two-free 0.613 / one-flanged 0.732 / two-flanged 0.849)', () => {
+  const Vb = 0.03, L = 0.10, Sp = Math.PI * (0.05 / 2) ** 2;
+
+  it('tuningFromLength: default is the 0.732 one-flanged coefficient; more correction → lower Fb', () => {
+    const fbDefault = tuningFromLength(Vb, L, Sp);
+    assert.equal(tuningFromLength(Vb, L, Sp, 0.732), fbDefault, 'explicit 0.732 == implicit default (no-op)');
+    assert.ok(tuningFromLength(Vb, L, Sp, 0.613) > fbDefault, 'two free ends (less correction) → higher tuning');
+    assert.ok(tuningFromLength(Vb, L, Sp, 0.849) < fbDefault, 'two flanged ends (more correction) → lower tuning');
+  });
+
+  it('ventLength: default is 0.732; more correction → shorter physical length for the same Fb', () => {
+    const lenDefault = ventLength(Vb, 35, Sp);
+    assert.equal(ventLength(Vb, 35, Sp, 0.732), lenDefault, 'explicit 0.732 == implicit default (no-op)');
+    assert.ok(ventLength(Vb, 35, Sp, 0.849) < lenDefault, 'more end correction → shorter physical vent');
+  });
+});
