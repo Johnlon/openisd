@@ -76,15 +76,6 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
 }
 
 /**
- * Return a copy of the driver with `MaddKg` kilograms added to the cone's moving mass
- * (driver-side added mass — the WinISD "Added mass to cone" field, verified used in
- * WINISD.md §12c). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by
- * the mass; the resonance and Q's follow from the heavier Mms:
- *   Mms' = Mms + Madd,  Fs' = 1/(2π√(Mms'·Cms)),
- *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
- * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
- */
-/**
  * Voice-coil DC resistance at an elevated temperature — thermal power compression (WinISD
  * parity, WINISD.md §12c): `Re_hot = Re·(1 + alfaVC·ΔT)`, where `alfaVC` is the SI temperature
  * coefficient (/K; the UI's `1000/K` value ÷ 1000) and ΔT is the coil rise (K). ΔT=0 or
@@ -94,6 +85,15 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
   return Re * (1 + (alfaVC || 0) * (dT || 0));
 }
 
+/**
+ * Return a copy of the driver with `MaddKg` kilograms added to the cone's moving mass
+ * (driver-side added mass — the WinISD "Added mass to cone" field, verified used in
+ * WINISD.md §12c). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by
+ * the mass; the resonance and Q's follow from the heavier Mms:
+ *   Mms' = Mms + Madd,  Fs' = 1/(2π√(Mms'·Cms)),
+ *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
+ * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
+ */
 export function withAddedMass(drv: Driver, MaddKg: number): Driver {
   if (!(MaddKg > 0)) return { ...drv };
   const Mms = drv.Mms + MaddKg;
