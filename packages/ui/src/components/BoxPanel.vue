@@ -20,7 +20,7 @@ const drv = driver;
 
 const fb = computed(() => {
   const sp = Math.PI * (P.value.ventD / 2) ** 2;
-  return tuningFromLength(P.value.Vb, P.value.ventL, sp);
+  return tuningFromLength(P.value.Vb, P.value.ventL, sp, P.value.endCorrection);
 });
 
 // Rear-chamber-only resonance for the PR box type (WinISD: "Fh") — the sealed
@@ -45,7 +45,7 @@ function autoVentAlign() {
   if (!drv.value) return;
   const a = ventedAlignment(drv.value);
   state.P.Vb = a.Vb;
-  state.P.ventL = ventLength(a.Vb, a.Fb, Math.PI * (state.P.ventD / 2) ** 2);
+  state.P.ventL = ventLength(a.Vb, a.Fb, Math.PI * (state.P.ventD / 2) ** 2, state.P.endCorrection);
 }
 </script>
 
@@ -122,6 +122,14 @@ function autoVentAlign() {
           <label>Vent length</label>
           <NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" />
           <span class="u">cm</span>
+        </div>
+        <div class="row" title="Port end correction — added to the physical length to get the acoustic length that sets tuning. WinISD: two free ends 0.613 / one flanged 0.732 / two flanged 0.849.">
+          <label>End correction</label>
+          <select v-model.number="state.P.endCorrection" style="flex:1">
+            <option :value="0.613">Two free ends (0.613)</option>
+            <option :value="0.732">One flanged end (0.732)</option>
+            <option :value="0.849">Two flanged ends (0.849)</option>
+          </select>
         </div>
         <div class="row">
           <label></label>

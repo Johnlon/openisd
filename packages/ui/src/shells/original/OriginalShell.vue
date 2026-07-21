@@ -104,7 +104,7 @@ const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           /
 function helmholtzFb(volume: number): number | null {
   if (!(volume > 0) || !(ventArea.value > 0)) return null;
   const Sp = ventArea.value;
-  const Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
+  const Leff = state.P.ventL + (state.P.endCorrection ?? END_CORRECTION) * state.P.ventD;
   const Map = RHO * Leff / Sp, Cab = volume / (RHO * C * C);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 }
@@ -119,6 +119,13 @@ const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
 const portPipeResonance = computed<number | null>(() => {
   return state.P.ventL > 0 ? C / (2 * state.P.ventL) : null;
 });
+// Port end-correction options (WinISD parity): coefficient × vent diameter added to the physical
+// length to get the acoustic Leff that sets the tuning Fb.
+const EC_OPTIONS = [
+  { v: 0.613, label: 'Two Free Ends (0.613)' },
+  { v: 0.732, label: 'One Flanged End (0.732)' },
+  { v: 0.849, label: 'Two Flanged Ends (0.849)' },
+];
 // Passive-radiator derived params (from the stored PR T/S bag).
 const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
 const prFs = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
@@ -620,6 +627,13 @@ function cycleUnit(key: string, group: string) {
                 <div class="field-row">
                   <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('vd','length')">{{ unit('vd','length') }}</span></div>
                   <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('vl','length')">{{ unit('vl','length') }}</span></div>
+                </div>
+                <div class="field-row">
+                  <div class="field entered"><label>End Correction</label>
+                    <select v-model.number="state.P.endCorrection" style="width:190px">
+                      <option v-for="o in EC_OPTIONS" :key="o.v" :value="o.v">{{ o.label }}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>

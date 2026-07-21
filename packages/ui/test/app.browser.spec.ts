@@ -37,6 +37,20 @@ test('box type change to vented shows vent controls', async ({ page }) => {
   await expect(page.locator('#side')).toContainText('Fb');
 });
 
+test('End-correction selector retunes the vent Fb (shared BoxPanel — Modern/Classic)', async ({ page }) => {
+  await page.locator('#boxtype').selectOption('vented');
+  const ec = page.locator('.row').filter({ hasText: 'End correction' }).locator('select');
+  const fbHz = async () => {
+    const t = await page.locator('#side').getByText(/Fb ≈/).textContent();
+    return parseFloat(t!.match(/([\d.]+)\s*Hz/)![1]);
+  };
+  await ec.selectOption('0.732'); const oneFlanged = await fbHz();
+  await ec.selectOption('0.613'); const twoFree = await fbHz();
+  await ec.selectOption('0.849'); const twoFlanged = await fbHz();
+  expect(twoFree).toBeGreaterThan(oneFlanged);   // less end correction → shorter Leff → higher tuning
+  expect(twoFlanged).toBeLessThan(oneFlanged);   // more end correction → longer Leff → lower tuning
+});
+
 test('shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp)', async ({ page }) => {
   await page.locator('#boxtype').selectOption('vented');
   const ventD = numInputByLabel(page, 'Vent diameter');

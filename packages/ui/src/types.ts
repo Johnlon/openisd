@@ -140,6 +140,9 @@ export interface UiParams {
   vcTempRise: number;
   alfaVC: number;
   driverAddedMass: number;
+  // Port end-correction coefficient (× vent diameter): 0.613 two-free / 0.732 one-flanged
+  // (default) / 0.849 two-flanged. Feeds Leff → box tuning Fb.
+  endCorrection: number;
 }
 
 /**

@@ -18,6 +18,7 @@ const P_DEFAULTS: UiParams = {
   circuitModel: 'winisd',
   filters: [],
   vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
+  endCorrection: 0.732,                                 // one-flanged (WinISD default); selectable
 };
 
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
@@ -183,7 +184,7 @@ export const syncedP = computed<SyncedParams>(() => {
   p.filters = state.P.filters.map(f => ({ ...f }));
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
-    p.Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
+    p.Leff = state.P.ventL + (state.P.endCorrection ?? END_CORRECTION) * state.P.ventD;
   }
   return p;
 });

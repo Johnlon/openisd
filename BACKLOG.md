@@ -84,7 +84,6 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
   - ~~Save bar~~ — DONE (STATE_MODEL Increment 1): Unsaved indicator + Save Changes (adopt as ground) + Reset state (revert), wired to the store's real `isModified`/`markProjectSaved`/`resetProjectToGround`.
   - **Color button** — wire the mock's `cycleColor` click behaviour (`mock/index.html:249`); currently static.
   - **Projects-list checkbox** — should toggle trace visibility (`toggleProjectTrace`), not delete the compare row.
-  - **Vented pane** — add the "End Correction" select and rename the readout to "1st port resonance" to match `mock/index.html`.
     Cleanest route: port the mock's real body markup + `mock/style.css` wholesale, `onclick`→`@click`, `value`→`v-model` bound to the store — never edit shared components (`BoxPanel`/`DriverPanel`/`PRPanel`) to do it (that regressed the Modern skin once — see `CODE_REVIEW/POST_MORTEM.md`). `[ui]`
 
 - [ ] **Retire the Classic skin in favour of Original (once Original reaches mock parity).** The Original skin supersedes Classic as the WinISD-recreation shell — Classic is a thinner, less faithful recreation. Once Original closes its remaining fidelity gaps (item above), remove the Classic shell: delete `packages/ui/src/shells/classic/`, drop `'classic'` from `SkinId`/`ShellId`/`SKIN_IDS`/`SKIN_LABELS`/`resolveSkin` in `skins.ts`, remove `ClassicShell` from `App.vue`, delete `classic-skin.browser.spec.ts` + the classic cases in `skins.test.ts`, and migrate any persisted `state.ui.skin === 'classic'` to `'original'` on load (so saved prefs don't dangle). Do NOT remove until Original is at parity, so there's no gap with no complete WinISD mode. `[ui]`
@@ -241,7 +240,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 - [ ] **P1** Multiple vents (1–4) sharing the tuning
 - [ ] **P1** Slot / rectangular vents (in addition to round)
-- [ ] **P1** Selectable end-correction (free/flanged combinations, custom value)
+- [x] [x] **P1** Selectable end-correction — a dropdown on every skin (Original Vents pane + shared BoxPanel → Modern/Classic): Two free ends 0.613 / One flanged 0.732 (default) / Two flanged 0.849; feeds `Leff` → tuning `Fb` via the parameterised `tuningFromLength`/`ventLength`. (Custom numeric value not offered — WinISD exposes only the 3 presets.)
 - [ ] **P2** Drag-to-adjust Vb / Fb directly on a graph, with lock-one
 - [x] [x] **P2** The Original Vents pane's "1st port resonance" readout now shows the real vent organ-pipe fundamental `c/(2·Leff)` (`portPipeResonance` in `OriginalShell.vue`), distinct from the box Helmholtz tuning; `portResonance` registered `modeled: true`. `[ui]`
 - [x] [x] **P3** `NumInput`: a `@pointerdown` handler resets the typing flag, so clicking the native ▲▼ spinner buttons mid-type reformats cleanly (no one-frame unformatted flash). `[ui]`

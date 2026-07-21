@@ -66,12 +66,12 @@ export function ventedAlignment(drv: Pick<Driver, 'Fs' | 'Qts' | 'Vas'>): { Vb: 
  * where L_eq = L + END_CORRECTION·d  (flanged at the baffle, free into the box)
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function ventLength(Vb: number, fb: number, Sp: number): number {
+export function ventLength(Vb: number, fb: number, Sp: number, endCorrection: number = END_CORRECTION): number {
   const Cab = Vb / (RHO * C * C);
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Math.max(Map * Sp / RHO - END_CORRECTION * d, 0.005);
+  return Math.max(Map * Sp / RHO - endCorrection * d, 0.005);
 }
 
 /**
@@ -79,9 +79,9 @@ export function ventLength(Vb: number, fb: number, Sp: number): number {
  * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-export function tuningFromLength(Vb: number, L: number, Sp: number): number {
+export function tuningFromLength(Vb: number, L: number, Sp: number, endCorrection: number = END_CORRECTION): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
-  const Leff = L + END_CORRECTION * d;
+  const Leff = L + endCorrection * d;
   const Cab  = Vb / (RHO * C * C);
   const Map  = RHO * Leff / Sp;
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
