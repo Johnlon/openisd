@@ -1,6 +1,8 @@
 node_modules/
 dist/
 test-results/
+test-logs/
+ci-logs/
 build/
 .server.pid
 .server.log
