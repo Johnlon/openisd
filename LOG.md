@@ -8,6 +8,22 @@
 
 ---
 
+## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
+
+Two effects WinISD simulates but OpenISD ignored now work — verified against a live WinISD
+session, not guessed. Voice-coil power compression: set a coil temperature rise (with the
+resistance TC) and the impedance floor lifts while SPL sags, because the hot coil resists more
+current — the reason a real speaker gains less than +3 dB when you double the power. Driver
+added-mass: weight the cone and the resonance drops (Mms up → Fs down), matching WinISD's
+70→25 Hz for +100 g. Both default to off (exact no-ops), so every existing design is unchanged;
+the three fields on the Original Driver pane's Advanced options are now live inputs, not greyed
+placeholders. Engine functions `hotRe` and `withAddedMass` with their own tests; the field
+registry documents each field's model, units, coupling, and no-op behaviour.
+
+Along the way, corrected our own notes: WinISD's legacy help text calls these thermal params
+"not used yet in simulations", but the empirical test proves that text is stale for 0.7.0.950 —
+recorded in WINISD.md §12c as directly-verified evidence.
+
 ## 2026-07-20 — Original skin: truthful what-if + New-Project + spinner fixes
 
 Preview a driver tweak without lying about the save state. STATE_MODEL Increment 2 adds a
