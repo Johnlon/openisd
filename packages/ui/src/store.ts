@@ -1,5 +1,5 @@
 import { reactive, computed, ref, shallowRef, watch } from 'vue';
-import { sweep, maxCurves, classifyFinite, END_CORRECTION } from '@openisd/engine';
+import { sweep, maxCurves, classifyFinite } from '@openisd/engine';
 import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
@@ -184,7 +184,7 @@ export const syncedP = computed<SyncedParams>(() => {
   p.filters = state.P.filters.map(f => ({ ...f }));
   if (state.box === 'vented' || state.box === 'bandpass4') {
     p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
-    p.Leff = state.P.ventL + (state.P.endCorrection ?? END_CORRECTION) * state.P.ventD;
+    p.Leff = state.P.ventL + state.P.endCorrection * state.P.ventD;
   }
   return p;
 });

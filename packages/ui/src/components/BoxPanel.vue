@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { state, driver } from '../store.js';
 import { sealedFromQtc, ventedAlignment, ventLength, tuningFromLength } from '@openisd/engine';
-import { precision as fieldDp } from '../fields/fieldRegistry.js';
+import { precision as fieldDp, END_CORRECTION_OPTIONS } from '../fields/fieldRegistry.js';
 import NumInput from './NumInput.vue';
 import PRPanel from './PRPanel.vue';
 
@@ -126,9 +126,7 @@ function autoVentAlign() {
         <div class="row" title="Port end correction — added to the physical length to get the acoustic length that sets tuning. WinISD: two free ends 0.613 / one flanged 0.732 / two flanged 0.849.">
           <label>End correction</label>
           <select v-model.number="state.P.endCorrection" style="flex:1">
-            <option :value="0.613">Two free ends (0.613)</option>
-            <option :value="0.732">One flanged end (0.732)</option>
-            <option :value="0.849">Two flanged ends (0.849)</option>
+            <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
           </select>
         </div>
         <div class="row">

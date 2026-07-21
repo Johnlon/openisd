@@ -238,6 +238,8 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Vents & ports
 
+- [ ] **P2** Vent length is user-entered in OpenISD, but WinISD derives it (you set diameter + target tuning → WinISD computes the length to cut, shown greyed/read-only). OpenISD's model is enter-geometry → get-tuning; a WinISD-faithful mode would let you enter a target Fb and derive the vent length (`ventLength()` already exists). Pre-existing divergence surfaced in the end-correction arch review; decide whether to add a "solve length for target Fb" affordance or keep the direct-entry model. `[ui]`
+
 - [ ] **P1** Multiple vents (1–4) sharing the tuning
 - [ ] **P1** Slot / rectangular vents (in addition to round)
 - [x] [x] **P1** Selectable end-correction — a dropdown on every skin (Original Vents pane + shared BoxPanel → Modern/Classic): Two free ends 0.613 / One flanged 0.732 (default) / Two flanged 0.849; feeds `Leff` → tuning `Fb` via the parameterised `tuningFromLength`/`ventLength`. (Custom numeric value not offered — WinISD exposes only the 3 presets.)

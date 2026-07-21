@@ -32,7 +32,7 @@ const stats = computed<StatsInvalid | StatsValid>(() => {
   const f6  = findRolloff(s.fs, s.spl, 6);
   const f10 = findRolloff(s.fs, s.spl, 10);
   const peakZ = Math.max(...s.zmag);
-  const fb = (box === 'vented') ? tuningFromLength(p.Vb, p.ventL, p.Sp || Math.PI*(p.ventD/2)**2) : null;
+  const fb = (box === 'vented') ? tuningFromLength(p.Vb, p.ventL, p.Sp || Math.PI*(p.ventD/2)**2, p.endCorrection) : null;
   const fp = (box === 'pr') ? prTuning(p) : null;
   const Qtc = (box === 'sealed') ? d.Qts * Math.sqrt(1 + d.Vas / p.Vb) : null;
   const fc  = (box === 'sealed') ? d.Fs * Math.sqrt(1 + d.Vas / p.Vb) : null;

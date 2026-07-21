@@ -37,18 +37,23 @@ test('box type change to vented shows vent controls', async ({ page }) => {
   await expect(page.locator('#side')).toContainText('Fb');
 });
 
-test('End-correction selector retunes the vent Fb (shared BoxPanel — Modern/Classic)', async ({ page }) => {
+test('End-correction selector retunes the vent Fb — BoxPanel AND StatBar agree (shared, Modern/Classic)', async ({ page }) => {
   await page.locator('#boxtype').selectOption('vented');
   const ec = page.locator('.row').filter({ hasText: 'End correction' }).locator('select');
-  const fbHz = async () => {
-    const t = await page.locator('#side').getByText(/Fb ≈/).textContent();
-    return parseFloat(t!.match(/([\d.]+)\s*Hz/)![1]);
-  };
-  await ec.selectOption('0.732'); const oneFlanged = await fbHz();
-  await ec.selectOption('0.613'); const twoFree = await fbHz();
-  await ec.selectOption('0.849'); const twoFlanged = await fbHz();
-  expect(twoFree).toBeGreaterThan(oneFlanged);   // less end correction → shorter Leff → higher tuning
-  expect(twoFlanged).toBeLessThan(oneFlanged);   // more end correction → longer Leff → lower tuning
+  const parseHz = (t: string | null) => parseFloat(t!.match(/([\d.]+)\s*Hz/)![1]);
+  const panelFb = async () => parseHz(await page.locator('#side').getByText(/Fb ≈/).textContent());
+  const statFb  = async () => parseHz(await page.locator('#stat').getByText(/Fb:/).textContent());
+  const both = async () => ({ panel: await panelFb(), stat: await statFb() });
+
+  await ec.selectOption('0.732'); const oneFlanged = await both();
+  await ec.selectOption('0.613'); const twoFree = await both();
+  await ec.selectOption('0.849'); const twoFlanged = await both();
+
+  expect(twoFree.panel).toBeGreaterThan(oneFlanged.panel); // less correction → higher tuning
+  expect(twoFlanged.panel).toBeLessThan(oneFlanged.panel); // more correction → lower tuning
+  // StatBar (top status bar) must honour the SAME selection as the side panel — not silently
+  // default to 0.732. They read the same tuning, so they must agree at every setting.
+  for (const s of [oneFlanged, twoFree, twoFlanged]) expect(s.stat).toBeCloseTo(s.panel, 0);
 });
 
 test('shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp)', async ({ page }) => {

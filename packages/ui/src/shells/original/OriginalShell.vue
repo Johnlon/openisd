@@ -24,7 +24,7 @@ import {
 } from '../../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
-import { RHO, C, END_CORRECTION,
+import { RHO, C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          driveVoltage, soundVelocity } from '@openisd/engine';
 import { TABS, buildPlotData } from '../../utils/series.js';
@@ -33,7 +33,7 @@ import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
-import { precision as fieldDp } from '../../fields/fieldRegistry.js';
+import { precision as fieldDp, END_CORRECTION_OPTIONS } from '../../fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
@@ -104,7 +104,7 @@ const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           /
 function helmholtzFb(volume: number): number | null {
   if (!(volume > 0) || !(ventArea.value > 0)) return null;
   const Sp = ventArea.value;
-  const Leff = state.P.ventL + (state.P.endCorrection ?? END_CORRECTION) * state.P.ventD;
+  const Leff = state.P.ventL + state.P.endCorrection * state.P.ventD;
   const Map = RHO * Leff / Sp, Cab = volume / (RHO * C * C);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 }
@@ -119,13 +119,6 @@ const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
 const portPipeResonance = computed<number | null>(() => {
   return state.P.ventL > 0 ? C / (2 * state.P.ventL) : null;
 });
-// Port end-correction options (WinISD parity): coefficient × vent diameter added to the physical
-// length to get the acoustic Leff that sets the tuning Fb.
-const EC_OPTIONS = [
-  { v: 0.613, label: 'Two Free Ends (0.613)' },
-  { v: 0.732, label: 'One Flanged End (0.732)' },
-  { v: 0.849, label: 'Two Flanged Ends (0.849)' },
-];
 // Passive-radiator derived params (from the stored PR T/S bag).
 const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
 const prFs = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
@@ -381,8 +374,8 @@ function cycleUnit(key: string, group: string) {
         </div>
       </div>
       <div class="cursor-readout">
-        {{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}<br>
-        {{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}
+        <span class="ro-hz">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
+        <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
         <SkinPicker />
       </div>
     </div>
@@ -631,7 +624,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="field-row">
                   <div class="field entered"><label>End Correction</label>
                     <select v-model.number="state.P.endCorrection" style="width:190px">
-                      <option v-for="o in EC_OPTIONS" :key="o.v" :value="o.v">{{ o.label }}</option>
+                      <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>
                 </div>
@@ -836,7 +829,7 @@ function cycleUnit(key: string, group: string) {
 .titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 
 /* ---------- Toolbar ---------- */
-.toolbar { display:flex; align-items:center; justify-content:space-between; background:#eee; border-bottom:1px solid #bbb; padding:8px 12px; }
+.toolbar { display:flex; align-items:center; justify-content:space-between; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
 .tb-icons { display:flex; align-items:center; gap:6px; }
 .tb-btn { display:flex; align-items:center; justify-content:center; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
@@ -848,8 +841,10 @@ function cycleUnit(key: string, group: string) {
 .chart-select { display:flex; align-items:center; gap:6px; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; }
-.cursor-readout { text-align:right; line-height:1.3; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
-.cursor-readout :deep(.skin-picker) { margin-top:2px; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; gap:12px; white-space:nowrap; }
+.cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; }
+.cursor-readout .ro-val { min-width:76px; text-align:right; }
+.cursor-readout :deep(.skin-picker) { margin-top:0; }
 
 /* dropdown menus */
 .dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; }
