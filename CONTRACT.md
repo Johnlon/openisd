@@ -185,15 +185,15 @@ Filters are evaluated with `evalFilter(f, filter)` and composed with
 
 ## 5. Alignment helpers
 
-| Function                                               | Signature                       | Returns                                       |
-| ------------------------------------------------------ | ------------------------------- | --------------------------------------------- |
-| `ebp(drv)`                                             | `Driver → number`               | Efficiency Bandwidth Product = Fs/Qes         |
-| `sealedFromQtc(drv, Qtc)`                              | `Driver, number → number\|null` | Vb (m³) for target Qtc, or null if impossible |
-| `ventedAlignment(drv)`                                 | `Driver → { Vb, Fb }`           | QB3 or B4 alignment volume and tuning         |
-| `ventLength(Vb, Fb, Sp)`                               | `numbers → number`              | Effective duct length for target Fb (m)       |
-| `tuningFromLength(Vb, Leff, Sp)`                       | `numbers → number`              | Fb (Hz) from duct dimensions                  |
-| `prTuning(Vb, prMms, prCms, prSd, prNum)`              | `numbers → number`              | In-box Fp (Hz)                                |
-| `prMassForFp(Vb, prMmd, prCms, prSd, prNum, targetFp)` | `numbers → number`              | Added mass (kg) to hit target Fp              |
+| Function                                               | Signature                       | Returns                                                                                                   |
+| ------------------------------------------------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `ebp(drv)`                                             | `Driver → number`               | Efficiency Bandwidth Product = Fs/Qes                                                                     |
+| `sealedFromQtc(drv, Qtc)`                              | `Driver, number → number\|null` | Vb (m³) for target Qtc, or null if impossible                                                             |
+| `ventedAlignment(drv)`                                 | `Driver → { Vb, Fb }`           | QB3 or B4 alignment volume and tuning                                                                     |
+| `ventLength(Vb, Fb, Sp, endCorrection?)`               | `numbers → number`              | Physical duct length for target Fb (m). `endCorrection` defaults to 0.732 (one-flanged)                   |
+| `tuningFromLength(Vb, L, Sp, endCorrection?)`          | `numbers → number`              | Fb (Hz) from physical duct length. `endCorrection` defaults to 0.732 (0.613 two-free / 0.849 two-flanged) |
+| `prTuning(Vb, prMms, prCms, prSd, prNum)`              | `numbers → number`              | In-box Fp (Hz)                                                                                            |
+| `prMassForFp(Vb, prMmd, prCms, prSd, prNum, targetFp)` | `numbers → number`              | Added mass (kg) to hit target Fp                                                                          |
 
 ## 5a. UI-facing closed-form helpers (`formulas.ts`)
 
