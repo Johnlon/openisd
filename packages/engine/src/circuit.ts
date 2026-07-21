@@ -27,6 +27,7 @@
  */
 
 import { RHO, C } from './constants.js';
+import { hotRe } from './driver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar } from './complex.js';
 import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
 
@@ -57,7 +58,9 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   // Source: research/winisd/help/aboutequivalentcircuits.html
   //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Rdc1 = drv.Re + (P.Rs || 0);
+  // Thermal power compression (WINISD.md §12c): the coil's DC resistance rises with temperature.
+  // vcTempRise=0/absent → hotRe returns drv.Re exactly, so the circuit is unchanged (golden-safe).
+  const Rdc1 = hotRe(drv.Re, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs || 0);
   const Zcoil1AC = cx(Rdc1, 0);
   const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * drv.Le!));
   let ZcoilAC: Complex, Zcoil: Complex, Bl: number;

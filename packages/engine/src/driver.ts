@@ -84,6 +84,16 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').
  * `MaddKg ≤ 0` returns an equivalent driver (exact no-op) so existing goldens never move.
  */
+/**
+ * Voice-coil DC resistance at an elevated temperature — thermal power compression (WinISD
+ * parity, WINISD.md §12c): `Re_hot = Re·(1 + alfaVC·ΔT)`, where `alfaVC` is the SI temperature
+ * coefficient (/K; the UI's `1000/K` value ÷ 1000) and ΔT is the coil rise (K). ΔT=0 or
+ * alfaVC=0 returns `Re` exactly (no-op).
+ */
+export function hotRe(Re: number, alfaVC: number, dT: number): number {
+  return Re * (1 + (alfaVC || 0) * (dT || 0));
+}
+
 export function withAddedMass(drv: Driver, MaddKg: number): Driver {
   if (!(MaddKg > 0)) return { ...drv };
   const Mms = drv.Mms + MaddKg;

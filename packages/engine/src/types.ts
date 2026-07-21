@@ -146,6 +146,9 @@ export interface SweepParams {
   filters?: Filter[];
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. WINISD.md §12c.
   driverAddedMass?: number;
+  // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
+  vcTempRise?: number;
+  alfaVC?: number;
 }
 
 /** Circuit solution at a single frequency. */
