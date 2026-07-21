@@ -112,6 +112,13 @@ function helmholtzFb(volume: number): number | null {
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
 const ventFb = computed<number | null>(() => helmholtzFb(state.P.Vb));
 const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
+// First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
+// c/(2·Leff). This is WinISD's "1st port resonance" (a standing wave in the vent), DISTINCT
+// from the box Helmholtz tuning ventFb. WinISD: 343.68/(2·1.978 m) = 86.87 Hz.
+const portPipeResonance = computed<number | null>(() => {
+  const Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
+  return Leff > 0 ? C / (2 * Leff) : null;
+});
 // Passive-radiator derived params (from the stored PR T/S bag).
 const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
 const prFs = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
@@ -620,7 +627,7 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, fieldDp('ventCrossArea'))" readonly><span class="unit">m²</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(portPipeResonance, fieldDp('portResonance'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
                 </div>
               </div>
             </div>

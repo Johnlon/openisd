@@ -243,8 +243,8 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Slot / rectangular vents (in addition to round)
 - [ ] **P1** Selectable end-correction (free/flanged combinations, custom value)
 - [ ] **P2** Drag-to-adjust Vb / Fb directly on a graph, with lock-one
-- [ ] **P2** The Original Vents pane's "1st port resonance" readout shows `ventFb` = `helmholtzFb(Vb)`, which is the box **Helmholtz tuning** (Fb), NOT the vent's organ-pipe first resonance (≈ c/2L) that WinISD labels "1st port resonance". Either compute the real pipe resonance (and register `portResonance` as `modeled: true`), or relabel the readout to "Tuning (Fb)". Pre-existing mislabel surfaced during the dp-registry review. `[ui]`
-- [ ] **P3** `NumInput`: clicking the native spinner buttons (not Arrow keys/wheel) isn't tracked, so clicking a spinner mid-type can transiently show an unformatted display for one frame (the model stays correct). Track pointerdown on the spinner region, or reformat on the step regardless. Low impact. `[ui]`
+- [x] [x] **P2** The Original Vents pane's "1st port resonance" readout now shows the real vent organ-pipe fundamental `c/(2·Leff)` (`portPipeResonance` in `OriginalShell.vue`), distinct from the box Helmholtz tuning; `portResonance` registered `modeled: true`. `[ui]`
+- [x] [x] **P3** `NumInput`: a `@pointerdown` handler resets the typing flag, so clicking the native ▲▼ spinner buttons mid-type reformats cleanly (no one-frame unformatted flash). `[ui]`
 
 ## Driver data & T/S
 
