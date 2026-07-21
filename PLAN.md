@@ -127,3 +127,40 @@ Phase 0, before a single line of logic moves:
    type) on a fixed grid, writes `test/fixtures/golden/<name>.json`.
 2. `test/golden.test.js` (`node:test`) re-runs the sweeps and asserts equality.
 3. Commit the fixtures + test. Green = the safety net is live; extraction begins.
+
+---
+
+## Thermal power compression + driver added-mass (2026-07-21)
+
+Two WinISD-parity physics features, verified WinISD simulates them (`WINISD.md §12c`),
+absent from OpenISD. Both are **engine additions gated on ΔT=0 / Madd=0 being exact no-ops**
+so all existing goldens stay byte-identical.
+
+### A. Voice-coil thermal power compression
+- **Inputs (SweepParams):** `vcTempRise` (ΔT, K) and `alfaVC` (SI temp-coefficient, /K — the
+  UI's `1000/K` value ÷ 1000).
+- **Model:** `Re_hot = Re·(1 + alfaVC·ΔT)`, applied where `Rdc1 = Re + Rs` is built in
+  `circuit.ts` — the ONLY place the coil resistance enters. Drive voltage `eg` stays on the
+  cold (reference) Re, so the same voltage yields less current at hot Re → SPL drops, the
+  impedance floor rises, and the Max-SPL line shifts. No change to `deriveDriver`/`Driver`.
+- **No-op:** `vcTempRise=0` (default) → `Re_hot=Re` → identical to today.
+
+### B. Driver-side added mass to cone
+- **Input (SweepParams):** `driverAddedMass` (kg; UI enters grams ÷ 1000).
+- **Model:** pure `withAddedMass(driver, MaddKg) → driver` transform in the engine —
+  `Mms += Madd`, hold `{Cms, Rms, Bl, Re, Sd, Vas, Le}` fixed, recompute
+  `Fs = 1/(2π√(Mms·Cms))`, `Qms = 2π·Fs·Mms/Rms`, `Qes = 2π·Fs·Mms·Re/Bl²`,
+  `Qts = Qes·Qms/(Qes+Qms)`. Applied at the top of `sweep()` and `maxCurves()` so impedance,
+  SPL, and excursion all see the shifted driver.
+- **No-op:** `driverAddedMass=0` (default) → transform returns the driver unchanged.
+
+### Oracle anchors (from the human's WinISD session, §12c)
+- Added mass: `Mms≈14.6 g`, +100 g → Fs **70 → 25 Hz** (asserted ±0.5 Hz).
+- Compression: impedance floor rose ~**21 → 23 Ω** (directional/monotonic check; exact ΔT
+  unknown, so unit tests assert the closed form + monotonicity, not that single magnitude).
+
+### Sequence
+1. B (added mass) first — precise oracle, self-contained transform.
+2. A (power compression) — circuit change.
+3. UI wiring (Original + shared) reading `fieldRegistry` for both.
+4. New golden fixtures at non-zero ΔT / Madd; existing goldens must not move.
