@@ -113,11 +113,11 @@ function helmholtzFb(volume: number): number | null {
 const ventFb = computed<number | null>(() => helmholtzFb(state.P.Vb));
 const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
 // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
-// c/(2·Leff). This is WinISD's "1st port resonance" (a standing wave in the vent), DISTINCT
-// from the box Helmholtz tuning ventFb. WinISD: 343.68/(2·1.978 m) = 86.87 Hz.
+// c/(2·L), a standing wave in the vent, DISTINCT from the box Helmholtz tuning ventFb. Uses the
+// PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly: its 86.87 Hz =
+// 343.68/(2·1.978 m physical length). End correction applies to the tuning Fb, not this. §portterminology.
 const portPipeResonance = computed<number | null>(() => {
-  const Leff = state.P.ventL + END_CORRECTION * state.P.ventD;
-  return Leff > 0 ? C / (2 * Leff) : null;
+  return state.P.ventL > 0 ? C / (2 * state.P.ventL) : null;
 });
 // Passive-radiator derived params (from the stored PR T/S bag).
 const prVas = computed(() => calcPrVas(state.P.prCms, state.P.prSd));

@@ -108,8 +108,8 @@ const FIELDS: FieldSpec[] = [
   {
     id: 'portResonance', label: '1st port resonance', pane: 'Vents', kind: 'number', unit: 'Hz', precision: 2, min: 0, max: 20000,
     provenance: 'calculated', modeled: true, appliesTo: ['vented', 'bandpass4'],
-    formula: 'c / (2·Leff) — open-open duct fundamental; Leff = ventL + END_CORRECTION·ventD',
-    dependsOn: ['ventL', 'ventD'],
+    formula: 'c / (2·ventL) — open-open duct fundamental (physical vent length, matching WinISD; end correction applies to the tuning Fb, not this)',
+    dependsOn: ['ventL'],
     description: 'First organ-pipe (standing-wave) resonance of the vent tube itself — distinct from the box Helmholtz tuning (Fb). Surfaced on the Original Vents pane. WinISD 2 dp (86.87 Hz).',
   },
 
