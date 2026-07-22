@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useDesignIO } from '../composables/useDesignIO.js';
+import ExportMenu from './ExportMenu.vue';
 import SkinPicker from './SkinPicker.vue';
+import OptionsModal from './OptionsModal.vue';
 
-// File I/O is shared with the classic skin's toolbar via one composable — no duplication.
-const { shareLink, exportDesign, exportWdr, importFile, about: showAbout } = useDesignIO();
+// File I/O is shared with every skin's chrome via one composable — no duplication.
+const { saveProject, importFile, about: showAbout } = useDesignIO();
+const optionsOpen = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 function importClick() { fileInput.value!.click(); }
@@ -24,11 +27,12 @@ function onFileChange(e: Event) {
     </h1>
     <div class="sp"></div>
     <button @click="importClick" title="Import a WinISD .wdr driver file or an OpenISD .json project file">Import .wdr / project</button>
-    <button @click="exportWdr" title="Export the current driver parameters as a WinISD-compatible .wdr file">Export driver .wdr</button>
-    <button id="btnShare" @click="shareLink" title="Copy a shareable URL that encodes the current design — paste into a forum or send to a colleague">Share link</button>
-    <button @click="exportDesign" title="Export the full design (driver + box + settings) as an OpenISD .json project file">Export design</button>
+    <button @click="saveProject" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)">Save</button>
+    <ExportMenu />
     <button @click="showAbout" title="About OpenISD — version, licence, and contributors">About</button>
+    <button @click="optionsOpen = true" title="Options">Options</button>
     <SkinPicker />
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFileChange">
+    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
   </header>
 </template>

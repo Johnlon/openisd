@@ -50,6 +50,16 @@ export function sealedFromQtc(drv: Pick<Driver, 'Qts' | 'Vas'>, Qtc: number): nu
 }
 
 /**
+ * Sealed-box (or passive-radiator primary chamber) resonance for a GIVEN volume — the
+ * inverse direction of sealedFromQtc (which solves Vb for a target Qtc; this solves Fc for
+ * a known Vb). Fc = Fs · √(1 + Vas/Vb).
+ * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
+ */
+export function sealedFc(drv: Pick<Driver, 'Fs' | 'Vas'>, Vb: number): number | null {
+  return Vb > 0 ? drv.Fs * Math.sqrt(1 + drv.Vas / Vb) : null;
+}
+
+/**
  * QB3 vented alignment — polynomial fit to Thiele's alignment tables.
  * Vb = 15 · Vas · Qts^2.87
  * fb = Fs · √(Vas / Vb)

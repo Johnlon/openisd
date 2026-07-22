@@ -403,3 +403,30 @@ test('PR panel summary + StatBar reflect the SAME chosen unit as the entered fie
   // StatBar's "Vb:" reuses the SAME field token ('Vb') — it must show the same unit, not litres.
   await expect(page.locator('#stat')).toContainText('cu ft');
 });
+
+test('Options dialog → Units → "Reset to Metric" reverts a toggled field without touching the stored design', async ({ page }) => {
+  const vbRow = page.locator('label').filter({ hasText: 'Box volume Vb' }).locator('..');
+  const vb = vbRow.locator('input[type="number"]');
+  const vbUnit = vbRow.locator('.u');
+
+  await vb.fill('12');
+  await vb.press('Tab');
+  await vbUnit.click();                          // L → cu ft
+  await expect(vbUnit).toHaveText('cu ft');
+
+  const readVb = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
+  });
+  const siBefore = await readVb();
+  expect(siBefore).toBeCloseTo(0.012, 6);
+
+  await page.getByRole('button', { name: 'Options' }).click();
+  await expect(page.locator('.opt-modal')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset to Metric (l, mm, …)' }).click();
+  await page.locator('.opt-modal .opt-ok').click();
+
+  await expect(vbUnit).toHaveText('L');           // reverted to the field's default unit
+  await expect(vb).toHaveValue('12.00');
+  expect(await readVb()).toBeCloseTo(siBefore, 9); // the stored SI design is untouched
+});

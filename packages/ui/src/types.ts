@@ -179,7 +179,7 @@ export interface UiState {
   /** Per-field selected display-unit token (keyed by field id; see fields/units.ts). The store
    *  always holds SI — this only picks how a field is shown/entered. Absent field ⇒ its base
    *  unit. Local-only presentation preference: persisted across refresh, stripped from share
-   *  links (a recipient keeps their own units, like their own skin). */
+   *  links (a recipient keeps their own unit-display preference). */
   unitTokens?: Record<string, string>;
 }
 

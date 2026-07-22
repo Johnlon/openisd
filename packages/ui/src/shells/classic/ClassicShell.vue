@@ -18,16 +18,20 @@ import BoxPanel from '../../components/BoxPanel.vue';
 import FiltersPanel from '../../components/FiltersPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
+import ExportMenu from '../../components/ExportMenu.vue';
+import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
+import OptionsModal from '../../components/OptionsModal.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRWhatIfPanel from '../../components/PRWhatIfPanel.vue';
 
-const { exportDesign, exportWdr, importFile, about } = useDesignIO();
+const { saveProject, importFile, about } = useDesignIO();
 
 // PR "Edit" is a real popup (state.prEditOpen); PR "What-If" (added mass) is an
 // overlay (state.prWhatIfOpen) — same split as the driver's Edit/What-If.
 const prEditOpen = ref(false);
+const optionsOpen = ref(false);
 const prWhatIfOpen = ref(false);
 const prVasSummary = computed(() => calcPrVas(state.P.prCms, state.P.prSd));
 const prFsSummary = computed(() => calcPrFs(state.P.prMmd, state.P.prCms));
@@ -154,30 +158,30 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
     <!-- toolbar -->
     <div class="cl-toolbar">
       <button class="cl-ico" title="Open / import a .wdr driver or .json design" @click="importClick">
-        <svg width="30" height="26" viewBox="0 0 30 26"><path d="M2 6 h9 l2 3 h14 a2 2 0 0 1 2 2 v11 a2 2 0 0 1-2 2 H4 a2 2 0 0 1-2-2 Z" fill="#f4b23e" stroke="#c8871a"/><path d="M5 12 h20 l-3 10 H8 Z" fill="#ffd980" stroke="#c8871a"/></svg>
+        <ToolbarIcon name="open" />
       </button>
       <button class="cl-ico" title="New — pick a driver from the library" @click="state.browseOpen = true">
-        <svg width="22" height="26" viewBox="0 0 22 26"><path d="M3 2 h11 l5 5 v17 H3 Z" fill="#fff" stroke="#9aa4ad"/><path d="M14 2 v5 h5" fill="#e8edf2" stroke="#9aa4ad"/><circle cx="16" cy="6" r="3.4" fill="#ffe14d" stroke="#d4b800"/></svg>
+        <ToolbarIcon name="new" />
       </button>
-      <button class="cl-ico" title="Save the design as a .json project" @click="exportDesign">
-        <svg width="24" height="26" viewBox="0 0 24 26"><path d="M3 3 h15 l3 3 v17 H3 Z" fill="#5b7fb0" stroke="#3c5a86"/><rect x="7" y="3" width="9" height="7" fill="#cdd8e6"/><rect x="7" y="14" width="10" height="7" fill="#eef2f7"/></svg>
+      <button class="cl-ico" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)" @click="saveProject">
+        <ToolbarIcon name="save" />
       </button>
-      <button class="cl-ico" title="Export the driver as a WinISD .wdr file" @click="exportWdr">
-        <svg width="24" height="26" viewBox="0 0 24 26"><path d="M3 3 h15 l3 3 v17 H3 Z" fill="#5b7fb0" stroke="#3c5a86"/><rect x="7" y="3" width="9" height="7" fill="#cdd8e6"/><path d="M13 21 l7-7 3 3 -7 7 -3.6 .6 Z" fill="#ffd34d" stroke="#b8901f"/></svg>
-      </button>
+      <ExportMenu class="cl-ico" title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link">
+        <ToolbarIcon name="saveAs" />
+      </ExportMenu>
       <span class="cl-sep"></span>
       <button class="cl-ico" title="Choose a driver from the library" @click="state.browseOpen = true">
-        <svg width="30" height="26" viewBox="0 0 30 26"><circle cx="15" cy="13" r="11" fill="#c9c9c9" stroke="#8a8a8a"/><circle cx="15" cy="13" r="6.5" fill="#9c9c9c" stroke="#6f6f6f"/><circle cx="15" cy="13" r="2.6" fill="#5f5f5f"/></svg>
+        <ToolbarIcon name="drivers" />
       </button>
-      <span class="cl-ico cl-dim" title="Options — not yet in OpenISD">
-        <svg width="26" height="26" viewBox="0 0 26 26"><path d="M17 4 a5 5 0 0 0-6.5 6.4 L4 17 l4.6 4.6 6.6-6.5 A5 5 0 0 0 21.6 8.6 l-3 3-2.2-2.2 3-3 A5 5 0 0 0 17 4Z" fill="#8ea2b8" stroke="#5b6b7d"/></svg>
-      </span>
+      <button class="cl-ico" title="Options" @click="optionsOpen = true">
+        <ToolbarIcon name="options" />
+      </button>
       <button class="cl-ico" title="About OpenISD" @click="about">
-        <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="#2f8fe0" stroke="#1c6db3"/><circle cx="13" cy="7.5" r="1.8" fill="#fff"/><rect x="11.4" y="11" width="3.2" height="9" rx="1.4" fill="#fff"/></svg>
+        <ToolbarIcon name="info" />
       </button>
       <span class="cl-sep"></span>
       <label class="cl-chartsel" title="Choose which curve the graph shows (WinISD's chart-type selector)">
-        <svg width="22" height="20" viewBox="0 0 26 24"><rect x="1" y="1" width="24" height="22" rx="2" fill="#fff" stroke="#cfcfcf"/><path d="M3 18 L9 12 L13 15 L22 5" fill="none" stroke="#d05bd0" stroke-width="2"/></svg>
+        <ToolbarIcon name="chart" />
         <select v-model="chartTab" title="Select the graph curve — SPL, excursion, impedance, group delay, and more">
           <option v-for="t in TABS" :key="t.id" :value="t.id">{{ t.name }}</option>
         </select>
@@ -382,6 +386,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
     </div>
 
     <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
   </div>
 </template>
 

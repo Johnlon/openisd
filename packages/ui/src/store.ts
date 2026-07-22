@@ -296,6 +296,12 @@ export function cycleUnitToken(field: string, group: UnitGroup, baseToken: strin
   if (!state.ui.unitTokens) state.ui.unitTokens = {};
   state.ui.unitTokens[field] = nextToken(group, unitToken(field, baseToken));
 }
+/** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
+ *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
+ *  state.P — this only affects how values are DISPLAYED, never the stored (SI) design. */
+export function resetUnitTokens(): void {
+  state.ui.unitTokens = {};
+}
 /** The current unit symbol shown for a field (its base unit until rotated). */
 export function unitLabelOf(field: string, group: UnitGroup, baseToken: string): string {
   return unitDef(group, unitToken(field, baseToken)).label;

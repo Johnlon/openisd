@@ -73,3 +73,32 @@ test('the chosen skin is remembered across a reload (local preference)', async (
   await page.reload();
   await expect(page.locator('.classic-root')).toBeVisible();
 });
+
+test('Classic skin: Options dialog → "Reset to Metric" reverts a toggled unit (L → cu ft) without touching the model', async ({ page }) => {
+  await page.locator('.skin-picker select').selectOption('classic');
+  await page.locator('.classic-root .cl-rtab', { hasText: 'Box' }).click();
+
+  const vbRow = page.locator('.classic-root label').filter({ hasText: 'Box volume Vb' }).locator('..');
+  const vb = vbRow.locator('input[type="number"]');
+  const vbUnit = vbRow.locator('.u');
+
+  await vb.fill('18');
+  await vb.press('Tab');
+  await vbUnit.click();                          // L → cu ft
+  await expect(vbUnit).toHaveText('cu ft');
+
+  const readVb = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
+  });
+  const siBefore = await readVb();
+  expect(siBefore).toBeCloseTo(0.018, 6);
+
+  await page.locator('.cl-ico[title="Options"]').click();
+  await expect(page.locator('.opt-modal')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset to Metric (l, mm, …)' }).click();
+  await page.locator('.opt-modal .opt-ok').click();
+
+  await expect(vbUnit).toHaveText('L');           // reverted to the field's default unit
+  expect(await readVb()).toBeCloseTo(siBefore, 9); // the stored SI design is untouched
+});

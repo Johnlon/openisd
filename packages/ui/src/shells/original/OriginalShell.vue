@@ -35,13 +35,16 @@ import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
+import ExportMenu from '../../components/ExportMenu.vue';
+import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import { precision as fieldDp, END_CORRECTION_OPTIONS } from '../../fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
+import OptionsModal from '../../components/OptionsModal.vue';
 
-const { exportDesign, exportWdr, importFile, about, shareLink } = useDesignIO();
+const { saveProject, exportWdr, importFile, about } = useDesignIO();
 
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 // The current design's trace colour. The Color button cycles it through a small
@@ -265,6 +268,7 @@ const placement = ref<'standard' | 'iso'>('standard');
 // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
 const boxLossesOpen = ref(false);
 const newProjectOpen = ref(false);
+const optionsOpen = ref(false);
 
 // Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
 // Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
@@ -309,7 +313,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
     <div class="toolbar">
       <div class="tb-icons">
         <div class="tb-btn has-menu" title="Open project" style="position:relative" @click.stop="toggleDropdown('folder-dropdown')">
-          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M2 5 L8 5 L10 7 L18 7 L18 16 L2 16 Z" fill="none" stroke="#555" stroke-width="1.3"/></svg>
+          <ToolbarIcon name="open" />
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'folder-dropdown' }" @click.stop>
             <div class="menu-item" title="Import a .wdr driver or .json design." @click="openClick(); closeDropdown()">Open...</div>
@@ -318,32 +322,23 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           </div>
         </div>
         <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="newProjectOpen = true">
-          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M4 2 H12 L16 6 V18 H4 Z" fill="none" stroke="#555" stroke-width="1.3"/><path d="M12 2 V6 H16" fill="none" stroke="#555" stroke-width="1.3"/></svg>
+          <ToolbarIcon name="new" />
         </div>
-        <div class="tb-btn" title="Save — the full design as a .json project." @click="exportDesign">
-          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="3" width="8" height="5" fill="none" stroke="#555" stroke-width="1.3"/><rect x="6" y="12" width="8" height="4" fill="#555"/></svg>
+        <div class="tb-btn" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)." @click="saveProject">
+          <ToolbarIcon name="save" />
         </div>
-        <div class="tb-btn has-menu" title="Save As" style="position:relative" @click.stop="toggleDropdown('saveas-dropdown')">
-          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="3" y="3" width="14" height="14" rx="1" fill="none" stroke="#555" stroke-width="1.1"/><line x1="5" y1="15" x2="15" y2="5" stroke="#c9971b" stroke-width="2"/><polygon points="14,4 16,6 15,7 13,5" fill="#c9971b"/></svg>
-          <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
-          <div class="dropdown-menu" :class="{ open: openDd === 'saveas-dropdown' }" @click.stop>
-            <div class="menu-item" title="Full design as a .json project." @click="exportDesign(); closeDropdown()">Save As... (.json)</div>
-            <div class="menu-item" title="Export the driver as a WinISD .wdr file." @click="exportWdr(); closeDropdown()">Export driver (.wdr)</div>
-            <div class="menu-item" title="Copy a link that reopens this design (and your tab/chart) — the address bar updates and the link is copied to the clipboard." @click="shareLink(); closeDropdown()">Copy share link</div>
-          </div>
-        </div>
-        <div class="tb-btn" title="Save the design as a .json project." @click="exportDesign">
-          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="5" y="2" width="12" height="12" rx="1" fill="#f2f2f2" stroke="#999" stroke-width="1.1"/><rect x="3" y="5" width="12" height="12" rx="1" fill="#fff" stroke="#555" stroke-width="1.3"/><rect x="6" y="5" width="6" height="4" fill="none" stroke="#555" stroke-width="1"/></svg>
-        </div>
+        <ExportMenu class="tb-btn" title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link.">
+          <ToolbarIcon name="saveAs" />
+        </ExportMenu>
         <div class="tb-sep"></div>
         <div class="tb-btn" title="Manage Drivers — browse the library." @click="state.browseOpen = true">
-          <svg viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="2" width="16" height="16" rx="2" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="6" fill="none" stroke="#555" stroke-width="1.2"/><circle cx="10" cy="10" r="2.4" fill="#777"/></svg>
+          <ToolbarIcon name="drivers" />
         </div>
-        <div class="tb-btn disabled" title="Options — not yet in OpenISD.">
-          <svg viewBox="0 0 20 20" width="18" height="18"><path d="M14 3 a3 3 0 1 0 -2.9 3.8 L4 14 l2 2 l7.9-7.1 A3 3 0 0 0 14 3 Z" fill="none" stroke="#555" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        <div class="tb-btn" title="Options" @click="optionsOpen = true">
+          <ToolbarIcon name="options" />
         </div>
         <div class="tb-btn has-menu" title="Info" style="position:relative" @click.stop="toggleDropdown('info-dropdown')">
-          <svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="#2b7fd9"/><rect x="9" y="8.5" width="2" height="6" fill="#fff"/><rect x="9" y="5" width="2" height="2" fill="#fff"/></svg>
+          <ToolbarIcon name="info" />
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
@@ -351,7 +346,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         </div>
         <div class="tb-sep"></div>
         <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which curve the graph shows">
-          <svg viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 2,2" fill="none" stroke="#555" stroke-width="1.2"/><polyline points="2,16 18,16" fill="none" stroke="#555" stroke-width="1.2"/><polyline points="3,13 7,9 11,11 17,4" fill="none" stroke="#c9972e" stroke-width="1.6"/></svg>
+          <ToolbarIcon name="chart" />
           <span class="chart-name">{{ chartLabel }}</span>
           <span class="caret">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'chart-dropdown' }" @click.stop>
@@ -781,6 +776,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
     <!-- ===== Tune (mock-styled docked What-If) + full Driver editor (shared, for now) ===== -->
     <OgTune v-if="state.editDriver" />
     <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
     <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
     <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">

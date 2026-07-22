@@ -60,8 +60,9 @@ test('choosing Original swaps to the ported WinISD shell (titlebar, projects, gr
 });
 
 test('the toolbar ports the mock icon buttons + chart-select', async ({ page }) => {
-  // Mock toolbar: 8 icon controls (.tb-btn) + the .chart-select control.
-  await expect(page.locator('.toolbar .tb-btn')).toHaveCount(8);
+  // Toolbar: 7 icon controls (.tb-btn) — Open, New, Save, Save-As/Export, Manage Drivers,
+  // Options, Info — plus the .chart-select control. (Save As merged into Save-As/Export.)
+  await expect(page.locator('.toolbar .tb-btn')).toHaveCount(7);
   await expect(page.locator('.toolbar .chart-select .chart-name')).toBeVisible();
 });
 
@@ -493,10 +494,10 @@ test('the New Project wizard sets box type + volume then opens the driver picker
   expect(st.browse).toBe(true); // hands off to the driver picker
 });
 
-test('Original toolbar: Copy share link writes the design into the address bar', async ({ page }) => {
+test('Original toolbar: Share link (Export menu) writes the design into the address bar', async ({ page }) => {
   page.on('dialog', (d) => d.dismiss().catch(() => {})); // if clipboard is blocked, shareLink falls back to prompt()
-  await page.locator('.tb-btn[title="Save As"]').click();
-  await page.locator('.menu-item', { hasText: 'Copy share link' }).click();
+  await page.locator('#btnExportMenu').click();
+  await page.locator('#btnShare').click();
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
 });
 
@@ -762,4 +763,32 @@ test('Voice coil temp rise, resistance TC, and added mass all convert (no runawa
   const shown = await madd.inputValue();
   expect(shown.replace(/^0\./, '').length).toBeLessThanOrEqual(4); // capped decimal places
   expect(parseFloat(shown)).toBeCloseTo(0.1, 3);
+});
+
+test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit (kg → g) app-wide without touching the model', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  const field = page.locator('.field', { hasText: 'Added mass to cone' });
+  const amc = field.locator('input');
+  const unit = field.locator('.unit');
+
+  await amc.fill('75');
+  await amc.dispatchEvent('input');
+  await amc.blur();
+  await unit.click();                             // g → kg
+  await expect(unit).toHaveText('kg');
+
+  const readMadd = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;
+  });
+  const siBefore = await readMadd();
+  expect(siBefore).toBeCloseTo(0.075, 6);
+
+  await page.locator('.tb-btn[title="Options"]').click();
+  await expect(page.locator('.opt-modal')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset to Metric (l, mm, …)' }).click();
+  await page.locator('.opt-modal .opt-ok').click();
+
+  await expect(unit).toHaveText('g');             // reverted to the field's default unit
+  expect(await readMadd()).toBeCloseTo(siBefore, 9); // the stored SI value is untouched
 });

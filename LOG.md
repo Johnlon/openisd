@@ -8,6 +8,26 @@
 
 ---
 
+## 2026-07-22 — Save/Save-As-&-Export unified across all skins; icons match real WinISD; share links now restore skin+tab
+
+Project Save was three inconsistent, duplicated buttons on the Original toolbar (two of them
+did the exact same thing), Classic lacked a share action entirely, and every "save" was a
+browser download with no way to overwrite the same file twice. Now every skin (Modern, Classic,
+Original) exposes the identical two actions: **Save** writes the design as a native
+`.openisd.json` to a file you pick once, then overwrites that same file in place on every
+subsequent Save (via the File System Access API in Chromium; Firefox/Safari fall back to a
+plain download, since they don't support it); the combined **Save-As/Export ▾** menu covers the
+rest — Save as OpenISD project (.json, pick a new file), Save as WinISD project (**new** —
+`.wpr`, a from-scratch serializer following the documented WinISD file schema and cross-checked
+against a real WinISD-saved sample), Export driver (.wdr, unchanged), and Share link. Toolbar
+iconography on Original and Classic was bare grey wireframe outlines; both now draw from one
+shared icon set modelled directly on the real WinISD 0.7.0.950 toolbar screenshot — filled
+orange folder, silver floppy disks, blue driver/info icons — so the two WinISD-recreation skins
+finally look like WinISD instead of a placeholder sketch. Also fixed: a share link previously
+dropped the sender's skin and reset to a generic default on open — opening a shared link now
+puts the recipient on the exact same skin and project tab the sender was looking at, not just
+the same design values.
+
 ## 2026-07-22 — Real per-field unit conversion (all skins)
 
 Click a field's unit and the value now actually converts — before, the unit label rotated
@@ -18,7 +38,7 @@ and (via affine conversion) absolute temperature K/°C/°F and pressure Pa/kPa/a
 skins. The underlying model is always SI regardless of the unit on screen, so the physics is
 never affected by a display choice: switching the room temperature to °C leaves the simulated
 sound velocity identical. The chosen unit sticks per field across a page refresh, and is kept
-out of shared links (a recipient keeps their own units, like their own skin). Built as one
+out of shared links (a recipient keeps their own unit-display preference). Built as one
 reusable piece — a `display = SI × factor + offset` registry plus a `UnitToggle` label and
 unit-aware `NumInput` — so temperature needed no special case and new fields opt in with three
 props instead of copy-pasted scale factors. Dimensionless and electrical cells (Q, Ω, V, W, …)
@@ -33,7 +53,11 @@ entered field nearby uses — fixing a real inconsistency where the same number 
 differently in two places on screen. Along the way, the PR panel's editable WinISD-mode Vas
 field turned out to be silently treating a litres value as if it were the app's SI unit; it now
 converts through an explicit boundary so a unit switch there can never silently corrupt the
-underlying moving-mass/compliance numbers.
+underlying moving-mass/compliance numbers. A real WinISD Options dialog (General tab → Units →
+"Reset to Metric (l, mm, …)", matching the real app exactly) undoes all that unit-clicking in
+one click, reverting every field to its own default unit — the design itself is never touched,
+only how it's displayed. The wrench/options toolbar icon on Original and Classic, previously a
+disabled placeholder, now opens it; Modern gained a matching Options entry.
 
 ## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
 
