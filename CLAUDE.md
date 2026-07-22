@@ -320,6 +320,14 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 - Whenever the user tells the agent to **stop** doing something behavioral (or corrects their interaction/behavior), the agent **MUST** immediately append that constraint as a new standing rule in `CLAUDE.md`.
 - Whenever the user instructs, corrects, or defines a **coding pattern**, the agent **MUST** immediately document it inside [DEVELOPMENT.md §8 "Standing coding patterns"](file:///home/john/work/winisd/openisd/DEVELOPMENT.md).
 
+## Open questions & decisions live in a FILE, never only in chat — standing rule
+
+The human cannot track questions or pending decisions that exist only in chat — what is outstanding, answered, or even read gets lost (human instruction 2026-07-22, emphatic: "stuff is getting lost").
+
+- **Whenever the agent poses a question to the human, or surfaces a decision that awaits the human, it MUST record that item in a tracked file in the SAME turn it raises it in chat** — `BACKLOG.md` here in `openisd`; `TODO.md §"❓ Open questions — deferred decisions"` in the sibling `winisd_tools`. Chat is a transient echo of the file, never the record.
+- **When the human answers, mark the item resolved and write the ruling inline in the same turn.** Never leave an answered item open.
+- Never rely on a chat bullet list to carry an open question forward. This applies in every session and every repo, not just the current terminal.
+
 ## Bug/Discrepancy Investigation vs. Fixing Boundaries — standing rule
 
 When a user points the agent at a file, directory, log, or code discrepancy to draw attention to it, ask an exploratory question, or explicitly state that a bug exists, this is **NOT** an instruction to start changing or fixing things. Under these circumstances:
