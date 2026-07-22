@@ -4,6 +4,16 @@ export const fmtF   = (f: number): string => f >= 1000 ? (f/1000).toFixed(f < 10
 export const fmtY   = (v: number): string => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };
 export const fmtVal = (v: number, u: string): string => { if (!isFinite(v)) return '—'; const a = Math.abs(v); return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + u; };
 
+// Nearest sample index to frequency f in a log-spaced xs grid.
+function nearestIdx(xs: number[], f: number): number {
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < xs.length; i++) {
+    const dd = Math.abs(Math.log10(xs[i]) - Math.log10(f));
+    if (dd < bd) { bd = dd; bi = i; }
+  }
+  return bi;
+}
+
 export function niceTicks(min: number, max: number, n = 6): number[] {
   const span = max - min, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
   const norm = step0 / mag, step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10, s = step * mag;
@@ -133,6 +143,15 @@ export function drawOne(
     ctx.strokeStyle = COL.bandLine; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(x1, m.t); ctx.lineTo(x1, m.t + ph); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x2, m.t); ctx.lineTo(x2, m.t + ph); ctx.stroke();
+    // level lines — where the current design's curve crosses EACH selection cursor
+    const prim = plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim && prim.xs.length) {
+      for (const f of [dragRange.fLo, dragRange.fHi]) {
+        const y = Y(prim.ys[nearestIdx(prim.xs, f)]);
+        if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+        ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+      }
+    }
     ctx.setLineDash([]);
     if (readEl) {
       const ff = (f: number) => f >= 100 ? f.toFixed(0) : f.toFixed(1);
@@ -149,11 +168,20 @@ export function drawOne(
 
   // crosshair
   if (cursorF && plotData.series[0]) {
-    const s0 = plotData.series[0]; let bi = 0, bd = 1e9;
-    for (let i = 0; i < s0.xs.length; i++) { const dd = Math.abs(Math.log10(s0.xs[i]) - Math.log10(cursorF)); if (dd < bd) { bd = dd; bi = i; } }
+    const s0 = plotData.series[0];
+    const bi = nearestIdx(s0.xs, cursorF);
     const fx = s0.xs[bi];
     ctx.strokeStyle = COL.cross; ctx.setLineDash([3, 3]);
-    ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke();
+    // level line — where the current design's curve crosses the cursor frequency
+    const prim = plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim) {
+      const py = Y(prim.ys[bi]);
+      if (isFinite(py) && py >= m.t && py <= m.t + ph) {
+        ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + pw, py); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
     let html = `<b>${fx.toFixed(fx < 100 ? 1 : 0)}Hz</b>`;
     for (const s of plotData.series) {
       if (s.dash || s.phantom) continue;

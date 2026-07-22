@@ -208,7 +208,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <span class="cl-cbx on" role="button" tabindex="0" @click="removeCompare(i)" @keydown.enter="removeCompare(i)">&#10003;</span>{{ d.name }}
           </div>
         </div>
-        <button class="cl-pin" title="Snapshot the current design and overlay it for comparison" @click="pinCompare">＋ Compare</button>
+        <button class="cl-pin" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
 
         <div class="cl-heading" style="margin-top:12px">Signal Generator</div>
         <div class="cl-sig">
