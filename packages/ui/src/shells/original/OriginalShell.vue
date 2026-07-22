@@ -232,6 +232,38 @@ watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure'
 // ---- Projects list -------------------------------------------------------------
 function removeCompare(i: number) { state.compare.splice(i, 1); }
 
+// ---- Resizable / collapsible layout --------------------------------------------
+// Left panel width + bottom section height are splitter-dragged; both panels also
+// collapse outright, and the chart can maximise over the whole main area (the toolbar
+// stays, so the chart type remains switchable while maximised). All five prefs live in
+// state.ui → persisted locally across refresh, stripped from share links (persist.ts).
+const mainEl = ref<HTMLElement | null>(null);
+const navCollapsed = computed({ get: () => state.ui.originalNavCollapsed ?? false, set: (v: boolean) => { state.ui.originalNavCollapsed = v; } });
+const bottomCollapsed = computed({ get: () => state.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { state.ui.originalBottomCollapsed = v; } });
+const chartMax = computed({ get: () => state.ui.originalChartMax ?? false, set: (v: boolean) => { state.ui.originalChartMax = v; } });
+const mainStyle = computed(() => chartMax.value ? {} : {
+  gridTemplateColumns: (navCollapsed.value ? '0px' : (state.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
+  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? 290) + 'px'),
+});
+function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
+  const el = e.currentTarget as HTMLElement;
+  const rect = mainEl.value!.getBoundingClientRect();
+  el.setPointerCapture(e.pointerId);
+  const move = (ev: PointerEvent) => apply(rect, ev);
+  const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); };
+  el.addEventListener('pointermove', move);
+  el.addEventListener('pointerup', up);
+  e.preventDefault();
+}
+function onNavSplitDown(e: PointerEvent): void {
+  if (navCollapsed.value) return;
+  startSplitDrag(e, (rect, ev) => { state.ui.originalNavW = Math.min(520, Math.max(140, ev.clientX - rect.left)); });
+}
+function onBottomSplitDown(e: PointerEvent): void {
+  if (bottomCollapsed.value) return;
+  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(rect.height - 160, Math.max(120, rect.bottom - ev.clientY)); });
+}
+
 // ---- Driver identity + placement ----------------------------------------------
 const brand = computed(() => driverRaw.value.brand || '');
 const model = computed(() => driverRaw.value.model || driverShort(driverRaw.value));
@@ -365,27 +397,28 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
       </div>
     </div>
 
-    <!-- ================= Main: 2×2 quadrants ================= -->
-    <div class="main">
+    <!-- ================= Main: 2×2 quadrants + splitters ================= -->
+    <div ref="mainEl" class="main" :class="{ 'chart-max': chartMax, 'nav-collapsed': navCollapsed, 'bottom-collapsed': bottomCollapsed }" :style="mainStyle">
       <!-- top-left quadrant -->
       <div class="quad-topleft">
         <div class="quad-projects-wrap">
           <div class="panel-title">Projects</div>
           <div class="projects-list">
             <div class="project-row selected" :title="'Current design — ' + driverShort(driverRaw)">
+              <span class="row-remove-spacer"></span>
               <input type="checkbox" checked disabled>
               <span>{{ driverShort(driverRaw) }}</span>
             </div>
             <div v-for="(d, i) in state.compare" :key="i" class="project-row"
                  :class="{ 'trace-hidden': d.visible === false }"
-                 :title="'Comparison overlay — untick to hide its trace, ✕ to remove ' + d.name">
+                 :title="'Comparison overlay — ✕ to remove, untick to hide its trace: ' + d.name">
+              <button class="row-remove" title="Remove this comparison overlay" @click="removeCompare(i)">✕</button>
               <input type="checkbox" :checked="d.visible !== false" @change="d.visible = ($event.target as HTMLInputElement).checked"
                      title="Show/hide this overlay's trace on the graph">
               <span>{{ d.name }}</span>
-              <button class="row-remove" title="Remove this comparison overlay" @click="removeCompare(i)">✕</button>
             </div>
           </div>
-          <button class="link-btn" style="margin-top:6px" title="Snapshot the current design and overlay it" @click="pinCompare">＋ Compare</button>
+          <button class="link-btn" style="margin-top:6px" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
         </div>
 
         <div class="quad-signalgen-wrap">
@@ -397,8 +430,16 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         </div>
       </div>
 
+      <!-- vertical splitter: drag to resize the left panel; toggle collapses it -->
+      <div class="split-v" title="Drag to resize the left panel" @pointerdown="onNavSplitDown" @dblclick="navCollapsed = !navCollapsed">
+        <button class="split-toggle" :title="navCollapsed ? 'Expand the left panel (Projects / Signal Generator)' : 'Collapse the left panel to give the graph more width'"
+                @pointerdown.stop @click="navCollapsed = !navCollapsed">{{ navCollapsed ? '›' : '‹' }}</button>
+      </div>
+
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
+        <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
+                @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
         <div class="graph-wrap">
           <GraphPanel v-if="!pending && !chartUnavailable" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" />
           <div v-else class="graph-empty">
@@ -412,6 +453,12 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </template>
           </div>
         </div>
+      </div>
+
+      <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
+      <div class="split-h" title="Drag to resize the bottom section" @pointerdown="onBottomSplitDown" @dblclick="bottomCollapsed = !bottomCollapsed">
+        <button class="split-toggle" :title="bottomCollapsed ? 'Expand the bottom section (project tabs)' : 'Collapse the bottom section to give the graph more height'"
+                @pointerdown.stop @click="bottomCollapsed = !bottomCollapsed">{{ bottomCollapsed ? '˄' : '˅' }}</button>
       </div>
 
       <!-- bottom-left quadrant: tab rail -->
@@ -841,13 +888,40 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .dropdown-menu .menu-item:not(.current)::before { content:""; width:10px; display:inline-block; }
 .dropdown-menu hr { border:none; border-top:1px solid #ddd; margin:4px 0; }
 
-/* ---------- Main: 2x2 quadrants ---------- */
-.main { display:grid; grid-template-columns:250px 1fr; grid-template-rows:1fr 290px; flex:1 1 auto; min-height:0; overflow:hidden; }
-.quad-topleft { border-right:1px solid #ccc; border-bottom:1px solid #ccc; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; min-height:0; }
+/* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
+/* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
+   0px when a panel is collapsed); these template values are only the no-JS fallback. */
+.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px 290px;
+  grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail . content";
+  flex:1 1 auto; min-height:0; overflow:hidden; }
+.quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
+/* splitters — the drag handles between the panels; each carries a collapse toggle */
+/* The collapse toggle sits at the splitter's START edge (top / left), away from the
+   middle where a resize drag naturally grabs — a centred toggle would swallow the drag. */
+.split-v { grid-area:vsplit; cursor:col-resize; background:#e6e6e6; border-left:1px solid #ccc; border-right:1px solid #ccc; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:10px; touch-action:none; }
+.split-h { grid-area:hsplit; cursor:row-resize; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; display:flex; align-items:center; justify-content:flex-start; padding-left:10px; touch-action:none; }
+.split-v:hover, .split-h:hover { background:#cfe0f5; }
+.split-toggle { border:none; background:#bbb; color:#333; border-radius:2px; cursor:pointer; font-size:9px; line-height:1; padding:0; display:grid; place-items:center; }
+.split-v .split-toggle { width:7px; height:46px; }
+.split-h .split-toggle { height:7px; width:46px; }
+.split-toggle:hover { background:#7fb3ff; color:#fff; }
+/* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
+   doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
+.main.nav-collapsed .quad-topleft, .main.nav-collapsed .quad-bottomleft { display:none; }
+.main.bottom-collapsed .quad-bottomleft, .main.bottom-collapsed .content-panel { display:none; }
+/* chart maximised: only the graph area renders; the toolbar above is untouched so the
+   chart type can still be changed while maximised. */
+.main.chart-max { grid-template-columns:1fr; grid-template-rows:1fr; grid-template-areas:"graph"; }
+.main.chart-max .quad-topleft, .main.chart-max .quad-bottomleft, .main.chart-max .content-panel,
+.main.chart-max .split-v, .main.chart-max .split-h { display:none; }
+.chart-max-btn { position:absolute; top:14px; right:20px; z-index:5; width:26px; height:24px;
+  background:#f7f7f7; border:1px solid #999; border-radius:3px; cursor:pointer; font-size:13px;
+  line-height:1; display:grid; place-items:center; opacity:.75; }
+.chart-max-btn:hover { opacity:1; background:#dbeaff; border-color:#7fb3ff; }
 /* overflow:visible + a stacking context ABOVE the content panel lets the active
    tab extend past the column edge and paint over the panel's left spine, so it
    reads as one continuous shape with the panel (the break-through notch). */
-.quad-bottomleft { background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; overflow:visible; position:relative; z-index:3; }
+.quad-bottomleft { grid-area:rail; background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
 .quad-bottomleft .panel-title, .quad-bottomleft .color-btn { margin-right:8px; flex:none; }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
@@ -859,9 +933,12 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-row input[type=checkbox] { accent-color:#1868d1; }
 .project-row span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
-.row-remove { border:none; background:none; color:#b02a2a; cursor:pointer; padding:0 4px; font-size:12px; line-height:1; opacity:0; }
-.project-row:hover .row-remove { opacity:.85; }
+/* ✕ remove sits LEFT of the name (visible at rest — a right-side hover-reveal was too
+   easy to miss); the current-design row carries a same-width spacer so names align. */
+.row-remove { flex:none; width:16px; border:none; background:none; color:#b02a2a; cursor:pointer; padding:0; font-size:12px; line-height:1; opacity:.55; }
+.project-row:hover .row-remove { opacity:1; }
 .row-remove:hover { color:#fff; background:#e64545; border-radius:3px; }
+.row-remove-spacer { flex:none; width:16px; }
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
 .signal-gen-row input[type=number] { width:70px; }
 .project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }
@@ -884,14 +961,14 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-nav li.active::after  { bottom:-8px; border-top-right-radius:8px; box-shadow:3px -3px 0 3px #f7f7f7; }
 .color-btn { margin-top:auto; border:1px solid #999; padding:8px; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
-.graph-area { flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
+.graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
 .graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
 .graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
 .graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
 /* ---------- Content panel ---------- */
-.content-panel { background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
 .tab-section { display:none; }
 .tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }

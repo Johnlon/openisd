@@ -78,7 +78,7 @@ onBeforeUnmount(stopNudge);
       </select>
     </span>
     <span class="sep"></span>
-    <button @click="pinCompare" title="Snapshot the current design and overlay its curves on all graphs for comparison">+ Compare current</button>
+    <button @click="pinCompare" title="Clone the current design as a snapshot and overlay its curves on all graphs for comparison">+ Clone/Compare current</button>
     <template v-if="state.compare.length">
       <span class="lab">vs</span>
       <span v-for="(d, i) in state.compare" :key="i"

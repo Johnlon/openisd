@@ -82,6 +82,8 @@ describe('share link carries skin + view context but not editor/working state', 
       skin: 'classic',
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
       originalTuneOpen: true, originalWhatIf: { inputs: {} }, originalEditorOpen: true,
+      originalNavW: 320, originalBottomH: 200, originalNavCollapsed: true,
+      originalBottomCollapsed: true, originalChartMax: true,
     },
   } as unknown as AppState;
   const drv = Driver.fromWdr(wdrText).toJSON();
@@ -115,6 +117,12 @@ describe('share link carries skin + view context but not editor/working state', 
     assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
     assert.equal('originalWhatIf' in ui!, false);
     assert.equal('originalEditorOpen' in ui!, false);
+    // device-local layout prefs (panel sizes / collapse / chart maximise) excluded too
+    assert.equal('originalNavW' in ui!, false);
+    assert.equal('originalBottomH' in ui!, false);
+    assert.equal('originalNavCollapsed' in ui!, false);
+    assert.equal('originalBottomCollapsed' in ui!, false);
+    assert.equal('originalChartMax' in ui!, false);
     assert.equal(shared.box, 'sealed');                   // the design itself still travels
   });
 
@@ -133,5 +141,19 @@ describe('share link carries skin + view context but not editor/working state', 
 
     assert.ok(gzipBase64Len < plainBase64Len,
       `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len}) of the same JSON`);
+  });
+
+  it('carries the graph cursor/marker (live hover + locked/pinned) — both, if both are set', async () => {
+    const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
+    const local = serialize(withCursor, drv, []);
+    assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true });
+
+    const shared = decodeShare(await stateToUrl(local));
+    assert.deepEqual(shared.cursor, { f: 123.4, pinnedF: 500, locked: true });
+  });
+
+  it('an unset cursor serializes as all-null/false, not omitted (no special-casing "nothing pinned")', () => {
+    const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
+    assert.deepEqual(serialize(noCursor, drv, []).cursor, { f: null, pinnedF: null, locked: false });
   });
 });

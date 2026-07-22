@@ -176,6 +176,17 @@ export interface UiState {
   originalWhatIf?: DriverJSON | null;
   /** Original skin — the Driver Editor modal is open. Persisted so a refresh reopens it. */
   originalEditorOpen?: boolean;
+  /** Original skin — left panel width in px (splitter-dragged). Local-only layout pref
+   *  (device/screen-specific): persisted across refresh, stripped from share links. */
+  originalNavW?: number;
+  /** Original skin — bottom section height in px (splitter-dragged). Local-only layout pref. */
+  originalBottomH?: number;
+  /** Original skin — the left panel (Projects / Signal Generator) is collapsed. Local-only. */
+  originalNavCollapsed?: boolean;
+  /** Original skin — the bottom section (tab rail + content) is collapsed. Local-only. */
+  originalBottomCollapsed?: boolean;
+  /** Original skin — the chart is maximised over the whole main area (toolbar stays). Local-only. */
+  originalChartMax?: boolean;
   /** Per-field selected display-unit token (keyed by field id; see fields/units.ts). The store
    *  always holds SI — this only picks how a field is shown/entered. Absent field ⇒ its base
    *  unit. Local-only presentation preference: persisted across refresh, stripped from share
