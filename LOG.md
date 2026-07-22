@@ -8,6 +8,27 @@
 
 ---
 
+## 2026-07-23 — Original skin: resizable/collapsible panels, chart maximise, cursor level-lines
+
+Work the chart, not around it. The Original skin's left panel and bottom section were fixed
+tracks (250px / 290px) — long project names clipped with no remedy, and the chart could never
+grow. Both are now splitter-draggable and collapsible, and a maximise button gives the chart
+the whole page while the toolbar stays live (so the chart type is still switchable). Sizes
+persist per device, never in share links.
+
+Read the level, not just the frequency. Every chart draws a horizontal line where the cursor
+crosses the current design's curve — one on hover, one per edge of a drag-selection — so
+comparing levels across a band no longer means eyeballing against the grid.
+
+Honest naming and reachable controls. "+ Compare" is now "+ Clone/Compare" (it clones a
+snapshot), and an overlay's ✕ remove moved to the LEFT of its name, visible at rest, instead
+of a hover-revealed control off the right edge.
+
+Recorded, not lost: the "open project appears to do nothing" bug is root-caused in
+BACKLOG.md (importFile drops project meta + compare overlays; the Projects list never shows
+the project name) with fix options awaiting a pick, alongside a design item for the whole
+Clone/Compare "Projects" concept (AI-introduced, never human-designed).
+
 ## 2026-07-22 — Save/Save-As-&-Export unified across all skins; icons match real WinISD; share links now restore skin+tab
 
 Project Save was three inconsistent, duplicated buttons on the Original toolbar (two of them
