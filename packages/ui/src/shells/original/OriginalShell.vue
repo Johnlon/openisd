@@ -278,8 +278,9 @@ function startEdit() { if (!state.driverSource) state.driverSource = { ...driver
 // R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
 // reload. Original-scoped: only this shell reads/writes these state.ui fields, so Modern and
 // Classic refresh behaviour is unchanged (they never set originalTuneOpen). These live in
-// state.ui, so they persist to localStorage (refresh) but stateToUrl strips ui (excluded from
-// share links, per the session-context decisions).
+// state.ui, so they persist to localStorage (refresh) but stateToUrl strips these two fields
+// specifically — an open editor's uncommitted buffer is personal working state, excluded from
+// share links (skin + active tab/chart ARE shared — see stateToUrl's own comment).
 watch([isDriverWhatIfActive, whatIfJSON], ([active, json]) => {
   state.ui.originalTuneOpen = active;
   state.ui.originalWhatIf = active ? json : null;

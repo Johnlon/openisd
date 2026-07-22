@@ -792,3 +792,18 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   await expect(unit).toHaveText('g');             // reverted to the field's default unit
   expect(await readMadd()).toBeCloseTo(siBefore, 9); // the stored SI value is untouched
 });
+
+test('Original skin: Options dialog is centered on screen, not pinned to the top (own overlay, not the shell\'s)', async ({ page }) => {
+  await page.locator('.tb-btn[title="Options"]').click();
+  const overlay = page.locator('.opt-overlay');
+  await expect(overlay).toBeVisible();
+  const box = await overlay.boundingBox();
+  const modalBox = await page.locator('.opt-modal').boundingBox();
+  const viewport = page.viewportSize()!;
+  const modalMidY = modalBox!.y + modalBox!.height / 2;
+  // Centered vertically within a reasonable tolerance — not stuck near the top of the viewport
+  // (the bug: Original's own unscoped `.overlay { align-items:flex-start }` used to leak onto
+  // this modal's root element via Vue's parent-scope-on-child-root behaviour).
+  expect(Math.abs(modalMidY - viewport.height / 2)).toBeLessThan(viewport.height * 0.15);
+  expect(box).toBeTruthy();
+});

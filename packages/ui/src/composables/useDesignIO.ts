@@ -52,8 +52,8 @@ export function useDesignIO() {
     flash(result.handle ? 'Project saved' : 'Project downloaded');
   }
 
-  function shareLink(): void {
-    const url = stateToUrl(serialize(state, driverJSON.value, state.compare));
+  async function shareLink(): Promise<void> {
+    const url = await stateToUrl(serialize(state, driverJSON.value, state.compare));
     try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(

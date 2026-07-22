@@ -27,16 +27,16 @@ const tab = ref<Tab>('General');
 </script>
 
 <template>
-  <div class="overlay on" @click="onBackdrop">
-    <div class="modal opt-modal">
-      <h2>Options<button class="x" @click="close" title="Close">✕</button></h2>
+  <div class="opt-overlay" @click="onBackdrop">
+    <div class="opt-modal">
+      <h2 class="opt-h2">Options<button class="opt-x" @click="close" title="Close">✕</button></h2>
 
       <div class="opt-tabs">
         <button class="opt-tab" :class="{ on: tab === 'General' }" @click="tab = 'General'">General</button>
         <button class="opt-tab" :class="{ on: tab === 'Plot Window' }" @click="tab = 'Plot Window'">Plot Window</button>
       </div>
 
-      <div class="body opt-body">
+      <div class="opt-body">
         <template v-if="tab === 'General'">
           <fieldset class="opt-group">
             <legend>Units</legend>
@@ -59,13 +59,33 @@ const tab = ref<Tab>('General');
 </template>
 
 <style scoped>
-.opt-modal { width: min(420px, 92vw); }
+/* Fully self-contained (own overlay/modal shell, not the shared global .overlay/.modal) —
+   deliberately unique class names. Original/Classic each define their OWN unscoped `.overlay`/
+   `.modal` rules for their native-style dialogs (e.g. Original's centers-at-top variant); Vue
+   applies a parent's scoped-style attribute to a child component's ROOT element too, so reusing
+   those same class names here would leak the shell's positioning/sizing onto this modal. */
+.opt-overlay { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.66); display: flex;
+  align-items: center; justify-content: center; z-index: 200; }
+.opt-modal { width: min(420px, 92vw); max-height: 86vh; display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
+  color: var(--fg); }
+.opt-h2 { margin: 0; font-size: 14px; padding: 11px 14px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 8px; }
+.opt-x { margin-left: auto; cursor: pointer; color: var(--mut); font-size: 18px; line-height: 1;
+  background: none; border: none; padding: 0; }
 .opt-tabs { display: flex; gap: 2px; padding: 8px 14px 0; }
 .opt-tab { font-size: 12px; padding: 6px 12px; border: 1px solid var(--line);
-  border-radius: 4px 4px 0 0; background: var(--panel2); color: var(--mut); cursor: pointer;
-  margin-bottom: -1px; /* overlaps the body's top border so the active tab visually attaches */ }
-.opt-tab.on { background: var(--panel); color: var(--fg); font-weight: 600; border-bottom-color: var(--panel); }
-.opt-body { min-height: 90px; border-top: 1px solid var(--line); position: relative; z-index: 1; }
+  border-radius: 4px 4px 0 0; background: var(--panel2); color: var(--mut); cursor: pointer; }
+/* The active tab must look physically attached to the panel below, not a separate chip sitting
+   above a visible seam. Two things are both required — colour-matching the border alone still
+   anti-aliases into a thin visible line at a sub-pixel boundary:
+   1. Drop the border-bottom entirely (padding-bottom +1px keeps the same overall height as the
+      inactive tab, so tabs don't jump/misalign when switching).
+   2. Overlap 1px into .opt-body (margin-bottom:-1px) and paint above it (position+z-index) —
+      .opt-body's own border-top still draws under the tab's width unless covered like this. */
+.opt-tab.on { background: var(--panel); color: var(--fg); font-weight: 600;
+  border-bottom: none; padding-bottom: 7px; margin-bottom: -1px; position: relative; z-index: 2; }
+.opt-body { min-height: 90px; border-top: 1px solid var(--line); padding: 12px 14px; overflow-y: auto; }
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
 .opt-reset-btn { width: 100%; padding: 6px 0; cursor: pointer; }

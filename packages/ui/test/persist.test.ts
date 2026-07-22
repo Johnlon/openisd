@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { Driver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../src/utils/persist.js';
 import type { AppState, UiParams } from '../src/types.js';
@@ -89,17 +90,22 @@ describe('share link carries skin + view context but not editor/working state', 
   beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
   afterAll(() => vi.unstubAllGlobals());
 
+  // stateToUrl() gzips the payload before base64url — reverse both steps with Node's zlib
+  // (independent of the app's own CompressionStream code path, so this is a real check of
+  // what a browser would decode, not a tautology against the same implementation).
   function decodeShare(url: string): Record<string, unknown> {
     const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+    const gzipped = Buffer.from(b64, 'base64');
+    const json = gunzipSync(gzipped).toString('utf8');
+    return JSON.parse(json);
   }
 
   it('serialize() carries the full ui (incl. skin) so localStorage remembers everything', () => {
     assert.equal(serialize(uiState, drv, []).ui?.skin, 'classic');
   });
 
-  it('stateToUrl() keeps skin + active tab + chart but drops the open-editor buffer', () => {
-    const shared = decodeShare(stateToUrl(serialize(uiState, drv, [])));
+  it('stateToUrl() keeps skin + active tab + chart but drops the open-editor buffer', async () => {
+    const shared = decodeShare(await stateToUrl(serialize(uiState, drv, [])));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'shareable view context (ui) travels');
     assert.equal(ui!.skin, 'classic');                    // recipient lands on the SENDER's skin
@@ -110,5 +116,22 @@ describe('share link carries skin + view context but not editor/working state', 
     assert.equal('originalWhatIf' in ui!, false);
     assert.equal('originalEditorOpen' in ui!, false);
     assert.equal(shared.box, 'sealed');                   // the design itself still travels
+  });
+
+  it('gzip actually shrinks the link vs plain base64 of the same JSON (not just round-trips)', async () => {
+    // A realistic-size payload — a real driver record (many T/S + carried WDR fields) plus
+    // a couple of comparison overlays, so the JSON has the repetition gzip exploits.
+    const loaded = { ...uiState, compare: [
+      { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
+      { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
+    ] } as unknown as AppState;
+    const json = JSON.stringify(serialize(loaded, drv, loaded.compare as unknown as never[]));
+    const plainBase64Len = Buffer.from(json, 'utf8').toString('base64').length;
+
+    const url = await stateToUrl(serialize(loaded, drv, loaded.compare as unknown as never[]));
+    const gzipBase64Len = url.match(/[#&]s=([^&]+)/)![1].length;
+
+    assert.ok(gzipBase64Len < plainBase64Len,
+      `gzip+base64 (${gzipBase64Len}) should be smaller than plain base64 (${plainBase64Len}) of the same JSON`);
   });
 });
