@@ -4,7 +4,7 @@ import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxT
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
-import { nextToken, type UnitGroup } from './fields/units.js';
+import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
@@ -295,6 +295,25 @@ export function unitToken(field: string, baseToken: string): string {
 export function cycleUnitToken(field: string, group: UnitGroup, baseToken: string): void {
   if (!state.ui.unitTokens) state.ui.unitTokens = {};
   state.ui.unitTokens[field] = nextToken(group, unitToken(field, baseToken));
+}
+/** The current unit symbol shown for a field (its base unit until rotated). */
+export function unitLabelOf(field: string, group: UnitGroup, baseToken: string): string {
+  return unitDef(group, unitToken(field, baseToken)).label;
+}
+/** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single
+ *  source every skin uses to pair a readout with a <UnitToggle>. `si` MUST be the SI value
+ *  (m³/m/m²/Hz/kg); a few engine helpers return convenience units (e.g. prVas is litres → pass
+ *  value/1000). `baseDp` is the field's base-unit dp from fieldRegistry. Non-finite → '—'. */
+export function formatInUnit(
+  si: number | null | undefined,
+  field: string,
+  group: UnitGroup,
+  baseToken: string,
+  baseDp: number,
+): string {
+  if (si == null || !isFinite(si)) return '—';
+  const tok = unitToken(field, baseToken);
+  return toDisplay(si, group, tok).toFixed(displayPrecision(baseDp, group, baseToken, tok));
 }
 
 export function driverShort(raw: DriverRaw | null | undefined): string {

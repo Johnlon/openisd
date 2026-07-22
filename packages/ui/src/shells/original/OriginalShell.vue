@@ -21,9 +21,8 @@ import {
   syncedP, curvesData, maxData, driverErrors,
   isModified, markProjectSaved, resetProjectToGround,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
-  unitToken,
+  formatInUnit as fmtU,
 } from '../../store.js';
-import { toDisplay, displayPrecision, type UnitGroup } from '../../fields/units.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
@@ -57,16 +56,7 @@ function cycleColor() { traceIdx.value = (traceIdx.value + 1) % TRACE_PALETTE.le
 function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
 }
-
-// Format a CALCULATED (read-only) value in the field's currently-selected unit, paired with a
-// <UnitToggle>. `si` MUST be the SI-unit value (m³/m/m²/Hz/kg) — most calc readouts here are
-// already SI (frequencies in Hz), but a few engine helpers return convenience units (prVas is
-// litres → pass value/1000). `baseDp` is the field's base-unit dp (from fieldRegistry).
-function fmtU(si: number | null | undefined, field: string, group: UnitGroup, base: string, baseDp: number): string {
-  if (si == null || !isFinite(si)) return '—';
-  const tok = unitToken(field, base);
-  return toDisplay(si, group, tok).toFixed(displayPrecision(baseDp, group, base, tok));
-}
+// fmtU (calculated-value-in-selected-unit) is the shared store.formatInUnit, imported above.
 
 // ---- Box types -----------------------------------------------------------------
 type OgBox = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';

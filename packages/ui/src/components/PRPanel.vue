@@ -6,6 +6,7 @@ import { prTuning, prMassForFp, ventedAlignment, RHO, C,
 import { savePR } from '../utils/prLibrary.js';
 import type { PRLibEntry, BundledPR } from '../types.js';
 import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
 import PRBrowser from './PRBrowser.vue';
 import PRDefineModal from './PRDefineModal.vue';
 import { precision as fieldDp } from '../fields/fieldRegistry.js';
@@ -138,13 +139,13 @@ function defineNewPR() {
     </div>
     <div class="row" title="Effective piston area of the passive radiator cone (from datasheet). WinISD: Sd.">
       <label>Sd</label>
-      <NumInput v-model="state.P.prSd" :scale="1e4" :precision="fieldDp('prSd')" />
-      <span class="u">cm²</span>
+      <NumInput v-model="state.P.prSd" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" />
+      <UnitToggle field="prSd" group="area" base="cm2" />
     </div>
     <div class="row" title="Maximum linear one-way cone excursion before distortion (from datasheet). WinISD: Xmax.">
       <label>Xmax</label>
-      <NumInput v-model="state.P.prXmax" :scale="1000" :precision="fieldDp('prXmax')" />
-      <span class="u">mm</span>
+      <NumInput v-model="state.P.prXmax" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" />
+      <UnitToggle field="prXmax" group="length" base="mm" />
     </div>
 
     <div class="row" title="Choose between WinISD-style parameter entry (Fs, Qms, Vas) or raw T/S parameters (Mms, Cms, Rms). Both are equivalent — WinISD uses the same conversions internally.">

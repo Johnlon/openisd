@@ -4,6 +4,7 @@ import { driver, driverRaw, enterDriverField, setDriverFromRaw, getDriverModel }
 import { ebp, RHO, C } from '@openisd/engine';
 import type { DriverRaw } from '@openisd/engine';
 import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import { precision as fieldDp } from '../fields/fieldRegistry.js';
 
@@ -117,9 +118,9 @@ useEscToClose(() => true, cancel);
                 </div>
                 <div class="de-fld" title="Equivalent compliance volume. WinISD: Vas">
                   <label>Vas</label>
-                  <NumInput :class="cellClass('Vas')" :model-value="driverRaw.Vas ?? 0" :scale="1000" :precision="fieldDp('Vas')" @update:model-value="v => setNum('Vas', v)">
+                  <NumInput :class="cellClass('Vas')" :model-value="driverRaw.Vas ?? 0" field="Vas" group="volume" base="L" :precision="fieldDp('Vas')" @update:model-value="v => setNum('Vas', v)">
                   </NumInput>
-                  <span class="u">L</span>
+                  <UnitToggle field="Vas" group="volume" base="L" />
                 </div>
               </div>
               <div class="de-col">
@@ -139,9 +140,9 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld" title="Free-air resonance frequency. WinISD: Fs">
                   <label>Fs</label>
-                  <NumInput :class="cellClass('Fs')" :model-value="driverRaw.Fs ?? 0" :scale="1" :precision="fieldDp('Fs')" @update:model-value="v => setNum('Fs', v)">
+                  <NumInput :class="cellClass('Fs')" :model-value="driverRaw.Fs ?? 0" field="Fs" group="freq" base="Hz" :precision="fieldDp('Fs')" @update:model-value="v => setNum('Fs', v)">
                   </NumInput>
-                  <span class="u">Hz</span>
+                  <UnitToggle field="Fs" group="freq" base="Hz" />
                 </div>
               </div>
             </div>
@@ -199,9 +200,9 @@ useEscToClose(() => true, cancel);
                 </div>
                 <div class="de-fld" title="Effective piston area. WinISD: Sd">
                   <label>Sd</label>
-                  <NumInput :class="cellClass('Sd')" :model-value="driverRaw.Sd ?? 0" :scale="1e4" :precision="fieldDp('Sd')" @update:model-value="v => setNum('Sd', v)">
+                  <NumInput :class="cellClass('Sd')" :model-value="driverRaw.Sd ?? 0" field="Sd" group="area" base="cm2" :precision="fieldDp('Sd')" @update:model-value="v => setNum('Sd', v)">
                   </NumInput>
-                  <span class="u">cm²</span>
+                  <UnitToggle field="Sd" group="area" base="cm2" />
                 </div>
               </div>
             </div>

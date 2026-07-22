@@ -327,3 +327,26 @@ test('passive radiator: 30L box, 50g PR, 0.5mm/N Cms — stat bar shows Fp=37.9H
   // Fp = 37.9 Hz — confirms the prTuning() reactive chain: PR params → Fp → stat bar
   await expect(page.locator('#stat')).toContainText(`Fp: ${PR_FP_HZ} Hz`);
 });
+
+// Per-field unit conversion reaches Modern/Classic via the shared BoxPanel/PRPanel — the
+// same store-backed UnitToggle as the Original skin. Model stays SI regardless of display unit.
+test('Modern skin: clicking a field unit label converts the display; the model stays SI', async ({ page }) => {
+  const row = page.locator('label').filter({ hasText: 'Box volume Vb' }).locator('..');
+  const vb = row.locator('input[type="number"]');
+  const unit = row.locator('.u');
+
+  await vb.fill('6');            // 6 L
+  await vb.press('Tab');
+  await expect(vb).toHaveValue('6.00');
+  await expect(unit).toHaveText('L');
+
+  await unit.click();           // L → cu ft
+  await expect(unit).toHaveText('cu ft');
+  await expect(vb).toHaveValue('0.212');   // 0.006 m³ × 35.3147, 3 dp
+
+  const vbSi = await page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
+  });
+  expect(vbSi).toBeCloseTo(0.006, 9);      // MODEL unchanged by a display-unit switch
+});
