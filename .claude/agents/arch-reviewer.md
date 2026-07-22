@@ -45,29 +45,28 @@ to you (default `git diff main...HEAD`; `dev` is the working branch).
    - a `drivers/<collection>/` data subdirectory not prefixed `_` (dot/tooling dirs like
      `.claude` are a separate category — note, don't fail, and defer the policy call).
 
-3a. **Original-skin ↔ mock fidelity (hard mandate).** Whenever the diff touches
-    `packages/ui/src/shells/original/` (the Original skin), you MUST open the source of
-    truth — `mock/index.html`, `mock/style.css`, `mock/script.js` — and criticise the
-    implementation against it. **The Original skin is a faithful port of the mock and must
-    be visually and structurally IDENTICAL to it.** The ONLY sanctioned divergence is the
-    swap of the mock's fake state/physics for the shared store + engine (that substitution
-    is required, never a finding). Everything else that differs from the mock is a finding.
-    Go region by region (titlebar, toolbar + every button/icon, projects list, signal
-    generator, graph area, tab rail — all seven tabs, Box tab with all six box types +
-    per-type diagrams + single/dual-chamber layouts, Vents, Filters, Signal, Advanced,
-    Project, the Color button, and every modal: Driver Editor 3 modes, Select Driver, New
-    Project wizard, Options, Box losses, Tune panel, Filter editor) and flag EACH mismatch:
-    - missing region/control/tab/modal/diagram that the mock has;
-    - different DOM structure, class names, layout, ordering, labels, units, or copy;
-    - simplified, renamed, or re-styled markup (e.g. text buttons where the mock has icon
-      buttons; a different toolbar; an omitted spinner/drag-scrub, unit-cycling, dropdown);
-    - different palette, spacing, borders, or chrome vs `mock/style.css`.
-    Report these at `[SEVERITY: high]` for missing functionality/regions and
-    `[SEVERITY: medium]` for structural/visual divergence, each naming the exact mock line
-    (`mock/index.html:<line>` / `mock/style.css:<line>`) it deviates from and the exact
-    `OriginalShell.vue` line. Intentionally-deferred items must be recorded as findings too
-    (they are still divergences); note if a matching `BACKLOG.md` entry already tracks them.
-    Do NOT pass the Original skin as "fine" while it is not yet identical to the mock.
+3a. **Original-skin fidelity — WinISD is the source of truth, the mock is only a guide (hard mandate).**
+    **The reference of truth is the real WinISD 0.7.0.950** (the screenshots in `docs/winisd/` +
+    `docs/winisd/info/*.md`, and `WINISD.md`). The `mock/` files (`mock/index.html`, `mock/style.css`,
+    `mock/script.js`) are a **prototype that approximates WinISD** — a useful layout/structure guide,
+    NOT gospel. **When the mock and real WinISD conflict, WinISD wins.** So a choice that is faithful
+    to WinISD but differs from the mock is CORRECT — do NOT flag it as a defect (e.g. WinISD's real
+    dropdown labels/order superseding the mock's bare-number placeholders). If you think you've found a
+    mock divergence, check the WinISD screenshots first; only flag it if it also diverges from WinISD
+    or from a documented OpenISD decision.
+    Whenever the diff touches `packages/ui/src/shells/original/`, criticise the implementation against
+    WinISD (using the mock to spot missing regions/controls). Go region by region (titlebar, toolbar +
+    buttons, projects list, signal generator, graph area, the seven tabs — Box with its box types +
+    diagrams, Vents, Filters, Signal, Advanced, Project, the Color button, and the modals) and flag:
+    - a region/control/tab/modal/diagram that **WinISD** has but the skin is missing;
+    - a value, unit, label, or behaviour that contradicts the **WinISD screenshots** (`docs/winisd/`);
+    - cosmetic markup/palette/spacing that differs from BOTH WinISD and the mock with no documented reason.
+    The ONLY always-sanctioned divergence is swapping the mock's fake state/physics for the shared
+    store + engine (never a finding). Report missing WinISD functionality at `[SEVERITY: high]`,
+    structural/visual divergence-from-WinISD at `[SEVERITY: medium]`, each citing the WinISD screenshot
+    (or mock line, where the mock matches WinISD) and the exact `OriginalShell.vue` line. Note if a
+    matching `BACKLOG.md` entry already tracks a deferred item. Do NOT report a WinISD-faithful choice
+    as a defect merely because it differs from the mock.
 
 4. **RCA-trigger detection — did a bug surface during the build?** You review only the
    committed range, so judge from **committed evidence** whether a bug was surfaced or

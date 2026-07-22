@@ -286,6 +286,13 @@ If you cannot name the device with all six points, you do not have enough inform
 
 ---
 
+## WinISD is the reference of truth; `mock/` is only a prototype guide — hard rule
+
+**For any WinISD-fidelity question, the real WinISD 0.7.0.950 is the source of truth** — the screenshots in `docs/winisd/` + `docs/winisd/info/*.md`, and `WINISD.md`. The `mock/` files are a **prototype that approximates WinISD**: a useful layout/structure guide for the Original skin, NOT gospel.
+
+- **When the mock and real WinISD conflict, WinISD wins.** A choice that is faithful to WinISD but differs from the mock is CORRECT — never treat it as a defect (e.g. WinISD's real dropdown labels/order supersede the mock's bare-number placeholders).
+- Use the mock to spot _missing_ regions/controls, but verify every value/label/unit/behaviour against the WinISD screenshots before claiming a divergence. This governs the arch-reviewer's Original-skin mandate too (`.claude/agents/arch-reviewer.md` §3a).
+
 ## External claims — require evidence, label inline
 
 - Never assert facts about external systems (WinISD, LEAP, REW, websites, APIs) without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
