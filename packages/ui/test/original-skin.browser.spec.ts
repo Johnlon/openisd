@@ -683,3 +683,42 @@ test('a calculated readout also rescales when its unit is rotated (Hz → kHz)',
   const khz = parseFloat(await val.inputValue());
   expect(khz).toBeCloseTo(hz / 1000, 5);                             // same SI value, finer unit
 });
+
+test('Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  const field = page.locator('.field', { hasText: 'Added mass to cone' });
+  const amc = field.locator('input');
+  const unit = field.locator('.unit');
+
+  await amc.fill('100');
+  await amc.dispatchEvent('input');
+  await amc.blur();
+  await expect(unit).toHaveText('g');
+  const readMadd = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;
+  });
+  expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model
+
+  await unit.click();                              // g → kg
+  await expect(unit).toHaveText('kg');
+  expect(parseFloat(await amc.inputValue())).toBeCloseTo(0.1, 6); // now shown in kg
+  expect(await readMadd()).toBeCloseTo(0.1, 6);    // MODEL unchanged by the display-unit switch
+});
+
+test('Advanced Temperature: K → °C converts via OFFSET; the model stays in kelvin', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+  const tempField = page.locator('.tab-section.active .field', { hasText: 'Temperature' });
+  const temp = tempField.locator('input');
+  const unit = tempField.locator('.unit-cyc');
+  const sv = page.locator('.tab-section.active .field', { hasText: 'Sound velocity' }).locator('input');
+
+  await expect(unit).toHaveText('K');
+  await expect(temp).toHaveValue('293.15');
+  const svBefore = await sv.inputValue();          // depends on temperature IN KELVIN
+
+  await unit.click();                              // K → °C (affine: −273.15, not a factor)
+  await expect(unit).toHaveText('°C');
+  await expect(temp).toHaveValue('20.00');         // 293.15 K − 273.15 = 20.00 °C
+  await expect(sv).toHaveValue(svBefore);          // unchanged ⇒ the model stayed in kelvin
+});

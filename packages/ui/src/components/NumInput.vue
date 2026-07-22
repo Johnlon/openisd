@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { unitToken } from '../store.js';
-import { unitDef, displayPrecision, type UnitGroup } from '../fields/units.js';
+import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../fields/units.js';
 
 const props = withDefaults(defineProps<{
   modelValue: number;
@@ -28,8 +28,15 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
 // Unit-bound mode is active only when the caller supplies the full triple.
 const unitized = computed(() => props.group != null && props.field != null && props.base != null);
 const token = computed(() => (unitized.value ? unitToken(props.field!, props.base!) : ''));
-// Effective scale/precision: from the selected unit when bound, else the fixed props.
-const escale = computed(() => (unitized.value ? unitDef(props.group!, token.value).factor : props.scale));
+// SI ↔ display. Unit-bound mode uses the affine registry conversion (handles temperature's
+// offset); otherwise the fixed `scale` multiply. Both keep the model in SI.
+function toDisp(si: number): number {
+  return unitized.value ? toDisplay(si, props.group!, token.value) : si * props.scale;
+}
+function fromDisp(disp: number): number {
+  return unitized.value ? fromDisplay(disp, props.group!, token.value) : disp / props.scale;
+}
+// Decimal places: derived per selected unit when bound, else the fixed prop.
 const eprec = computed(() =>
   unitized.value ? displayPrecision(props.precision, props.group!, props.base!, token.value) : props.precision,
 );
@@ -46,7 +53,7 @@ const typing = ref(false);
 // "6.00", never "6" then "6.003"). Was toPrecision (significant figures) which gave
 // variable decimals.
 function fmt(v: number): string {
-  const s = v * escale.value;
+  const s = toDisp(v);
   return isFinite(s) ? s.toFixed(eprec.value) : '';
 }
 
@@ -57,9 +64,9 @@ const display = ref(fmt(props.modelValue));
 watch(() => props.modelValue, (v) => {
   if (!focused.value) display.value = fmt(v);
 });
-// Rotating the field's unit changes scale/precision → reformat the shown value (same SI model,
-// new unit) whenever the field isn't being actively edited.
-watch([escale, eprec], () => {
+// Rotating the field's unit changes the conversion/precision → reformat the shown value (same
+// SI model, new unit) whenever the field isn't being actively edited.
+watch([token, eprec], () => {
   if (!focused.value) display.value = fmt(props.modelValue);
 });
 
@@ -79,16 +86,21 @@ function onWheel() { typing.value = false; }   // wheel over the field is a step
 // resulting step. If the press is to place the caret, the next keydown flips typing back on.
 function onPointerDown() { typing.value = false; }
 
-// A value is acceptable only if finite AND at or above the minimum (default 0) —
-// this is what blocks negatives from ever reaching the model/sim.
-function valid(v: number): boolean { return isFinite(v) && v >= props.min; }
+// `min` is an SI-space floor (default 0 — physical quantities are non-negative; for absolute
+// temperature 0 K is the floor). Validation therefore always tests the SI value, NOT the display
+// value: −10 °C is a valid positive Kelvin, so a display-space check would wrongly reject it.
+function valid(si: number): boolean { return isFinite(si) && si >= props.min; }
+// The native <input min> is a DISPLAY-space bound, so it is the SI floor converted to the shown
+// unit (e.g. 0 K → −273.15 °C), letting the spinner reach legitimately-negative display values.
+const dispMin = computed(() => toDisp(props.min));
 
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
-  const v = parseFloat(t.value);   // display-space (already scaled)
+  const v = parseFloat(t.value);   // display-space
+  const si = fromDisp(v);          // back to SI (the model's units)
   if (typing.value || !isFinite(v)) {
     display.value = t.value;                                   // raw echo while typing (caret-safe)
-    if (valid(v)) emit('update:modelValue', v / escale.value); // reject < min (e.g. negatives)
+    if (valid(si)) emit('update:modelValue', si);             // reject < min (e.g. negatives)
     return;
   }
   // Spinner/arrow/wheel step: format the DISPLAY to precision (screen-only) so the field never
@@ -99,7 +111,7 @@ function onInput(e: Event) {
   const s = v.toFixed(eprec.value);
   display.value = s;
   t.value = s;
-  if (valid(v)) emit('update:modelValue', v / escale.value);
+  if (valid(si)) emit('update:modelValue', si);
 }
 
 function onBlur() {
@@ -114,7 +126,7 @@ function onBlur() {
 // Red-flag an in-progress invalid entry ('' and a lone '-' are neutral while typing).
 const invalid = computed(() => {
   if (display.value === '' || display.value === '-') return false;
-  return !valid(parseFloat(display.value));
+  return !valid(fromDisp(parseFloat(display.value)));
 });
 
 // Spinner step ≈ one decade below the value's magnitude (a power of ten), so it feels
@@ -126,7 +138,7 @@ const invalid = computed(() => {
 // caller-supplied explicit `step` (e.g. integer counts) still wins.
 const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
-  const dv = Math.abs(props.modelValue * escale.value);
+  const dv = Math.abs(toDisp(props.modelValue));
   if (!(dv > 0)) return 'any';
   const decade = Math.pow(10, Math.floor(Math.log10(dv)) - 1);
   // Never finer than the field's own decimal places: a sub-precision step (e.g. 0.01 on a
@@ -137,7 +149,7 @@ const stepAttr = computed<string | number>(() => {
 </script>
 
 <template>
-  <input type="number" :step="stepAttr" :min="min" :value="display"
+  <input type="number" :step="stepAttr" :min="dispMin" :value="display"
     :class="{ 'inp-bad': invalid }"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
 </template>

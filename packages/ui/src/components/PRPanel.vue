@@ -177,8 +177,8 @@ function defineNewPR() {
     <template v-else>
       <div class="row" title="Total moving mass — diaphragm + surround + entrained air. No added weight.">
         <label>Mms</label>
-        <NumInput v-model="state.P.prMmd" :scale="1000" :precision="2" />
-        <span class="u">g</span>
+        <NumInput v-model="state.P.prMmd" field="prMmd" group="mass" base="g" :precision="2" />
+        <UnitToggle field="prMmd" group="mass" base="g" />
       </div>
       <div class="row" title="Mechanical compliance of the PR suspension. Higher Cms → lower Fp.">
         <label>Cms</label>
@@ -238,8 +238,8 @@ function defineNewPR() {
   <div class="subsect">PR tuning</div>
   <div class="row" title="Extra mass physically bolted to the PR cone (e.g. steel washer, lead shot). Shifts the tuning frequency down without changing the PR's other parameters. WinISD: 'Added mass'.">
     <label>Added mass <span style="color:var(--mut);font-size:10px">(tunable)</span></label>
-    <NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" />
-    <span class="u">g</span>
+    <NumInput v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" />
+    <UnitToggle field="prMadd" group="mass" base="g" />
   </div>
   <div class="row" title="Total moving mass = Mms + added mass. This is what the acoustic circuit uses.">
     <label>Total Mms</label>

@@ -13,14 +13,16 @@
 Click a field's unit and the value now actually converts — before, the unit label rotated
 (cm → mm → in) but the number sat unchanged, so a vent length read "10.20" relabelled as mm,
 silently wrong. Clicking now rescales the shown value and its decimal places, and typing in the
-new unit is converted back. Trustworthy across all skins on volume/length/area/frequency/mass
-cells (Original's entered + calculated readouts; Modern/Classic's entered cells via the shared
-panels). The underlying model is always SI regardless of the unit on screen, so the physics is
-never affected by a display choice. The chosen unit sticks per field across a page refresh, and
-is kept out of shared links (a recipient keeps their own units, like their own skin). Built as
-one reusable piece — a unit registry plus a `UnitToggle` label and unit-aware `NumInput` — so
-new fields opt in with three props instead of copy-pasted scale factors. Temperature/pressure
-(which need offset math) and the Modern calculated summaries remain fixed-unit for now.
+new unit is converted back. Trustworthy on every control with a real alternate unit — volume, length, area, frequency, mass,
+and (via affine conversion) absolute temperature K/°C/°F and pressure Pa/kPa/atm — across all
+skins. The underlying model is always SI regardless of the unit on screen, so the physics is
+never affected by a display choice: switching the room temperature to °C leaves the simulated
+sound velocity identical. The chosen unit sticks per field across a page refresh, and is kept
+out of shared links (a recipient keeps their own units, like their own skin). Built as one
+reusable piece — a `display = SI × factor + offset` registry plus a `UnitToggle` label and
+unit-aware `NumInput` — so temperature needed no special case and new fields opt in with three
+props instead of copy-pasted scale factors. Dimensionless and electrical cells (Q, Ω, V, W, …)
+stay fixed — they have no meaningful second unit.
 
 ## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
 
