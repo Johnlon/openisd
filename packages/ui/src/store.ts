@@ -4,6 +4,7 @@ import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxT
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
 import type { AppState, UiParams, SyncedParams, Design } from './types.js';
+import { nextToken, type UnitGroup } from './fields/units.js';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
@@ -39,7 +40,7 @@ export const state: AppState = reactive({
   defineOpen:   false,
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
   yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
-  ui:           { skin: 'auto' },  // local-only presentation preference; never shared (persist.ts)
+  ui:           { skin: 'auto', unitTokens: {} },  // local-only presentation prefs; never shared (persist.ts)
   project:      { name: '', creator: '', created: '', modified: '', description: '' },
 });
 
@@ -278,6 +279,22 @@ export function newProject(): void {
   state.project = { name: '', creator: '', created: '', modified: '', description: '' }; // blank meta
   setDriverFromRaw(DEFAULT_DRIVER);
   markProjectSaved();                                       // the fresh design is the new clean ground
+}
+
+// ---- Per-field display units (fields/units.ts) ------------------------------------
+// The store stays SI; these only choose how a field is shown/entered. A skin pairs a
+// NumInput (or a calculated readout) with a <UnitToggle> that cycles the field's token;
+// both read the token here so they agree. Keyed by field id, so the same quantity shown
+// in more than one place/skin shares one selected unit. `baseToken` is the field's own
+// default unit (its historic display unit) used until the user rotates it.
+/** The field's currently-selected unit token (its base unit until rotated). */
+export function unitToken(field: string, baseToken: string): string {
+  return state.ui.unitTokens?.[field] ?? baseToken;
+}
+/** Rotate a field's unit to the next token in its group (persisted, survives refresh). */
+export function cycleUnitToken(field: string, group: UnitGroup, baseToken: string): void {
+  if (!state.ui.unitTokens) state.ui.unitTokens = {};
+  state.ui.unitTokens[field] = nextToken(group, unitToken(field, baseToken));
 }
 
 export function driverShort(raw: DriverRaw | null | undefined): string {

@@ -25,8 +25,8 @@ export function stateToUrl(serialized: SerializedState): string {
   const { ui, ...rest } = serialized;
   const shareable: Omit<SerializedState, 'ui'> & { ui?: Partial<UiState> } = rest;
   if (ui) {
-    const { skin: _skin, originalTuneOpen: _t, originalWhatIf: _w, originalEditorOpen: _e, ...shareableUi } = ui;
-    shareable.ui = shareableUi;   // Partial<UiState> — skin + open-editor state/buffer dropped
+    const { skin: _skin, originalTuneOpen: _t, originalWhatIf: _w, originalEditorOpen: _e, unitTokens: _u, ...shareableUi } = ui;
+    shareable.ui = shareableUi;   // Partial<UiState> — skin + open-editor state/buffer + unit prefs dropped
   }
   return location.origin + location.pathname + '#s=' + b64enc(JSON.stringify(shareable));
 }

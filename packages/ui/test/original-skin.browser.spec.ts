@@ -627,3 +627,59 @@ test('R1 refresh fidelity: box type, active tab, and selected chart survive a re
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await expect(page.locator('select#og-box-type')).toHaveValue('sealed');           // box restored
 });
+
+// ---- Per-field display-unit conversion (fields/units.ts + <UnitToggle>) ------------
+// The store ALWAYS holds SI; clicking a field's unit label must rescale only the shown
+// value (and convert typed input back), never the stored model. This is the real
+// conversion that replaced the old decorative cycleUnit (which rotated the label alone).
+const readVb = (page: Page) =>
+  page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
+  });
+const readVbToken = (page: Page) =>
+  page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    return (await import(/* @vite-ignore */ modPath)).state.ui.unitTokens?.Vb;
+  });
+
+test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the model SI', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const field = page.locator('.tab-section.active .field', { hasText: 'Volume' }).first();
+  const vol = field.locator('input').first();
+  const label = field.locator('.unit-cyc');
+
+  await vol.click();
+  await vol.fill('6');            // 6 L
+  await vol.blur();
+  await expect(vol).toHaveValue('6.00');
+  await expect(label).toHaveText('L');
+  expect(await readVb(page)).toBeCloseTo(0.006, 9);   // stored in SI m³
+
+  await label.click();           // L → cu ft
+  await expect(label).toHaveText('cu ft');
+  await expect(vol).toHaveValue('0.212');             // 0.006 m³ × 35.3147, 3 dp
+  expect(await readVb(page)).toBeCloseTo(0.006, 9);   // MODEL unchanged by a unit switch
+  expect(await readVbToken(page)).toBe('cuft');       // token persisted (survives refresh)
+
+  await vol.click();
+  await vol.fill('0.3');         // now typing in cu ft
+  await vol.blur();
+  expect(await readVb(page)).toBeCloseTo(0.3 / 35.3147, 6); // converted back to SI
+});
+
+test('a calculated readout also rescales when its unit is rotated (Hz → kHz)', async ({ page }) => {
+  await page.locator('.project-nav li').nth(2).click();               // dynamic enclosure/Vents tab
+  const field = page.locator('.tab-section.active .field', { hasText: '1st port resonance' });
+  const val = field.locator('input');
+  const label = field.locator('.unit-cyc');
+
+  await expect(label).toHaveText('Hz');
+  const hz = parseFloat(await val.inputValue());
+  expect(hz).toBeGreaterThan(0);
+
+  await label.click();           // Hz → kHz
+  await expect(label).toHaveText('kHz');
+  const khz = parseFloat(await val.inputValue());
+  expect(khz).toBeCloseTo(hz / 1000, 5);                             // same SI value, finer unit
+});

@@ -21,7 +21,10 @@ import {
   syncedP, curvesData, maxData, driverErrors,
   isModified, markProjectSaved, resetProjectToGround,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
+  unitToken,
 } from '../../store.js';
+import { toDisplay, displayPrecision, type UnitGroup } from '../../fields/units.js';
+import UnitToggle from '../../components/UnitToggle.vue';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
 import { RHO, C,
@@ -53,6 +56,16 @@ function cycleColor() { traceIdx.value = (traceIdx.value + 1) % TRACE_PALETTE.le
 
 function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
+}
+
+// Format a CALCULATED (read-only) value in the field's currently-selected unit, paired with a
+// <UnitToggle>. `si` MUST be the SI-unit value (m³/m/m²/Hz/kg) — most calc readouts here are
+// already SI (frequencies in Hz), but a few engine helpers return convenience units (prVas is
+// litres → pass value/1000). `baseDp` is the field's base-unit dp (from fieldRegistry).
+function fmtU(si: number | null | undefined, field: string, group: UnitGroup, base: string, baseDp: number): string {
+  if (si == null || !isFinite(si)) return '—';
+  const tok = unitToken(field, base);
+  return toDisplay(si, group, tok).toFixed(displayPrecision(baseDp, group, base, tok));
 }
 
 // ---- Box types -----------------------------------------------------------------
@@ -292,12 +305,13 @@ watch(() => state.ui.originalTuneOpen, (open) => {
 watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
 watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverInfo = true; }, { immediate: true });
 
-// ---- Decorative unit-cycling (mock parity): rotates the label text only, never
-// converts the value — identical to the mock's cycleUnit. Keyed per field. --------
+// ---- Decorative unit-cycling — TEMPERATURE and PRESSURE only ----------------------
+// These rotate the label text without converting the value. They are the two units that
+// need an OFFSET (K/°C/°F) not just a factor, and sit on non-NumInput Advanced inputs, so
+// they're deferred from the real per-field conversion (fields/units.ts + <UnitToggle>, which
+// every other unit here now uses). Tracked as a follow-up (BACKLOG: temp/pressure conversion).
 const UNIT_SETS: Record<string, string[]> = {
-  volume: ['l', 'cuft', 'cuin'], length: ['cm', 'mm', 'in'], freq: ['Hz', 'kHz'],
-  area: ['cm²', 'm²', 'in²'], mass: ['g', 'kg', 'oz'], temp: ['K', '°C', '°F'],
-  pressure: ['Pa', 'kPa', 'atm'], angle: ['rad', 'deg'],
+  temp: ['K', '°C', '°F'], pressure: ['Pa', 'kPa', 'atm'],
 };
 const unitLabels = reactive<Record<string, string>>({});
 function unit(key: string, group: string): string { return unitLabels[key] ?? UNIT_SETS[group][0]; }
@@ -476,10 +490,10 @@ function cycleUnit(key: string, group: string) {
             <div v-if="!isDual" class="box-fields-col">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div>
+                <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               </div>
               <div class="field-row">
-                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fc','freq')">{{ unit('fc','freq') }}</span></div>
+                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
@@ -487,14 +501,14 @@ function cycleUnit(key: string, group: string) {
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('vb','volume')">{{ unit('vb','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('frc','freq')">{{ unit('frc','freq') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div></div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" :scale="1000" :precision="fieldDp('Vf')" /><span class="unit unit-cyc" @click="cycleUnit('vf','volume')">{{ unit('vf','volume') }}</span></div></div>
-                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmt(frontTuning, fieldDp('Fb'))" readonly><span class="unit unit-cyc" @click="cycleUnit('ftune','freq')">{{ unit('ftune','freq') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmtU(frontTuning, 'frontTuning', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="frontTuning" group="freq" base="Hz" unit-class="unit unit-cyc" /></div></div>
               </div>
             </template>
 
@@ -618,8 +632,8 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Shape</label><svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg> round</div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('vd','length')">{{ unit('vd','length') }}</span></div>
-                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('vl','length')">{{ unit('vl','length') }}</span></div>
+                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" /><UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" /><UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
                   <div class="field entered"><label>End Correction</label>
@@ -634,7 +648,7 @@ function cycleUnit(key: string, group: string) {
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, fieldDp('ventCrossArea'))" readonly><span class="unit">m²</span></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmt(portPipeResonance, fieldDp('portResonance'))" readonly><span class="unit unit-cyc" @click="cycleUnit('fb','freq')">{{ unit('fb','freq') }}</span></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance, 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
             </div>
@@ -646,15 +660,15 @@ function cycleUnit(key: string, group: string) {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmt(prVas, fieldDp('prVas'))" readonly><span class="unit unit-cyc" @click="cycleUnit('prvas','volume')">{{ unit('prvas','volume') }}</span></div>
+                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(prVas != null ? prVas / 1000 : null, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
                   <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmt(prFs, fieldDp('prFs'))" readonly><span class="unit unit-cyc" @click="cycleUnit('prfs','freq')">{{ unit('prfs','freq') }}</span></div>
-                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" :scale="10000" :precision="fieldDp('prSd')" /><span class="unit unit-cyc" @click="cycleUnit('prsd','area')">{{ unit('prsd','area') }}</span></div>
+                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmtU(prFs, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" :scale="1000" :precision="fieldDp('prXmax')" /><span class="unit unit-cyc" @click="cycleUnit('prxmax','length')">mm</span></div>
+                  <div class="field entered"><label>Xmax</label><NumInput v-model="state.P.prXmax" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
@@ -673,8 +687,8 @@ function cycleUnit(key: string, group: string) {
               <div class="vent-col">
                 <div class="vent-col-title">Front chamber</div>
                 <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
-                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" :scale="100" :precision="fieldDp('ventD')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vd','length')">{{ unit('bp4vd','length') }}</span></div></div>
-                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" :scale="100" :precision="fieldDp('ventL')" /><span class="unit unit-cyc" @click="cycleUnit('bp4vl','length')">{{ unit('bp4vl','length') }}</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" /><UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" /><UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div></div>
               </div>
             </div>
@@ -684,7 +698,7 @@ function cycleUnit(key: string, group: string) {
           <div v-else-if="selectedBox === 'sealed'">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
-              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" :scale="1000" :precision="fieldDp('Vb')" /><span class="unit unit-cyc" @click="cycleUnit('svb','volume')">{{ unit('svb','volume') }}</span></div>
+              <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
