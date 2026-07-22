@@ -587,8 +587,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </div>
             <div style="--label-w:172px;">
               <div class="section-header">Advanced options</div>
-              <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" :scale="1" :precision="fieldDp('vcTempRise')" /><span class="unit">K</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" :scale="1000" :precision="fieldDp('AlfaVC')" /><span class="unit">1000/K</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
+              <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
               <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
               <p class="hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
             </div>

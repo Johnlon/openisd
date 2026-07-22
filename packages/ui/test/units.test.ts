@@ -80,5 +80,8 @@ describe('units — display unit registry (model stays SI; conversion at the bou
     expect(displayPrecision(1, 'freq', 'Hz', 'kHz')).toBe(4);
     // Never negative.
     expect(displayPrecision(0, 'length', 'cm', 'mm')).toBe(0);
+    // Never more than MAX_DP: a base unit's own precision can be high (grams, 5 dp) but a
+    // finer/coarser conversion must not pile up meaningless trailing zeros (0.00000000 kg).
+    expect(displayPrecision(5, 'mass', 'g', 'kg')).toBeLessThanOrEqual(4);
   });
 });
