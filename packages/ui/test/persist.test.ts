@@ -71,10 +71,10 @@ describe('persistence — provenance + carried fields survive a serialize round-
   });
 });
 
-// A share link carries the shareable VIEW context (active tab, selected chart) so the
-// recipient lands on the same page — but NOT device-local prefs (skin) or personal working
-// state (an open editor + its uncommitted buffer). See the session-context decisions.
-describe('share link carries view context but not device/working state', () => {
+// A share link carries the sender's whole VIEW (skin, active tab, selected chart) so the
+// recipient lands on the identical page — but NOT personal working state (an open editor +
+// its uncommitted buffer) or per-field unit-display prefs.
+describe('share link carries skin + view context but not editor/working state', () => {
   const uiState = {
     box: 'sealed', P: {} as UiParams, graphs: ['SPL'],
     ui: {
@@ -98,14 +98,14 @@ describe('share link carries view context but not device/working state', () => {
     assert.equal(serialize(uiState, drv, []).ui?.skin, 'classic');
   });
 
-  it('stateToUrl() keeps active tab + chart but drops skin and the open-editor buffer', () => {
+  it('stateToUrl() keeps skin + active tab + chart but drops the open-editor buffer', () => {
     const shared = decodeShare(stateToUrl(serialize(uiState, drv, [])));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'shareable view context (ui) travels');
+    assert.equal(ui!.skin, 'classic');                    // recipient lands on the SENDER's skin
     assert.equal(ui!.originalProjectTab, 'signal');       // land on the same tab
     assert.equal(ui!.originalChartTab, 'Excursion');      // and the same chart
     assert.equal(ui!.originalChartLabel, 'Cone excursion');
-    assert.equal('skin' in ui!, false);                   // recipient keeps their own skin
     assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
     assert.equal('originalWhatIf' in ui!, false);
     assert.equal('originalEditorOpen' in ui!, false);
