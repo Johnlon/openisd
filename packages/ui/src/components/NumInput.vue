@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
+import { unitToken } from '../store.js';
+import { unitDef, displayPrecision, type UnitGroup } from '../fields/units.js';
 
 const props = withDefaults(defineProps<{
   modelValue: number;
@@ -7,6 +9,13 @@ const props = withDefaults(defineProps<{
   precision?: number;
   step?: string;
   min?: number;
+  // Optional unit binding: when group + field + base are all given, the display scale and
+  // precision come from the field's SELECTED unit (fields/units.ts) instead of the fixed
+  // `scale`/`precision` props, so a paired <UnitToggle> rescales this field live. `precision`
+  // is then the BASE-unit dp; the shown dp is derived per unit. Omit all three → unchanged.
+  group?: UnitGroup;
+  field?: string;
+  base?: string;        // the field's default unit token
 }>(), {
   scale: 1,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
@@ -15,6 +24,15 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
+
+// Unit-bound mode is active only when the caller supplies the full triple.
+const unitized = computed(() => props.group != null && props.field != null && props.base != null);
+const token = computed(() => (unitized.value ? unitToken(props.field!, props.base!) : ''));
+// Effective scale/precision: from the selected unit when bound, else the fixed props.
+const escale = computed(() => (unitized.value ? unitDef(props.group!, token.value).factor : props.scale));
+const eprec = computed(() =>
+  unitized.value ? displayPrecision(props.precision, props.group!, props.base!, token.value) : props.precision,
+);
 
 const focused = ref(false);
 // Distinguish keyboard TYPING (echo the raw keystrokes so we don't fight the caret) from
@@ -28,8 +46,8 @@ const typing = ref(false);
 // "6.00", never "6" then "6.003"). Was toPrecision (significant figures) which gave
 // variable decimals.
 function fmt(v: number): string {
-  const s = v * props.scale;
-  return isFinite(s) ? s.toFixed(props.precision) : '';
+  const s = v * escale.value;
+  return isFinite(s) ? s.toFixed(eprec.value) : '';
 }
 
 // The displayed string: raw while editing, formatted otherwise
@@ -38,6 +56,11 @@ const display = ref(fmt(props.modelValue));
 // Only sync formatted display when not actively typing
 watch(() => props.modelValue, (v) => {
   if (!focused.value) display.value = fmt(v);
+});
+// Rotating the field's unit changes scale/precision → reformat the shown value (same SI model,
+// new unit) whenever the field isn't being actively edited.
+watch([escale, eprec], () => {
+  if (!focused.value) display.value = fmt(props.modelValue);
 });
 
 function onFocus() {
@@ -65,7 +88,7 @@ function onInput(e: Event) {
   const v = parseFloat(t.value);   // display-space (already scaled)
   if (typing.value || !isFinite(v)) {
     display.value = t.value;                                   // raw echo while typing (caret-safe)
-    if (valid(v)) emit('update:modelValue', v / props.scale); // reject < min (e.g. negatives)
+    if (valid(v)) emit('update:modelValue', v / escale.value); // reject < min (e.g. negatives)
     return;
   }
   // Spinner/arrow/wheel step: format the DISPLAY to precision (screen-only) so the field never
@@ -73,10 +96,10 @@ function onInput(e: Event) {
   // an unchanged reformat wouldn't repaint via Vue's :value diff). But EMIT THE ACTUAL VALUE —
   // never a dp-truncated one — so calculations always receive full precision. The grid-aligned
   // step keeps the value at the field's resolution anyway; dp is presentation, not the model.
-  const s = v.toFixed(props.precision);
+  const s = v.toFixed(eprec.value);
   display.value = s;
   t.value = s;
-  if (valid(v)) emit('update:modelValue', v / props.scale);
+  if (valid(v)) emit('update:modelValue', v / escale.value);
 }
 
 function onBlur() {
@@ -103,13 +126,13 @@ const invalid = computed(() => {
 // caller-supplied explicit `step` (e.g. integer counts) still wins.
 const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
-  const dv = Math.abs(props.modelValue * props.scale);
+  const dv = Math.abs(props.modelValue * escale.value);
   if (!(dv > 0)) return 'any';
   const decade = Math.pow(10, Math.floor(Math.log10(dv)) - 1);
   // Never finer than the field's own decimal places: a sub-precision step (e.g. 0.01 on a
   // 1-dp field once the value drops below 1.0) would add decimals the field can't show and
   // stall the arrow. Clamp up to 10^-precision.
-  return Math.max(decade, Math.pow(10, -props.precision));
+  return Math.max(decade, Math.pow(10, -eprec.value));
 });
 </script>
 

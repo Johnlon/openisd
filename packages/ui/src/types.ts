@@ -176,6 +176,11 @@ export interface UiState {
   originalWhatIf?: DriverJSON | null;
   /** Original skin — the Driver Editor modal is open. Persisted so a refresh reopens it. */
   originalEditorOpen?: boolean;
+  /** Per-field selected display-unit token (keyed by field id; see fields/units.ts). The store
+   *  always holds SI — this only picks how a field is shown/entered. Absent field ⇒ its base
+   *  unit. Local-only presentation preference: persisted across refresh, stripped from share
+   *  links (a recipient keeps their own units, like their own skin). */
+  unitTokens?: Record<string, string>;
 }
 
 /** The reactive application state held in the store. */
