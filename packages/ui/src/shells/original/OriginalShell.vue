@@ -137,7 +137,7 @@ const prQms = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prR
 // clean "not available" state, honest about what the engine can and can't compute.
 type ChartItem = { label: string; tab: string | null; sep?: boolean };
 const CHART_ITEMS: ChartItem[] = [
-  { label: 'Transfer function magnitude', tab: 'SPL' },
+  { label: 'Transfer function magnitude', tab: 'TFMag' },
   { label: 'Transfer function phase', tab: 'Phase' },
   { label: 'Group Delay', tab: 'GD' },
   { label: 'Maximum Power', tab: 'MaxPwr' },
@@ -230,7 +230,15 @@ const activeTab = computed<TabId>({
 watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
 // ---- Projects list -------------------------------------------------------------
-function removeCompare(i: number) { state.compare.splice(i, 1); }
+// Row selection: -1 = the current design, i≥0 = state.compare[i]. The ✕ Close button
+// under the list acts on the selected row — the action row (with ＋ Clone/Compare)
+// stands in for WinISD's right-click project menu (Delete / Save / Copy).
+const selectedProject = ref(-1);
+function closeSelectedProject(): void {
+  if (selectedProject.value < 0 || selectedProject.value >= state.compare.length) { selectedProject.value = -1; return; }
+  state.compare.splice(selectedProject.value, 1);
+  selectedProject.value = -1;
+}
 
 // ---- Resizable / collapsible layout --------------------------------------------
 // Left panel width + bottom section height are splitter-dragged; both panels also
@@ -404,21 +412,28 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         <div class="quad-projects-wrap">
           <div class="panel-title">Projects</div>
           <div class="projects-list">
-            <div class="project-row selected" :title="'Current design — ' + driverShort(driverRaw)">
-              <span class="row-remove-spacer"></span>
+            <div class="project-row" :class="{ selected: selectedProject === -1 }"
+                 :title="'Current design — ' + driverShort(driverRaw)" @click="selectedProject = -1">
               <input type="checkbox" checked disabled>
               <span>{{ driverShort(driverRaw) }}</span>
             </div>
             <div v-for="(d, i) in state.compare" :key="i" class="project-row"
-                 :class="{ 'trace-hidden': d.visible === false }"
-                 :title="'Comparison overlay — ✕ to remove, untick to hide its trace: ' + d.name">
-              <button class="row-remove" title="Remove this comparison overlay" @click="removeCompare(i)">✕</button>
+                 :class="{ selected: selectedProject === i, 'trace-hidden': d.visible === false }"
+                 :title="'Comparison overlay — click to select, untick to hide its trace: ' + d.name"
+                 @click="selectedProject = i">
               <input type="checkbox" :checked="d.visible !== false" @change="d.visible = ($event.target as HTMLInputElement).checked"
                      title="Show/hide this overlay's trace on the graph">
               <span>{{ d.name }}</span>
             </div>
           </div>
-          <button class="link-btn" style="margin-top:6px" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
+          <div class="proj-actions">
+            <button class="link-btn" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
+            <button class="link-btn close-btn" :disabled="selectedProject < 0"
+                    :title="selectedProject < 0
+                      ? 'Select a comparison overlay above to close it (the current design cannot be closed) — mimics WinISD\'s right-click Delete'
+                      : 'Close (remove) the selected comparison overlay — mimics WinISD\'s right-click Delete'"
+                    @click="closeSelectedProject">✕ Close</button>
+          </div>
         </div>
 
         <div class="quad-signalgen-wrap">
@@ -892,19 +907,20 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
    0px when a panel is collapsed); these template values are only the no-JS fallback. */
 .main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px 290px;
-  grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail . content";
+  grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
 /* splitters — the drag handles between the panels; each carries a collapse toggle */
-/* The collapse toggle sits at the splitter's START edge (top / left), away from the
-   middle where a resize drag naturally grabs — a centred toggle would swallow the drag. */
-.split-v { grid-area:vsplit; cursor:col-resize; background:#e6e6e6; border-left:1px solid #ccc; border-right:1px solid #ccc; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:10px; touch-action:none; }
-.split-h { grid-area:hsplit; cursor:row-resize; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; display:flex; align-items:center; justify-content:flex-start; padding-left:10px; touch-action:none; }
+/* The collapse toggle is a small rounded chevron tab protruding from the splitter,
+   near its START edge (top / left) — away from the middle where a resize drag
+   naturally grabs (a centred toggle would swallow the drag). */
+.split-v { grid-area:vsplit; cursor:col-resize; background:#e6e6e6; border-left:1px solid #ccc; border-right:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
+.split-h { grid-area:hsplit; cursor:row-resize; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
 .split-v:hover, .split-h:hover { background:#cfe0f5; }
-.split-toggle { border:none; background:#bbb; color:#333; border-radius:2px; cursor:pointer; font-size:9px; line-height:1; padding:0; display:grid; place-items:center; }
-.split-v .split-toggle { width:7px; height:46px; }
-.split-h .split-toggle { height:7px; width:46px; }
-.split-toggle:hover { background:#7fb3ff; color:#fff; }
+.split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
+.split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
+.split-h .split-toggle { left:8px; top:50%; transform:translateY(-50%); height:15px; width:34px; }
+.split-toggle:hover { background:#dbeaff; border-color:#7fb3ff; color:#1868d1; }
 /* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
    doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
 .main.nav-collapsed .quad-topleft, .main.nav-collapsed .quad-bottomleft { display:none; }
@@ -933,12 +949,10 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-row input[type=checkbox] { accent-color:#1868d1; }
 .project-row span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
-/* ✕ remove sits LEFT of the name (visible at rest — a right-side hover-reveal was too
-   easy to miss); the current-design row carries a same-width spacer so names align. */
-.row-remove { flex:none; width:16px; border:none; background:none; color:#b02a2a; cursor:pointer; padding:0; font-size:12px; line-height:1; opacity:.55; }
-.project-row:hover .row-remove { opacity:1; }
-.row-remove:hover { color:#fff; background:#e64545; border-radius:3px; }
-.row-remove-spacer { flex:none; width:16px; }
+/* Action row under the list — stands in for WinISD's right-click project menu. */
+.proj-actions { display:flex; gap:16px; margin-top:6px; }
+.close-btn { color:#b02a2a; }
+.close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
 .signal-gen-row input[type=number] { width:70px; }
 .project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }

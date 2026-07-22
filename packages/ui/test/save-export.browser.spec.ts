@@ -186,4 +186,37 @@ test.describe('Share link carries the sender\'s skin and active tab (not a gener
     await expect(page.locator('.original-root')).toBeVisible();
     await expect(page.locator('.project-nav li.active')).toHaveText('Signal');
   });
+
+  test('opening a share link restores the pinned graph marker (cursorF/pinnedF/cursorLocked)', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('.skin-picker select').selectOption('original');
+    await expect(page.locator('.original-root')).toBeVisible();
+
+    // Pin a marker directly on the store (the click-to-pin gesture itself is exercised
+    // elsewhere; this test is about the share-link ROUND-TRIP of whatever is pinned).
+    await page.evaluate(async () => {
+      const modPath = '/src/store.ts';
+      const store = await import(/* @vite-ignore */ modPath);
+      store.state.cursorF = 123.4;
+      store.state.pinnedF = 500;
+      store.state.cursorLocked = true;
+    });
+
+    page.on('dialog', (d) => d.dismiss().catch(() => {}));
+    await page.locator('#btnExportMenu').click();
+    await page.locator('#btnShare').click();
+    await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
+    const shareUrl = await page.evaluate(() => location.href);
+
+    await page.evaluate(() => localStorage.clear());
+    await page.goto(shareUrl);
+    await expect(page.locator('.original-root')).toBeVisible();
+
+    const restored = await page.evaluate(async () => {
+      const modPath = '/src/store.ts';
+      const store = await import(/* @vite-ignore */ modPath);
+      return { cursorF: store.state.cursorF, pinnedF: store.state.pinnedF, cursorLocked: store.state.cursorLocked };
+    });
+    expect(restored).toEqual({ cursorF: 123.4, pinnedF: 500, cursorLocked: true });
+  });
 });

@@ -7,6 +7,11 @@ interface TabMeta { id: string; name: string; unit: string; color: string }
 
 export const TABS: TabMeta[] = [
   { id:'SPL',    name:'SPL response',    unit:'dB',  color:'#4fb0ff' },
+  // Same underlying response as SPL (WINISD.md §17, verified from real WinISD screenshots:
+  // identical cursor value in both charts) — renormalized so 0 dB = passband output, with a
+  // dashed -3 dB reference line. A DISPLAY MODE derived from the same sweep, not a new engine
+  // computation; see the 'TFMag' branch below.
+  { id:'TFMag',  name:'Transfer function magnitude', unit:'dB', color:'#4fb0ff' },
   { id:'Excursion', name:'Cone excursion', unit:'mm', color:'#ffb454' },
   { id:'Port',   name:'Air velocity',    unit:'m/s', color:'#5ad17a' },
   { id:'GD',     name:'Group delay',     unit:'ms',  color:'#c08bff' },
@@ -48,6 +53,22 @@ export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepPara
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
       if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
     }
+  } else if (tabId === 'TFMag') {
+    // Renormalize the SAME sw.spl data so 0 dB = the passband reference level (the sweep's
+    // own peak, ignoring the -200 "no output" sentinel) — WINISD.md §17's documented
+    // relationship between the two charts. The 0 dB / -3 dB lines are the chart's defining
+    // feature (not optional annotations like SPL's F3/F6/F10), so they're always drawn,
+    // bare or not.
+    const real = sw.spl.filter(v => Number.isFinite(v) && v > -190);
+    const ref = real.length ? Math.max(...real) : 0;
+    const rel = sw.spl.map(v => (Number.isFinite(v) && v > -190) ? v - ref : v);
+    series = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }];
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+    const relReal = rel.filter(v => Number.isFinite(v) && v > -190);
+    const loRel = relReal.length ? Math.min(...relReal) : -45;
+    ymax = 5;
+    ymin = Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5);
   } else if (tabId === 'Excursion') {
     series = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;

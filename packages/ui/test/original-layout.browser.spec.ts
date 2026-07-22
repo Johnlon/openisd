@@ -46,17 +46,23 @@ test('the pin button is named ＋ Clone/Compare', async ({ page }) => {
   await expect(page.locator('.quad-projects-wrap .link-btn')).toHaveText(/Clone\/Compare/);
 });
 
-test('the overlay ✕ remove sits LEFT of the name and is visible without hover', async ({ page }) => {
+test('project rows are [checkbox] Name only; the Close button under the list removes the SELECTED overlay', async ({ page }) => {
   await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Clone/Compare' }).click();
-  const row = page.locator('.projects-list .project-row').nth(1);
-  const removeBox = (await row.locator('.row-remove').boundingBox())!;
-  const nameBox = (await row.locator('span').boundingBox())!;
-  expect(removeBox.x).toBeLessThan(nameBox.x);
-  // visible at rest — not an opacity:0 hover-reveal
-  const opacity = await row.locator('.row-remove').evaluate(el => getComputedStyle(el).opacity);
-  expect(parseFloat(opacity)).toBeGreaterThan(0.3);
-  await row.locator('.row-remove').click();
-  await expect(page.locator('.projects-list .project-row')).toHaveCount(1);
+  const rows = page.locator('.projects-list .project-row');
+  await expect(rows).toHaveCount(2);
+  // no inline remove control in the rows (WinISD look: checkbox + name only)
+  await expect(page.locator('.projects-list .row-remove')).toHaveCount(0);
+  // Close acts on the selected row: with the current design selected it is disabled
+  const closeBtn = page.locator('.quad-projects-wrap .close-btn');
+  await expect(closeBtn).toBeDisabled();
+  // select the overlay row; Close removes it
+  await rows.nth(1).click();
+  await expect(rows.nth(1)).toHaveClass(/selected/);
+  await closeBtn.click();
+  await expect(rows).toHaveCount(1);
+  // selection falls back to the current design; Close disables again
+  await expect(rows.nth(0)).toHaveClass(/selected/);
+  await expect(closeBtn).toBeDisabled();
 });
 
 test('the left panel collapses and expands via the splitter toggle', async ({ page }) => {
