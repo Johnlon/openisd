@@ -722,3 +722,44 @@ test('Advanced Temperature: K → °C converts via OFFSET; the model stays in ke
   await expect(temp).toHaveValue('20.00');         // 293.15 K − 273.15 = 20.00 °C
   await expect(sv).toHaveValue(svBefore);          // unchanged ⇒ the model stayed in kelvin
 });
+
+test('Voice coil temp rise, resistance TC, and added mass all convert (no runaway precision)', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+
+  // Voice coil temp rise: K → °F is a DIFFERENCE conversion (×1.8, no offset — distinct from
+  // the Advanced tab's ABSOLUTE temperature, which needs the −273.15 offset).
+  const riseField = page.locator('.field', { hasText: 'Voice coil temp rise' });
+  const rise = riseField.locator('input');
+  const riseUnit = riseField.locator('.unit');
+  await rise.fill('40');
+  await rise.dispatchEvent('input');
+  await rise.blur();
+  await expect(riseUnit).toHaveText('K');
+  await riseUnit.click();                       // K → °F
+  await expect(riseUnit).toHaveText('°F');
+  expect(parseFloat(await rise.inputValue())).toBeCloseTo(72, 3); // 40 K rise = 72 °F rise
+
+  // Voice coil resistance TC: 1000/K → %/K → 1/K.
+  const tcField = page.locator('.field', { hasText: 'Voice coil resistance TC' });
+  const tc = tcField.locator('input');
+  const tcUnit = tcField.locator('.unit');
+  await expect(tcUnit).toHaveText('1000/K');
+  await expect(tc).toHaveValue('3.9000');
+  await tcUnit.click();                         // 1000/K → %/K
+  await expect(tcUnit).toHaveText('%/K');
+  expect(parseFloat(await tc.inputValue())).toBeCloseTo(0.39, 3);
+
+  // Added mass to cone: converting to kg must NOT pile up meaningless zeros (was 0.00000000).
+  const maddField = page.locator('.field', { hasText: 'Added mass to cone' });
+  const madd = maddField.locator('input');
+  const maddUnit = maddField.locator('.unit');
+  await madd.fill('100');
+  await madd.dispatchEvent('input');
+  await madd.blur();
+  await maddUnit.click();                       // g → kg
+  await expect(maddUnit).toHaveText('kg');
+  await expect(madd).not.toHaveValue('0.00000000');
+  const shown = await madd.inputValue();
+  expect(shown.replace(/^0\./, '').length).toBeLessThanOrEqual(4); // capped decimal places
+  expect(parseFloat(shown)).toBeCloseTo(0.1, 3);
+});

@@ -22,7 +22,11 @@ out of shared links (a recipient keeps their own units, like their own skin). Bu
 reusable piece — a `display = SI × factor + offset` registry plus a `UnitToggle` label and
 unit-aware `NumInput` — so temperature needed no special case and new fields opt in with three
 props instead of copy-pasted scale factors. Dimensionless and electrical cells (Q, Ω, V, W, …)
-stay fixed — they have no meaningful second unit.
+stay fixed — they have no meaningful second unit. Two more conversions followed the same
+pattern: a coil temperature RISE (a difference, K/°F — no offset, distinct from absolute
+temperature) and the coil resistance coefficient (1000/K, %/K, 1/K). Also fixed: converting a
+high-precision base unit into a coarser one (grams → kilograms) was piling up meaningless
+trailing zeros (0.00000000 kg) — every derived precision is now capped.
 
 ## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
 

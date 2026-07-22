@@ -15,7 +15,21 @@
  * an offset, uses the same machinery as the purely-multiplicative units (offset defaults to 0).
  */
 
-export type UnitGroup = 'volume' | 'length' | 'area' | 'freq' | 'mass' | 'temp' | 'pressure';
+export type UnitGroup =
+  | 'volume'
+  | 'length'
+  | 'area'
+  | 'freq'
+  | 'mass'
+  | 'temp'
+  | 'pressure'
+  | 'tempDiff'
+  | 'tempCoeff';
+
+/** Never show more than this many decimals in any unit — the resolution-preserving derivation
+ *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
+ *  (e.g. grams-to-kilograms). 4 dp is ample for every real field here. */
+const MAX_DP = 4;
 
 export interface UnitDef {
   /** Stable machine token stored in state.ui.unitTokens. */
@@ -66,6 +80,21 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
     { token: 'kPa', label: 'kPa', factor: 1e-3 },
     { token: 'atm', label: 'atm', factor: 1 / 101325 },
   ],
+  // A temperature DIFFERENCE (e.g. a coil temp rise), not an absolute temperature — so there is
+  // no offset, and °C is omitted because a difference in °C is numerically identical to K. Only
+  // Fahrenheit degrees differ (×1.8): a 40 K rise is a 72 °F rise. SI unit = kelvin.
+  tempDiff: [
+    { token: 'K', label: 'K', factor: 1 },
+    { token: 'degF', label: '°F', factor: 1.8 },
+  ],
+  // Temperature coefficient of resistance. SI unit = 1/K. WinISD shows it ×1000 ("1000/K"); the
+  // datasheet-friendly alternates are %/K and the plain 1/K. (copper ≈ 0.0039/K = 0.39 %/K = 3.9
+  // per "1000/K".)
+  tempCoeff: [
+    { token: 'perMilliK', label: '1000/K', factor: 1000 },
+    { token: 'pctPerK', label: '%/K', factor: 100 },
+    { token: 'perK', label: '1/K', factor: 1 },
+  ],
 };
 
 /** The unit list for a group. */
@@ -106,9 +135,10 @@ export function nextToken(g: UnitGroup, token: string): string {
 /** Decimal places for a target unit, derived from the field's base-unit precision so switching
  *  units preserves resolution: a ×10 coarser unit shows one fewer decimal, a ÷10 finer unit one
  *  more. Precision therefore stays single-sourced from fieldRegistry (baseDp) — not duplicated
- *  per unit. Never negative. */
+ *  per unit. Clamped to [0, MAX_DP]: an uncapped finer unit (e.g. grams' 5 dp shown in kilograms)
+ *  would otherwise pile up meaningless trailing zeros (0.00000000 kg). */
 export function displayPrecision(baseDp: number, g: UnitGroup, baseToken: string, token: string): number {
   const f = unitDef(g, token).factor;
   const f0 = unitDef(g, baseToken).factor;
-  return Math.max(0, baseDp - Math.round(Math.log10(f / f0)));
+  return Math.min(MAX_DP, Math.max(0, baseDp - Math.round(Math.log10(f / f0))));
 }
