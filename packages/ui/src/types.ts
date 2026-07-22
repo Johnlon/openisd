@@ -224,8 +224,9 @@ export interface SerializedState {
   P: UiParams;
   graphs: string[];
   compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string }>;
-  // UI preferences travel with a LOCAL save only. stateToUrl() strips this so a shared
-  // link never forces a skin on the recipient — see persist.ts.
+  // A local save carries the full ui; stateToUrl() carries most of it too (skin, active
+  // tab/chart), stripping only personal working state (open-editor buffer, unit prefs) —
+  // see persist.ts.
   ui?: UiState;
   project?: ProjectMeta;
 }

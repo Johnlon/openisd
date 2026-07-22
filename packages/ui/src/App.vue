@@ -21,8 +21,8 @@ const shellComponent = computed(() => {
   return ModernShell;
 });
 
-function handleHashChange() {
-  const saved = loadFromHash();
+async function handleHashChange() {
+  const saved = await loadFromHash();
   if (saved) applyState(saved);
 }
 
@@ -42,8 +42,8 @@ watch(
   { deep: true },
 );
 
-onMounted(() => {
-  const fromUrl = loadFromHash();
+onMounted(async () => {
+  const fromUrl = await loadFromHash();
   if (!fromUrl) {
     const local = loadLocal();
     if (local) applyState(local);
