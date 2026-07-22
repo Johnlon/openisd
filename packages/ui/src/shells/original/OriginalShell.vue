@@ -847,7 +847,7 @@ function cycleUnit(key: string, group: string) {
 .cursor-readout :deep(.skin-picker) { margin-top:0; }
 
 /* dropdown menus */
-.dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; }
+.dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; max-height:calc(100vh - 90px); overflow-y:auto; }
 .dropdown-menu.open { display:block; }
 .dropdown-menu .menu-item { padding:6px 14px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; }
 .dropdown-menu .menu-item:hover { background:#dbeaff; }
