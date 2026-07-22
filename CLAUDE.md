@@ -77,6 +77,24 @@ repos, not here.
 - **Commit under the repository's configured git identity** (the human). Never set or override `--author`, `user.name`, or `user.email` to Claude/Anthropic.
 - Commit messages describe the change only — no AI authorship metadata of any kind.
 
+## Never `git stash` without explicit human consent — hard rule
+
+The AI agent **MUST NOT** run `git stash` (or `git stash push`/`pop`/`apply`) for any reason —
+including as a way to "verify" a change by comparing against a clean tree, or to shelve
+unrelated files that are blocking a commit — without the human first explicitly approving that
+specific stash.
+
+- **Why:** `git stash` operates on the entire working tree, not just the files the agent is
+  touching. This repo may be worked on by multiple parties/threads at once (human edits, other
+  agent sessions, in-progress uncommitted work). The agent has no way to know, from inside its
+  own session, whether stashing will yank away someone else's in-progress uncommitted work. The
+  agent **MUST NOT assume it is the only party working on the repo.**
+- **Use instead:** to get a clean baseline for comparison, diff or re-read the specific file(s)
+  touched, or use `git show HEAD:<file>` to inspect the prior version of just that file. If an
+  unrelated dirty file is genuinely blocking a commit (e.g. a whole-tree lint gate), tell the
+  human what's blocking it and ask before touching anything outside the files you were asked to
+  change — never reach for a whole-tree operation on your own judgement.
+
 ## Zero Data-Loss and Human Authorization Guardrail — absolute rule
 
 Under no circumstances may an AI agent or script perform any destructive operation, edit, or deletion that results in a loss of historical metadata, technical parameters, file telemetry, logs, or timestamps (such as `.done` file timestamps or database entries).
