@@ -240,6 +240,11 @@ export interface SerializedState {
   // see persist.ts.
   ui?: UiState;
   project?: ProjectMeta;
+  // Graph cursor/marker — carried by BOTH a local save (refresh fidelity) and a share link,
+  // same as tab/chart: the live hover cursor (f, transient — usually null unless a share was
+  // taken mid-hover) and the locked/pinned marker (pinnedF + locked). Optional so an old v2
+  // blob (saved/shared before this field existed) still parses — absent reads as "no marker".
+  cursor?: { f: number | null; pinnedF: number | null; locked: boolean };
 }
 
 export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };

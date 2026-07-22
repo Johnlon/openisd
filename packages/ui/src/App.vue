@@ -33,6 +33,11 @@ function applyState(o: SerializedState) {
   if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
   if (o.ui) Object.assign(state.ui, o.ui);   // skin + active tab/chart ARE carried by a share link (stateToUrl); only an open editor's uncommitted buffer + unit prefs are stripped there
   if (o.project) Object.assign(state.project, o.project);
+  if (o.cursor) {
+    state.cursorF = o.cursor.f;
+    state.pinnedF = o.cursor.pinnedF;
+    state.cursorLocked = o.cursor.locked;
+  }
 }
 
 let saveReady = false;

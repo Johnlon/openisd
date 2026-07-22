@@ -212,11 +212,12 @@ test('the projects checkbox toggles a compare overlay trace visibility (not dele
   await expect(rows.nth(1)).not.toHaveClass(/trace-hidden/);
 });
 
-test('a compare overlay can be removed with its ✕ button', async ({ page }) => {
+test('a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)', async ({ page }) => {
   await page.locator('.link-btn', { hasText: 'Compare' }).click();
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
-  await rows.nth(1).locator('.row-remove').click();
+  await rows.nth(1).click();                                  // select the overlay row
+  await page.locator('.quad-projects-wrap .close-btn').click();
   await expect(rows).toHaveCount(1); // back to just the current design
 });
 

@@ -32,6 +32,9 @@ export function serialize(state: AppState, driver: DriverJSON, compare: Design[]
     compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color })),
     ui: state.ui,
     project: state.project,
+    // Graph cursor/marker — carried the same way tab/chart are: both a local save (refresh
+    // fidelity) and a share link reproduce exactly what the sender was pointing at.
+    cursor: { f: state.cursorF, pinnedF: state.pinnedF, locked: state.cursorLocked },
   };
 }
 
