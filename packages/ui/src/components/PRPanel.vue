@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { state, driver } from '../store.js';
+import { state, driver, formatInUnit as fmtU, unitLabelOf } from '../store.js';
 import { prTuning, prMassForFp, ventedAlignment, RHO, C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms } from '@openisd/engine';
 import { savePR } from '../utils/prLibrary.js';
@@ -16,7 +16,8 @@ const drv = driver;
 
 const fp = computed(() => prTuning(P.value));
 
-const prVas = computed(() => calcPrVas(P.value.prCms, P.value.prSd));
+const prVas = computed(() => calcPrVas(P.value.prCms, P.value.prSd));   // LITRES (formulas.ts)
+const prVasSi = computed(() => prVas.value / 1000);                    // m³ — for the unit-bound NumInput
 const prFsDisplay = computed(() => calcPrFs(P.value.prMmd, P.value.prCms));
 const prQmsDisplay = computed(() => calcPrQms(P.value.prMmd, P.value.prCms, P.value.prRms));
 // Free-air resonance with added mass (no box) — WinISD "Fs with added mass" cross-check
@@ -47,6 +48,8 @@ function setWinIsdVas(newVasL: number) {
   state.P.prMmd = newMmd;
   state.P.prRms = Math.sqrt(newMmd / newCms) / Qms_curr;
 }
+// Adapts the unit-bound NumInput (which emits SI m³) to setWinIsdVas's existing litres contract.
+function setWinIsdVasFromSi(newVasSi: number) { setWinIsdVas(newVasSi * 1000); }
 
 function autoPRMass() {
   if (!drv.value) return;
@@ -119,11 +122,11 @@ function defineNewPR() {
       <span class="ed">Edit ✎</span>
     </div>
     <div class="drvspecs">
-      Sd <b>{{ (state.P.prSd*1e4).toFixed(0) }} cm²</b> ·
-      Fs <b>{{ prFsDisplay.toFixed(1) }} Hz</b> ·
+      Sd <b>{{ fmtU(state.P.prSd, 'prSd', 'area', 'cm2', 0) }} {{ unitLabelOf('prSd', 'area', 'cm2') }}</b> ·
+      Fs <b>{{ fmtU(prFsDisplay, 'prFs', 'freq', 'Hz', 1) }} {{ unitLabelOf('prFs', 'freq', 'Hz') }}</b> ·
       Qms <b>{{ prQmsDisplay.toFixed(2) }}</b> ·
-      Vas <b>{{ prVas.toFixed(2) }} L</b> ·
-      Xmax <b>{{ (state.P.prXmax*1000).toFixed(1) }} mm</b>
+      Vas <b>{{ fmtU(prVasSi, 'prVas', 'volume', 'L', 2) }} {{ unitLabelOf('prVas', 'volume', 'L') }}</b> ·
+      Xmax <b>{{ fmtU(state.P.prXmax, 'prXmax', 'length', 'mm', 1) }} {{ unitLabelOf('prXmax', 'length', 'mm') }}</b>
     </div>
   </template>
   <template v-else>
@@ -160,8 +163,8 @@ function defineNewPR() {
     <template v-if="P.prMode === 'winisd'">
       <div class="row" title="PR free-air resonance (no added mass, no box).">
         <label>Fs</label>
-        <NumInput :model-value="prFsDisplay" :scale="1" :precision="fieldDp('prFs')" @update:model-value="setWinIsdFs" />
-        <span class="u">Hz</span>
+        <NumInput :model-value="prFsDisplay" field="prFs" group="freq" base="Hz" :precision="fieldDp('prFs')" @update:model-value="setWinIsdFs" />
+        <UnitToggle field="prFs" group="freq" base="Hz" />
       </div>
       <div class="row" title="Mechanical Q of the PR suspension.">
         <label>Qms</label>
@@ -170,8 +173,8 @@ function defineNewPR() {
       </div>
       <div class="row" title="Compliance volume. Holds Fs and Qms fixed; updates Cms and Mms.">
         <label>Vas</label>
-        <NumInput :model-value="prVas" :scale="1" :precision="fieldDp('prVas')" @update:model-value="setWinIsdVas" />
-        <span class="u">L</span>
+        <NumInput :model-value="prVasSi" field="prVas" group="volume" base="L" :precision="fieldDp('prVas')" @update:model-value="setWinIsdVasFromSi" />
+        <UnitToggle field="prVas" group="volume" base="L" />
       </div>
     </template>
     <template v-else>
@@ -197,8 +200,8 @@ function defineNewPR() {
     <template v-if="P.prMode === 'winisd'">
       <div class="row pr-derived" title="Derived: Mms = 1 / (4π²Fs²·Cms)">
         <label>Mms</label>
-        <span class="pr-roval">{{ (P.prMmd*1000).toPrecision(4) }} g</span>
-        <span class="u"></span>
+        <span class="pr-roval">{{ fmtU(P.prMmd, 'prMmd', 'mass', 'g', 2) }}</span>
+        <UnitToggle field="prMmd" group="mass" base="g" />
       </div>
       <div class="row pr-derived" title="Derived: Cms = Vas / (Sd²·ρc²)">
         <label>Cms</label>
@@ -214,8 +217,8 @@ function defineNewPR() {
     <template v-else>
       <div class="row pr-derived" title="Derived: Fs = 1/(2π·√(Mms·Cms))">
         <label>Fs</label>
-        <span class="pr-roval">{{ prFsDisplay.toFixed(2) }} Hz</span>
-        <span class="u"></span>
+        <span class="pr-roval">{{ fmtU(prFsDisplay, 'prFs', 'freq', 'Hz', 2) }}</span>
+        <UnitToggle field="prFs" group="freq" base="Hz" />
       </div>
       <div class="row pr-derived" title="Derived: Qms = √(Mms/Cms) / Rms">
         <label>Qms</label>
@@ -224,8 +227,8 @@ function defineNewPR() {
       </div>
       <div class="row pr-derived" title="Derived: Vas = Cms × Sd² × ρc²">
         <label>Vas</label>
-        <span class="pr-roval">{{ prVas.toFixed(3) }} L</span>
-        <span class="u"></span>
+        <span class="pr-roval">{{ fmtU(prVasSi, 'prVas', 'volume', 'L', 3) }}</span>
+        <UnitToggle field="prVas" group="volume" base="L" />
       </div>
     </template>
 
@@ -243,16 +246,18 @@ function defineNewPR() {
   </div>
   <div class="row" title="Total moving mass = Mms + added mass. This is what the acoustic circuit uses.">
     <label>Total Mms</label>
-    <span style="font-size:11px;color:var(--mut);text-align:right;flex:0 0 96px">{{ ((P.prMmd + P.prMadd)*1000).toPrecision(4) }} g</span>
-    <span class="u"></span>
+    <span style="font-size:11px;color:var(--mut);text-align:right;flex:0 0 96px">{{ fmtU(P.prMmd + P.prMadd, 'prTotalMms', 'mass', 'g', 2) }}</span>
+    <UnitToggle field="prTotalMms" group="mass" base="g" />
   </div>
   <div class="row">
     <label></label>
-    <span style="font-size:11px;color:var(--acc2)" title="PR in-box tuning frequency — passive radiator resonance in this enclosure. Analogous to Fb in a vented box. WinISD: Fp.">Fp ≈ <b>{{ fp.toFixed(1) }} Hz</b></span>
+    <span style="font-size:11px;color:var(--acc2)" title="PR in-box tuning frequency — passive radiator resonance in this enclosure. Analogous to Fb in a vented box. WinISD: Fp.">Fp ≈ <b>{{ fmtU(fp, 'prFp', 'freq', 'Hz', 1) }}</b></span>
+    <UnitToggle field="prFp" group="freq" base="Hz" />
   </div>
   <div class="row" title="Free-air PR resonance with added mass applied, no box. In-box Fp is higher because the box compliance in series reduces the total system compliance, raising the resonance. WinISD calls this 'Fs with added mass'.">
     <label></label>
-    <span style="font-size:11px;color:var(--mut)">Fs+mass ≈ {{ prFsLoaded.toFixed(1) }} Hz</span>
+    <span style="font-size:11px;color:var(--mut)">Fs+mass ≈ {{ fmtU(prFsLoaded, 'prFsLoaded', 'freq', 'Hz', 1) }}</span>
+    <UnitToggle field="prFsLoaded" group="freq" base="Hz" />
   </div>
 
   <div class="btns">
