@@ -65,6 +65,7 @@ test('shared BoxPanel reads decimal places from the field registry (vent diamete
 });
 
 test('share link encodes state in URL hash', async ({ page }) => {
+  await page.locator('#btnExportMenu').click();
   await page.locator('#btnShare').click();
   await expect(page).toHaveURL(/#s=/);
 });
@@ -349,4 +350,56 @@ test('Modern skin: clicking a field unit label converts the display; the model s
     return (await import(/* @vite-ignore */ modPath)).state.P.Vb;
   });
   expect(vbSi).toBeCloseTo(0.006, 9);      // MODEL unchanged by a display-unit switch
+});
+
+// The PR panel's WinISD-mode Fs/Vas fields are bidirectional (editing them rewrites the
+// underlying T/S params) and Vas's calc helper (prVas) returns LITRES, not SI — the classic
+// unit-conversion trap. Binding them through the shared unit registry (fields/units.ts) must
+// convert correctly at that boundary without changing what they compute.
+test('PR panel: WinISD-mode Vas unit toggle (L → cu ft) still derives Cms/Mms correctly', async ({ page }) => {
+  await page.locator('#boxtype').selectOption('pr');
+  await page.locator('[title="Click to edit passive radiator parameters"]').click();
+
+  const prBox = page.locator('fieldset', { has: page.locator('legend', { hasText: 'Passive Radiator' }) });
+  const vasRow = prBox.locator('.row', { hasText: 'Vas' }).first();
+  const vas = vasRow.locator('input[type="number"]');
+  const vasUnit = vasRow.locator('.u, .unit-cyc, [role="button"]').first();
+
+  await vas.fill('20');       // 20 L
+  await vas.press('Tab');
+  const readState = () => page.evaluate(async () => {
+    const modPath = '/src/store.ts';
+    const s = await import(/* @vite-ignore */ modPath);
+    return { prCms: s.state.P.prCms, prMmd: s.state.P.prMmd };
+  });
+  const at20L = await readState();
+  expect(at20L.prCms).toBeGreaterThan(0);
+
+  // Switch the display to cu ft — the shown number changes; entering the SAME physical volume
+  // in the new unit must reproduce the identical derived Cms/Mms (round-trip through the SI
+  // boundary, not through the litres-native calc helper).
+  await vasUnit.click();
+  const cuFtValue = parseFloat(await vas.inputValue());
+  expect(cuFtValue).toBeCloseTo((20 / 1000) * 35.3147, 2); // 20 L → 0.02 m³ → cu ft
+
+  await vas.fill(cuFtValue.toFixed(3));
+  await vas.press('Tab');
+  const afterRoundTrip = await readState();
+  expect(afterRoundTrip.prCms).toBeCloseTo(at20L.prCms, 4);
+  expect(afterRoundTrip.prMmd).toBeCloseTo(at20L.prMmd, 4);
+});
+
+test('PR panel summary + StatBar reflect the SAME chosen unit as the entered field (Vb → cu ft)', async ({ page }) => {
+  await page.locator('#boxtype').selectOption('sealed');
+  const vbRow = page.locator('label').filter({ hasText: 'Box volume Vb' }).locator('..');
+  const vb = vbRow.locator('input[type="number"]');
+  const vbUnit = vbRow.locator('.u');
+
+  await vb.fill('15');
+  await vb.press('Tab');
+  await vbUnit.click();                          // L → cu ft
+  await expect(vbUnit).toHaveText('cu ft');
+
+  // StatBar's "Vb:" reuses the SAME field token ('Vb') — it must show the same unit, not litres.
+  await expect(page.locator('#stat')).toContainText('cu ft');
 });

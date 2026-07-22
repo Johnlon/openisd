@@ -26,7 +26,14 @@ stay fixed — they have no meaningful second unit. Two more conversions followe
 pattern: a coil temperature RISE (a difference, K/°F — no offset, distinct from absolute
 temperature) and the coil resistance coefficient (1000/K, %/K, 1/K). Also fixed: converting a
 high-precision base unit into a coarser one (grams → kilograms) was piling up meaningless
-trailing zeros (0.00000000 kg) — every derived precision is now capped.
+trailing zeros (0.00000000 kg) — every derived precision is now capped. The passive-radiator
+panel's summaries (Fp, Fs, Vas, Mms) and the status-bar strip now show whichever unit is already
+chosen for that quantity, instead of always showing litres/Hz/grams regardless of what the
+entered field nearby uses — fixing a real inconsistency where the same number could read
+differently in two places on screen. Along the way, the PR panel's editable WinISD-mode Vas
+field turned out to be silently treating a litres value as if it were the app's SI unit; it now
+converts through an explicit boundary so a unit switch there can never silently corrupt the
+underlying moving-mass/compliance numbers.
 
 ## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
 

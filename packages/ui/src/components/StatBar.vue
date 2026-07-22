@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { state, driver, syncedP, curvesData } from '../store.js';
+import { state, driver, syncedP, curvesData, formatInUnit as fmtU, unitLabelOf } from '../store.js';
 import { ebp, tuningFromLength, prTuning } from '@openisd/engine';
 
 const drv = driver;
@@ -49,19 +49,19 @@ const stats = computed<StatsInvalid | StatsValid>(() => {
       <span class="stat-invalid">Driver incomplete — fix the highlighted parameters to run the simulation</span>
     </template>
     <template v-else>
-    <span>Vb: <b>{{ (stats.Vb*1000).toFixed(1) }} L</b></span>
-    <span v-if="stats.fc">fc: <b>{{ stats.fc.toFixed(1) }} Hz</b></span>
+    <span>Vb: <b>{{ fmtU(stats.Vb, 'Vb', 'volume', 'L', 1) }} {{ unitLabelOf('Vb', 'volume', 'L') }}</b></span>
+    <span v-if="stats.fc">fc: <b>{{ fmtU(stats.fc, 'rearResonance', 'freq', 'Hz', 1) }} {{ unitLabelOf('rearResonance', 'freq', 'Hz') }}</b></span>
     <span v-if="stats.Qtc">Qtc: <b>{{ stats.Qtc.toFixed(3) }}</b></span>
-    <span v-if="stats.fb">Fb: <b>{{ stats.fb.toFixed(1) }} Hz</b></span>
-    <span v-if="stats.fp">Fp: <b>{{ stats.fp.toFixed(1) }} Hz</b></span>
-    <span>F3: <b>{{ stats.f3 ? stats.f3.toFixed(1) + ' Hz' : '—' }}</b></span>
-    <span>F6: <b>{{ stats.f6 ? stats.f6.toFixed(1) + ' Hz' : '—' }}</b></span>
-    <span>F10: <b>{{ stats.f10 ? stats.f10.toFixed(1) + ' Hz' : '—' }}</b></span>
+    <span v-if="stats.fb">Fb: <b>{{ fmtU(stats.fb, 'ventFb', 'freq', 'Hz', 1) }} {{ unitLabelOf('ventFb', 'freq', 'Hz') }}</b></span>
+    <span v-if="stats.fp">Fp: <b>{{ fmtU(stats.fp, 'prFp', 'freq', 'Hz', 1) }} {{ unitLabelOf('prFp', 'freq', 'Hz') }}</b></span>
+    <span>F3: <b>{{ stats.f3 != null ? `${fmtU(stats.f3, 'f3', 'freq', 'Hz', 1)} ${unitLabelOf('f3', 'freq', 'Hz')}` : '—' }}</b></span>
+    <span>F6: <b>{{ stats.f6 != null ? `${fmtU(stats.f6, 'f6', 'freq', 'Hz', 1)} ${unitLabelOf('f6', 'freq', 'Hz')}` : '—' }}</b></span>
+    <span>F10: <b>{{ stats.f10 != null ? `${fmtU(stats.f10, 'f10', 'freq', 'Hz', 1)} ${unitLabelOf('f10', 'freq', 'Hz')}` : '—' }}</b></span>
     <span>Z peak: <b>{{ stats.peakZ.toFixed(1) }} Ω</b></span>
     <span v-if="stats.maxPV != null">peak port: <b>{{ stats.maxPV.toFixed(1) }} m/s</b></span>
     <span v-if="stats.maxPRx != null">
-      peak PR: <b>{{ stats.maxPRx.toFixed(1) }} mm</b>
-      (Xmax {{ ((stats.prXmax||0)*1000).toFixed(1) }})
+      peak PR: <b>{{ fmtU(stats.maxPRx / 1000, 'prXmax', 'length', 'mm', 1) }} {{ unitLabelOf('prXmax', 'length', 'mm') }}</b>
+      (Xmax {{ fmtU(stats.prXmax, 'prXmax', 'length', 'mm', 1) }})
     </span>
     <span>EBP: <b>{{ stats.ebpVal.toFixed(0) }}</b></span>
     </template>
