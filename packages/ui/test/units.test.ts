@@ -41,6 +41,21 @@ describe('units — display unit registry (model stays SI; conversion at the bou
     }
   });
 
+  it('temperature converts affinely (offset, not just a factor) and round-trips exactly', () => {
+    // SI is kelvin. 293.15 K = 20 °C = 68 °F.
+    expect(toDisplay(293.15, 'temp', 'K')).toBeCloseTo(293.15, 9);
+    expect(toDisplay(293.15, 'temp', 'degC')).toBeCloseTo(20, 9);
+    expect(toDisplay(293.15, 'temp', 'degF')).toBeCloseTo(68, 9);
+    // −10 °C is a valid, positive kelvin — the case a factor-only model gets wrong.
+    expect(fromDisplay(-10, 'temp', 'degC')).toBeCloseTo(263.15, 9);
+    expect(fromDisplay(32, 'temp', 'degF')).toBeCloseTo(273.15, 9); // freezing
+  });
+
+  it('pressure converts by factor (Pa → kPa → atm) and round-trips', () => {
+    expect(toDisplay(101325, 'pressure', 'kPa')).toBeCloseTo(101.325, 6);
+    expect(toDisplay(101325, 'pressure', 'atm')).toBeCloseTo(1, 9);
+  });
+
   it('an unknown token falls back to the group default (never throws, never NaN)', () => {
     expect(unitDef('length', 'furlong')).toBe(defaultUnit('length'));
     expect(toDisplay(0.1, 'length', 'furlong')).toBeCloseTo(10, 9); // falls back to cm

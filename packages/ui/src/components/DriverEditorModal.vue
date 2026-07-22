@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { driver, driverRaw, enterDriverField, setDriverFromRaw, getDriverModel } from '../store.js';
+import { driver, driverRaw, enterDriverField, setDriverFromRaw, getDriverModel, formatInUnit as fmtU } from '../store.js';
 import { ebp, RHO, C } from '@openisd/engine';
 import type { DriverRaw } from '@openisd/engine';
 import NumInput from './NumInput.vue';
@@ -154,7 +154,7 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld st-c" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass. Read-only, not entered directly.">
                   <label>Mms</label>
-                  <input type="text" readonly :value="driver?.Mms != null ? (driver.Mms * 1000).toFixed(2) : ''"><span class="u">g</span>
+                  <input type="text" readonly :value="fmtU(driver?.Mms, 'Mms', 'mass', 'g', 2)"><UnitToggle field="Mms" group="mass" base="g" />
                 </div>
                 <div class="de-fld st-c" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor. Read-only, not entered directly.">
                   <label>BL</label>

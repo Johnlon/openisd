@@ -295,21 +295,6 @@ watch(() => state.ui.originalTuneOpen, (open) => {
 watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
 watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverInfo = true; }, { immediate: true });
 
-// ---- Decorative unit-cycling — TEMPERATURE and PRESSURE only ----------------------
-// These rotate the label text without converting the value. They are the two units that
-// need an OFFSET (K/°C/°F) not just a factor, and sit on non-NumInput Advanced inputs, so
-// they're deferred from the real per-field conversion (fields/units.ts + <UnitToggle>, which
-// every other unit here now uses). Tracked as a follow-up (BACKLOG: temp/pressure conversion).
-const UNIT_SETS: Record<string, string[]> = {
-  temp: ['K', '°C', '°F'], pressure: ['Pa', 'kPa', 'atm'],
-};
-const unitLabels = reactive<Record<string, string>>({});
-function unit(key: string, group: string): string { return unitLabels[key] ?? UNIT_SETS[group][0]; }
-function cycleUnit(key: string, group: string) {
-  const set = UNIT_SETS[group];
-  const cur = unitLabels[key] ?? set[0];
-  unitLabels[key] = set[(set.indexOf(cur) + 1) % set.length];
-}
 </script>
 
 <template>
@@ -604,7 +589,7 @@ function cycleUnit(key: string, group: string) {
               <div class="section-header">Advanced options</div>
               <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" :scale="1" :precision="fieldDp('vcTempRise')" /><span class="unit">K</span></div></div>
               <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" :scale="1000" :precision="fieldDp('AlfaVC')" /><span class="unit">1000/K</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" :scale="1000" :precision="fieldDp('driverAddedMass')" /><span class="unit">g</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
               <p class="hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
             </div>
           </div>
@@ -635,7 +620,7 @@ function cycleUnit(key: string, group: string) {
               </div>
               <div>
                 <div class="field-row">
-                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmt(ventArea, fieldDp('ventCrossArea'))" readonly><span class="unit">m²</span></div>
+                  <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(ventArea, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
                   <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance, 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
@@ -664,8 +649,8 @@ function cycleUnit(key: string, group: string) {
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" /><span class="unit">g</span></div></div>
-                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmt(prFsMass, fieldDp('prFsMass'))" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmtU(prFsMass, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -679,7 +664,7 @@ function cycleUnit(key: string, group: string) {
                 <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
                 <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" /><UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" /><UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
-                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmt(ventFb, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div></div>
+                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmtU(ventFb, 'ventFb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="ventFb" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -689,7 +674,7 @@ function cycleUnit(key: string, group: string) {
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
               <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmt(rearResonance, fieldDp('Fb'))" readonly><span class="unit">Hz</span></div>
+              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit" /></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
           </div>
@@ -743,9 +728,9 @@ function cycleUnit(key: string, group: string) {
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col">
             <div style="--label-w:118px;">
-              <div class="field-row"><div class="field entered"><label>Temperature</label><input type="number" v-model.number="advTemp"><span class="unit unit-cyc" @click="cycleUnit('temp','temp')">{{ unit('temp','temp') }}</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Temperature</label><NumInput v-model="advTemp" field="advTemp" group="temp" base="K" :precision="2" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-model.number="advHumidity"><span class="unit">%</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Air pressure</label><input v-expo-step type="number" v-model.number="advPressure"><span class="unit unit-cyc" @click="cycleUnit('pres','pressure')">{{ unit('pres','pressure') }}</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Air pressure</label><NumInput v-model="advPressure" field="advPressure" group="pressure" base="Pa" :precision="1" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
               <p style="margin:4px 0;">&#8594;</p>
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>

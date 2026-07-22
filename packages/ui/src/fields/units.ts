@@ -11,19 +11,21 @@
  * (e.g. Xmax defaults to mm, vent length to cm) — that base token is supplied at the call site,
  * and precision is derived relative to it so resolution is preserved across a switch.
  *
- * Temperature and pressure are intentionally absent: they need an offset (K/°C/°F) not just a
- * factor, and live on non-NumInput Advanced-tab inputs — tracked as a follow-up.
+ * Conversion is affine — display = SI × factor + offset — so temperature (K/°C/°F), which needs
+ * an offset, uses the same machinery as the purely-multiplicative units (offset defaults to 0).
  */
 
-export type UnitGroup = 'volume' | 'length' | 'area' | 'freq' | 'mass';
+export type UnitGroup = 'volume' | 'length' | 'area' | 'freq' | 'mass' | 'temp' | 'pressure';
 
 export interface UnitDef {
   /** Stable machine token stored in state.ui.unitTokens. */
   token: string;
   /** Symbol shown next to the field. */
   label: string;
-  /** Display value per one SI unit (display = SI × factor). */
+  /** Display value per one SI unit (the multiplicative part of display = SI × factor + offset). */
   factor: number;
+  /** Additive part of the conversion (0 for every unit except absolute temperature). */
+  offset?: number;
 }
 
 /** Groups of interchangeable display units. First entry = canonical default for the group. */
@@ -52,6 +54,18 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
     { token: 'kg', label: 'kg', factor: 1 },
     { token: 'oz', label: 'oz', factor: 35.27396 },
   ],
+  // SI unit = kelvin. Absolute temperature — the only group that uses `offset`.
+  temp: [
+    { token: 'K', label: 'K', factor: 1, offset: 0 },
+    { token: 'degC', label: '°C', factor: 1, offset: -273.15 },
+    { token: 'degF', label: '°F', factor: 1.8, offset: -459.67 },
+  ],
+  // SI unit = pascal.
+  pressure: [
+    { token: 'Pa', label: 'Pa', factor: 1 },
+    { token: 'kPa', label: 'kPa', factor: 1e-3 },
+    { token: 'atm', label: 'atm', factor: 1 / 101325 },
+  ],
 };
 
 /** The unit list for a group. */
@@ -70,14 +84,16 @@ export function unitDef(g: UnitGroup, token: string): UnitDef {
   return UNIT_GROUPS[g].find((u) => u.token === token) ?? defaultUnit(g);
 }
 
-/** SI → display (value × factor). */
+/** SI → display (value × factor + offset). */
 export function toDisplay(si: number, g: UnitGroup, token: string): number {
-  return si * unitDef(g, token).factor;
+  const u = unitDef(g, token);
+  return si * u.factor + (u.offset ?? 0);
 }
 
-/** display → SI (value ÷ factor) — the inverse of toDisplay; keeps the model in SI. */
+/** display → SI ((value − offset) ÷ factor) — the inverse of toDisplay; keeps the model in SI. */
 export function fromDisplay(disp: number, g: UnitGroup, token: string): number {
-  return disp / unitDef(g, token).factor;
+  const u = unitDef(g, token);
+  return (disp - (u.offset ?? 0)) / u.factor;
 }
 
 /** The next token in the group, wrapping — drives the click-to-rotate affordance. */
