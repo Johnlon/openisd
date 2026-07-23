@@ -147,3 +147,25 @@ This section maintains version-controlled coding patterns and design systems for
 
 - Core TS logic (`packages/engine/src/`): unit tests in vitest (`npm run test:unit`)
 - UI and E2E integration: Playwright tests (`npx playwright test`)
+
+### Numeric entry constraints — schema-enforced, no unconstrained inputs (2026-07-23)
+
+**Every numeric field the UI shows MUST have enforced min/max bounds, and the bounds live in
+the field registry (`packages/ui/src/fields/fieldRegistry.ts`) — never ad-hoc per input.**
+Human directive 2026-07-23 after fields were found accepting negatives.
+
+- The registry is the constraints SSOT: every `kind: 'number'` spec carries BOTH `min` and
+  `max` (`fieldRegistry.test.ts` fails the build if one is missing). For `modeled` fields the
+  bounds are in the MODEL's unit (SI base — the space `NumInput` emits); for unmodeled
+  reference fields, the spec's documented `unit`.
+- **`NumInput` enforces automatically**: a `field="<registry-id>"` binding pulls the registry
+  bounds (explicit `:min`/`:max` props override). Passing `field` alone (without
+  `group`/`base`) is valid purely to bind constraints.
+- **Raw `<input type="number">` is only acceptable WITH `v-limits`** (
+  `packages/ui/src/directives/limits.ts`): pass `limits('<id>')` (registry bounds), a scaled
+  variant when the input displays a non-model unit, or use bare `v-limits` to adopt the
+  element's own native min/max attrs. The directive stamps native attrs (spinner can't leave
+  the range) and clamps typed out-of-range values so the model can never retain one.
+- **When adding any new numeric input**: register the field (or reuse its spec), then bind via
+  `NumInput field=…` or `v-limits`. A numeric input with neither is a defect, not a style
+  choice.

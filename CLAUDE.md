@@ -17,6 +17,29 @@
 The scraping pipeline and its own pytest/DQ gates live in the sibling `winisd_tools`
 repo, not here — see its own `CLAUDE.md`.
 
+## Postmortem mode — every reported bug gets an RCA — hard rule
+
+When the human reports a bug, or says "postmortem"/"RCA", run the sibling `winisd_tools`
+postmortem discipline (its `brain/post-mortem.md` holds the reference entries) and append
+the entry to `CODE_REVIEW/POST_MORTEM.md` here:
+
+- **Objective: prevent the CLASS, not describe the instance.** Name the class of faults
+  first, then the deepest intervention that makes the class impossible. A cause whose fix
+  would not prevent the next fault of the same kind is a symptom — keep drilling.
+- **Recursive why-chain (5–10 levels), each level nesting on the PREVIOUS answer**, with
+  the Q2 prevention and its status recorded per level. Fix Q2 at EVERY level, not just the
+  root.
+- **The missing guard is the real finding — and it is very often a missing TEST or a
+  missing MECHANICAL gate.** Prose rules are recall-dependent and fail under focus; prefer
+  a test/script that fails the suite when the class recurs (e.g.
+  `input-constraints-gate.test.ts`, `state-disposition-gate.test.ts`).
+- **Chat is a first-class output**: present the per-level chain in chat; a pointer to the
+  file does not discharge it.
+- **A feature is scoped by the user-visible surface, not the implementation's field list.**
+  When marking work DONE, enumerate what the user can SEE/DO and check each piece landed —
+  "cursor state is shared" was marked DONE while the visible drag-selection band was not
+  carried (POST_MORTEM 2026-07-23).
+
 **A red result is red — no excuses.** You may NOT step past a failing test, lint error, or console/network error by calling it "pre-existing", "stale", "unrelated", "flaky", "HMR", or "someone else's". Regardless of who caused it or how long ago, either make it green or STOP and investigate the cause with primary evidence (read the actual error/log output) before doing anything else. Attributing red to a cause you have not proven is the exact failure that let issues survive for hours. If a failure is genuinely pre-existing, that means the tree was already broken and fixing it is now your job, not your excuse.
 
 **Enforcement (git hooks, `core.hooksPath=scripts/hooks`):** `pre-commit` runs lint + unit + golden and **blocks the commit on any red** (so red cannot ride along commit-to-commit); `pre-push` runs the full `npm run ci`. Never bypass with `--no-verify`. Fresh clones must run `git config core.hooksPath scripts/hooks` once.

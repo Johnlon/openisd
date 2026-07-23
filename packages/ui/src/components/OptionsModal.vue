@@ -22,7 +22,7 @@
 //                      stored SI design.
 //
 // Plot Window tab:
-//   Colors  — WinISD has 6 swatches; OpenISD has a real rendering hook for 4 of them (wired via
+//   Colors  — WinISD has 6 swatches; OpenISD has a real rendering hook for 5 rows (wired via
 //             CSS custom properties on the canvas element, GraphPanel.vue → canvas.ts):
 //               Background  → --chart-bg-override (canvas fill; empty by default — transparent,
 //                              current skin's own .gpanel background shows through, unchanged).
@@ -32,6 +32,8 @@
 //                              closest OpenISD equivalent; WinISD's own Xmax-limited segment
 //                              reuses the trace's own per-project color, not a single constant,
 //                              so this customizes the Pe-limited tint, not literally "Xmax").
+//               Cursor lines→ --chart-cross + --chart-band-line (the crosshair/level cursor and
+//                              the drag-selection band edges).
 //             "0 dB line" / "-3dB line" are shown disabled: WinISD draws them on its separate
 //             0 dB-normalized "Transfer function magnitude" chart (docs/winisd/info/
 //             view_3_ported.md), which OpenISD does not have — OpenISD's 'SPL' tab plots
@@ -51,7 +53,7 @@
 import { computed, reactive } from 'vue';
 import { soundVelocity } from '@openisd/engine';
 import { state, resetUnitTokens } from '../store.js';
-import { precision as fieldDp } from '../fields/fieldRegistry.js';
+import { precision as fieldDp, limits } from '../fields/fieldRegistry.js';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -69,12 +71,13 @@ function fmt(n: number | null | undefined, dp: number): string {
 }
 const soundVel = computed(() => soundVelocity(state.ui.envDefaults.tempK));
 
-type ColorKey = 'background' | 'otherLines' | 'labels' | 'xmaxLimit';
+type ColorKey = 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
 const COLOR_ROWS: { key: ColorKey; label: string }[] = [
   { key: 'background', label: 'Background' },
   { key: 'otherLines',  label: 'Other lines' },
   { key: 'labels',      label: 'Labels' },
   { key: 'xmaxLimit',   label: 'Xmax limit' },
+  { key: 'cursor',      label: 'Cursor lines' },
 ];
 function colorValue(key: ColorKey): string {
   return state.ui.chartColors?.[key] ?? '#888888';
@@ -147,7 +150,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               </div>
               <div class="opt-fld">
                 <label>Relative humidity</label>
-                <input class="opt-num" type="number" v-model.number="state.ui.envDefaults.humidityPct" min="0" max="100" />
+                <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="state.ui.envDefaults.humidityPct" />
                 <span class="opt-unit">%</span>
               </div>
               <div class="opt-fld">
@@ -193,15 +196,15 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               <tbody>
                 <tr>
                   <td>Frequency range</td>
-                  <td><input class="opt-num" type="number" v-model.number="state.P.fmin" /></td>
-                  <td><input class="opt-num" type="number" v-model.number="state.P.fmax" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 20000 }" v-model.number="state.P.fmin" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 40000 }" v-model.number="state.P.fmax" /></td>
                   <td>Hz</td>
                   <td></td>
                 </tr>
                 <tr v-for="row in LIMIT_ROWS" :key="row.tab">
                   <td>{{ row.label }}</td>
-                  <td><input class="opt-num" type="number" :placeholder="String(row.start)" :value="limitVal(row.tab, 'min')" @change="setLimit(row.tab, 'min', $event)" /></td>
-                  <td><input class="opt-num" type="number" :placeholder="String(row.end)" :value="limitVal(row.tab, 'max')" @change="setLimit(row.tab, 'max', $event)" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :placeholder="String(row.start)" :value="limitVal(row.tab, 'min')" @change="setLimit(row.tab, 'min', $event)" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :placeholder="String(row.end)" :value="limitVal(row.tab, 'max')" @change="setLimit(row.tab, 'max', $event)" /></td>
                   <td>{{ row.unit }}</td>
                   <td><button class="opt-clear-btn" title="Reset to auto-scale" @click="resetLimit(row.tab)">↺</button></td>
                 </tr>

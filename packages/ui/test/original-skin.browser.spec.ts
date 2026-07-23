@@ -376,15 +376,41 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   expect(checked, 'class-level sweep visited too few spinners — selector likely drifted').toBeGreaterThan(12);
 });
 
-test('Original save bar is no taller than its buttons (compact legend)', async ({ page }) => {
+test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
-  const { legendH, btnH } = await page.evaluate(() => {
-    const legend = document.querySelector('.parstate-legend') as HTMLElement;
-    const btns = [...document.querySelectorAll('.parstate-legend .save-btn')] as HTMLElement[];
-    const btnH = Math.max(...btns.map((b) => b.getBoundingClientRect().height));
-    return { legendH: legend.getBoundingClientRect().height, btnH };
+  const { railLeft, tabsRight, railTop, tabsTop } = await page.evaluate(() => {
+    const rail = (document.querySelector('.save-rail') as HTMLElement).getBoundingClientRect();
+    const tabs = (document.querySelector('.content-tabs') as HTMLElement).getBoundingClientRect();
+    return { railLeft: rail.left, tabsRight: tabs.right, railTop: rail.top, tabsTop: tabs.top };
   });
-  expect(legendH).toBeLessThanOrEqual(btnH + 4); // bar hugs the button height, no extra vertical bulk
+  expect(railLeft).toBeGreaterThanOrEqual(tabsRight); // rail is beside the tab content, not above it
+  expect(Math.abs(railTop - tabsTop)).toBeLessThanOrEqual(4); // both start at the top of the panel
+});
+
+test('field constraints: negative/out-of-range entry is rejected or clamped everywhere (schema-enforced)', async ({ page }) => {
+  // 1. NumInput (registry-bound): typing a negative into Box Volume must flag it and NOT
+  //    reach the model; blur reverts to the last valid value.
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
+  const before = await vb.inputValue();
+  await vb.fill('-5');
+  await expect(vb).toHaveClass(/inp-bad/); // rejected, red-flagged
+  await vb.blur();
+  await expect(vb).toHaveValue(before);    // model never took the negative
+  // 2. Raw input + v-limits (registry-bound): humidity typed to -20 clamps to the 0 floor.
+  await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+  const rh = page.locator('.tab-section.active .field', { hasText: 'Relative humidity' }).locator('input');
+  await rh.fill('-20');
+  await expect(rh).toHaveValue('0');
+  await rh.fill('250');
+  await expect(rh).toHaveValue('100');     // ceiling too, not just the floor
+  // 3. Tune what-if panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  const fs = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).first().locator('input');
+  await fs.fill('-40');
+  await expect(fs).toHaveValue('1');
+  await page.locator('.tune-panel .close-btn').click();
 });
 
 test('Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)', async ({ page }) => {
@@ -500,6 +526,56 @@ test('Original toolbar: Share link (Export menu) writes the design into the addr
   await page.locator('#btnExportMenu').click();
   await page.locator('#btnShare').click();
   await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
+});
+
+test('a pinned graph cursor survives the share link — opening it shows the same marker', async ({ page }) => {
+  page.on('dialog', (d) => d.dismiss().catch(() => {}));
+  // Pin the cursor: hover mid-chart then click (hover sets cursorF, click locks it as pinnedF).
+  const chart = page.locator('.graph-wrap .gpanel canvas').first();
+  const box = (await chart.boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+  await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+  const hz = (await page.locator('.cursor-readout .ro-hz').textContent())!.trim();
+  expect(hz).not.toContain('—'); // a real pinned frequency, e.g. "43.30 Hz"
+
+  await page.locator('#btnExportMenu').click();
+  await page.locator('#btnShare').click();
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
+  const url = await page.evaluate(() => location.href);
+
+  // Open the link cold — no local state, only the URL carries the design. Shares write the
+  // hash into the sender's own address bar, so goto(url) alone would be a same-URL no-op
+  // navigation that keeps all in-memory state; bounce through about:blank to force a real load.
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('about:blank');
+  await page.goto(url);
+  await expect(page.locator('.original-root')).toBeVisible();
+  await expect(page.locator('.cursor-readout .ro-hz')).toHaveText(hz);
+});
+
+test('a dragged frequency band selection survives the share link', async ({ page }) => {
+  page.on('dialog', (d) => d.dismiss().catch(() => {}));
+  // Band-select by dragging across the plot area.
+  const chart = page.locator('.graph-wrap .gpanel canvas').first();
+  const box = (await chart.boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.35, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.5, { steps: 8 });
+  await page.mouse.up();
+  const readout = (await page.locator('.gread').textContent())!.trim();
+  expect(readout).toMatch(/Hz.*–.*Hz/); // e.g. "31.6 Hz – 100 Hz  Δ …"
+
+  await page.locator('#btnExportMenu').click();
+  await page.locator('#btnShare').click();
+  await expect.poll(() => page.evaluate(() => location.hash)).toContain('s=');
+  const url = await page.evaluate(() => location.href);
+
+  // Cold open (about:blank bounce — see the pinned-cursor test above for why).
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('about:blank');
+  await page.goto(url);
+  await expect(page.locator('.original-root')).toBeVisible();
+  await expect(page.locator('.gread')).toHaveText(readout);
 });
 
 test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)', async ({ page }) => {

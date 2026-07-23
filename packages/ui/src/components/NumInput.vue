@@ -2,17 +2,23 @@
 import { ref, watch, computed } from 'vue';
 import { unitToken } from '../store.js';
 import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../fields/units.js';
+import { fieldById } from '../fields/fieldRegistry.js';
 
 const props = withDefaults(defineProps<{
   modelValue: number;
   scale?: number;       // display = SI value × scale
   precision?: number;
   step?: string;
+  // Explicit SI-space bounds. When omitted, a `field` id pulls the registry's enforced
+  // min/max (fieldRegistry — the constraints SSOT); with neither, min falls back to 0
+  // (physical quantities are non-negative by default) and max is unbounded.
   min?: number;
+  max?: number;
   // Optional unit binding: when group + field + base are all given, the display scale and
   // precision come from the field's SELECTED unit (fields/units.ts) instead of the fixed
   // `scale`/`precision` props, so a paired <UnitToggle> rescales this field live. `precision`
   // is then the BASE-unit dp; the shown dp is derived per unit. Omit all three → unchanged.
+  // `field` MAY also be given alone (no group/base) purely to bind the registry constraints.
   group?: UnitGroup;
   field?: string;
   base?: string;        // the field's default unit token
@@ -20,7 +26,6 @@ const props = withDefaults(defineProps<{
   scale: 1,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
-  min: 0,   // physical quantities are non-negative by default; pass :min to override
 });
 
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
@@ -86,13 +91,25 @@ function onWheel() { typing.value = false; }   // wheel over the field is a step
 // resulting step. If the press is to place the caret, the next keydown flips typing back on.
 function onPointerDown() { typing.value = false; }
 
-// `min` is an SI-space floor (default 0 — physical quantities are non-negative; for absolute
+// Effective SI-space bounds: explicit props win; else the bound field's registry limits
+// (fieldRegistry is the constraints SSOT — bounds there are in SI/model space); else the
+// non-negative default floor and no ceiling. Lookup is tolerant of a registry-id case
+// difference (e.g. field="alfaVC" vs registry id 'AlfaVC').
+const regSpec = computed(() => props.field ? (fieldById(props.field) ?? fieldById(props.field[0].toUpperCase() + props.field.slice(1))) : undefined);
+const effMin = computed<number>(() => props.min ?? regSpec.value?.min ?? 0);
+const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.max);
+
+// Bounds are SI-space (default floor 0 — physical quantities are non-negative; for absolute
 // temperature 0 K is the floor). Validation therefore always tests the SI value, NOT the display
 // value: −10 °C is a valid positive Kelvin, so a display-space check would wrongly reject it.
-function valid(si: number): boolean { return isFinite(si) && si >= props.min; }
-// The native <input min> is a DISPLAY-space bound, so it is the SI floor converted to the shown
-// unit (e.g. 0 K → −273.15 °C), letting the spinner reach legitimately-negative display values.
-const dispMin = computed(() => toDisp(props.min));
+function valid(si: number): boolean {
+  return isFinite(si) && si >= effMin.value && (effMax.value === undefined || si <= effMax.value);
+}
+// The native <input min>/<input max> are DISPLAY-space bounds, so each is the SI bound converted
+// to the shown unit (e.g. 0 K → −273.15 °C), letting the spinner reach legitimately-negative
+// display values while never stepping outside the field's real range.
+const dispMin = computed(() => toDisp(effMin.value));
+const dispMax = computed<number | undefined>(() => effMax.value === undefined ? undefined : toDisp(effMax.value));
 
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
@@ -149,7 +166,7 @@ const stepAttr = computed<string | number>(() => {
 </script>
 
 <template>
-  <input type="number" :step="stepAttr" :min="dispMin" :value="display"
+  <input type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
     :class="{ 'inp-bad': invalid }"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
 </template>

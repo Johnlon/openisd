@@ -205,7 +205,7 @@ export interface UiState {
    *  OptionsModal.vue header comment for which of WinISD's 6 swatches have a real OpenISD
    *  hook). Absent key = the skin's own default (CSS custom property / hardcoded constant).
    *  Local-only presentation preference, stripped from share links. */
-  chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit', string>>;
+  chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor', string>>;
 }
 
 /** The reactive application state held in the store. */
@@ -256,9 +256,11 @@ export interface SerializedState {
   project?: ProjectMeta;
   // Graph cursor/marker — carried by BOTH a local save (refresh fidelity) and a share link,
   // same as tab/chart: the live hover cursor (f, transient — usually null unless a share was
-  // taken mid-hover) and the locked/pinned marker (pinnedF + locked). Optional so an old v2
-  // blob (saved/shared before this field existed) still parses — absent reads as "no marker".
-  cursor?: { f: number | null; pinnedF: number | null; locked: boolean };
+  // taken mid-hover), the locked/pinned marker (pinnedF + locked), and the dragged frequency
+  // band selection (range — fLo/fHi only; each panel recomputes its own stats). Optional so an
+  // old v2 blob (saved/shared before this field existed) still parses — absent reads as "no
+  // marker"; range likewise optional within it.
+  cursor?: { f: number | null; pinnedF: number | null; locked: boolean; range?: { fLo: number; fHi: number } | null };
 }
 
 export type { Driver, DriverRaw, DriverJSON, BoxType, SweepParams, SweepResult, MaxCurvesResult };

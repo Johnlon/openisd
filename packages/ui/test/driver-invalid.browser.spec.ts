@@ -1,9 +1,15 @@
 import { test, expect } from './fixtures.js';
+import type { Page } from '@playwright/test';
 
-// When a driver is missing a required T/S parameter (e.g. Fs set to 0 in the
-// What-If editor), deriveDriver returns { value: null, errors: [...] }. The UI
-// must NOT crash or silently blank the graphs — every affected chart must show a
-// readable message naming the problem, and the console must stay clean.
+// When a driver is missing a required T/S parameter (Fs/Re absent or 0), deriveDriver
+// returns { value: null, errors: [...] }. The UI must NOT crash or silently blank the
+// graphs — every affected chart must show a readable message naming the problem, and the
+// console must stay clean.
+//
+// Entry constraints (input-constraints gate, DEVELOPMENT.md §8) mean an invalid value can
+// no longer be TYPED into existence — the What-If editor clamps 0 up to the field minimum.
+// An invalid driver still arrives via persisted/imported data, so these tests seed it
+// through localStorage (the loadLocal() path App.vue restores on mount) and reload.
 //
 // The shared fixture (fixtures.js) already fails the test on ANY console error,
 // page error, or network failure — so a crash cascade (the previous behaviour:
@@ -13,40 +19,41 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-test('setting Fs to 0 shows a per-chart error message instead of crashing or blanking', async ({ page }) => {
-  // Baseline: charts render with the demo driver.
+// Persist a demo-like driver with `overrides` applied, then reload so the app restores it.
+async function reloadWithDriver(page: Page, overrides: Record<string, number>): Promise<void> {
+  await page.evaluate((ov) => {
+    const driver = { name: 'Broken Test Driver', brand: 'Test', model: 'Broken',
+      Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133, Re: 5.6,
+      Le: 0.0007, Xmax: 0.0050, Pe: 60, Z: 8, ...ov };
+    localStorage.setItem('openisd.state', JSON.stringify({ v: 1, driver }));
+  }, overrides);
+  await page.reload();
+}
+
+test('a persisted driver with Fs=0 shows a per-chart error message instead of crashing or blanking', async ({ page }) => {
+  await reloadWithDriver(page, { Fs: 0 });
+
+  // Every chart panel must show the error message region naming the Fs problem.
   const panels = page.locator('#ggrid .gpanel');
   await expect(panels.first()).toBeVisible();
-  const panelCount = await panels.count();
-  expect(panelCount).toBeGreaterThan(0);
-
-  // Open the What-If editor and set Fs to 0 (below the 1 Hz minimum → invalid).
-  await page.locator('text=What-If? ✎').click();
-  const fsInput = page.locator('label').filter({ hasText: 'Fs' })
-    .locator('..').locator('input[type="number"]');
-  await fsInput.fill('0');
-  await fsInput.press('Tab');
-
-  // Every chart panel must now show the error message region naming the Fs problem.
   const messages = page.locator('#ggrid .gpanel .gmsg');
   await expect(messages.first()).toBeVisible();
-  await expect(messages).toHaveCount(panelCount);
+  await expect(messages).toHaveCount(await panels.count());
   await expect(messages.first()).toContainText(/Fs/);
   await expect(messages.first()).toContainText(/required/i);
 
-  // Restore a valid Fs — the charts must come back (canvas visible, message gone).
+  // Entering a valid Fs in the What-If editor brings the charts back.
+  await page.locator('text=What-If? ✎').click();
+  const fsInput = page.locator('label').filter({ hasText: 'Fs' })
+    .locator('..').locator('input[type="number"]');
   await fsInput.fill('37');
   await fsInput.press('Tab');
   await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
   await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
 });
 
-test('setting Re to 0 (a different required field) also shows the per-chart message', async ({ page }) => {
-  await page.locator('text=What-If? ✎').click();
-  const reInput = page.locator('label').filter({ hasText: /^Re$/ })
-    .locator('..').locator('input[type="number"]');
-  await reInput.fill('0');
-  await reInput.press('Tab');
+test('a persisted driver with Re=0 (a different required field) also shows the per-chart message', async ({ page }) => {
+  await reloadWithDriver(page, { Re: 0 });
 
   const messages = page.locator('#ggrid .gpanel .gmsg');
   await expect(messages.first()).toBeVisible();
@@ -83,22 +90,26 @@ test('missing Pe drops only the thermal-limit line — Max-SPL chart still draws
   await expect(page.locator('.drv-issues')).toHaveCount(0);
 });
 
-test('box volume Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition)', async ({ page }) => {
+test('persisted Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition)', async ({ page }) => {
   // A *valid* driver can still yield a non-finite sweep: Vb=0 makes cInv(0) poison
-  // exc/zmag with NaN at every frequency. The classifyFinite postcondition must catch
-  // it and surface a blocking error via the issue list — never a silent blank chart,
-  // and no console error (the fixture fails the test on any console/page error).
-  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
-    .locator('..').locator('input[type="number"]');
-  await vbInput.fill('0');
-  await vbInput.press('Tab');
+  // exc/zmag with NaN at every frequency. Entry constraints stop Vb=0 being TYPED
+  // (registry floor), so seed it through persisted state — the classifyFinite
+  // postcondition must catch it and surface a blocking error via the issue list —
+  // never a silent blank chart, and no console error (the fixture fails the test on
+  // any console/page error).
+  await page.evaluate(() => {
+    localStorage.setItem('openisd.state', JSON.stringify({ v: 1, P: { Vb: 0 } }));
+  });
+  await page.reload();
 
   const issues = page.locator('.drv-issues');
   await expect(issues).toBeVisible();
   await expect(issues).toHaveClass(/is-error/);
   await expect(issues).toContainText(/no usable values|box volume/i);
 
-  // Restore a valid volume — the error clears.
+  // Entering a valid volume clears the error.
+  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
+    .locator('..').locator('input[type="number"]');
   await vbInput.fill('30');
   await vbInput.press('Tab');
   await expect(page.locator('.drv-issues.is-error')).toHaveCount(0);

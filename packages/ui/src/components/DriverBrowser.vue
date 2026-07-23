@@ -625,18 +625,18 @@ async function openDefine() {
         </div>
         <div class="param-row">
           <span class="plabel">Fs</span>
-          <input class="pnum" v-model="fsMin" type="number" min="1" placeholder="min"
+          <input class="pnum" v-model="fsMin" type="number" v-limits min="1" placeholder="min"
                  title="Minimum free-air resonance (Hz) — WinISD: Fs">
           <span class="pmid">–</span>
-          <input class="pnum" v-model="fsMax" type="number" min="1" placeholder="max"
+          <input class="pnum" v-model="fsMax" type="number" v-limits min="1" placeholder="max"
                  title="Maximum free-air resonance (Hz) — WinISD: Fs">
           <span class="plabel">Hz</span>
           <span class="psep"></span>
           <span class="plabel">Sd</span>
-          <input class="pnum" v-model="sdMin" type="number" min="0" placeholder="min"
+          <input class="pnum" v-model="sdMin" type="number" v-limits min="0" placeholder="min"
                  title="Minimum piston area in cm² — WinISD: Sd (converts from m²)">
           <span class="pmid">–</span>
-          <input class="pnum" v-model="sdMax" type="number" min="0" placeholder="max"
+          <input class="pnum" v-model="sdMax" type="number" v-limits min="0" placeholder="max"
                  title="Maximum piston area in cm² — WinISD: Sd (converts from m²)">
           <span class="plabel">cm²</span>
           <span class="psep"></span>

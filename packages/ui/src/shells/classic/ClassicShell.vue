@@ -10,6 +10,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { state, driver, driverErrors, syncedP, curvesData, maxData, pinCompare, driverShort, driverRaw } from '../../store.js';
 import { TABS, buildPlotData } from '../../utils/series.js';
+import { limits } from '../../fields/fieldRegistry.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
 import { prVas as calcPrVas, prFs as calcPrFs, prQms as calcPrQms,
@@ -217,7 +218,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           <label class="cl-check" title="Play a real sine tone through your speakers at the set frequency (starts on click; stops when unticked)">
             <input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate
           </label>
-          <input class="cl-hz" type="number" min="20" max="20000" step="1" v-model.number="genHz"
+          <input class="cl-hz" type="number" step="1" v-limits="limits('genHz')" v-model.number="genHz"
                  title="Tone frequency in Hz (audible range 20–20000)">
           <span class="cl-u">Hz</span>
         </div>
@@ -332,7 +333,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <div class="cl-subhdr">Signal source</div>
             <div class="row" title="Total input power. Changing this updates the drive voltage below. WinISD: System input power.">
               <label>System input power</label>
-              <input type="number" step="0.1" min="0" :value="(state.P.Pin ?? 1).toFixed(1)" @change="e => state.P.Pin = parseFloat((e.target as HTMLInputElement).value)||1">
+              <input type="number" step="0.1" v-limits="limits('Pin')" :value="(state.P.Pin ?? 1).toFixed(1)" @change="e => state.P.Pin = parseFloat((e.target as HTMLInputElement).value)||1">
               <span class="u">W</span>
             </div>
             <div class="row" title="Drive voltage = √(Pin × Re), per driver. WinISD: Driver input voltage (each).">
@@ -342,16 +343,16 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             </div>
             <div class="row" title="Series resistance — wire, crossover DCR, amplifier output impedance. WinISD default: 0.1 Ω.">
               <label>Series resistance</label>
-              <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
+              <input type="number" step="0.01" v-limits="limits('Rs')" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
               <span class="u">ohm</span>
             </div>
           </div>
         </div>
         <div v-else-if="projectTab === 'Advanced'" class="cl-advanced">
           <div class="cl-adv-row">
-            <div class="cl-fld"><label>Temperature</label><div class="cl-unit"><input type="number" v-model.number="advTemp"><span>K</span></div></div>
-            <div class="cl-fld"><label>Relative humidity</label><div class="cl-unit"><input type="number" v-model.number="advHumidity"><span>%</span></div></div>
-            <div class="cl-fld"><label>Air pressure</label><div class="cl-unit"><input type="number" v-model.number="advPressure"><span>Pa</span></div></div>
+            <div class="cl-fld"><label>Temperature</label><div class="cl-unit"><input type="number" v-limits="limits('advTemp')" v-model.number="advTemp"><span>K</span></div></div>
+            <div class="cl-fld"><label>Relative humidity</label><div class="cl-unit"><input type="number" v-limits="limits('advHumidity')" v-model.number="advHumidity"><span>%</span></div></div>
+            <div class="cl-fld"><label>Air pressure</label><div class="cl-unit"><input type="number" v-limits="limits('advPressure')" v-model.number="advPressure"><span>Pa</span></div></div>
           </div>
           <div class="cl-arrow">---&gt;</div>
           <div class="cl-adv-row">
