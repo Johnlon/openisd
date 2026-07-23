@@ -397,45 +397,71 @@ useEscToClose(() => true, cancel);
             <div class="de-note">Physical dimensions are not modelled in OpenISD — the diagram is shown for reference only.</div>
           </div>
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
-            <svg width="300" height="260" viewBox="0 0 300 260">
-              <!-- frame + cone -->
-              <path d="M60 70 L150 45 v170 L60 190 Z" fill="#eee" stroke="#333" stroke-width="1.5"/>
-              <!-- magnet stack -->
-              <rect x="150" y="90" width="55" height="80" fill="#ddd" stroke="#333" stroke-width="1.5"/>
-              <!-- outer plate / frame back -->
-              <rect x="205" y="60" width="10" height="140" fill="#111" stroke="#111"/>
-              <!-- voice coil former -->
-              <rect x="140" y="112" width="14" height="36" fill="#ccc" stroke="#333"/>
-
-              <!-- Thick (top, near frame back) -->
-              <line x1="205" y1="30" x2="215" y2="30" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="210" y="20" text-anchor="middle" font-size="12">Thick</text>
-
-              <!-- Outer (right, full frame-back height) -->
-              <line x1="235" y1="60" x2="235" y2="200" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="252" y="130" text-anchor="middle" font-size="12" transform="rotate(90 252 130)">Outer</text>
-
-              <!-- Basket (left, full basket height) -->
-              <line x1="35" y1="70" x2="35" y2="190" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="20" y="130" text-anchor="middle" font-size="12" transform="rotate(-90 20 130)">Basket</text>
-
-              <!-- Magnet (vertical, magnet stack height) -->
-              <line x1="130" y1="90" x2="130" y2="170" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="115" y="130" text-anchor="middle" font-size="12" transform="rotate(-90 115 130)">Magnet</text>
-
-              <!-- MagDpt (bottom, magnet stack depth) -->
-              <line x1="150" y1="215" x2="205" y2="215" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="177" y="230" text-anchor="middle" font-size="12">MagDpt</text>
-
-              <!-- Depth (bottom, overall) -->
-              <line x1="60" y1="240" x2="215" y2="240" stroke="#111" marker-start="url(#deArrow)" marker-end="url(#deArrow)"/>
-              <text x="137" y="255" text-anchor="middle" font-size="12">Depth</text>
-
+            <!-- Cross-section matching the real WinISD Dimensions tab: plain black line-art on a
+                 transparent background (no fill anywhere) — front = right, back = left. -->
+            <svg viewBox="0 0 540 450">
               <defs>
-                <marker id="deArrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                  <path d="M0,0 L6,3 L0,6 Z" fill="#111"/>
+                <marker id="de-arr-s" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 10 1.5 L 0 5 L 10 8.5 Z" fill="currentColor"/>
+                </marker>
+                <marker id="de-arr-e" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 Z" fill="currentColor"/>
                 </marker>
               </defs>
+
+              <g transform="translate(15,15)" stroke="currentColor" fill="none" stroke-width="1.3" stroke-linejoin="round">
+                <!-- Mounting flange (front plate), drawn as two close parallel edges -->
+                <rect x="400" y="40" width="10" height="340"/>
+
+                <!-- Basket chassis: diagonal walls + two cone-surface windows -->
+                <g stroke-linecap="round">
+                  <path d="M 310 140 L 400 50"/>
+                  <path d="M 310 280 L 400 370"/>
+                  <path d="M 310 140 L 310 280"/>
+                  <polygon points="330,150 330,180 385,180 385,105"/>
+                  <polygon points="335,155 335,175 380,175 380,114"/>
+                  <polygon points="330,270 330,240 385,240 385,315"/>
+                  <polygon points="335,265 335,245 380,245 380,306"/>
+                </g>
+
+                <!-- Rear magnet motor structure -->
+                <rect x="235" y="140" width="55" height="140"/>
+                <rect x="227" y="150" width="8" height="120"/>
+                <rect x="290" y="145" width="20" height="130"/>
+              </g>
+
+              <!-- Dimension lines & extensions -->
+              <g stroke="currentColor" stroke-width="0.8" fill="none">
+                <line x1="430" y1="55" x2="480" y2="55"/>
+                <line x1="430" y1="395" x2="480" y2="395"/>
+                <line x1="465" y1="70" x2="465" y2="380" marker-start="url(#de-arr-s)" marker-end="url(#de-arr-e)"/>
+                <line x1="415" y1="65" x2="155" y2="65" stroke-dasharray="2,2"/>
+                <line x1="415" y1="385" x2="155" y2="385" stroke-dasharray="2,2"/>
+                <line x1="170" y1="80" x2="170" y2="370" marker-start="url(#de-arr-s)" marker-end="url(#de-arr-e)"/>
+                <line x1="250" y1="155" x2="205" y2="155"/>
+                <line x1="250" y1="295" x2="205" y2="295"/>
+                <line x1="215" y1="170" x2="215" y2="280" marker-start="url(#de-arr-s)" marker-end="url(#de-arr-e)"/>
+                <line x1="415" y1="55" x2="415" y2="20"/>
+                <line x1="425" y1="55" x2="425" y2="20"/>
+                <line x1="385" y1="25" x2="415" y2="25" marker-end="url(#de-arr-e)"/>
+                <line x1="455" y1="25" x2="425" y2="25" marker-end="url(#de-arr-e)"/>
+                <line x1="250" y1="295" x2="250" y2="340"/>
+                <line x1="325" y1="295" x2="325" y2="340"/>
+                <line x1="250" y1="330" x2="325" y2="330" marker-start="url(#de-arr-s)" marker-end="url(#de-arr-e)"/>
+                <line x1="242" y1="295" x2="242" y2="420"/>
+                <line x1="415" y1="385" x2="415" y2="420"/>
+                <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#de-arr-s)" marker-end="url(#de-arr-e)"/>
+              </g>
+
+              <!-- Labels -->
+              <g font-family="system-ui,sans-serif" font-size="14" text-anchor="middle">
+                <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
+                <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
+                <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>
+                <text x="420" y="15" font-size="13">Thick</text>
+                <text x="287" y="355">MagDpt</text>
+                <text x="328" y="435">Depth</text>
+              </g>
             </svg>
           </div>
         </div>
@@ -473,6 +499,28 @@ useEscToClose(() => true, cancel);
 .de-row2 { display: flex; gap: 16px; }
 .de-row2 .de-fld { flex: 1; }
 .de-row2 .de-fld input { width: 100%; }
+
+/* Parameters / Advanced parameters / Dimensions: WinISD puts the label to the LEFT of a
+   short, compact field (docs/winisd/edit_driver_pg2/3/4_*.png) — one dense row per field,
+   never a label-above-field "long form" stack. The General tab keeps the stacked layout
+   above (it matches WinISD's own General page, where Manufacturer/Brand/Model/Comment
+   labels sit above full-width boxes). */
+.de-params .de-fld, .de-dimlist .de-fld {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.de-params .de-fld label, .de-dimlist .de-fld label {
+  width: 72px;
+  flex: none;
+  text-align: left;
+  white-space: nowrap;
+}
+.de-params .de-fld input, .de-params .de-fld select {
+  width: 104px;
+}
+.de-dimlist .de-fld input { width: 78px; }
 .de-comment textarea { width: 100%; min-height: 90px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); resize: vertical; }
 
 .de-legend2 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mut); margin-top: 6px; }
@@ -496,10 +544,12 @@ input.st-n, .de-fld.st-n input { color: var(--fg); }
 .de-col { display: flex; flex-direction: column; }
 
 .de-dims { display: flex; gap: 24px; align-items: flex-start; }
-.de-dimlist { width: 200px; flex-shrink: 0; }
+.de-dimlist { width: 230px; flex-shrink: 0; }
+/* "Magnet Depth" is the longest label on this tab — needs more room than the 72px default. */
+.de-dimlist .de-fld label { width: 92px; }
 .de-note { font-size: 11px; color: var(--mut); font-style: italic; margin-top: 4px; }
 .de-diagram { flex: 1; display: flex; justify-content: center; padding-top: 8px; }
-.de-diagram svg { color: var(--fg); }
+.de-diagram svg { color: var(--fg); width: 100%; max-width: 320px; height: auto; }
 .de-diagram text { fill: var(--fg); }
 
 .de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }

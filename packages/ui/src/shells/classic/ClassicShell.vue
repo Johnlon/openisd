@@ -26,6 +26,7 @@ import DriverEditorModal from '../../components/DriverEditorModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRWhatIfPanel from '../../components/PRWhatIfPanel.vue';
+import AdvancedOptions from '../../components/AdvancedOptions.vue';
 
 const { saveProject, importFile, about } = useDesignIO();
 
@@ -42,7 +43,8 @@ const prQmsSummary = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, stat
 const driveV = computed(() => driveVoltage(state.P.Pin ?? 1, driver.value?.Re || 8));
 
 // Advanced tab — environment params are not modelled by the engine yet (screens-first):
-// static WinISD-default values/derived readouts, and the 5 checkboxes are inert for now.
+// static WinISD-default values/derived readouts; the checkbox column is the shared
+// AdvancedOptions component, which drives the real sweep.
 // Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
 const advTemp = ref(state.ui.envDefaults.tempK);
@@ -50,11 +52,6 @@ const advHumidity = ref(state.ui.envDefaults.humidityPct);
 const advPressure = ref(state.ui.envDefaults.pressurePa);
 const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
 const advAirDensity = ref(1.20095);
-const advSimVcInductance = ref(false);
-const advForceFlat = ref(false);
-const advTransmissionLine = ref(false);
-const advRgAtDriverSide = ref(false);
-const advSplXmaxLimited = ref(false);
 
 // Driver "Edit" (state.editDriverInfo) opens DriverEditorModal — a real popup, since
 // it recreates WinISD's own multi-tab "Driver editor" dialog and doesn't need the
@@ -211,7 +208,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <span class="cl-cbx on" role="button" tabindex="0" @click="removeCompare(i)" @keydown.enter="removeCompare(i)">&#10003;</span>{{ d.name }}
           </div>
         </div>
-        <button class="cl-pin" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
+        <button class="cl-pin" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; and overlays its curves on the graph for comparison" @click="pinCompare">＋ Copy</button>
 
         <div class="cl-heading" style="margin-top:12px">Signal Generator</div>
         <div class="cl-sig">
@@ -360,21 +357,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
             <div class="cl-fld cl-dim"><label>Air density</label><div class="cl-unit"><input type="text" :value="advAirDensity.toFixed(5)" readonly><span>kg/m³</span></div></div>
           </div>
           <div class="cl-adv-checks">
-            <label class="cl-check" title="Include voice-coil inductance Le in the acoustic circuit — not modelled yet in this view (see Signal tab's Circuit model).">
-              <input type="checkbox" v-model="advSimVcInductance"> Simulate voice coil inductance
-            </label>
-            <label class="cl-check" title="Force the SPL response to render flat, ignoring driver rolloff — not modelled yet.">
-              <input type="checkbox" v-model="advForceFlat"> Force flat response
-            </label>
-            <label class="cl-check" title="Use a transmission-line model for the vent instead of a simple tube — not modelled yet.">
-              <input type="checkbox" v-model="advTransmissionLine"> Use "transmission line"-model for port simulation
-            </label>
-            <label class="cl-check" title="Places the series (generator) resistance on the driver side of the circuit rather than the amplifier side — not modelled yet.">
-              <input type="checkbox" v-model="advRgAtDriverSide"> Rg is at driver side
-            </label>
-            <label class="cl-check" title="Clip the SPL graph at the excursion (Xmax) limit rather than showing the unbounded curve — not modelled yet.">
-              <input type="checkbox" v-model="advSplXmaxLimited"> SPL graph is Xmax limited
-            </label>
+            <AdvancedOptions />
           </div>
         </div>
         <div v-else-if="projectTab === 'Project'" class="cl-project">

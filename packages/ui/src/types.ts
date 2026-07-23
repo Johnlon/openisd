@@ -30,11 +30,18 @@ export interface PlotData {
   fmax?: number;
 }
 
+/**
+ * Sweep parameters plus the DISPLAY-only flags the plot builder reads. `splXmaxLimited`
+ * chooses which SPL array to draw (`sw.splXlim` vs `sw.spl`) — it changes nothing the
+ * engine computes, so it stays out of the engine's SweepParams.
+ */
+export type PlotParams = SweepParams & { splXmaxLimited?: boolean };
+
 /** A design shown on a chart — the current design plus any pinned comparisons. */
 export interface Design {
   driver: Driver | null;
   box: BoxType;
-  P: SweepParams;
+  P: PlotParams;
   curves: SweepResult | null;
   maxCurves: MaxCurvesResult | null;
   name?: string;
@@ -143,6 +150,17 @@ export interface UiParams {
   // Port end-correction coefficient (× vent diameter): 0.613 two-free / 0.732 one-flanged
   // (default) / 0.849 two-flanged. Feeds Leff → box tuning Fb.
   endCorrection: number;
+  // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
+  // The fifth WinISD toggle, "Simulate voice coil inductance", is NOT a field of its own:
+  // it is `circuitModel` under WinISD's wording (store.simVcInductance is the alias).
+  /** Rg sits in series with each driver (true, historic) rather than at the amplifier. */
+  rgAtDriverSide: boolean;
+  /** Model the vent as an acoustic transmission line instead of a lumped mass. */
+  tlPortModel: boolean;
+  /** Auto-EQ the response flat, charging the boost to excursion/velocity/max-SPL. */
+  forceFlatResponse: boolean;
+  /** Plot the SPL chart backed off to Xmax (engine `splXlim`) instead of the raw SPL. */
+  splXmaxLimited: boolean;
 }
 
 /**
@@ -248,7 +266,7 @@ export interface SerializedState {
   box: BoxType;
   P: UiParams;
   graphs: string[];
-  compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string }>;
+  compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string; visible?: boolean }>;
   // A local save carries the full ui; stateToUrl() carries most of it too (skin, active
   // tab/chart), stripping only personal working state (open-editor buffer, unit prefs) —
   // see persist.ts.

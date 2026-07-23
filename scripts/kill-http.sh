@@ -20,15 +20,27 @@ ports=("$@")
 
 # On WSL/Linux the dev server is a native Linux process; the Windows kill chain
 # (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
+#
+# The loop must not return until the port is ACTUALLY free: `kill -9` returns as soon as
+# the signal is queued, so a caller that starts its own server immediately (playwright's
+# webServer command is `kill-http.sh 4100 && npm run dev -- --port 4100`) could still hit
+# EADDRINUSE and abort the whole suite. Poll until lsof reports nothing.
 if [ -z "${MSYSTEM:-}" ]; then
   for port in "${ports[@]}"; do
     pids=$(lsof -ti :"$port" 2>/dev/null || true)
     [ -z "$pids" ] && continue
     echo "port $port: killing PID(s) $pids"
     kill $pids 2>/dev/null || true
-    sleep 1
-    pids=$(lsof -ti :"$port" 2>/dev/null || true)
-    [ -n "$pids" ] && kill -9 $pids 2>/dev/null || true
+    for attempt in $(seq 1 20); do
+      sleep 0.5
+      pids=$(lsof -ti :"$port" 2>/dev/null || true)
+      if [ -z "$pids" ]; then
+        echo "port $port: free after $attempt check(s)"
+        break
+      fi
+      kill -9 $pids 2>/dev/null || true
+      [ "$attempt" = "20" ] && echo "port $port: WARNING — still occupied by $pids, proceeding anyway"
+    done
   done
   echo "done"
   exit 0

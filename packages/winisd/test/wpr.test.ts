@@ -24,6 +24,27 @@ function prProject() {
 }
 
 describe('toWpr — WinISD .wpr project serializer', () => {
+  it('[SimulatorOptions] reflects the design\'s real flags, not a fixed placeholder', () => {
+    const on = toWpr({
+      project: {}, driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+      simulatorOptions: { vcInductance: true, flatResponse: false, tlPorts: true },
+    });
+    expect(on).toContain('VCInd=1');
+    expect(on).toContain('FlatResponse=0');
+    expect(on).toContain('TLPorts=1');
+  });
+
+  it('[SimulatorOptions] defaults to WinISD\'s own all-off when the caller supplies nothing', () => {
+    const s = toWpr({
+      project: {}, driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+    });
+    expect(s).toContain('VCInd=0');
+    expect(s).toContain('FlatResponse=0');
+    expect(s).toContain('TLPorts=0');
+  });
+
   it('emits CRLF line endings and a trailing CRLF', () => {
     const s = prProject();
     expect(s.includes('\r\n')).toBe(true);

@@ -1,7 +1,7 @@
-import { C } from '@openisd/engine';
-import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
+import { C, passbandRef } from '@openisd/engine';
+import type { Driver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
 import { DPAL } from '../presets.js';
-import type { Series, PlotData, Design } from '../types.js';
+import type { Series, PlotData, Design, PlotParams } from '../types.js';
 
 interface TabMeta { id: string; name: string; unit: string; color: string }
 
@@ -24,7 +24,7 @@ export const TABS: TabMeta[] = [
 
 interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string }
 
-export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
+export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: PlotParams, sw: SweepResult, mx: MaxCurvesResult, bare = false): SeriesBundle {
   const meta = TABS.find(t => t.id === tabId)!;
   let series: Series[] = [], ymin = 0, ymax = 1;
   let logy = false;
@@ -32,18 +32,25 @@ export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepPara
   const pick = (arr: number[]) => ({ xs: sw.fs, ys: arr });
 
   if (tabId === 'SPL') {
-    series = [{ ...pick(sw.spl), color: meta.color, name: 'SPL' }];
+    // "SPL graph is Xmax limited" (WinISD Advanced) swaps in the curve the design can
+    // actually reach before the cone runs out of travel. The raw curve is drawn alongside
+    // it, dashed, wherever the two differ — the whole point of the option is seeing the gap.
+    const limited = !!P.splXmaxLimited && sw.xlimited.some(Boolean);
+    const ys = P.splXmaxLimited ? sw.splXlim : sw.spl;
+    series = [{ ...pick(ys), color: meta.color, name: limited ? 'SPL (Xmax limited)' : 'SPL' }];
+    if (limited)
+      series.push({ ...pick(sw.spl), color: '#8a99ab', name: 'Unlimited', dash: true });
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
-    const real = sw.spl.filter(v => Number.isFinite(v) && v > -190);
-    const mx2 = real.length ? Math.max(...real) : 0;
+    const real = ys.filter(v => Number.isFinite(v) && v > -190);
+    const mx2 = passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
     ymin = Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5);
     // F3 / F6: first frequency (low→high) where SPL reaches within N dB of the passband peak.
-    // Same reference as StatBar.findF3 — max SPL across the sweep.
-    const rolloff = (drop: number): number | null => { for (let i = 0; i < sw.fs.length; i++) if (sw.spl[i] >= mx2 - drop) return sw.fs[i]; return null; };
+    // Same reference as StatBar.findF3 — the passband level of the curve being drawn.
+    const rolloff = (drop: number): number | null => { for (let i = 0; i < sw.fs.length; i++) if (ys[i] >= mx2 - drop) return sw.fs[i]; return null; };
     // Reference lines (F3/F6/F10) + their legend — OpenISD value-add, but WinISD's plot is
     // a bare trace, so the classic skin passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
@@ -59,8 +66,7 @@ export function seriesFor(tabId: string, drv: Driver, box: BoxType, P: SweepPara
     // relationship between the two charts. The 0 dB / -3 dB lines are the chart's defining
     // feature (not optional annotations like SPL's F3/F6/F10), so they're always drawn,
     // bare or not.
-    const real = sw.spl.filter(v => Number.isFinite(v) && v > -190);
-    const ref = real.length ? Math.max(...real) : 0;
+    const ref = passbandRef(sw.spl);
     const rel = sw.spl.map(v => (Number.isFinite(v) && v > -190) ? v - ref : v);
     series = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }];
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });

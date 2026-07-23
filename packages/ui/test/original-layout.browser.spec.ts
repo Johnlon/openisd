@@ -1,7 +1,7 @@
 /**
  * Original (WinISD) skin — layout ergonomics + chart cursor level-lines.
  *
- * Covers: the ＋ Clone/Compare button naming, the ✕ overlay-remove control sitting LEFT
+ * Covers: the ＋ Copy button naming, the ✕ overlay-remove control sitting LEFT
  * of the overlay name (always visible), the resizable/collapsible left panel and bottom
  * section (drag splitters + collapse toggles), the chart maximise/restore toggle (the
  * toolbar stays usable while maximised), and the horizontal level-line the shared canvas
@@ -42,12 +42,12 @@ async function levelLineClusters(page: Page): Promise<number> {
   });
 }
 
-test('the pin button is named ＋ Clone/Compare', async ({ page }) => {
-  await expect(page.locator('.quad-projects-wrap .link-btn').first()).toHaveText(/Clone\/Compare/);
+test('the pin button is named ＋ Copy', async ({ page }) => {
+  await expect(page.locator('.quad-projects-wrap .link-btn').first()).toHaveText(/^＋ Copy$/);
 });
 
 test('project rows are [checkbox] Name only; the Close button under the list removes the SELECTED overlay', async ({ page }) => {
-  await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Clone/Compare' }).click();
+  await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Copy' }).first().click();
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
   // no inline remove control in the rows (WinISD look: checkbox + name only)

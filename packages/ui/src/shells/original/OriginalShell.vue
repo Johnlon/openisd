@@ -15,7 +15,7 @@
  * model pending" state instead of a fabricated curve. When the engine gains those
  * branches, add them to `SUPPORTED_BOX` and the pending state clears.
  */
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   state, driver, driverRaw, driverShort, pinCompare,
   syncedP, curvesData, maxData, driverErrors,
@@ -47,6 +47,7 @@ import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
+import AdvancedOptions from '../../components/AdvancedOptions.vue';
 
 const { saveProject, exportWdr, importFile, about } = useDesignIO();
 
@@ -235,9 +236,13 @@ watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure'
 
 // ---- Projects list -------------------------------------------------------------
 // Row selection: -1 = the current design, i≥0 = state.compare[i]. The ✕ Close button
-// under the list acts on the selected row — the action row (with ＋ Clone/Compare)
-// stands in for WinISD's right-click project menu (Delete / Save / Copy).
+// under the list acts on the selected row — the action row (with ＋ Copy) stands in for
+// WinISD's right-click project menu (Delete / Save / Copy).
 const selectedProject = ref(-1);
+// The Projects list is a list of PROJECTS, so the current row carries the project's own
+// name — the same string as its file name. Labelling it with the driver instead is what
+// made opening a saved project that uses the same driver look like a no-op.
+const currentProjectLabel = computed(() => state.project.name || driverShort(driverRaw.value));
 function closeSelectedProject(): void {
   if (selectedProject.value < 0 || selectedProject.value >= state.compare.length) { selectedProject.value = -1; return; }
   state.compare.splice(selectedProject.value, 1);
@@ -298,15 +303,14 @@ const driveV = computed<number>({
 });
 
 // ---- Advanced tab: environment (not modelled by the engine yet — honest static
-// defaults + one live derivation). The 5 checkboxes are inert placeholders, as in the
-// Classic skin: shown for parity, clearly not wired to the sweep. -------------------
+// defaults + one live derivation). The checkbox column is the shared AdvancedOptions
+// component, which drives the real sweep. -------------------------------------------
 // Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
 const advTemp = ref(state.ui.envDefaults.tempK);
 const advHumidity = ref(state.ui.envDefaults.humidityPct);
 const advPressure = ref(state.ui.envDefaults.pressurePa);
 const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
-const advChecks = reactive({ vc: false, flat: false, tl: false, rg: false, xmax: false });
 
 // ---- Placement (Signal path multipliers already in the store) ------------------
 // Standard vs Iso-Barik: only Standard is modelled; the radio is shown for parity.
@@ -439,6 +443,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
         <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
                 @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
+        <div class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
         <SkinPicker />
       </div>
     </div>
@@ -451,9 +456,10 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           <div class="panel-title">Projects</div>
           <div class="projects-list">
             <div class="project-row" :class="{ selected: selectedProject === -1 }"
-                 :title="'Current design — ' + driverShort(driverRaw)" @click="selectedProject = -1">
+                 :title="'Current project — ' + currentProjectLabel + ' (driver: ' + driverShort(driverRaw) + ')'"
+                 @click="selectedProject = -1">
               <input type="checkbox" checked disabled>
-              <span>{{ driverShort(driverRaw) }}</span>
+              <span>{{ currentProjectLabel }}</span>
             </div>
             <div v-for="(d, i) in state.compare" :key="i" class="project-row"
                  :class="{ selected: selectedProject === i, 'trace-hidden': d.visible === false }"
@@ -465,7 +471,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </div>
           </div>
           <div class="proj-actions">
-            <button class="link-btn" title="Clone the current design as a snapshot and overlay it on the graph for comparison" @click="pinCompare">＋ Clone/Compare</button>
+            <button class="link-btn" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="pinCompare">＋ Copy</button>
             <button class="link-btn close-btn" :disabled="selectedProject < 0"
                     :title="selectedProject < 0
                       ? 'Select a comparison overlay above to close it (the current design cannot be closed) — mimics WinISD\'s right-click Delete'
@@ -504,7 +510,6 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </template>
           </div>
         </div>
-        <div class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
       </div>
 
       <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
@@ -533,6 +538,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
         <!-- ===== Box tab ===== -->
         <section v-show="activeTab === 'box'" class="tab-section" :class="{ active: activeTab === 'box' }">
+          <div class="box-tab-row">
+          <div class="box-tab-main">
           <div class="field-row">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
               <select id="og-box-type" v-model="selectedBox" style="width:240px">
@@ -567,16 +574,17 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               </div>
             </template>
 
-            <div class="box-fields-spacer" v-if="!isDual"></div>
-            <div class="box-diagram-col">
-              <svg v-show="selectedBox === 'sealed'" id="og-box-diagram-sealed" viewBox="0 30 200 240" height="180">
+          </div>
+          </div>
+          <div class="box-diagram-col">
+              <svg v-show="selectedBox === 'sealed'" id="og-box-diagram-sealed" viewBox="0 30 200 240" height="126">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="110" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="190" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
                 <path d="M160,110 L130,130 L130,170 L160,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="110" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'vented'" id="og-box-diagram-vented" viewBox="0 30 200 240" height="180">
+              <svg v-show="selectedBox === 'vented'" id="og-box-diagram-vented" viewBox="0 30 200 240" height="126">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="70" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="150" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -586,7 +594,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M160,70 L130,90 L130,130 L160,150" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="110" y="100" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'pr'" id="og-box-diagram-pr" viewBox="0 30 200 240" height="180">
+              <svg v-show="selectedBox === 'pr'" id="og-box-diagram-pr" viewBox="0 30 200 240" height="126">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="60" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="130" x2="160" y2="170" stroke="#0F4761" stroke-width="4"/>
@@ -595,7 +603,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <rect x="110" y="85" width="20" height="20" fill="#0F4761"/>
                 <path d="M160,170 L130,185 L130,225 L160,240" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="195">
+              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="136.5">
                 <polyline points="160,200 160,40 40,40 40,260 160,260 160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="40" x2="100" y2="110" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="190" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
@@ -604,7 +612,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="195">
+              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="136.5">
                 <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
                 <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -620,7 +628,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 30 200 240" height="195">
+              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 15 200 270" height="136.5">
                 <path d="M 100,20 L 100,140 M 75,140 L 125,140 M 100,180 L 100,280 M 75,180 L 125,180" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <path d="M 100,20 L 40,20 L 40,70 L 80,70" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
                 <path d="M 80,100 L 40,100 L 40,280 L 100,280" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
@@ -632,9 +640,14 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <rect x="100" y="88" width="15" height="14" fill="#0F4761"/>
               </svg>
             </div>
+            <!-- Notes sit BESIDE the diagram, not under the row: stacked below, they grew the
+                 pane (and so the whole bottom track, which is auto-sized) whenever a box type
+                 with notes was picked, shifting the chart above. -->
+            <div class="box-notes-col">
+              <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
+              <p v-if="pending" class="hint pending-note"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
+            </div>
           </div>
-          <p v-if="selectedBox === 'abc'" class="hint" style="margin-top:8px;">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
-          <p v-if="pending" class="hint" style="margin-top:8px; color:#7a5b1a;"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
         </section>
 
         <!-- ===== Driver tab ===== -->
@@ -831,13 +844,9 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
             </div>
             <div class="checkbox-col">
-              <label><input type="checkbox" v-model="advChecks.vc"> Simulate voice coil inductance</label>
-              <label><input type="checkbox" v-model="advChecks.flat"> Force flat response</label>
-              <label><input type="checkbox" v-model="advChecks.tl"> Use "transmission line"-model for port simulation</label>
-              <label><input type="checkbox" v-model="advChecks.rg"> Rg is at driver side</label>
-              <label><input type="checkbox" v-model="advChecks.xmax"> SPL graph is Xmax limited</label>
+              <AdvancedOptions />
             </div>
-            <p class="hint side-hint">Environment &amp; these options are not modelled by the sweep yet.</p>
+            <p class="hint side-hint">The environment values above are not modelled by the sweep yet.</p>
           </div>
         </section>
 
@@ -947,7 +956,10 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; gap:12px; white-space:nowrap; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; }
 .cursor-readout .ro-val { min-width:76px; text-align:right; }
-.cursor-readout :deep(.skin-picker) { margin-top:0; }
+/* Boosted vs the shared component's subtle default — easy to miss among the readout numbers. */
+.cursor-readout :deep(.skin-picker) { margin-top:0; padding:3px 8px; border:1px solid #7fb3ff; border-radius:3px; background:#eaf3ff; }
+.cursor-readout :deep(.skin-lbl) { color:#1868d1; font-weight:700; }
+.cursor-readout :deep(.skin-picker select) { border-color:#7fb3ff; font-weight:600; }
 
 /* dropdown menus */
 .dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; max-height:calc(100vh - 90px); overflow-y:auto; }
@@ -1031,8 +1043,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-nav li.active::after  { bottom:-8px; border-top-right-radius:8px; box-shadow:3px -3px 0 3px #f7f7f7; }
 .color-btn { border:1px solid #999; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
-/* Docked in the chart's bottom-right corner (graph-area is the positioning context). */
-.chart-color-btn { position:absolute; right:22px; bottom:16px; z-index:2; padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
+/* Docked in the toolbar's cursor-readout, beside the chart-max button. */
+.chart-color-btn { padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
 .graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
 .graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
 .graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
@@ -1044,24 +1056,44 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:flex-start; }
 .tab-section { display:none; }
-.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
+/* Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area
+   CLIPS when the window shrinks — nothing reflows, nothing overlaps. The pane reproduces
+   that by keeping every control at its natural width (the `flex:none` rules below) and
+   letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
+   what makes the clipped content still reachable, which a Win32 window cannot offer. */
+.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
+/* Columns keep their natural width and never shrink below their contents. A shrinking
+   column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
+   while this one's controls kept their own width, so the two painted on top of each
+   other — the exact overlap `original-narrow.browser.spec.ts` locks out. */
 .two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
-.two-col > div { flex:0 1 auto; min-width:0; }
-.box-layout { display:flex; gap:24px; align-items:flex-start; }
-.box-fields-col { flex:none; width:194px; --label-w:62px; }
-.box-layout .box-diagram-col { flex:none; width:170px; display:flex; align-items:flex-start; justify-content:center; }
-.box-fields-spacer { flex:none; width:194px; }
+.two-col > div { flex:none; }
+.box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
+.box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
+/* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
+   columns + the gap), so the diagram column starts at the same x for every box type
+   instead of being pushed to the far right whenever the fields need less room. */
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:194px; --box-col-gap:24px; }
+.box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
+/* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
+   column stays snug around the widest cut-through rather than padding it with slack. */
+.box-diagram-col { flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
+/* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
+   fixed-width control columns this one may shrink without reintroducing the overlap. */
+.box-notes-col { flex:1 1 240px; min-width:170px; max-width:340px; display:flex; flex-direction:column; gap:8px; }
+.box-notes-col .hint { margin:0; }
+.pending-note { color:#7a5b1a; }
 .vent-groups { display:flex; gap:20px; }
-.vent-col { flex:1; min-width:0; }
+.vent-col { flex:none; }
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
 .vent-col .field label { width:110px; }
 .field-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; justify-content:flex-start; }
-.field { display:flex; align-items:center; gap:6px; justify-content:flex-start; }
-.field label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; }
+.field { display:flex; align-items:center; gap:6px; justify-content:flex-start; flex:none; }
+.field label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; }
 .field input[type=text], .field input[type=number], .field select,
-.field :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; }
+.field :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
 .field.tight label { width:auto; margin-right:2px; }
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
@@ -1077,12 +1109,15 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .hint { color:#888; font-size:12px; font-style:italic; }
 /* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
 .beside-hint { display:flex; gap:16px; align-items:flex-start; }
-.side-hint { flex:0 1 220px; min-width:120px; margin:0; }
-.env-arrow { align-self:center; margin:0; }
+.side-hint { flex:none; width:220px; margin:0; }
+.env-arrow { align-self:flex-start; margin:6px 0 0; }
 /* > .two-col beats the .two-col > div flex:0 default so the description fills the width */
 .two-col > .description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
-.checkbox-col { display:flex; flex-direction:column; gap:8px; }
+/* Fixed width, not shrink-to-fit: without it the column collapsed under pressure and the
+   longest option wrapped to one word per line. */
+.checkbox-col { display:flex; flex-direction:column; gap:8px; margin-left:24px; flex:none; width:290px; }
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
+.checkbox-col label input[type=checkbox] { flex:none; }
 
 /* filters tab fills the panel */
 .tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }

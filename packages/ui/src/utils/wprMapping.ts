@@ -51,6 +51,15 @@ export function buildWprInput(
     driverSection,
     box: { bType: BTYPE[box], Vr: P.Vb, Fr: 0 },
     signal: { P: P.Pin },
+    // [SimulatorOptions] — the design's real Advanced-pane settings, not placeholders.
+    // "Simulate voice coil inductance" is OpenISD's circuitModel under WinISD's wording.
+    // The other two Advanced toggles (rgAtDriverSide, splXmaxLimited) have no key in this
+    // format, so they are not written — see WprInput.simulatorOptions.
+    simulatorOptions: {
+      vcInductance: P.circuitModel === 'gyrator',
+      flatResponse: P.forceFlatResponse,
+      tlPorts:      P.tlPortModel,
+    },
   };
 
   if (box === 'sealed') {

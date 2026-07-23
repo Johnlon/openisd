@@ -601,6 +601,58 @@ seeds `OriginalShell.vue`/`ClassicShell.vue`'s local Advanced-pane refs on mount
 was a hardcoded literal — an already-open project's Advanced-pane values are never overwritten
 by editing the Options dialog. See BACKLOG.md (Options dialog entry).
 
+## 12d. Advanced-pane simulation options — the five checkboxes (implemented 2026-07-23)
+
+WinISD's Advanced pane carries a column of five simulation-fidelity checkboxes
+(`docs/winisd/info/view_6_advanced.md`), all unchecked by default. OpenISD implements all five.
+Design and rationale: `PLAN_ADVANCED_SIM_OPTIONS.md`.
+
+| WinISD label                                        | `.wpr` key     | OpenISD                                                                               |
+| --------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| `Simulate voice coil inductance`                    | `VCInd`        | Alias over `P.circuitModel` (`store.simVcInductance`): off = `winisd`, on = `gyrator` |
+| `Force flat response`                               | `FlatResponse` | `SweepParams.forceFlatResponse` — auto-EQ, capped at `FLAT_MAX_BOOST_DB` (20 dB)      |
+| `Use "transmission line"-model for port simulation` | `TLPorts`      | `SweepParams.tlPortModel` — lossy duct in `circuit.portImpedance()`                   |
+| `Rg is at driver side`                              | none known     | `SweepParams.rgAtDriverSide` — per-driver Rg vs one Rg at the amplifier               |
+| `SPL graph is Xmax limited`                         | none known     | `sweep().splXlim` / `.xlimited`, selected for the SPL chart by `P.splXmaxLimited`     |
+
+### ⚠ Assumption — NOT directly verified
+
+> **What these five toggles actually DO inside WinISD.**
+
+The bundled WinISD help (`research/winisd/help/`) predates the Advanced pane and documents none
+of them. The only primary evidence is the `.wpr` corpus, whose `[SimulatorOptions]` section
+carries `VCInd` / `FlatResponse` / `TLPorts` — and **every sampled file has all three at `0`**
+(`WINISD_WPR_FILE_SCHEMA.md` §10), so no behavioural difference could be observed. The semantics
+OpenISD implements are reasoned from the labels and from where the flags live in the file format,
+not from observation:
+
+- **`Force flat response` is read as auto-EQ**, not as a normalized display mode. The flag sits
+  in `[SimulatorOptions]` beside two physics-model flags rather than in `[PlotSettings]`, and
+  OpenISD already has a normalized-display chart (Transfer function magnitude, §17) that would
+  make a display reading redundant. Flattening a 24 dB/oct rolloff demands unbounded boost, so
+  OpenISD caps it at 20 dB and raises a warn naming the frequency where the cap binds — an
+  uncapped inverse filter would present a physically impossible design as achievable.
+- **`Simulate voice coil inductance` is read as "Le in the acoustic path"**, which is exactly the
+  circuit-model switch §9 already documents. Whether WinISD ALSO drops Le from the impedance plot
+  when unchecked is unknown; OpenISD keeps Le in the impedance plot either way (its historic
+  behaviour), so an existing design's Z curve never moves.
+- **`Rg is at driver side` is read as source-resistance placement.** OpenISD's historic behaviour
+  folds `Rs` into each driver's coil branch before the wiring scale factor, i.e. it was already
+  permanently "at driver side"; the toggle adds the amplifier-side alternative (one `Rg` in series
+  with the whole array). The two are algebraically identical for a single driver. **OpenISD
+  defaults this ON — WinISD ships it unchecked.** The default was kept at OpenISD's existing
+  behaviour so no saved design changes on upgrade; matching WinISD's default is an open question
+  (`BACKLOG.md` Q3).
+- **`Rg is at driver side` and `SPL graph is Xmax limited` have no known `.wpr` key.** They are
+  therefore NOT written to an exported project file — inventing a key would produce a file WinISD
+  misreads. Whether WinISD stores them elsewhere (app-level settings) or the corpus predates them
+  is unresolved.
+
+The transmission-line port model needs no assumption about WinISD: it is standard duct acoustics,
+and OpenISD's implementation reduces to the existing lumped port mass exactly as ω→0 (asserted to
+second order in `advanced-options.test.ts`), so enabling it never moves the box tuning. Note it
+models the PORT, not a transmission-line ENCLOSURE (quarter-wave box — still backlogged).
+
 ## 11. SpeakerBoxLite API — CORS finding
 
 **Verified 2026-06-24** via curl.

@@ -69,6 +69,22 @@ export interface WprInput {
   plot?: { color?: number; width?: number };
   /** Passive-radiator T/S — written to [PassiveRadiator] only when box.bType === 4. */
   pr?: WprPr | null;
+  /**
+   * `[SimulatorOptions]` — WinISD's per-project simulation-fidelity flags. These are real
+   * design state, not boilerplate, so they are written from the caller's actual settings.
+   * Absent → all three 0 (WinISD's own defaults). WinISD's two OTHER Advanced-pane toggles
+   * ("Rg is at driver side", "SPL graph is Xmax limited") have no known key in this format —
+   * every `.wpr` in the reference corpus lacks them — so they are deliberately NOT written
+   * rather than invented. See WINISD_WPR_FILE_SCHEMA.md §10.
+   */
+  simulatorOptions?: {
+    /** Le included in the acoustic circuit (OpenISD: circuitModel === 'gyrator'). */
+    vcInductance?: boolean;
+    /** Force flat response (auto-EQ). */
+    flatResponse?: boolean;
+    /** Transmission-line port model. */
+    tlPorts?: boolean;
+  };
 }
 
 /** Format a number the WinISD way: plain decimal, full precision, non-finite → 0. */
@@ -152,8 +168,11 @@ export function toWpr(input: WprInput): string {
       ])
     : '[PassiveRadiator]';
 
+  const sim = input.simulatorOptions;
   const simulatorOptions = section('[SimulatorOptions]', [
-    ['VCInd', 0], ['FlatResponse', 0], ['TLPorts', 0],
+    ['VCInd',        sim?.vcInductance  ? 1 : 0],
+    ['FlatResponse', sim?.flatResponse  ? 1 : 0],
+    ['TLPorts',      sim?.tlPorts       ? 1 : 0],
   ]);
 
   const sections = [
