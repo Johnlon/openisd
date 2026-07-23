@@ -82,6 +82,8 @@ describe('share link carries skin + view context but not editor/working state', 
       skin: 'classic',
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
       originalTuneOpen: true, originalWhatIf: { inputs: {} }, originalEditorOpen: true,
+      username: 'johnl', envDefaults: { tempK: 300, pressurePa: 100000, humidityPct: 40 },
+      chartColors: { background: '#ffffff' },
     },
   } as unknown as AppState;
   const drv = Driver.fromWdr(wdrText).toJSON();
@@ -115,6 +117,9 @@ describe('share link carries skin + view context but not editor/working state', 
     assert.equal('originalTuneOpen' in ui!, false);       // personal working state excluded
     assert.equal('originalWhatIf' in ui!, false);
     assert.equal('originalEditorOpen' in ui!, false);
+    assert.equal('username' in ui!, false);               // Options-dialog app-level prefs excluded
+    assert.equal('envDefaults' in ui!, false);
+    assert.equal('chartColors' in ui!, false);
     assert.equal(shared.box, 'sealed');                   // the design itself still travels
   });
 

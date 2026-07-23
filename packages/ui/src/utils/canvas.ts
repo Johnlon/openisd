@@ -46,7 +46,21 @@ export function drawOne(
     cross:    cvar('--chart-cross', '#ffffff55'),
     band:     cvar('--chart-band', 'rgba(255,255,255,0.07)'),
     bandLine: cvar('--chart-band-line', 'rgba(255,255,255,0.35)'),
+    // A DIFFERENT custom property from the skin's own `--chart-bg` (used elsewhere for the
+    // .gpanel div's background, and inherited by every canvas — reading THAT one here would
+    // make every render see a non-empty value and always fillRect, even with no user override).
+    // `--chart-bg-override` is only ever set inline on the canvas by GraphPanel.vue when the
+    // user has actually picked one in Options → Plot Window → Colors, so it stays empty (no
+    // fillRect, transparent canvas as today) until then.
+    bg:       cvar('--chart-bg-override', ''),
+    // The amber trace used for the Pe(power)-limited segment of an Xmax/Pe-split curve — the
+    // one hardcoded chart-line color left in this file, and the closest OpenISD equivalent to
+    // WinISD's "Xmax limit" Options swatch (see OptionsModal.vue header comment: WinISD's own
+    // Xmax-limited segment reuses the trace's own per-project color, not a single constant, so
+    // this override customizes the Pe-limited tint, not literally an "Xmax-limited" tint).
+    peLimit:  cvar('--chart-pelimit', '#ffb454'),
   };
+  if (COL.bg) { ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H); }
 
   const m = { l:44, r:10, t:18, b:20 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
@@ -78,14 +92,13 @@ export function drawOne(
   }
 
   // series
-  const PE_LIMIT_COLOR = '#ffb454';
   for (const s of plotData.series) {
     if (s.phantom) continue;
     ctx.lineWidth = s.dash ? 1.1 : 1.7;
     if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
     if (s.xlim) {
       // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
-      for (const [isXlim, passColor] of [[true, s.color], [false, PE_LIMIT_COLOR]] as const) {
+      for (const [isXlim, passColor] of [[true, s.color], [false, COL.peLimit]] as const) {
         ctx.strokeStyle = passColor;
         ctx.beginPath(); let started = false;
         for (let i = 0; i < s.xs.length; i++) {

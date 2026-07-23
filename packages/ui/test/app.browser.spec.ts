@@ -430,3 +430,48 @@ test('Options dialog → Units → "Reset to Metric" reverts a toggled field wit
   await expect(vb).toHaveValue('12.00');
   expect(await readVb()).toBeCloseTo(siBefore, 9); // the stored SI design is untouched
 });
+
+test('Options dialog → General → Username persists across a reload (local-only pref)', async ({ page }) => {
+  await page.getByRole('button', { name: 'Options' }).click();
+  await page.locator('.opt-modal .opt-input').fill('johnl');
+  await page.locator('.opt-modal .opt-ok').click();
+
+  await page.reload();
+  await page.waitForFunction(() => window._selfTestDone === true, { timeout: 5000 }).catch(() => {});
+  await page.getByRole('button', { name: 'Options' }).click();
+  await expect(page.locator('.opt-modal .opt-input')).toHaveValue('johnl');
+});
+
+test('Options dialog → Plot Window → Colors: a Background override actually paints the chart canvas', async ({ page }) => {
+  await page.getByRole('button', { name: 'Options' }).click();
+  await page.getByRole('button', { name: 'Plot Window' }).click();
+  const bgInput = page.locator('.opt-color-row', { hasText: 'Background' }).locator('input[type="color"]');
+  await bgInput.evaluate((el: HTMLInputElement) => { el.value = '#ff00ff'; el.dispatchEvent(new Event('input')); });
+  await page.locator('.opt-modal .opt-ok').click();
+
+  const canvas = page.locator('#ggrid canvas').first();
+  const pixel = await canvas.evaluate((el: HTMLCanvasElement) => {
+    const ctx = el.getContext('2d')!;
+    const dpr = window.devicePixelRatio || 1;
+    const d = ctx.getImageData(2 * dpr, 2 * dpr, 1, 1).data;
+    return [d[0], d[1], d[2]];
+  });
+  expect(pixel).toEqual([255, 0, 255]);
+});
+
+test('Options dialog → Plot Window → Limits: setting SPL Start/End flags the SPL chart as manually-ranged', async ({ page }) => {
+  await page.getByRole('button', { name: 'Options' }).click();
+  await page.getByRole('button', { name: 'Plot Window' }).click();
+  const splRow = page.locator('.opt-limits tr', { hasText: 'SPL' });
+  const [start, end] = [splRow.locator('input').nth(0), splRow.locator('input').nth(1)];
+  await start.fill('50');
+  await start.dispatchEvent('change');
+  await end.fill('100');
+  await end.dispatchEvent('change');
+  await page.locator('.opt-modal .opt-ok').click();
+
+  // Same mechanism the chart's own drag-to-zoom writes to (state.yRanges) — GraphPanel.vue
+  // reflects an active override with the 'y-manual' class on the SPL chart's panel.
+  const splPanel = page.locator('#ggrid .gpanel', { has: page.locator('.gtitle', { hasText: 'SPL response' }) });
+  await expect(splPanel).toHaveClass(/y-manual/);
+});

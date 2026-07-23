@@ -255,9 +255,11 @@ const driveV = computed<number>({
 // ---- Advanced tab: environment (not modelled by the engine yet — honest static
 // defaults + one live derivation). The 5 checkboxes are inert placeholders, as in the
 // Classic skin: shown for parity, clearly not wired to the sweep. -------------------
-const advTemp = ref(293.15);
-const advHumidity = ref(30.0);
-const advPressure = ref(101325.0);
+// Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
+// not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
+const advTemp = ref(state.ui.envDefaults.tempK);
+const advHumidity = ref(state.ui.envDefaults.humidityPct);
+const advPressure = ref(state.ui.envDefaults.pressurePa);
 const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
 const advChecks = reactive({ vc: false, flat: false, tl: false, rg: false, xmax: false });
 
