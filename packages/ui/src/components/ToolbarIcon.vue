@@ -47,7 +47,23 @@ defineProps<{
     <circle cx="15" cy="13" r="2.6" fill="#5f5f5f"/>
   </svg>
   <svg v-else-if="name === 'options'" width="19" height="19" viewBox="0 0 26 26">
-    <path d="M17 4 a5 5 0 0 0-6.5 6.4 L4 17 l4.6 4.6 6.6-6.5 A5 5 0 0 0 21.6 8.6 l-3 3-2.2-2.2 3-3 A5 5 0 0 0 17 4Z" fill="#8ea2b8" stroke="#5b6b7d"/>
+    <!-- A real open-end/combination wrench (docs/winisd/view_1_driver_drivers_standard.png toolbar) —
+         a diagonal handle with a bigger head at one end and a smaller head at the other, each head
+         a ring with a wedge "bite" cut out to form the open jaw. The bite is a MASK (true alpha
+         cutout), not a background-colored patch, so the icon reads correctly on any skin's toolbar
+         background instead of only the one color it was drawn against. -->
+    <defs>
+      <mask id="wrenchBite">
+        <rect x="0" y="0" width="26" height="26" fill="#fff"/>
+        <rect x="16.5" y="0" width="7" height="7" fill="#000" transform="rotate(45 20 3.5)"/>
+        <rect x="0" y="17" width="6" height="6" fill="#000" transform="rotate(45 5.5 20.5)"/>
+      </mask>
+    </defs>
+    <g mask="url(#wrenchBite)">
+      <path d="M7.5 18.5 L18 8" stroke="#8ea2b8" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="20" cy="6" r="5.6" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.2"/>
+      <circle cx="5.5" cy="20.5" r="4.4" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.2"/>
+    </g>
   </svg>
   <svg v-else-if="name === 'info'" width="19" height="19" viewBox="0 0 26 26">
     <circle cx="13" cy="13" r="11" fill="#2f8fe0" stroke="#1c6db3"/>
