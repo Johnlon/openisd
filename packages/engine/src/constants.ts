@@ -18,3 +18,10 @@ export const P0  = 20e-6;    // SPL reference       Pa RMS  (0 dB SPL)
 // (open into the box) — WinISD's own default (Vents tab "End Correction" field;
 // see docs/winisd/view_3_ported.png).
 export const END_CORRECTION = 0.732;  // × vent diameter, per open (unflanged) end
+
+// Default ceiling on the force-flat auto-EQ boost (WinISD Advanced: "Force flat response").
+// A vented box rolls off at 24 dB/oct, so an unbounded inverse filter would demand 40+ dB of
+// boost an octave below Fb — physically absurd (the excursion it implies exceeds any driver's
+// Xmax by orders of magnitude). 20 dB is a 10× voltage boost: enough to flatten a realistic
+// passband ripple, small enough that the result stays a design a real amplifier could drive.
+export const FLAT_MAX_BOOST_DB = 20;

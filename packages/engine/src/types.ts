@@ -149,6 +149,30 @@ export interface SweepParams {
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
   vcTempRise?: number;
   alfaVC?: number;
+  // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
+  /**
+   * Source resistance placement (WinISD Advanced: "Rg is at driver side").
+   * true/absent — Rs sits in series with EACH driver, so it scales with the array
+   *               (n in parallel → Rs/n). This is OpenISD's historic behaviour.
+   * false       — one Rs in series with the whole array, at the amplifier.
+   * Identical either way when nDrivers is 1.
+   */
+  rgAtDriverSide?: boolean;
+  /**
+   * Model the vent as a lossy acoustic transmission line instead of a lumped mass
+   * (WinISD Advanced: `Use "transmission line"-model for port simulation`, .wpr TLPorts).
+   * Adds the duct's own half-wave pipe resonances at c/(2·Leff); reduces to the lumped
+   * model exactly as ω→0. Applies to `vented` and `bandpass4`; absent/false = lumped.
+   */
+  tlPortModel?: boolean;
+  /**
+   * Auto-EQ the system flat (WinISD Advanced: "Force flat response", .wpr FlatResponse).
+   * Applies the frequency-dependent line-level gain that lifts every point to the passband
+   * reference, so the excursion/velocity/max-SPL curves show what flattening costs.
+   */
+  forceFlatResponse?: boolean;
+  /** Ceiling on the force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */
+  flatMaxBoostDb?: number;
 }
 
 /** Circuit solution at a single frequency. */
@@ -173,6 +197,22 @@ export interface SweepResult {
   zmag: number[];
   zph: number[];
   gd: number[];
+  /**
+   * SPL with the drive backed off wherever peak excursion would exceed Xmax
+   * (WinISD Advanced: "SPL graph is Xmax limited"). Always computed, never substituted
+   * for `spl`: the plain curve still feeds the transfer-function chart, the F3/F6/F10
+   * read-outs and every compare trace. Equals `spl` where the driver stays within Xmax,
+   * and where the driver publishes no Xmax at all.
+   */
+  splXlim: number[];
+  /** `true` at each frequency where `splXlim` had to back the drive off. */
+  xlimited: boolean[];
+  /**
+   * Lowest frequency (Hz) at which force-flat's boost hit `flatMaxBoostDb`, or null if
+   * the clamp never bound (including when force-flat is off). Surfaced as a warn by
+   * `classifyFlatClamp` — a clamped "flat" response is not flat, and must not look it.
+   */
+  flatClamped: number | null;
 }
 
 /** Max-SPL / max-power output. `xlim[i]` = Xmax is the limiting factor at point i. */
