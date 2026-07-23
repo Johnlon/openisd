@@ -21,8 +21,12 @@ crosses the current design's curve — one on hover, one per edge of a drag-sele
 comparing levels across a band no longer means eyeballing against the grid.
 
 Honest naming and reachable controls. "+ Compare" is now "+ Clone/Compare" (it clones a
-snapshot), and an overlay's ✕ remove moved to the LEFT of its name, visible at rest, instead
-of a hover-revealed control off the right edge.
+snapshot), Projects rows are plain [checkbox] Name with click-to-select, and a visible
+✕ Close button under the list removes the selected overlay — the action row mimics WinISD's
+right-click project menu instead of hiding a hover-revealed ✕ off the row's right edge.
+The drag-select readout also stops printing the same span twice (now a single Δ), and the
+mock-only Entered/Calculated/Not-available swatch legend is gone from the content panel —
+not a WinISD element; the colour semantics belong to the driver editor.
 
 Recorded, not lost: the "open project appears to do nothing" bug is root-caused in
 BACKLOG.md (importFile drops project meta + compare overlays; the Projects list never shows

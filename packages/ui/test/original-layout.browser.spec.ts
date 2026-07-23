@@ -43,7 +43,7 @@ async function levelLineClusters(page: Page): Promise<number> {
 }
 
 test('the pin button is named ＋ Clone/Compare', async ({ page }) => {
-  await expect(page.locator('.quad-projects-wrap .link-btn')).toHaveText(/Clone\/Compare/);
+  await expect(page.locator('.quad-projects-wrap .link-btn').first()).toHaveText(/Clone\/Compare/);
 });
 
 test('project rows are [checkbox] Name only; the Close button under the list removes the SELECTED overlay', async ({ page }) => {
