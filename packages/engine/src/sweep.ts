@@ -12,12 +12,29 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2008
  */
 
-import { RHO, P0 } from './constants.js';
+import { RHO, P0, FLAT_MAX_BOOST_DB } from './constants.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { withAddedMass } from './driver.js';
 import { applyFilters } from './filters.js';
 import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
+
+/** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
+const SILENCE_DB = -190;
+
+/**
+ * The passband reference level of an SPL curve, in dB — the peak of the real curve,
+ * ignoring the silence sentinel so a single dead point can't define the reference.
+ *
+ * ONE definition, shared by everything that needs "0 dB is here": the transfer-function
+ * chart's normalisation, the F3/F6/F10 read-outs, and force-flat's EQ target. Returns 0
+ * for an all-silent curve (a −200 dB "reference" is not a reference).
+ */
+export function passbandRef(spl: number[]): number {
+  let ref = -Infinity;
+  for (const v of spl) if (Number.isFinite(v) && v > SILENCE_DB && v > ref) ref = v;
+  return ref === -Infinity ? 0 : ref;
+}
 
 /**
  * Unwrap a phase array (radians) to remove ±π discontinuities.
@@ -89,7 +106,62 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     // τg = −dφ/dω  https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
     gd.push(dw !== 0 ? -(ph[b] - ph[a]) / dw * 1000 : 0);
   }
-  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd };
+
+  // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the
+  // passband reference, applied as a REAL line-level gain: SPL flattens and the excursion /
+  // port-velocity / max-SPL curves show what that costs. Real gain ⇒ phase and group delay
+  // are untouched, and Zel never sees it (the EQ is upstream of the amplifier), exactly as
+  // applyFilters treats the filter chain.
+  let flatClamped: number | null = null;
+  if (P.forceFlatResponse) {
+    const ref      = passbandRef(spl);
+    const maxBoost = P.flatMaxBoostDb ?? FLAT_MAX_BOOST_DB;
+    for (let i = 0; i < fs.length; i++) {
+      if (!Number.isFinite(spl[i]) || spl[i] <= SILENCE_DB) continue;  // no gain resurrects silence
+      const want = ref - spl[i];
+      if (want <= 0) continue;
+      const gDb = Math.min(want, maxBoost);
+      if (want > maxBoost && flatClamped === null) flatClamped = fs[i];
+      const a = Math.pow(10, gDb / 20);
+      spl[i]  += gDb;
+      exc[i]   *= a;
+      excPR[i] *= a;
+      pv[i]    *= a;
+      H[i] = cScale(H[i], a);
+    }
+  }
+
+  // Xmax-limited SPL (WinISD Advanced) — how loud the design can actually play at each
+  // frequency before the cone runs out of linear travel. Computed unconditionally as its
+  // OWN curve: `spl` still feeds the transfer-function chart, the F3/F6/F10 read-outs and
+  // every compare trace, so it must never be clamped in place.
+  const Xmax = (drv.Xmax != null && Number.isFinite(drv.Xmax) && drv.Xmax > 0) ? drv.Xmax : null;
+  const splXlim: number[] = [], xlimited: boolean[] = [];
+  for (let i = 0; i < fs.length; i++) {
+    const xPeak = exc[i] / 1000;                                  // exc is mm; Xmax is metres
+    const over  = Xmax !== null && Number.isFinite(xPeak) && xPeak > Xmax;
+    xlimited.push(over);
+    splXlim.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
+  }
+
+  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, splXlim, xlimited, flatClamped };
+}
+
+/**
+ * Postcondition: force-flat's boost ceiling bound somewhere, so the "flat" response is not
+ * flat below that frequency. Surfaced through the same issue channel as classifyFinite —
+ * a silently truncated inverse filter would read as a design that flattens for free.
+ * Returns null when force-flat is off or the clamp never bound.
+ */
+export function classifyFlatClamp(sw: SweepResult): DriverError | null {
+  if (sw.flatClamped === null) return null;
+  const f = sw.flatClamped;
+  return {
+    level: 'warn',
+    field: 'forceFlatResponse',
+    message: `Force-flat needs more than the allowed boost below ${f >= 100 ? f.toFixed(0) : f.toFixed(1)} Hz — `
+           + 'the response there is still rolled off, not flat.',
+  };
 }
 
 /**

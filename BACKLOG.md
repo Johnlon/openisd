@@ -234,7 +234,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Filters OpenISD lacks: **all-pass, raised-cosine delay, static gain**, high/low **shelf**. WinISD: Filters.
 - [ ] **P2** Driver fields OpenISD lacks: **Xlim**, **USPL**; figure-of-merit read-outs (Rme, gamma, Mpow, Mcost, SPLmax). WinISD: Parameters/Advanced tabs.
 - [ ] **P2** Charts OpenISD lacks: **amplifier apparent load power (VA)**, port **gain** (vs velocity), intrachamber port velocity (needs 6th-order BP).
-- [ ] **P2** Loading/model options: **isobaric (Iso-Barik)**, **transmission-line port**, **force-flat response**, **Rg-at-driver-side**, **SPL-graph-Xmax-limited**.
+- [ ] **P2** Loading/model options: **isobaric (Iso-Barik)**, **transmission-line port**, **force-flat response**, **Rg-at-driver-side**, **SPL-graph-Xmax-limited**, **simulate voice coil inductance**. The five WinISD Advanced-pane toggles are designed in [PLAN_ADVANCED_SIM_OPTIONS.md](PLAN_ADVANCED_SIM_OPTIONS.md) — they exist today as **inert checkboxes** in the Original and Classic skins (bound to shell-local refs nothing reads) and are absent from Modern. Isobaric is not covered by that plan and stays open here.
 - [ ] **P2** Driver **added mass to cone** (WinISD has it for the driver, not just the PR).
 - [ ] **P3** Metric ↔ imperial **unit switching** (OpenISD is metric-only).
 
@@ -381,6 +381,44 @@ per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
 
 - [ ] **P3** Replace `has_woofer` / `has_tweeter` booleans with a single `sections: [...]` array in the drivers bundle. Today `scripts/bundle-drivers.mjs:85-86` bakes two booleans by regex-testing the `_meta.yml` sidecar for `specs.woofer` / `specs.tweeter` section keys (i.e. they are _literally_ "does `specs.<section>` exist"), consumed by `packages/ui/src/components/DriverBrowser.vue` `classifyTypes()` (`:119` coax = `hasWoofer && hasTweeter`, `:122` tweet fallback, `:134` woofer fallback). Asymmetry: there is **no** `has_passive_radiator` — PR is handled only via name-regex/`driver_type`. A `sections` array (faithful projection of the sidecar's `specs.*` keys) is more consistent (absorbs `passive_radiator` and any future section with no new field), extends without schema churn, and simplifies the coax test to `sections.includes('woofer') && sections.includes('tweeter')`. Processing is not harder (`.includes()` ≈ boolean). Cost: small bundle-size increase (omit when empty, as booleans are already omitted when false). Two-file change: producer `bundle-drivers.mjs` + consumer `DriverBrowser.vue`. Prompted 2026-07-17.
 - [ ] **P3** Shared driver-type taxonomy (single source of truth) — cross-repo with `winisd_tools`. `classifyTypes()`'s `driver_type → chips` slice duplicates the `driver_type → spec section` mapping the scraper already owns in `winisd_tools` `emit_metadata.py` `_specs_for()`. A canonical taxonomy table (`driver_type → {section, chips, search synonyms}`) consumed by both the Python emitter and this bundle build would de-duplicate the `driver_type` fact. The name-regex + Fs/Sd numeric fallbacks (`DriverBrowser.vue:145-147`) must stay — they classify sources with a missing/unreliable `driver_type` (matt/, PE, community) that no lookup can cover. Full write-up in `winisd_tools/TODO.md` (New-pipeline backlog).
+
+---
+
+## ❓ Open questions — deferred decisions
+
+Questions raised by the agent that await a human ruling. Mark resolved inline with the ruling.
+
+### WinISD Advanced-pane toggles — [PLAN_ADVANCED_SIM_OPTIONS.md](PLAN_ADVANCED_SIM_OPTIONS.md) (raised 2026-07-23)
+
+| #   | Question                                                                                                                                              | Blocks        | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------ |
+| Q1  | `Force flat response`: auto-EQ (recommended) or display normalization? The `.wpr` corpus has the flag but never set, so behaviour is ⚠ unverified.    | Feature B     | Open   |
+| Q2  | If auto-EQ: what maximum boost may the clamp allow, and is a `warn` where it binds acceptable?                                                        | Feature B     | Open   |
+| Q3  | `Rg is at driver side` default — match WinISD (unchecked = amp side, which **moves the two 2-driver golden fixtures**) or preserve today's behaviour? | Feature D     | Open   |
+| Q4  | Should the plotted impedance `Zel` include `Rg` when `Rg` sits at the amplifier side? (It includes `Rs` today.)                                       | Feature D     | Open   |
+| Q5  | With `VCInd` off, does `Le` also leave the _impedance_ plot, or only the acoustic path (today's behaviour)?                                           | Feature A     | Open   |
+| Q6  | `Rg-at-driver-side` and `SPL-Xmax-limited` have no known `.wpr` key — leave them out of exported project files (recommended), or invent keys?         | `.wpr` export | Open   |
+| Q7  | Absent-`Le` NaN bug (below) — fix inside feature A as `Le ?? 0`, or track as its own item?                                                            | Feature A     | Open   |
+| Q8  | Modern skin has no Advanced pane — add a shared `AdvancedPanel.vue` fieldset (recommended), or leave Modern without the five toggles?                 | Feature scope | Open   |
+
+### Narrow-screen behaviour — Original shell overlap + mobile design (raised 2026-07-23)
+
+Reported by the human with a screenshot: at a narrow window the Original shell's Advanced pane
+paints labels and inputs **on top of each other** (real WinISD merely truncates). Root cause is
+`.two-col > div { flex:0 1 auto; min-width:0 }` (`packages/ui/src/shells/original/OriginalShell.vue:1055-1056`)
+— the columns shrink to zero while their `.field` contents keep intrinsic width and overflow
+visibly, with `.content-panel { overflow:hidden }` (line 1048) suppressing any scrollbar that
+would reveal it.
+
+| #   | Question                                                                                                                                                                                                  | Blocks         | Status |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ |
+| Q9  | Original shell narrow behaviour: WinISD-faithful **clip + scroll** (recommended — no reflow, fidelity preserved), or **reflow** the panes below a breakpoint?                                             | Overlap bug    | Open   |
+| Q10 | Does the Original shell get a hard **minimum width** below which the whole app scrolls horizontally (recommended ~1024px), or must every width stay usable without scroll?                                | Overlap bug    | Open   |
+| Q11 | Mobile target: harden the existing **Modern** shell (already has a 720px breakpoint + Controls/Graphs tabs, `ModernShell.vue:15-34`, `style.css:130`) — recommended — or add a fourth **`mobile` shell**? | Phase 6 mobile | Open   |
+| Q12 | Should `auto` skin resolution become viewport-aware (pick the responsive shell on coarse-pointer/narrow), or stay a fixed alias for `modern` (`skins.ts:33-36`)?                                          | Phase 6 mobile | Open   |
+
+- [ ] **BUG / P2 — Original shell overlaps its own fields at narrow widths.** See Q9/Q10 above. `[ui]`
+- [ ] **BUG / P2 — a driver with no `Le` makes the whole impedance curve `NaN`, reported as a fatal simulation error.** Directly observed 2026-07-23: `deriveDriver()` neither defaults nor validates `Le` (returns `errors: []`, `d.Le === undefined`), so `circuit.ts:65` evaluates `cx(0, w * drv.Le!)` → `NaN`, making `Zel` non-finite at every frequency. `classifyFinite()` (`packages/engine/src/sweep.ts:139-140`) then reports "Simulation produced no usable values — check the box volume and driver parameters", which names the wrong cause. Reproduced with the demo 6.5" woofer's parameters minus `Le` (`Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Xmax:0.005, Pe:60`) → `zmag: [NaN, NaN, NaN, NaN, NaN]` with `spl` finite. `[unit]`
 
 ---
 
