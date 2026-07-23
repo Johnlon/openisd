@@ -40,7 +40,7 @@ export const state: AppState = reactive({
   defineOpen:   false,
   driverSource: null,  // snapshot of the last driver loaded from the library — used for reset
   yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
-  ui:           { skin: 'auto', unitTokens: {} },  // local-only presentation prefs; never shared (persist.ts)
+  ui:           { skin: 'auto', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
   project:      { name: '', creator: '', created: '', modified: '', description: '' },
 });
 

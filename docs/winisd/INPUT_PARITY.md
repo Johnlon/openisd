@@ -87,13 +87,15 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 
 ## Project pane (`view_7_advanced.png`) — Creator/Created/Modified/Description metadata. OpenISD saves projects but has no per-project author/date/description fields. ⚠️
 
-## App Options (`options_general.png`)
+## App Options (`options_general.png`, `options_plot_window.png`)
 
-| WinISD                                                         | OpenISD           |
-| -------------------------------------------------------------- | ----------------- |
-| Environment defaults (Temp/Humidity/Pressure → Sound velocity) | ❌                |
-| **Units: metric ↔ imperial**                                   | ❌ metric only    |
-| Plot Window options (`options_plot_window.png`)                | not detailed here |
+| WinISD                                                             | OpenISD                                                                                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Username field                                                     | ✅                                                                                                                  |
+| Environment defaults (Temp/Air pressure/Humidity → Sound velocity) | ✅ (app-level default seeding a shell's Advanced pane, not a per-project field)                                     |
+| **Units: metric ↔ imperial**                                       | ✅ per-field unit cycling + "Reset to Metric" button                                                                |
+| Plot Window → Colors (6 swatches)                                  | ✅ 4 of 6 (background/gridlines/labels/Pe-limit trace); 0 dB/-3 dB lines shown but inactive — no matching chart yet |
+| Plot Window → Limits (per-chart-type Start/End table)              | ✅ (writes the same per-chart Y-axis override the drag-to-zoom gesture uses)                                        |
 
 ---
 

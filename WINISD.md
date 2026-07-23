@@ -585,6 +585,22 @@ follow. `R(t)`/`C(t)` (time-evolution of ΔT) were NOT tested and are bypassed w
 sweep assumes a cold, constant `Re` and ignores driver added-mass. See BACKLOG (power-compression model;
 driver-side added mass). The field registry entries stay `modeled: false` until implemented.
 
+### ⚠ Assumption — NOT directly verified
+
+> **WinISD's Options → General "Environment" group (Temperature/Air pressure/Relative
+> humidity) seeds a brand-new project's own Advanced-pane values.**
+
+`docs/winisd/options_general.png` and `view_6_advanced.png` show identical values (293.15 K /
+101325.0 Pa / 30.0000% / 343.68 m/s), consistent with the Options dialog's Environment group
+being the app-level default that a new WinISD project's Advanced pane starts from. This has not
+been confirmed by creating a fresh WinISD project after changing the Options dialog's values.
+
+OpenISD implements the corresponding behaviour as its own design choice regardless of this
+being unverified in real WinISD: `state.ui.envDefaults` (Options dialog → General → Environment)
+seeds `OriginalShell.vue`/`ClassicShell.vue`'s local Advanced-pane refs on mount, replacing what
+was a hardcoded literal — an already-open project's Advanced-pane values are never overwritten
+by editing the Options dialog. See BACKLOG.md (Options dialog entry).
+
 ## 11. SpeakerBoxLite API — CORS finding
 
 **Verified 2026-06-24** via curl.

@@ -8,6 +8,23 @@
 
 ---
 
+## 2026-07-23 — Options dialog fleshed out: username/environment defaults, chart colors, per-chart axis limits
+
+The Options dialog (wrench/tools icon, every skin) previously only had WinISD's "Reset to
+Metric" button — its Username field, Environment group, and entire Plot Window tab were
+placeholders. Now: a **Username** field and an **Environment** group (Temperature/Air
+pressure/Relative humidity, plus a derived Sound velocity readout) that set the app-level
+defaults a project's Advanced pane starts from — previously that starting point was a fixed
+literal baked into the code, so it could never be changed without editing source. The **Plot
+Window** tab adds a **Colors** group (background, gridlines, axis labels, and the amber
+power-limited trace tint are now user-pickable, live-applied to every chart) and a **Limits**
+table that sets each chart's default zoom level (reusing the same mechanism the existing
+drag-to-zoom gesture writes to, so an untouched chart still auto-scales as before). Two of
+WinISD's six chart colors (the 0 dB / -3 dB reference lines) are shown but inactive — OpenISD
+has no separate 0 dB-normalized transfer-function chart to draw them on yet, so they're marked
+rather than faked. Username/environment defaults/chart colors are personal preferences, kept out
+of shared links.
+
 ## 2026-07-22 — Save/Save-As-&-Export unified across all skins; icons match real WinISD; share links now restore skin+tab
 
 Project Save was three inconsistent, duplicated buttons on the Original toolbar (two of them

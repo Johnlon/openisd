@@ -793,6 +793,22 @@ test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit
   expect(await readMadd()).toBeCloseTo(siBefore, 9); // the stored SI value is untouched
 });
 
+test('Original skin: Options → General → Environment default seeds a fresh mount\'s Advanced-pane Temperature (not a hardcoded literal)', async ({ page }) => {
+  await page.locator('.tb-btn[title="Options"]').click();
+  await expect(page.locator('.opt-modal')).toBeVisible();
+  const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[type="number"]');
+  await envTemp.fill('300');
+  await envTemp.dispatchEvent('input');
+  await envTemp.blur();
+  await page.locator('.opt-modal .opt-ok').click();
+
+  await page.reload();
+  await page.waitForFunction(() => window._selfTestDone === true, { timeout: 5000 }).catch(() => {});
+  await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+  const advTemp = page.locator('.tab-section.active .field', { hasText: 'Temperature' }).locator('input');
+  await expect(advTemp).toHaveValue('300.00');
+});
+
 test('Original skin: Options dialog is centered on screen, not pinned to the top (own overlay, not the shell\'s)', async ({ page }) => {
   await page.locator('.tb-btn[title="Options"]').click();
   const overlay = page.locator('.opt-overlay');
