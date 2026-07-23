@@ -42,9 +42,11 @@ const driveV = computed(() => driveVoltage(state.P.Pin ?? 1, driver.value?.Re ||
 
 // Advanced tab — environment params are not modelled by the engine yet (screens-first):
 // static WinISD-default values/derived readouts, and the 5 checkboxes are inert for now.
-const advTemp = ref(293.15);
-const advHumidity = ref(30.0);
-const advPressure = ref(101325.0);
+// Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
+// not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
+const advTemp = ref(state.ui.envDefaults.tempK);
+const advHumidity = ref(state.ui.envDefaults.humidityPct);
+const advPressure = ref(state.ui.envDefaults.pressurePa);
 const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
 const advAirDensity = ref(1.20095);
 const advSimVcInductance = ref(false);

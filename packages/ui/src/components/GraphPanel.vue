@@ -49,6 +49,22 @@ const viewPlot  = computed(() => {
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { delete state.yRanges[props.tabId]; }
 
+// Options dialog → Plot Window → Colors: user overrides for the 4 swatches OpenISD has a real
+// hook for (grid/label/background/Pe-limit-trace — see canvas.ts + OptionsModal.vue header
+// comment for which of WinISD's 6 swatches this covers). Passed to canvas.ts as CSS custom
+// properties on the canvas element itself — the SAME mechanism canvas.ts already used to read
+// the dark-skin defaults, so an absent override still falls through to the skin's own CSS.
+const canvasColorVars = computed(() => {
+  const c = state.ui.chartColors;
+  if (!c) return {};
+  const v: Record<string, string> = {};
+  if (c.otherLines) v['--chart-grid'] = c.otherLines;
+  if (c.labels)     v['--chart-text'] = c.labels;
+  if (c.background) v['--chart-bg-override'] = c.background;
+  if (c.xmaxLimit)  v['--chart-pelimit'] = c.xmaxLimit;
+  return v;
+});
+
 const effectiveF = computed(() =>
   state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
 );
@@ -335,12 +351,13 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocClick);
 });
 
-watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
+watch([viewPlot, effectiveF, localDragRange, blocked, canvasColorVars], redraw, { flush: 'post' });
 </script>
 
 <template>
   <div class="gpanel" :class="{ 'y-manual': !!yOverride }">
     <canvas ref="canvasEl"
+            :style="canvasColorVars"
             @pointerdown="onPointerDown"
             @pointerup="onPointerUp"
             @pointermove="onPointerMove"

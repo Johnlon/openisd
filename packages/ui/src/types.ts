@@ -192,6 +192,20 @@ export interface UiState {
    *  unit. Local-only presentation preference: persisted across refresh, stripped from share
    *  links (a recipient keeps their own unit-display preference). */
   unitTokens?: Record<string, string>;
+  /** Options dialog → General tab "Username" field (WinISD parity). Local-only identity
+   *  preference — persisted across refresh, stripped from share links. */
+  username?: string;
+  /** Options dialog → General tab "Environment" group (WinISD parity: Temperature/Air
+   *  pressure/Relative humidity — Sound velocity is derived, not stored). These are
+   *  APP-LEVEL defaults, distinct from a project's own Advanced-pane values: they only seed
+   *  a shell's Advanced-pane refs on mount (replacing what used to be a hardcoded literal),
+   *  they never overwrite an already-open project. Local-only, stripped from share links. */
+  envDefaults: { tempK: number; pressurePa: number; humidityPct: number };
+  /** Options dialog → Plot Window tab "Colors" group (WinISD parity, partial — see
+   *  OptionsModal.vue header comment for which of WinISD's 6 swatches have a real OpenISD
+   *  hook). Absent key = the skin's own default (CSS custom property / hardcoded constant).
+   *  Local-only presentation preference, stripped from share links. */
+  chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit', string>>;
 }
 
 /** The reactive application state held in the store. */
