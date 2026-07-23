@@ -47,22 +47,26 @@ defineProps<{
     <circle cx="15" cy="13" r="2.6" fill="#5f5f5f"/>
   </svg>
   <svg v-else-if="name === 'options'" width="19" height="19" viewBox="0 0 26 26">
-    <!-- A real open-end/combination wrench (docs/winisd/view_1_driver_drivers_standard.png toolbar) —
-         a diagonal handle with a bigger head at one end and a smaller head at the other, each head
-         a ring with a wedge "bite" cut out to form the open jaw. The bite is a MASK (true alpha
-         cutout), not a background-colored patch, so the icon reads correctly on any skin's toolbar
-         background instead of only the one color it was drawn against. -->
+    <!-- A real open-end wrench (docs/winisd/view_1_driver_drivers_standard.png toolbar, cropped
+         close up) — a slender, mostly-horizontal handle with a two-pronged open FORK at one end
+         and a small ring loop at the other, tilted ~20°. (An earlier attempt used a diagonal bar
+         with a full ring at each end and a bite cut from it — that reads as a dumbbell/lollipop,
+         not a tool, because a real spanner's jaw is an open fork at the very tip, not a notch
+         bitten out of a ring's middle.) The fork's gap is a MASK (true alpha cutout) so it reads
+         correctly on any skin's toolbar background. -->
     <defs>
-      <mask id="wrenchBite">
+      <mask id="wrenchFork">
         <rect x="0" y="0" width="26" height="26" fill="#fff"/>
-        <rect x="16.5" y="0" width="7" height="7" fill="#000" transform="rotate(45 20 3.5)"/>
-        <rect x="0" y="17" width="6" height="6" fill="#000" transform="rotate(45 5.5 20.5)"/>
+        <rect x="17" y="11.2" width="9" height="3.6" fill="#000"/>
       </mask>
     </defs>
-    <g mask="url(#wrenchBite)">
-      <path d="M7.5 18.5 L18 8" stroke="#8ea2b8" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="20" cy="6" r="5.6" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.2"/>
-      <circle cx="5.5" cy="20.5" r="4.4" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.2"/>
+    <g transform="rotate(-22 13 13)">
+      <rect x="6.2" y="11.3" width="10.5" height="3.4" rx="1.5" fill="#adbdcd" stroke="#5b6b7d" stroke-width="1"/>
+      <g mask="url(#wrenchFork)">
+        <rect x="15.3" y="7.2" width="8.4" height="11.6" rx="2.6" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.1"/>
+      </g>
+      <circle cx="5.4" cy="13" r="3.7" fill="#c7d3de" stroke="#5b6b7d" stroke-width="1.1"/>
+      <circle cx="5.4" cy="13" r="1.4" fill="none" stroke="#5b6b7d" stroke-width="1.1"/>
     </g>
   </svg>
   <svg v-else-if="name === 'info'" width="19" height="19" viewBox="0 0 26 26">
