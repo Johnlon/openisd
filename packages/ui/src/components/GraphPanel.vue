@@ -62,6 +62,7 @@ const canvasColorVars = computed(() => {
   if (c.labels)     v['--chart-text'] = c.labels;
   if (c.background) v['--chart-bg-override'] = c.background;
   if (c.xmaxLimit)  v['--chart-pelimit'] = c.xmaxLimit;
+  if (c.cursor)     { v['--chart-cross'] = c.cursor; v['--chart-band-line'] = c.cursor; }
   return v;
 });
 

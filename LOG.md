@@ -8,6 +8,37 @@
 
 ---
 
+## 2026-07-23 — Taller chart, schema-enforced entry bounds, share links carry the band selection
+
+No numeric field can go out of range any more. Every field's min/max lives in the field
+registry (both bounds now mandatory, in the model's SI units) and is actually enforced:
+NumInput reads the registry bounds from its field binding, and every raw number input
+carries a v-limits directive that blocks the spinner at the bounds and clamps typed
+out-of-range values. Two mechanical gates keep it that way — a scan that fails the suite
+on any unconstrained numeric input, and a registry test that fails on a missing bound.
+
+A shared link now reproduces the dragged frequency selection, not just the pinned cursor.
+The band (fLo/fHi) rides in the same cursor blob a share link and local save already carry;
+each panel recomputes its own stats on load. The test that "verified" this before was
+passing vacuously (same-URL goto is a no-op navigation) — cold-open tests now force a real
+teardown, and a state-disposition gate fails the suite if any store field is ever added
+without an explicit persist-vs-transient decision again.
+
+More chart, same information. The bottom panel auto-fits its content (drag still wins),
+the tab rail is shallower, Save/Reset/Export sit in a vertical rail on the panel's right
+edge, hints sit beside their fields instead of below, the Project description fills the
+width on the right, box diagrams are 50% bigger and top-aligned, and the trace-colour
+button docks in the chart's bottom-right corner.
+
+Pick a passive radiator like you pick a driver. The PR pane has a Select PR / ✎ Edit
+header wired to the shared PR browser and editor. Cursor lines have a selectable colour
+in Options → Plot Window (fifth real rendering hook).
+
+Bugs learned from, not just fixed. Both 2026-07-23 defect classes got full recursive
+postmortems (CODE_REVIEW/POST_MORTEM.md) with preventions actioned at every level, and
+the postmortem discipline itself is now a standing CLAUDE.md rule here, mirroring
+winisd_tools.
+
 ## 2026-07-23 — Original skin: resizable/collapsible panels, chart maximise, cursor level-lines
 
 Work the chart, not around it. The Original skin's left panel and bottom section were fixed

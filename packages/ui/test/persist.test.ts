@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { Driver } from '@openisd/winisd';
 import { serialize, stateToUrl } from '../src/utils/persist.js';
-import type { AppState, UiParams } from '../src/types.js';
+import type { AppState, SerializedState, UiParams } from '../src/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(here, '..', '..', '..', 'drivers', 'sample', 'SEAS_Prestige_L19RNX1.wdr');
@@ -97,7 +97,7 @@ describe('share link carries skin + view context but not editor/working state', 
   // stateToUrl() gzips the payload before base64url — reverse both steps with Node's zlib
   // (independent of the app's own CompressionStream code path, so this is a real check of
   // what a browser would decode, not a tautology against the same implementation).
-  function decodeShare(url: string): Record<string, unknown> {
+  function decodeShare(url: string): SerializedState {
     const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
     const gzipped = Buffer.from(b64, 'base64');
     const json = gunzipSync(gzipped).toString('utf8');
@@ -151,14 +151,23 @@ describe('share link carries skin + view context but not editor/working state', 
   it('carries the graph cursor/marker (live hover + locked/pinned) — both, if both are set', async () => {
     const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
     const local = serialize(withCursor, drv, []);
-    assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true });
+    assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
 
     const shared = decodeShare(await stateToUrl(local));
-    assert.deepEqual(shared.cursor, { f: 123.4, pinnedF: 500, locked: true });
+    assert.deepEqual(shared.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
+  });
+
+  it('carries the dragged frequency band selection (fLo/fHi only — stats are per-panel derived)', async () => {
+    const withBand = { ...uiState, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as AppState;
+    const local = serialize(withBand, drv, []);
+    assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }); // stats stripped
+
+    const shared = decodeShare(await stateToUrl(local));
+    assert.deepEqual(shared.cursor!.range, { fLo: 31.6, fHi: 100 });
   });
 
   it('an unset cursor serializes as all-null/false, not omitted (no special-casing "nothing pinned")', () => {
     const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
-    assert.deepEqual(serialize(noCursor, drv, []).cursor, { f: null, pinnedF: null, locked: false });
+    assert.deepEqual(serialize(noCursor, drv, []).cursor, { f: null, pinnedF: null, locked: false, range: null });
   });
 });

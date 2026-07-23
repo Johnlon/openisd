@@ -93,7 +93,7 @@ onBeforeUnmount(stopNudge);
       <button class="nudge-btn" @pointerdown="startNudge(-1)" @pointerup="stopNudge" @pointerleave="stopNudge"
               title="Step the cursor down ~1% (hold to spin)">◄</button>
       <input class="cursor-hz"
-             type="number" min="1" max="40000" step="0.1"
+             type="number" v-limits min="1" max="40000" step="0.1"
              :value="effectiveF ? effectiveF.toFixed(1) : ''"
              @change="setCursorHz"
              placeholder="Hz" />

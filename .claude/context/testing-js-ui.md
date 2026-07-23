@@ -70,3 +70,20 @@ Run `npm run test:crosscheck` when:
 3. Map micka's values to OpenISD's display format (apply the same `toFixed` precision the stat bar uses) and fill in `openisd:`.
 4. Add the OpenISD UI wiring test to `test/app.browser.spec.js` using the frozen `openisd:` values.
 5. Commit. `npm run test:crosscheck` does not run in CI.
+
+## "Survives reload / share link / cold open" tests MUST prove the teardown happened
+
+A test claiming state survives a reload, share link, or cold open is VACUOUS unless it
+forces a real page teardown first — `page.goto(url)` to the CURRENT url (which the Share
+button has already written into the address bar) is a same-URL no-op navigation that keeps
+all in-memory state, so the assertion passes even when nothing is persisted. This exact
+vacuity hid the missing `dragRange` serialization (POST_MORTEM 2026-07-23).
+
+Rules for any such test:
+
+- Bounce through a different document first (`await page.goto('about:blank')` then the
+  target url), use `page.reload()`, or open a fresh browser context — never a bare
+  `goto(sameUrl)`.
+- Clear `localStorage` before the cold open when the claim is "the URL alone carries it".
+- Watch the test fail (or prove it CAN fail by breaking the persistence locally) before
+  trusting a green — a survives-X test that has never been seen red proves nothing.

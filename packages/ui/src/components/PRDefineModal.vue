@@ -66,32 +66,32 @@ function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); 
         </div>
         <div class="row" title="Number of passive radiators in parallel (blank = 1)">
           <label>PR count</label>
-          <input style="flex:1" type="number" step="1" min="1" v-model="nNum" placeholder="1">
+          <input style="flex:1" type="number" step="1" v-limits="{ min: 1, max: 16 }" v-model="nNum" placeholder="1">
           <span class="u"></span>
         </div>
         <div class="row" title="Effective piston area (from datasheet). WinISD: Sd. Required.">
           <label>Sd</label>
-          <input style="flex:1" type="number" step="any" v-model="nSd" placeholder="—">
+          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.1, max: 100000 }" v-model="nSd" placeholder="—">
           <span class="u">cm²</span>
         </div>
         <div class="row" title="Maximum linear one-way excursion (from datasheet). WinISD: Xmax. Optional.">
           <label>Xmax</label>
-          <input style="flex:1" type="number" step="any" v-model="nXmax" placeholder="—">
+          <input style="flex:1" type="number" step="any" v-limits="{ min: 0, max: 500 }" v-model="nXmax" placeholder="—">
           <span class="u">mm</span>
         </div>
         <div class="row" title="PR free-air resonance (no added mass, no box). WinISD: Fs. Required.">
           <label>Fs</label>
-          <input style="flex:1" type="number" step="any" v-model="nFs" placeholder="—">
+          <input style="flex:1" type="number" step="any" v-limits="{ min: 1, max: 1000 }" v-model="nFs" placeholder="—">
           <span class="u">Hz</span>
         </div>
         <div class="row" title="Mechanical Q of the PR suspension. WinISD: Qms. Required.">
           <label>Qms</label>
-          <input style="flex:1" type="number" step="any" v-model="nQms" placeholder="—">
+          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.1, max: 100 }" v-model="nQms" placeholder="—">
           <span class="u"></span>
         </div>
         <div class="row" title="Compliance volume. WinISD: Vas. Required.">
           <label>Vas</label>
-          <input style="flex:1" type="number" step="any" v-model="nVas" placeholder="—">
+          <input style="flex:1" type="number" step="any" v-limits="{ min: 0.01, max: 100000 }" v-model="nVas" placeholder="—">
           <span class="u">L</span>
         </div>
 

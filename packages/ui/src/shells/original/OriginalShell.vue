@@ -26,6 +26,7 @@ import {
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
+import type { PRLibEntry, BundledPR } from '../../types.js';
 import { RHO, C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          driveVoltage, soundVelocity } from '@openisd/engine';
@@ -37,11 +38,14 @@ import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
-import { precision as fieldDp, END_CORRECTION_OPTIONS } from '../../fields/fieldRegistry.js';
+import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../../fields/fieldRegistry.js';
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
 import DriverEditorModal from '../../components/DriverEditorModal.vue';
+import PRBrowser from '../../components/PRBrowser.vue';
+import PREditModal from '../../components/PREditModal.vue';
+import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 
 const { saveProject, exportWdr, importFile, about } = useDesignIO();
@@ -251,7 +255,8 @@ const bottomCollapsed = computed({ get: () => state.ui.originalBottomCollapsed ?
 const chartMax = computed({ get: () => state.ui.originalChartMax ?? false, set: (v: boolean) => { state.ui.originalChartMax = v; } });
 const mainStyle = computed(() => chartMax.value ? {} : {
   gridTemplateColumns: (navCollapsed.value ? '0px' : (state.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
-  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? 218) + 'px'),
+  // Bottom row: auto-fits its content until the user drags the splitter (explicit px).
+  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH != null ? state.ui.originalBottomH + 'px' : 'auto')),
 });
 function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
   const el = e.currentTarget as HTMLElement;
@@ -315,6 +320,35 @@ const optionsOpen = ref(false);
 // Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
 // Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
 function startTune() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriver = true; }
+
+// ---- PR selection header (Enclosure tab, PR box type) — mirrors the Driver tab's
+// Brand/Model + Select Driver header, but for the passive radiator. The load handlers
+// mirror PRPanel.vue's (shared PRBrowser/PRDefineModal components, same store writes).
+const prBrowseOpen = ref(false);
+const prEditOpen = ref(false);
+const prDefineOpen = ref(false);
+function loadPREntry(entry: PRLibEntry) {
+  state.P.prName = entry.name;
+  state.P.prSd   = entry.prSd;
+  state.P.prMmd  = entry.prMmd;
+  state.P.prCms  = entry.prCms;
+  state.P.prRms  = entry.prRms;
+  state.P.prXmax = entry.prXmax;
+  prBrowseOpen.value = false;
+}
+// Bundled PRs publish only Sd/Cms — blank the unpublished fields and open the editor so
+// the user supplies them (mirrors PRPanel.loadBundledPR; never leaves stale values).
+function loadBundledPREntry(pr: BundledPR) {
+  state.P.prName = pr.name;
+  if (pr.Sd  != null) state.P.prSd  = pr.Sd;
+  if (pr.Cms != null) state.P.prCms = pr.Cms;
+  state.P.prMmd  = 0;
+  state.P.prRms  = 0;
+  state.P.prXmax = 0;
+  prBrowseOpen.value = false;
+  prEditOpen.value = true;
+}
+function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = true; }
 function startEdit() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriverInfo = true; }
 
 // R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
@@ -444,7 +478,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           <div class="panel-title">Signal Generator</div>
           <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
             <label><input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate</label>
-            <input v-expo-step type="number" min="20" max="20000" step="1" v-model.number="genHz"> <span class="unit">Hz</span>
+            <input v-expo-step type="number" step="1" v-limits="limits('genHz')" v-model.number="genHz"> <span class="unit">Hz</span>
           </div>
         </div>
       </div>
@@ -470,6 +504,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </template>
           </div>
         </div>
+        <div class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
       </div>
 
       <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
@@ -490,23 +525,11 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           <li :class="{ active: activeTab === 'advanced' }" @click="activeTab = 'advanced'">Advanced</li>
           <li :class="{ active: activeTab === 'project' }" @click="activeTab = 'project'">Project</li>
         </ul>
-        <div class="color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
       </div>
 
       <!-- bottom-right quadrant: 7 tabs -->
       <div class="content-panel">
-        <!-- Save bar only — the Entered/Calculated/Not-available swatch legend was removed
-             (not a WinISD element; the field-colour semantics belong to the driver editor). -->
-        <div class="parstate-legend">
-          <div class="unsaved-indicator">
-            <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
-            <button class="save-btn" :class="{ dirty: isModified }"
-                    title="Save Changes — adopt the current design as the saved (ground) state." @click="markProjectSaved">Save Changes</button>
-            <button class="save-btn"
-                    title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
-            <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
-          </div>
-        </div>
+        <div class="content-tabs">
 
         <!-- ===== Box tab ===== -->
         <section v-show="activeTab === 'box'" class="tab-section" :class="{ active: activeTab === 'box' }">
@@ -546,14 +569,14 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
             <div class="box-fields-spacer" v-if="!isDual"></div>
             <div class="box-diagram-col">
-              <svg v-show="selectedBox === 'sealed'" id="og-box-diagram-sealed" viewBox="0 0 200 300" height="120">
+              <svg v-show="selectedBox === 'sealed'" id="og-box-diagram-sealed" viewBox="0 30 200 240" height="180">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="110" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="190" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
                 <path d="M160,110 L130,130 L130,170 L160,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="110" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'vented'" id="og-box-diagram-vented" viewBox="0 0 200 300" height="120">
+              <svg v-show="selectedBox === 'vented'" id="og-box-diagram-vented" viewBox="0 30 200 240" height="180">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="70" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="150" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -563,7 +586,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M160,70 L130,90 L130,130 L160,150" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="110" y="100" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'pr'" id="og-box-diagram-pr" viewBox="0 0 200 300" height="120">
+              <svg v-show="selectedBox === 'pr'" id="og-box-diagram-pr" viewBox="0 30 200 240" height="180">
                 <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="60" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="130" x2="160" y2="170" stroke="#0F4761" stroke-width="4"/>
@@ -572,7 +595,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <rect x="110" y="85" width="20" height="20" fill="#0F4761"/>
                 <path d="M160,170 L130,185 L130,225 L160,240" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 0 200 300" height="130">
+              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="195">
                 <polyline points="160,200 160,40 40,40 40,260 160,260 160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="40" x2="100" y2="110" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="190" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
@@ -581,7 +604,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 0 200 300" height="130">
+              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="195">
                 <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
                 <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -597,7 +620,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 0 200 300" height="130">
+              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 30 200 240" height="195">
                 <path d="M 100,20 L 100,140 M 75,140 L 125,140 M 100,180 L 100,280 M 75,180 L 125,180" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <path d="M 100,20 L 40,20 L 40,70 L 80,70" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
                 <path d="M 80,100 L 40,100 L 40,280 L 100,280" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
@@ -692,6 +715,15 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
           <!-- passive radiator -->
           <div v-else-if="selectedBox === 'pr'">
+            <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
+              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="state.P.prName || 'Custom PR'" readonly></div>
+              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select PR</button>
+              <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
+            </div>
+            <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
+              @load="loadPREntry" @load-bundled="loadBundledPREntry" @define="defineNewPREntry" />
+            <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
+            <PRDefineModal v-if="prDefineOpen" @close="prDefineOpen = false" />
             <div class="two-col">
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
@@ -709,7 +741,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
                 <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
                 <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmtU(prFsMass, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
@@ -790,7 +822,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           <div class="two-col">
             <div style="--label-w:118px;">
               <div class="field-row"><div class="field entered"><label>Temperature</label><NumInput v-model="advTemp" field="advTemp" group="temp" base="K" :precision="2" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-model.number="advHumidity"><span class="unit">%</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-limits="limits('advHumidity')" v-model.number="advHumidity"><span class="unit">%</span></div></div>
               <div class="field-row"><div class="field entered"><label>Air pressure</label><NumInput v-model="advPressure" field="advPressure" group="pressure" base="Pa" :precision="1" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
             </div>
             <p class="env-arrow">&#8594;</p>
@@ -824,6 +856,18 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </div>
           </div>
         </section>
+        </div>
+
+        <!-- Save rail — stacked on the right edge so the buttons consume no vertical space.
+             (The Entered/Calculated swatch legend was removed: not a WinISD element.) -->
+        <div class="save-rail">
+          <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved</span>
+          <button class="save-btn" :class="{ dirty: isModified }"
+                  title="Save Changes — adopt the current design as the saved (ground) state." @click="markProjectSaved">Save Changes</button>
+          <button class="save-btn"
+                  title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
+          <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
+        </div>
       </div>
     </div>
 
@@ -917,7 +961,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
    0px when a panel is collapsed); these template values are only the no-JS fallback. */
-.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px 218px;
+.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
@@ -949,8 +993,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* overflow:visible + a stacking context ABOVE the content panel lets the active
    tab extend past the column edge and paint over the panel's left spine, so it
    reads as one continuous shape with the panel (the break-through notch). */
-.quad-bottomleft { grid-area:rail; background:#e2e2e2; display:flex; flex-direction:column; padding:8px 0 8px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
-.quad-bottomleft .panel-title, .quad-bottomleft .color-btn { margin-right:8px; flex:none; }
+.quad-bottomleft { grid-area:rail; background:#e2e2e2; display:flex; flex-direction:column; padding:6px 0 6px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
+.quad-bottomleft .panel-title { margin-right:8px; flex:none; }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
 .quad-signalgen-wrap { flex:none; }
@@ -972,7 +1016,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
    shares the panel's fill and breaks 2px through the spine so it reads as a
    physical notch of the panel. The panel's #888 left border is the unifying
    vertical line the tabs hang off. */
-.project-nav li { position:relative; background:#e4e4e4; border:1px solid #888; border-right:none; border-radius:7px 0 0 7px; padding:5px 8px 5px 12px; line-height:1.3; margin:0 0 -1px 0; cursor:pointer; z-index:1; box-shadow:inset -6px 0 6px -6px rgba(0,0,0,.12); }
+.project-nav li { position:relative; background:#e4e4e4; border:1px solid #888; border-right:none; border-radius:7px 0 0 7px; padding:3px 8px 3px 12px; line-height:1.2; margin:0 0 -1px 0; cursor:pointer; z-index:1; box-shadow:inset -6px 0 6px -6px rgba(0,0,0,.12); }
 .project-nav li:hover:not(.active) { background:#dbeaff; }
 /* Active tab flares OUT into the panel with concave fillets (top-right + bottom-
    right), like a notebook tab, rather than convex corners poking in. The fillets
@@ -985,8 +1029,10 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 }
 .project-nav li.active::before { top:-8px; border-bottom-right-radius:8px; box-shadow:3px 3px 0 3px #f7f7f7; }
 .project-nav li.active::after  { bottom:-8px; border-top-right-radius:8px; box-shadow:3px -3px 0 3px #f7f7f7; }
-.color-btn { margin-top:auto; border:1px solid #999; padding:8px; text-align:center; cursor:pointer; font-weight:600; }
+.color-btn { border:1px solid #999; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
+/* Docked in the chart's bottom-right corner (graph-area is the positioning context). */
+.chart-color-btn { position:absolute; right:22px; bottom:16px; z-index:2; padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
 .graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
 .graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
 .graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
@@ -994,7 +1040,9 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:column; min-height:0; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; max-height:45vh; position:relative; z-index:0; }
+.content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
+.save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:flex-start; }
 .tab-section { display:none; }
 .tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
@@ -1002,7 +1050,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .two-col > div { flex:0 1 auto; min-width:0; }
 .box-layout { display:flex; gap:24px; align-items:flex-start; }
 .box-fields-col { flex:none; width:194px; --label-w:62px; }
-.box-layout .box-diagram-col { flex:none; width:130px; display:flex; align-items:center; justify-content:center; }
+.box-layout .box-diagram-col { flex:none; width:170px; display:flex; align-items:flex-start; justify-content:center; }
 .box-fields-spacer { flex:none; width:194px; }
 .vent-groups { display:flex; gap:20px; }
 .vent-col { flex:1; min-width:0; }
@@ -1031,7 +1079,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .beside-hint { display:flex; gap:16px; align-items:flex-start; }
 .side-hint { flex:0 1 220px; min-width:120px; margin:0; }
 .env-arrow { align-self:center; margin:0; }
-.description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
+/* > .two-col beats the .two-col > div flex:0 default so the description fills the width */
+.two-col > .description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
 .checkbox-col { display:flex; flex-direction:column; gap:8px; }
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 
@@ -1043,8 +1092,6 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .unit-cyc:hover { color:#1868d1; }
 
 /* ---------- parstate legend + save bar ---------- */
-.parstate-legend { flex:none; display:flex; gap:14px; align-items:center; font-size:12px; color:#444; justify-content:flex-start; margin-bottom:8px; }
-.unsaved-indicator { display:flex; align-items:center; gap:8px; }
 /* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
    so they don't dominate the panel like a native WinISD control would. */
 .save-btn { border:1px solid #ccc; background:#f4f4f4; color:#666; font-weight:400; border-radius:3px; padding:1px 7px; cursor:pointer; font-size:11px; }
@@ -1052,7 +1099,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .save-btn:disabled { opacity:.45; cursor:default; }
 .save-btn.dirty { border-color:#d9a441; background:#fff3e0; color:#8a5a00; font-weight:600; }
 .save-btn.dirty:hover:not(:disabled) { background:#ffe4b0; }
-.unsaved-label { display:flex; align-items:center; gap:6px; color:#8a5a00; font-weight:600; font-size:12px; }
+.unsaved-label { display:flex; align-items:center; justify-content:center; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
 .unsaved-dot { width:8px; height:8px; border-radius:50%; background:#e0a800; display:inline-block; animation:unsaved-pulse 1.6s ease-in-out infinite; }
 @keyframes unsaved-pulse { 0%, 100% { opacity:1; } 50% { opacity:.35; } }
 

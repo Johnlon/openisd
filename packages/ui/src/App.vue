@@ -37,6 +37,7 @@ function applyState(o: SerializedState) {
     state.cursorF = o.cursor.f;
     state.pinnedF = o.cursor.pinnedF;
     state.cursorLocked = o.cursor.locked;
+    state.dragRange = o.cursor.range ? { fLo: o.cursor.range.fLo, fHi: o.cursor.range.fHi } : null;
   }
 }
 

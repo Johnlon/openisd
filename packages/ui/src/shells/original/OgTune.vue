@@ -13,7 +13,7 @@ import { computed, reactive, watch } from 'vue';
 import { state, driver, driverRaw, enterDriverField,
          startDriverWhatIf, keepDriverWhatIf, cancelDriverWhatIf, setWhatIfFromRaw } from '../../store.js';
 import { ebp } from '@openisd/engine';
-import { precision as fieldDp } from '../../fields/fieldRegistry.js';
+import { precision as fieldDp, limits } from '../../fields/fieldRegistry.js';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
 // scale = display/SI factor (raw driver values are SI: Vas m³, Sd m², Le H, Xmax m).
@@ -53,6 +53,14 @@ function onField(key: NumKey, scale: number, e: Event) {
 }
 function onBlur(key: NumKey) { delete rawVals[key]; }
 
+// Registry bounds are SI-space; these inputs display SI × scale, so scale the bounds the
+// same way for the v-limits clamp (e.g. Vas max 100 m³ → 100000 L).
+function scaledLimits(key: NumKey, scale: number): { min?: number; max?: number } {
+  const lim = limits(key);
+  return { min: lim.min === undefined ? undefined : lim.min * scale,
+           max: lim.max === undefined ? undefined : lim.max * scale };
+}
+
 const bl = computed(() => driver.value?.Bl ?? null);
 const mms = computed(() => driver.value?.Mms ?? null);
 const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
@@ -82,7 +90,7 @@ function reset()  { if (state.driverSource) setWhatIfFromRaw(state.driverSource)
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -93,7 +101,7 @@ function reset()  { if (state.driverSource) setWhatIfFromRaw(state.driverSource)
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>

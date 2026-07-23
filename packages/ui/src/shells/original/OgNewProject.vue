@@ -84,11 +84,11 @@ function create() {
 
         <div v-else-if="step === 3">
           <template v-if="!isDual">
-            <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.1" v-model.number="vol"><span class="unit">l</span></div></div>
+            <div class="field-row"><div class="field"><label>Volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">l</span></div></div>
           </template>
           <template v-else>
-            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" min="0" step="0.1" v-model.number="rearVol"><span class="unit">l</span></div></div>
-            <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" min="0" step="0.1" v-model.number="frontVol"><span class="unit">l</span></div></div>
+            <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="rearVol"><span class="unit">l</span></div></div>
+            <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="frontVol"><span class="unit">l</span></div></div>
           </template>
           <p class="hint">Optional — starting volume, refine later once you've picked a driver.</p>
         </div>

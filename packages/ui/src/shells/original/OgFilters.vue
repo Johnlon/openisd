@@ -13,6 +13,7 @@
  */
 import { ref } from 'vue';
 import { state } from '../../store.js';
+import { limits } from '../../fields/fieldRegistry.js';
 import type { Filter, FilterType } from '@openisd/engine';
 
 // Order follows the mock's quick-add row (LP, HP, …, LT, …, PEQ) with the four
@@ -76,17 +77,17 @@ function summary(f: Filter): string {
 
         <div v-if="editing === f.id" class="filter-edit-body">
           <template v-if="f.type === 'highpass' || f.type === 'lowpass' || f.type === 'peaking'">
-            <label>fc <input v-expo-step type="number" step="1" min="1" v-model.number="f.fc"> Hz</label>
-            <label>Q <input v-expo-step type="number" step="0.01" min="0.1" v-model.number="f.Q"></label>
+            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.fc"> Hz</label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Q"></label>
           </template>
           <template v-if="f.type === 'peaking'">
-            <label>Gain <input v-expo-step type="number" step="0.5" v-model.number="f.gain"> dB</label>
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" v-model.number="f.gain"> dB</label>
           </template>
           <template v-if="f.type === 'linkwitz'">
-            <label>f0 <input v-expo-step type="number" step="1" min="1" v-model.number="f.f0"> Hz</label>
-            <label>Q0 <input v-expo-step type="number" step="0.01" min="0.1" v-model.number="f.Q0"></label>
-            <label>fp <input v-expo-step type="number" step="1" min="1" v-model.number="f.fp"> Hz</label>
-            <label>Qp <input v-expo-step type="number" step="0.01" min="0.1" v-model.number="f.Qp"></label>
+            <label>f0 <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.f0"> Hz</label>
+            <label>Q0 <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Q0"></label>
+            <label>fp <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.fp"> Hz</label>
+            <label>Qp <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Qp"></label>
           </template>
         </div>
       </div>

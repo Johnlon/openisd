@@ -89,8 +89,8 @@ const RANGES: Record<string, { min: number; max: number }> = {
   Sd:   { min: 0.5,    max: 6000  },
   Re:   { min: 0.1,    max: 300   },
   Le:   { min: 0,      max: 100   },
-  Xmax: { min: 0.1,    max: 500   },
-  Pe:   { min: 0.1,    max: 50000 },
+  Xmax: { min: 0,      max: 500   },  // 0 = omitted — optional field, drops the limit line
+  Pe:   { min: 0,      max: 50000 },  // 0 = omitted — optional field, drops the power curve
 };
 
 function isValid(key: string, displayVal: string): boolean {
@@ -125,7 +125,7 @@ function numBlur(key: string) { delete rawVals[key]; }
     <div class="dwi-row">
       <div class="dwi-fld"><label>Fs</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="1" max="5000"
+          <input type="number" v-limits step="any" min="1" max="5000"
                  :value="rawOrFmt('Fs',(+d.Fs).toFixed(2))"
                  :class="{ 'inp-bad': badInput('Fs',(+d.Fs).toFixed(2)) }"
                  @input="e => numInput('Fs',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Fs')"
@@ -135,7 +135,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Qts</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.01" max="20"
+          <input type="number" v-limits step="any" min="0.01" max="20"
                  :value="rawOrFmt('Qts',(+d.Qts).toFixed(3))"
                  :class="{ 'inp-bad': badInput('Qts',(+d.Qts).toFixed(3)) }"
                  @input="e => numInput('Qts',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qts')"
@@ -145,7 +145,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Qes</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.01" max="20"
+          <input type="number" v-limits step="any" min="0.01" max="20"
                  :value="rawOrFmt('Qes',(+d.Qes).toFixed(3))"
                  :class="{ 'inp-bad': badInput('Qes',(+d.Qes).toFixed(3)) }"
                  @input="e => numInput('Qes',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qes')"
@@ -155,7 +155,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Qms</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.05" max="200"
+          <input type="number" v-limits step="any" min="0.05" max="200"
                  :value="rawOrFmt('Qms',(+d.Qms).toFixed(3))"
                  :class="{ 'inp-bad': badInput('Qms',(+d.Qms).toFixed(3)) }"
                  @input="e => numInput('Qms',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Qms')"
@@ -168,7 +168,7 @@ function numBlur(key: string) { delete rawVals[key]; }
     <div class="dwi-row">
       <div class="dwi-fld"><label>Vas</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.001" max="10000"
+          <input type="number" v-limits step="any" min="0.001" max="10000"
                  :value="rawOrFmt('Vas',(d.Vas*1000).toFixed(2))"
                  :class="{ 'inp-bad': badInput('Vas',(d.Vas*1000).toFixed(2)) }"
                  @input="e => numInput('Vas',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Vas')"
@@ -178,7 +178,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Sd</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.5" max="6000"
+          <input type="number" v-limits step="any" min="0.5" max="6000"
                  :value="rawOrFmt('Sd',(d.Sd*1e4).toFixed(1))"
                  :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toFixed(1)) }"
                  @input="e => numInput('Sd',1e4,(e.target as HTMLInputElement).value)" @blur="numBlur('Sd')"
@@ -188,7 +188,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Re</label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.1" max="300"
+          <input type="number" v-limits step="any" min="0.1" max="300"
                  :value="rawOrFmt('Re',(+d.Re).toFixed(2))"
                  :class="{ 'inp-bad': badInput('Re',(+d.Re).toFixed(2)) }"
                  @input="e => numInput('Re',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Re')"
@@ -202,7 +202,7 @@ function numBlur(key: string) { delete rawVals[key]; }
     <div class="dwi-row">
       <div class="dwi-fld"><label>Le <span class="opt-lbl">opt</span></label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0" max="100"
+          <input type="number" v-limits step="any" min="0" max="100"
                  :value="rawOrFmt('Le',(d.Le*1000).toFixed(2))"
                  :class="{ 'inp-bad': badInput('Le',(d.Le*1000).toFixed(2)) }"
                  @input="e => numInput('Le',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Le')"
@@ -212,7 +212,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Xmax <span class="opt-lbl">opt</span></label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.1" max="500"
+          <input type="number" v-limits step="any" min="0" max="500"
                  :value="rawOrFmt('Xmax',(d.Xmax*1000).toFixed(1))"
                  :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toFixed(1)) }"
                  @input="e => numInput('Xmax',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Xmax')"
@@ -222,7 +222,7 @@ function numBlur(key: string) { delete rawVals[key]; }
       </div>
       <div class="dwi-fld"><label>Pe <span class="opt-lbl">opt</span></label>
         <div class="dwi-unit">
-          <input type="number" step="any" min="0.1" max="50000"
+          <input type="number" v-limits step="any" min="0" max="50000"
                  :value="rawOrFmt('Pe',String(+d.Pe||0))"
                  :class="{ 'inp-bad': badInput('Pe',String(+d.Pe||0)) }"
                  @input="e => numInput('Pe',1,(e.target as HTMLInputElement).value)" @blur="numBlur('Pe')"

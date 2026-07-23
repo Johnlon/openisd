@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { driveVoltage } from '@openisd/engine';
 import { state, driver } from '../store.js';
+import { limits } from '../fields/fieldRegistry.js';
 import HelpTip from './HelpTip.vue';
 
 const drv = driver;
@@ -39,25 +40,25 @@ function setIEC() {
     </div>
     <div class="row" title="Input power. Changing this updates the drive voltage below.">
       <label>Input power</label>
-      <input v-expo-step type="number" step="0.001" min="0" :value="(state.P.Pin ?? 1).toFixed(1)" @input="onPinInput">
+      <input v-expo-step type="number" step="0.001" v-limits="limits('Pin')" :value="(state.P.Pin ?? 1).toFixed(1)" @input="onPinInput">
       <span class="u">W</span>
     </div>
     <div class="row" title="Drive voltage = √(Pin × Re). Edit directly to set an exact voltage — input power updates automatically. Use 2.83V for IEC 60268-5 sensitivity reference (1W into 8Ω).">
       <label>Drive voltage</label>
       <button class="iec-btn" @click="setIEC" title="Set to 2.83V — IEC 60268-5 sensitivity standard">2.83V</button>
-      <input v-expo-step class="v-input" type="number" step="0.01" min="0"
+      <input v-expo-step class="v-input" type="number" step="0.01" v-limits="limits('driveV')"
              :value="driveV.toFixed(1)"
              @input="onVoltageInput">
       <span class="u">V</span>
     </div>
     <div class="row" title="Series resistance (wire, crossover DCR, amplifier output impedance). WinISD default is 0.1 Ω.">
       <label>Series resistance</label>
-      <input v-expo-step type="number" step="0.01" min="0" :value="state.P.Rs.toFixed(1)" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
+      <input v-expo-step type="number" step="0.01" v-limits="limits('Rs')" :value="state.P.Rs.toFixed(1)" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
       <span class="u">Ω</span>
     </div>
     <div class="row">
       <label>No. of drivers</label>
-      <input type="number" step="1" :value="state.P.nDrivers" @input="e => state.P.nDrivers = parseInt((e.target as HTMLInputElement).value)||1">
+      <input type="number" step="1" v-limits="limits('nDrivers')" :value="state.P.nDrivers" @input="e => state.P.nDrivers = parseInt((e.target as HTMLInputElement).value)||1">
       <span class="u"></span>
     </div>
     <div class="row">

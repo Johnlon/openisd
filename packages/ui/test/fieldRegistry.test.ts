@@ -28,6 +28,31 @@ describe('fieldRegistry — the canonical field data model', () => {
     }
   });
 
+  // Every numeric field MUST carry BOTH bounds — the UI enforces them (NumInput/v-limits),
+  // so a missing bound is an unconstrained input, which is exactly the bug class this
+  // registry exists to prevent (human directive 2026-07-23: "ALL FIELDS MUST HAVE SENSIBLE
+  // CONSTRAINTS"). For modeled fields the bounds are in the MODEL's unit (SI base); for
+  // unmodeled reference fields they are in the spec's own documented `unit`.
+  it('every numeric field has BOTH min and max bounds', () => {
+    for (const f of fieldSpecs) {
+      if (f.kind !== 'number') continue;
+      expect(f.min, `${f.id}: numeric field needs a min bound`).toBeDefined();
+      expect(f.max, `${f.id}: numeric field needs a max bound`).toBeDefined();
+    }
+  });
+
+  // Spot-anchor the SI-space bounds of modeled fields whose model unit differs from the
+  // display unit — the exact mismatch class that let doc-unit bounds (litres/cm/kPa) sit
+  // unusable next to an SI model (m³/m/Pa).
+  it('modeled fields carry MODEL-space (SI base) bounds, not display-unit bounds', () => {
+    expect(limits('Vb').max).toBeLessThanOrEqual(100);          // m³ — not 100000 litres
+    expect(limits('Sd').max).toBeLessThanOrEqual(10);           // m² — not 100000 cm²
+    expect(limits('Xmax').max).toBeLessThanOrEqual(0.5);        // m — not 100 mm
+    expect(limits('advPressure').max).toBeGreaterThan(100000);  // Pa — not 200 kPa
+    expect(limits('Le').max).toBeLessThanOrEqual(1);            // H — not 100 mH
+    expect(limits('driverAddedMass').max).toBeLessThanOrEqual(10); // kg — not 5000 g
+  });
+
   it('modeled calculated fields carry a formula + dependency edges; entered fields carry neither', () => {
     for (const f of fieldSpecs) {
       if (f.provenance === 'calculated' && f.modeled) {
