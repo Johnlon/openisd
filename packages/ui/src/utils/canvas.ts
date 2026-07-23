@@ -159,8 +159,8 @@ export function drawOne(
       const st = dragRange.stats;
       let html = `<b>${ff(dragRange.fLo)} Hz</b> – <b>${ff(dragRange.fHi)} Hz</b>`;
       if (st) {
-        html += `  ripple <b>${st.ripple.toFixed(1)} ${u}</b>`;
-        html += `<br>peak <b>${st.peak.toFixed(1)} ${u}</b>  trough <b>${st.trough.toFixed(1)} ${u}</b>  Δ <b>${st.ripple.toFixed(1)} ${u}</b>`;
+        html += `  Δ <b>${st.ripple.toFixed(1)} ${u}</b>`;
+        html += `<br>peak <b>${st.peak.toFixed(1)} ${u}</b>  trough <b>${st.trough.toFixed(1)} ${u}</b>`;
       }
       readEl.innerHTML = html; readEl.style.display = 'block';
     }

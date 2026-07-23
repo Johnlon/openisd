@@ -401,6 +401,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
       <div class="cursor-readout">
         <span class="ro-hz">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
         <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
+        <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
+                @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
         <SkinPicker />
       </div>
     </div>
@@ -453,8 +455,6 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
-        <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
-                @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
         <div class="graph-wrap">
           <GraphPanel v-if="!pending && !chartUnavailable" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" />
           <div v-else class="graph-empty">
@@ -493,6 +493,8 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
       <!-- bottom-right quadrant: 7 tabs -->
       <div class="content-panel">
+        <!-- Save bar only — the Entered/Calculated/Not-available swatch legend was removed
+             (not a WinISD element; the field-colour semantics belong to the driver editor). -->
         <div class="parstate-legend">
           <div class="unsaved-indicator">
             <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
@@ -501,11 +503,6 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             <button class="save-btn"
                     title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
             <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
-          </div>
-          <div class="parstate-swatches">
-            <span><span class="swatch green"></span>Entered</span>
-            <span><span class="swatch blue"></span>Calculated</span>
-            <span><span class="swatch black"></span>Not available</span>
           </div>
         </div>
 
@@ -930,10 +927,11 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .main.chart-max { grid-template-columns:1fr; grid-template-rows:1fr; grid-template-areas:"graph"; }
 .main.chart-max .quad-topleft, .main.chart-max .quad-bottomleft, .main.chart-max .content-panel,
 .main.chart-max .split-v, .main.chart-max .split-h { display:none; }
-.chart-max-btn { position:absolute; top:14px; right:20px; z-index:5; width:26px; height:24px;
-  background:#f7f7f7; border:1px solid #999; border-radius:3px; cursor:pointer; font-size:13px;
-  line-height:1; display:grid; place-items:center; opacity:.75; }
-.chart-max-btn:hover { opacity:1; background:#dbeaff; border-color:#7fb3ff; }
+/* Chart maximise/restore lives in the toolbar's right cluster (never over the chart's
+   own cursor readout, and still reachable while maximised). */
+.chart-max-btn { width:30px; height:28px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px;
+  cursor:pointer; font-size:13px; line-height:1; display:grid; place-items:center; }
+.chart-max-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* overflow:visible + a stacking context ABOVE the content panel lets the active
    tab extend past the column edge and paint over the panel's left spine, so it
    reads as one continuous shape with the panel (the break-through notch). */
@@ -1026,12 +1024,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .unit-cyc:hover { color:#1868d1; }
 
 /* ---------- parstate legend + save bar ---------- */
-.parstate-legend { flex:none; display:flex; gap:14px; align-items:center; font-size:12px; color:#444; justify-content:space-between; margin-bottom:8px; }
-.parstate-swatches { display:flex; gap:14px; align-items:center; }
-.parstate-legend .swatch { width:11px; height:11px; display:inline-block; margin-right:4px; border:1px solid #777; }
-.parstate-legend .swatch.green { background:#1b7d1b; }
-.parstate-legend .swatch.blue { background:#1868d1; }
-.parstate-legend .swatch.black { background:#111; }
+.parstate-legend { flex:none; display:flex; gap:14px; align-items:center; font-size:12px; color:#444; justify-content:flex-start; margin-bottom:8px; }
 .unsaved-indicator { display:flex; align-items:center; gap:8px; }
 /* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
    so they don't dominate the panel like a native WinISD control would. */
