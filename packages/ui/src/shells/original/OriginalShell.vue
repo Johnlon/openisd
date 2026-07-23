@@ -251,7 +251,7 @@ const bottomCollapsed = computed({ get: () => state.ui.originalBottomCollapsed ?
 const chartMax = computed({ get: () => state.ui.originalChartMax ?? false, set: (v: boolean) => { state.ui.originalChartMax = v; } });
 const mainStyle = computed(() => chartMax.value ? {} : {
   gridTemplateColumns: (navCollapsed.value ? '0px' : (state.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
-  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? 290) + 'px'),
+  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? 218) + 'px'),
 });
 function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
   const el = e.currentTarget as HTMLElement;
@@ -644,10 +644,14 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </div>
             <div style="--label-w:172px;">
               <div class="section-header">Advanced options</div>
-              <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
-              <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
-              <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
-              <p class="hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
+              <div class="beside-hint">
+                <div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput v-model="state.P.vcTempRise" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput v-model="state.P.alfaVC" field="alfaVC" group="tempCoeff" base="perMilliK" :precision="fieldDp('AlfaVC')" /><UnitToggle field="alfaVC" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput v-model="state.P.driverAddedMass" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
+                </div>
+                <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
+              </div>
             </div>
           </div>
         </section>
@@ -788,7 +792,9 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               <div class="field-row"><div class="field entered"><label>Temperature</label><NumInput v-model="advTemp" field="advTemp" group="temp" base="K" :precision="2" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-model.number="advHumidity"><span class="unit">%</span></div></div>
               <div class="field-row"><div class="field entered"><label>Air pressure</label><NumInput v-model="advPressure" field="advPressure" group="pressure" base="Pa" :precision="1" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
-              <p style="margin:4px 0;">&#8594;</p>
+            </div>
+            <p class="env-arrow">&#8594;</p>
+            <div style="--label-w:96px;">
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
             </div>
@@ -798,19 +804,25 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               <label><input type="checkbox" v-model="advChecks.tl"> Use "transmission line"-model for port simulation</label>
               <label><input type="checkbox" v-model="advChecks.rg"> Rg is at driver side</label>
               <label><input type="checkbox" v-model="advChecks.xmax"> SPL graph is Xmax limited</label>
-              <p class="hint">Environment &amp; these options are not modelled by the sweep yet.</p>
             </div>
+            <p class="hint side-hint">Environment &amp; these options are not modelled by the sweep yet.</p>
           </div>
         </section>
 
         <!-- ===== Project tab ===== -->
         <section v-show="activeTab === 'project'" class="tab-section" :class="{ active: activeTab === 'project' }">
-          <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="state.project.name"></div></div>
-          <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="state.project.creator"></div></div>
-          <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="state.project.created"></div></div>
-          <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="state.project.modified"></div></div>
-          <label>Description</label>
-          <textarea class="description" rows="6" v-model="state.project.description"></textarea>
+          <div class="two-col">
+            <div>
+              <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="state.project.name"></div></div>
+              <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="state.project.creator"></div></div>
+              <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="state.project.created"></div></div>
+              <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="state.project.modified"></div></div>
+            </div>
+            <div class="description-col">
+              <label>Description</label>
+              <textarea class="description" rows="6" v-model="state.project.description"></textarea>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -905,7 +917,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
    0px when a panel is collapsed); these template values are only the no-JS fallback. */
-.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px 290px;
+.main { display:grid; grid-template-columns:250px 7px 1fr; grid-template-rows:1fr 7px 218px;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
@@ -1015,6 +1027,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .link-btn { background:none; border:none; color:#1868d1; text-decoration:underline; padding:2px 0; }
 .hint { color:#888; font-size:12px; font-style:italic; }
+/* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
+.beside-hint { display:flex; gap:16px; align-items:flex-start; }
+.side-hint { flex:0 1 220px; min-width:120px; margin:0; }
+.env-arrow { align-self:center; margin:0; }
+.description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
 .checkbox-col { display:flex; flex-direction:column; gap:8px; }
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 
