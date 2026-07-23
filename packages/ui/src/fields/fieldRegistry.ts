@@ -253,6 +253,40 @@ const FIELDS: FieldSpec[] = [
     description: 'Air density readout. WinISD 5 dp (1.20095 kg/m³) derived from T/RH/P. NOTE: OpenISD currently DISPLAYS the fixed RHO constant at this dp — the T/RH/P environment model (the formula/dependsOn above) is not yet implemented (BACKLOG); the dependency edges document the intended derivation, not today\'s behaviour.',
   },
 
+  // ---- Advanced pane: the five simulation-fidelity toggles --------------------------------
+  // WinISD's own checkbox column (docs/winisd/info/view_6_advanced.md). Three of the five are
+  // per-project in WinISD's file format (.wpr [SimulatorOptions] VCInd / FlatResponse /
+  // TLPorts); the other two have no known .wpr key. Their exact WinISD behaviour is ⚠ unverified
+  // (every sampled .wpr has all three flags at 0) — the semantics OpenISD implements are
+  // documented per field below and in WINISD.md. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
+  // `inert-control-gate.test.ts` requires every modeled toggle here to be bound in the shared
+  // AdvancedOptions.vue, so none of these can go back to being a decorative checkbox.
+  {
+    id: 'simVcInductance', label: 'Simulate voice coil inductance', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: 'all',
+    description: 'Include voice-coil inductance Le in the ACOUSTIC circuit, not just the impedance plot. WinISD: Advanced → "Simulate voice coil inductance" (.wpr VCInd), default off. This is an alias over OpenISD\'s existing circuit-model switch (store.simVcInductance ↔ P.circuitModel: off = "winisd", on = "gyrator"), not a separate stored flag — WINISD.md §9. Le stays in the impedance plot either way (⚠ assumption).',
+  },
+  {
+    id: 'forceFlatResponse', label: 'Force flat response', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: 'all',
+    description: 'Auto-EQ the system flat: apply the line-level gain that lifts every point to the passband reference, so the excursion / port-velocity / max-SPL curves show what flattening costs. Boost is capped at FLAT_MAX_BOOST_DB (20 dB) and a warn names the frequency where the cap binds. WinISD: Advanced → "Force flat response" (.wpr FlatResponse), default off. ⚠ WinISD\'s own behaviour is unverified — this is the auto-EQ reading, chosen because the flag lives in [SimulatorOptions] beside two physics-model flags rather than in [PlotSettings].',
+  },
+  {
+    id: 'tlPortModel', label: 'Use "transmission line"-model for port simulation', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
+    description: 'Model the vent as a lossy acoustic transmission line instead of a lumped air mass, adding the duct\'s own half-wave pipe resonances at c/(2·Leff) — the frequency the Vents pane already reports as "1st port resonance". Reduces to the lumped model exactly as ω→0, so the box tuning is unchanged. This is a transmission-line PORT, not a transmission-line ENCLOSURE (quarter-wave box — still BACKLOG P3). WinISD: Advanced → \'Use "transmission line"-model for port simulation\' (.wpr TLPorts), default off.',
+  },
+  {
+    id: 'rgAtDriverSide', label: 'Rg is at driver side', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: 'all',
+    description: 'Place the source/series resistance Rg in series with EACH driver (on) rather than as a single Rg at the amplifier feeding the whole array (off). Only differs when more than one driver is wired: n in parallel see Rg/n at the driver side but a full Rg at the amp side. WinISD: Advanced → "Rg is at driver side"; no known .wpr key. OpenISD defaults this ON (its historic behaviour) where WinISD ships it unchecked — PLAN_ADVANCED_SIM_OPTIONS.md Q3.',
+  },
+  {
+    id: 'splXmaxLimited', label: 'SPL graph is Xmax limited', pane: 'Advanced', kind: 'toggle', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: 'all',
+    description: 'Plot the SPL chart with the drive backed off wherever peak excursion would exceed Xmax, and shade the limited region. Xmax only — the separate Maximum SPL chart keeps applying the Pe thermal limit as well. The unclamped curve still feeds the transfer-function chart, the F3/F6/F10 read-outs and every compare trace (engine sweep().splXlim is its own array). WinISD: Advanced → "SPL graph is Xmax limited"; no known .wpr key.',
+  },
+
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================
   // Modeled T/S params. Where OpenISD shows a different unit than WinISD, the dp is unit-adjusted
   // to keep WinISD's resolution (noted per field).

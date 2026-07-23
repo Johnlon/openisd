@@ -5,11 +5,10 @@ import ClassicShell from './shells/classic/ClassicShell.vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import Flash from './components/Flash.vue';
-import { state, driverJSON, setDriverFromSerialized, markProjectSaved } from './store.js';
+import { state, driverJSON, applyState, markProjectSaved } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
 import { resolveSkin } from './skins.js';
-import type { SerializedState } from './types.js';
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays, and swaps the presentation shell by resolved skin. The shells
@@ -24,21 +23,6 @@ const shellComponent = computed(() => {
 async function handleHashChange() {
   const saved = await loadFromHash();
   if (saved) applyState(saved);
-}
-
-function applyState(o: SerializedState) {
-  if (o.driver) setDriverFromSerialized(o.driver);
-  if (o.box) state.box = o.box;
-  if (o.P) Object.assign(state.P, o.P);
-  if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
-  if (o.ui) Object.assign(state.ui, o.ui);   // skin + active tab/chart ARE carried by a share link (stateToUrl); only an open editor's uncommitted buffer + unit prefs are stripped there
-  if (o.project) Object.assign(state.project, o.project);
-  if (o.cursor) {
-    state.cursorF = o.cursor.f;
-    state.pinnedF = o.cursor.pinnedF;
-    state.cursorLocked = o.cursor.locked;
-    state.dragRange = o.cursor.range ? { fLo: o.cursor.range.fLo, fHi: o.cursor.range.fHi } : null;
-  }
 }
 
 let saveReady = false;

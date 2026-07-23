@@ -29,7 +29,10 @@ export function serialize(state: AppState, driver: DriverJSON, compare: Design[]
     box: state.box,
     P: state.P,
     graphs: state.graphs,
-    compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color })),
+    // Curves are omitted deliberately (derived, and they would bloat every save and share
+    // link) — applyState re-sweeps each row. `visible` IS carried: a hidden overlay that
+    // reappears on reload is the same silent-drop failure as a dropped overlay.
+    compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color, visible: d.visible })),
     ui: state.ui,
     project: state.project,
     // Graph cursor/marker/band-selection — carried the same way tab/chart are: both a local

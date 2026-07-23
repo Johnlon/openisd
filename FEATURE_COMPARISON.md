@@ -169,7 +169,7 @@ then use Biquad to design corrective EQ to flatten the result.
 - ⬜ 6th-order bandpass (both chambers ported) — _seen in 00 Enc. Sim, SpeakerBoxLite_
 - ⬜ Isobaric / compound loading — _planned by 00 Sim & SpeakerDesign.dev_
 - ⬜ Aperiodic (resistive vent)
-- ⬜ Transmission line / quarter-wave — _seen in SpeakerBoxLite, 00 Sim roadmap_
+- ⬜ Transmission line / quarter-wave **enclosure** — _seen in SpeakerBoxLite, 00 Sim roadmap_. (The transmission-line **port** model is implemented — a different feature.)
 - ⬜ Horn / waveguide — _SoundForm considering; on 00 Sim roadmap; large effort_
 
 ### Box-loss model
@@ -448,11 +448,11 @@ per-tool prose writeups.
 | Box loss model (Ql leakage, Qa absorption)            | ✅ default Ql=10, Qa=100 | ✅ confirmed — same defaults (WinISD help file + direct observation)                 |
 | WinISD-compatible circuit model                       | ✅ (default mode)        | ✅ confirmed                                                                         |
 | Full gyrator (frequency-dependent Le)                 | ✅ switchable            | ❌ confirmed — Le excluded from WinISD's acoustic circuit (WINISD.md §9)             |
-| Transmission-line port model                          | 🚧                       | ✅ confirmed — Advanced "Use transmission line-model for port" (view_6_advanced.png) |
+| Transmission-line port model                          | ✅                       | ✅ confirmed — Advanced "Use transmission line-model for port" (view_6_advanced.png) |
 | Environment model (temp / humidity / pressure → c, ρ) | ❌ hardcoded c/ρ         | ✅ confirmed — Advanced pane derives c=343.68 m/s, ρ=1.20095 (view_6_advanced.png)   |
-| Force-flat response                                   | ❌                       | ✅ confirmed — Advanced "Force flat response" toggle (view_6_advanced.png)           |
-| Source-resistance placement (Rg at driver side)       | ❌                       | ✅ confirmed — Advanced "Rg is at driver side" toggle (view_6_advanced.png)          |
-| Xmax-limited SPL toggle                               | ⚠ separate Max-SPL chart | ✅ confirmed — Advanced "SPL graph is Xmax limited" toggle (view_6_advanced.png)     |
+| Force-flat response                                   | ✅                       | ✅ confirmed — Advanced "Force flat response" toggle (view_6_advanced.png)           |
+| Source-resistance placement (Rg at driver side)       | ✅                       | ✅ confirmed — Advanced "Rg is at driver side" toggle (view_6_advanced.png)          |
+| Xmax-limited SPL toggle                               | ✅                       | ✅ confirmed — Advanced "SPL graph is Xmax limited" toggle (view_6_advanced.png)     |
 
 ---
 

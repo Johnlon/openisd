@@ -1,48 +1,43 @@
 # Plan — WinISD Advanced-pane simulation options (the five toggles)
 
-Scope: make the five WinISD Advanced-pane checkboxes real, in all three skins.
+**Status: implemented 2026-07-23.** All five toggles are live in all three skins, with the
+absent-`Le` defect they surfaced fixed. This document is kept as the design record: what each
+option means, why that reading was chosen, and which parts rest on an unverified assumption.
+Behaviour reference: `WINISD.md` §12d. Open questions Q1–Q8 are all resolved — rulings in
+`BACKLOG.md`.
 
-| #   | WinISD label (`docs/winisd/info/view_6_advanced.md`) | `.wpr` key     | Layer            |
-| --- | ---------------------------------------------------- | -------------- | ---------------- |
-| A   | `Simulate voice coil inductance`                     | `VCInd`        | UI rewire only   |
-| B   | `Force flat response`                                | `FlatResponse` | engine — BLOCKED |
-| C   | `Use "transmission line"-model for port simulation`  | `TLPorts`      | engine           |
-| D   | `Rg is at driver side`                               | none known     | engine           |
-| E   | `SPL graph is Xmax limited`                          | none known     | engine + series  |
+| #   | WinISD label (`docs/winisd/info/view_6_advanced.md`) | `.wpr` key     | Implemented as                                          |
+| --- | ---------------------------------------------------- | -------------- | ------------------------------------------------------- |
+| A   | `Simulate voice coil inductance`                     | `VCInd`        | `store.simVcInductance` — alias over `P.circuitModel`   |
+| B   | `Force flat response`                                | `FlatResponse` | `SweepParams.forceFlatResponse` + `flatMaxBoostDb`      |
+| C   | `Use "transmission line"-model for port simulation`  | `TLPorts`      | `SweepParams.tlPortModel` → `circuit.portImpedance()`   |
+| D   | `Rg is at driver side`                               | none known     | `SweepParams.rgAtDriverSide`                            |
+| E   | `SPL graph is Xmax limited`                          | none known     | `sweep().splXlim` / `.xlimited`, chosen by display flag |
 
 Companion docs: [ARCHITECTURE.md](ARCHITECTURE.md) (AD-3/AD-6 layering) ·
-[WINISD.md](WINISD.md) §9 (circuit model) · [WINISD_WPR_FILE_SCHEMA.md](WINISD_WPR_FILE_SCHEMA.md)
-§10 · [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md).
+[WINISD.md](WINISD.md) §9 (circuit model), §12d (these options) ·
+[WINISD_WPR_FILE_SCHEMA.md](WINISD_WPR_FILE_SCHEMA.md) §10 ·
+[docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md).
 
 ---
 
-## 0. Where things stand today
+## 0. What was here before
 
-All five checkboxes already exist in the UI and are **inert** — bound to shell-local
-`ref`s that nothing reads:
+All five checkboxes existed in the UI and were **inert** — bound to shell-local `ref`s nothing
+read (`OriginalShell.vue` `advChecks`; `ClassicShell.vue` `advSimVcInductance` and friends);
+Modern had no Advanced pane at all. That is the failure this work fixes, and the reason
+`packages/ui/test/inert-control-gate.test.ts` now exists.
 
-- Original: `packages/ui/src/shells/original/OriginalShell.vue:309` (`advChecks`), rendered
-  at `:837-841`, with the honest disclaimer at `:842`.
-- Classic: `packages/ui/src/shells/classic/ClassicShell.vue:53-57`, rendered at `:364-376`.
-- Modern: **no Advanced pane at all** — `ModernShell.vue:43` renders the shared `SidePanel`,
-  which has no Advanced fieldset.
+Machinery that was already present and got reused rather than reinvented:
 
-Adjacent machinery that already exists and must be reused, not reinvented:
-
-- `SweepParams.circuitModel: 'winisd' | 'gyrator'` (`packages/engine/src/types.ts:128`),
-  consumed at `packages/engine/src/circuit.ts:74`. This **is** feature A's physics, already
-  built and documented (WINISD.md §9). Exposed today only as an engineer-worded `<select>` in
-  `packages/ui/src/components/SignalPanel.vue:36`.
-- `sweep()` already returns `exc[]` (peak mm) per frequency — feature E needs nothing new
-  computed, only a clamp (`packages/engine/src/sweep.ts:78`).
-- `maxCurves()` already produces an `xlim[]` boolean array, and `series.ts:106-113` already
-  renders segmented "this region is Xmax-limited" colouring from it — feature E reuses that
-  rendering path.
-- Filters are applied as a line-level complex gain on `U0`/`UD`/`UP`, leaving `Zel` untouched
-  (`packages/engine/src/sweep.ts:65-69`). Feature B's auto-EQ must use the same convention.
-- `state.P` is persisted, share-linked, and fingerprinted wholesale
-  (`persist.ts:30`, `store.ts:255`), so adding fields to `UiParams` needs no new plumbing —
-  and no new `state-disposition-gate` entry (`P` is already a carried top-level key).
+- `SweepParams.circuitModel: 'winisd' | 'gyrator'` — feature A's physics, already built and
+  validated (WINISD.md §9). Feature A needed no engine change at all.
+- `sweep()`'s per-frequency `exc[]`, which feature E clamps against `Xmax`.
+- The dashed-reference and segmented-colour rendering `series.ts` already had.
+- The line-level gain convention `applyFilters` uses (multiply `U0`/`UD`/`UP`, leave `Zel`),
+  which feature B's auto-EQ follows exactly.
+- `state.P` persistence/share-link/fingerprint plumbing — the four new parameters needed none
+  of their own.
 
 ### Evidence status — read before implementing
 

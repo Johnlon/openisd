@@ -18,6 +18,7 @@ const P_DEFAULTS: UiParams = {
   prCms: 0.0008, prRms: 1.0, prXmax: 0.012, prMode: 'winisd',
   fmin: 1, fmax: 20000, N: 400, circuitModel: 'winisd', filters: [],
   vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0, endCorrection: 0.732,
+  rgAtDriverSide: true, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
 };
 
 const DRIVER: Driver = { Fs: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas: 0.030, Sd: 0.0133, Re: 5.6 } as Driver;
@@ -100,5 +101,26 @@ describe('buildWprInput — box-type mapping to WinISD BType + [Box] physics', (
     expect(sealed.box.Fr).toBe(0);
     const bp4 = buildWprInput('bandpass4', P_DEFAULTS, null, DRIVER_SECTION, PROJECT, NOW);
     expect(bp4.box.Fr).toBe(0);
+  });
+
+  it('[SimulatorOptions] carries the design\'s live Advanced-pane flags, never a placeholder', () => {
+    const off = buildWprInput('vented', P_DEFAULTS, DRIVER, DRIVER_SECTION, PROJECT, NOW);
+    expect(off.simulatorOptions).toEqual({ vcInductance: false, flatResponse: false, tlPorts: false });
+
+    // "Simulate voice coil inductance" is circuitModel under WinISD's wording, so the
+    // gyrator setting — not a separate boolean — is what must reach VCInd.
+    const on = buildWprInput('vented',
+      { ...P_DEFAULTS, circuitModel: 'gyrator', forceFlatResponse: true, tlPortModel: true },
+      DRIVER, DRIVER_SECTION, PROJECT, NOW);
+    expect(on.simulatorOptions).toEqual({ vcInductance: true, flatResponse: true, tlPorts: true });
+  });
+
+  it('does not invent .wpr keys for the two Advanced toggles WinISD has no key for', () => {
+    // rgAtDriverSide / splXmaxLimited have no known key in the .wpr format
+    // (WINISD_WPR_FILE_SCHEMA.md §10) — inventing one would produce a file WinISD misreads.
+    const input = buildWprInput('vented',
+      { ...P_DEFAULTS, rgAtDriverSide: false, splXmaxLimited: true },
+      DRIVER, DRIVER_SECTION, PROJECT, NOW);
+    expect(Object.keys(input.simulatorOptions!).sort()).toEqual(['flatResponse', 'tlPorts', 'vcInductance']);
   });
 });

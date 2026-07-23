@@ -1,10 +1,11 @@
 import { reactive, computed, ref, shallowRef, watch } from 'vue';
-import { sweep, maxCurves, classifyFinite } from '@openisd/engine';
+import { sweep, maxCurves, classifyFinite, classifyFlatClamp } from '@openisd/engine';
 import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import { DPAL } from './presets.js';
-import type { AppState, UiParams, SyncedParams, Design } from './types.js';
+import type { AppState, UiParams, SyncedParams, Design, SerializedState } from './types.js';
 import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from './fields/units.js';
+import { copyOfName, uniqueName } from './utils/projectFile.js';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
@@ -20,6 +21,10 @@ const P_DEFAULTS: UiParams = {
   filters: [],
   vcTempRise: 0, alfaVC: 0.0039, driverAddedMass: 0,   // WinISD-parity; no-op until temp rise / mass set
   endCorrection: 0.732,                                 // one-flanged (WinISD default); selectable
+  // WinISD Advanced-pane options. Each default is OpenISD's historic behaviour, so opening an
+  // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
+  // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
+  rgAtDriverSide: true, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
 };
 
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
@@ -236,8 +241,10 @@ export const maxData    = _max;
 export const curveIssues = computed<DriverError[]>(() => {
   const sw = _curves.value;
   if (!sw) return [];
-  const issue = classifyFinite(sw);
-  return issue ? [issue] : [];
+  // classifyFinite: a singularity made the curve undrawable. classifyFlatClamp: force-flat
+  // ran out of allowed boost, so the "flat" response is not flat below some frequency —
+  // a truncated inverse filter must never look like a design that flattens for free.
+  return [classifyFinite(sw), classifyFlatClamp(sw)].filter((e): e is DriverError => e !== null);
 });
 
 // The full issue list the UI shows: driver-derivation issues + sweep-finiteness issues.
@@ -281,6 +288,43 @@ export function newProject(): void {
   markProjectSaved();                                       // the fresh design is the new clean ground
 }
 
+/**
+ * Restore a persisted snapshot (local save, share link, or an opened `.openisd.json` file)
+ * into the live store — the ONE loader every entry point calls.
+ *
+ * Every load path must land the WHOLE snapshot: a second, hand-rolled subset loader is how
+ * File → Open… silently dropped the project name, the view, the comparison overlays and the
+ * graph cursor while appearing to succeed. `project-load-gate.test.ts` fails the suite if a
+ * key serialize() emits is not restored here.
+ */
+export function applyState(o: SerializedState): void {
+  if (o.driver) setDriverFromSerialized(o.driver);
+  if (o.box) state.box = o.box;
+  if (o.P) Object.assign(state.P, o.P);
+  if (Array.isArray(o.graphs) && o.graphs.length) state.graphs = o.graphs;
+  if (Array.isArray(o.compare)) state.compare = o.compare.map(restoreCompare);
+  if (o.ui) Object.assign(state.ui, o.ui);   // skin + active tab/chart ARE carried by a share link (stateToUrl); only an open editor's uncommitted buffer + unit prefs are stripped there
+  if (o.project) Object.assign(state.project, o.project);
+  if (o.cursor) {
+    state.cursorF = o.cursor.f;
+    state.pinnedF = o.cursor.pinnedF;
+    state.cursorLocked = o.cursor.locked;
+    state.dragRange = o.cursor.range ? { fLo: o.cursor.range.fLo, fHi: o.cursor.range.fHi } : null;
+  }
+}
+
+// A comparison overlay is stored WITHOUT its curves (they are derived, and bulk out every
+// save and share link), so restoring one means re-running its sweep — a row without curves
+// draws nothing, which is the same "loaded but invisible" failure at the overlay level.
+function restoreCompare(d: SerializedState['compare'][number]): Design {
+  const design: Design = { ...d, curves: null, maxCurves: null };
+  if (design.driver) {
+    design.curves    = sweep(design.driver, design.box, design.P);
+    design.maxCurves = maxCurves(design.driver, design.box, design.P);
+  }
+  return design;
+}
+
 // ---- Per-field display units (fields/units.ts) ------------------------------------
 // The store stays SI; these only choose how a field is shown/entered. A skin pairs a
 // NumInput (or a calculated readout) with a <UnitToggle> that cycles the field's token;
@@ -322,11 +366,33 @@ export function formatInUnit(
   return toDisplay(si, group, tok).toFixed(displayPrecision(baseDp, group, baseToken, tok));
 }
 
+/**
+ * WinISD's "Simulate voice coil inductance" (Advanced pane, `.wpr` VCInd) — an alias over
+ * `circuitModel`, NOT a second stored flag. Le in the acoustic circuit is exactly what the
+ * WinISD/gyrator circuit-model switch already selects (WINISD.md §9), so the Advanced
+ * checkbox and SignalPanel's circuit-model select are two wordings of one setting; storing
+ * it twice is how the two would drift apart.
+ *
+ * ⚠ Assumption — NOT directly verified: with the box unchecked WinISD is presumed to keep Le
+ * in the IMPEDANCE plot and drop it only from the acoustic path (OpenISD's historic and
+ * current behaviour). Every `.wpr` in the corpus has VCInd=0, so no observation settles it.
+ */
+export const simVcInductance = computed<boolean>({
+  get: () => state.P.circuitModel === 'gyrator',
+  set: (on) => { state.P.circuitModel = on ? 'gyrator' : 'winisd'; },
+});
+
 export function driverShort(raw: DriverRaw | null | undefined): string {
   return ((raw?.name) || [raw?.brand, raw?.model].filter(Boolean).join(' ') || 'Driver')
     .replace(/\.wdr$/i, '');
 }
 
+/**
+ * Copy the current project into the projects list, overlaying its curves for comparison —
+ * WinISD's right-click Copy. The copy is named after the PROJECT ("Copy of glob"), not after
+ * the driver: a copy is a copy of what you are working on, and the projects list has to read
+ * as a list of projects. An unnamed project falls back to its driver so the row is never blank.
+ */
 export function pinCompare(): void {
   if (!driver.value) return;
   const p = { ...syncedP.value };
@@ -337,7 +403,8 @@ export function pinCompare(): void {
     P:      p,
     curves: null,
     maxCurves: null,
-    name:   driverShort(driverRaw.value) + ' (' + state.box + ' ' + (p.Vb * 1000).toFixed(0) + 'L)',
+    name:   uniqueName(copyOfName(state.project.name || driverShort(driverRaw.value)),
+                       state.compare.map(c => c.name ?? '')),
     color:  DPAL[(state.compare.length + 1) % DPAL.length],
   };
   d.curves    = sweep(d.driver!, d.box, d.P);

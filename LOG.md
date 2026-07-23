@@ -8,6 +8,35 @@
 
 ---
 
+## 2026-07-23 — WinISD's five Advanced simulation options now actually do something
+
+Five checkboxes that looked live but did nothing are now real controls. They shipped bound to
+shell-local variables nothing read, in two skins — you could tick them all day and the graph
+never moved.
+
+- **See what your design can really play.** "SPL graph is Xmax limited" backs the SPL curve off
+  wherever the cone would exceed its linear travel, and keeps the unlimited curve dashed beside
+  it so the gap is the point.
+- **Ask what flattening would cost.** "Force flat response" applies the EQ that levels the
+  response and charges it to the excursion, port-velocity and max-SPL curves. Boost is capped at
+  20 dB and a warning names the frequency where the cap binds — a flattened rolloff you could
+  never actually drive is not a design.
+- **Catch port pipe resonances.** The transmission-line port model replaces the lumped air mass
+  with a real lossy duct, so the vent's own half-wave resonances show up instead of being
+  silently absent. Box tuning is untouched — it reduces to the old model at low frequency.
+- **Model multi-driver amp losses honestly.** "Rg is at driver side" chooses whether the source
+  resistance belongs to each driver or sits once at the amplifier; with two drivers in parallel
+  that is a real difference in output.
+- **One switch, not two names.** "Simulate voice coil inductance" is the existing circuit-model
+  setting under WinISD's wording, so the two can't drift apart.
+- **Fixed: a driver with no Le blanked the impedance chart** and blamed the box volume for it.
+  Missing inductance now means 0 H, as it always should have.
+- **Exported .wpr projects carry your real settings.** The three flags WinISD's file format has
+  keys for were previously written as hardcoded zeros regardless of what you'd chosen.
+- **A dead control can't ship again.** `inert-control-gate.test.ts` fails the build if a
+  registered toggle isn't wired to real state in every skin — the failure it prevents is the one
+  that produced these five.
+
 ## 2026-07-23 — Taller chart, schema-enforced entry bounds, share links carry the band selection
 
 No numeric field can go out of range any more. Every field's min/max lives in the field

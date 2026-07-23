@@ -76,14 +76,14 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 
 ## Advanced (project) pane (`view_6_advanced.png`)
 
-| WinISD field / toggle                                                                   | OpenISD                                               |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ❌ none — OpenISD hardcodes c/roo                     |
-| Simulate voice coil inductance                                                          | ⚠️ equivalent via WinISD/gyrator circuit-model switch |
-| **Force flat response**                                                                 | ❌                                                    |
-| **Use "transmission line" model for port**                                              | ❌ (TL is BACKLOG P3)                                 |
-| **Rg is at driver side** (source-resistance placement)                                  | ❌                                                    |
-| **SPL graph is Xmax limited**                                                           | ❌ (OpenISD has a separate Max-SPL chart)             |
+| WinISD field / toggle                                                                   | OpenISD                                                 |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ❌ none — OpenISD hardcodes c/roo                       |
+| Simulate voice coil inductance                                                          | ✅ (Advanced pane; alias over the circuit-model switch) |
+| **Force flat response**                                                                 | ✅ auto-EQ, boost capped at 20 dB with a warn           |
+| **Use "transmission line" model for port**                                              | ✅ (the PORT model; TL _enclosure_ is still BACKLOG P3) |
+| **Rg is at driver side** (source-resistance placement)                                  | ✅ (defaults ON; WinISD ships it unchecked)             |
+| **SPL graph is Xmax limited**                                                           | ✅ on the SPL chart, plus the separate Max-SPL chart    |
 
 ## Project pane (`view_7_advanced.png`) — Creator/Created/Modified/Description metadata. OpenISD saves projects but has no per-project author/date/description fields. ⚠️
 

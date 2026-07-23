@@ -192,7 +192,7 @@ test('the Vented pane labels the tuning readout "1st port resonance"', async ({ 
 });
 
 test('the projects checkbox toggles a compare overlay trace visibility (not delete)', async ({ page }) => {
-  await page.locator('.link-btn', { hasText: 'Compare' }).click(); // ＋ Compare — pin a snapshot
+  await page.locator('.link-btn', { hasText: 'Copy' }).click(); // ＋ Copy — pin a snapshot
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2); // current design + 1 comparison
 
@@ -213,7 +213,7 @@ test('the projects checkbox toggles a compare overlay trace visibility (not dele
 });
 
 test('a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)', async ({ page }) => {
-  await page.locator('.link-btn', { hasText: 'Compare' }).click();
+  await page.locator('.link-btn', { hasText: 'Copy' }).click();
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
   await rows.nth(1).click();                                  // select the overlay row
