@@ -50,8 +50,9 @@ export async function stateToUrl(serialized: SerializedState): Promise<string> {
   if (ui) {
     const { originalTuneOpen: _t, originalWhatIf: _w, originalEditorOpen: _e, unitTokens: _u,
             originalNavW: _nw, originalBottomH: _bh, originalNavCollapsed: _nc,
-            originalBottomCollapsed: _bc, originalChartMax: _cm, ...shareableUi } = ui;
-    shareable.ui = shareableUi;   // Partial<UiState> — skin + tab/chart KEPT; open-editor state/buffer + unit prefs + device-local layout (panel sizes/collapse/maximise) dropped
+            originalBottomCollapsed: _bc, originalChartMax: _cm,
+            username: _n, envDefaults: _v, chartColors: _c, ...shareableUi } = ui;
+    shareable.ui = shareableUi;   // Partial<UiState> — skin + tab/chart KEPT; open-editor state/buffer, unit prefs, device-local layout (panel sizes/collapse/maximise), and Options-dialog app-level prefs (username/env defaults/chart colors) dropped
   }
   const encoded = await gzipEncodeBase64Url(JSON.stringify(shareable));
   return location.origin + location.pathname + '#s=' + encoded;

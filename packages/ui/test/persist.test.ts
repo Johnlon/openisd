@@ -84,6 +84,8 @@ describe('share link carries skin + view context but not editor/working state', 
       originalTuneOpen: true, originalWhatIf: { inputs: {} }, originalEditorOpen: true,
       originalNavW: 320, originalBottomH: 200, originalNavCollapsed: true,
       originalBottomCollapsed: true, originalChartMax: true,
+      username: 'johnl', envDefaults: { tempK: 300, pressurePa: 100000, humidityPct: 40 },
+      chartColors: { background: '#ffffff' },
     },
   } as unknown as AppState;
   const drv = Driver.fromWdr(wdrText).toJSON();
@@ -123,6 +125,9 @@ describe('share link carries skin + view context but not editor/working state', 
     assert.equal('originalNavCollapsed' in ui!, false);
     assert.equal('originalBottomCollapsed' in ui!, false);
     assert.equal('originalChartMax' in ui!, false);
+    assert.equal('username' in ui!, false);               // Options-dialog app-level prefs excluded
+    assert.equal('envDefaults' in ui!, false);
+    assert.equal('chartColors' in ui!, false);
     assert.equal(shared.box, 'sealed');                   // the design itself still travels
   });
 
