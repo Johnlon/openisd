@@ -18,15 +18,15 @@ export default defineConfig({
   use: {
     browserName: 'chromium',
     headless: true,
-    baseURL: 'http://localhost:4100',
+    baseURL: 'http://localhost:4200',
     // Keep the trace of every FAILED test for post-mortem (cleared with test-results/ on
     // the next run — the JSON report above is the long-lived record).
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100',
-    url: 'http://localhost:4100',
-    reuseExistingServer: false,
+    command: 'npx vite --port 4200 --strictPort',
+    url: 'http://localhost:4200',
+    reuseExistingServer: true,
     timeout: 120000,
   },
 });

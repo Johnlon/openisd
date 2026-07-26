@@ -32,7 +32,7 @@ const tab = ref<Tab>('General');
 // sessionSnapshot convention.
 const sessionSnapshot: DriverRaw = { ...driverRaw.value };
 
-function setText(field: 'brand' | 'model' | 'providedBy' | 'comment', e: Event) {
+function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer', e: Event) {
   enterDriverField(field, (e.target as HTMLInputElement | HTMLTextAreaElement).value);
 }
 function setNum(field: string, v: number) { enterDriverField(field, v); }
@@ -71,9 +71,9 @@ useEscToClose(() => true, cancel);
       <div class="body de-body">
         <!-- ============================= General ============================= -->
         <div v-if="tab === 'General'" class="de-general">
-          <div class="de-fld cl-dim" title="WinISD has a separate Manufacturer field distinct from Brand — OpenISD only tracks Brand. Not modelled.">
+          <div class="de-fld" title="WinISD Manufacturer field — OpenISD tracks Manufacturer as metadata.">
             <label>Manufacturer</label>
-            <input type="text" disabled placeholder="not modelled">
+            <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
           </div>
           <div class="de-row2">
             <div class="de-fld" title="Manufacturer/brand name — WinISD: Brand">
@@ -160,9 +160,11 @@ useEscToClose(() => true, cancel);
                   <label>BL</label>
                   <input type="text" readonly :value="driver?.Bl != null ? driver.Bl.toFixed(3) : ''"><span class="u">Tm</span>
                 </div>
-                <div class="de-fld cl-dim" title="Voice-coil inductance corner frequency — not modelled in OpenISD.">
+                <div class="de-fld" title="Voice-coil inductance corner frequency (WinISD fLe).">
                   <label>fLe</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">kHz</span>
+                  <NumInput :class="cellClass('fLe')" :model-value="driverRaw.fLe ?? 0" :scale="1" :precision="fieldDp('fLe')" @update:model-value="v => setNum('fLe', v)">
+                  </NumInput>
+                  <span class="u">kHz</span>
                 </div>
               </div>
               <div class="de-col">
@@ -170,13 +172,17 @@ useEscToClose(() => true, cancel);
                   <label>Cms</label>
                   <input type="text" readonly :value="driver?.Cms != null ? (driver.Cms * 1000).toFixed(4) : ''"><span class="u">mm/N</span>
                 </div>
-                <div class="de-fld cl-dim" title="Diaphragm/dome depth — not modelled in OpenISD.">
+                <div class="de-fld" title="Effective piston diameter (WinISD Dd).">
                   <label>Dd</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">m</span>
+                  <NumInput :class="cellClass('Dd')" :model-value="driverRaw.Dd ?? 0" :scale="1" :precision="fieldDp('Dd')" @update:model-value="v => setNum('Dd', v)">
+                  </NumInput>
+                  <span class="u">m</span>
                 </div>
-                <div class="de-fld cl-dim" title="Le semi-inductance coefficient — not modelled in OpenISD.">
+                <div class="de-fld" title="Le semi-inductance coefficient (WinISD KLe/Le2).">
                   <label>KLe</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">H·√Hz</span>
+                  <NumInput :class="cellClass('KLe')" :model-value="driverRaw.KLe ?? 0" :scale="1" :precision="fieldDp('KLe')" @update:model-value="v => setNum('KLe', v)">
+                  </NumInput>
+                  <span class="u">H·√Hz</span>
                 </div>
               </div>
               <div class="de-col">
@@ -218,15 +224,19 @@ useEscToClose(() => true, cancel);
                   </NumInput>
                   <span class="u">mm peak</span>
                 </div>
-                <div class="de-fld cl-dim" title="Mechanical excursion limit before physical damage — not modelled in OpenISD (only Xmax is used).">
+                <div class="de-fld" title="Mechanical excursion limit before physical damage (WinISD Xlim).">
                   <label>Xlim</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">mm</span>
+                  <NumInput :class="cellClass('Xlim')" :model-value="driverRaw.Xlim ?? 0" :scale="1000" :precision="fieldDp('Xlim')" @update:model-value="v => setNum('Xlim', v)">
+                  </NumInput>
+                  <span class="u">mm</span>
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Voice coil former height above/below the gap — not modelled in OpenISD.">
+                <div class="de-fld" title="Voice coil height (WinISD Hc). Used to derive Xmax.">
                   <label>Hc</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">mm</span>
+                  <NumInput :class="cellClass('Hc')" :model-value="driverRaw.Hc ?? 0" :scale="1000" :precision="fieldDp('Hc')" @update:model-value="v => setNum('Hc', v)">
+                  </NumInput>
+                  <span class="u">mm</span>
                 </div>
                 <div class="de-fld" title="Rated continuous power handling. WinISD: Pe">
                   <label>Pe</label>
@@ -236,35 +246,38 @@ useEscToClose(() => true, cancel);
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Magnetic gap height — not modelled in OpenISD.">
+                <div class="de-fld" title="Magnetic gap height (WinISD Hg). Used to derive Xmax.">
                   <label>Hg</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">mm</span>
+                  <NumInput :class="cellClass('Hg')" :model-value="driverRaw.Hg ?? 0" :scale="1000" :precision="fieldDp('Hg')" @update:model-value="v => setNum('Hg', v)">
+                  </NumInput>
+                  <span class="u">mm</span>
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Volume displaced by the cone at Xmax — not modelled in OpenISD.">
+                <div class="de-fld st-c" title="Volume displaced by the cone at Xmax (WinISD Vd). Derived from Sd · Xmax.">
                   <label>Vd</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">cm³</span>
+                  <input type="text" readonly :value="driver?.Vd != null ? driver.Vd.toFixed(fieldDp('Vd')) : ''"><span class="u">cm³</span>
                 </div>
               </div>
             </div>
           </div>
-
+ 
           <div class="de-group">
             <div class="de-hdr">Miscellaneous parameters</div>
             <div class="de-cols">
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Reference efficiency — not modelled in OpenISD.">
+                <div class="de-fld st-c" title="Reference efficiency (WinISD η₀/no). Derived from Fs, Vas, Qes.">
                   <label>no</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">%</span>
+                  <input type="text" readonly :value="driver?.no != null ? (driver.no).toFixed(fieldDp('no')) : ''"><span class="u">%</span>
                 </div>
-                <div class="de-fld cl-dim" title="Number of voice coils — not modelled in OpenISD (see Placement's Num. of drivers on the Driver tab for multi-driver systems).">
+                <div class="de-fld" title="Number of voice coils (WinISD Voicecoils).">
                   <label>Voicecoils</label>
-                  <input type="text" disabled placeholder="not modelled">
+                  <NumInput :class="cellClass('Voicecoils')" :model-value="driverRaw.Voicecoils ?? 1" :scale="1" :precision="fieldDp('Voicecoils')" @update:model-value="v => setNum('Voicecoils', v)">
+                  </NumInput>
                 </div>
-                <div class="de-fld cl-dim" title="Dual voice coil wiring (this driver's own coils) — not modelled in OpenISD (see Placement's Voice coil connection for multi-driver wiring).">
+                <div class="de-fld" title="Dual voice coil wiring connection (WinISD Connection).">
                   <label>Connection</label>
-                  <select disabled><option>Parallel</option></select>
+                  <select :value="driverRaw.Connection || 'Parallel'" @change="setText('Connection', $event)"><option value="Parallel">Parallel</option><option value="Series">Series</option></select>
                 </div>
               </div>
               <div class="de-col">
@@ -276,15 +289,15 @@ useEscToClose(() => true, cancel);
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Unity SPL — not modelled in OpenISD.">
+                <div class="de-fld st-c" title="Unity SPL sensitivity (WinISD USPL). Derived from SPL and Re.">
                   <label>USPL</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">dB</span>
+                  <input type="text" readonly :value="driver?.USPL != null ? driver.USPL.toFixed(fieldDp('USPL')) : ''"><span class="u">dB</span>
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Rated sensitivity — not modelled in OpenISD.">
+                <div class="de-fld st-c" title="Rated sensitivity (WinISD SPL/SPLref). Derived from reference efficiency η₀.">
                   <label>SPL</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">dB</span>
+                  <input type="text" readonly :value="driver?.SPLref != null ? driver.SPLref.toFixed(fieldDp('SPLref')) : ''"><span class="u">dB</span>
                 </div>
               </div>
             </div>
@@ -297,21 +310,27 @@ useEscToClose(() => true, cancel);
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Voice coil resistance temperature coefficient — not modelled in OpenISD (no thermal power compression model).">
+                <div class="de-fld" title="Voice-coil resistance temperature coefficient (copper ≈ 3.9). WinISD: AlfaVC">
                   <label>AlfaVC</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">1000/K</span>
+                  <NumInput :class="cellClass('AlfaVC')" :model-value="driverRaw.AlfaVC ?? 0" :scale="1000" :precision="fieldDp('AlfaVC')" @update:model-value="v => setNum('AlfaVC', v)">
+                  </NumInput>
+                  <span class="u">1000/K</span>
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Thermal resistance voice coil→ambient — not modelled in OpenISD.">
+                <div class="de-fld" title="Thermal resistance voice coil to ambient (WinISD Rt).">
                   <label>R(t)</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">K/W</span>
+                  <NumInput :class="cellClass('Rt')" :model-value="driverRaw.Rt ?? 0" :scale="1" :precision="fieldDp('Rt')" @update:model-value="v => setNum('Rt', v)">
+                  </NumInput>
+                  <span class="u">K/W</span>
                 </div>
               </div>
               <div class="de-col">
-                <div class="de-fld cl-dim" title="Thermal capacitance — not modelled in OpenISD.">
+                <div class="de-fld" title="Thermal capacitance (WinISD Ct).">
                   <label>C(t)</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">J/K</span>
+                  <NumInput :class="cellClass('Ct')" :model-value="driverRaw.Ct ?? 0" :scale="1" :precision="fieldDp('Ct')" @update:model-value="v => setNum('Ct', v)">
+                  </NumInput>
+                  <span class="u">J/K</span>
                 </div>
               </div>
             </div>
@@ -327,7 +346,7 @@ useEscToClose(() => true, cancel);
                 </div>
                 <div class="de-fld cl-dim" title="Power-limited motor figure of merit — not modelled in OpenISD.">
                   <label>Mpow</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">N/√W</span>
+                  <input type="text" disabled placeholder="not modelled"><span class="u">N/&radic;W</span>
                 </div>
               </div>
               <div class="de-col">
@@ -353,11 +372,13 @@ useEscToClose(() => true, cancel);
               <div class="de-col">
                 <div class="de-fld cl-dim" title="Motor figure of merit — not modelled in OpenISD.">
                   <label>gamma</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">N/(A·kg)</span>
+                  <input type="text" disabled placeholder="not modelled"><span class="u">N/(A&middot;kg)</span>
                 </div>
-                <div class="de-fld cl-dim" title="Cone material loss factor — not modelled in OpenISD.">
+                <div class="de-fld" title="Cone material loss factor (WinISD Gloss).">
                   <label>Gloss</label>
-                  <input type="text" disabled placeholder="not modelled"><span class="u">%</span>
+                  <NumInput :class="cellClass('Gloss')" :model-value="driverRaw.Gloss ?? 0" :scale="1" :precision="fieldDp('Gloss')" @update:model-value="v => setNum('Gloss', v)">
+                  </NumInput>
+                  <span class="u">%</span>
                 </div>
               </div>
             </div>
@@ -386,15 +407,15 @@ useEscToClose(() => true, cancel);
         <div v-if="tab === 'Dimensions'" class="de-dims">
           <div class="de-dimlist">
             <div class="de-hdr">Dimensions</div>
-            <div class="de-fld cl-dim" title="Frame flange thickness — not modelled in OpenISD."><label>Thick</label><input type="text" disabled placeholder="0.00"><span class="u">in</span></div>
-            <div class="de-fld cl-dim" title="Overall driver depth — not modelled in OpenISD."><label>Depth</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Magnet stack depth — not modelled in OpenISD."><label>Magnet Depth</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Magnet diameter — not modelled in OpenISD."><label>Magnet</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Basket/frame diameter — not modelled in OpenISD."><label>Basket</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Overall outer frame diameter — not modelled in OpenISD."><label>Outer</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Voice coil diameter — not modelled in OpenISD."><label>VCd</label><input type="text" disabled placeholder="0.000"><span class="u">m</span></div>
-            <div class="de-fld cl-dim" title="Basket displacement volume — not modelled in OpenISD."><label>Dvol</label><input type="text" disabled placeholder="0.0"><span class="u">in³</span></div>
-            <div class="de-note">Physical dimensions are not modelled in OpenISD — the diagram is shown for reference only.</div>
+            <div class="de-fld" title="Frame flange thickness (WinISD Thick)."><label>Thick</label><NumInput :class="cellClass('dimThick')" :model-value="driverRaw.dimThick ?? 0" :scale="1" :precision="fieldDp('dimThick')" @update:model-value="v => setNum('dimThick', v)"></NumInput><span class="u">in</span></div>
+            <div class="de-fld" title="Overall driver depth (WinISD Depth)."><label>Depth</label><NumInput :class="cellClass('dimDepth')" :model-value="driverRaw.dimDepth ?? 0" :scale="1" :precision="fieldDp('dimDepth')" @update:model-value="v => setNum('dimDepth', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Magnet stack depth (WinISD Magnet Depth)."><label>Magnet Depth</label><NumInput :class="cellClass('dimMagnetDepth')" :model-value="driverRaw.dimMagnetDepth ?? 0" :scale="1" :precision="fieldDp('dimMagnetDepth')" @update:model-value="v => setNum('dimMagnetDepth', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Magnet diameter (WinISD Magnet)."><label>Magnet</label><NumInput :class="cellClass('dimMagnet')" :model-value="driverRaw.dimMagnet ?? 0" :scale="1" :precision="fieldDp('dimMagnet')" @update:model-value="v => setNum('dimMagnet', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Basket/frame diameter (WinISD Basket)."><label>Basket</label><NumInput :class="cellClass('dimBasket')" :model-value="driverRaw.dimBasket ?? 0" :scale="1" :precision="fieldDp('dimBasket')" @update:model-value="v => setNum('dimBasket', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Overall outer frame diameter (WinISD Outer)."><label>Outer</label><NumInput :class="cellClass('dimOuter')" :model-value="driverRaw.dimOuter ?? 0" :scale="1" :precision="fieldDp('dimOuter')" @update:model-value="v => setNum('dimOuter', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Voice coil diameter (WinISD VCd)."><label>VCd</label><NumInput :class="cellClass('dimVCd')" :model-value="driverRaw.dimVCd ?? 0" :scale="1" :precision="fieldDp('dimVCd')" @update:model-value="v => setNum('dimVCd', v)"></NumInput><span class="u">m</span></div>
+            <div class="de-fld" title="Basket displacement volume (WinISD Dvol)."><label>Dvol</label><NumInput :class="cellClass('dimDvol')" :model-value="driverRaw.dimDvol ?? 0" :scale="1" :precision="fieldDp('dimDvol')" @update:model-value="v => setNum('dimDvol', v)"></NumInput><span class="u">in³</span></div>
+            <div class="de-note">Physical dimensions are serialized losslessly in OpenISD project/driver files.</div>
           </div>
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
             <!-- Cross-section matching the real WinISD Dimensions tab: plain black line-art on a
@@ -485,7 +506,9 @@ useEscToClose(() => true, cancel);
 </template>
 
 <style scoped>
-.de-modal { width: min(920px, 95vw); }
+/* Wide enough for 4 label-left parameter columns side by side (WinISD's own Parameters
+   tab layout, docs/winisd/edit_driver_pg2_parameters.png) without wrapping to 3+1. */
+.de-modal { width: min(1000px, 95vw); }
 .de-tabs { display: flex; gap: 2px; padding: 8px 14px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 6px 14px; border: 1px solid var(--line); border-bottom: none; border-radius: 4px 4px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -540,8 +563,14 @@ input.st-n, .de-fld.st-n input { color: var(--fg); }
 
 .de-group { margin-bottom: 6px; }
 .de-hdr { background: var(--panel2); text-align: center; font-size: 12px; padding: 4px 0; border-radius: 3px; margin-bottom: 8px; color: var(--mut); }
-.de-cols { display: flex; gap: 22px; flex-wrap: wrap; }
-.de-col { display: flex; flex-direction: column; }
+/* Fixed-width grid columns (not content-sized flex items) so the input BOXES line up
+   vertically — both down a section (Qes/Vas share col 1) and ACROSS sections/tabs
+   (Thiele/Small col 1 aligns with Electro-Mechanical col 1, Advanced-parameters col 1,
+   etc). A content-sized column shifts right by however much its own longest unit text
+   is, so every section below it drifts out of line with the one above — WinISD's real
+   dialog has genuinely fixed control positions (docs/winisd/edit_driver_pg2/3_*.png). */
+.de-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.de-col { display: flex; flex-direction: column; min-width: 0; }
 
 .de-dims { display: flex; gap: 24px; align-items: flex-start; }
 .de-dimlist { width: 230px; flex-shrink: 0; }

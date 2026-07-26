@@ -1,11 +1,13 @@
 /**
- * Classic (WinISD) skin — selecting it swaps the whole shell, and the reused editor
- * panels + chart drive the same store. Proves the skin seam works end-to-end and that
- * no shell forks logic: switching tabs mounts the shared panels; the chart-type selector
- * re-renders the shared GraphPanel. The auto console/network guardrail (fixtures) asserts
- * the skin swap raises no errors.
+ * Classic (WinISD) skin — MOTHBALLED. `original` supersedes it, so Classic is retired
+ * from the skin picker (skins.ts: absent from SKIN_IDS) and no longer in the active test
+ * matrix. These tests select Classic through the picker, which no longer offers it, so the
+ * whole file is skipped. Re-enable by un-mothballing Classic (re-add to SKIN_IDS) and
+ * removing this skip. The shell code is kept, not deleted, so the tests still compile.
  */
 import { test, expect } from './fixtures.js';
+
+test.describe.skip('Classic skin (mothballed — original supersedes it)', () => {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -101,4 +103,5 @@ test('Classic skin: Options dialog → "Reset to Metric" reverts a toggled unit 
 
   await expect(vbUnit).toHaveText('L');           // reverted to the field's default unit
   expect(await readVb()).toBeCloseTo(siBefore, 9); // the stored SI design is untouched
+});
 });

@@ -34,7 +34,7 @@ detail you can return to.
 | Physics & calculation correctness           | **Decides**    | Implements | Cross-check (ref)   |
 | `packages/engine/src/` formulas & constants | **Approves**   | Proposes   | Unit + oracle tests |
 | Schema (`wdr_meta_schema.py`)               | **Approves**   | Proposes   | Runtime validation  |
-| Driver data (`*.wdr`, `*_meta.yml`)         | Authorises     | Reads only | **Generates**       |
+| Driver data (`winisd.wdr`, `openisd.yml`)         | Authorises     | Reads only | **Generates**       |
 | `drivers/matt/` (human-curated)             | **Owns**       | Excludes   | Excludes            |
 | `reviewed_by` / "human-verified" flags      | **Only**       | Never sets | —                   |
 | Tests                                       | Reviews        | **Writes** | Runs (CI)           |
@@ -67,7 +67,7 @@ mirroring, `dq_check.py`) live in the sibling `winisd_tools` repo's own
   every new `packages/engine/src/` function (non-negotiable per `DEVELOPMENT.md`).
 - **Calculation-stability rule:** no formula, constant, or display precision in
   `packages/engine/src/` changes without explicit human approval in the session.
-- **Schema-discipline rule:** no field is written to `.wdr`/`_meta.yml` unless it
+- **Schema-discipline rule:** no field is written to `winisd.wdr`/`openisd.yml` unless it
   exists in `wdr_meta_schema.py`. New field → propose to human first.
 
 ### 3. Verify

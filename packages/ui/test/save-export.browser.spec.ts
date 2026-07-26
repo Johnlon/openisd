@@ -47,7 +47,7 @@ test.describe('Original skin — Save / Save-As-&-Export', () => {
     await page.locator('.toolbar .tb-btn[title^="Save —"]').click();
     const calls = await saveCalls(page);
     expect(calls).toHaveLength(1);
-    expect(calls[0].suggestedName).toMatch(/\.openisd\.json$/);
+    expect(calls[0].suggestedName).toMatch(/\.owpr$/);
     const parsed = JSON.parse(calls[0].text);
     expect(parsed.v).toBe(2);
     expect(parsed.box).toBeTruthy();
@@ -68,17 +68,17 @@ test.describe('Original skin — Save / Save-As-&-Export', () => {
   test('Save As... (Save-As/Export menu) always re-prompts the picker, even after a prior Save', async ({ page }) => {
     await page.locator('.toolbar .tb-btn[title^="Save —"]').click();
     await page.locator('#btnExportMenu').click();
-    await page.locator('.export-menu-list button', { hasText: 'Save as OpenISD project (.json)' }).click();
+    await page.locator('.export-menu-list button', { hasText: 'Save As OpenISD project (.owpr)' }).click();
     const calls = await saveCalls(page);
     expect(calls).toHaveLength(2);
-    expect(calls[1].suggestedName).toMatch(/\.openisd\.json$/);
+    expect(calls[1].suggestedName).toMatch(/\.owpr$/);
   });
 
   test('Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed INI file', async ({ page }) => {
     await page.locator('#btnExportMenu').click();
     const [download] = await Promise.all([
       page.waitForEvent('download'),
-      page.locator('.export-menu-list button', { hasText: 'Save as WinISD project (.wpr)' }).click(),
+      page.locator('.export-menu-list button', { hasText: 'Save As WinISD project (.wpr)' }).click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/\.wpr$/);
     const stream = await download.createReadStream();
@@ -91,11 +91,11 @@ test.describe('Original skin — Save / Save-As-&-Export', () => {
     expect(text.includes('\r\n')).toBe(true);
   });
 
-  test('Save-As/Export menu → Export driver (.wdr) still downloads a .wdr file (unchanged action)', async ({ page }) => {
+  test('Save-As/Export menu → Export WinISD Driver (.wdr) still downloads a .wdr file (unchanged action)', async ({ page }) => {
     await page.locator('#btnExportMenu').click();
     const [download] = await Promise.all([
       page.waitForEvent('download'),
-      page.locator('.export-menu-list button', { hasText: 'Export driver (.wdr)' }).click(),
+      page.locator('.export-menu-list button', { hasText: 'Export WinISD Driver (.wdr)' }).click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/\.wdr$/);
   });
@@ -125,14 +125,14 @@ test.describe('Modern and Classic skins — Save/Save-As-&-Export are wired iden
     expect(JSON.parse(calls[0].text).v).toBe(2);
   });
 
-  test('Modern: Save-As/Export menu → Save as OpenISD project (.json) prompts the picker', async ({ page }) => {
+  test('Modern: Save-As/Export menu → Save As OpenISD project (.owpr) prompts the picker', async ({ page }) => {
     await stubSaveFilePicker(page);
     await page.goto('/');
     await page.locator('#btnExportMenu').click();
-    await page.locator('.export-menu-list button', { hasText: 'Save as OpenISD project (.json)' }).click();
+    await page.locator('.export-menu-list button', { hasText: 'Save As OpenISD project (.owpr)' }).click();
     const calls = await saveCalls(page);
     expect(calls).toHaveLength(1);
-    expect(calls[0].suggestedName).toMatch(/\.openisd\.json$/);
+    expect(calls[0].suggestedName).toMatch(/\.owpr$/);
   });
 
   test('Classic: Save (disk icon) writes an OpenISD project via the stubbed picker', async ({ page }) => {

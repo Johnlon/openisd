@@ -50,6 +50,7 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     let toleratedResourceFailures = 0;
 
     page.on('console', m => {
+      if (m.text().startsWith('---')) console.log(m.text());
       if (m.type() === 'error') log.consoleErrors.push(m.text());
       else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
     });

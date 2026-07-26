@@ -45,7 +45,7 @@ export async function saveProjectAs(text: string, suggestedName: string): Promis
   try {
     const handle = await globalThis.showSaveFilePicker({
       suggestedName,
-      types: [{ description: 'OpenISD project', accept: { 'application/json': ['.json'] } }],
+      types: [{ description: 'OpenISD project (*.owpr)', accept: { 'application/json': ['.owpr'] } }],
     });
     await writeToHandle(handle, text);
     return { handle, cancelled: false };

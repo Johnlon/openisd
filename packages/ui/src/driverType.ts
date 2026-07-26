@@ -7,7 +7,7 @@
 // hard-fails if the value set differs. Editing either enum REQUIRES editing the
 // other in the same change (see CLAUDE.md "driver-type enum parity").
 //
-// The values are the on-disk `driver_type` written to `_meta.yml`; the member
+// The values are the on-disk `driver_type` written to `openisd.yml`; the member
 // NAMES (PascalCase) are a TS convenience and are NOT part of the contract. The
 // UI chip set (bass/sub/woofer/mid/tweet/…) is a SEPARATE, many-to-many
 // projection of these — see classifyTypes() in DriverBrowser.vue and

@@ -11,7 +11,7 @@
  * addition), so the ribbon/tag motif is reused for it rather than invented from nothing.
  */
 defineProps<{
-  name: 'open' | 'new' | 'save' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart';
+  name: 'open' | 'new' | 'save' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert';
 }>();
 </script>
 
@@ -77,5 +77,8 @@ defineProps<{
   <svg v-else-if="name === 'chart'" width="19" height="17" viewBox="0 0 26 24">
     <rect x="1" y="1" width="24" height="22" rx="2" fill="#fff" stroke="#cfcfcf"/>
     <path d="M3 18 L9 12 L13 15 L22 5" fill="none" stroke="#d05bd0" stroke-width="2"/>
+  </svg>
+  <svg v-else-if="name === 'revert'" width="19" height="19" viewBox="0 0 24 24">
+    <path d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8c0-2.2-.9-4.19-2.34-5.66l-1.42 1.42C17.43 9.05 18 10.45 18 12c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6c1.66 0 3.16.68 4.25 1.76L13 11h7V4l-2.44 2.44C16.14 5.02 14.17 4 12 4z" fill="#4a7ebb" stroke="#2d5284" stroke-width="0.5"/>
   </svg>
 </template>

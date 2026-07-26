@@ -1,6 +1,6 @@
 # WDR Schema
 
-**Authoritative reference for the WDR file format and the `_meta.yml` provenance sidecar.**
+**Authoritative reference for the WDR file format and the `openisd.yml` provenance sidecar.**
 
 ## 1. File format
 
@@ -18,7 +18,7 @@
 | Custom fields       | Observed after `ParState=` only — not verified that WinISD ignores pre-ParState unknowns                                                                                   |
 
 WDR files contain only WinISD-native fields. All provenance and quality metadata lives in
-the companion `_meta.yml` sidecar (see §9).
+the companion `openisd.yml` sidecar (see §9).
 
 Source for structural claims: direct analysis of 423 `drivers/matt/` files plus 53 WinISD-generated single-field probe files from `drivers/sample/` (2026-06-28).
 
@@ -487,31 +487,31 @@ fields (`Vd, no, SPLmax, SPLmaxLF, USPL, gamma, Rme, Mpow, Mcost, Gloss,
 alfaVC, Rt, Ct`) and environment (`c`, `roo`) remain app-computed, never stored.
 Guard: winisd_tools `scrapers/tests/lib/test_winisd_field_coverage.py`.
 
-## 9. Provenance sidecar — `_meta.yml`
+## 9. Provenance sidecar — `openisd.yml`
 
-Each WDR file has a companion `<stem>_meta.yml` in the same directory. The sidecar holds all
+Each WDR file has a companion `<stem>openisd.yml` in the same directory. The sidecar holds all
 provenance, quality, and data-quality metadata. WDR files contain no provenance data — they
 end at `ParState=` and are schema-identical to a native WinISD export.
 
-**Metadata-complete design:** The _meta.yml is the canonical complete record of all extracted
-datasheet data. The WDR file is a **subset** of _meta.yml — it contains only the T/S parameters
+**Metadata-complete design:** The openisd.yml is the canonical complete record of all extracted
+datasheet data. The WDR file is a **subset** of openisd.yml — it contains only the T/S parameters
 needed for WinISD simulation (and thus is WinISD-importable). For composite drivers like coaxials,
-the _meta.yml captures the complete multi-component spec set while the WDR contains only the
+the openisd.yml captures the complete multi-component spec set while the WDR contains only the
 primary component (e.g., woofer T/S for a coaxial).
 
 **Example:** A coaxial driver SB12PFC25-4-COAX has two acoustic components:
 
 - **WDR file** (`SB12PFC25-4-COAX.wdr`): Woofer T/S only (Fs=58 Hz, Qts=0.33, Vas=4.8L, etc.) — for WinISD enclosure design
-- **\_meta.yml** (`SB12PFC25-4-COAX_meta.yml`): Complete metadata including both woofer and tweeter T/S under `specs.woofer` and `specs.tweeter` keys — the human-readable record
+- **\openisd.yml** (`SB12PFC25-4-COAXopenisd.yml`): Complete metadata including both woofer and tweeter T/S under `specs.woofer` and `specs.tweeter` keys — the human-readable record
 
 **Schema and field definitions:** The sibling `winisd_tools` repo's
 `phase3_extract/scripts/model_openisd.py` — `MetaFile` (Pydantic v2) — is the single source of
-truth for `_meta.yml`. Reading it IS reading the `_meta.yml` schema. It defines all fields
+truth for `openisd.yml`. Reading it IS reading the `openisd.yml` schema. It defines all fields
 (including `discovered_at`, `data_source`), validation rules, and field ordering. `MetaFile` is
 a projection of `phase3_extract/scripts/model_metadata.py`'s `MetadataFile` — the internal
 `metadata.yml` database record produced by the extraction pipeline, which is the SSOT for all
-extracted data (superset of `_meta.yml`, see §9.1). `MetaFile.from_metadata()` builds a
-`_meta.yml` from a `MetadataFile` record.
+extracted data (superset of `openisd.yml`, see §9.1). `MetaFile.from_metadata()` builds a
+`openisd.yml` from a `MetadataFile` record.
 
 ### 9.1 `scraper_meta` — scraper-method metadata bag (internal-only, non-canonical)
 
@@ -530,7 +530,7 @@ scraper_meta:
 ```
 
 `scraper_meta` lives ONLY in `metadata.yml` (the `MetadataFile` record) — it is **not**
-serialized into `_meta.yml`. `MetaFile.from_metadata()` explicitly drops the key when
+serialized into `openisd.yml`. `MetaFile.from_metadata()` explicitly drops the key when
 projecting, so the app-facing sidecar never carries it. Because `MetadataFile` and `MetaFile`
 are both `extra="forbid"`, every method's bag lives under this one key in `metadata.yml` rather
 than adding method-specific top-level fields — the canonical schema stays method-agnostic.
@@ -599,7 +599,7 @@ parsers, making the format safely extensible.
 
 ## Link-field population workflow — rules for AI agents and scrapers
 
-These rules apply every time a link field is written to `_meta.yml`, whether by a
+These rules apply every time a link field is written to `openisd.yml`, whether by a
 scraper, a backfill script, or an AI agent working on an individual file. Follow
 them in order. **Do not skip the inspection steps.**
 
@@ -692,7 +692,7 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
      anything.** A ZIP must contain at least one `.frd`, `.zma`, or tab-separated
      `.txt` measurement file to qualify. If the ZIP contains only:
      - `.igs`, `.step`, `.x_t`, `.stp`, `.dwg`, `.dxf` files → it is a CAD
-       archive. Do not set `frd_url`. No `_meta.yml` field exists yet for
+       archive. Do not set `frd_url`. No `openisd.yml` field exists yet for
        mechanical/CAD files.
      - `.pdf`, `.jpg`, `.png` only → it is a graph archive, not raw data. Do not
        set `frd_url`.
@@ -720,11 +720,11 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Product page has no PDF link and no separate FRD file                  | Set `manu_page_url`, `distributor_page_url`, and `source`. Leave `datasheet_url` and `frd_url` unset                      |
 | ZIP found on vendor site — contents unknown                            | Download it, list contents (see `frd_url` step 3), then decide. Never set `frd_url` without inspection               |
-| ZIP contains CAD files only                                            | Download and cache locally. Set no `_meta.yml` field (no mechanical-file field is defined yet). Do not set `frd_url` |
+| ZIP contains CAD files only                                            | Download and cache locally. Set no `openisd.yml` field (no mechanical-file field is defined yet). Do not set `frd_url` |
 | FRD data is only available as a PDF graph (not raw data)               | Do not set `frd_url`. A rendered graph is not machine-readable data                                                  |
 | Multiple off-axis FRD files (0°, 15°, 30°, 45°)                        | If they are all in one ZIP → `frd_url` = ZIP URL. If individual `.frd` files → `frd_url` = on-axis (0°) URL          |
 | Wavecor multi-model page (e.g. WF090WA01_02) — SPL TXT URL returns 404 | Do not set `frd_url`. The multi-model URL pattern does not match individual model TXT filenames on Wavecor's server  |
-| Scraper downloads a file that already exists locally                   | Skip the download; still set the field in `_meta.yml` to the internet URL if the local file passes the content check |
+| Scraper downloads a file that already exists locally                   | Skip the download; still set the field in `openisd.yml` to the internet URL if the local file passes the content check |
 | URL resolves but download fails (timeout, SSL error)                   | Do not set the field. Log the error. A cached file from a previous run is acceptable if it passes the content check  |
 | Manufacturer changes URL after field was set                           | During a scraper refresh, re-verify all link fields. Update stale URLs. Set `DateModified` to the refresh date       |
 
@@ -732,7 +732,7 @@ of community measurements, an AVS Forum post, a raw datasheet. In those cases
 
 ## Automated DQ check
 
-A WDR/`_meta.yml` file must pass the shared DQ check before being treated as
+A WDR/`openisd.yml` file must pass the shared DQ check before being treated as
 authoritative — it scans every file and flags physically impossible or highly
 suspicious T/S values by rule ID. The tool and its rule set (thresholds, known
 false-positive calibration, root causes) live in the sibling
@@ -958,9 +958,9 @@ are outside the scope of T/S parameters alone.
 
 ---
 
-## Provenance sidecar — `_meta.yml`
+## Provenance sidecar — `openisd.yml`
 
-Each driver has a companion `DriverName_meta.yml` YAML file holding all provenance
+Each driver has a companion `DriverNameopenisd.yml` YAML file holding all provenance
 and quality metadata. See `WDR_SCHEMA.md` §9 and the sibling `winisd_tools` repo's
 `wdr_meta_schema.py` for the authoritative field list and schema.
 

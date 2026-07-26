@@ -68,6 +68,39 @@ for (const width of WIDTHS) {
   });
 }
 
+test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ page }) => {
+  const select = page.locator('#og-box-type');
+  await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
+  const boxes = await select.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value));
+  expect(boxes.length).toBeGreaterThan(3);
+
+  const heights: Record<string, number> = {};
+  let maxClip = 0;
+  for (const b of boxes) {
+    await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
+    await select.selectOption(b);
+    const m = await page.locator('.content-panel').evaluate(el => ({
+      h: Math.round(el.getBoundingClientRect().height),
+      // The left rail (tabs + projects list) shares the row; if the fixed height clips it
+      // the tabs would be unreachable. scrollHeight-clientHeight must stay ~0.
+      railClip: (() => {
+        const rail = el.parentElement!.querySelector('.quad-bottomleft') as HTMLElement;
+        return rail ? Math.round(rail.scrollHeight - rail.clientHeight) : 999;
+      })(),
+    }));
+    heights[b] = m.h;
+    maxClip = Math.max(maxClip, m.railClip);
+  }
+  const distinct = [...new Set(Object.values(heights))];
+  // Sealed shows 6 nav tabs, every other box 7; an auto-sized row tracked that difference
+  // and the chart above visibly re-flowed ("wobble"). A fixed natural default kills it.
+  expect(distinct, `panel height per box type: ${JSON.stringify(heights)}`).toHaveLength(1);
+  expect(maxClip, 'the 7-tab rail must not be clipped by the fixed height').toBeLessThanOrEqual(1);
+  // Natural height, not stretched to fill: the tallest content is ~181px + panel chrome.
+  // A regression that let the row grow toward 45vh (~405px at 900px tall) fails here.
+  expect(distinct[0]).toBeLessThan(240);
+});
+
 test('the box cut-through diagram sits at the same x for every box type', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
   const select = page.locator('#og-box-type');

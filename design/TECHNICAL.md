@@ -15,7 +15,7 @@ _How the app is implemented._ A **hub** linking the authoritative specs. See
 
 ## Data model & file formats
 
-- **`../WDR_SCHEMA.md`** — the `.wdr` + `_meta.yml` format spec (canonical WDR SSOT);
+- **`../WDR_SCHEMA.md`** — the `winisd.wdr` + `openisd.yml` format spec (canonical WDR SSOT);
   includes the "Appendix — file model & link-field workflows" (merged 2026-07-20 from
   WDR_FILE_MODEL_AND_WORKFLOWS.md).
 - **`../WINISD_WPR_FILE_SCHEMA.md`** — reverse-engineered `.wpr` project-file schema.

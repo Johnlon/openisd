@@ -93,13 +93,52 @@ export function drawOne(
   ctx.globalAlpha = 1;
 
   // y grid
-  const yt = logy ? logTicks(ymin, ymax) : niceTicks(ymin, ymax, 5);
-  ctx.textAlign = 'right';
-  for (const v of yt) {
-    const y = Y(v); if (y < m.t - 1 || y > m.t + ph + 1) continue;
-    ctx.globalAlpha = 0.4; ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
-    ctx.globalAlpha = 1; ctx.fillText(fmtY(v), m.l - 5, y + 3);
+  let yt_all: number[] = [];
+  let s_minor = 1;
+  let mag = 1;
+
+  if (logy) {
+    yt_all = logTicks(ymin, ymax);
+  } else {
+    const targetSpacing = 40;
+    const n_target = Math.max(4, Math.round(ph / targetSpacing));
+    const span = ymax - ymin;
+    const step0 = span / n_target;
+    mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const norm = step0 / mag;
+    const step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10;
+    s_minor = step * mag;
+
+    for (let v = Math.ceil(ymin / s_minor) * s_minor; v <= ymax + 1e-9; v += s_minor) {
+      yt_all.push(+v.toFixed(9));
+    }
   }
+
+  ctx.textAlign = 'right';
+  for (const v of yt_all) {
+    const y = Y(v); if (y < m.t - 1 || y > m.t + ph + 1) continue;
+
+    const isMajor = logy
+      ? (Math.log10(v) % 1 === 0 || Math.abs(Math.log10(v) - Math.round(Math.log10(v))) < 1e-9)
+      : (s_minor >= 10 * mag ? true : Math.abs(v / (10 * mag) - Math.round(v / (10 * mag))) < 1e-9);
+
+    if (isMajor) {
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1.1;
+    } else {
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = 0.8;
+    }
+
+    ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+
+    if (isMajor || !logy) {
+      ctx.globalAlpha = isMajor ? 1.0 : 0.45;
+      ctx.fillText(fmtY(v), m.l - 5, y + 3);
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 1;
 
   // series
   for (const s of plotData.series) {

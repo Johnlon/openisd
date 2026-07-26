@@ -19,9 +19,10 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   state, driver, driverRaw, driverShort, pinCompare,
   syncedP, curvesData, maxData, driverErrors,
-  isModified, markProjectSaved, resetProjectToGround,
+  isModified, resetProjectToGround, _ground, markProjectSaved,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
   formatInUnit as fmtU,
+  setDriverFromRaw,
 } from '../../store.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { DriverRaw } from '@openisd/engine';
@@ -29,8 +30,10 @@ import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR } from '../../types.js';
 import { RHO, C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
-         driveVoltage, soundVelocity } from '@openisd/engine';
+         driveVoltage, soundVelocity, sweep, maxCurves } from '@openisd/engine';
 import { TABS, buildPlotData } from '../../utils/series.js';
+import { DPAL } from '../../presets.js';
+import { copyOfName, uniqueName } from '../../utils/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -49,7 +52,7 @@ import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 
-const { saveProject, exportWdr, importFile, about } = useDesignIO();
+const { saveProject, importFile, about } = useDesignIO();
 
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 // The current design's trace colour. The Color button cycles it through a small
@@ -189,7 +192,20 @@ const openDd = ref<string | null>(null);
 function toggleDropdown(id: string) { openDd.value = openDd.value === id ? null : id; }
 function closeDropdown() { openDd.value = null; }
 function onDocClick() { closeDropdown(); }
-onMounted(() => document.addEventListener('click', onDocClick));
+onMounted(() => {
+  document.addEventListener('click', onDocClick);
+  const nowStr = new Date().toISOString().slice(0, 10);
+  let changed = false;
+  if (!state.project.created) { state.project.created = nowStr; changed = true; }
+  if (!state.project.modified) { state.project.modified = nowStr; changed = true; }
+  if (!state.project.creator) {
+    state.project.creator = typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john';
+    changed = true;
+  }
+  if (changed) {
+    markProjectSaved();
+  }
+});
 onUnmounted(() => document.removeEventListener('click', onDocClick));
 
 // toolbar file input (Open…)
@@ -198,15 +214,44 @@ function openClick() { fileInput.value!.click(); }
 function onFile(e: Event) {
   const input = e.target as HTMLInputElement;
   const f = input.files?.[0];
-  if (f) importFile(f);
+  if (f) {
+    importFile(f);
+  }
   input.value = '';
 }
 
+const SAMPLES = [
+  {
+    name: 'Generic 6.5" Woofer',
+    driver: { name: 'Samples - Generic 6.5" Woofer', brand: 'Samples', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 }
+  },
+  {
+    name: 'Generic 1" Tweeter',
+    driver: { name: 'Samples - Generic 1" Tweeter', brand: 'Samples', model: 'Generic 1" Tweeter', Fs:1500, Qts:0.8, Qes:1.0, Qms:4.0, Vas:0.0001, Sd:0.0008, Re:6.0, Le:0.05e-3, Xmax:0.0005, Pe:50, Z:8 }
+  }
+];
+
+function loadSample(sample: typeof SAMPLES[number]) {
+  copyCurrentProject();
+  setDriverFromRaw(sample.driver);
+  state.driverSource = { ...sample.driver };
+  state.project.name = sample.name;
+  const nowStr = new Date().toISOString().slice(0, 10);
+  state.project.creator = typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john';
+  state.project.created = nowStr;
+  state.project.modified = nowStr;
+  state.project.description = '';
+  markProjectSaved();
+  closeDropdown();
+}
+
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
+const projectVisible = ref(true);
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
+  visible: projectVisible.value !== false,
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
@@ -235,18 +280,186 @@ const activeTab = computed<TabId>({
 watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
 // ---- Projects list -------------------------------------------------------------
-// Row selection: -1 = the current design, i≥0 = state.compare[i]. The ✕ Close button
-// under the list acts on the selected row — the action row (with ＋ Copy) stands in for
-// WinISD's right-click project menu (Delete / Save / Copy).
-const selectedProject = ref(-1);
-// The Projects list is a list of PROJECTS, so the current row carries the project's own
-// name — the same string as its file name. Labelling it with the driver instead is what
-// made opening a saved project that uses the same driver look like a no-op.
-const currentProjectLabel = computed(() => state.project.name || driverShort(driverRaw.value));
-function closeSelectedProject(): void {
-  if (selectedProject.value < 0 || selectedProject.value >= state.compare.length) { selectedProject.value = -1; return; }
-  state.compare.splice(selectedProject.value, 1);
-  selectedProject.value = -1;
+const activeProjectId = ref('proj-' + Math.random().toString(36).substring(7));
+const openProjects = ref<any[]>([]);
+let isSwapping = false;
+
+onMounted(() => {
+  if (openProjects.value.length === 0) {
+    openProjects.value = [{
+      id: activeProjectId.value,
+      name: state.project.name || driverShort(driverRaw.value),
+      driver: driverRaw.value,
+      box: state.box,
+      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      curves: curvesData.value,
+      maxCurves: maxData.value,
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: isModified.value,
+      visible: projectVisible.value,
+      color: WINISD_TRACE.value,
+    }];
+  }
+});
+
+// Keep the active item in openProjects completely in sync with the live store active design
+watch([() => state.box, () => state.P, () => driverRaw.value, curvesData, maxData, () => state.project, isModified, projectVisible, isDriverWhatIfActive], () => {
+  if (isSwapping) return;
+  if (isDriverWhatIfActive.value) return;
+  const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
+  if (activeItem) {
+    activeItem.driver = driverRaw.value;
+    activeItem.box = state.box;
+    activeItem.P = { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) };
+    activeItem.curves = curvesData.value;
+    activeItem.maxCurves = maxData.value;
+    activeItem.name = state.project.name || driverShort(driverRaw.value);
+    activeItem.project = { ...state.project };
+    activeItem._ground = _ground.value;
+    activeItem.isModified = isModified.value;
+    activeItem.visible = projectVisible.value;
+  }
+}, { deep: true, immediate: true });
+
+// Maintain state.compare reactively so GraphPanel and buildPlotData can render curves
+watch(openProjects, (projects) => {
+  if (isSwapping) return;
+  const inactive = projects.filter(p => p.id !== activeProjectId.value);
+  state.compare = inactive.map(p => ({
+    id: p.id,
+    name: p.name,
+    driver: p.driver,
+    box: p.box,
+    P: p.P,
+    curves: p.curves,
+    maxCurves: p.maxCurves,
+    project: p.project,
+    _ground: p._ground,
+    isModified: p.isModified,
+    visible: p.visible,
+    color: p.color,
+  })) as any;
+}, { deep: true });
+
+// Sync external changes to state.compare back to openProjects
+watch(() => state.compare, (compareList) => {
+  if (isSwapping) return;
+  const currentInactiveNames = openProjects.value.filter(p => p.id !== activeProjectId.value).map(p => p.name).join(',');
+  const incomingNames = compareList.map(c => c.name).join(',');
+  if (currentInactiveNames === incomingNames) {
+    return;
+  }
+
+  const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
+  const inactiveItems = compareList.map(c => {
+    const existing = openProjects.value.find(p => p.name === c.name);
+    return {
+      id: existing?.id || c.id || ('proj-' + Math.random().toString(36).substring(7)),
+      name: c.name,
+      driver: c.driver,
+      box: c.box,
+      P: c.P,
+      curves: c.curves,
+      maxCurves: c.maxCurves,
+      project: c.project || { name: c.name || '' },
+      _ground: c._ground,
+      isModified: c.isModified ?? false,
+      visible: c.visible !== false,
+      color: c.color,
+    };
+  });
+  openProjects.value = activeItem ? [activeItem, ...inactiveItems] : [...inactiveItems];
+}, { deep: true });
+
+function selectProject(p: any) {
+  if (p.id === activeProjectId.value) return;
+
+  isSwapping = true;
+
+  // 1. Sync current active editor state back to the active project in openProjects
+  const activeItem = openProjects.value.find(x => x.id === activeProjectId.value);
+  if (activeItem) {
+    const currentP = { ...state.P };
+    currentP.filters = (currentP.filters || []).map(f => ({ ...f }));
+    
+    Object.assign(activeItem, {
+      driver: driverRaw.value,
+      box: state.box,
+      P: currentP,
+      curves: curvesData.value,
+      maxCurves: maxData.value,
+      name: state.project.name || driverShort(driverRaw.value),
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: isModified.value,
+      visible: projectVisible.value,
+    });
+  }
+
+  // 2. Load the target project into the active editor
+  const targetDesign = JSON.parse(JSON.stringify(p));
+  
+  state.box = targetDesign.box;
+  Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map(f => ({ ...f })) });
+  setDriverFromRaw(targetDesign.driver ? (targetDesign.driver as any) : null);
+  
+  const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
+  Object.assign(state.project, targetProj);
+
+  _ground.value = targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value, project: state.project });
+  projectVisible.value = targetDesign.visible !== false;
+  activeProjectId.value = targetDesign.id;
+
+  isSwapping = false;
+
+  // 3. Immediately set the new active project's states in openProjects to be 100% correct and sync'd
+  const newActiveItem = openProjects.value.find(x => x.id === activeProjectId.value);
+  if (newActiveItem) {
+    newActiveItem.name = state.project.name || driverShort(driverRaw.value);
+    newActiveItem.isModified = isModified.value;
+    newActiveItem.visible = projectVisible.value;
+  }
+}
+
+function copyCurrentProject() {
+  const currentP = { ...state.P };
+  currentP.filters = (currentP.filters || []).map(f => ({ ...f }));
+  
+  const copyId = 'proj-' + Math.random().toString(36).substring(7);
+  const copyName = uniqueName(copyOfName(state.project.name || driverShort(driverRaw.value)),
+                              openProjects.value.map(p => p.name));
+
+  const d = {
+    id: copyId,
+    driver: driverRaw.value,
+    box: state.box,
+    P: currentP,
+    curves: curvesData.value,
+    maxCurves: maxData.value,
+    name: copyName,
+    project: { ...state.project, name: copyName },
+    _ground: _ground.value,
+    isModified: true, // copy is unsaved
+    color: DPAL[(openProjects.value.length) % DPAL.length],
+    visible: true,
+  };
+
+  openProjects.value.push(d);
+}
+
+function closeProject(p: any) {
+  if (p.id === activeProjectId.value) {
+    if (openProjects.value.length > 1) {
+      const firstComp = openProjects.value.find(x => x.id !== p.id);
+      if (firstComp) {
+        selectProject(firstComp);
+        openProjects.value = openProjects.value.filter(x => x.id !== p.id);
+      }
+    }
+  } else {
+    openProjects.value = openProjects.value.filter(x => x.id !== p.id);
+  }
 }
 
 // ---- Resizable / collapsible layout --------------------------------------------
@@ -255,13 +468,21 @@ function closeSelectedProject(): void {
 // stays, so the chart type remains switchable while maximised). All five prefs live in
 // state.ui → persisted locally across refresh, stripped from share links (persist.ts).
 const mainEl = ref<HTMLElement | null>(null);
+// Fixed natural height for the bottom section. An `auto` row tracked the taller of its two
+// cells — and the left rail's tab count (6 tabs for a sealed box, 7 for every other type)
+// made that height jump 20px, re-flowing the chart above ("wobble"). It also let the rail's
+// 7-tab height pad the content pane with dead space. A constant that clears the fullest rail
+// (7 tabs) fixes both: the height no longer depends on the box type or the active tab, and
+// it never grows past what the content needs. The user can still drag the splitter to resize.
+const DEFAULT_BOTTOM_H = 206;
 const navCollapsed = computed({ get: () => state.ui.originalNavCollapsed ?? false, set: (v: boolean) => { state.ui.originalNavCollapsed = v; } });
 const bottomCollapsed = computed({ get: () => state.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { state.ui.originalBottomCollapsed = v; } });
 const chartMax = computed({ get: () => state.ui.originalChartMax ?? false, set: (v: boolean) => { state.ui.originalChartMax = v; } });
 const mainStyle = computed(() => chartMax.value ? {} : {
   gridTemplateColumns: (navCollapsed.value ? '0px' : (state.ui.originalNavW ?? 250) + 'px') + ' 7px 1fr',
-  // Bottom row: auto-fits its content until the user drags the splitter (explicit px).
-  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH != null ? state.ui.originalBottomH + 'px' : 'auto')),
+  // Bottom row: a fixed natural height (DEFAULT_BOTTOM_H) until the user drags the splitter
+  // to an explicit px — never `auto`, which would wobble with the rail's tab count.
+  gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (state.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
 });
 function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
   const el = e.currentTarget as HTMLElement;
@@ -279,7 +500,7 @@ function onNavSplitDown(e: PointerEvent): void {
 }
 function onBottomSplitDown(e: PointerEvent): void {
   if (bottomCollapsed.value) return;
-  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(rect.height - 160, Math.max(120, rect.bottom - ev.clientY)); });
+  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(DEFAULT_BOTTOM_H, Math.max(120, rect.bottom - ev.clientY)); });
 }
 
 // ---- Driver identity + placement ----------------------------------------------
@@ -374,6 +595,12 @@ watch(() => state.ui.originalTuneOpen, (open) => {
   }
 }, { immediate: true });
 
+watch(isModified, (val) => {
+  if (val) {
+    state.project.modified = new Date().toISOString().slice(0, 10);
+  }
+});
+
 // Same for the Driver Editor modal — it edits the committed design live (no separate buffer),
 // so preserving it across refresh is just persisting the open flag and reopening. Original-
 // scoped (Modern/Classic never set originalEditorOpen).
@@ -386,7 +613,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
   <div class="original-root">
     <!-- ================= Title bar ================= -->
     <div class="titlebar">
-      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode<template v-if="state.project.name"> — {{ state.project.name }}</template></span></div>
+      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode<template v-if="state.project.name"> — {{ state.project.name }}{{ isModified ? ' *' : '' }}</template></span></div>
       <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
     </div>
 
@@ -399,14 +626,20 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           <div class="dropdown-menu" :class="{ open: openDd === 'folder-dropdown' }" @click.stop>
             <div class="menu-item" title="Import a .wdr driver or .json design." @click="openClick(); closeDropdown()">Open...</div>
             <hr>
-            <div class="menu-item">{{ driverShort(driverRaw) }}</div>
+            <div class="menu-item" style="font-weight: bold; color: var(--mut); pointer-events: none; padding-top: 4px; padding-bottom: 2px;">Samples:</div>
+            <div v-for="sample in SAMPLES" :key="sample.name" class="menu-item sample-item" style="padding-left: 24px;" @click="loadSample(sample)">
+              {{ sample.name }}
+            </div>
           </div>
         </div>
         <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="newProjectOpen = true">
           <ToolbarIcon name="new" />
         </div>
-        <div class="tb-btn" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)." @click="saveProject">
+        <div class="tb-btn" :class="{ dirty: isModified }" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)." @click="saveProject">
           <ToolbarIcon name="save" />
+        </div>
+        <div class="tb-btn" :class="{ disabled: !isModified }" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="isModified && resetProjectToGround()">
+          <ToolbarIcon name="revert" />
         </div>
         <ExportMenu class="tb-btn" title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link.">
           <ToolbarIcon name="saveAs" />
@@ -455,28 +688,22 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         <div class="quad-projects-wrap">
           <div class="panel-title">Projects</div>
           <div class="projects-list">
-            <div class="project-row" :class="{ selected: selectedProject === -1 }"
-                 :title="'Current project — ' + currentProjectLabel + ' (driver: ' + driverShort(driverRaw) + ')'"
-                 @click="selectedProject = -1">
-              <input type="checkbox" checked disabled>
-              <span>{{ currentProjectLabel }}</span>
-            </div>
-            <div v-for="(d, i) in state.compare" :key="i" class="project-row"
-                 :class="{ selected: selectedProject === i, 'trace-hidden': d.visible === false }"
-                 :title="'Comparison overlay — click to select, untick to hide its trace: ' + d.name"
-                 @click="selectedProject = i">
-              <input type="checkbox" :checked="d.visible !== false" @change="d.visible = ($event.target as HTMLInputElement).checked"
-                     title="Show/hide this overlay's trace on the graph">
-              <span>{{ d.name }}</span>
+            <div v-for="p in openProjects" :key="p.id" class="project-row"
+                 :class="{ selected: p.id === activeProjectId, 'trace-hidden': p.visible === false, 'is-unsaved': p.isModified }"
+                 :title="'Project — ' + p.name + (p.id === activeProjectId ? ' (Active)' : ' (Click to select)')"
+                 @click="selectProject(p)">
+              <input type="checkbox" :checked="p.visible !== false"
+                     @click.stop
+                     @change.stop="p.visible = ($event.target as HTMLInputElement).checked; if (p.id === activeProjectId) projectVisible = p.visible"
+                     title="Show/hide this project's trace on the graph">
+              <span>{{ p.name }}</span>
             </div>
           </div>
           <div class="proj-actions">
-            <button class="link-btn" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="pinCompare">＋ Copy</button>
-            <button class="link-btn close-btn" :disabled="selectedProject < 0"
-                    :title="selectedProject < 0
-                      ? 'Select a comparison overlay above to close it (the current design cannot be closed) — mimics WinISD\'s right-click Delete'
-                      : 'Close (remove) the selected comparison overlay — mimics WinISD\'s right-click Delete'"
-                    @click="closeSelectedProject">✕ Close</button>
+            <button class="link-btn" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="copyCurrentProject">＋ Copy</button>
+            <button class="link-btn close-btn" :disabled="openProjects.length <= 1"
+                    title="Close (remove) the selected project — mimics WinISD's right-click Delete"
+                    @click="closeProject(openProjects.find(pr => pr.id === activeProjectId))">✕ Close</button>
           </div>
         </div>
 
@@ -851,7 +1078,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         </section>
 
         <!-- ===== Project tab ===== -->
-        <section v-show="activeTab === 'project'" class="tab-section" :class="{ active: activeTab === 'project' }">
+        <section v-show="activeTab === 'project'" class="tab-section project-tab" :class="{ active: activeTab === 'project' }">
           <div class="two-col">
             <div>
               <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="state.project.name"></div></div>
@@ -870,12 +1097,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space.
              (The Entered/Calculated swatch legend was removed: not a WinISD element.) -->
         <div class="save-rail">
-          <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved</span>
-          <button class="save-btn" :class="{ dirty: isModified }"
-                  title="Save Changes — adopt the current design as the saved (ground) state." @click="markProjectSaved">Save Changes</button>
-          <button class="save-btn"
-                  title="Reset state — discard all unsaved changes and return to the last saved version." @click="resetProjectToGround">Reset state</button>
-          <button class="save-btn" title="Export the driver as a WinISD .wdr file." @click="exportWdr">Export .wdr</button>
+          <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
         </div>
       </div>
     </div>
@@ -906,7 +1128,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
     <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
-    <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
+    <input ref="fileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json" style="display:none" @change="onFile">
   </div>
 </template>
 
@@ -945,8 +1167,10 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .tb-icons { display:flex; align-items:center; gap:6px; }
 .tb-btn { display:flex; align-items:center; justify-content:center; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
-.tb-btn.disabled { opacity:.4; cursor:default; }
+.tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
 .tb-btn.disabled:hover { background:#f7f7f7; border-color:#bbb; }
+.tb-btn.dirty { border-color:#d9a441; background:#fff3e0; }
+.tb-btn.dirty:hover { background:#ffe4b0; border-color:#c9971b; }
 .tb-sep { width:1px; align-self:stretch; background:#ccc; margin:0 4px; }
 .tb-btn svg { display:block; }
 .caret { font-size:10px; margin-left:2px; color:#555; }
@@ -969,6 +1193,9 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .dropdown-menu .menu-item.current::before { content:"\25CF"; font-size:8px; color:#222; width:10px; display:inline-block; }
 .dropdown-menu .menu-item:not(.current)::before { content:""; width:10px; display:inline-block; }
 .dropdown-menu hr { border:none; border-top:1px solid #ddd; margin:4px 0; }
+.dropdown-menu .menu-item.has-submenu { position:relative; display:flex; justify-content:space-between; align-items:center; }
+.dropdown-menu .submenu { display:none; position:absolute; left:100%; top:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); padding:4px 0; z-index:100; min-width:200px; }
+.dropdown-menu .menu-item.has-submenu:hover .submenu { display:block; }
 
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (state.ui.originalNavW/originalBottomH,
@@ -1005,7 +1232,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* overflow:visible + a stacking context ABOVE the content panel lets the active
    tab extend past the column edge and paint over the panel's left spine, so it
    reads as one continuous shape with the panel (the break-through notch). */
-.quad-bottomleft { grid-area:rail; background:#e2e2e2; display:flex; flex-direction:column; padding:6px 0 6px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
+.quad-bottomleft { grid-area:rail; background:#f0f0f0; display:flex; flex-direction:column; padding:6px 0 6px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
 .quad-bottomleft .panel-title { margin-right:8px; flex:none; }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
@@ -1014,8 +1241,12 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-row { display:flex; align-items:center; gap:6px; padding:5px 6px; cursor:pointer; border-bottom:1px solid #eee; }
 .project-row:hover { background:#eef4ff; }
 .project-row.selected { background:#1868d1; color:#fff; }
+.project-row.is-unsaved { background: #fff3b3; border-left: 4px solid #f2994a; padding-left: 3px; }
+.project-row.is-unsaved:hover { background: #ffe680; }
+.project-row.is-unsaved.selected { background: #1868d1; border-left-color: #ffd07d; }
 .project-row input[type=checkbox] { accent-color:#1868d1; }
 .project-row span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.project-row.is-unsaved span { font-style: italic; }
 .project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
 /* Action row under the list — stands in for WinISD's right-click project menu. */
 .proj-actions { display:flex; gap:16px; margin-top:6px; }
@@ -1089,6 +1320,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
 .vent-col .field label { width:110px; }
+.project-tab .field label { width: 70px; }
 .field-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; justify-content:flex-start; }
 .field { display:flex; align-items:center; gap:6px; justify-content:flex-start; flex:none; }
 .field label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; }

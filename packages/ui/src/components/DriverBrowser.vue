@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
-import { state, DEFAULT_DRIVER, setDriverFromRaw, setDriverFromWdr } from '../store.js';
+import { state, DEFAULT_DRIVER, setDriverFromRaw, setDriverFromWdr, setDriverFromSerialized } from '../store.js';
 import HelpTip from './HelpTip.vue';
 import type { DriverRaw } from '@openisd/engine';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import { DriverType } from '../driverType';
+import { Driver as DriverModel } from '@openisd/winisd';
+import { download } from '../utils/persist.js';
 import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson  from '../drivers-bundle.json';
 
@@ -106,7 +108,7 @@ const COAX_PAT     = /\bcoax(ial)?\b|coaxial/i;
 // Returns { types: string[], canonical: string }
 // types  = functional chip IDs for filtering
 // canonical = the normalised product-type name for display (e.g. "Subwoofer", "Midrange")
-// driverType = scraper-derived type written to _meta.yml (e.g. 'coaxial', 'subwoofer')
+// driverType = scraper-derived type written to openisd.yml (e.g. 'coaxial', 'subwoofer')
 function classifyTypes(Fs: number | null, Sd: number | null, nameStr: string, driverType?: string, hasWoofer?: boolean, hasTweeter?: boolean): { types: string[]; canonical: string } {
   const nm = nameStr || '';
   // Scrapers may write compound values like "midwoofer, automotive" — take the primary
@@ -508,7 +510,7 @@ const previewData = computed(() => {
   };
 });
 
-function resetToDemo() {
+function resetToSample() {
   setDriverFromRaw(DEFAULT_DRIVER);
   state.driverSource = { ...DEFAULT_DRIVER };
   close();
@@ -524,6 +526,54 @@ function applyWdr(text: string, f: FileEntry) {
   if (f.frd)        m.enter('frdUrl',        f.frd);
   if (f.impedance)  m.enter('impedanceUrl',  f.impedance);
   state.driverSource = m.raw();
+}
+
+function sanitizeFilename(name: string | undefined): string {
+  return (name || 'driver').replace(/[^\w.-]+/g, '_');
+}
+
+async function getDriverContent(f: FileEntry): Promise<{ wdr: string; owdr: string }> {
+  let wdrText = '';
+  if (f.myDriverData) {
+    const m = DriverModel.fromRaw(f.myDriverData);
+    wdrText = m.toWdr();
+  } else if (f.content) {
+    wdrText = f.content;
+  } else {
+    const url = `https://raw.githubusercontent.com/${f.repo}/${f.branch}/${f.path!.split('/').map(encodeURIComponent).join('/')}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Fetch failed (' + res.status + ')');
+    wdrText = await res.text();
+  }
+  const m = DriverModel.fromWdr(wdrText);
+  const owdrText = JSON.stringify(m.toJSON(), null, 2);
+  return { wdr: wdrText, owdr: owdrText };
+}
+
+async function exportWdrForFile(f: FileEntry) {
+  try {
+    statusErr.value = false;
+    statusMsg.value = 'Preparing export…';
+    const { wdr } = await getDriverContent(f);
+    download(sanitizeFilename(f.name) + '.wdr', wdr, 'text/plain');
+    statusMsg.value = 'Exported ' + f.name + '.wdr successfully';
+  } catch (err) {
+    statusErr.value = true;
+    statusMsg.value = 'Export failed: ' + (err as Error).message;
+  }
+}
+
+async function exportOwdrForFile(f: FileEntry) {
+  try {
+    statusErr.value = false;
+    statusMsg.value = 'Preparing export…';
+    const { owdr } = await getDriverContent(f);
+    download(sanitizeFilename(f.name) + '.owdr', owdr, 'application/json');
+    statusMsg.value = 'Exported ' + f.name + '.owdr successfully';
+  } catch (err) {
+    statusErr.value = true;
+    statusMsg.value = 'Export failed: ' + (err as Error).message;
+  }
 }
 
 async function loadDriver(f: FileEntry) {
@@ -574,8 +624,8 @@ async function openDefine() {
     <div class="modal" v-if="state.browseOpen">
       <h2>
         {{ previewFile ? previewData?.name : 'Driver library' }}
-        <button v-if="!previewFile" class="reset-demo-btn" @click="resetToDemo"
-                title="Reset the driver to the built-in demo (Generic 6.5&quot; Woofer)">↺ Reset to demo</button>
+        <button v-if="!previewFile" class="reset-demo-btn" @click="resetToSample"
+                title="Reset the driver to the built-in sample (Generic 6.5&quot; Woofer)">↺ Reset to sample</button>
         <span class="x" @click="close" title="Close the driver library browser">&times;</span>
       </h2>
       <div class="body">
@@ -678,6 +728,10 @@ async function openDefine() {
             <button @click="previewFile = null" title="Back to driver list">← Back</button>
             <button class="use-btn" @click="loadDriver(previewFile)"
                     title="Load this driver into the current design">Use this driver</button>
+            <button class="use-btn" @click="exportOwdrForFile(previewFile)"
+                    title="Export this driver as OpenISD (.owdr)">Export OWDR</button>
+            <button class="use-btn" @click="exportWdrForFile(previewFile)"
+                    title="Export this driver as WinISD (.wdr)">Export WDR</button>
           </div>
           <div class="prev-body">
             <div class="prev-specs">
@@ -726,7 +780,14 @@ async function openDefine() {
                  class="ditem my-ditem"
                  @click="pickFile({ name: d.name, myDriverData: d })">
               <b>{{ d.name }}</b>
-              <button class="my-del" @click.stop="deleteMyDriver(d.name)" title="Remove from My Drivers">✕</button>
+              <span class="dmeta" style="flex:1; display:inline-flex; align-items:center; justify-content:flex-end; gap:4px;">
+                <span class="row-actions">
+                  <button class="row-btn load-btn" @click.stop="loadDriver({ name: d.name, myDriverData: d })" title="Load this driver into active design">Load</button>
+                  <button class="row-btn export-btn" @click.stop="exportOwdrForFile({ name: d.name, myDriverData: d })" title="Export driver as OpenISD (.owdr)">Export OWDR</button>
+                  <button class="row-btn export-btn" @click.stop="exportWdrForFile({ name: d.name, myDriverData: d })" title="Export driver as WinISD (.wdr)">Export WDR</button>
+                </span>
+                <button class="my-del" @click.stop="deleteMyDriver(d.name)" title="Remove from My Drivers">✕</button>
+              </span>
             </div>
             <div class="dlist-sep"></div>
           </template>
@@ -735,6 +796,11 @@ async function openDefine() {
                @click="pickFile(f)">
             <b>{{ f.name }}</b>
             <span class="dmeta">
+              <span class="row-actions">
+                <button class="row-btn load-btn" @click.stop="loadDriver(f)" title="Load this driver into active design">Load</button>
+                <button class="row-btn export-btn" @click.stop="exportOwdrForFile(f)" title="Export driver as OpenISD (.owdr)">Export OWDR</button>
+                <button class="row-btn export-btn" @click.stop="exportWdrForFile(f)" title="Export driver as WinISD (.wdr)">Export WDR</button>
+              </span>
               <span v-if="f._nd" :class="['ddate', f._isLatest && 'ddate-latest', f._isOlder && 'ddate-older']">{{ f._nd }}</span>
               <a v-if="f.datasheet" class="dpdf"
                  :href="f.datasheet" target="_blank" rel="noopener"
@@ -900,4 +966,9 @@ h2 { margin:0; padding:12px 16px; font-size:14px; font-weight:600; display:flex;
 .prev-textinfo { display:flex; flex-direction:column; gap:3px; padding:7px 9px; background:var(--bg); border-radius:4px; border:1px solid var(--line); }
 .prev-textrow { font-size:11px; color:var(--mut); line-height:1.4; }
 .prev-notes { white-space:pre-wrap; }
+.row-actions { display: inline-flex; align-items: center; gap: 4px; margin-right: 8px; }
+.row-btn { font-size: 9px; padding: 2px 5px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 3px; cursor: pointer; height: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; }
+.row-btn:hover { border-color: var(--acc); color: var(--acc); background: var(--bg2); }
+.row-btn.load-btn { background: var(--acc); border-color: var(--acc); color: #fff; }
+.row-btn.load-btn:hover { opacity: 0.85; color: #fff; background: var(--acc); }
 </style>

@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, applyState,
+  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, applyState, markProjectSaved, pinCompare, openProjectAdditive
 } from '../store.js';
 import { serialize, stateToUrl, download } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
@@ -62,6 +62,7 @@ export function useDesignIO() {
     if (result.cancelled) return;
     fileHandle.value = result.handle;
     adoptFileName(result.handle, suggested);
+    markProjectSaved();
     flash(result.handle ? 'Project saved' : 'Project downloaded');
   }
 
@@ -76,6 +77,7 @@ export function useDesignIO() {
     if (result.cancelled) return;
     fileHandle.value = result.handle;
     adoptFileName(result.handle, suggested);
+    markProjectSaved();
     flash(result.handle ? 'Project saved' : 'Project downloaded');
   }
 
@@ -94,6 +96,10 @@ export function useDesignIO() {
     download(sanitizeFilename(driverRaw.value.name) + '.wdr', getDriverModel().toWdr(), 'text/plain');
   }
 
+  function exportOwdr(): void {
+    download(sanitizeFilename(driverRaw.value.name) + '.owdr', JSON.stringify(driverJSON.value, null, 2), 'application/json');
+  }
+
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     const driverSection = getDriverModel().toWdr();
@@ -101,25 +107,182 @@ export function useDesignIO() {
     download(sanitizeFilename(driverRaw.value.name) + '.wpr', toWpr(input), 'text/plain');
   }
 
-  /** Load a driver/design from a picked File (.wdr or an OpenISD .json project). */
+  function parseWprToState(text: string): any {
+    const sections: Record<string, Record<string, string>> = {};
+    let currentSection: Record<string, string> | null = null;
+    const lines = text.split(/\r?\n/);
+    const driverLines: string[] = [];
+    let inDriver = false;
+    
+    for (let line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
+      
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        const secName = trimmed.slice(1, -1).trim();
+        currentSection = {};
+        sections[secName] = currentSection;
+        
+        if (secName === 'Driver') {
+          inDriver = true;
+          driverLines.push(trimmed);
+        } else {
+          inDriver = false;
+        }
+      } else {
+        if (inDriver) {
+          driverLines.push(line);
+        }
+        if (currentSection) {
+          const idx = line.indexOf('=');
+          if (idx !== -1) {
+            const k = line.slice(0, idx).trim();
+            const v = line.slice(idx + 1).trim();
+            currentSection[k] = v;
+          }
+        }
+      }
+    }
+
+    const driverWdr = driverLines.join('\r\n');
+    const driverModel = getDriverModel().constructor.fromWdr(driverWdr);
+    const driverJson = driverModel.toJSON();
+
+    const boxSec = sections['Box'] || {};
+    const bType = parseInt(boxSec['BType'] || '1', 10);
+    let boxType: 'sealed' | 'vented' | 'bandpass4' | 'pr' = 'vented';
+    if (bType === 0) boxType = 'sealed';
+    else if (bType === 1) boxType = 'vented';
+    else if (bType === 2) boxType = 'bandpass4';
+    else if (bType === 4) boxType = 'pr';
+
+    const pSec = sections['ProjectInfo'] || {};
+    const sigSec = sections['SignalSource'] || {};
+    const vr = parseFloat(boxSec['Vr'] || '0.030');
+    const vf = parseFloat(boxSec['Vf'] || '0.015');
+    const npr = parseInt(boxSec['npr'] || '1', 10);
+
+    const ventFrontSec = sections['VentFront'] || {};
+    const ventRearSec = sections['VentRear'] || {};
+    const activeVentSec = boxType === 'bandpass4' ? ventFrontSec : ventRearSec;
+    const ventD = parseFloat(activeVentSec['dia'] || '0.05');
+    const ventL = parseFloat(activeVentSec['len'] || '0.10');
+    const endCorrection = parseFloat(activeVentSec['endCorrection'] || '0.732');
+
+    const simOptSec = sections['SimulatorOptions'] || {};
+    const vcInductance = simOptSec['vcInductance'] === '1';
+    const flatResponse = simOptSec['flatResponse'] === '1';
+    const tlPorts = simOptSec['tlPorts'] === '1';
+
+    const prSec = sections['PassiveRadiator'] || {};
+    const prSd = parseFloat(prSec['Sd'] || '0.0133');
+    const prXmax = parseFloat(prSec['Xmax'] || '0.012');
+    const prMadd = parseFloat(prSec['Me'] || '0');
+    const prVasLitres = parseFloat(prSec['Vas'] || '20.0');
+    const prFs = parseFloat(prSec['Fs'] || '20.0');
+    const prQms = parseFloat(prSec['Qms'] || '5.0');
+
+    const prVasM3 = prVasLitres / 1000;
+    const RHO = 1.20095;
+    const C = 343.68;
+    const prCms = prVasM3 / (prSd * prSd * RHO * C * C);
+    const prMmd = prFs > 0 && prCms > 0 ? 1 / (4 * Math.PI * Math.PI * prFs * prFs * prCms) : 0.010;
+    const prRms = prQms > 0 && prCms > 0 ? Math.sqrt(prMmd / prCms) / prQms : 1.0;
+
+    const P = {
+      Vb: vr,
+      Vf: vf,
+      ventD,
+      ventL,
+      Ql: parseFloat(boxSec['Ql'] || '10'),
+      Qa: parseFloat(boxSec['Qa'] || '100'),
+      Qp: parseFloat(boxSec['Qp'] || '100'),
+      nDrivers: 1,
+      wiring: 'parallel',
+      Pin: parseFloat(sigSec['P'] || '1'),
+      Rs: parseFloat(sigSec['Rg'] || '0.1'),
+      prName: 'Custom PR',
+      prSd,
+      prNum: npr,
+      prMmd,
+      prMadd,
+      prCms,
+      prRms,
+      prXmax,
+      prMode: 'winisd',
+      fmin: 1,
+      fmax: 20000,
+      N: 400,
+      circuitModel: vcInductance ? 'gyrator' : 'winisd',
+      filters: [],
+      vcTempRise: 0,
+      alfaVC: 0.0039,
+      driverAddedMass: 0,
+      endCorrection,
+      rgAtDriverSide: true,
+      tlPortModel: tlPorts,
+      forceFlatResponse: flatResponse,
+      splXmaxLimited: false,
+    };
+
+    const project = {
+      name: pSec['Description'] || 'Imported Design',
+      description: pSec['Description'] || '',
+      creator: pSec['Creator'] || '',
+      created: pSec['CreateDate'] || '',
+    };
+
+    return {
+      box: boxType,
+      P,
+      driver: driverJson,
+      project,
+      compare: [],
+    };
+  }
+
+  /** Load a driver/design from a picked File. */
   function importFile(f: File): void {
     const rd = new FileReader();
-    const isWdr = /\.wdr$/i.test(f.name);
+    const nameLower = f.name.toLowerCase();
+    const isWdr = nameLower.endsWith('.wdr');
+    const isWpr = nameLower.endsWith('.wpr');
+    const isOwdr = nameLower.endsWith('.owdr');
+    const isOwpr = nameLower.endsWith('.owpr');
+
     rd.onload = () => {
       const text = rd.result as string;
       try {
-        if (isWdr || /^\s*\[Driver\]/.test(text)) {
+        if (isWdr || (nameLower.endsWith('.wdr') || (/^\s*\[Driver\]/.test(text) && !/\[Box\]/.test(text)))) {
+          pinCompare();
           setDriverFromWdr(text);
-        } else {
-          // The store's applyState — the SAME loader the hash and localStorage paths use, so
-          // an opened project restores everything a saved one holds, not a subset of it.
-          applyState(JSON.parse(text) as SerializedState);
-          // The file names the project, overriding whatever name the file's own body carries:
-          // a project renamed by renaming its file must show the name the user can see on disk.
+        } else if (isWpr || /\[Box\]/.test(text)) {
+          const stateObj = parseWprToState(text);
+          openProjectAdditive(stateObj);
           state.project.name = projectNameFromFilename(f.name);
+        } else if (isOwdr || nameLower.endsWith('.json') || isOwpr) {
+          const parsed = JSON.parse(text);
+          if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
+            pinCompare();
+            setDriverFromSerialized(parsed);
+          } else {
+            openProjectAdditive(parsed as SerializedState);
+            state.project.name = projectNameFromFilename(f.name);
+          }
+        } else {
+          if (/^\s*\{/.test(text)) {
+            const parsed = JSON.parse(text);
+            if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
+              pinCompare();
+              setDriverFromSerialized(parsed);
+            } else {
+              openProjectAdditive(parsed as SerializedState);
+              state.project.name = projectNameFromFilename(f.name);
+            }
+          } else {
+            throw new Error('Unsupported or unrecognized file format');
+          }
         }
-        // The design came from a file the browser only handed us as a File — a read-only
-        // snapshot, not a writable handle — so Save must prompt for a location.
         fileHandle.value = null;
         flash('Opened ' + f.name);
       } catch (err) { alert('Could not read "' + f.name + '": ' + (err as Error).message); }
@@ -128,8 +291,8 @@ export function useDesignIO() {
   }
 
   function about(): void {
-    alert(`OpenISD — open loudspeaker enclosure simulator\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
+    alert(`OpenISD — opensource interactive speaker designer\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.`);
   }
 
-  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, importFile, about };
+  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, about };
 }

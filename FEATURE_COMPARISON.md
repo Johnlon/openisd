@@ -246,13 +246,13 @@ pipeline that lives in the sibling [`winisd_tools`](../winisd_tools) repo, writi
 for how OpenISD federates that data in.
 
 - ✅ **SB Acoustics** — 194 drivers, including the full Satori and SB series, with
-  datasheet URLs in machine-readable `_meta.yml`
+  datasheet URLs in machine-readable `openisd.yml`
 - ✅ **Parts Express** — 1,509 drivers; T/S parameters taken directly from the PE
   datasheet fields (not keyed by hand)
 - 🔨 **SoundImports** — European multi-brand distributor; coverage growing
   (Accuton, HiVi, Faital, Morel, ScanSpeak, Seas, Satori, Wavecor, …)
 - ⬜ **Wavecor**, **Dayton Audio** — pending full coverage
-- ✅ **Meta file standard** — every automated `.wdr` gets a `_meta.yml` with
+- ✅ **Meta file standard** — every automated `.wdr` gets a `openisd.yml` with
   quality grade (`M` = machine-derived, unverified), datasheet URL, and
   provenance so human reviewers know exactly where each number came from
 - ✅ **WDR schema documentation** (`WDR_SCHEMA.md`) — canonical field names,
