@@ -10,7 +10,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useDesignIO } from '../composables/useDesignIO.js';
 
-const { saveProjectAs, exportWpr, exportWdr, shareLink } = useDesignIO();
+const { saveProjectAs, exportWpr, exportWdr, exportOwdr, shareLink } = useDesignIO();
 const open = ref(false);
 function toggle(): void { open.value = !open.value; }
 function close(): void { open.value = false; }
@@ -21,14 +21,15 @@ onUnmounted(() => document.removeEventListener('click', close));
 <template>
   <div class="export-menu" @click.stop>
     <button type="button" id="btnExportMenu" class="export-menu-trigger" @click="toggle"
-            title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link">
+            title="Save As / Export — OpenISD project, WinISD project, driver files, or a share link">
       <slot>Save As / Export ▾</slot>
     </button>
     <div v-if="open" class="export-menu-list">
-      <button type="button" title="Pick a new file to write the design as an OpenISD .json project" @click="saveProjectAs(); close()">Save as OpenISD project (.json)</button>
-      <button type="button" title="Export the full design as a WinISD-compatible .wpr project file" @click="exportWpr(); close()">Save as WinISD project (.wpr)</button>
-      <button type="button" title="Export the current driver parameters as a WinISD-compatible .wdr file" @click="exportWdr(); close()">Export driver (.wdr)</button>
-      <button type="button" id="btnShare" title="Copy a shareable URL that encodes the current design, skin, and tab" @click="shareLink(); close()">Share link (http:)</button>
+      <button type="button" title="Pick a new file to write the design as an OpenISD project (.owpr)" @click="saveProjectAs(); close()">Save As OpenISD project (.owpr)</button>
+      <button type="button" title="Export the full design as a WinISD-compatible project (.wpr)" @click="exportWpr(); close()">Save As WinISD project (.wpr)</button>
+      <button type="button" title="Export the current driver parameters as an OpenISD driver (.owdr)" @click="exportOwdr(); close()">Export OpenISD Driver (.owdr)</button>
+      <button type="button" title="Export the current driver parameters as a WinISD-compatible driver (.wdr)" @click="exportWdr(); close()">Export WinISD Driver (.wdr)</button>
+      <button type="button" id="btnShare" title="Copy a shareable URL that encodes the current design, skin, and tab" @click="shareLink(); close()">Share Link to Project (http:)</button>
     </div>
   </div>
 </template>

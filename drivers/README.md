@@ -1,7 +1,7 @@
 # Driver library
 
 Related docs:
-[`WDR_SCHEMA.md`](../WDR_SCHEMA.md) — WDR field spec and `_meta.yml` sidecar format ·
+[`WDR_SCHEMA.md`](../WDR_SCHEMA.md) — WDR field spec and `openisd.yml` sidecar format ·
 [`WDR_SCHEMA.md` appendix "file model & link-field workflows"](../WDR_SCHEMA.md) — link-field workflows, DQ check, scripts reference ·
 [`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules
 
@@ -11,7 +11,7 @@ research) live in the sibling `winisd_tools` repo, not here.
 OpenISD's driver data is an open commons. Two ways drivers reach the tool:
 
 1. **Bundled** — `.wdr` files in subfolders here (`demos/`, `matt/`, `winisd/`, `sample/`).
-   Each driver has a `_meta.yml` sidecar with provenance and quality metadata.
+   Each driver has a `openisd.yml` sidecar with provenance and quality metadata.
 2. **Federated** — links to other people's driver libraries in [`sources.json`](sources.json).
    The in-app driver browser reads those sources and fetches `.wdr` files on demand —
    no re-hosting, no staleness, the original maintainer stays in control. The larger
@@ -58,7 +58,7 @@ repo, alongside the collections they belong to.
 
 ## Add a bundled driver
 
-Create or use an appropriate subfolder, drop a `.wdr` file there, create a `_meta.yml`
+Create or use an appropriate subfolder, drop a `.wdr` file there, create a `openisd.yml`
 sidecar with provenance fields, and open a PR. Import the spec sheet in the app first
 and sanity-check the curves.
 

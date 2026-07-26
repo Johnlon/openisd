@@ -42,7 +42,7 @@ describe('.gitignore', () => {
     assert.ok(
       gitignore.includes('_*'),
       '.gitignore must exclude drivers/**/_*/ — all scraper cache/scratch dirs are ' +
-      '_-prefixed (_html raw HTML, _datasheets PDFs); source URLs live in _meta.yml sidecars.'
+      '_-prefixed (_html raw HTML, _datasheets PDFs); source URLs live in openisd.yml sidecars.'
     );
   });
 });

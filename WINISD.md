@@ -441,7 +441,7 @@ regenerated from current datasheet values when this occurs.
 ### WDR field order and ParState
 
 `ParState` is the last WinISD-native field in a WDR file. Fields after `ParState` are
-ignored by WinISD. OpenISD's provenance metadata lives in the companion `_meta.yml` sidecar, not in the WDR.
+ignored by WinISD. OpenISD's provenance metadata lives in the companion `openisd.yml` sidecar, not in the WDR.
 
 `ParState` is a 49-character string: each position is `E` (user-Entered), `C` (Calculated
 by WinISD from other entered values), or `N` (Not set). The mapping of positions to

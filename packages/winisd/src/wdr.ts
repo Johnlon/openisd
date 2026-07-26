@@ -19,14 +19,19 @@ export function toWdr(raw: DriverRaw): string {
   const brand = raw.brand || '', model = raw.model || '';
   const ParState = parstate(raw, d);
   const L = [
-    '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=',
-    'ProvidedBy=OpenISD', 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
+    '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=' + (raw.manufacturer || ''),
+    'ProvidedBy=' + (raw.providedBy || 'OpenISD'), 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
     'Qts=' + g(d.Qts), 'Znom=' + g(d.Z || d.Re),
     'Fs=' + g(d.Fs), 'Pe=' + g(d.Pe), 'Re=' + g(d.Re), 'Le=' + g(d.Le),
     'BL=' + g(d.Bl), 'Xmax=' + g(d.Xmax),
     'Cms=' + g(d.Cms), 'Qms=' + g(d.Qms), 'Qes=' + g(d.Qes), 'Rms=' + g(d.Rms),
     'Mms=' + g(d.Mms), 'Sd=' + g(d.Sd), 'Vas=' + g(d.Vas),
-    'Vd=' + g(Vd), 'Dd=' + g(Dd), 'numVC=1', 'VCCon=2', 'ParState=' + ParState, '',
+    'Vd=' + g(Vd), 'Dd=' + g(Dd), 'numVC=' + (raw.numVC || 1), 'VCCon=' + (raw.VCCon || 2),
+    'Xlim=' + g(raw.Xlim), 'hvc=' + g(raw.hvc), 'hag=' + g(raw.hag), 'hc=' + g(raw.hc),
+    'tc=' + g(raw.tc), 'Rth=' + g(raw.Rth), 'Cth=' + g(raw.Cth), 'loss=' + g(raw.loss),
+    'Thick=' + g(raw.thick), 'Depth=' + g(raw.depth), 'MagnetDepth=' + g(raw.magnetDepth),
+    'fLe=' + g(raw.fLe), 'Le2=' + g(raw.Le2),
+    'ParState=' + ParState, '',
   ];
   return L.join('\n');
 }

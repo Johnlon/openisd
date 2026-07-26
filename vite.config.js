@@ -25,6 +25,9 @@ const clearSwInDev = {
 export default defineConfig({
   root: UI_ROOT,
   base,
+  define: {
+    __PLATFORM_USER__: JSON.stringify(process.env.USER || process.env.USERNAME || 'john'),
+  },
   server: {
     watch: {
       ignored: ['**/drivers/**/_*/**'],

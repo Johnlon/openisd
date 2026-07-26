@@ -13,7 +13,7 @@
  */
 
 /** The project file extension. A bare `.json` is also accepted on the way in. */
-export const PROJECT_EXT = '.openisd.json';
+export const PROJECT_EXT = '.owpr';
 
 /** Characters no Windows filename may contain (`/` is illegal on POSIX too). */
 const ILLEGAL_IN_FILENAME = /[<>:"/\\|?*]/g;

@@ -192,7 +192,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
         <div>{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</div>
       </div>
       <SkinPicker />
-      <input ref="fileInput" type="file" accept=".wdr,.json" style="display:none" @change="onFile">
+      <input ref="fileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json" style="display:none" @change="onFile">
     </div>
 
     <!-- body: [Projects + SignalGen] [Graph] / [tab rail] [tab content] -->

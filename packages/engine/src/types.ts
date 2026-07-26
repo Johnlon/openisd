@@ -52,6 +52,7 @@ export interface DriverRaw {
   name?: string;
   brand?: string;
   model?: string;
+  manufacturer?: string;
   providedBy?: string;
   comment?: string;
   datasheetUrl?: string;
@@ -60,6 +61,22 @@ export interface DriverRaw {
   sourceUrl?: string;
   frdUrl?: string;
   impedanceUrl?: string;
+  // Non-modeled properties for lossless round-trip / metadata
+  Xlim?: number;
+  hvc?: number;
+  hag?: number;
+  hc?: number;
+  numVC?: number;
+  VCCon?: number;
+  tc?: number;
+  Rth?: number;
+  Cth?: number;
+  loss?: number;
+  thick?: number;
+  depth?: number;
+  magnetDepth?: number;
+  fLe?: number;
+  Le2?: number;
 }
 
 /**

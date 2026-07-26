@@ -7,7 +7,7 @@
  * hitting the GitHub API.
  *
  * WDR files exist only for the driver types WinISD supports (woofer, tweeter).
- * OpenISD also supports passive radiators, which carry an openisd_meta.yml but
+ * OpenISD also supports passive radiators, which carry an openisd.yml but
  * no WDR. Those are bundled separately into `passiveRadiators` (fed to the
  * Browse-PR popup, never the woofer/tweeter driver browser). A driver's type is
  * read from the single non-`data_sources` sub-key under the meta's `specs:` map.
@@ -48,7 +48,7 @@ function walkWdr(dir) {
   return files;
 }
 
-// Find every openisd_meta.yml under a collection (the per-driver metadata file
+// Find every openisd.yml under a collection (the per-driver metadata file
 // that exists for ALL driver types, WDR or not). Skips _ cache/scratch dirs.
 function walkMeta(dir) {
   const files = [];
@@ -56,7 +56,7 @@ function walkMeta(dir) {
     if (entry.isDirectory()) {
       if (entry.name.startsWith('_')) continue;
       files.push(...walkMeta(join(dir, entry.name)));
-    } else if (entry.name === 'openisd_meta.yml') {
+    } else if (entry.name === 'openisd.yml' || entry.name === 'openisd.yml' || entry.name === 'openisd.yml') {
       files.push(join(dir, entry.name));
     }
   }
@@ -106,8 +106,10 @@ for (const [key, src] of Object.entries(sources)) {
     const dm = content.match(/^DateModified=(.+)$/m);
     const da = content.match(/^DateAdded=(.+)$/m);
     const date = (dm?.[1] || da?.[1] || '').trim();
-    // Extract link fields from _meta.yml sidecar
-    const sidecarPath = p.replace(/\.wdr$/i, '_meta.yml');
+    // Extract link fields from openisd.yml sidecar
+    let sidecarPath = join(dirname(p), 'openisd.yml');
+    if (!existsSync(sidecarPath)) sidecarPath = join(dirname(p), 'openisd.yml');
+    if (!existsSync(sidecarPath)) sidecarPath = p.replace(/\.wdr$/i, 'openisd.yml');
     const sidecar = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : '';
     const ymlVal = key => { const m = sidecar.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); if (!m) return ''; const v = m[1].trim(); return (v === 'null' || v === '~') ? '' : v; };
     const datasheet    = ymlVal('datasheet_url');
@@ -143,7 +145,7 @@ for (const [key, src] of Object.entries(sources)) {
   bundle.sources.push({ key, name: src.name, files });
   console.log(`  ${key} (${src.name}): ${files.length} drivers`);
 
-  // Passive radiators: openisd_meta.yml whose spec-derived type is passive_radiator.
+  // Passive radiators: openisd.yml whose spec-derived type is passive_radiator.
   // These have no WDR, so they never appear in the woofer/tweeter list above.
   let prCount = 0;
   for (const metaPath of walkMeta(localPath)) {

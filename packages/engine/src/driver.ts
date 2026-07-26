@@ -33,6 +33,15 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   // tolerate the pre-validation undefined values fine.
   const r = Object.assign({}, d) as Driver;
 
+  // Auto-derive Sd from Dd if Dd is entered but Sd is not
+  if (!(r.Sd > 0) && r.Dd > 0) {
+    r.Sd = Math.PI * (r.Dd / 2) ** 2;
+  }
+  // Auto-derive Dd from Sd if Sd is entered but Dd is not
+  if (!(r.Dd > 0) && r.Sd > 0) {
+    r.Dd = 2 * Math.sqrt(r.Sd / Math.PI);
+  }
+
   // Required fields — each missing one is a blocking error
   if (!(r.Fs > 0))  errors.push({ level: 'error', field: 'Fs',  message: 'Resonant frequency (Fs) is required and must be greater than zero' });
   if (!(r.Re > 0))  errors.push({ level: 'error', field: 'Re',  message: 'DC resistance (Re) is required and must be greater than zero' });
@@ -71,6 +80,23 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   r.Mms = 1 / (ws * ws * r.Cms);       // Mms = 1/(ωs²·Cms)
   r.Rms = ws * r.Mms / r.Qms;          // Rms = 2π·Fs·Mms/Qms
   r.Bl  = Math.sqrt(ws * r.Mms * r.Re / r.Qes);  // Bl = √(2π·Fs·Mms·Re/Qes)
+
+  // Auto-derive physical Xmax if missing but Hc and Hg are present
+  if (!(r.Xmax! > 0) && r.Hc! > 0 && r.Hg! > 0) {
+    r.Xmax = Math.abs(r.Hc! - r.Hg!) / 2;
+  }
+
+  // Derive calculated sensitivity / efficiency metrics (WinISD equivalents)
+  r.no = (9.64e-10 * Math.pow(r.Fs, 3) * (r.Vas * 1000)) / r.Qes; // Vas from m³ to L is *1000
+  if (r.no > 0) {
+    r.SPLref = 112.2 + 10 * Math.log10(r.no / 100);
+    if (r.Re > 0) {
+      r.USPL = r.SPLref + 10 * Math.log10(8 / r.Re);
+    }
+  }
+  if (r.Xmax! > 0) {
+    r.Vd = r.Sd * r.Xmax! * 1e6; // m² * m * 1e6 = cm³
+  }
 
   return { value: r, errors };
 }

@@ -65,8 +65,24 @@ const ERROR_ALIASES: Record<string, string[]> = {
 const WDR_META: ReadonlyArray<[string, string]> = [
   ['Brand', 'brand'],
   ['Model', 'model'],
+  ['Manufacturer', 'manufacturer'],
   ['ProvidedBy', 'providedBy'],
   ['Comment', 'comment'],
+  ['Xlim', 'Xlim'],
+  ['hvc', 'hvc'],
+  ['hag', 'hag'],
+  ['hc', 'hc'],
+  ['numVC', 'numVC'],
+  ['VCCon', 'VCCon'],
+  ['tc', 'tc'],
+  ['Rth', 'Rth'],
+  ['Cth', 'Cth'],
+  ['loss', 'loss'],
+  ['Thick', 'thick'],
+  ['Depth', 'depth'],
+  ['MagnetDepth', 'magnetDepth'],
+  ['fLe', 'fLe'],
+  ['Le2', 'Le2'],
 ];
 
 // Format a modeled cell value back to a WDR value string. toPrecision(6) matches the
@@ -218,6 +234,26 @@ export class Driver {
       order.push(key);
       raw[key] = val;
     }
+
+    // Ensure standard metadata keys exist in order and raw so they are always serialized on export
+    const standardKeys = [
+      'Comment', 'ProvidedBy', 'Manufacturer', 'Model', 'Brand',
+      'Xlim', 'hvc', 'hag', 'hc', 'numVC', 'VCCon', 'tc', 'Rth', 'Cth', 'loss',
+      'Thick', 'Depth', 'MagnetDepth', 'fLe', 'Le2'
+    ];
+    for (const key of standardKeys) {
+      if (!order.includes(key)) {
+        order.unshift(key);
+        if (key === 'ProvidedBy') {
+          raw[key] = 'OpenISD';
+        } else if (key === 'numVC' || key === 'VCCon') {
+          raw[key] = '1';
+        } else {
+          raw[key] = '';
+        }
+      }
+    }
+
     d.#wdrOrder = order;
     d.#wdrRaw = raw;
 
@@ -262,6 +298,15 @@ export class Driver {
       const m = MODELED_BY_WDRKEY[key];
       if (m && this.cell(m.field).state === 'E') {
         val = fmtNum(this.cell(m.field).value);   // reflect an edited/entered value
+      } else {
+        const metaPair = WDR_META.find(p => p[0] === key);
+        if (metaPair) {
+          const metaField = metaPair[1];
+          const currentVal = this.#inputs[metaField];
+          if (currentVal !== undefined) {
+            val = String(currentVal);
+          }
+        }
       }
       lines.push(key + '=' + val);
     }

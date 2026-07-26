@@ -22,7 +22,7 @@ packages/
   engine/   — T/S physics calculations, WDR parsing, driver loading
   ui/        — Vue 3 SPA, Vite, Playwright tests
 scripts/    — dev-server/build scripts (Python scrapers + DQ check live in the sibling winisd_tools repo)
-drivers/    — bundled WDR + _meta.yml files (demos/, matt/, winisd/, sample/); sources.json federates the rest from the sibling winisd_drivers repo
+drivers/    — bundled WDR + openisd.yml files (demos/, matt/, winisd/, sample/); sources.json federates the rest from the sibling winisd_drivers repo
 ```
 
 ### 2. Engine entry points (packages/engine/src/)

@@ -49,6 +49,9 @@ export interface Design {
   /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
    * the graph. Additive: designs without this field are always drawn (Modern default). */
   visible?: boolean;
+  project?: { name: string; creator?: string; created?: string; modified?: string; description?: string };
+  _ground?: string;
+  isModified?: boolean;
 }
 
 /** Stats over a selected band (canvas reads ripple/peak/trough; peakF/avg are extra). */
@@ -91,7 +94,7 @@ export interface PRLibEntry {
 }
 
 /**
- * A bundled passive radiator (from a driver collection's openisd_meta.yml). PRs
+ * A bundled passive radiator (from a driver collection's openisd.yml). PRs
  * have no WDR — WinISD doesn't model them — so they are bundled separately and
  * shown only in the Browse-PR popup. Manufacturers publish only Sd/Cms/Vas/weight
  * for a PR; Fs/Mms/Rms/Xmax are typically absent (null), never fabricated.

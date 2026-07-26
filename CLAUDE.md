@@ -296,7 +296,7 @@ Before starting work, always read:
 | Task type                                                      | Load                                                                        |
 | -------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | Python scraper work (parsing, extraction, field mapping)       | sibling `winisd_tools` repo — its `scraping-rules.md` · `testing-python.md` |
-| Driver data files (WDR / `_meta.yml`)                          | `.claude/context/driver-data-rules.md`                                      |
+| Driver data files (WDR / `openisd.yml`)                          | `.claude/context/driver-data-rules.md`                                      |
 | JS core functions (`packages/engine/src/`, engine, alignments) | `.claude/context/testing-js-core.md` · `.claude/context/engine-rules.md`    |
 | Vue components, CSS, stores, UI wiring                         | `.claude/context/ui-rules.md` · `.claude/context/testing-js-ui.md`          |
 | JS I/O or calculation functions (engine.js, loaders)           | `.claude/context/js-patterns.md`                                            |
@@ -407,7 +407,7 @@ When a user points the agent at a file, directory, log, or code discrepancy to d
 The closed set of `driver_type` values is declared as an enum in BOTH sibling repos:
 
 - TypeScript (the values this UI's `classifyTypes()` reads): `packages/ui/src/driverType.ts` — `DriverType`.
-- Python (the SSOT the scraper writes into `_meta.yml`): `../winisd_tools/scrapers/scrapers/driver_type.py` — `DriverType`.
+- Python (the SSOT the scraper writes into `openisd.yml`): `../winisd_tools/scrapers/scrapers/driver_type.py` — `DriverType`.
 
 Their string values (kebab-case, e.g. `passive-radiator`, `full-range`, `mid-bass`)
 are the on-disk `driver_type` wire contract and **MUST stay identical between the

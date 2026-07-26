@@ -1,9 +1,9 @@
 /**
  * Project name ↔ file name equivalence.
  *
- * The FILE NAME is the source of truth for a project's name: opening `glob 3.openisd.json`
+ * The FILE NAME is the source of truth for a project's name: opening `glob 3.owpr`
  * must yield the project name `glob 3`, and saving the project `glob 3` must suggest
- * `glob 3.openisd.json`. That round trip is the contract — a name the user can type and a
+ * `glob 3.owpr`. That round trip is the contract — a name the user can type and a
  * file name they can read must be the same string, spaces and all.
  *
  * The only characters a project name loses on the way to disk are the ones an OS filename
@@ -17,12 +17,12 @@ import {
 } from '../src/utils/projectFile.js';
 
 describe('projectNameFromFilename — the file name names the project', () => {
-  it('strips the full .openisd.json suffix', () => {
-    expect(projectNameFromFilename('glob3.openisd.json')).toBe('glob3');
+  it('strips the full .owpr suffix', () => {
+    expect(projectNameFromFilename('glob3.owpr')).toBe('glob3');
   });
 
-  it('KEEPS spaces — "glob 3.openisd.json" is the project "glob 3", not "glob_3"', () => {
-    expect(projectNameFromFilename('glob 3.openisd.json')).toBe('glob 3');
+  it('KEEPS spaces — "glob 3.owpr" is the project "glob 3", not "glob_3"', () => {
+    expect(projectNameFromFilename('glob 3.owpr')).toBe('glob 3');
   });
 
   it('accepts a bare .json project too (a file the user renamed)', () => {
@@ -30,16 +30,16 @@ describe('projectNameFromFilename — the file name names the project', () => {
   });
 
   it('takes the basename — a Windows or POSIX path never leaks into the name', () => {
-    expect(projectNameFromFilename('C:\\tmp\\glob 3.openisd.json')).toBe('glob 3');
-    expect(projectNameFromFilename('/mnt/c/tmp/glob 3.openisd.json')).toBe('glob 3');
+    expect(projectNameFromFilename('C:\\tmp\\glob 3.owpr')).toBe('glob 3');
+    expect(projectNameFromFilename('/mnt/c/tmp/glob 3.owpr')).toBe('glob 3');
   });
 
   it('matches the suffix case-insensitively (Windows file systems are not case-sensitive)', () => {
-    expect(projectNameFromFilename('Glob3.OpenISD.JSON')).toBe('Glob3');
+    expect(projectNameFromFilename('Glob3.OWPR')).toBe('Glob3');
   });
 
   it('keeps interior dots — only the trailing project extension is the extension', () => {
-    expect(projectNameFromFilename('v1.2 tuning.openisd.json')).toBe('v1.2 tuning');
+    expect(projectNameFromFilename('v1.2 tuning.owpr')).toBe('v1.2 tuning');
   });
 
   it('a file with no recognised extension names the project verbatim', () => {
@@ -53,21 +53,21 @@ describe('projectFilename — the project name names the file', () => {
   });
 
   it('preserves spaces', () => {
-    expect(projectFilename('glob 3')).toBe('glob 3.openisd.json');
+    expect(projectFilename('glob 3')).toBe('glob 3.owpr');
   });
 
   it('replaces ONLY characters a filename cannot hold', () => {
-    expect(projectFilename('a/b\\c:d*e?f"g<h>i|j')).toBe('a_b_c_d_e_f_g_h_i_j.openisd.json');
+    expect(projectFilename('a/b\\c:d*e?f"g<h>i|j')).toBe('a_b_c_d_e_f_g_h_i_j.owpr');
   });
 
   it('drops control characters and trailing dots/spaces (illegal on Windows)', () => {
-    expect(projectFilename('bad\u0007name. ')).toBe('bad_name.openisd.json');
+    expect(projectFilename('bad\u0007name. ')).toBe('bad_name.owpr');
   });
 
   it('falls back to "design" when the name is empty or all-illegal', () => {
-    expect(projectFilename('')).toBe('design.openisd.json');
-    expect(projectFilename('   ')).toBe('design.openisd.json');
-    expect(projectFilename('///')).toBe('design.openisd.json');
+    expect(projectFilename('')).toBe('design.owpr');
+    expect(projectFilename('   ')).toBe('design.owpr');
+    expect(projectFilename('///')).toBe('design.owpr');
   });
 });
 

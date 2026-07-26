@@ -2,12 +2,12 @@
  * Project name ↔ file name, end to end in a real browser.
  *
  * Two behaviours the user sees directly:
- *  1. Open… of a saved `.openisd.json` visibly loads it — the project name in the title bar
+ *  1. Open… of a saved `.owpr` visibly loads it — the project name in the title bar
  *     and in the Projects list comes from the FILE NAME (spaces and all), and the comparison
  *     overlays saved with it come back. The old importFile() restored a subset of the file
  *     and left the name untouched, so opening a project built on the same driver looked like
  *     nothing had happened at all.
- *  2. Saving keeps the two names equal: Save suggests `<project>.openisd.json`, Save As over
+ *  2. Saving keeps the two names equal: Save suggests `<project>.owpr`, Save As over
  *     an already-open file suggests `Copy of <project>`, the picked file renames the project,
  *     and renaming the project releases the open file so the next Save asks where to put it.
  *
@@ -21,7 +21,7 @@ import type { Page } from '@playwright/test';
 /** A saved project whose stored name deliberately DISAGREES with its file name. */
 const SAVED_PROJECT = JSON.stringify({
   v: 2,
-  driver: { inputs: { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs: 37, Qts: 0.378, Qes: 0.4, Qms: 7, Vas: 0.03, Sd: 0.0133, Re: 5.6, Le: 0.0007, Xmax: 0.005, Pe: 60, Z: 8 } },
+  driver: { inputs: { name: 'Samples - Generic 6.5" Woofer', brand: 'Samples', model: 'Generic 6.5" Woofer', Fs: 37, Qts: 0.378, Qes: 0.4, Qms: 7, Vas: 0.03, Sd: 0.0133, Re: 5.6, Le: 0.0007, Xmax: 0.005, Pe: 60, Z: 8 } },
   box: 'vented',
   P: { Vb: 0.00042 },
   graphs: ['SPL', 'Excursion', 'Zmag', 'GD'],
@@ -65,12 +65,14 @@ const SAVE_BTN = '.toolbar .tb-btn[title^="Save —"]';
 test.describe('Open… names the project after the file it came from', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/');
     await page.locator('.skin-picker select').selectOption('original');
     await expect(page.locator('.original-root')).toBeVisible();
   });
 
   test('the FILE name wins over the name stored inside the file — spaces preserved', async ({ page }) => {
-    await openProjectFile(page, 'glob 3.openisd.json');
+    await openProjectFile(page, 'glob 3.owpr');
     // The file's own body says "glob"; the file on disk says "glob 3". The file wins.
     await expect(page.locator('.titlebar .tb-left')).toContainText('glob 3');
     await expect(page.locator(CURRENT_ROW)).toHaveText('glob 3');
@@ -82,7 +84,7 @@ test.describe('Open… names the project after the file it came from', () => {
   });
 
   test('the whole snapshot lands — the design AND the comparison overlays it was saved with', async ({ page }) => {
-    await openProjectFile(page, 'glob 3.openisd.json');
+    await openProjectFile(page, 'glob 3.owpr');
     const rows = page.locator('.projects-list .project-row');
     await expect(rows).toHaveCount(2);                       // current + the saved overlay
     await expect(rows.nth(1)).toContainText('Copy of glob');
@@ -92,43 +94,45 @@ test.describe('Open… names the project after the file it came from', () => {
       return store.state.P.Vb;
     });
     expect(vb).toBeCloseTo(0.00042, 6);                      // the design itself, not just the name
-  });
+    });
 });
 
 test.describe('Saving keeps the project name and the file name equal', () => {
   test.beforeEach(async ({ page }) => {
     await stubSaveFilePicker(page);
     await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/');
     await page.locator('.skin-picker select').selectOption('original');
     await expect(page.locator('.original-root')).toBeVisible();
   });
 
   test('Save suggests the project name verbatim — spaces are NOT mangled into underscores', async ({ page }) => {
-    await openProjectFile(page, 'glob 3.openisd.json');
+    await openProjectFile(page, 'glob 3.owpr');
     await expect(page.locator(CURRENT_ROW)).toHaveText('glob 3');
     await page.locator(SAVE_BTN).click();
-    expect((await saveCalls(page))[0].suggestedName).toBe('glob 3.openisd.json');
+    expect((await saveCalls(page))[0].suggestedName).toBe('glob 3.owpr');
   });
 
   test('the picked file renames the project', async ({ page }) => {
-    await openProjectFile(page, 'glob 3.openisd.json');
+    await openProjectFile(page, 'glob 3.owpr');
     await page.locator(SAVE_BTN).click();                    // handle adopted, name unchanged
     await page.locator('#btnExportMenu').click();
-    await page.locator('.export-menu-list button', { hasText: 'Save as OpenISD project (.json)' }).click();
+    await page.locator('.export-menu-list button', { hasText: 'Save As OpenISD project (.owpr)' }).click();
     // Save As over an open file is making a COPY, so the default it offers — and therefore
     // the project's new name — is "Copy of glob 3".
-    expect((await saveCalls(page))[1].suggestedName).toBe('Copy of glob 3.openisd.json');
+    expect((await saveCalls(page))[1].suggestedName).toBe('Copy of glob 3.owpr');
     await expect(page.locator(CURRENT_ROW)).toHaveText('Copy of glob 3');
   });
 
   test('a FIRST Save As (nothing open yet) is not a copy — it keeps the project name', async ({ page }) => {
     await page.locator('#btnExportMenu').click();
-    await page.locator('.export-menu-list button', { hasText: 'Save as OpenISD project (.json)' }).click();
+    await page.locator('.export-menu-list button', { hasText: 'Save As OpenISD project (.owpr)' }).click();
     expect((await saveCalls(page))[0].suggestedName).not.toContain('Copy of');
   });
 
   test('renaming the project releases the open file, so the next Save asks where to put it', async ({ page }) => {
-    await openProjectFile(page, 'glob 3.openisd.json');
+    await openProjectFile(page, 'glob 3.owpr');
     await page.locator(SAVE_BTN).click();
     await page.locator(SAVE_BTN).click();
     expect(await saveCalls(page)).toHaveLength(1);           // 2nd Save reused the handle
@@ -141,7 +145,7 @@ test.describe('Saving keeps the project name and the file name equal', () => {
     await page.locator(SAVE_BTN).click();
     const calls = await saveCalls(page);
     expect(calls).toHaveLength(2);                           // the handle was let go — it re-prompted
-    expect(calls[1].suggestedName).toBe('renamed box.openisd.json');
+    expect(calls[1].suggestedName).toBe('renamed box.owpr');
   });
 });
 
@@ -149,7 +153,7 @@ test('＋ Copy names the new row after the PROJECT, not the driver', async ({ pa
   await page.goto('/');
   await page.locator('.skin-picker select').selectOption('original');
   await expect(page.locator('.original-root')).toBeVisible();
-  await openProjectFile(page, 'glob 3.openisd.json');
+  await openProjectFile(page, 'glob 3.owpr');
 
   await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Copy' }).first().click();
   const rows = page.locator('.projects-list .project-row');
@@ -158,5 +162,6 @@ test('＋ Copy names the new row after the PROJECT, not the driver', async ({ pa
 
   // A second copy must not collide with the first.
   await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Copy' }).first().click();
+  await expect(rows).toHaveCount(4);
   await expect(rows.nth(3)).toContainText('Copy of glob 3 (2)');
 });

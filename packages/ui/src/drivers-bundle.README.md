@@ -10,12 +10,12 @@ Any manual edits to drivers-bundle.json will be silently overwritten on the next
 SOURCE DATA
 -----------
 All driver content comes from:
-  drivers/**/*.wdr          — Thiele/Small parameters and driver metadata
-  drivers/**/_meta.yml      — sidecar fields (URLs, driver_type, freq range, etc.)
+  drivers/**/winisd.wdr      — Thiele/Small parameters and driver metadata
+  drivers/**/openisd.yml      — sidecar fields (URLs, driver_type, freq range, etc.)
 
 Federated driver data is produced by the sibling winisd_tools/winisd_drivers
 repos — update it there and re-run link-driver-repo.sh, not here. drivers/matt/
-in this repo is human-curated; do NOT edit any WDR or _meta.yml file directly
+in this repo is human-curated; do NOT edit any winisd.wdr or openisd.yml file directly
 unless explicitly authorised — see CLAUDE.md.
 
 TO REGENERATE MANUALLY

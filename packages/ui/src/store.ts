@@ -8,8 +8,8 @@ import { nextToken, toDisplay, displayPrecision, unitDef, type UnitGroup } from 
 import { copyOfName, uniqueName } from './utils/projectFile.js';
 
 // The app's default driver on first open (no saved selection) and the target of the
-// "Reset to demo" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
-export const DEFAULT_DRIVER: DriverRaw = { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
+// "Reset to sample" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.wdr.
+export const DEFAULT_DRIVER: DriverRaw = { name: 'Samples - Generic 6.5" Woofer', brand: 'Samples', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
 
 const P_DEFAULTS: UiParams = {
   Vb:0.030, Vf:0.015, ventD:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
@@ -30,7 +30,20 @@ const P_DEFAULTS: UiParams = {
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
 // written by App.vue's watch and restored by loadLocal() on mount. store.js does
 // not persist — it initialises to defaults; App.vue applies any saved state.
-export const state: AppState = reactive({
+const globalCtx = (typeof window !== 'undefined') ? (window as any) : null;
+if (globalCtx && !globalCtx.__store_context) {
+  globalCtx.__store_context = {};
+}
+const ctx = globalCtx ? globalCtx.__store_context : {};
+
+function getOrInit<T>(key: string, init: () => T): T {
+  if (!(key in ctx)) {
+    ctx[key] = init();
+  }
+  return ctx[key];
+}
+
+export const state: AppState = getOrInit('state', () => reactive({
   box:       'vented',
   P:         { ...P_DEFAULTS },
   graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
@@ -47,27 +60,44 @@ export const state: AppState = reactive({
   yRanges:      {},    // per-chart Y-axis override: { [tabId]: { min, max } }; absent = auto-scale
   ui:           { skin: 'auto', unitTokens: {}, envDefaults: { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 } },  // local-only presentation prefs; never shared (persist.ts)
   project:      { name: '', creator: '', created: '', modified: '', description: '' },
-});
+}));
 
+if (typeof window !== 'undefined') {
+  if (!(window as any).__store_instances) (window as any).__store_instances = [];
+  if (!(window as any).__store_instances.includes(state)) {
+    (window as any).__store_instances.push(state);
+  }
+}
 
 // The store's single source of truth for the driver is a long-lived Driver ADT instance
 // (@openisd/winisd). It owns E/C/N provenance and every derivation. Its framework-free
 // subscribe() is bridged to Vue through _version: every enter/clear and every instance
 // swap bumps _version, and the computeds below touch it so they re-derive. winisd stays
 // Vue-free — the arrow points up (ui → winisd), never down.
-const _version = ref(0);
-let _model  = DriverModel.fromRaw(DEFAULT_DRIVER);
-let _unsub  = _model.subscribe(() => { _version.value++; });
+const _version = getOrInit('_version', () => ref(0));
+let _model = getOrInit('_model', () => {
+  const m = DriverModel.fromRaw(DEFAULT_DRIVER);
+  ctx._unsub = m.subscribe(() => { _version.value++; });
+  return m;
+});
+let _unsub = ctx._unsub;
 
 /** The current Driver ADT instance — call enter/clear/toWdr on it directly. */
-export function getDriverModel(): DriverModel { return _model; }
+export function getDriverModel(): DriverModel {
+  if (globalCtx && ctx._model) return ctx._model;
+  return _model;
+}
 
 // Swap the held instance (load / import / reset). Re-bridge reactivity and bump once.
 function setModel(m: DriverModel): void {
   _unsub();
   _model = m;
-  _unsub = _model.subscribe(() => { _version.value++; });
+  _unsub = m.subscribe(() => { _version.value++; });
   _version.value++;
+  if (globalCtx) {
+    ctx._model = m;
+    ctx._unsub = _unsub;
+  }
 }
 /** Load a driver from a plain DriverRaw bag (My Drivers, saved project, demo). */
 export function setDriverFromRaw(raw: DriverRaw | null | undefined): void {
@@ -94,10 +124,13 @@ export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undef
 // exists — what-if overlay when active, else the committed model. Reactive readers hang off
 // the effective accessors; start/keep/cancel just swap which layer they resolve to.
 // Modern/Classic never start a what-if here, so effective ≡ committed there (Invariant 1).
-const _whatIf       = shallowRef<DriverModel | null>(null);
-const _whatIfVersion = ref(0);
-let _whatIfUnsub: (() => void) | null = null;
-function _effModel(): DriverModel { return _whatIf.value ?? _model; }
+// const _whatIf       = getOrInit('_whatIf', () => shallowRef<DriverModel | null>(null));
+const _whatIf       = getOrInit('_whatIf', () => shallowRef<DriverModel | null>(null));
+const _whatIfVersion = getOrInit('_whatIfVersion', () => ref(0));
+let _whatIfUnsub = getOrInit('_whatIfUnsub', () => null as (() => void) | null);
+function _effModel(): DriverModel {
+  return _whatIf.value ?? (globalCtx && ctx._model ? ctx._model : _model);
+}
 
 /** Begin a driver what-if: overlay a live copy of the committed model. Idempotent. */
 export function startDriverWhatIf(): void {
@@ -106,11 +139,17 @@ export function startDriverWhatIf(): void {
   _whatIfUnsub = m.subscribe(() => { _whatIfVersion.value++; });
   _whatIf.value = m;
   _whatIfVersion.value++;
+  if (globalCtx) {
+    ctx._whatIfUnsub = _whatIfUnsub;
+  }
 }
 function _clearWhatIf(): void {
   if (_whatIfUnsub) { _whatIfUnsub(); _whatIfUnsub = null; }
   _whatIf.value = null;
   _whatIfVersion.value++;
+  if (globalCtx) {
+    ctx._whatIfUnsub = null;
+  }
 }
 /** Keep: commit the what-if overlay as the live driver (→ modified), then drop the overlay. */
 export function keepDriverWhatIf(): void {
@@ -195,8 +234,8 @@ export const syncedP = computed<SyncedParams>(() => {
   return p;
 });
 
-const _curves = ref<SweepResult | null>(null);
-const _max    = ref<MaxCurvesResult | null>(null);
+const _curves = getOrInit('_curves', () => ref<SweepResult | null>(null));
+const _max    = getOrInit('_max', () => ref<MaxCurvesResult | null>(null));
 const _doSweep = () => {
   const d = driver.value;
   _curves.value = d ? sweep(d, state.box, syncedP.value) : null;
@@ -259,19 +298,22 @@ export const allIssues = computed<DriverError[]>(() => [...driverErrors.value, .
 function projectFingerprint(): string {
   // Order-deterministic: state.P keeps its P_DEFAULTS key order and the ADT's toJSON()
   // preserves input insertion order, so JSON.stringify yields a stable string to diff.
-  return JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value });
+  return JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value, project: state.project });
 }
-const _ground = ref(projectFingerprint());
+export const _ground = getOrInit('_ground', () => ref(projectFingerprint()));
 /** True when the live design differs from the last loaded/saved (ground) state. */
 export const isModified = computed<boolean>(() => _ground.value !== projectFingerprint());
 /** Adopt the current design as ground (call after load, and after a successful save). */
 export function markProjectSaved(): void { _ground.value = projectFingerprint(); }
 /** Discard unsaved changes: restore the design to the ground state. */
 export function resetProjectToGround(): void {
-  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverJSON };
+  const g = JSON.parse(_ground.value) as { box: BoxType; P: UiParams; driver: DriverJSON; project?: any };
   state.box = g.box;
   Object.assign(state.P, g.P);
   setDriverFromSerialized(g.driver);
+  if (g.project) {
+    Object.assign(state.project, g.project);
+  }
 }
 /** Start a brand-new project from the app's initial defaults — NOT the ground state. Clears
  *  the whole design (params incl. filters, compare traces, per-chart zoom, driver source) so
@@ -406,8 +448,61 @@ export function pinCompare(): void {
     name:   uniqueName(copyOfName(state.project.name || driverShort(driverRaw.value)),
                        state.compare.map(c => c.name ?? '')),
     color:  DPAL[(state.compare.length + 1) % DPAL.length],
+    project: { ...state.project },
+    _ground: _ground.value,
+    isModified: isModified.value,
   };
   d.curves    = sweep(d.driver!, d.box, d.P);
   d.maxCurves = maxCurves(d.driver!, d.box, d.P);
   state.compare.push(d);
+}
+
+export function openProjectAdditive(snapshot: SerializedState): void {
+  // 1. Save the existing compare overlays in the store
+  const savedCompare = [...state.compare];
+
+  // 2. Gather the currently active design we want to retain (skip if pristine/unmodified default)
+  const activeDriver = _effModel().toDriver();
+  let retainedDesign: Design | null = null;
+  const isPristine = !state.project.name && savedCompare.length === 0 && _effModel().raw().brand === 'Samples';
+  if (activeDriver && !isPristine) {
+    const eg = Math.sqrt((state.P.Pin ?? 1) * (activeDriver.Re ?? 1));
+    const p: SyncedParams = { ...state.P, eg };
+    p.filters = (state.P.filters || []).map(f => ({ ...f }));
+    if (state.box === 'vented' || state.box === 'bandpass4') {
+      p.Sp   = Math.PI * (state.P.ventD / 2) ** 2;
+      p.Leff = state.P.ventL + state.P.endCorrection * state.P.ventD;
+    }
+    const driverWithName = {
+      ...activeDriver,
+      name: driverShort(_effModel().raw())
+    };
+    retainedDesign = {
+      driver: driverWithName,
+      box:    state.box,
+      P:      p,
+      curves: null,
+      maxCurves: null,
+      name:   state.project.name || driverShort(_effModel().raw()) || 'Driver',
+      color:  DPAL[(savedCompare.length + 1) % DPAL.length],
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: isModified.value,
+    };
+    retainedDesign.curves    = sweep(driverWithName, retainedDesign.box, retainedDesign.P);
+    retainedDesign.maxCurves = maxCurves(driverWithName, retainedDesign.box, retainedDesign.P);
+  }
+
+  // 3. Load the opened project as active (which overwrites state.compare)
+  applyState(snapshot);
+
+  // 4. Combine: [retainedDesign, ...savedCompare, ...newly restored snapshot compare overlays]
+  const finalCompare = [...state.compare];
+  if (retainedDesign) {
+    finalCompare.unshift(retainedDesign);
+  }
+  if (savedCompare.length > 0) {
+    finalCompare.splice(retainedDesign ? 1 : 0, 0, ...savedCompare);
+  }
+  state.compare = finalCompare;
 }

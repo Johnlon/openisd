@@ -1,16 +1,17 @@
 /**
  * Skin resolution — the pure mapping from a chosen skin to the shell that renders it.
  *
- * `classic` is manual-only (a WinISD-recreation nostalgia mode). `auto` resolves to the
- * default responsive shell (today that is `modern`; when modern-plus ships this flips).
- * The picker only lists skins whose shell actually exists, so no dead options appear.
+ * `classic` is MOTHBALLED: retired from the picker (not in SKIN_IDS) but still resolves,
+ * so a user who persisted it keeps rendering. `auto` resolves to the default responsive
+ * shell (today `modern`; when modern-plus ships this flips). The picker lists only the
+ * offered skins, so no dead or retired options appear.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { resolveSkin, SKIN_IDS, type SkinId } from '../src/skins.js';
 
 describe('skin resolution', () => {
-  it('classic passes straight through to the classic shell', () => {
+  it('classic still resolves to the classic shell (mothballed, kept for a persisted pref)', () => {
     assert.equal(resolveSkin('classic'), 'classic');
   });
 
@@ -26,8 +27,13 @@ describe('skin resolution', () => {
     assert.equal(resolveSkin('original'), 'original');
   });
 
-  it('SKIN_IDS lists exactly the selectable skins, auto first', () => {
-    const expected: SkinId[] = ['auto', 'classic', 'original', 'modern'];
+  it('SKIN_IDS lists exactly the OFFERED skins, auto first — Classic is mothballed, not listed', () => {
+    const expected: SkinId[] = ['auto', 'original', 'modern'];
     assert.deepEqual(SKIN_IDS, expected);
+  });
+
+  it('the mothballed classic is absent from the picker but still a valid SkinId', () => {
+    assert.ok(!SKIN_IDS.includes('classic'), 'Classic must not be offered in the picker');
+    assert.equal(resolveSkin('classic'), 'classic', 'but a persisted classic pref must still render');
   });
 });
