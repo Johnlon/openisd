@@ -52,17 +52,18 @@ test('project rows are [checkbox] Name only; the Close button under the list rem
   await expect(rows).toHaveCount(2);
   // no inline remove control in the rows (WinISD look: checkbox + name only)
   await expect(page.locator('.projects-list .row-remove')).toHaveCount(0);
-  // Close acts on the selected row: with the current design selected it is disabled
+  // Close acts on the selected row, and every project can be closed — including the first
+  // and the last. Unsaved work is not discarded silently, so a copy asks first.
   const closeBtn = page.locator('.quad-projects-wrap .close-btn');
-  await expect(closeBtn).toBeDisabled();
-  // select the overlay row; Close removes it
+  await expect(closeBtn).toBeEnabled();
   await rows.nth(1).click();
   await expect(rows.nth(1)).toHaveClass(/selected/);
   await closeBtn.click();
+  await page.locator('.close-actions button:has-text("Close without saving")').click();
   await expect(rows).toHaveCount(1);
-  // selection falls back to the current design; Close disables again
+  // selection falls back to the remaining project, which is itself still closeable
   await expect(rows.nth(0)).toHaveClass(/selected/);
-  await expect(closeBtn).toBeDisabled();
+  await expect(closeBtn).toBeEnabled();
 });
 
 test('the left panel collapses and expands via the splitter toggle', async ({ page }) => {

@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { state, driver, formatInUnit as fmtU } from '../store.js';
-import { sealedFromQtc, ventedAlignment, ventLength, tuningFromLength } from '@openisd/engine';
-import { precision as fieldDp, END_CORRECTION_OPTIONS } from '../fields/fieldRegistry.js';
+import { state, driver, enterVentField } from '../store.js';
+import { sealedFromQtc, ventedAlignment } from '@openisd/engine';
 import NumInput from './NumInput.vue';
-import UnitToggle from './UnitToggle.vue';
 import PRPanel from './PRPanel.vue';
 
 // variant lets classic split this panel across two rail tabs: 'common' = Type/Vb/
@@ -19,9 +17,17 @@ const showType = computed(() => props.variant !== 'common');
 const P = computed(() => state.P);
 const drv = driver;
 
-const fb = computed(() => {
-  const sp = Math.PI * (P.value.ventD / 2) ** 2;
-  return tuningFromLength(P.value.Vb, P.value.ventL, sp, P.value.endCorrection);
+// The store owns the vent group's provenance (composables/useVentGroup.ts): whichever of
+// Fb / ventL is entered is held, the other is solved. Read Fb from there rather than
+// recomputing it locally — the local version ignored both the entered set and the chosen end
+// correction, silently always using 0.732.
+const fb = computed(() => P.value.Fb);
+
+// Typing a vent length MARKS IT ENTERED, which releases Fb to become the solved member.
+// A direct write to state.P.ventL would be undone by the solver on the next change.
+const ventLEntered = computed<number>({
+  get: () => P.value.ventL,
+  set: (v: number) => enterVentField('ventL', v),
 });
 
 // Rear-chamber-only resonance for the PR box type (WinISD: "Fh") — the sealed
@@ -46,7 +52,9 @@ function autoVentAlign() {
   if (!drv.value) return;
   const a = ventedAlignment(drv.value);
   state.P.Vb = a.Vb;
-  state.P.ventL = ventLength(a.Vb, a.Fb, Math.PI * (state.P.ventD / 2) ** 2, state.P.endCorrection);
+  // The alignment's output IS a target tuning, so enter it as one and let the vent length
+  // solve — rather than converting it to a length here and losing which fact was chosen.
+  enterVentField('Fb', a.Fb);
 }
 </script>
 
@@ -65,8 +73,8 @@ function autoVentAlign() {
       </div>
       <div class="row" title="Net acoustic internal volume — excludes driver displacement, port tube volume, and bracing. WinISD also uses net volume. Add ~0.5–1 L per 6.5&quot; driver when sizing the physical box.">
         <label>Box volume Vb</label>
-        <NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" />
-        <UnitToggle field="Vb" group="volume" base="L" />
+        <NumInput v-model="state.P.Vb" :scale="1000" :precision="4" />
+        <span class="u">L</span>
       </div>
       <div class="btns" style="margin-bottom:2px">
         <button class="losses-toggle" @click="showLosses = !showLosses"
@@ -77,18 +85,18 @@ function autoVentAlign() {
       <template v-if="showLosses">
         <div class="row" title="Leakage loss — enclosure sealing and driver surround leaks. WinISD default: 10. Lower = more leakage.">
           <label>Leakage Ql</label>
-          <NumInput v-model="state.P.Ql" :scale="1" :precision="fieldDp('Ql')" />
+          <NumInput v-model="state.P.Ql" :scale="1" :precision="3" />
           <span class="u"></span>
         </div>
         <div class="row" title="Absorption loss from stuffing material. WinISD default: 100 (no stuffing).">
           <label>Absorption Qa</label>
-          <NumInput v-model="state.P.Qa" :scale="1" :precision="fieldDp('Qa')" />
+          <NumInput v-model="state.P.Qa" :scale="1" :precision="3" />
           <span class="u"></span>
         </div>
         <div class="row" v-if="state.box === 'vented' || state.box === 'bandpass4'"
           title="Port loss Q — air friction and turbulence in the vent tube. WinISD default: 100 (low-loss port). Lower values increase vent damping and broaden the bass-reflex peak.">
           <label>Port loss Qp</label>
-          <NumInput v-model="state.P.Qp" :scale="1" :precision="fieldDp('Qp')" />
+          <NumInput v-model="state.P.Qp" :scale="1" :precision="3" />
           <span class="u"></span>
         </div>
         <div class="losses-guide">
@@ -101,34 +109,28 @@ function autoVentAlign() {
            (modern: same panel; classic: its own dedicated rail tab). -->
       <div class="row" v-if="state.box === 'pr'" title="Rear-chamber-only resonance if this were a plain sealed box (no PR yet). WinISD: Fh.">
         <label>Fh</label>
-        <span class="pr-roval">{{ fmtU(fh, 'Fh', 'freq', 'Hz', 1) }}</span>
-        <UnitToggle field="Fh" group="freq" base="Hz" />
+        <span class="pr-roval">{{ fh != null ? fh.toFixed(1) : '—' }}</span>
+        <span class="u">Hz</span>
       </div>
     </template>
     <template v-if="showType">
       <template v-if="state.box === 'bandpass4'">
         <div class="row">
           <label>Front chamber Vf</label>
-          <NumInput v-model="state.P.Vf" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" />
-          <UnitToggle field="Vf" group="volume" base="L" />
+          <NumInput v-model="state.P.Vf" :scale="1000" :precision="3" />
+          <span class="u">L</span>
         </div>
       </template>
       <template v-if="state.box === 'vented' || state.box === 'bandpass4'">
         <div class="row">
           <label>Vent diameter</label>
-          <NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
-          <UnitToggle field="ventD" group="length" base="cm" />
+          <NumInput v-model="state.P.ventD" :scale="100" :precision="3" />
+          <span class="u">cm</span>
         </div>
         <div class="row">
           <label>Vent length</label>
-          <NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
-          <UnitToggle field="ventL" group="length" base="cm" />
-        </div>
-        <div class="row" title="Port end correction — added to the physical length to get the acoustic length that sets tuning. WinISD: two free ends 0.613 / one flanged 0.732 / two flanged 0.849.">
-          <label>End correction</label>
-          <select v-model.number="state.P.endCorrection" style="flex:1">
-            <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
-          </select>
+          <NumInput v-model="ventLEntered" :scale="100" :precision="4" />
+          <span class="u">cm</span>
         </div>
         <div class="row">
           <label></label>
@@ -142,14 +144,10 @@ function autoVentAlign() {
         </div>
       </template>
       <template v-if="state.box === 'pr'">
-        <!-- The PR unit's own specs — full editor, in its own labelled box nested
-             inside the Enclosure. Classic bypasses this branch entirely (its
-             dedicated Passive Radiator rail tab has its own summary/edit-popup/
-             what-if-overlay); this is modern's only path. -->
-        <fieldset class="pr-box">
-          <legend>Passive Radiator</legend>
-          <PRPanel />
-        </fieldset>
+        <!-- The PR unit's own specs — full editor. Classic bypasses this branch
+             entirely (its dedicated Passive Radiator rail tab has its own
+             summary/edit-popup/what-if-overlay); this is modern's only path. -->
+        <PRPanel />
       </template>
     </template>
     <div class="btns" v-if="showCommon">
@@ -162,8 +160,6 @@ function autoVentAlign() {
 </template>
 
 <style scoped>
-/* Nested "Passive Radiator" box inside the Enclosure fieldset. */
-.pr-box { margin-top: 8px; }
 .losses-toggle {
   font-size: 11px;
   padding: 1px 6px;

@@ -26,6 +26,17 @@ export interface WprVent {
   len?: number;
   /** End-correction coefficient (WinISD default 0.732 = one flanged + one free). */
   endCorrection?: number;
+  /**
+   * `crosscalc` — WinISD's own provenance flag for this vent: true when the cross-sectional
+   * area is CALCULATED from the diameter, false when the area was entered directly.
+   *
+   * It must come from the caller's real provenance, not a literal. A round port's area is
+   * always derived from its diameter, so this is true for every design OpenISD can currently
+   * produce — but a slot vent is entered as W×H, which IS entering the area, and hardcoding
+   * true would then write a false provenance flag into a WinISD file with nothing to catch
+   * it. Defaults to true only because that is what an absent vent section means.
+   */
+  crossCalculated?: boolean;
 }
 
 export interface WprBox {
@@ -110,7 +121,7 @@ function ventSection(header: string, v: WprVent | undefined): string {
     ['carea', 0],
     ['len', num(v?.len)],
     ['endcorrection', v?.endCorrection == null ? 0.732 : num(v.endCorrection)],
-    ['crosscalc', 1],
+    ['crosscalc', v?.crossCalculated === false ? 0 : 1],
   ]);
 }
 

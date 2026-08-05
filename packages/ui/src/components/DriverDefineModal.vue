@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, computed, reactive, watch, nextTick } from 'vue';
 import { useEscToClose } from '../composables/useEscToClose.js';
 import type { DriverRaw } from '@openisd/engine';
@@ -15,8 +16,6 @@ useEscToClose(() => props.open, () => emit('close'));
 interface Param {
   key: string; unit: string; sect: string; label: string; desc: string;
   wdr?: string; optional?: boolean; raw?: boolean; dimOnly?: boolean; newRow?: boolean;
-  /** Display-space entry bounds (the unit shown in `unit`), enforced by v-limits. */
-  lim?: { min: number; max: number };
 }
 interface Section {
   id: string; label: string; hint?: string; allOptional?: boolean; isDerived?: boolean;
@@ -30,51 +29,51 @@ interface ChartDep { chart: string; extra: string[]; need: Tok[] }
 // dimOnly   = physical dimension field — no SI conversion, stored as-is in mm or g
 const PARAMS: Param[] = [
   // Thiele–Small — Fs & Vas on the top row; the interchangeable Q-trio grouped below
-  { key: 'Fs', lim: { min: 1, max: 5000 },   unit: 'Hz',    sect: 'TS',   label: 'Fs',        desc: 'Free-air resonance frequency (datasheet T/S). CORE input — sets where bass rolls off; affects every response graph. WinISD: Fs' },
-  { key: 'Vas', lim: { min: 0.001, max: 100000 },  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — air as springy as the suspension. CORE input — drives box size/alignment; affects every response graph. WinISD: Vas' },
-  { key: 'Qms', lim: { min: 0.05, max: 100 },  unit: '',      sect: 'TS',   label: 'Qms',       desc: 'Mechanical Q — suspension (spider/surround) damping at Fs. CORE input (any 2 of the Q-trio); shapes the alignment; affects every response graph. WinISD: Qms', newRow: true },
-  { key: 'Qes', lim: { min: 0.05, max: 100 },  unit: '',      sect: 'TS',   label: 'Qes',       desc: 'Electrical Q — motor/voice-coil damping at Fs. CORE input (any 2 of the Q-trio); affects every response graph. WinISD: Qes' },
-  { key: 'Qts', lim: { min: 0.05, max: 100 },  unit: '',      sect: 'TS',   label: 'Qts',       desc: 'Total Q = Qms‖Qes. CORE input — enter any 2 of the trio, the third auto-calculates; affects every response graph. WinISD: Qts' },
+  { key: 'Fs',   unit: 'Hz',    sect: 'TS',   label: 'Fs',        desc: 'Free-air resonance frequency (datasheet T/S). CORE input — sets where bass rolls off; affects every response graph. WinISD: Fs' },
+  { key: 'Vas',  unit: 'L',     sect: 'TS',   label: 'Vas',       desc: 'Equivalent compliance volume — air as springy as the suspension. CORE input — drives box size/alignment; affects every response graph. WinISD: Vas' },
+  { key: 'Qms',  unit: '',      sect: 'TS',   label: 'Qms',       desc: 'Mechanical Q — suspension (spider/surround) damping at Fs. CORE input (any 2 of the Q-trio); shapes the alignment; affects every response graph. WinISD: Qms', newRow: true },
+  { key: 'Qes',  unit: '',      sect: 'TS',   label: 'Qes',       desc: 'Electrical Q — motor/voice-coil damping at Fs. CORE input (any 2 of the Q-trio); affects every response graph. WinISD: Qes' },
+  { key: 'Qts',  unit: '',      sect: 'TS',   label: 'Qts',       desc: 'Total Q = Qms‖Qes. CORE input — enter any 2 of the trio, the third auto-calculates; affects every response graph. WinISD: Qts' },
   // Piston / Acoustic — Sd/Dia (interchangeable) + Xmax on one row
-  { key: 'Sd', lim: { min: 0.1, max: 100000 },   unit: 'cm²',   sect: 'Piston', label: 'Sd',      desc: 'Effective radiating (piston) area. CORE input — governs displacement, SPL and excursion; affects every graph. Enter Sd or Cone ⌀. WinISD: Sd' },
-  { key: 'Dia', lim: { min: 5, max: 1000 },  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  wdr: 'Dd', desc: 'Cone effective diameter → Sd = π·(Dd/2)². Alternative to Sd (enter one). CORE input; affects every graph. WinISD: Dd' },
-  { key: 'Xmax', lim: { min: 0, max: 500 }, unit: 'mm',    sect: 'Piston', label: 'Xmax',    desc: 'Peak linear (clean) excursion, one-way. AFFECTS: Cone excursion (the ±Xmax limit) and the excursion-limited part of Maximum SPL. WinISD: Xmax', optional: true },
+  { key: 'Sd',   unit: 'cm²',   sect: 'Piston', label: 'Sd',      desc: 'Effective radiating (piston) area. CORE input — governs displacement, SPL and excursion; affects every graph. Enter Sd or Cone ⌀. WinISD: Sd' },
+  { key: 'Dia',  unit: 'mm',    sect: 'Piston', label: 'Cone ⌀',  wdr: 'Dd', desc: 'Cone effective diameter → Sd = π·(Dd/2)². Alternative to Sd (enter one). CORE input; affects every graph. WinISD: Dd' },
+  { key: 'Xmax', unit: 'mm',    sect: 'Piston', label: 'Xmax',    desc: 'Peak linear (clean) excursion, one-way. AFFECTS: Cone excursion (the ±Xmax limit) and the excursion-limited part of Maximum SPL. WinISD: Xmax', optional: true },
   // Electrical — Re/Le/Znom on one row
-  { key: 'Re', lim: { min: 0.01, max: 1000 },   unit: 'Ω',     sect: 'Electrical', label: 'Re',  desc: 'DC voice-coil resistance. CORE input — the power↔voltage reference (P = V²/Re); scales SPL & power; needed for Bl. Affects every graph. WinISD: Re' },
-  { key: 'Le', lim: { min: 0, max: 100 },   unit: 'mH',    sect: 'Electrical', label: 'Le',  desc: 'Voice-coil inductance. AFFECTS only Impedance & Impedance-phase (kept out of the acoustic path — does not change SPL/excursion). WinISD: Le', optional: true },
-  { key: 'Znom', lim: { min: 0, max: 1000 }, unit: 'Ω',     sect: 'Electrical', label: 'Znom', desc: 'Nominal impedance rating (4/8/16 Ω). Descriptive label only — NOT used in any graph or power calc (matches WinISD help: "not used in simulation"). WinISD: Znom', optional: true },
+  { key: 'Re',   unit: 'Ω',     sect: 'Electrical', label: 'Re',  desc: 'DC voice-coil resistance. CORE input — the power↔voltage reference (P = V²/Re); scales SPL & power; needed for Bl. Affects every graph. WinISD: Re' },
+  { key: 'Le',   unit: 'mH',    sect: 'Electrical', label: 'Le',  desc: 'Voice-coil inductance. AFFECTS only Impedance & Impedance-phase (kept out of the acoustic path — does not change SPL/excursion). WinISD: Le', optional: true },
+  { key: 'Znom', unit: 'Ω',     sect: 'Electrical', label: 'Znom', desc: 'Nominal impedance rating (4/8/16 Ω). Descriptive label only — NOT used in any graph or power calc (matches WinISD help: "not used in simulation"). WinISD: Znom', optional: true },
   // Performance
-  { key: 'Pe', lim: { min: 0, max: 100000 },   unit: 'W',     sect: 'Performance', label: 'Pe', desc: 'Thermal-limited continuous power handling. AFFECTS: Maximum power, and the thermal-limited part of Maximum SPL. WinISD: Pe', optional: true },
+  { key: 'Pe',   unit: 'W',     sect: 'Performance', label: 'Pe', desc: 'Thermal-limited continuous power handling. AFFECTS: Maximum power, and the thermal-limited part of Maximum SPL. WinISD: Pe', optional: true },
   // Motor / large-signal — WinISD Le model + voice-coil geometry (WDR: fLe, KLe, Hc, Hg)
-  { key: 'fLe', lim: { min: 0, max: 100000 },  unit: 'Hz',    sect: 'Motor', label: 'fLe', desc: 'Frequency at which Le/KLe were measured (0 = standard Le model). Stored for the WDR / WinISD lossy-inductance model — not used by our simulation. WinISD: fLe', optional: true, raw: true },
-  { key: 'KLe', lim: { min: 0, max: 10 },  unit: 'H·√Hz', sect: 'Motor', label: 'KLe', desc: 'Voice-coil semi-inductance (Vanderkooy model). Stored for the WDR / WinISD lossy-inductance model — not used by our simulation. WinISD: KLe', optional: true, raw: true },
-  { key: 'Hc', lim: { min: 0, max: 500 },   unit: 'mm',    sect: 'Motor', label: 'Hc',  desc: 'Voice-coil winding height. Reference/WDR geometry (WinISD derives Xmax ≈ |Hc−Hg|/2) — not used directly by our simulation. WinISD: Hc', optional: true },
-  { key: 'Hg', lim: { min: 0, max: 500 },   unit: 'mm',    sect: 'Motor', label: 'Hg',  desc: 'Magnetic air-gap height. Reference/WDR geometry (with Hc gives Xmax) — not used directly by our simulation. WinISD: Hg', optional: true },
+  { key: 'fLe',  unit: 'Hz',    sect: 'Motor', label: 'fLe', desc: 'Frequency at which Le/KLe were measured (0 = standard Le model). Stored for the WDR / WinISD lossy-inductance model — not used by our simulation. WinISD: fLe', optional: true, raw: true },
+  { key: 'KLe',  unit: 'H·√Hz', sect: 'Motor', label: 'KLe', desc: 'Voice-coil semi-inductance (Vanderkooy model). Stored for the WDR / WinISD lossy-inductance model — not used by our simulation. WinISD: KLe', optional: true, raw: true },
+  { key: 'Hc',   unit: 'mm',    sect: 'Motor', label: 'Hc',  desc: 'Voice-coil winding height. Reference/WDR geometry (WinISD derives Xmax ≈ |Hc−Hg|/2) — not used directly by our simulation. WinISD: Hc', optional: true },
+  { key: 'Hg',   unit: 'mm',    sect: 'Motor', label: 'Hg',  desc: 'Magnetic air-gap height. Reference/WDR geometry (with Hc gives Xmax) — not used directly by our simulation. WinISD: Hg', optional: true },
   // Voice coil & thermal (WDR: numVC, VCCon, alfaVC, Rt, Ct)
-  { key: 'numVC', lim: { min: 1, max: 4 },  unit: 'count', sect: 'VC', label: 'VCs',   wdr: 'numVC',  desc: 'Number of voice coils (1 normal, 2 = dual-voice-coil). Descriptive / WDR only — not simulated. WinISD: Voicecoils', optional: true, raw: true },
-  { key: 'VCCon', lim: { min: 1, max: 2 },  unit: '1∥/2S', sect: 'VC', label: 'VCCon', desc: 'Voice-coil wiring: 1 = parallel, 2 = series. Descriptive / WDR only — not simulated. WinISD: Connection', optional: true, raw: true },
-  { key: 'alfaVC', lim: { min: 0, max: 0.1 }, unit: '1/K',   sect: 'VC', label: 'αVC',   wdr: 'AlfaVC', desc: 'VC resistance temperature coefficient (copper ≈ 0.0039). Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: AlfaVC', optional: true, raw: true },
-  { key: 'Rt', lim: { min: 0, max: 1000 },     unit: 'K/W',   sect: 'VC', label: 'R(t)',  wdr: 'Rt',     desc: 'Voice-coil-to-ambient thermal resistance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: R(t)', optional: true, raw: true },
-  { key: 'Ct', lim: { min: 0, max: 10000 },     unit: 'J/K',   sect: 'VC', label: 'C(t)',  wdr: 'Ct',     desc: 'Voice-coil thermal capacitance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: C(t)', optional: true, raw: true },
+  { key: 'numVC',  unit: 'count', sect: 'VC', label: 'VCs',   wdr: 'numVC',  desc: 'Number of voice coils (1 normal, 2 = dual-voice-coil). Descriptive / WDR only — not simulated. WinISD: Voicecoils', optional: true, raw: true },
+  { key: 'VCCon',  unit: '1∥/2S', sect: 'VC', label: 'VCCon', desc: 'Voice-coil wiring: 1 = parallel, 2 = series. Descriptive / WDR only — not simulated. WinISD: Connection', optional: true, raw: true },
+  { key: 'alfaVC', unit: '1/K',   sect: 'VC', label: 'αVC',   wdr: 'AlfaVC', desc: 'VC resistance temperature coefficient (copper ≈ 0.0039). Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: AlfaVC', optional: true, raw: true },
+  { key: 'Rt',     unit: 'K/W',   sect: 'VC', label: 'R(t)',  wdr: 'Rt',     desc: 'Voice-coil-to-ambient thermal resistance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: R(t)', optional: true, raw: true },
+  { key: 'Ct',     unit: 'J/K',   sect: 'VC', label: 'C(t)',  wdr: 'Ct',     desc: 'Voice-coil thermal capacitance. Thermal model — not simulated (WinISD: "not used yet"). WinISD Advanced: C(t)', optional: true, raw: true },
   // Environment (WDR: c, roo)
-  { key: 'c', lim: { min: 100, max: 1000 },    unit: 'm/s',   sect: 'Environment', label: 'c', desc: 'Speed of sound (default ≈ 343 m/s). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: c', optional: true, raw: true },
-  { key: 'roo', lim: { min: 0.1, max: 10 },  unit: 'kg/m³', sect: 'Environment', label: 'ρ', wdr: 'roo', desc: 'Air density (default ≈ 1.2 kg/m³). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: roo', optional: true, raw: true },
+  { key: 'c',    unit: 'm/s',   sect: 'Environment', label: 'c', desc: 'Speed of sound (default ≈ 343 m/s). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: c', optional: true, raw: true },
+  { key: 'roo',  unit: 'kg/m³', sect: 'Environment', label: 'ρ', wdr: 'roo', desc: 'Air density (default ≈ 1.2 kg/m³). Air constant behind the T/S conversions; WDR metadata. Autofilled (C) — override, or clear to revert. WinISD Advanced: roo', optional: true, raw: true },
   // Derived — calculated by default (state C) but editable: type to override, clear to revert
-  { key: 'Mms', lim: { min: 0.01, max: 10000 },  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load = 1/((2π·Fs)²·Cms). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Mms' },
-  { key: 'Cms', lim: { min: 0.0001, max: 100 },  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance = Vas/(ρc²·Sd²). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Cms' },
-  { key: 'Rms', lim: { min: 0.0001, max: 1000 },  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance = 2π·Fs·Mms/Qms. Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Rms' },
-  { key: 'Bl', lim: { min: 0.01, max: 1000 },   unit: 'T·m',   sect: 'Derived', label: 'Bl',    wdr: 'BL',  desc: 'Motor force factor = √(2π·Fs·Mms·Re/Qes). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: BL' },
-  { key: 'Vd', lim: { min: 0, max: 100000 },   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax. Derived (state C); type to override. Reference value — not a direct chart input.' },
-  { key: 'no', lim: { min: 0, max: 100 },   unit: '%',     sect: 'Derived', label: 'η₀',    wdr: 'no',  desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Derived (state C); type to override. Sets the SPL reference level. WinISD: no', newRow: true },
-  { key: 'SPL', lim: { min: 0, max: 200 },  unit: 'dB',    sect: 'Derived', label: '1W/1m', wdr: 'SPL', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
+  { key: 'Mms',  unit: 'g',     sect: 'Derived', label: 'Mms',   desc: 'Moving mass incl. air load = 1/((2π·Fs)²·Cms). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Mms' },
+  { key: 'Cms',  unit: 'mm/N',  sect: 'Derived', label: 'Cms',   desc: 'Suspension compliance = Vas/(ρc²·Sd²). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Cms' },
+  { key: 'Rms',  unit: 'N·s/m', sect: 'Derived', label: 'Rms',   desc: 'Mechanical resistance = 2π·Fs·Mms/Qms. Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: Rms' },
+  { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    wdr: 'BL',  desc: 'Motor force factor = √(2π·Fs·Mms·Re/Qes). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: BL' },
+  { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax. Derived (state C); type to override. Reference value — not a direct chart input.' },
+  { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    wdr: 'no',  desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Derived (state C); type to override. Sets the SPL reference level. WinISD: no', newRow: true },
+  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', wdr: 'SPL', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
   // Physical dimensions — diameters row, axial depths row, misc row
-  { key: 'outerMm', lim: { min: 0, max: 5000 },    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (baffle space to reserve). Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Outer', optional: true, dimOnly: true },
-  { key: 'basketMm', lim: { min: 0, max: 5000 },   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket diameter = the hole to cut in the baffle. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Basket', optional: true, dimOnly: true },
-  { key: 'magnetMm', lim: { min: 0, max: 5000 },   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet', optional: true, dimOnly: true },
-  { key: 'depthMm', lim: { min: 0, max: 5000 },    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Depth', optional: true, dimOnly: true },
-  { key: 'thickMm', lim: { min: 0, max: 500 },    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange/basket-plate thickness. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Thick', optional: true, dimOnly: true },
-  { key: 'magDepthMm', lim: { min: 0, max: 5000 }, unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    wdr: 'MagDepth', desc: 'Magnet assembly axial depth. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet Depth', optional: true, dimOnly: true },
-  { key: 'vcDiaMm', lim: { min: 0, max: 1000 },    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice-coil diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: VCd', optional: true, dimOnly: true },
+  { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (baffle space to reserve). Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Outer', optional: true, dimOnly: true },
+  { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket diameter = the hole to cut in the baffle. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Basket', optional: true, dimOnly: true },
+  { key: 'magnetMm',   unit: 'mm', sect: 'Dimensions', label: 'Magnet ⌀',  desc: 'Magnet outer diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet', optional: true, dimOnly: true },
+  { key: 'depthMm',    unit: 'mm', sect: 'Dimensions', label: 'Depth',     desc: 'Total driver depth front-to-back. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Depth', optional: true, dimOnly: true },
+  { key: 'thickMm',    unit: 'mm', sect: 'Dimensions', label: 'Thick',     desc: 'Flange/basket-plate thickness. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Thick', optional: true, dimOnly: true },
+  { key: 'magDepthMm', unit: 'mm', sect: 'Dimensions', label: 'MagDpt',    wdr: 'MagDepth', desc: 'Magnet assembly axial depth. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Magnet Depth', optional: true, dimOnly: true },
+  { key: 'vcDiaMm',    unit: 'mm', sect: 'Dimensions', label: 'VCd',       desc: 'Voice-coil diameter. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: VCd', optional: true, dimOnly: true },
   { key: 'dvol',       unit: 'l',  sect: 'Dimensions', label: 'Dvol',      wdr: 'DVol', desc: 'Driver displacement volume — the volume the driver body occupies inside the enclosure. Reference only (WinISD does not auto-subtract it from box volume, and neither do we). WinISD Dimensions: Dvol', optional: true, dimOnly: true },
 ];
 
@@ -331,7 +330,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="dd-overlay" @click.self="$emit('close')">
+    <div v-if="open" class="dd-overlay">
       <div class="dd-modal">
         <!-- Header -->
         <div class="dd-header">
@@ -412,86 +411,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                   front corners only. All 7 dimensional params labelled.
                   Blue: Thick, Outer ⌀, Depth.  Amber: Basket, Magnet ⌀, MagDpt, VCd.
                 -->
-                <svg viewBox="0 0 540 450" class="dd-dim-svg" xmlns="http://www.w3.org/2000/svg"
-                     @click="dimExpanded = !dimExpanded"
-                     :title="dimExpanded ? 'Click to collapse diagram' : 'Click to expand diagram'">
-                  <defs>
-                    <marker id="dd-arr-s" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                      <path d="M 10 1.5 L 0 5 L 10 8.5 Z" fill="#4fb0ff"/>
-                    </marker>
-                    <marker id="dd-arr-e" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-                      <path d="M 0 1.5 L 10 5 L 0 8.5 Z" fill="#4fb0ff"/>
-                    </marker>
-                  </defs>
-
-                  <!-- Driver geometry (front = RIGHT). Held in a +15,+15 group so the dimension
-                       lines/labels can live in the outer 540×450 frame. Ported from the WinISD
-                       Dimensions cross-section reference. -->
-                  <g transform="translate(15,15)">
-                    <!-- Mounting flange (right edge) — taller than the basket connection points -->
-                    <rect x="400" y="40" width="10" height="340" fill="#1a2029" stroke="#c9d4e0"
-                          stroke-width="1.3" stroke-linejoin="round"/>
-
-                    <!-- Basket chassis: straight diagonal walls + two windows -->
-                    <g stroke="#c9d4e0" stroke-width="1.3" fill="none" stroke-linejoin="round" stroke-linecap="round">
-                      <path d="M 310 140 L 400 50"/>   <!-- top diagonal wall -->
-                      <path d="M 310 280 L 400 370"/>  <!-- bottom diagonal wall -->
-                      <path d="M 310 140 L 310 280"/>  <!-- rear vertical wall -->
-                      <!-- upper window: outer box masks the bg, inner box = frame border -->
-                      <polygon points="330,150 330,180 385,180 385,105" fill="#11151c"/>
-                      <polygon points="335,155 335,175 380,175 380,114"/>
-                      <!-- lower window -->
-                      <polygon points="330,270 330,240 385,240 385,315" fill="#11151c"/>
-                      <polygon points="335,265 335,245 380,245 380,306"/>
-                    </g>
-
-                    <!-- Rear magnet motor structure -->
-                    <g stroke="#c9d4e0" stroke-width="1.3" fill="#1a2029" stroke-linejoin="round">
-                      <rect x="235" y="140" width="55" height="140"/> <!-- main magnet core -->
-                      <rect x="227" y="150" width="8"  height="120"/> <!-- rear backplate / vent cap -->
-                      <rect x="290" y="145" width="20" height="130"/> <!-- front plate junction -->
-                    </g>
-                  </g>
-
-                  <!-- Dimension lines & extensions (outer frame coords) -->
-                  <g stroke="#4fb0ff" stroke-width="0.8" fill="none">
-                    <!-- Outer -->
-                    <line x1="430" y1="55" x2="480" y2="55"/>
-                    <line x1="430" y1="395" x2="480" y2="395"/>
-                    <line x1="465" y1="70" x2="465" y2="380" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-                    <!-- Basket (dashed extensions) -->
-                    <line x1="415" y1="65" x2="155" y2="65" stroke-dasharray="2,2"/>
-                    <line x1="415" y1="385" x2="155" y2="385" stroke-dasharray="2,2"/>
-                    <line x1="170" y1="80" x2="170" y2="370" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-                    <!-- Magnet -->
-                    <line x1="250" y1="155" x2="205" y2="155"/>
-                    <line x1="250" y1="295" x2="205" y2="295"/>
-                    <line x1="215" y1="170" x2="215" y2="280" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-                    <!-- Thick -->
-                    <line x1="415" y1="55" x2="415" y2="20"/>
-                    <line x1="425" y1="55" x2="425" y2="20"/>
-                    <line x1="385" y1="25" x2="415" y2="25" marker-end="url(#dd-arr-e)"/>
-                    <line x1="455" y1="25" x2="425" y2="25" marker-end="url(#dd-arr-e)"/>
-                    <!-- MagDpt -->
-                    <line x1="250" y1="295" x2="250" y2="340"/>
-                    <line x1="325" y1="295" x2="325" y2="340"/>
-                    <line x1="250" y1="330" x2="325" y2="330" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-                    <!-- Depth -->
-                    <line x1="242" y1="295" x2="242" y2="420"/>
-                    <line x1="415" y1="385" x2="415" y2="420"/>
-                    <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-                  </g>
-
-                  <!-- Labels -->
-                  <g font-family="system-ui,sans-serif" font-size="14" fill="#4fb0ff" text-anchor="middle">
-                    <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
-                    <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
-                    <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>
-                    <text x="420" y="15" font-size="13">Thick</text>
-                    <text x="287" y="355">MagDpt</text>
-                    <text x="328" y="435">Depth</text>
-                  </g>
-                </svg>
+                <DriverDimensionsDiagram />
               </div>
 
               <div class="dd-grid">
@@ -504,7 +424,7 @@ watch(canApply, ok => { graphHelpOpen.value = !ok; }, { immediate: true });
                     <span v-if="p.wdr" class="wdr-tag" title="WinISD / WDR field name">{{ p.wdr }}</span>
                     <span v-if="p.optional && !sect.allOptional" class="opt-tag">opt</span>
                   </span>
-                  <input class="dd-val" type="number" step="any" v-limits="p.lim"
+                  <input class="dd-val" type="number" step="any"
                          :class="['input-' + stateOf(p.key), { 'input-required': isRequiredMissing(p.key), 'dd-hl': highlightKeys.has(p.key) }]"
                          :value="displayVal(p.key)"
                          @input="onInput(p.key, $event)"

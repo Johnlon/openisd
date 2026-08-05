@@ -1,0 +1,10 @@
+  openisd_drivers (OpenIsd drivers): 0 drivers
+
+WARNING: keeping the existing packages/ui/src/drivers-bundle.json — this build is empty where it was not (drivers 1904→0, passive radiators 76→0).
+  The SOURCE data looks incomplete — check the sibling winisd_drivers checkout / source URLs. The bundle is left UNCHANGED (not wiped). To force a genuinely-empty bundle, delete packages/ui/src/drivers-bundle.json first, then re-run.
+
+Bundle left unchanged (empty-build guard). Existing driver data preserved.
+
+> openisd@0.1.0 lint
+> eslint packages/
+

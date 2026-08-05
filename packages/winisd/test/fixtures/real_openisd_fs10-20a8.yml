@@ -1,0 +1,70 @@
+uuid:
+  value: 12e35b3f-2e97-4ecc-9fa1-6a459650d43a
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  rating: L
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: [BL, Cms, Fs, Mms, Qes, Qms, Qts, Re, Sd, Vas, Xmax]
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Eminence
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; also decides the record's folder
+brand:
+  value: Eminence
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: FS10.20A8 – 10" Ceramic Woofer
+  origin: manufacturer_product_page
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: fs10-20a8
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_product_page
+    reading: FS10.20A8 – 10" Ceramic Woofer
+    definition: the printed designation the code was derived from
+driver_type:
+  value: woofer
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+disposition:
+  value: no-ts-published
+  definition: the record's own account of its standing — whether it is complete, deliberately
+    thin (the source publishes no T/S), unprojectable (no .wdr for passive radiators),
+    waiting on a document, carrying an accepted source defect, or excluded; closed
+    vocabulary defined in the schema
+  detail: the source publishes no T/S parameters for this driver — the record is deliberately
+    thin by policy, not broken
+data_sources:
+  value:
+    manufacturer_product_page: https://eminence.com/products/fs15-20a8-15-ceramic-woofer
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_product_page
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+product_image:
+  value: http://eminence.com/cdn/shop/files/FS10.20A8Hero_1.png?v=1765809538
+  origin: manufacturer_product_page
+  definition: the manufacturer's product photo for this driver
+description:
+  value: View Spec Sheet Professional Mid-Bass Driver for Sound Reinforcement Systems
+    The FS10.20A8 is a high-efficiency 10" ceramic woofer engineered for professional
+    sound reinforcement applications requiring controlled mid-bass response, high
+    power handling, and consistent manufacturing performance. Designed by B&amp;C
+    Group
+  origin: manufacturer_product_page
+  definition: the manufacturer's own product blurb, page chrome stripped
+specs:
+  woofer: {}

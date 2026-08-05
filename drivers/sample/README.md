@@ -3,7 +3,7 @@
 This directory contains REAL WDR files created directly in WinISD 0.7.0.950 to
 reverse-engineer its internal behaviour. **Not real drivers** — dummy values only.
 
-THESE ARE REAL REFERENCES that have not been modified by AI. 
+THESE ARE REAL REFERENCES that have not been modified by AI.
 
 "Auto calculate unknowns" was always enabled during all experiments. Because WinISD
 cannot derive anything from a single T/S input, every single-param probe produces
@@ -16,58 +16,58 @@ exactly one new E position — a clean, unambiguous mapping.
 Each file has exactly one T/S field set to a non-zero value (unless noted). Comparing
 its `ParState=` string against the blank file isolates the ParState index for that field.
 
-| File | Field set | ParState pos | Notes |
-|------|-----------|:---:|-------|
-| `s-znom.wdr`      | Znom     |  0 | |
-| `s-fs.wdr`        | Fs       |  1 | |
-| `s-pe.wdr`        | Pe       |  2 | Pe=123; SPL=0; WinISD marks only Pe as E |
-| `s-spl.wdr`       | SPL      |  3 | SPL can be directly entered; normally C when T/S present |
-| `s-re.wdr`        | Re       |  4 | |
-| `s-le.wdr`        | Le       |  5 | |
-| `s-fle.wdr`       | fLe      |  6 | |
-| `s-kle.wdr`       | KLe      |  7 | |
-| `s-bl.wdr`        | BL       |  8 | |
-| `s-xmax.wdr`      | Xmax     |  9 | |
-| `s-xlim.wdr`      | Xlim     | 10 | ParState-only — WinISD does not write `Xlim=` as a WDR key |
-| `s-cms.wdr`       | Cms      | 11 | |
-| `s-qms.wdr`       | Qms      | 12 | |
-| `s-qes.wdr`       | Qes      | 13 | |
-| `s-qts.wdr`       | Qts      | 14 | WDR writes Qts first but ParState puts it at 14, after Qms/Qes |
-| `s-rms.wdr`       | Rms      | 15 | |
-| `s-mms.wdr`       | Mms      | 16 | |
-| `s-sd.wdr`        | Sd       | 17 | |
-| `s-vd.wdr`        | Vd       | 18 | |
-| `s-vas.wdr`       | Vas      | 19 | Entered in ft³ in UI; stored as m³ in WDR |
-| *(no probe)*      | ???      | 20 | Always N; not reachable via standard UI |
-| `s-dd.wdr`        | Dd       | 21 | Effective cone diameter |
-| `s-no.wdr`        | no       | 22 | η₀ efficiency; E when typed, C when computed from T/S, N when nothing set |
-| `s-voicecoils.wdr`| numVC    | 23 | Already E in blank (defaults to 1); probe shows no new E but field identity confirmed |
-| `s-hc.wdr`        | Hc       | 24 | |
-| `s-hg.wdr`        | Hg       | 25 | |
-| `s-splmax.wdr`    | SPLmax   | 26 | |
-| `s-splmaxlf.wdr`  | SPLmaxLF | 27 | **Dirty probe** — also has Pe=E at pos 2 (Pe was accidentally set); SPLmaxLF=27 is still correct |
-| `s-uspl.wdr`      | USPL     | 28 | |
-| `s-alfavc.wdr`    | alfaVC   | 29 | |
-| `s-r-t.wdr`       | Rt       | 30 | |
-| `s-c-t.wdr`       | Ct       | 31 | |
-| `s-gamma.wdr`     | gamma    | 32 | |
-| `s-ebp.wdr`       | EBP      | 33 | **Surprise:** EBP is at 33, not adjacent to Rme/Mpow/Mcost in WDR write order |
-| `s-rme.wdr`       | Rme      | 34 | |
-| `s-mpow.wdr`      | Mpow     | 35 | |
-| `s-mcost.wdr`     | Mcost    | 36 | |
-| `s-gloss.wdr`     | Gloss    | 37 | |
-| `s-thick.wdr`     | Thick    | 38 | |
-| `s-depth.wdr`     | Depth    | 39 | |
-| `s-magnetdepth.wdr` | MagDepth | 40 | |
-| `s-magnet.wdr`    | MagDepth | 40 | **Broken probe** — file still sets `MagDepth=123` not `Magnet=123` |
-| `s-driver-12345678.wdr` | Magnet | 41 | Confirmed via dims probe: Thick=1…DVol=8; pos 41=E from Magnet=4 |
-| `s-basket.wdr`    | Basket   | 42 | |
-| `s-outer.wdr`     | Outer    | 43 | |
-| `s-vcd.wdr`       | Vcd      | 44 | |
-| `s-dvol.wdr`      | DVol     | 45 | |
-| *(no probe)*      | ???      | 46 | Always N; internal field with no WDR key |
-| `s-c.wdr`         | c        | 47 | Speed of sound; C at standard conditions, E when explicitly entered |
-| `s-roo.wdr`       | roo      | 48 | Air density; same behaviour as c |
+| File                    | Field set | ParState pos | Notes                                                                                            |
+| ----------------------- | --------- | :----------: | ------------------------------------------------------------------------------------------------ |
+| `s-znom.wdr`            | Znom      |      0       |                                                                                                  |
+| `s-fs.wdr`              | Fs        |      1       |                                                                                                  |
+| `s-pe.wdr`              | Pe        |      2       | Pe=123; SPL=0; WinISD marks only Pe as E                                                         |
+| `s-spl.wdr`             | SPL       |      3       | SPL can be directly entered; normally C when T/S present                                         |
+| `s-re.wdr`              | Re        |      4       |                                                                                                  |
+| `s-le.wdr`              | Le        |      5       |                                                                                                  |
+| `s-fle.wdr`             | fLe       |      6       |                                                                                                  |
+| `s-kle.wdr`             | KLe       |      7       |                                                                                                  |
+| `s-bl.wdr`              | BL        |      8       |                                                                                                  |
+| `s-xmax.wdr`            | Xmax      |      9       |                                                                                                  |
+| `s-xlim.wdr`            | Xlim      |      10      | ParState-only — WinISD does not write `Xlim=` as a WDR key                                       |
+| `s-cms.wdr`             | Cms       |      11      |                                                                                                  |
+| `s-qms.wdr`             | Qms       |      12      |                                                                                                  |
+| `s-qes.wdr`             | Qes       |      13      |                                                                                                  |
+| `s-qts.wdr`             | Qts       |      14      | WDR writes Qts first but ParState puts it at 14, after Qms/Qes                                   |
+| `s-rms.wdr`             | Rms       |      15      |                                                                                                  |
+| `s-mms.wdr`             | Mms       |      16      |                                                                                                  |
+| `s-sd.wdr`              | Sd        |      17      |                                                                                                  |
+| `s-vd.wdr`              | Vd        |      18      |                                                                                                  |
+| `s-vas.wdr`             | Vas       |      19      | Entered in ft³ in UI; stored as m³ in WDR                                                        |
+| _(no probe)_            | ???       |      20      | Always N; not reachable via standard UI                                                          |
+| `s-dd.wdr`              | Dd        |      21      | Effective cone diameter                                                                          |
+| `s-no.wdr`              | no        |      22      | η₀ efficiency; E when typed, C when computed from T/S, N when nothing set                        |
+| `s-voicecoils.wdr`      | numVC     |      23      | Already E in blank (defaults to 1); probe shows no new E but field identity confirmed            |
+| `s-hc.wdr`              | Hc        |      24      |                                                                                                  |
+| `s-hg.wdr`              | Hg        |      25      |                                                                                                  |
+| `s-splmax.wdr`          | SPLmax    |      26      |                                                                                                  |
+| `s-splmaxlf.wdr`        | SPLmaxLF  |      27      | **Dirty probe** — also has Pe=E at pos 2 (Pe was accidentally set); SPLmaxLF=27 is still correct |
+| `s-uspl.wdr`            | USPL      |      28      |                                                                                                  |
+| `s-alfavc.wdr`          | alfaVC    |      29      |                                                                                                  |
+| `s-r-t.wdr`             | Rt        |      30      |                                                                                                  |
+| `s-c-t.wdr`             | Ct        |      31      |                                                                                                  |
+| `s-gamma.wdr`           | gamma     |      32      |                                                                                                  |
+| `s-ebp.wdr`             | EBP       |      33      | **Surprise:** EBP is at 33, not adjacent to Rme/Mpow/Mcost in WDR write order                    |
+| `s-rme.wdr`             | Rme       |      34      |                                                                                                  |
+| `s-mpow.wdr`            | Mpow      |      35      |                                                                                                  |
+| `s-mcost.wdr`           | Mcost     |      36      |                                                                                                  |
+| `s-gloss.wdr`           | Gloss     |      37      |                                                                                                  |
+| `s-thick.wdr`           | Thick     |      38      |                                                                                                  |
+| `s-depth.wdr`           | Depth     |      39      |                                                                                                  |
+| `s-magnetdepth.wdr`     | MagDepth  |      40      |                                                                                                  |
+| `s-magnet.wdr`          | MagDepth  |      40      | **Broken probe** — file still sets `MagDepth=123` not `Magnet=123`                               |
+| `s-driver-12345678.wdr` | Magnet    |      41      | Confirmed via dims probe: Thick=1…DVol=8; pos 41=E from Magnet=4                                 |
+| `s-basket.wdr`          | Basket    |      42      |                                                                                                  |
+| `s-outer.wdr`           | Outer     |      43      |                                                                                                  |
+| `s-vcd.wdr`             | Vcd       |      44      |                                                                                                  |
+| `s-dvol.wdr`            | DVol      |      45      |                                                                                                  |
+| _(no probe)_            | ???       |      46      | Always N; internal field with no WDR key                                                         |
+| `s-c.wdr`               | c         |      47      | Speed of sound; C at standard conditions, E when explicitly entered                              |
+| `s-roo.wdr`             | roo       |      48      | Air density; same behaviour as c                                                                 |
 
 ### VCCon — save bug, position unknown
 
@@ -148,18 +148,18 @@ VCCon position also unknown due to save bug.
 
 ## Multi-parameter scenario files
 
-| File | Scenario | ParState |
-|------|----------|---------|
-| `john-all-defaults.wdr` | Blank driver — nothing entered | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC` |
-| `john-all-set-then-cleaded.wdr` | All fields set, then Clear button hit | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC` — identical to blank; Clear resets all state |
-| `john-all-set.wdr` | Every Parameters-tab field typed in; physical dimensions at 0 | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEENNNNNNNNNEE` |
-| `john-all-entered-driver-dims.wdr` | Same as above plus all Dimensions-tab fields entered | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEEEEEEEEEENEE` |
-| `john-all-entered-driver-dim123s.wdr` | Same with sequential dim values | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEEEEEEEEEENEE` — identical ParState to dims file |
-| `john-all-noncalc-fields-manually-entered.wdr` | All black (enterable) fields filled; 57-field format | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` |
-| `John-all-manu-populated-init.wdr` | All enterable fields with sequential values | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` |
-| `John-all-manu-populated.wdr` | Resaved version of the above | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` — identical |
-| `John-all-manu-populated-ex.wdr` | Full set, then Fs and Qms removed | `CNECEEECCNNCCEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` — Fs→N, Znom and others cascade-invalidated |
-| `s-driver-12345678.wdr` | Dims-only probe: Thick=1, Depth=2, MagDepth=3, Magnet=4, Basket=5, Outer=6, Vcd=7, DVol=8 | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNEEEEEEEENCC` — confirms pos 38–45; pos 46 stays N |
+| File                                           | Scenario                                                                                  | ParState                                                                                         |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `john-all-defaults.wdr`                        | Blank driver — nothing entered                                                            | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC`                                              |
+| `john-all-set-then-cleaded.wdr`                | All fields set, then Clear button hit                                                     | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNNNNNNNNNNCC` — identical to blank; Clear resets all state |
+| `john-all-set.wdr`                             | Every Parameters-tab field typed in; physical dimensions at 0                             | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEENNNNNNNNNEE`                                              |
+| `john-all-entered-driver-dims.wdr`             | Same as above plus all Dimensions-tab fields entered                                      | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEEEEEEEEEENEE`                                              |
+| `john-all-entered-driver-dim123s.wdr`          | Same with sequential dim values                                                           | `EEEEEEEEEEEEEEEEEEEENEEEEEEEEEEEEEEEEEEEEEEEEENEE` — identical ParState to dims file            |
+| `john-all-noncalc-fields-manually-entered.wdr` | All black (enterable) fields filled; 57-field format                                      | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC`                                              |
+| `John-all-manu-populated-init.wdr`             | All enterable fields with sequential values                                               | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC`                                              |
+| `John-all-manu-populated.wdr`                  | Resaved version of the above                                                              | `CEECEEECCEECEEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` — identical                                  |
+| `John-all-manu-populated-ex.wdr`               | Full set, then Fs and Qms removed                                                         | `CNECEEECCNNCCEECECCENCCEECCCCNNNCCCCCCNNNNNNNNNCC` — Fs→N, Znom and others cascade-invalidated  |
+| `s-driver-12345678.wdr`                        | Dims-only probe: Thick=1, Depth=2, MagDepth=3, Magnet=4, Basket=5, Outer=6, Vcd=7, DVol=8 | `NNNNNNNNNNNNNNNNNNNNNNNENNNNNNNNNNNNNNEEEEEEEENCC` — confirms pos 38–45; pos 46 stays N         |
 
 ---
 
@@ -176,11 +176,11 @@ Notable mismatches:
 
 ### Three unresolved positions
 
-| Pos | Behaviour | Likely candidate |
-|:---:|-----------|-----------------|
-| 20 | Always N | Dia? VCCon? Unknown |
-| 41 | Confirmed via s-driver-12345678 (Magnet=4) | Magnet |
-| 46 | Always N | VCCon? Unknown |
+| Pos | Behaviour                                  | Likely candidate    |
+| :-: | ------------------------------------------ | ------------------- |
+| 20  | Always N                                   | Dia? VCCon? Unknown |
+| 41  | Confirmed via s-driver-12345678 (Magnet=4) | Magnet              |
+| 46  | Always N                                   | VCCon? Unknown      |
 
 ### `no` (η₀) is at pos 22 and IS enterable
 
@@ -211,3 +211,58 @@ Only two sources are authoritative for WinISD behaviour:
 
 Do not infer WinISD behaviour from OpenISD source code, forum posts, or third-party
 documentation without cross-checking against one of these two sources.
+
+---
+
+## `beyma-8BR40N-cms-vas-inconsistency.wdr`
+
+Produced in WinISD by clearing entered fields and letting the application recompute. Provided
+2026-08-05.
+
+**ParState decode** — entered: `Fs` `BL` `Cms` `Qms` `Qts` `Sd` `Vas` `Vd` `Dd`. Calculated by
+WinISD: `Re` `Qes` `Rms` `Mms` `no` `gamma` `EBP` `Rme` `Mpow`.
+
+### What it establishes
+
+**1. `Rme = 2π·Fs·Mms/Qes` is exact; `Rme = BL²/Re` is not.** The first reproduces the stored
+value to all 16 digits, the second is out by −0.17385 %. `WDR_SCHEMA.md` §4 rows 3 and 4 present
+these as one relation group; they are not equivalent in WinISD data.
+
+**2. The cause is inconsistent INPUT, not a wrong formula.** The same −0.17385 % appears in three
+independent places:
+
+| comparison                                               | deviation  |
+| -------------------------------------------------------- | ---------- |
+| `Rme = BL²/Re` vs stored `Rme`                           | −0.17385 % |
+| stored `Re` vs the `Qes = 2π·Fs·Mms·Re/BL²` identity     | −0.17385 % |
+| `Cms` implied by entered `Vas` and `Sd` vs entered `Cms` | −0.17385 % |
+| entered `Vas` vs `ρc²Sd²·Cms`                            | +0.17415 % |
+
+Entered `Cms = 0.0013` and entered `Vas = 0.0891` disagree by 0.174 % given `Sd`. WinISD derives
+`Mms` through the `Cms` chain and `Re` through the `Vas` chain and never reconciles them, so the
+two `Rme` expressions land in different places. `BL²/Re` is a correct formula fed by an `Re` that
+came from a different input.
+
+**Consequence:** computing `Rme` both ways is a live consistency check on `Vas` against `Cms`.
+A DQ tolerance wider than the entry disagreement cannot see it.
+
+**3. The SPL/η₀ constant is derived, not a literal.**
+
+    SPL = K + 10·log10(η₀)        K = 10·log10(ρ·c / (2π·p_ref²))        p_ref = 20e-6 Pa
+
+Back-solved from this file, `K = 112.154453213`; the expression gives `112.154453213` — agreement
+1.4e-13 dB. Reconstructing SPL from first principles (`p² = ρ·c·η₀/(2π)`, r = 1 m, half space)
+reproduces the stored `SPL` to all 12 printed digits.
+
+`K` therefore moves with `ρ` and `c`, and so with temperature, humidity and pressure:
+112.1545 at WinISD's 20 °C/30 % RH defaults, 112.1593 for textbook dry-air constants, 112.0818 at
+30 °C.
+
+**4. `no` is the textbook η₀.** Both `4π²/c³ · Fs³·Vas/Qes` and `ρ/(2πc) · Bl²Sd²/(Re·Mms²)`
+reproduce the stored value to 10+ digits.
+
+### Caveat
+
+The parameter values are not a real driver — fields were cleared to force recomputation, so
+`η₀ = 0.18` is physically implausible. That does not affect any finding above: every one is a
+relationship between the file's own numbers, and WinISD computed them from what it was given.

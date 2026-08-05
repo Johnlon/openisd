@@ -13,7 +13,9 @@ const noUnusedVars = {
 
 export default [
   // ── Ignore generated and dependency directories ──────────────────────────
-  { ignores: ['**/dist/**', '**/node_modules/**', 'packages/ui/public/**'] },
+  // dist-electron/ is the optional desktop shell's build output — same minified bundle as
+  // dist/, so it is ignored for the same reason: it is emitted, not authored.
+  { ignores: ['**/dist/**', '**/dist-electron/**', '**/node_modules/**', 'packages/ui/public/**'] },
 
   // ── typescript-eslint recommended (registers plugin + rules for .ts) ──────
   ...tseslint.configs.recommended,
@@ -147,9 +149,6 @@ export default [
       ...pluginPlaywright.configs['flat/recommended'].rules,
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
-      // The spinner-sweep tests assert inside helper functions, not the test body — teach
-      // expect-expect to recognise them so it doesn't false-flag "Test has no assertions".
-      'playwright/expect-expect': ['warn', { assertFunctionNames: ['assertSpinnerHoldsDp', 'sweepActiveTab'] }],
       ...noUnusedVars,
     },
   },

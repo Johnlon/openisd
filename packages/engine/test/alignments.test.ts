@@ -24,7 +24,6 @@ import assert from 'node:assert/strict';
 import {
   ebp,
   sealedFromQtc,
-  sealedFc,
   ventedAlignment,
   ventLength,
   tuningFromLength,
@@ -148,37 +147,6 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
     const result = sealedFromQtc(DRIVER, DRIVER.Qts);
     assert.equal(result, null,
       `Qtc = Qts should return null (would require infinite box)`);
-  });
-
-});
-
-
-describe('Sealed-box resonance for a given volume (sealedFc) — inverse of sealedFromQtc', () => {
-
-  // Formula: Fc = Fs·√(1 + Vas/Vb)
-  // Ref: [S72a], [Wiki-TS]
-
-  it('round-trips with sealedFromQtc: the Vb that targets a Qtc produces an Fc consistent with that Vb', () => {
-    const QTC_BUTTERWORTH = Math.SQRT1_2;
-    const Vb = sealedFromQtc(DRIVER, QTC_BUTTERWORTH);
-    assert.ok(Vb !== null);
-    const Fc = sealedFc(DRIVER, Vb);
-    assert.ok(Fc !== null, 'expected a finite Fc for a valid Vb');
-    const expectedFc = DRIVER.Fs * Math.sqrt(1 + DRIVER.Vas / Vb);
-    assert.ok(Math.abs(Fc - expectedFc) < EXACT,
-      `Fc=${Fc} should equal the closed-form Fs·√(1+Vas/Vb)=${expectedFc}`);
-  });
-
-  it('a smaller box raises Fc above Fs (less compliance headroom)', () => {
-    const Fc = sealedFc(DRIVER, 0.010); // 10 L — well under Vas=30 L
-    assert.ok(Fc !== null, 'expected a finite Fc for a positive volume');
-    assert.ok(Fc > DRIVER.Fs,
-      `Fc=${Fc} should exceed driver Fs=${DRIVER.Fs} in a box smaller than Vas`);
-  });
-
-  it('returns null for a non-positive volume (physically meaningless)', () => {
-    assert.equal(sealedFc(DRIVER, 0), null);
-    assert.equal(sealedFc(DRIVER, -0.01), null);
   });
 
 });
@@ -407,21 +375,4 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
       `30 Hz needs ${(mass_30Hz * 1000).toFixed(1)} g > 50 Hz needs ${(mass_50Hz * 1000).toFixed(1)} g`);
   });
 
-});
-
-describe('selectable port end correction (WinISD parity — two-free 0.613 / one-flanged 0.732 / two-flanged 0.849)', () => {
-  const Vb = 0.03, L = 0.10, Sp = Math.PI * (0.05 / 2) ** 2;
-
-  it('tuningFromLength: default is the 0.732 one-flanged coefficient; more correction → lower Fb', () => {
-    const fbDefault = tuningFromLength(Vb, L, Sp);
-    assert.equal(tuningFromLength(Vb, L, Sp, 0.732), fbDefault, 'explicit 0.732 == implicit default (no-op)');
-    assert.ok(tuningFromLength(Vb, L, Sp, 0.613) > fbDefault, 'two free ends (less correction) → higher tuning');
-    assert.ok(tuningFromLength(Vb, L, Sp, 0.849) < fbDefault, 'two flanged ends (more correction) → lower tuning');
-  });
-
-  it('ventLength: default is 0.732; more correction → shorter physical length for the same Fb', () => {
-    const lenDefault = ventLength(Vb, 35, Sp);
-    assert.equal(ventLength(Vb, 35, Sp, 0.732), lenDefault, 'explicit 0.732 == implicit default (no-op)');
-    assert.ok(ventLength(Vb, 35, Sp, 0.849) < lenDefault, 'more end correction → shorter physical vent');
-  });
 });

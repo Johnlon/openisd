@@ -22,88 +22,105 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## Next — do first
 
-- [ ] **HIGH PRIORITY: Implement and Restore Missing Driver Editor Fields ("not modelled")** — Model and support all remaining inactive fields in the Driver Editor Modal (`DriverEditorModal.vue`) to achieve perfect parity with WinISD Pro:
-  1. **Lossless Preservation**: Make all decorative parameters (e.g. `Xlim`, `hvc`, `hag`, `tc`, `Rth`, `Cth`, `loss`, physical dimensions `Thick`, `Depth`, `Magnet Depth`) editable inputs, serialize them into `.owdr` JSON metadata, and carry them losslessly back to exported `.wdr` files.
-  2. **Render Computed Sensitivities**: Expose read-only calculated properties in the UI for **Reference Efficiency ($\eta_0$)**, **Unity SPL (USPL)**, **Sensitivity (SPL)**, and **Displaced Volume ($V_d$)** using standard Thiele/Small formulas.
-  3. **Voice Coil & Inductance Models**: Wire multi-coil configuration fields (`numVC`, `VCCon`) and explore solver support for lossy semi-inductance (`Le2`, `fLe`) to elevate curve model fidelity. `[ui]` `[unit]`
+- [ ] **Driver identity is `<brand>/<model-slug>`, brand is primary, and a project EMBEDS its
+      driver — human direction + rulings, 2026-08-04.** All points ruled; none is open. The
+      `_savedAt`-stamp identity in `utils/myDrivers.ts` is rejected — the human's words: _"that
+      sounds like crap"_.
+  - **Identity is `<brand>/<model-slug>`** — the scheme the driver DB already uses on disk
+    (`dayton-audio/pro-8`). Applies to the driver DB **and** to My Drivers. Not a save timestamp,
+    not a display string. A rename is therefore a new identity.
+  - **Brand is primary everywhere.** Brand drives identity, DB directory paths and the record's
+    display name; `manufacturer` becomes a second-order descriptive field, shown only when it
+    differs from the brand. Evidence: WinISD's Save-Driver defaults the filename to
+    `<brand> <model>.wdr`, not `<manufacturer> …`. **Measured 2026-08-04 over the 1,526 bundled
+    records: `brand != manufacturer` in ZERO of them, and no record has a manufacturer without a
+    brand.** So this changes no displayed name and no path today — it is correctness against the
+    day the two diverge, and cannot be validated by diffing output. The `manufacturer=Parts
+    Express / brand=GRS` example does not hold: GRS records carry `manufacturer: GRS` **and**
+    `brand: GRS`, which agrees with the `../AGENTS.md` carve-out that PE *is* GRS's manufacturer.
+  - **A project embeds its driver.** WinISD has no driver database: its driver manager handles
+    ONE driver at a time, on disk, disconnected from any open project. Selecting a driver COPIES
+    it into the project. The Driver panel's edit button edits **the project's copy**, never a
+    global definition and never the library record.
+  - **No write-back from the project to My Drivers.** Editing a project's driver touches the
+    project's copy only; My Drivers changes solely through an explicit Save. The
+    `acceptDriverEdit()` write-back and its `_savedAt` key are removed. Stated consequence: after
+    editing the model, the picker does NOT list the new name until the driver is saved — correct
+    behaviour under the embed model, not a bug.
+  - **"Use" goes straight to the project**, not to the driver editor.
+  - **My Drivers is a separate bucket** in the application-level store, keyed by the same
+    `<brand>/<model-slug>` identity.
+  - **Save overwrites the entry holding the resulting identity, and adds one when none does.**
+    A driver IS its `<brand>/<model>`, so editing brand or model saves a NEW driver; editing
+    anything else updates that driver in place.
+  - **Clone forks with `brand = <old brand>`, `model = "Copy of " + <old model>`** — already a
+    distinct identity, which the user can then rename or leave as it is.
+  - **The driver editor gets a "Copy to My Drivers" button.** It copies the driver being edited
+    into My Drivers as a DISCONNECTED copy — no link back — and does so regardless of whether the
+    editor was opened on the project's driver or on an entry from the My Drivers list.
+  - **The editor's window title says which driver is being edited** — "Edit Project's Driver" vs
+    "Edit My Driver". ⚠ Only the first is reachable today: the editor always seeds from the
+    project's driver, so the second title needs an invocation path from the My Drivers list that
+    does not exist yet. Build the title now, build that path with the My-Drivers-editing feature.
+  - **Deleting a saved driver must work and be findable.** A per-row `✕` exists in both pickers
+    (`.my-del` → `deleteMyDriver`), so the gap is that it either does not work or is not
+    discoverable. It provably did NOT work for an entry with no explicit `name`: the filter
+    compared `d.name !== name`, which never matched when both were empty. Deletion keys off the
+    driver's identity, like everything else here.
+  - **⚠ CROSS-REPO (winisd_tools) — the DB directory path derives from BRAND**,
+    `<brand-derived>/<model-slug>`, in scraper code AND documentation. Emitted paths do not
+    change today (`dayton-audio/pro-8` stays `dayton-audio/pro-8`) because `brand ==
+    manufacturer` for the DB's records; what changes is which field is authoritative, so the path
+    stays correct when the two ever diverge.
+  - **⚠ CROSS-REPO (winisd_tools) — the record's display/model name is built from
+    `<brand> <model>`**, with `manufacturer` demoted to second-order. **Records are to be
+    regenerated** once this lands — read the `regenerate-records` skill before running anything
+    that writes records.
 
-- [ ] **DESIGN — the whole ＋Copy "Projects" concept needs investigating and designing (AI-introduced, never human-specified).** The current mechanic (`pinCompare()`, `packages/ui/src/store.ts` — snapshot the current design, push it onto `state.compare`, render it as an extra trace + a "Projects" list row) was invented by the AI; the human has not designed what a "project" / overlay / copy actually is. Settled so far: the button is **＋ Copy** and a copy is named `Copy of <project name>` (human ruling 2026-07-23), and compare snapshots ARE part of a saved project — `serialize()` writes them and `applyState()` restores them re-swept. Still to settle: is a Projects-list row a real openable project (WinISD semantics — several projects open at once, one selected, each independently editable) or a dead snapshot trace? Should copies be selectable / renamable / editable / saveable? How does an opened `.openisd.json` project relate to the list? What do the row checkbox and ✕ each mean under the chosen model? Deliverable: a written design (a `UI_UX_DESIGN.md` section) agreed with the human BEFORE building further Compare features. `[design]`
+- [ ] **Stop reading `.wdr` in the app; the app reads `openisd.yml` only. Reimplement the
+      yml→wdr writer as a shared JS lib, called on-demand by the UI's Save-As and, as a subprocess,
+      by the Python scraper pipeline.** Design decision (human, 2026-07-31): `.wdr` is WinISD's
+      format, not OpenISD's. Its only legitimate purpose is letting a design be opened in classic
+      WinISD — that is a UI export concern, not something the app or its data pipeline needs to
+      carry as a stored, checked-in artifact. Concretely:
+  - The disk loader and the driver browser stop treating `.wdr` as a source of driver data.
+    `openisd.yml` is the only record read. (The bundler is done: it reads `openisd.yml`/
+    `.owdr` records only and never `.wdr`. Still outstanding here: the federated-GitHub path,
+    which fetches `.wdr` from third-party repos, and a build-time `.wdr` → `.owdr` converter
+    so a collection stored as `.wdr` can be bundled at all.)
+  - `.wdr` is generated ONLY on demand, when the user does Save-As → WinISD driver, by calling
+    a JS `ymlToWdr()`/equivalent lib function — not by reading a pre-baked file off disk.
+  - `winisd_tools`'s scraper pipeline (`scrapers/scrapers/lib/rebuild_wdr.py`) currently
+    reimplements this conversion in Python. It must NOT keep two independent implementations
+    of the same yml→wdr mapping (see the `Rme` formula divergence already found between
+    `model_wdr.py` and `driver.ts` this session — same failure mode, different field). Instead
+    the Python pipeline calls the JS lib's `ymlToWdr()` through the same embedded V8 runtime
+    (`mini-racer`) used for all other Python→JS calc calls — not a subprocess, not a CLI — so
+    there is exactly one implementation and one bridge.
+  - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/PLAN_JS_CALC_CONSOLIDATION.md#L1)
+    for the calc half of this ruling (TODO.md QT39). `.owdr` and `openisd.yml` are the same
+    schema per [ARCHITECTURE.md AD-8](http://localhost:8000/winisd/openisd/ARCHITECTURE.md#L400-L406) —
+    line 32 above is accurate.
+  - The bridge (embedded V8 via `mini-racer`, not a Node CLI) and the math API it shares with
+    this call are specified in
+    [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/MATH_MIGRATION.md#L474-L491),
+    which also covers precision-propagation parity and the full retirement/testing plan.
+  - **Same pattern, other direction (human, 2026-07-31, `ARCHITECTURE.md` AD-8):**
+    `openisd.yml` itself is read and written EXCLUSIVELY by this JS/TS code, never by Python.
+    When `winisd_tools` needs an `openisd.yml` produced from a `driver.yml`, it invokes the
+    JS/TS side via an API (shape TBD, same subprocess pattern as above) taking two arguments
+    — the input `driver.yml` path and the output `openisd.yml` path — rather than writing one
+    itself. One implementation of `driver.yml → openisd.yml`, one of `openisd.yml → .wdr`,
+    each owned by JS/TS and invoked externally by Python, not duplicated per language.
+  - Scope note: this is a design/architecture task, not yet planned in detail — needs its own
+    plan for the JS lib's package location, its CLI entry point, and what `rebuild_wdr.py`'s
+    subprocess call looks like, before implementation starts.
 
-- [x] **Bug — "Open…" of a saved `.openisd.json` project appears to do nothing.** Human ruling 2026-07-23: option **(a)** — one restore path. `applyState()` now lives in `packages/ui/src/store.ts` and restores the WHOLE snapshot (incl. `compare`, re-swept, and `visible`); `App.vue` and `useDesignIO.importFile()` both call it. The mechanical gate `packages/ui/test/project-load-gate.test.ts` fails the suite if a key `serialize()` emits is not restored. The Original skin's current Projects row shows `state.project.name` (driver name as fallback). `[ui]`
-
-- [x] **Project name ↔ file name equivalence** (human ruling 2026-07-23). The FILE NAME is the source of truth for the project name, spaces included — `glob 3.openisd.json` is the project `glob 3` (the old `[^\w.-]+ → _` sanitiser wrote `glob_3`). `packages/ui/src/utils/projectFile.ts` owns both directions; Save/Save As adopt the picked file's name, Open adopts the opened file's name over the one stored inside it, and renaming the project releases the retained file handle so the next Save prompts for the new location (browsers cannot rename a file on disk). Save As with a file already open suggests `Copy of <project>`. `[ui]`
-
-- [x] [x] **Original skin layout ergonomics + chart level-lines** (human request 2026-07-22). ＋ Compare renamed **＋ Clone/Compare** in all three shells (`OriginalShell.vue`, `ClassicShell.vue`, `GraphToolbar.vue`); Projects rows are `[checkbox] Name` (WinISD look) with click-to-select, and a **✕ Close** button in the action row under the list removes the selected overlay — the action row (＋ Clone/Compare · ✕ Close) stands in for WinISD's right-click project menu (Delete/Save/Copy); the left panel and the bottom section are splitter-resizable and collapsible (`.split-v`/`.split-h` + chevron-tab toggles); a chart maximise/restore button (`.chart-max-btn`, in the toolbar's right cluster) grows the graph over the whole main area while the toolbar stays usable; every chart draws a horizontal level line where the cursor's frequency crosses the current design's curve — one on hover, one per selection edge during a drag-select (`packages/ui/src/utils/canvas.ts`); the drag-select readout no longer prints the same value twice (labelled `Δ`, the `ripple` label dropped); the mock-only Entered/Calculated/Not-available swatch legend was removed from the content panel (not a WinISD element — field-colour semantics belong to the driver editor). Layout prefs live in `state.ui.original*` (persisted locally, stripped from share links — `persist.ts`). Tests: `packages/ui/test/original-layout.browser.spec.ts` (9 cases) + `persist.test.ts` strip assertions. `[ui]`
-
-- [x] [x] **Bug — `NumInput` spinner shows unbounded precision and the down-arrow sticks.** In the Original skin's Box tab, the Volume field (`state.P.Vb`, `OriginalShell.vue:436` — declared `:precision="2"`) shows values like `8.94924452476786` while its spinner is being clicked, and holding the **down** arrow stalls (must release and re-press) while **up** runs indefinitely. Both originate in the shared `packages/ui/src/components/NumInput.vue` and affect **every** field that uses it, not just Volume. Root cause is one thing — the dynamic `stepAttr` (`NumInput.vue:74-78`) sets the native `<input type=number>` step to `modelValue*scale*0.1`, a geometric 10%-of-current-magnitude step:
-  - **Precision:** clicking a spinner arrow focuses the input, so `focused` is true and the `modelValue` watcher (`NumInput.vue:34-36`) skips `fmt()`; the raw stepped float is echoed straight into the field via `display.value = t.value` (`onInput`, line 50). `:precision="2"` is only re-applied on blur, so during spinning the field shows full float precision.
-  - **Down sticks / up runs forever:** with `min="0"` and a step that _shrinks_ as the value drops, the browser's step-snapping refuses `stepDown` when it would fall below `min` or off the moving step base — the down-repeat stalls until release recomputes the step. Up has no `max`, so it compounds without limit.
-    Fix should keep the field formatted to `precision` during stepping (reformat stepped values instead of echoing the raw float) and give the spinner a stable, well-behaved step (and/or clamp so down-stepping doesn't stall at `min`). Reproduce first with a `[ui]` test on the Volume spinner, then fix in `NumInput.vue`. Related to the per-field decimal-places item below. `[ui]`
-
-- [x] [x] **Bug — EVERY Original-skin spinner must stay at fixed DP while spinning (two shared root causes).** This is the full audit of the item above — the same "crazy dp while spinning" symptom was reported on Box Volume (`8.94924452476786`), System input power (`138.090848575724`), series resistance, vent diameter, and vent length, and it affects _all_ spinner fields, from two distinct code paths:
-  - **Root cause A — the `NumInput` component** (`packages/ui/src/components/NumInput.vue:74-78`), described in the entry above. Affects every `NumInput` on the shell: Volume `state.P.Vb` (`OriginalShell.vue:438,449`) and front volume `Vf` (`:455`), vent diameter `ventD` (`:580`, bp4 `:628`), vent length `ventL` (`:581`, bp4 `:629`), System input power `Pin` (`:683`), series resistance `Rs` (`:685`), PR Sd/Xmax/added-mass (`:606/609/615`), and the Box-losses modal Ql/Qa/Qp. (`prNum` is `:precision="0"` integer — unaffected.)
-  - **Root cause B — the `v-expo-step` directive** (`packages/ui/src/directives/expoStep.ts:13-16`): same proportional 10%-of-\|value\| step idea, but it sets only the native `step` and **never reformats the displayed value**, so raw floats show mid-spin (and min-clamped fields can stall the down-arrow) — same two symptoms, different code. Affects the raw `<input type="number" v-expo-step>` fields: Advanced tab Relative humidity/Air pressure (`:695/696`), signal-generator frequency `genHz` (`:373`), Filters fc/Q/gain/f0/Q0/fp/Qp (`OgFilters.vue:79-89`), and the Tune T/S param fields (`OgTune.vue:81,92` — these carry a `dp` and reformat on blur but still show raw float mid-spin). Plain Temperature `advTemp` (`:694`, native `step=1`) is low-risk but shows fractions if the value is fractional.
-    Fix both paths to format the displayed value to its DP _during_ stepping, and capture the field→dp mapping (cross-refs the "Match each field's decimal places" item). `[ui]`
-
-- [x] [x] **Bug — Original-skin `.edit-btn` buttons have no contrast (Select Driver / ✎ Edit / ♫ Tune).** The three action buttons render near-white text on a near-white fill. Cause: the global `button { color: var(--fg) }` reset (`packages/ui/src/style.css:68`, `--fg:#dfe6ee` light text) applies to `.edit-btn`, which sets `background:#f0f0f0` (`OriginalShell.vue:878`) but no `color` override — so light-on-light. Fix: give `.edit-btn` an explicit dark `color` (the WinISD button text colour) so it reads on its light fill. `[ui]`
-
-- [x] [x] **Bug — Signal tab: Driver input voltage (V) should be editable and bidirectional with System input power (W).** Today "System input power" (W, `state.P.Pin`, `OriginalShell.vue:683`) is editable while "Driver input voltage (each)" (V) is calculated/greyed/read-only as `driveV = √(Pin·Re)` (`OriginalShell.vue:684`). WinISD parity: voltage is also editable and W↔V drive each other via `P = V²/Re` — editing W recomputes V (current behaviour), editing V recomputes W. `[ui]`
-
-- [x] [x] **Bug — Closed (sealed) box shows a redundant "Closed" enclosure tab that just duplicates the Box tab.** The dynamic 3rd nav tab labelled "Closed" (id `enclosure`, `OriginalShell.vue:636-643`) shows a Rear-chamber Volume editor identical to the Box tab's Volume (`OriginalShell.vue:438`); a sealed box has no vents, so the tab carries nothing unique. The `mock/` prototype does the same (`mock/index.html:523-529`), so dropping it for sealed boxes is a deliberate, sanctioned divergence from the mock — record it as an intentional "Original enhancement" when implemented. `[ui]`
-
-- [x] [x] **Bug — save-button bar (`.parstate-legend`) is taller than its buttons.** The bar holding Save Changes / Export .wdr (`OriginalShell.vue:412-416`, styled `.parstate-legend` `:901`) is deeper than the short `.save-btn` (`padding:1px 7px; font-size:11px`, `:910`) it contains — it should be no taller than the button height. Candidate causes to check: `.parstate-legend { margin-bottom:8px }` and the swatches column (`.parstate-swatches`) forcing extra height. Layout-only fix. `[ui]`
-
-- [x] [x] **Bug — New Project does not start fresh: it carries over the previous project's filters (and every other param).** `OgNewProject.create()` (`OgNewProject.vue:36-42`) mutates only `state.box`, `state.P.Vb`, `state.P.Vf` — it never resets `state.P.filters`, `Pin`, `Rs`, vent geometry, PR params, or the compare list, so a "new" project inherits the old one's state. Fix: (1) build a fresh project from the store's initial-state defaults (reuse `store.ts:25` / `resetProjectToGround()` `store.ts:192` — do not reinvent; `filters` defaults to `[]`), then apply the chosen box type + volume on top; (2) if there are **unsaved changes**, warn/confirm before discarding them when New Project is hit (data-loss guard). `[ui]`
-
-- [x] [x] **Bug — New Project wizard should ask for the project name first.** The wizard (`OgNewProject.vue`) currently starts at step 1 = box type, step 2 = volume, with no name step; it should collect the project name before box type. Pairs with the fresh-start bug above. `[ui]`
-
-- [x] [x] **Field entry constraints are schema-enforced everywhere (human directive 2026-07-23).** Every numeric field spec in `packages/ui/src/fields/fieldRegistry.ts` carries BOTH `min` and `max` (model-space/SI for modeled fields; `fieldRegistry.test.ts` fails on a missing bound). `NumInput` resolves the bounds from its `field` binding (native min/max attrs + SI-space validation, max included); raw `<input type="number">`s carry the `v-limits` directive (`packages/ui/src/directives/limits.ts`) which stamps native attrs and clamps typed out-of-range values. Mechanical gate `packages/ui/test/input-constraints-gate.test.ts` fails the suite on any unconstrained numeric input; browser test covers reject/clamp behaviour (Box Volume, humidity, Tune Fs). See `CODE_REVIEW/POST_MORTEM.md` 2026-07-23. `[unit]` `[ui]`
-
-- [x] **Session-context persistence & sharing — two requirements over ONE "session context" object.** Both requirements serialize the same _session context_: the design PLUS the view/UI context that defines "what the user is looking at". They differ only in the sink (localStorage vs URL) and in which fields are device-local. **R1 (refresh fidelity) DONE** — design + tab + chart already persisted; open Tune + uncommitted what-if now restored across reload (Original-scoped). **R2 (share link) DONE** — `stateToUrl` now keeps tab/chart, still drops skin + open-editor buffer; a "Copy share link" item in the Original Save As menu triggers it. Both editors (Tune + Driver Editor) are preserved across refresh. `[ui]`
-
-  **Session context taxonomy** (what must be captured) — _decisions confirmed_:
-  - **Design** — driver (full ADT JSON), box type, params `P` (incl. filters), comparison traces. _Persisted today_ (`serialize()`, `persist.ts`).
-  - **View context** — skin, active project tab (`state.ui.originalProjectTab`), selected chart (`state.ui.originalChartTab`). _Persisted today_ (in `state.ui`).
-  - **Project meta** — name/creator/created/description. _Persisted today_.
-  - **Open editor + its uncommitted buffer** — a Tune/edit dialog that is open, plus the in-progress what-if/edit values, **MUST be preserved** across refresh (decision: _preserve the open editor_). This makes the STATE_MODEL what-if/edit overlay **durable**: `serialize()` gains the open-editor flag + the overlay's driver JSON; on load the app re-opens the editor and re-creates the overlay with those values. Extends STATE_MODEL Increment 2/3.
-  - **Transient (NOT persisted, by decision)** — per-chart Y-zoom (`state.yRanges`). It resets to auto-scale on refresh and is **excluded** from share links. The cursor/marker AND the dragged frequency band selection (`state.dragRange` → `SerializedState.cursor.range`) ARE carried by both local saves and share links.
-
-  **R1 — Refresh fidelity (PRIMARY).** A browser refresh (F5) must repaint the _exact_ prior context — zero perceptible change (except the deliberately-transient `yRanges`/cursor). This is purely a **local-persistence completeness** problem: save the full session context to localStorage on change and restore it on load. **It does NOT involve the URL and therefore has zero impact on any skin's address bar.** _Work to do:_ persist the open-editor flag + uncommitted what-if/edit buffer and restore them on load (re-open the editor mid-edit); `[ui]` refresh test covering design + tab + chart + an open Tune with pending values.
-
-  **R2 — Full-context share link (SECONDARY, beneficial).** An explicit "Copy share link" action encodes the SAME session context (design + comparisons + project meta + shareable view context: **skin**, active tab, selected chart) into a `#s=…` URL, so opening it reproduces the sender's exact page for another person — same skin, same tab, same chart, not a generic default. Restored by `loadFromHash()` on open. **Excluded from the link:** `yRanges` (transient), an open editor's uncommitted what-if buffer, and per-field unit-display tokens (a recipient's own display choice, not part of the design).
-
-  **Non-goal:** live address-bar syncing / "bookmark just works". Because R1 uses localStorage, refresh already works without the URL, so the URL is reserved for the explicit share action only — no `history.replaceState` on every keystroke, no Modern-skin behaviour change.
-
-- [ ] **Implement the layered project state model (`STATE_MODEL.md`).** Replace the single flat store state + blanket auto-persist with the **ground → modified → what-if** hierarchy (+ a parallel **edit** state the charts ignore). Charts render highest-priority existing state (what-if › modified › ground). A first project change forks a modified state off ground; what-if/edit dialogs fork off modified-else-ground. What-if previews live; edit commits only on **Accept**; what-if commits on **Keep**; **Save** promotes modified→ground (persist) and **Reset state** discards modified. Every accept/discard button needs a hover tooltip of its state effect (see `STATE_MODEL.md` "Button labels & tooltips"). `[ui]`
-  - **Increment 1 (DONE):** ground↔modified layer in `store.ts` (`isModified`/`markProjectSaved`/`resetProjectToGround`) + the Original skin's truthful Unsaved/Save/Reset bar.
-  - **Increment 2 (DONE):** driver what-if priorityState overlay — `driver`/`driverRaw`/`driverErrors` resolve to the overlay when active (charts preview live) while `driverJSON` stays committed-only (a live what-if never dirties modified/ground until Keep). OgTune drives start/keep/cancel.
-  - **Increment 3 (TODO):** the **edit** dialog (charts ignore the buffer until **Accept**) still runs through the shared `DriverEditorModal`; the overlay is **driver-only** — box-type / param what-ifs are not yet routed through a layer. Both extend the same machinery.
+- [ ] **Bookmarkable URL — UI state must live in the URL (reported broken).** The URL should be bookmarkable so that reopening it restores the full UI state (driver, box type, params, graph selection, comparisons). User reports this does **not** work today. Note the contradiction to resolve first: two "Shipped ✓" / Storage entries below already mark **URL-encoded designs** as implemented **and** `[ui]`-tested (`[x] [x] … no server needed [ui]`). So before building anything, **reproduce**: does the URL update as UI state changes, and does pasting that URL into a fresh tab restore that state? If it regressed, the existing `[ui]` test is not catching it — fix the test too. If it never covered bookmarkability (e.g. URL only updates on an explicit "share" action, not live as state changes), that gap is the actual feature. Distinguish "shareable link on demand" from "the address bar always reflects current state so a browser bookmark just works." The user wants the latter.
 
 - [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
-- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `archive/CLASSIC-SKIN-review.md` #2. `[ui]`
-
-- [ ] **Classic-skin vented view — support both rectangular and circular ports.** The classic (WinISD) skin's Vented/Bandpass port fields (`BoxPanel.vue` `showType`, rendered on `ClassicShell.vue`'s dynamic 3rd rail tab) only model a single **circular** vent (`state.P.ventD` diameter + `ventL` length; `fb` computed from `π·(ventD/2)²`). WinISD lets the user choose a **rectangular** (slot) port as well, entered as width × height instead of diameter. Add a port-shape selector and rectangular dimensions, feed the resulting port cross-sectional area into the shared tuning math (`tuningFromLength` / `ventLength` already take an area, so the engine needs no change — only the area derivation and the UI inputs). Applies to both `vented` and `bandpass4`. `[ui]`
-
-- [ ] **Engine: 6th-order bandpass model (enables it in the Original skin).** The Original skin (`OriginalShell.vue`) already ports the 6th-order bandpass UI (dual-chamber fields + diagram) but shows a "response model pending" state because `packages/engine/src/circuit.ts` has no branch for it — `BoxType` is `sealed|vented|pr|bandpass4`. Add a `bandpass6` circuit branch: **rear vented chamber + front vented chamber** (bandpass4 is rear _sealed_ + front vented; 6th-order vents the rear too), with independent rear/front vent geometry in `SweepParams`. Both ports radiate to the exterior (`U0 = UP_rear + UP_front`) — **confirm the exact topology and output summation against a WinISD oracle before trusting any curve** (this repo's engine-rules: physics needs oracle validation). Test-first: golden fixture + closed-form passband sanity + WinISD cross-check. Then add `bandpass6` to `SUPPORTED_BOX` in `OriginalShell.vue`. `[unit]`
-
-- [ ] **Engine: ABC (Aperiodic Bi-Chamber) — needs a reference model first (decision required).** The Original skin ports the ABC UI (diagram + dual-chamber) but there is **no validation oracle**: WinISD does not model ABC, and the mock's ABC curve was static artwork. Before any physics is written, decide the reference: (a) locate/define an explicit, citable ABC model (aperiodic = resistively-damped inter-chamber coupling) and validate it, (b) implement it as a documented approximation clearly labelled "unvalidated" in the UI, or (c) keep ABC as UI-only permanently. Do **not** ship an ABC curve without resolving this — an unvalidated curve is a silent correctness bug. Until resolved, `abc` stays out of `SUPPORTED_BOX` and shows the pending state. `[unit]`
-
-- [ ] **Match each field's decimal places to the WinISD screenshots.** Every numeric field's displayed precision must copy WinISD exactly, sourced from the logged screenshots in `docs/winisd/*.png` (index: `docs/winisd/SCREENSHOTS_INDEX.md`, parity notes: `docs/winisd/INPUT_PARITY.md`). Known examples: **System input power** and **Driver input voltage** are **1 dp** (`140.0 W`, `15.2 V`); tuning/resonance frequencies **2 dp** (`40.25 Hz`); series resistance **3 dp** (`0.100 ohm`); Qtc **3 dp** (`0.707`); volumes **2 dp** (`6.00 l`). Go field by field against the screenshots and set each `NumInput :precision` / readout `.toFixed(n)` to match — applies to the Original skin (`OriginalShell.vue`) first, then reconcile the Classic and Modern skins to the same per-field table. Capture the full field→dp mapping in `docs/winisd/INPUT_PARITY.md` so all skins share one source of truth. `[ui]`
-
-- [ ] **Original skin — close remaining mock-fidelity gaps (must be IDENTICAL to `mock/`).** The audit mandate (`.claude/agents/arch-reviewer.md` step 3a) requires `OriginalShell.vue` to be visually and structurally identical to the mock; only the fake-state→shared-engine swap may differ. The window chrome, toolbar (8 icons + chart dropdown + cursor readout), 6-type Box tab + diagrams, Driver (Placement/Advanced), Signal, Advanced, Project tabs, provenance colours, unit-cycling, and the Box-losses modal are ported. Remaining divergences (full detail in `CODE_REVIEW/ARCH_REVIEW_LOG.md`):
-  - **Modals — port the mock's own markup instead of reusing shared components.** The Filters tab, Tune panel, and Driver Editor currently mount the shared `FiltersPanel.vue` / `DriverWhatIfPanel.vue` / `DriverEditorModal.vue` (same as ClassicShell) rather than the mock's `.filters-quickadd` list, docked `.tune-panel`, and 4-tab `.modal-tabs`/`.param-grid` Driver Editor. Reusing shared logic is good engineering but is NOT the sanctioned divergence — the mandate wants the mock's markup, wired to the same store/ADT.
-  - **Select Driver modal** — port the mock's Library/My-Drivers picker table + action row (`mock/index.html:940-1011`); today it opens the shared `DriverBrowser.vue`.
-  - **Select Driver / Driver Editor** — accepted reuse of the shared `DriverBrowser`/`DriverEditorModal` (logic trapped in them; re-skin to mock markup only after extracting that logic to composables — see `brain/bring_mock_live.md`).
-  - **Options modal** — not ported (button disabled).
-  - ~~Save bar~~ — DONE (STATE_MODEL Increment 1): Unsaved indicator + Save Changes (adopt as ground) + Reset state (revert), wired to the store's real `isModified`/`markProjectSaved`/`resetProjectToGround`.
-  - **Color button** — wire the mock's `cycleColor` click behaviour (`mock/index.html:249`); currently static.
-  - **Projects-list checkbox** — should toggle trace visibility (`toggleProjectTrace`), not delete the compare row.
-    Cleanest route: port the mock's real body markup + `mock/style.css` wholesale, `onclick`→`@click`, `value`→`v-model` bound to the store — never edit shared components (`BoxPanel`/`DriverPanel`/`PRPanel`) to do it (that regressed the Modern skin once — see `CODE_REVIEW/POST_MORTEM.md`). `[ui]`
-
-- [ ] **Retire the Classic skin in favour of Original (once Original reaches mock parity).** The Original skin supersedes Classic as the WinISD-recreation shell — Classic is a thinner, less faithful recreation. Once Original closes its remaining fidelity gaps (item above), remove the Classic shell: delete `packages/ui/src/shells/classic/`, drop `'classic'` from `SkinId`/`ShellId`/`SKIN_IDS`/`SKIN_LABELS`/`resolveSkin` in `skins.ts`, remove `ClassicShell` from `App.vue`, delete `classic-skin.browser.spec.ts` + the classic cases in `skins.test.ts`, and migrate any persisted `state.ui.skin === 'classic'` to `'original'` on load (so saved prefs don't dangle). Do NOT remove until Original is at parity, so there's no gap with no complete WinISD mode. `[ui]`
-
-- [ ] **Extract duplicated PR / drive-voltage / sound-velocity formulas into the engine.** `prVas`, `prFs`, `prFsMass`, `prQms`, `driveV = √(Pin·Re)`, and `advSoundVelocity` are copy-pasted physics derivations now living in `OriginalShell.vue`, `ClassicShell.vue`, `PRPanel.vue`, and `PREditModal.vue` (3–5 copies each) — a drift risk with no single source of truth. These are pure closed forms that belong in `packages/engine/src/` (or the Driver/PR ADT), exported once and consumed by every shell/panel. Replace all copies. `[unit]`
+- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `CLASSIC-SKIN-review.md` #2. `[ui]`
 
 - [ ] **Skin-selection gate on load — require an explicit skin choice.** On every page load, block the app behind a full-screen chooser presenting the three skins (Auto / Classic (WinISD) / Modern, from `SKIN_IDS` / `SKIN_LABELS` in `packages/ui/src/skins.ts`); the app is not shown or interactable until the human picks one, which sets `state.ui.skin` (`packages/ui/src/store.ts`) and `App.vue` swaps the shell via `resolveSkin()`. Prompt on **every** visit (ignore the saved preference for the gate — drive it from a session/ephemeral flag, letting the persisted skin only seed the highlighted default), and show the gate **even when a shared `#`-design link is opened** (skin is already stripped from shared URLs at `persist.ts`). Reuse the existing overlay pattern (`DriverBrowser.vue` + `useEscToClose`) mounted in `App.vue`; reuse `SKIN_LABELS` for the button text so the gate never drifts from the picker. `[ui]`
 
@@ -183,7 +200,7 @@ WinISD chart inventory mapped to OpenISD status. Box-type scope notes: `[PR]` = 
 ### Universal (all box types)
 
 - [x] [x] SPL `[unit]`
-- [x] [x] **Bug — fixed: "Transfer function magnitude" silently rendered the SAME curve as SPL (identical numbers, not just similar shape).** `OriginalShell.vue`'s `CHART_ITEMS` mapped the label straight to `tab: 'SPL'` — selecting it just relabelled the SPL chart. Real WinISD's two charts share the same underlying response but differ by a Y-axis renormalization (WINISD.md §17, verified from real screenshots: identical cursor value in both). Fixed as a genuine display mode: new `'TFMag'` tab id (`series.ts`) derives its curve from the same `sw.spl` array, offset so 0 dB = the sweep's passband reference, with dashed 0 dB / −3 dB reference lines always drawn — no new engine computation, `sweep.ts` untouched. `packages/ui/test/series.test.ts` proves the two charts are no longer numerically identical and that the TF curve is exactly `SPL − passbandRef`. `[unit]`
+- [ ] **P1** Transfer function magnitude — same data as SPL, Y axis normalized to 0 dB at passband with −3 dB reference line. Display mode on the SPL chart, not a new engine series. (Verified from WinISD screenshots: same cursor value −9.896 dB at 38 Hz in both charts.)
 - [x] [x] Transfer function phase `[unit]`
 - [x] [x] Group Delay `[unit]`
 - [x] [x] Maximum Power `[unit]`
@@ -237,15 +254,13 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P1** Filters OpenISD lacks: **all-pass, raised-cosine delay, static gain**, high/low **shelf**. WinISD: Filters.
 - [ ] **P2** Driver fields OpenISD lacks: **Xlim**, **USPL**; figure-of-merit read-outs (Rme, gamma, Mpow, Mcost, SPLmax). WinISD: Parameters/Advanced tabs.
 - [ ] **P2** Charts OpenISD lacks: **amplifier apparent load power (VA)**, port **gain** (vs velocity), intrachamber port velocity (needs 6th-order BP).
-- [x] [x] **P2** Loading/model options — the five WinISD Advanced-pane toggles are **done** ([PLAN_ADVANCED_SIM_OPTIONS.md](PLAN_ADVANCED_SIM_OPTIONS.md)): **simulate voice coil inductance** (alias over the existing circuit-model switch), **force-flat response** (auto-EQ, boost capped at 20 dB with a warn where it binds), **transmission-line port** model (lossy duct, reduces to the lumped mass as ω→0, adds the pipe resonances at c/(2·Leff)), **Rg-at-driver-side** (per-driver vs one Rg at the amp; differs only for multi-driver), **SPL-graph-Xmax-limited** (own `splXlim` curve, raw curve kept dashed alongside). One shared `AdvancedOptions.vue` across all three skins, policed by `inert-control-gate.test.ts`; the three flags WinISD's `.wpr` format has keys for are now written from real state instead of hardcoded zeros. `[unit]` + `[ui]`
-- [ ] **P2** **Isobaric / compound loading** (Iso-Barik) — the one Loading/model option still outstanding. WinISD: Driver tab radio.
+- [ ] **P2** Loading/model options: **isobaric (Iso-Barik)**, **transmission-line port**, **force-flat response**, **Rg-at-driver-side**, **SPL-graph-Xmax-limited**.
 - [ ] **P2** Driver **added mass to cone** (WinISD has it for the driver, not just the PR).
 - [ ] **P3** Metric ↔ imperial **unit switching** (OpenISD is metric-only).
 
 ## Enclosure types & box model
 
-- [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set). Route `Ql`/`Qa`/`Qp` into the vented & bandpass transfer function — QSpeakers' `system.cpp` `response()` shows the loss-Q coefficients explicitly (reimplement from the physics, not the GPL code).
-- [ ] **P1** `F3` (−3 dB) read-out — the engine surfaces `fc` (system resonance) only; add the true −3 dB frequency. Sealed closed form: `F3 = fc·√((1/Qtc²−2+√((2−1/Qtc²)²+4))/2)` (equals `fc` only at Qtc=0.707). This is a display gap, **not** a calc bug: external tools' higher f3 (SpeakerBoxLite 74.5, lautsprechershop 81) come from empirical/leakage models, while our `fc` matches the theoretical −3 dB — see `archive/REPORT_ORACLE_CROSSCHECK.md`.
+- [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
@@ -254,39 +269,35 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Vents & ports
 
-- [ ] **BUG / P2** Vent length can't be solved from a target tuning. WinISD derives the vent length (you set diameter + target Fb → it computes the length to cut, shown greyed/read-only); OpenISD only supports enter-length → get-tuning, so you cannot ask "what length gives 35 Hz?". Add a "solve length for target Fb" mode (the engine `ventLength()` already does the math) — an editable target-Fb field that drives `state.P.ventL`, matching WinISD. `[ui]`
-- [ ] **BUG / P1** Slotted (rectangular) ports not supported. WinISD's vent Shape selector offers round AND slot; a slot port is entered as width × height (not diameter). OpenISD only models a round vent (`state.P.ventD`). Add the Shape selector + rectangular W×H inputs on every skin, feed the resulting cross-sectional area into the same tuning math (`Sp`/`Leff` already take an area — only the area derivation + inputs change). Applies to vented and bandpass4. `[ui]`
-- [x] **BUG / P2** Clickable unit labels rotate but don't rescale the value → **fixed** with a reusable per-field unit system (`fields/units.ts` **affine** registry — `display = SI × factor + offset` — `UnitToggle.vue` clickable label, `NumInput` unit binding, `store.formatInUnit`). Clicking a unit converts the shown value and adjusts dp; the store always holds SI; the selected token persists per field (`state.ui.unitTokens`, stripped from share links). Covers every control with a real alternate unit — volume/length/area/freq/mass, absolute temperature (K/°C/°F, offset), a temperature-DIFFERENCE group (K/°F, no offset — for Voice coil temp rise) and a temperature-coefficient group (1000/K, %/K, 1/K — for AlfaVC), plus pressure (Pa/kPa/atm) — across all skins (Original entered + calculated; Modern/Classic entered via shared BoxPanel/PRPanel/DriverEditorModal). Every derived precision is capped at 4 dp so converting a high-precision base unit (grams, 5 dp) into a coarser one (kg) can never show meaningless trailing zeros. Dimensionless/electrical/special-unit cells (Q, ohm, V, W, %, mm/N, Ns/m, m/s) stay fixed — no meaningful alternate. `[ui]`
-- [x] **P3** Extend unit conversion to the Modern/Classic calculated readouts (Fp, Fs, Vas, Mms summaries in `PRPanel`) and the `StatBar` summary strip → **done**. `PRPanel`'s WinISD-mode Fs/Vas editable fields are now unit-bound too (fixing a litres-vs-SI boundary bug in the Vas setter along the way — `prVas`'s engine helper returns litres, so the field now converts through an explicit `prVasSi` computed rather than treating litres as if it were the SI value). The collapsed summary line and `StatBar` reflect whichever unit token is already selected for that field elsewhere (no separate toggle in the dense strip — the toggle lives on the source field). `[ui]`
-- [x] **P3** Options dialog (all three skins) → **done**. Recreates WinISD's real "Options" modal (`docs/winisd/info/options_general.md`, `options_plot_window.md` — opened via the wrench/tools toolbar icon). General tab: `Username` (free text, `state.ui.username`); `Environment` group (Temperature/Air pressure/Relative humidity + derived Sound velocity) — these are OpenISD's own APP-LEVEL defaults (`state.ui.envDefaults`), seeding a shell's Advanced-pane refs on mount instead of a hardcoded literal, never touching an already-open project (real WinISD's own inheritance behaviour here is inferred from matching screenshot values only, not directly observed — ⚠ unverified, tracked as a WINISD.md assumption); `Units` group has WinISD's own "Reset to Metric (l, mm, …)" button, wired to `store.resetUnitTokens()`. Plot Window tab: `Colors` group — 5 rows have a real OpenISD rendering hook (Background/Other lines/Labels/Xmax limit/Cursor lines — the last driving `--chart-cross` + `--chart-band-line`, the crosshair/level cursor and drag-selection band edges — wired via CSS custom properties on the chart canvas, `GraphPanel.vue` → `canvas.ts`); "0 dB line"/"-3dB line" are shown disabled — WinISD draws them on its separate 0 dB-normalized "Transfer function magnitude" chart, which OpenISD has no equivalent of (OpenISD's `SPL` tab plots absolute dB SPL, not a normalized transfer function). `Limits` table — "Frequency range" binds the existing global `state.P.fmin/fmax`; every other row writes into the same `state.yRanges[tabId]` mechanism the chart's own drag-to-zoom already uses, so an untouched row keeps auto-scaling exactly as today; WinISD's "Transfer func. magn." and "EQ transfer func mag" rows are omitted for the same missing-chart reason as the two disabled Colors rows. All three: username/environment defaults/chart colors are local-only, stripped from share links (`persist.ts`). `[ui]`
-- [ ] **P3** OpenISD has no 0 dB-normalized "Transfer function magnitude" chart (WinISD's own separate chart from absolute SPL, `docs/winisd/info/view_3_ported.md`) — until one exists, the Options → Plot Window "0 dB line"/"-3dB line" colors and the "Transfer func. magn."/"EQ transfer func mag" Limits rows have nothing to bind to (shown disabled/omitted, not fabricated). `[ui]`
-
+- [x] [x] **P0** WinISD direction for the vented box — tuning entered, vent length solved.
+      `UiParams.entered` stores which vent-group member the user typed and
+      `composables/useVentGroup.ts` solves the rest, so changing the vent diameter moves the
+      LENGTH and holds the tuning (WinISD's behaviour) while entering a length instead makes
+      the tuning the solved member. Restores are adopted verbatim — re-solving on restore
+      breaks STATE_MODEL.md rule 3. `[unit]` `vent-group.test.ts`
 - [ ] **P1** Multiple vents (1–4) sharing the tuning
-- [x] [x] **P1** Selectable end-correction — a dropdown on every skin (Original Vents pane + shared BoxPanel → Modern/Classic): Two free ends 0.613 / One flanged 0.732 (default) / Two flanged 0.849; feeds `Leff` → tuning `Fb` via the parameterised `tuningFromLength`/`ventLength`. (Custom numeric value not offered — WinISD exposes only the 3 presets.)
+- [ ] **P1** Slot / rectangular vents (in addition to round)
+- [ ] **P1** Selectable end-correction (free/flanged combinations, custom value)
 - [ ] **P2** Drag-to-adjust Vb / Fb directly on a graph, with lock-one
-- [x] [x] **P2** The Original Vents pane's "1st port resonance" readout now shows the real vent organ-pipe fundamental `c/(2·Leff)` (`portPipeResonance` in `OriginalShell.vue`), distinct from the box Helmholtz tuning; `portResonance` registered `modeled: true`. `[ui]`
-- [x] [x] **P3** `NumInput`: a `@pointerdown` handler resets the typing flag, so clicking the native ▲▼ spinner buttons mid-type reformats cleanly (no one-frame unformatted flash). `[ui]`
+- [ ] **P2** **Vent solver — pin any subset, solve the rest (OpenISD-only; WinISD has nothing
+      like it).** Beyond the fixed direction above: let the user pin any combination of `Vb`,
+      `Fb`, port shape (round `d`, or slot `W`×`H`), length `L` and peak port velocity, and
+      solve whatever is left. The mechanism already exists — `entered` + `useVentGroup` — so
+      this is a UI for choosing the set, not new state. Reuse the driver editor's
+      Entered/Calculated/Not-available colours, plus a line of help text naming what is under-
+      or over-determined.
+      **Two tiers, and they are not the same problem.** Tier 1 — `Vb`, `Sp`, `L`, `Fb` — is
+      one closed-form relation, solvable on every keystroke (shipped). Tier 2 — port velocity
+      — is **not** algebraic with the others: it depends on volume velocity at a given
+      frequency and drive level, so it needs root-finding over the sweep, i.e. a deliberate
+      "solve" action rather than live recompute.
+      **Prefer a feasible-region chart over solving for a velocity target.** Chuffing is a
+      soft constraint (a region to stay inside), not a value to aim at, so a `d` vs `L` plot
+      with the sub-threshold region shaded and iso-`Fb` curves crossing it says more than a
+      solved number — and makes the trade visible: widen the port and the length grows to hold
+      the same tuning. Build the chart first; treat the velocity-target solve as optional.
 
 ## Driver data & T/S
-
-- [x] [x] **Voice-coil thermal power compression** (WinISD parity, `WINISD.md §12c`). **Covers TWO of the three tested fields — `Voice coil temp rise` AND `Voice coil resistance TC` (AlfaVC) — in one item, because they are a single physical effect: they act only as the product `AlfaVC·ΔT`.** DONE: at high drive the coil heats and `Re_hot = Re·(1+alfaVC·ΔT)` rises (engine `hotRe`, applied in `circuit.ts`), so SPL sags and the impedance floor lifts. Live inputs on the Original Driver pane; no-op at ΔT=0. `[unit]` + `[ui]`
-  - **Inputs:** `Voice coil temp rise` ΔT (K) and `AlfaVC` (temperature coefficient; displayed as `1000/K`, so SI `α = AlfaVC/1000` — copper 3.9000 → 0.0039/K). Both are already catalogued in `fieldRegistry.ts` (`vcTempRise`, `AlfaVC`, currently `modeled:false`).
-  - **Model:** `Re_hot = Re · (1 + α·ΔT)`. Thread `Re_hot` through the electrical branch in `circuit.ts` (`Zcoil = Re_hot + Rs + jωLe`); everything Re-dependent then follows — impedance floor rises, drive current falls so SPL drops, `Qes`/`Qts` rise, and the Max-SPL/Max-power limit lines shift. **ΔT=0 must be an exact no-op** (identical to today) so it is backward-compatible.
-  - **Engine change:** add `hotRe(Re, alfaVC_SI, dT)` helper + plumb `vcTempRise`/`alfaVC` into `SweepParams`. This is an engine physics change → needs oracle validation and explicit engine-change sign-off.
-  - **Automated test strategy:**
-    - _Unit (closed-form):_ `hotRe(6, 0.0039, 100) === 8.34` Ω (hand-computed); `hotRe(Re, α, 0) === Re` (no-op).
-    - _Unit (sweep monotonicity):_ for ΔT>0 vs ΔT=0 on the same driver — impedance minimum RISES by `Re_hot/Re`; SPL at a mid-band reference frequency DROPS; both strictly monotonic in ΔT. `hotRe` factor asserted numerically.
-    - _Golden:_ existing goldens (ΔT=0) MUST be byte-identical (regression guard on the no-op); add one new golden fixture at a fixed non-zero ΔT.
-    - _Oracle (WinISD cross-check, per engine-rules — physics needs it):_ pick a driver + ΔT, read WinISD's impedance-floor and SPL, assert the engine matches within tolerance. Seed value: the human's observation of the impedance floor rising ~21→23 Ω (`WINISD.md §12c`).
-    - _UI (`[ui]`):_ a temp-rise field; increasing it visibly lifts the impedance curve and lowers SPL; at 0 the curves are unchanged.
-- [x] [x] **Driver-side added mass to cone** (WinISD parity, `WINISD.md §12c`). DONE: mass added to the _active driver's_ cone raises `Mms`, lowering `Fs` and raising `Qts` (engine `withAddedMass`, applied in `sweep()`). Live input on the Original Driver pane; no-op at 0. `[unit]` + `[ui]`
-  - **Input:** `Added mass to cone` in **grams** (`driverAddedMass`, catalogued `modeled:false`). Unit confirmed grams by the Fs-shift math in `WINISD.md §12c`.
-  - **Model:** effective driver = `Mms += Madd`, holding `Cms`, `Bl`, `Re` fixed; then `Fs = 1/(2π√(Mms·Cms))` (lower), `Qms`/`Qes`/`Qts ∝ √Mms` (higher). Implement as a pure `withAddedMass(driver, Madd) → driver` transform in the Driver ADT/engine, applied before the box sim. **Madd=0 = exact no-op.**
-  - **Automated test strategy:**
-    - _Unit (closed-form):_ `withAddedMass(drv, 0)` deep-equals `drv`; `Mms_new === Mms + Madd` exactly; `Cms/Bl/Re` unchanged; `Qts` increases.
-    - _Unit (oracle-anchored):_ the human's WinISD result is a ready oracle — for `Mms≈14.6 g`, `withAddedMass(drv, 100 g).Fs` must reproduce **70 → 25 Hz** (`Fs·√(Mms/(Mms+Madd))`), asserted to ±0.5 Hz.
-    - _Golden:_ Madd=0 goldens byte-identical; one new fixture with a non-zero added mass.
-    - _UI (`[ui]`):_ added-mass field on the Driver pane; increasing it slides the impedance resonance peak down in frequency; at 0 no change.
 
 - [ ] **P1** Guided parameter entry — step-by-step flow following the WinISD-recommended order (Mms+Cms → Sd+BL+Re → Qms → Hc/Hg/Pe → numVC → Znom). Each step shows which fields to fill, why they matter, and what WinISD computes from them. Minimum viable path (Qts+Vas+Fs) clearly signposted. WinISD gives you a blank form with no guidance; this should be meaningfully better.
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
@@ -301,8 +312,7 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Alignments & helpers
 
-- [ ] **P1** Expand vented alignment presets (SBB4, EBS, Bessel, Bullock, Keele-Hoge, Legendre, Chebyshev, Zbinden/M4) alongside QB3/B4. Closed-form Vb/Fb for each are published (Bullock, Keele & Hoge, [Zbinden](http://www.mzbinden.ch/ventedalignments/index.html) papers) and implemented in QSpeakers (`optimizer.cpp`) and Scimpy (`speakermodel.py`, Chebyshev/QB3) — **reimplement from the papers, not the GPL source**; cross-check each preset against QSpeakers/Scimpy output. Rationale & extracted formulas: `SPEAKER_TOOL_LANDSCAPE.html`.
-- [ ] **P1** Formula-oracle unit test — assert the engine's sealed/ported/bandpass response at sample frequencies against the published closed-form transfer functions (independent reimplementation, e.g. cross-checked with QSpeakers). An open, inspectable oracle for curve shape, complementing micka's scalar checks and avoiding dependence on unvetted web tools (SpeakerBoxLite driver params are reported "WAY off").
+- [ ] **P1** Expand vented alignment presets (SBB4, EBS, Bessel, Chebyshev) alongside QB3/B4
 - [ ] **P2** Guided design wizard (driver → count → box type → starting params)
 - [ ] **P2** Step-response curve (time-domain, from the transfer function)
 
@@ -323,16 +333,6 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [ ] **P3** Multi-driver system summation (2- and 3-way), driver offset / acoustic centre
 
 ## Storage & sharing
-
-- [x] [x] **Unified project Save / Save-As-&-Export on all three skins** (Modern `AppHeader.vue`, `ClassicShell.vue`, `OriginalShell.vue`), all drawing from the single shared `useDesignIO()` composable. Two actions, identical on every skin:
-  - **Save** → native OpenISD JSON (`.openisd.json`) written to the file the user picked, via the File System Access API (`showSaveFilePicker`, handle retained so Save overwrites in place), falling back to a plain download on Firefox/Safari (which lack the API). `localStorage` stays as crash-recovery only, never the record.
-  - **Save-As/Export ▾** — one combined menu (`ExportMenu.vue`, shared icon set `ToolbarIcon.vue` modelled on the real WinISD 0.7.0.950 toolbar): Save as OpenISD project (.json, new file), Save as WinISD project (.wpr — `packages/winisd/src/wpr.ts` `toWpr()`, the 11 INI sections per `WINISD_WPR_FILE_SCHEMA.md`, reusing the driver ADT's `toWdr()` for the field-identical `[Driver]` section; box-type map sealed→`BType 0`, vented→`1`, pr→`4`, bandpass4→`2`), Export driver (.wdr), Share link (http:).
-  - Share link (`stateToUrl`/`loadFromHash`, `persist.ts`) now carries the sender's **skin** and **active project tab/chart** (previously stripped to a generic default), gzip-compresses the payload before base64url (net smaller than the old plain base64, verified by a real size-comparison test), and still excludes personal working state (an open editor's uncommitted buffer) and per-field unit-display prefs.
-  - **⚠ WPR verification gap remains open.** The repo has only one sample `.wpr` — a passive-radiator project (`docs/winisd/sample_project_Epique15_-_pr.wpr`). Sealed/vented/bandpass WPR output follows the documented schema but has no in-repo file to byte-verify against (notably sealed `[Box].Fr` semantics). **To close: save a real sealed `.wpr` and a real vented `.wpr` from WinISD into `docs/winisd/`**, then diff. `[unit]` `[ui]`
-
-- [x] [x] Share link carries the **cursor/marker state AND the dragged frequency band selection** — `state.cursorF`/`state.pinnedF`/`state.cursorLocked` (live hover cursor + the locked/pinned marker) plus `state.dragRange` (band `fLo`/`fHi` only; per-panel stats are recomputed on load). `SerializedState.cursor` field (`{f, pinnedF, locked, range}`), populated by `serialize()`, applied back in `App.vue`'s `applyState()`; carried by both a local save and a share link (never stripped by `stateToUrl`, same as tab/chart). `persist.test.ts` covers the round-trip; `original-skin.browser.spec.ts` proves a genuinely cold open (about:blank bounce — a same-URL `goto` is a no-op that keeps in-memory state) of the link restores both the pinned marker and the band. `[unit]` `[ui]`
-
-- [ ] **P2** Modern skin: a dedicated **share icon** in the top header (`AppHeader.vue`) that copies the share link to the clipboard in one click — today Modern's share action is buried inside the `Save-As/Export ▾` menu (`ExportMenu.vue`), which is fine for Original/Classic's WinISD-toolbar idiom but not for Modern's flatter, more app-like header. `[ui]`
 
 - [ ] **P2** Project ↔ source-driver traceability & refresh. When a library driver (or
       PR) is pinned into a design/project, its parameters are **copied in and detached**
@@ -359,141 +359,58 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 - [x] [ ] **P1** Save / restore graph layout (which graphs, sizes, positions) — graph selection persisted in localStorage
 - [ ] **P2** Interactive schematic / lumped-model view of the signal path
 - [ ] **P2** Keyboard nudge (arrow keys) on numeric inputs
-- [ ] **P2** **Drag-to-scrub on spinner inputs** — press on a numeric spinner field and drag to increment/decrement its value: horizontal (left/right) and/or vertical (up/down) motion counts the value down/up, and dragging further from the start point accelerates the step rate (fine near the origin, coarse far out), mirroring the existing exponential-acceleration of the spinner buttons. The point is fast, tactile value scrubbing while watching the chart update live — a click-drag "scrubber" for live charting, not just click-repeat. Applies to spinner fields everywhere (main-view and popup editors). Release commits the value like any edit (marks the design dirty). Prototyped in `mock/` (`wrapSpinner` drag-scrub) as a reference for the real implementation.
 - [ ] **P2** Mobile / small-screen layout pass
 
 ## Learning & docs
 
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
-- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `FEATURE_COMPARISON.md` (§"Merged from WINISD_OPENISD_COMPARISON.md") + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
+- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `WINISD_OPENISD_COMPARISON.md` + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)
 - [ ] **P3** Worked-example tutorial
 
 ## Quality / infrastructure
 
 - [ ] **P1** Fix existing code-review / vibe-coding issues before adding new features — run `/code-review` and clear all findings first
-- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); Python: add `ruff` + `import-linter`; see `FEATURE_COMPARISON.md` (§"Merged from OTHER_TOOLS.md")
+- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); see `OTHER_TOOLS.md`
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
-- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `archive/PLAN_DRIVER_ADT.md`
-
-Data-pipeline backlog items (schema/DQ unification, universal value provenance,
-per-vendor extraction gaps) live in the sibling `winisd_tools` repo's
-`SCRAPING_TODO.md`, not here.
-
-## Driver-type classification / bundle schema
-
-- [ ] **P3** Replace `has_woofer` / `has_tweeter` booleans with a single `sections: [...]` array in the drivers bundle. Today `scripts/bundle-drivers.mjs:85-86` bakes two booleans by regex-testing the `openisd.yml` sidecar for `specs.woofer` / `specs.tweeter` section keys (i.e. they are _literally_ "does `specs.<section>` exist"), consumed by `packages/ui/src/components/DriverBrowser.vue` `classifyTypes()` (`:119` coax = `hasWoofer && hasTweeter`, `:122` tweet fallback, `:134` woofer fallback). Asymmetry: there is **no** `has_passive_radiator` — PR is handled only via name-regex/`driver_type`. A `sections` array (faithful projection of the sidecar's `specs.*` keys) is more consistent (absorbs `passive_radiator` and any future section with no new field), extends without schema churn, and simplifies the coax test to `sections.includes('woofer') && sections.includes('tweeter')`. Processing is not harder (`.includes()` ≈ boolean). Cost: small bundle-size increase (omit when empty, as booleans are already omitted when false). Two-file change: producer `bundle-drivers.mjs` + consumer `DriverBrowser.vue`. Prompted 2026-07-17.
-- [ ] **P3** Shared driver-type taxonomy (single source of truth) — cross-repo with `winisd_tools`. `classifyTypes()`'s `driver_type → chips` slice duplicates the `driver_type → spec section` mapping the scraper already owns in `winisd_tools` `emit_metadata.py` `_specs_for()`. A canonical taxonomy table (`driver_type → {section, chips, search synonyms}`) consumed by both the Python emitter and this bundle build would de-duplicate the `driver_type` fact. The name-regex + Fs/Sd numeric fallbacks (`DriverBrowser.vue:145-147`) must stay — they classify sources with a missing/unreliable `driver_type` (matt/, PE, community) that no lookup can cover. Full write-up in `winisd_tools/TODO.md` (New-pipeline backlog).
+- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `PLAN_DRIVER_ADT.md`
 
 ---
 
-## ❓ Open questions — deferred decisions
+## Physical dimension extraction gap
 
-Questions raised by the agent that await a human ruling. Mark resolved inline with the ruling.
+**Priority:** P2  
+**Status:** Not started  
+**Type:** Feature gap / Scraper enhancement
 
-### WinISD Advanced-pane toggles — [PLAN_ADVANCED_SIM_OPTIONS.md](PLAN_ADVANCED_SIM_OPTIONS.md) (raised 2026-07-23)
+### Problem
 
-| #   | Question                                                                                                                                              | Blocks        | Status   |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
-| Q1  | `Force flat response`: auto-EQ (recommended) or display normalization? The `.wpr` corpus has the flag but never set, so behaviour is ⚠ unverified.    | Feature B     | Resolved |
-| Q2  | If auto-EQ: what maximum boost may the clamp allow, and is a `warn` where it binds acceptable?                                                        | Feature B     | Resolved |
-| Q3  | `Rg is at driver side` default — match WinISD (unchecked = amp side, which **moves the two 2-driver golden fixtures**) or preserve today's behaviour? | Feature D     | Resolved |
-| Q4  | Should the plotted impedance `Zel` include `Rg` when `Rg` sits at the amplifier side? (It includes `Rs` today.)                                       | Feature D     | Resolved |
-| Q5  | With `VCInd` off, does `Le` also leave the _impedance_ plot, or only the acoustic path (today's behaviour)?                                           | Feature A     | Resolved |
-| Q6  | `Rg-at-driver-side` and `SPL-Xmax-limited` have no known `.wpr` key — leave them out of exported project files (recommended), or invent keys?         | `.wpr` export | Resolved |
-| Q7  | Absent-`Le` NaN bug (below) — fix inside feature A as `Le ?? 0`, or track as its own item?                                                            | Feature A     | Resolved |
-| Q8  | Modern skin has no Advanced pane — add a shared `AdvancedPanel.vue` fieldset (recommended), or leave Modern without the five toggles?                 | Feature scope | Resolved |
+Scraper writes physical dimensions (Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd, DVol) as hardcoded 0.
 
-### Narrow-screen behaviour — Original shell overlap + mobile design (raised 2026-07-23)
+```python
+# Physical dimensions — 0 (not scraped)
+lines += ["Thick=0", "Depth=0", "MagDepth=0", "Magnet=0", "Basket=0", "Outer=0", "Vcd=0", "DVol=0"]
+```
 
-Reported by the human with a screenshot: at a narrow window the Original shell's Advanced pane
-paints labels and inputs **on top of each other** (real WinISD merely truncates). Root cause is
-`.two-col > div { flex:0 1 auto; min-width:0 }` (`packages/ui/src/shells/original/OriginalShell.vue:1055-1056`)
-— the columns shrink to zero while their `.field` contents keep intrinsic width and overflow
-visibly, with `.content-panel { overflow:hidden }` (line 1048) suppressing any scrollbar that
-would reveal it.
+These measurements are often available in datasheets (PDF dimensions section, mechanical drawings, spec tables). Currently not extracted.
 
-| #   | Question                                                                                                                                                                                                  | Blocks         | Status |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ |
-| Q9  | Original shell narrow behaviour: WinISD-faithful **clip + scroll** (recommended — no reflow, fidelity preserved), or **reflow** the panes below a breakpoint?                                             | Overlap bug    | Open   |
-| Q10 | Does the Original shell get a hard **minimum width** below which the whole app scrolls horizontally (recommended ~1024px), or must every width stay usable without scroll?                                | Overlap bug    | Open   |
-| Q11 | Mobile target: harden the existing **Modern** shell (already has a 720px breakpoint + Controls/Graphs tabs, `ModernShell.vue:15-34`, `style.css:130`) — recommended — or add a fourth **`mobile` shell**? | Phase 6 mobile | Open   |
-| Q12 | Should `auto` skin resolution become viewport-aware (pick the responsive shell on coarse-pointer/narrow), or stay a fixed alias for `modern` (`skins.ts:33-36`)?                                          | Phase 6 mobile | Open   |
+### Gap
 
-- [ ] **BUG / P2 — Original shell overlaps its own fields at narrow widths.** See Q9/Q10 above. `[ui]`
+- No PDF dimension extraction implemented
+- Physical measurements remain absent from WDR files
+- Users cannot design enclosures that account for driver displacement volume
+- WinISD users can import these; OpenISD cannot
 
-**Rulings (2026-07-23):**
+### Known data sources
 
-- **Q1** — **Resolved 2026-07-23: auto-EQ.** The flag lives in `[SimulatorOptions]` beside two physics-model flags, and a display-normalization reading duplicates the existing Transfer-function chart.
-- **Q2** — **Resolved 2026-07-23: 20 dB** (`FLAT_MAX_BOOST_DB`), with a `warn` naming the lowest frequency where it binds.
-- **Q3** — **Resolved 2026-07-23: preserve OpenISD's behaviour** (defaults ON) so no saved design moves on upgrade. Matching WinISD's unchecked default remains available and would move the two 2-driver goldens.
-- **Q4** — **Resolved 2026-07-23: yes, `Zel` includes `Rg` in both positions** — only the array scaling differs, so the change stays minimal and symmetric.
-- **Q5** — **Resolved 2026-07-23: acoustic path only.** `Le` stays in the impedance plot either way (historic behaviour); recorded as an assumption in `WINISD.md` §12d.
-- **Q6** — **Resolved 2026-07-23: leave them out.** Inventing a key would produce a file WinISD misreads.
-- **Q7** — **Resolved 2026-07-23: fixed with feature A** — absent `Le` now means 0 H, matching an explicit `Le: 0` driver bit-for-bit.
-- **Q8** — **Resolved 2026-07-23: shared `AdvancedOptions.vue`**, rendered by all three skins (Modern via `SidePanel`).
+- PDF datasheets: mechanical drawings, dimension tables
+- Vendor spec sheets (e.g., Parts Express, Mouser pages)
+- Datasheet fields: Dia (cone diameter), Xmax (already scraped), voice coil diameter, magnet depth
 
-- [x] [x] **BUG / P2 — a driver with no `Le` makes the whole impedance curve `NaN`, reported as a fatal simulation error.** Directly observed 2026-07-23: `deriveDriver()` neither defaults nor validates `Le` (returns `errors: []`, `d.Le === undefined`), so `circuit.ts:65` evaluates `cx(0, w * drv.Le!)` → `NaN`, making `Zel` non-finite at every frequency. `classifyFinite()` (`packages/engine/src/sweep.ts:139-140`) then reports "Simulation produced no usable values — check the box volume and driver parameters", which names the wrong cause. Reproduced with the demo 6.5" woofer's parameters minus `Le` (`Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Xmax:0.005, Pe:60`) → `zmag: [NaN, NaN, NaN, NaN, NaN]` with `spl` finite. **Fixed 2026-07-23** — `circuit.ts` treats an absent `Le` as 0 H, and `advanced-options.test.ts` asserts a no-`Le` driver is bit-identical to an explicit `Le: 0` one. `[unit]`
+### Questions for implementation
 
----
-
-## Ad-hoc notes (merged from WIP.md, 2026-07-20)
-
----
-
-## Open — do these next
-
-### 0. Resume `mock/` — WinISD UI mockup (logic-free HTML/CSS/JS)
-
-A static, calculation-free mockup of the WinISD UI lives in `mock/` (not part
-of the real app — pure look-alike screens with fake values), committed on
-`dev`. Read `archive/MOCK_PROMPTS.md` (verbatim prompt history) and
-`mock/MOCK_DESIGN.md` (design decisions + open questions, including
-unresolved ones like the Box/Vents-tab merge) before continuing.
-
-Landed already (don't redo): 2x2 quadrant layout with book-of-tabs nav
-(Box tab now first, before Driver), fills the browser frame with no
-scrolling, Driver Editor modal (all 4 tabs column-aligned, with an in-UI
-banner distinguishing "editing the project's embedded driver" vs "editing a
-My Drivers entry directly"), a full Select Driver picker modal (search +
-spec table, plus a working My Drivers tab) — not a dropdown, the Tune
-reactive-minimal overlay (custom accelerating spinners, not native), and
-Standard/Iso-Barik driver-placement illustrations. The old popup Filter
-Editor modal is gone — filters are now inline, reactive rows on the Filters
-tab (quick-add buttons, spin-field inputs, inline delete). Exponential-accel
-spinners, clickable unit-cycling labels, and the Entered/Calculated/Not-
-available ParState legend are now applied across every tab and the Tune
-panel, not just the Driver Editor modal. A Manage Drivers toolbar menu
-(Customise/Save-as-new/Edit-custom/Delete-custom/Disable-custom) drives an
-in-memory "My Drivers" list. Multi-project chart traces are generalized via
-`data-project`/`data-trace-for` attributes — both projects' checkboxes now
-independently show/hide their own SPL and transfer-function traces. The
-Driver Editor modal now has three distinct modes with their own footer
-buttons (project / My Drivers / a standalone toolbar-opened editor that
-starts blank and supports Load-from-disk, Save-as-to-disk, and
-Create-Box-from-this-driver). The Box tab's enclosure selector is a 6-type
-dropdown (Sealed/Vented/Passive Radiator/4th/6th/8th-order bandpass), each
-wired to its own Box-tab chamber layout and Vents-tab vent sections
-(including the ABC illustration with the driver on the larger chamber's
-baffle).
-
-Still open:
-
-- Box tab / Vents-tab merge (see MOCK_DESIGN.md open question) — recommended
-  but not yet actioned.
-
-### 1. Signal chain / EQ (P1 in backlog)
-
-Filters panel (HP, LP, Linkwitz, Peaking EQ) is already fully implemented in the UI
-(`FiltersPanel.vue`) and engine (`filters.ts`). High-shelf and low-shelf are NOT yet
-built. Listening distance is fixed at 1 m (not user-configurable yet).
-
----
-
-## Reference — architecture decisions
-
-- `matt/` collection is human-curated — never touch without explicit per-session permission.
-- All calculation changes require explicit human approval before touching `packages/engine/src/`.
-- Two valid authorities for any sidecar field: (1) scraper writes at scrape time from HTML/PDF;
-  (2) `write_driver()` computes at write time from already-extracted fields. No third option.
+1. Which dimensions are most commonly published? (priority order)
+2. How to parse dimension sections in PDFs reliably?
+3. Unit handling (mm, cm, inches)?
+4. Fallback: derive from other measurements (e.g., Sd → cone diameter via Sd=π(Dd/2)²)?

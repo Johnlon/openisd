@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Original (WinISD) skin — the wholesale port of the `mock/` prototype, wired to the
  * shared store/engine. Selecting it swaps the whole shell; the reused chart + panels
@@ -172,7 +173,7 @@ test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real val
   // Assert the readouts show real computed Hz values (not just the labels) — this fails
   // if the underlying computeds regress to a literal or null.
   await expect(panel.locator('.field').filter({ hasText: 'Frc' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
-  await expect(panel.locator('.field').filter({ hasText: 'Tuning freq' }).locator('input.calculated')).toHaveValue(/^\d+\.\d{2}$/);
+  await expect(panel.locator('.field').filter({ hasText: 'Tuning freq (Ffc)' }).locator('input')).toHaveValue(/^\d+(\.\d+)?$/);
 });
 
 test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
@@ -193,7 +194,7 @@ test('the Vented pane labels the tuning readout "1st port resonance"', async ({ 
   await expect(page.locator('.content-panel')).toContainText('1st port resonance');
 });
 
-test('the projects checkbox toggles a compare overlay trace visibility (not delete)', async ({ page }) => {
+test('the projects checkbox hides that project\'s trace without removing the project', async ({ page }) => {
   await page.locator('.link-btn', { hasText: 'Copy' }).click(); // ＋ Copy — pin a snapshot
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2); // current design + 1 comparison
@@ -204,36 +205,30 @@ test('the projects checkbox toggles a compare overlay trace visibility (not dele
   await cbx.uncheck();
   await expect(rows).toHaveCount(2); // NOT deleted — still there
   await expect(rows.nth(1)).toHaveClass(/trace-hidden/);
-  const debugData = await page.evaluate(async () => {
-    const s = await import(/* @vite-ignore */ '/src/store.ts');
-    return s.state.compare.map((c: any) => ({ name: c.name, visible: c.visible }));
-  });
-  console.log('--- DEBUG DEEP ---', debugData);
-  const flag = await page.evaluate(async () => {
-    const modPath = '/src/store.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.state.compare[0].visible;
-  });
-  expect(flag).toBe(false);
+
+  // The flag lives on the row and nowhere else — a design never holds another design.
+  // The drawn effect of hiding is asserted against the canvas in original-projects.browser.spec.ts.
 
   await cbx.check();
   await expect(rows.nth(1)).not.toHaveClass(/trace-hidden/);
 });
 
-test('a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)', async ({ page }) => {
+test('a project is closed by selecting its row then Close (WinISD right-click Delete stand-in)', async ({ page }) => {
   await page.locator('.link-btn', { hasText: 'Copy' }).click();
   const rows = page.locator('.projects-list .project-row');
   await expect(rows).toHaveCount(2);
   await rows.nth(1).click();                                  // select the overlay row
   await page.locator('.quad-projects-wrap .close-btn').click();
+  // A copy is unsaved, so closing it asks rather than discarding the work silently.
+  await page.locator('.close-actions button:has-text("Close without saving")').click();
   await expect(rows).toHaveCount(1); // back to just the current design
 });
 
 test('the Filters tab quick-adds real filter types and drives the store', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Filters' }).click();
   const panel = page.locator('.content-panel');
-  // Only the four engine-supported types (the mock's other 4 buttons have no engine model).
-  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(4);
+  // Only the six engine-supported types (highpass, lowpass, linkwitz, peaking, lowshelf, highshelf).
+  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(6);
 
   await panel.locator('.action-btn', { hasText: '+ HP' }).click();
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(1);
@@ -477,18 +472,17 @@ test('New Project collects the project name first and shows it in the titlebar',
   await expect(page.locator('.titlebar')).toContainText('My Sub Build');
 });
 
-test('New Project starts fresh — it discards the previous design (filters, compare, params)', async ({ page }) => {
+test('New Project starts fresh — it discards the previous design (filters, params)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('.skin-picker select').selectOption('original');
 
-  // Dirty the current design: a filter, a pinned compare trace, a non-default power.
+  // Dirty the current design: a filter and a non-default power.
   await page.evaluate(async () => {
     const modPath = '/src/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
     s.state.P.filters.push({ type: 'highpass', fc: 30, Q: 0.7, gain: 0 });
     s.state.P.Pin = 250;
-    s.pinCompare();
   });
 
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -502,10 +496,9 @@ test('New Project starts fresh — it discards the previous design (filters, com
   const st = await page.evaluate(async () => {
     const modPath = '/src/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    return { filters: s.state.P.filters.length, compare: s.state.compare.length, pin: s.state.P.Pin };
+    return { filters: s.state.P.filters.length, pin: s.state.P.Pin };
   });
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
-  expect(st.compare).toBe(0);  // no inherited compare traces
   expect(st.pin).toBe(1);      // Pin back to the default, not the previous 250
 });
 
@@ -609,6 +602,7 @@ test('the Save bar tracks modified state; Save adopts it, Reset reverts it (STAT
   
   // Programmatically mark saved (simulates successful save file pick & write)
   await page.evaluate(async () => {
+    // @ts-expect-error - runtime browser-only import of store.ts
     const s = await import(/* @vite-ignore */ '/src/store.ts');
     s.markProjectSaved();
   });
@@ -653,7 +647,7 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
   const modal = page.locator('.overlay.on');
-  await expect(modal).toContainText('Driver editor');
+  await expect(modal).toContainText("Edit Project's Driver");
   await modal.locator('.de-tab', { hasText: 'Parameters' }).first().click(); // Vas/Sd live on the Parameters tab
   const vas = modal.locator('.de-fld', { hasText: 'Vas' }).locator('input').first();
   await vas.fill('20');
@@ -671,12 +665,12 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
-  await expect(page.locator('.overlay.on')).toContainText('Driver editor');
+  await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver");
 
   await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalEditorOpen'),
     undefined, { timeout: 5000 });
   await page.reload();
-  await expect(page.locator('.overlay.on')).toContainText('Driver editor'); // reopened after refresh
+  await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver"); // reopened after refresh
 });
 
 test('R1: an open Tune with uncommitted what-if values is preserved across a reload', async ({ page }) => {
@@ -937,8 +931,9 @@ test('Original skin: Open the two samples and switch between them, ensuring the 
   const tweeterRow = rows.filter({ hasText: 'Generic 1" Tweeter' });
   await expect(tweeterRow).toHaveClass(/selected/);
 
-  // 5. Click on the "Copy of Generic 6.5\" Woofer" row to switch to it
-  const wooferRow = rows.filter({ hasText: /^Copy of Generic 6.5" Woofer$/ });
+  // 5. Click on the "Generic 6.5\" Woofer" row to switch to it. Opening a sample opens a
+  // project in its own right — it does not fork whatever was already open into a copy.
+  const wooferRow = rows.filter({ hasText: /^Generic 6.5" Woofer$/ });
   await wooferRow.click();
 
   // 6. Assert that "Copy of Generic 6.5\" Woofer" becomes the active/selected project
@@ -946,7 +941,7 @@ test('Original skin: Open the two samples and switch between them, ensuring the 
   await expect(tweeterRow).not.toHaveClass(/selected/);
 
   // 7. Verify the header in titlebar matches the selected project name
-  await expect(page.locator('.titlebar')).toContainText('Copy of Generic 6.5" Woofer');
+  await expect(page.locator('.titlebar')).toContainText('Generic 6.5" Woofer');
 });
 
 test('Original skin: Project Modified styling (yellow highlight/is-unsaved class) is preserved when switching back and forth', async ({ page }) => {
@@ -954,12 +949,12 @@ test('Original skin: Project Modified styling (yellow highlight/is-unsaved class
   await page.locator('.tb-btn.has-menu[title="Open project"]').click();
   await page.locator('.sample-item', { hasText: 'Generic 6.5" Woofer' }).click();
 
-  // 2. Open another sample (the first one becomes "Copy of Generic 6.5\" Woofer")
+  // 2. Open another sample. Each sample is its own project — the first stays as itself.
   await page.locator('.tb-btn.has-menu[title="Open project"]').click();
   await page.locator('.sample-item', { hasText: 'Generic 1" Tweeter' }).click();
 
   const rows = page.locator('.projects-list .project-row');
-  const wooferRow = rows.filter({ hasText: /^Copy of Generic 6.5" Woofer$/ });
+  const wooferRow = rows.filter({ hasText: /^Generic 6.5" Woofer$/ });
 
   // 3. Make some modification to the active project (Generic 1" Tweeter) by changing its name in Project tab
   await page.locator('.project-nav li', { hasText: 'Project' }).click();

@@ -4,7 +4,7 @@ import { listPRs, deletePR, listBundledPRs } from '../utils/prLibrary.js';
 import type { PRLibEntry, BundledPR } from '../types.js';
 import { useEscToClose } from '../composables/useEscToClose.js';
 
-// PR browser — a popup mirroring the driver browser (DriverBrowser.vue): two
+// PR browser — a popup mirroring the driver browser (DriverBrowserMd.vue): two
 // sections, "Saved" (your localStorage PR library) and "Bundled" (passive radiators
 // pulled from the driver collections), plus a "Define new PR" affordance. Replaces
 // PRPanel's old inline saved-only list, which never surfaced the bundled PRs.

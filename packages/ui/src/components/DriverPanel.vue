@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
-import { state, driver, driverRaw, allIssues, driverShort, enterDriverField, setDriverFromRaw } from '../store.js';
+import { state, driver, driverRaw, driverJSON, driverBaseline, driverBaselineName, allIssues, driverShort,
+         enterDriverField, clearDriverField, setDriverFromRaw, setDriverBaseline, resetDriverToBaseline } from '../store.js';
 import type { DriverRaw } from '@openisd/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
+import { upsertMyDriver } from '../utils/myDrivers.js';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe';
-type MyDriver = DriverRaw & { _savedAt?: number };
-
-const MY_DRIVERS_KEY = 'openisd_my_drivers';
-
-function loadMyDrivers(): MyDriver[] {
-  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? '[]'); } catch { return []; }
-}
-function saveMyDrivers(list: MyDriver[]) {
-  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }
-}
 
 const savingMode = ref(false);
 const saveName   = ref('');
@@ -25,15 +17,17 @@ function startSave() {
   nextTick(() => document.querySelector<HTMLInputElement>('.save-name-input')?.select());
 }
 
+// A saved driver IS its `<brand>/<model>` identity. Save therefore overwrites the entry
+// holding that identity, and adds one when no entry holds it — so editing brand or model
+// saves a new driver, and editing anything else updates the driver in place.
+//
+// Clone is the other way to fork: it names its copy "Copy of …", which is already a
+// distinct identity, and the user can then edit that name or leave it.
 function confirmSave() {
   const name = saveName.value.trim() || driverRaw.value.name || 'Custom Driver';
-  const list = loadMyDrivers();
-  const entry: MyDriver = { ...driverRaw.value, name, _savedAt: Date.now() };
-  const idx = list.findIndex(d => d.name === name);
-  if (idx >= 0) list[idx] = entry; else list.push(entry);
-  saveMyDrivers(list);
+  upsertMyDriver({ ...driverRaw.value, name });
   enterDriverField('name', name);
-  state.driverSource = { ...driverRaw.value };
+  setDriverBaseline(driverJSON.value);   // the driver you just saved is what Reset returns to
   state.editDriver = false;
   savingMode.value = false;
 }
@@ -42,7 +36,7 @@ let _skipNextRename = false;
 
 function resetToSource() {
   _skipNextRename = true;
-  setDriverFromRaw(state.driverSource);
+  resetDriverToBaseline();
   nextTick(() => { _skipNextRename = false; });
 }
 
@@ -50,9 +44,9 @@ const TS_KEYS: NumKey[] = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', '
 watch(
   () => TS_KEYS.map(k => driverRaw.value[k]),
   () => {
-    if (_skipNextRename || !state.editDriver || !state.driverSource) return;
+    if (_skipNextRename || !state.editDriver || !driverBaseline.value) return;
     if (!driverRaw.value.name?.startsWith('Custom - ')) {
-      enterDriverField('name', 'Custom - ' + (state.driverSource.name || 'Driver'));
+      enterDriverField('name', 'Custom - ' + (driverBaselineName.value || 'Driver'));
     }
   }
 );
@@ -78,7 +72,6 @@ watch(driver, () => { dismissed.value = false; });
 const hasError = computed(() => allIssues.value.some(e => e.level === 'error'));
 
 function startEdit() {
-  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
   state.editDriver = true;
 }
 
@@ -132,13 +125,17 @@ function badInput(key: string, formattedVal: string): boolean {
 function numInput(key: NumKey, scale: number, val: string) {
   rawVals[key] = val;
   const parsed = parseFloat(val);
-  if (isFinite(parsed)) enterDriverField(key, parsed / scale);
+  if (isFinite(parsed)) {
+    enterDriverField(key, parsed / scale);
+  } else if (val === '') {
+    clearDriverField(key);
+  }
 }
 function numBlur(key: string) { delete rawVals[key]; }
 
 function applyDefine(raw: DriverRaw) {
-  setDriverFromRaw(raw);
-  state.driverSource = { ...raw };
+  upsertMyDriver(raw);
+  setDriverFromRaw(raw);   // a driver defined by hand is its own baseline
   state.defineOpen = false;
 }
 </script>
@@ -319,9 +316,9 @@ function applyDefine(raw: DriverRaw) {
         </div>
       </div>
       <div v-else class="btns">
-        <button :disabled="!state.driverSource"
+        <button :disabled="!driverBaseline"
                 @click="resetToSource"
-                :title="state.driverSource ? 'Reset all parameters back to ' + state.driverSource.name : 'No original to reset to — load a driver from the library first'">Reset</button>
+                :title="driverBaseline ? 'Reset all parameters back to ' + driverBaselineName : 'No original to reset to — load a driver from the library first'">Reset</button>
         <button @click="startSave"
                 title="Save this driver (with tweaked specs) to My Drivers in the browser library">Save to My Drivers</button>
         <button @click="state.editDriver = false; savingMode = false"

@@ -1,0 +1,2761 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "test/chart-zoom.browser.spec.ts",
+      "test/original-skin.browser.spec.ts",
+      "test/project-name-file.browser.spec.ts",
+      "--workers=1"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-26T14-54-46-202Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "chart-zoom.browser.spec.ts",
+      "file": "chart-zoom.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "frequency dropdown defaults to 1–20 kHz",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12402,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:54:50.949Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-1217e712699c142f5e48",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "choosing 1–500 Hz narrows the range; charts still render",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11698,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:55:03.922Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-af493714a5fc1ebc3c28",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 27,
+          "column": 1
+        },
+        {
+          "title": "choosing 1–40 kHz zooms all the way out",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11078,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:55:15.693Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-b88509dd0f44f602dca9",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 33,
+          "column": 1
+        },
+        {
+          "title": "the chosen frequency range persists across reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15335,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:55:26.825Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-710c389ed78a6f06e921",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 39,
+          "column": 1
+        },
+        {
+          "title": "dragging the X axis changes the frequency range (dropdown shows custom)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10108,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:55:42.265Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-becca435d889bc34ff3e",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 58,
+          "column": 1
+        },
+        {
+          "title": "double-clicking the X axis resets the frequency range to 1–20 kHz",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13499,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:55:52.454Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-da6121d1e8e82eb3b689",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 66,
+          "column": 1
+        },
+        {
+          "title": "dragging the Y axis sets a manual range (panel flagged y-manual)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11279,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:06.049Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-851430f332c09ded45ae",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 89,
+          "column": 1
+        },
+        {
+          "title": "double-clicking the Y axis resets it to auto",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8975,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:17.408Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e25862d8957fad0cb3-cbba628e1e592a7a6782",
+          "file": "chart-zoom.browser.spec.ts",
+          "line": 97,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8851,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:26.532Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-c148086e8c944d18a0c9",
+          "file": "original-skin.browser.spec.ts",
+          "line": 57,
+          "column": 1
+        },
+        {
+          "title": "the toolbar ports the mock icon buttons + chart-select",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5945,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:35.445Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-296b56335e5e2ee4a636",
+          "file": "original-skin.browser.spec.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "title": "the chart-select dropdown switches the shared GraphPanel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11441,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:41.454Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-85fce85233dd24455e62",
+          "file": "original-skin.browser.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "all seven project tabs render their ported content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12514,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:56:52.939Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-cb899c6abf1835048236",
+          "file": "original-skin.browser.spec.ts",
+          "line": 79,
+          "column": 1
+        },
+        {
+          "title": "the Box tab exposes all six box types and drives the shared store for supported ones",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11700,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:05.519Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b1039f25797ea3ffd29c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 99,
+          "column": 1
+        },
+        {
+          "title": "the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6206,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:17.289Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-80f1362cb8b7952bf9ab",
+          "file": "original-skin.browser.spec.ts",
+          "line": 116,
+          "column": 1
+        },
+        {
+          "title": "an externally loaded box type re-syncs the Box tab (no desync while pending)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7122,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:23.548Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-d60d507b9d09eb4bde02",
+          "file": "original-skin.browser.spec.ts",
+          "line": 131,
+          "column": 1
+        },
+        {
+          "title": "the box-losses modal opens from the Box tab and closes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9379,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:30.723Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-30ff1ebf3453954b5a11",
+          "file": "original-skin.browser.spec.ts",
+          "line": 148,
+          "column": 1
+        },
+        {
+          "title": "the Color button cycles the current design trace colour (and wraps)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10172,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:40.175Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-623e0e86277cfbd1f9ea",
+          "file": "original-skin.browser.spec.ts",
+          "line": 157,
+          "column": 1
+        },
+        {
+          "title": "the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9719,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:57:50.402Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-9bd2a73fe5e62ede69c9",
+          "file": "original-skin.browser.spec.ts",
+          "line": 168,
+          "column": 1
+        },
+        {
+          "title": "the Vented \"1st port resonance\" shows the vent pipe resonance c/(2·ventL), not the box tuning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6495,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:00.188Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3fd9a03c4cdd06bf9419",
+          "file": "original-skin.browser.spec.ts",
+          "line": 178,
+          "column": 1
+        },
+        {
+          "title": "the Vented pane labels the tuning readout \"1st port resonance\"",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10443,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:06.756Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-f8a72e2d132d972a4766",
+          "file": "original-skin.browser.spec.ts",
+          "line": 189,
+          "column": 1
+        },
+        {
+          "title": "the projects checkbox toggles a compare overlay trace visibility (not delete)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9727,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "--- ROW TEXTS --- [\n  \u001b[32m'Samples - Generic 6.5\" Woofer'\u001b[39m,\n  \u001b[32m'Copy of Samples - Generic 6.5\" Woofer'\u001b[39m\n]\n"
+                    },
+                    {
+                      "text": "--- DEBUG DEEP --- [ { name: \u001b[32m'Copy of Samples - Generic 6.5\" Woofer'\u001b[39m, visible: \u001b[33mfalse\u001b[39m } ]\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:17.270Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-2d281f4c66162de32c80",
+          "file": "original-skin.browser.spec.ts",
+          "line": 196,
+          "column": 1
+        },
+        {
+          "title": "a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10098,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:27.039Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e6f61972a62ca3f7d847",
+          "file": "original-skin.browser.spec.ts",
+          "line": 224,
+          "column": 1
+        },
+        {
+          "title": "the Filters tab quick-adds real filter types and drives the store",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9987,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:37.204Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-6ee20322526ce60bb722",
+          "file": "original-skin.browser.spec.ts",
+          "line": 233,
+          "column": 1
+        },
+        {
+          "title": "the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10251,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:47.264Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-6f4e488b03aaad847076",
+          "file": "original-skin.browser.spec.ts",
+          "line": 253,
+          "column": 1
+        },
+        {
+          "title": "a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16584,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 37 model Fs: 37\n"
+                    },
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 43 model Fs: 37\n"
+                    },
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 43 model Fs: 43\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:58:57.588Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-9af29261b77f0b11e551",
+          "file": "original-skin.browser.spec.ts",
+          "line": 278,
+          "column": 1
+        },
+        {
+          "title": "the Tune fields accept multi-character typing (no reformat-while-typing clobber)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12704,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:59:14.223Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b3e310793583668c3a8b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 310,
+          "column": 1
+        },
+        {
+          "title": "v-expo-step fields keep clean decimals while spinning (grid-aligned step)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7152,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:59:27.031Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-21f245a46cd3d02a39e3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 326,
+          "column": 1
+        },
+        {
+          "title": "NumInput spinner keeps fixed decimal places (no compounding float precision)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9951,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:59:34.262Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e7f10d7702cbf9403b9c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 336,
+          "column": 1
+        },
+        {
+          "title": "NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8415,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:59:44.278Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-616f480ba43de9be73a2",
+          "file": "original-skin.browser.spec.ts",
+          "line": 346,
+          "column": 1
+        },
+        {
+          "title": "class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 149270,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 120000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:59:52.750Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-clas-561cf-g-all-fields-all-box-types-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-clas-561cf-g-all-fields-all-box-types-/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3b60eba57306373e1192",
+          "file": "original-skin.browser.spec.ts",
+          "line": 361,
+          "column": 1
+        },
+        {
+          "title": "Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8643,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:02:54.262Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-8f355967ad2bd12c67a8",
+          "file": "original-skin.browser.spec.ts",
+          "line": 389,
+          "column": 1
+        },
+        {
+          "title": "field constraints: negative/out-of-range entry is rejected or clamped everywhere (schema-enforced)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:03.239Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-28550d61687a8e127f96",
+          "file": "original-skin.browser.spec.ts",
+          "line": 400,
+          "column": 1
+        },
+        {
+          "title": "Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8426,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:12.483Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-0491f228f0dbb277bd6f",
+          "file": "original-skin.browser.spec.ts",
+          "line": 426,
+          "column": 1
+        },
+        {
+          "title": "Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9291,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:20.964Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-68c11d42263fdbaeed99",
+          "file": "original-skin.browser.spec.ts",
+          "line": 432,
+          "column": 1
+        },
+        {
+          "title": "Original skin buttons have readable dark text on their light fill",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8637,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:30.311Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b225ebc3b7f8b0e87aad",
+          "file": "original-skin.browser.spec.ts",
+          "line": 451,
+          "column": 1
+        },
+        {
+          "title": "New Project collects the project name first and shows it in the titlebar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10698,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:39.010Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-88764b78b862977cd220",
+          "file": "original-skin.browser.spec.ts",
+          "line": 462,
+          "column": 1
+        },
+        {
+          "title": "New Project starts fresh — it discards the previous design (filters, compare, params)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13186,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:03:49.764Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e5043df9aecd402c1676",
+          "file": "original-skin.browser.spec.ts",
+          "line": 481,
+          "column": 1
+        },
+        {
+          "title": "the New Project wizard sets box type + volume then opens the driver picker",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9533,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:03.011Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-d9f473b45cd0e1e2c575",
+          "file": "original-skin.browser.spec.ts",
+          "line": 513,
+          "column": 1
+        },
+        {
+          "title": "Original toolbar: Share link (Export menu) writes the design into the address bar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7736,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:12.620Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e06304915610322d96aa",
+          "file": "original-skin.browser.spec.ts",
+          "line": 534,
+          "column": 1
+        },
+        {
+          "title": "a pinned graph cursor survives the share link — opening it shows the same marker",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11504,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:20.407Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-38b22ec0f6e6377825fd",
+          "file": "original-skin.browser.spec.ts",
+          "line": 541,
+          "column": 1
+        },
+        {
+          "title": "a dragged frequency band selection survives the share link",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12595,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:31.954Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-943133950bab6c46a2d8",
+          "file": "original-skin.browser.spec.ts",
+          "line": 566,
+          "column": 1
+        },
+        {
+          "title": "the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14942,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:44.619Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-77f52ac872139535092b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 591,
+          "column": 1
+        },
+        {
+          "title": "the chosen skin is remembered across a reload (local preference)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:04:59.633Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-0b502f63267e8ba9692b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 622,
+          "column": 1
+        },
+        {
+          "title": "Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg, resonance drops)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9978,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:06.751Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-888c1dcb489a30754469",
+          "file": "original-skin.browser.spec.ts",
+          "line": 627,
+          "column": 1
+        },
+        {
+          "title": "Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8444,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:16.796Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-8e385beab8f1711a987c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 654,
+          "column": 1
+        },
+        {
+          "title": "R1: an open Driver Editor is reopened after a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14044,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:25.319Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-7ec310f75fb0a1cba4b0",
+          "file": "original-skin.browser.spec.ts",
+          "line": 670,
+          "column": 1
+        },
+        {
+          "title": "R1: an open Tune with uncommitted what-if values is preserved across a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9570,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:39.406Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3f33752458d2a2709b1b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 684,
+          "column": 1
+        },
+        {
+          "title": "R1 refresh fidelity: box type, active tab, and selected chart survive a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10771,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:49.016Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-061d73aa650b8eef6816",
+          "file": "original-skin.browser.spec.ts",
+          "line": 705,
+          "column": 1
+        },
+        {
+          "title": "clicking an entered field's unit label rescales the DISPLAY and keeps the model SI",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5571,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:05:59.834Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e92bf8806b15365e80af",
+          "file": "original-skin.browser.spec.ts",
+          "line": 741,
+          "column": 1
+        },
+        {
+          "title": "a calculated readout also rescales when its unit is rotated (Hz → kHz)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8529,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:05.450Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-f09782d5552e01d332d0",
+          "file": "original-skin.browser.spec.ts",
+          "line": 766,
+          "column": 1
+        },
+        {
+          "title": "Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9346,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:14.045Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-43b5da15f6944b59ee65",
+          "file": "original-skin.browser.spec.ts",
+          "line": 782,
+          "column": 1
+        },
+        {
+          "title": "Advanced Temperature: K → °C converts via OFFSET; the model stays in kelvin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5432,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:23.447Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-036185c89d221fc4344a",
+          "file": "original-skin.browser.spec.ts",
+          "line": 804,
+          "column": 1
+        },
+        {
+          "title": "Voice coil temp rise, resistance TC, and added mass all convert (no runaway precision)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9157,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:28.922Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-a3d2d6bf8e5e2037b006",
+          "file": "original-skin.browser.spec.ts",
+          "line": 821,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9465,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:38.142Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-033822eb2532ba5b03d3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 862,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options → General → Environment default seeds a fresh mount's Advanced-pane Temperature (not a hardcoded literal)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11742,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:47.662Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-fa130114f746ab4a27a6",
+          "file": "original-skin.browser.spec.ts",
+          "line": 895,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog is centered on screen, not pinned to the top (own overlay, not the shell's)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:06:59.460Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-4e4c8971cb09fc19c14f",
+          "file": "original-skin.browser.spec.ts",
+          "line": 911,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9349,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:07:06.841Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e663fabe007baab233c5",
+          "file": "original-skin.browser.spec.ts",
+          "line": 926,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Project Modified styling (yellow highlight/is-unsaved class) is preserved when switching back and forth",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:07:16.232Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3f7015f2b3bc6099d481",
+          "file": "original-skin.browser.spec.ts",
+          "line": 955,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Revert/reset button resets modifications correctly",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7589,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:07:26.075Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-4ca69596243f18601c7b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 989,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "project-name-file.browser.spec.ts",
+      "file": "project-name-file.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "＋ Copy names the new row after the PROJECT, not the driver",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5793,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T15:08:00.955Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c1ed5108499a00b8f29e-1bbef4446e1fed73aa1e",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 152,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "Open… names the project after the file it came from",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 65,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the FILE name wins over the name stored inside the file — spaces preserved",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3570,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:69:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 69
+                        },
+                        "snippet": "  67 |     await page.goto('/');\n  68 |     await page.evaluate(() => localStorage.clear());\n> 69 |     await page.goto('/');\n     |                ^\n  70 |     await page.locator('.skin-picker select').selectOption('original');\n  71 |     await expect(page.locator('.original-root')).toBeVisible();\n  72 |   });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 69
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  67 |     await page.goto('/');\n  68 |     await page.evaluate(() => localStorage.clear());\n> 69 |     await page.goto('/');\n     |                ^\n  70 |     await page.locator('.skin-picker select').selectOption('original');\n  71 |     await expect(page.locator('.original-root')).toBeVisible();\n  72 |   });\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:69:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"the FILE name wins over the name stored inside the file — spaces preserved\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:33.736Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--719db-the-file-—-spaces-preserved/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--719db-the-file-—-spaces-preserved/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 69
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-7f1bfe644d30bf9ecd21",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "a bare .json project file names the project too",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 312,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:67:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 67
+                        },
+                        "snippet": "  65 | test.describe('Open… names the project after the file it came from', () => {\n  66 |   test.beforeEach(async ({ page }) => {\n> 67 |     await page.goto('/');\n     |                ^\n  68 |     await page.evaluate(() => localStorage.clear());\n  69 |     await page.goto('/');\n  70 |     await page.locator('.skin-picker select').selectOption('original');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 67
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  65 | test.describe('Open… names the project after the file it came from', () => {\n  66 |   test.beforeEach(async ({ page }) => {\n> 67 |     await page.goto('/');\n     |                ^\n  68 |     await page.evaluate(() => localStorage.clear());\n  69 |     await page.goto('/');\n  70 |     await page.locator('.skin-picker select').selectOption('original');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:67:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"a bare .json project file names the project too\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:38.965Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--93d10--file-names-the-project-too/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--93d10--file-names-the-project-too/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 67
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-c9eb5a07179737eeaf8e",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "the whole snapshot lands — the design AND the comparison overlays it was saved with",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 376,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:67:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 67
+                        },
+                        "snippet": "  65 | test.describe('Open… names the project after the file it came from', () => {\n  66 |   test.beforeEach(async ({ page }) => {\n> 67 |     await page.goto('/');\n     |                ^\n  68 |     await page.evaluate(() => localStorage.clear());\n  69 |     await page.goto('/');\n  70 |     await page.locator('.skin-picker select').selectOption('original');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 67
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  65 | test.describe('Open… names the project after the file it came from', () => {\n  66 |   test.beforeEach(async ({ page }) => {\n> 67 |     await page.goto('/');\n     |                ^\n  68 |     await page.evaluate(() => localStorage.clear());\n  69 |     await page.goto('/');\n  70 |     await page.locator('.skin-picker select').selectOption('original');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:67:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"the whole snapshot lands — the design AND the comparison overlays it was saved with\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:41.051Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 67
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-581d5b43be0241eff26e",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 86,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Saving keeps the project name and the file name equal",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 100,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Save suggests the project name verbatim — spaces are NOT mangled into underscores",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 445,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 103
+                        },
+                        "snippet": "  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 103
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"Save suggests the project name verbatim — spaces are NOT mangled into underscores\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:43.278Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--e8828-OT-mangled-into-underscores/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--e8828-OT-mangled-into-underscores/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 103
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-eda0dd4ba2df70419af1",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "the picked file renames the project",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 453,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 103
+                        },
+                        "snippet": "  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 103
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        },
+                        {
+                          "message": "Error: ENOENT: no such file or directory, open '/home/john/work/winisd/openisd/test-results/.playwright-artifacts-5/abe678e39813f5e1eb175a0d9511b325.zip'"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"the picked file renames the project\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:45.739Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--2615c-ed-file-renames-the-project/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 103
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-22707fc2bb15e6dd4fe1",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 117,
+              "column": 3
+            },
+            {
+              "title": "a FIRST Save As (nothing open yet) is not a copy — it keeps the project name",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 506,
+                      "error": {
+                        "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n",
+                        "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 16,
+                          "line": 103
+                        },
+                        "snippet": "  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 16,
+                            "line": 103
+                          },
+                          "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4200/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4200/\", waiting until \"load\"\u001b[22m\n\n\n  101 |   test.beforeEach(async ({ page }) => {\n  102 |     await stubSaveFilePicker(page);\n> 103 |     await page.goto('/');\n      |                ^\n  104 |     await page.evaluate(() => localStorage.clear());\n  105 |     await page.goto('/');\n  106 |     await page.locator('.skin-picker select').selectOption('original');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:103:16\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"a FIRST Save As (nothing open yet) is not a copy — it keeps the project name\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4200/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:48.147Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDIwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1fd46-—-it-keeps-the-project-name/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1fd46-—-it-keeps-the-project-name/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 16,
+                        "line": 103
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-3eb6def6a3c5994fa831",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 128,
+              "column": 3
+            },
+            {
+              "title": "renaming the project releases the open file, so the next Save asks where to put it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9591,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T15:07:51.047Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-874a876d930b04fcacc6",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 134,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-26T14:54:46.225Z",
+    "duration": 800782.509,
+    "expected": 60,
+    "skipped": 0,
+    "unexpected": 7,
+    "flaky": 0
+  }
+}

@@ -41,16 +41,7 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
       },
     };
 
-    // Cross-origin federated driver sources (github.com) may 404/be unreachable in
-    // CI/sandboxed environments — not our bug. Each such failed fetch also logs the
-    // browser's generic native "Failed to load resource" console error, which is
-    // otherwise indistinguishable from a real app-caused console error; tolerate
-    // exactly as many of those generic messages as we saw non-localhost failures.
-    const GENERIC_RESOURCE_FAIL = /^Failed to load resource: the server responded with a status of \d+/;
-    let toleratedResourceFailures = 0;
-
     page.on('console', m => {
-      if (m.text().startsWith('---')) console.log(m.text());
       if (m.type() === 'error') log.consoleErrors.push(m.text());
       else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
     });
@@ -58,12 +49,9 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     page.on('requestfailed', r => {
       // external federated sources (github.com) may be unreachable in CI — not our bug
       if (r.url().includes('localhost')) log.networkErrors.push(`FAILED ${r.url()} — ${r.failure()?.errorText}`);
-      else toleratedResourceFailures++;
     });
     page.on('response', r => {
-      if (r.status() < 400) return;
-      if (r.url().includes('localhost')) log.networkErrors.push(`${r.status()} ${r.url()}`);
-      else toleratedResourceFailures++;
+      if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
     });
 
     await use(log);
@@ -88,22 +76,13 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
       console.error(`\n[browser diagnostics — "${testInfo.title}"${failed ? ' (test FAILED)' : ''}]\n${JSON.stringify(dump, null, 2)}\n`);
     }
 
-    // Drop up to `toleratedResourceFailures` generic "Failed to load resource"
-    // console messages — each one traces back to a tolerated non-localhost 4xx/5xx
-    // (see the response/requestfailed listeners above), not an app bug.
-    let remainingTolerated = toleratedResourceFailures;
-    const consoleErrors = log.consoleErrors.filter(e => {
-      if (remainingTolerated > 0 && GENERIC_RESOURCE_FAIL.test(e)) { remainingTolerated--; return false; }
-      return true;
-    });
-
     // NO opt-out, NO skip-on-failure. EVERY check runs every time — each is wrapped
     // in try/catch so an early failure never prevents the later checks from running.
     // Their failures are aggregated into ONE error listing every category, so a
     // single test run reports the complete picture rather than the first problem only.
     const checks: Array<[string, string[]]> = [
       ['Vue "Duplicate keys found" warnings', log.consoleWarnings.filter(w => /duplicate key/i.test(w))],
-      ['console errors', consoleErrors],
+      ['console errors', log.consoleErrors],
       ['uncaught page errors', log.pageErrors],
       ['same-origin network failures', log.networkErrors],
     ];

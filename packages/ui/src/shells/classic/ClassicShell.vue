@@ -3,13 +3,14 @@
  * Classic shell — a recreation of the WinISD 0.7.0.950 desktop window (docs/winisd/*.png)
  * over OpenISD's engine and state. NOTHING here forks logic: the chart is the shared
  * GraphPanel (themed white via CSS vars, not forked), the Projects list is a view of
- * state.compare, file I/O reuses useDesignIO (shared with the modern header), and the
+ * the shared GraphPanel, file I/O reuses useDesignIO (shared with the modern header), and the
  * Signal Generator drives the shared toneGenerator. The Driver tab presents WinISD's own
  * field layout, but bound to the same store — presentation differs per skin, logic does not.
  */
 import { ref, computed, watch, onUnmounted } from 'vue';
-import { state, driver, driverErrors, syncedP, curvesData, maxData, pinCompare, driverShort, driverRaw } from '../../store.js';
-import { TABS, buildPlotData } from '../../utils/series.js';
+import { state, driver, driverErrors, syncedP, curvesData, maxData, driverShort, driverRaw } from '../../store.js';
+import { TABS, TAB_META, parseChartTabId, buildPlotData } from '../../utils/series.js';
+import type { ChartTabId } from '../../utils/series.js';
 import { limits } from '../../fields/fieldRegistry.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
@@ -22,11 +23,11 @@ import SkinPicker from '../../components/SkinPicker.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import DriverWhatIfPanel from '../../components/DriverWhatIfPanel.vue';
-import DriverEditorModal from '../../components/DriverEditorModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRWhatIfPanel from '../../components/PRWhatIfPanel.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
+import { editProjectDriver } from '../../composables/useDriverSelection.js';
 
 const { saveProject, importFile, about } = useDesignIO();
 
@@ -61,17 +62,20 @@ const advAirDensity = ref(1.20095);
 // the driver" flow (state.browseOpen), which swaps in a different catalogue driver
 // entirely.
 function startWhatIf() {
-  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
   state.editDriver = true;
 }
 function startEditInfo() {
-  if (!state.driverSource) state.driverSource = { ...driverRaw.value };
-  state.editDriverInfo = true;
+  editProjectDriver();
 }
 
 // The classic skin's default trace colour — matches WinISD's own yellow-green plot line
 // (chart_spl.png) rather than OpenISD's blue. Also drives the Color swatch.
-const WINISD_TRACE = '#c9c900';
+const traceIdx = ref(0);
+const TRACE_PALETTE = ['#c9c900', '#ff0000', '#0000ff', '#00ff00', '#ff00ff', '#00ffff', '#ffffff'];
+const classicTraceColor = computed(() => TRACE_PALETTE[traceIdx.value]);
+function cycleDesignColor() {
+  traceIdx.value = (traceIdx.value + 1) % TRACE_PALETTE.length;
+}
 
 // toolbar file input (import)
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -84,11 +88,14 @@ function onFile(e: Event) {
 }
 
 // chart-type selector drives the single chart — persisted in state.ui so it survives reload
-const chartTab = computed({
-  get: () => state.ui.classicChartTab ?? 'SPL',
-  set: (v: string) => { state.ui.classicChartTab = v; },
+// `state.ui` is persisted as plain strings, so the read side goes through the set's one
+// string→member boundary: a chart id this build no longer declares falls back to the
+// default rather than selecting a chart that cannot be drawn.
+const chartTab = computed<ChartTabId>({
+  get: () => parseChartTabId(state.ui.classicChartTab),
+  set: (v: ChartTabId) => { state.ui.classicChartTab = v; },
 });
-const chartMeta = computed(() => TABS.find(t => t.id === chartTab.value));
+const chartMeta = computed(() => TAB_META[chartTab.value]);
 
 // Project tab rail — also persisted in state.ui
 const PROJECT_TABS = ['Driver', 'Box', 'Passive Radiator', 'Filters', 'Signal', 'Advanced', 'Project'] as const;
@@ -109,12 +116,12 @@ function railLabel(t: string): string { return t === 'Passive Radiator' ? BOX_TY
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
-  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE,
+  curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: classicTraceColor.value,
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
-  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
-    { bare: true, primaryColor: WINISD_TRACE }).value;
+  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, [], driverErrors.value,
+    { bare: true, primaryColor: classicTraceColor.value }).value;
   if (!p || f == null) return null;
   const s = p.series.find(x => !x.phantom);
   if (!s || !s.xs.length) return null;
@@ -128,7 +135,6 @@ const cursorVal = computed<number | null>(() => {
 });
 
 // Projects list = current design + pinned comparisons
-function removeCompare(i: number) { state.compare.splice(i, 1); }
 
 // Signal Generator — real audible tone (shared util, gesture-gated)
 const genOn = ref(false);
@@ -203,12 +209,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           <div class="cl-li sel" :title="'Current design — ' + driverShort(driverRaw)">
             <span class="cl-cbx on">&#10003;</span>{{ driverShort(driverRaw) }}
           </div>
-          <div v-for="(d, i) in state.compare" :key="i" class="cl-li"
-               :title="'Comparison overlay — untick to remove ' + d.name">
-            <span class="cl-cbx on" role="button" tabindex="0" @click="removeCompare(i)" @keydown.enter="removeCompare(i)">&#10003;</span>{{ d.name }}
-          </div>
         </div>
-        <button class="cl-pin" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; and overlays its curves on the graph for comparison" @click="pinCompare">＋ Copy</button>
 
         <div class="cl-heading" style="margin-top:12px">Signal Generator</div>
         <div class="cl-sig">
@@ -223,7 +224,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 
       <div class="cl-tr">
         <div class="cl-heading">Graph</div>
-        <div class="cl-chart"><GraphPanel :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" /></div>
+        <div class="cl-chart"><GraphPanel :tabId="chartTab" :bare="true" :primaryColor="classicTraceColor" /></div>
       </div>
 
       <div class="cl-bl">
@@ -232,14 +233,14 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           <button v-for="t in PROJECT_TABS" :key="t" class="cl-rtab" :class="{ on: projectTab === t }"
                   :title="'Edit the ' + railLabel(t) + ' settings'" @click="projectTab = t">{{ railLabel(t) }}</button>
         </div>
-        <div class="cl-color" title="The current design's curve colour on the graph">
-          <span class="cl-sw" :style="{ background: WINISD_TRACE }"></span>Color
-        </div>
+        <button class="cl-color" title="Cycle design trace colour" @click="cycleDesignColor" style="cursor: pointer; border: 1px solid #990; text-align: center;">
+          <span class="cl-sw" :style="{ background: classicTraceColor }"></span>Color
+        </button>
       </div>
 
       <div class="cl-br">
         <!-- Driver tab — WinISD field layout bound to the shared store. Edit opens
-             the global DriverEditorModal (a real popup, mounted once below); What-If
+             the global DriverEditorModal (a real popup, mounted once in App.vue); What-If
              overlays DriverWhatIfPanel inline so the graph keeps redrawing live. -->
         <div v-if="projectTab === 'Driver'" class="cl-driver">
           <div class="cl-drow">
@@ -371,7 +372,6 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
       </div>
     </div>
 
-    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
   </div>
 </template>
@@ -433,7 +433,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
    sidebar, but in classic's much wider body it stretches the label across empty
    space and blows the select out full-width. Rein it in here (deep, classic-only)
    rather than touching the shared component or style.css, so modern is unaffected.
-   Design rule: .claude/context/ui-rules.md "No stretch-fit fields". */
+   Design rule: .claude/rules/openisd-ui-design.md "No stretch-fit fields". */
 .cl-br :deep(.row) { max-width: 460px; }
 .cl-br :deep(.row label) { flex: none; width: 150px; }
 .cl-br :deep(.row select) { flex: none; width: 200px; }
@@ -471,7 +471,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-drow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px 16px; align-items: end; }
 .cl-fld label { display: block; font-size: 12px; margin-bottom: 2px; color: #333; }
 /* Fields keep their natural WinISD width — never stretch-fit to the grid column
-   (design rule: .claude/context/ui-rules.md "No stretch-fit fields"). Brand/Model
+   (design rule: .claude/rules/openisd-ui-design.md "No stretch-fit fields"). Brand/Model
    are the one WinISD exception that does fill its column. */
 .cl-fld input, .cl-fld select { padding: 3px 7px; border: 1px solid #c4c4c4; border-radius: 2px; font: inherit; background: #fff; }
 .cl-drow .cl-fld input { width: 100%; }

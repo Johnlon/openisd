@@ -65,15 +65,28 @@ export function buildWprInput(
   if (box === 'sealed') {
     input.box.Fr = (driver && sealedFc(driver, P.Vb)) ?? 0;
   } else if (box === 'vented') {
-    input.box.Fr = tuningFromLength(P.Vb, P.ventL, Sp, P.endCorrection);
+    // The solved tuning from the store's vent group, not a recompute from the length. The two
+    // agree whenever the group is determined — but if BOTH Fb and ventL are entered (allowed,
+    // and left alone deliberately), recomputing here would export a tuning that contradicts
+    // the one on screen. `.wpr` has no slot for the entered set, so the exported file is plain
+    // geometry either way; it should at least be the geometry the user is looking at.
+    input.box.Fr = P.Fb;
     input.box.SdRear = Sp;
-    input.ventRear = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection };
+    input.ventRear = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection,
+      // Round port: the area is always derived from the diameter. This is provenance,
+      // not a constant — a slot vent is entered as W×H, i.e. the area IS entered, and
+      // this must become false there rather than silently writing a false flag.
+      crossCalculated: !P.entered.ventCrossArea };
   } else if (box === 'bandpass4') {
     input.box.Fr = (driver && sealedFc(driver, P.Vb)) ?? 0; // rear: sealed, driver's own chamber
     input.box.Vf = P.Vf;
     input.box.Ff = tuningFromLength(P.Vf, P.ventL, Sp, P.endCorrection); // front: vented
     input.box.SdFront = Sp;
-    input.ventFront = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection };
+    input.ventFront = { dia: P.ventD, len: P.ventL, endCorrection: P.endCorrection,
+      // Round port: the area is always derived from the diameter. This is provenance,
+      // not a constant — a slot vent is entered as W×H, i.e. the area IS entered, and
+      // this must become false there rather than silently writing a false flag.
+      crossCalculated: !P.entered.ventCrossArea };
   } else if (box === 'pr') {
     input.box.Fr = prTuning(P);
     input.box.npr = P.prNum;

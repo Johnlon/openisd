@@ -4,6 +4,8 @@ import { defineConfig } from 'vitest/config';
 // engine suite silently isn't discovered. One project per workspace package.
 export default defineConfig({
   test: {
+    // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
+    reporters: ['default', './scripts/test-reporters/no-skips-vitest.ts'],
     projects: [
       {
         test: {

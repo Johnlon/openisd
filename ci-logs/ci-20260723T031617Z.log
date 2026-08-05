@@ -1,0 +1,1122 @@
+  openisd_drivers (OpenIsd drivers): 1904 drivers
+  openisd_drivers (OpenIsd drivers): 76 passive radiators (meta-only)
+
+Bundled 1904 WDR files + 76 passive radiators → packages/ui/src/drivers-bundle.json (1973 KB raw)
+
+> openisd@0.1.0 lint
+> eslint packages/
+
+
+/home/john/work/winisd/openisd/packages/ui/test/driver-search.browser.spec.ts
+  15:6  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+> openisd@0.1.0 typecheck
+> npm run typecheck:engine && npm run typecheck:winisd && npm run typecheck:ui
+
+
+> openisd@0.1.0 typecheck:engine
+> tsc -p packages/engine --noEmit
+
+
+> openisd@0.1.0 typecheck:winisd
+> tsc -p packages/winisd --noEmit
+
+
+> openisd@0.1.0 typecheck:ui
+> vue-tsc -p packages/ui --noEmit
+
+
+> openisd@0.1.0 test
+> npm run test:unit && npx playwright test
+
+
+> openisd@0.1.0 test:unit
+> vitest run
+
+
+ RUN  v3.2.6 /home/john/work/winisd/openisd
+
+ ✓ |ui| test/fieldRegistry.test.ts (6 tests) 243ms
+ ✓ |ui| test/fileSave.test.ts (9 tests) 78ms
+ ✓ |engine| test/complex.test.ts (35 tests) 24ms
+ ✓ |ui| test/wprMapping.test.ts (8 tests) 29ms
+ ✓ |engine| test/added-mass.test.ts (4 tests) 69ms
+ ✓ |winisd| test/driver-class.test.ts (10 tests) 22ms
+ ✓ |winisd| test/driver-json.test.ts (5 tests) 31ms
+ ✓ |winisd| test/driver-roundtrip.test.ts (4 tests) 27ms
+ ✓ |winisd| test/driver-projection.test.ts (8 tests) 40ms
+ ✓ |winisd| test/wdr.test.ts (9 tests) 21ms
+ ✓ |engine| test/sweep.test.ts (10 tests) 81ms
+ ✓ |ui| test/series.test.ts (4 tests) 30ms
+ ✓ |engine| test/engine.test.ts (33 tests) 78ms
+ ✓ |winisd| test/wpr.test.ts (10 tests) 47ms
+ ✓ |engine| test/golden.test.ts (6 tests) 139ms
+ ✓ |ui| test/persist.test.ts (9 tests) 114ms
+ ✓ |ui| test/drivers-bundle.test.ts (8 tests) 28ms
+ ✓ |ui| test/store-filters-reactivity.test.ts (2 tests) 148ms
+ ✓ |engine| test/power-compression.test.ts (2 tests) 184ms
+ ✓ |engine| test/architecture.test.ts (3 tests) 58ms
+ ✓ |ui| test/units.test.ts (7 tests) 66ms
+ ✓ |ui| test/toneGenerator.test.ts (5 tests) 13ms
+ ✓ |ui| test/skins.test.ts (5 tests) 18ms
+ ✓ |engine| test/driver.test.ts (24 tests) 34ms
+ ✓ |engine| test/alignments.test.ts (28 tests) 25ms
+ ✓ |ui| test/config.test.ts (2 tests) 8ms
+ ✓ |engine| test/circuit.test.ts (8 tests) 19ms
+ ✓ |winisd| test/driver-derive.test.ts (7 tests) 17ms
+ ✓ |winisd| test/roundtrip.test.ts (3 tests) 25ms
+ ✓ |engine| test/formulas.test.ts (9 tests) 17ms
+
+ Test Files  30 passed (30)
+      Tests  283 passed (283)
+   Start at  04:16:50
+   Duration  5.97s (transform 8.21s, setup 0ms, collect 24.12s, tests 1.73s, environment 42ms, prepare 17.18s)
+
+
+Running 121 tests using 9 workers
+
+  -    1 packages/ui/test/driver-search.browser.spec.ts:15:6 › driver library search returns only matching drivers (and renders the duplicate-name case)
+  ✓    2 packages/ui/test/micka-crosscheck.browser.spec.ts:44:3 › micka.de: Sealed Butterworth: Fs=37Hz, Qts=0.38, Vas=30L → Qtc=0.707 (3.3s)
+  ✓   11 packages/ui/test/micka-crosscheck.browser.spec.ts:44:3 › micka.de: Vented 30L box, ø5cm×10cm port: Fs=37Hz, Qts=0.38, Vas=30L (3.2s)
+  ✓    3 packages/ui/test/app.browser.spec.ts:8:1 › app shell renders — side panel and graph grid are populated (8.8s)
+  ✓    4 packages/ui/test/modal-escape.browser.spec.ts:6:1 › Escape dismisses the driver library modal (9.3s)
+  ✓    5 packages/ui/test/classic-skin.browser.spec.ts:14:1 › choosing Classic swaps to the WinISD shell (Projects, tab rail, Color) (11.2s)
+  ✓    6 packages/ui/test/original-layout.browser.spec.ts:45:1 › the pin button is named ＋ Clone/Compare (12.7s)
+  ✓    7 packages/ui/test/driver-invalid.browser.spec.ts:16:1 › setting Fs to 0 shows a per-chart error message instead of crashing or blanking (13.3s)
+  ✓   10 packages/ui/test/original-skin.browser.spec.ts:55:1 › choosing Original swaps to the ported WinISD shell (titlebar, projects, graph) (14.8s)
+  ✓   12 packages/ui/test/pr-library.browser.spec.ts:18:1 › Browse-PR popup lists bundled passive radiators and loads one (11.9s)
+  ✓   14 packages/ui/test/modal-escape.browser.spec.ts:15:1 › Escape dismisses the Define Driver modal (9.6s)
+  ✓    9 packages/ui/test/chart-zoom.browser.spec.ts:23:1 › frequency dropdown defaults to 1–20 kHz (20.9s)
+  ✓   15 packages/ui/test/classic-skin.browser.spec.ts:29:1 › the 3rd rail tab label tracks the box type (specialist tab) (10.7s)
+  ✓   17 packages/ui/test/driver-invalid.browser.spec.ts:44:1 › setting Re to 0 (a different required field) also shows the per-chart message (10.3s)
+  ✓   13 packages/ui/test/app.browser.spec.ts:14:1 › in-browser self-test passes all three physics gates (15.5s)
+  ✓   16 packages/ui/test/original-layout.browser.spec.ts:49:1 › project rows are [checkbox] Name only; the Close button under the list removes the SELECTED overlay (11.4s)
+  ✓   18 packages/ui/test/original-skin.browser.spec.ts:62:1 › the toolbar ports the mock icon buttons + chart-select (9.6s)
+  ✓   20 packages/ui/test/modal-escape.browser.spec.ts:26:1 › Escape dismisses the Driver editor modal (8.6s)
+  ✓   19 packages/ui/test/save-export.browser.spec.ts:46:3 › Original skin — Save / Save-As-&-Export › Save prompts the (stubbed) picker and writes a valid OpenISD project JSON (10.7s)
+  ✓    8 packages/ui/test/persistence.browser.spec.ts:8:1 › state persists via one key (openisd.state) and never writes the redundant openisd_v2 (30.4s)
+  ✓   22 packages/ui/test/classic-skin.browser.spec.ts:45:1 › the tab rail switches editors — Driver uses the WinISD layout, Box reuses the shared BoxPanel (10.0s)
+  ✓   23 packages/ui/test/driver-invalid.browser.spec.ts:56:1 › missing Pe drops only the thermal-limit line — Max-SPL chart still draws, and the issue is listed (dismissable) (9.6s)
+  ✓   24 packages/ui/test/app.browser.spec.ts:29:1 › box type change to sealed re-renders enclosure panel (10.3s)
+  ✓   25 packages/ui/test/original-layout.browser.spec.ts:68:1 › the left panel collapses and expands via the splitter toggle (10.4s)
+  ✓   26 packages/ui/test/original-skin.browser.spec.ts:69:1 › the chart-select dropdown switches the shared GraphPanel (10.9s)
+  ✓   21 packages/ui/test/chart-zoom.browser.spec.ts:27:1 › choosing 1–500 Hz narrows the range; charts still render (16.5s)
+  ✓   27 packages/ui/test/modal-escape.browser.spec.ts:38:1 › Escape dismisses the passive-radiator Edit modal (12.0s)
+  ✓   28 packages/ui/test/save-export.browser.spec.ts:57:3 › Original skin — Save / Save-As-&-Export › Save twice reuses the SAME retained handle — only the first click prompts the picker (12.0s)
+  ✓   29 packages/ui/test/visual.browser.spec.ts:77:1 › SPL panel renders correctly for sealed 20L box (11.2s)
+  ✓   32 packages/ui/test/app.browser.spec.ts:34:1 › box type change to vented shows vent controls (9.8s)
+  ✓   30 packages/ui/test/classic-skin.browser.spec.ts:58:1 › the chart-type selector re-renders the shared GraphPanel (12.4s)
+  ✓   31 packages/ui/test/driver-invalid.browser.spec.ts:86:1 › box volume Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition) (10.8s)
+  ✓   33 packages/ui/test/original-layout.browser.spec.ts:76:1 › the left panel resizes by dragging the vertical splitter (12.4s)
+  ✓   34 packages/ui/test/original-skin.browser.spec.ts:77:1 › all seven project tabs render their ported content (11.6s)
+  ✓   36 packages/ui/test/save-export.browser.spec.ts:64:3 › Original skin — Save / Save-As-&-Export › the menu has no separate "Save" toolbar button anymore — Save As lives in the combined menu (9.3s)
+  ✓   37 packages/ui/test/visual.browser.spec.ts:97:1 › SPL panel renders correctly for vented 30L box with ø5cm×10cm port (9.7s)
+
+[browser diagnostics — "SPL panel renders correctly for bandpass4 15L+20L box" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_ABORTED"
+  ]
+}
+
+  ✘   44 packages/ui/test/visual.browser.spec.ts:120:1 › SPL panel renders correctly for bandpass4 15L+20L box (744ms)
+
+[browser diagnostics — "End-correction selector retunes the vent Fb — BoxPanel AND StatBar agree (shared, Modern/Classic)"]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2 — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff2 — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff2 — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff — net::ERR_ABORTED"
+  ]
+}
+
+
+[browser diagnostics — "SPL panel renders correctly for passive radiator 30L box" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_RESET"
+  ]
+}
+
+  ✘   38 packages/ui/test/app.browser.spec.ts:40:1 › End-correction selector retunes the vent Fb — BoxPanel AND StatBar agree (shared, Modern/Classic) (8.9s)
+  ✘   45 packages/ui/test/visual.browser.spec.ts:147:1 › SPL panel renders correctly for passive radiator 30L box (582ms)
+
+[browser diagnostics — "shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   46 packages/ui/test/app.browser.spec.ts:59:1 › shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp) (423ms)
+
+[browser diagnostics — "share link encodes state in URL hash" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   47 packages/ui/test/app.browser.spec.ts:67:1 › share link encodes state in URL hash (389ms)
+
+[browser diagnostics — "sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 and fc=58.5Hz in stat bar" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   48 packages/ui/test/app.browser.spec.ts:141:1 › sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 and fc=58.5Hz in stat bar (464ms)
+
+[browser diagnostics — "sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.707 and fc=68.8Hz" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   49 packages/ui/test/app.browser.spec.ts:166:1 › sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.707 and fc=68.8Hz (487ms)
+
+[browser diagnostics — "vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.9Hz (Helmholtz resonator)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   50 packages/ui/test/app.browser.spec.ts:191:1 › vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.9Hz (Helmholtz resonator) (390ms)
+
+[browser diagnostics — "choosing 1–40 kHz zooms all the way out" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: ",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_RESET"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/src/components/SignalPanel.vue?vue&type=style&index=0&scoped=ceeb8d08&lang.css — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/src/components/DriverDefineModal.vue — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/src/components/PRBrowser.vue — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/src/components/PRDefineModal.vue — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/src/components/GraphToolbar.vue?vue&type=style&index=0&scoped=d59d3f62&lang.css — net::ERR_CONNECTION_RESET"
+  ]
+}
+
+
+[browser diagnostics — "bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows box:bandpass4, Vb:15.0L and peak port velocity" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   35 packages/ui/test/chart-zoom.browser.spec.ts:33:1 › choosing 1–40 kHz zooms all the way out (30.2s)
+  ✘   51 packages/ui/test/app.browser.spec.ts:229:1 › bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows box:bandpass4, Vb:15.0L and peak port velocity (559ms)
+
+[browser diagnostics — "the chosen frequency range persists across reload" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "passive radiator: 30L box, 50g PR, 0.5mm/N Cms — stat bar shows Fp=37.9Hz" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   52 packages/ui/test/chart-zoom.browser.spec.ts:39:1 › the chosen frequency range persists across reload (857ms)
+  ✘   53 packages/ui/test/app.browser.spec.ts:285:1 › passive radiator: 30L box, 50g PR, 0.5mm/N Cms — stat bar shows Fp=37.9Hz (719ms)
+
+[browser diagnostics — "the chosen skin is remembered across a reload (local preference)" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/src/components/PRDefineModal.vue?vue&type=style&index=0&scoped=fa04f37a&lang.css — net::ERR_ABORTED"
+  ]
+}
+
+
+[browser diagnostics — "dragging the X axis changes the frequency range (dropdown shows custom)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/src/components/PRBrowser.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRDefineModal.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/parstate.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverDefineModal.vue?vue&type=style&index=0&scoped=24ba5d42&lang.css — net::ERR_ABORTED"
+  ]
+}
+
+  ✘   39 packages/ui/test/classic-skin.browser.spec.ts:69:1 › the chosen skin is remembered across a reload (local preference) (30.2s)
+
+[browser diagnostics — "Modern skin: clicking a field unit label converts the display; the model stays SI" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   40 packages/ui/test/driver-invalid.browser.spec.ts:107:1 › missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning (30.1s)
+  ✘   54 packages/ui/test/chart-zoom.browser.spec.ts:58:1 › dragging the X axis changes the frequency range (dropdown shows custom) (540ms)
+  ✘   55 packages/ui/test/app.browser.spec.ts:334:1 › Modern skin: clicking a field unit label converts the display; the model stays SI (538ms)
+
+[browser diagnostics — "the bottom section collapses (chart grows) and expands via the splitter toggle" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/src/components/ExportMenu.vue?vue&type=style&index=0&scoped=f233b196&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/OptionsModal.vue?vue&type=style&index=0&scoped=356319b4&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverWhatIfPanel.vue?vue&type=style&index=0&scoped=95b504dc&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverEditorModal.vue?vue&type=style&index=0&scoped=450e75c0&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/wpr.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphToolbar.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/driver.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/filters.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/driver.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/HelpTip.vue?vue&type=style&index=0&scoped=3d46cde4&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgNewProject.vue?vue&type=style&index=0&scoped=d04331c9&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PREditModal.vue?vue&type=style&index=0&scoped=f4d050f9&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphGrid.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/wprMapping.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/sweep.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/NumInput.vue?vue&type=style&index=0&scoped=069bc239&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/alignments.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/canvas.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SignalPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/wdr.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SkinPicker.vue?vue&type=style&index=0&scoped=b5f9d282&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/prLibrary.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/FiltersPanel.vue?vue&type=style&index=0&scoped=b7098c9f&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/complex.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgTune.vue?vue&type=style&index=0&scoped=e25bad18&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/circuit.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgFilters.vue?vue&type=style&index=0&scoped=acd141d3&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRWhatIfPanel.vue?vue&type=style&index=0&scoped=824fe479&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/fileSave.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/BoxPanel.vue?vue&type=style&index=0&scoped=b64ee3f6&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/constants.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/formulas.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphPanel.vue?vue&type=style&index=0&scoped=58e375e6&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/drivers-bundle.json?import — net::ERR_ABORTED"
+  ]
+}
+
+
+[browser diagnostics — "the Box tab exposes all six box types and drives the shared store for supported ones" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/alignments.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphToolbar.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/FiltersPanel.vue?vue&type=style&index=0&scoped=b7098c9f&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/formulas.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/canvas.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgFilters.vue?vue&type=style&index=0&scoped=acd141d3&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/drivers-bundle.json?import — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverBrowser.vue?vue&type=style&index=0&scoped=3275dcd0&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverEditorModal.vue?vue&type=style&index=0&scoped=450e75c0&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/driver.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/flash.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRWhatIfPanel.vue?vue&type=style&index=0&scoped=824fe479&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/circuit.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/index.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PREditModal.vue?vue&type=style&index=0&scoped=f4d050f9&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/ExportMenu.vue?vue&type=style&index=0&scoped=f233b196&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SkinPicker.vue?vue&type=style&index=0&scoped=b5f9d282&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/fields/units.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgTune.vue?vue&type=style&index=0&scoped=e25bad18&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/presets.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/fileSave.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/drivers/sources.json?import — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/filters.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverWhatIfPanel.vue?vue&type=style&index=0&scoped=95b504dc&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/prLibrary.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/NumInput.vue?vue&type=style&index=0&scoped=069bc239&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/types.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/BoxPanel.vue?vue&type=style&index=0&scoped=b64ee3f6&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphGrid.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphPanel.vue?vue&type=style&index=0&scoped=58e375e6&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/complex.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/wprMapping.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgNewProject.vue?vue&type=style&index=0&scoped=d04331c9&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/constants.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/sweep.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/OptionsModal.vue?vue&type=style&index=0&scoped=356319b4&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SignalPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/HelpTip.vue?vue&type=style&index=0&scoped=3d46cde4&lang.css — net::ERR_ABORTED"
+  ]
+}
+
+  ✘   41 packages/ui/test/original-layout.browser.spec.ts:87:1 › the bottom section collapses (chart grows) and expands via the splitter toggle (30.3s)
+  ✘   42 packages/ui/test/original-skin.browser.spec.ts:97:1 › the Box tab exposes all six box types and drives the shared store for supported ones (30.3s)
+
+[browser diagnostics — "Save As... (Save-As/Export menu) always re-prompts the picker, even after a prior Save" (test FAILED)]
+{
+  "consoleErrors": [
+    "WebSocket connection to 'ws://localhost:4100/?token=HeSXXCLfO0Al' failed: "
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/icon.svg?import — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/presets.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/driverType.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/toneGenerator.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgNewProject.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/composables/useEscToClose.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/FiltersPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/skins.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/UnitToggle.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/HelpTip.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/fields/fieldRegistry.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverBrowser.vue?vue&type=style&index=0&scoped=3275dcd0&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverEditorModal.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/OptionsModal.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PREditModal.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@id/__x00__plugin-vue:export-helper — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/composables/useDesignIO.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/StatBar.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgFilters.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/PRWhatIfPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OriginalShell.vue?vue&type=style&index=0&scoped=25cf01a8&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/flash.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/AppHeader.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/index.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/fields/units.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/persist.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/DriverWhatIfPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/classic/ClassicShell.vue?vue&type=style&index=0&scoped=e76da530&lang.css — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SkinPicker.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/drivers-bundle.json?import — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/SidePanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/index.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/NumInput.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/shells/original/OgTune.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/ToolbarIcon.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/selftest.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/GraphArea.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/utils/series.ts — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/BoxPanel.vue — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/drivers/sources.json?import — net::ERR_ABORTED",
+    "FAILED http://localhost:4100/src/components/ExportMenu.vue — net::ERR_ABORTED"
+  ]
+}
+
+  ✘   43 packages/ui/test/save-export.browser.spec.ts:68:3 › Original skin — Save / Save-As-&-Export › Save As... (Save-As/Export menu) always re-prompts the picker, even after a prior Save (30.2s)
+  ✓   56 packages/ui/test/classic-skin.browser.spec.ts:77:1 › Classic skin: Options dialog → "Reset to Metric" reverts a toggled unit (L → cu ft) without touching the model (9.6s)
+  ✓   58 packages/ui/test/app.browser.spec.ts:359:1 › PR panel: WinISD-mode Vas unit toggle (L → cu ft) still derives Cms/Mms correctly (10.5s)
+
+[browser diagnostics — "the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab"]
+{
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "the bottom section resizes by dragging the horizontal splitter"]
+{
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   60 packages/ui/test/original-skin.browser.spec.ts:114:1 › the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab (11.0s)
+  ✘   59 packages/ui/test/original-layout.browser.spec.ts:97:1 › the bottom section resizes by dragging the horizontal splitter (11.4s)
+
+[browser diagnostics — "an externally loaded box type re-syncs the Box tab (no desync while pending)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   63 packages/ui/test/original-skin.browser.spec.ts:129:1 › an externally loaded box type re-syncs the Box tab (no desync while pending) (505ms)
+
+[browser diagnostics — "Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed INI file"]
+{
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_RESET",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff2 — net::ERR_CONNECTION_RESET",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "double-clicking the X axis resets the frequency range to 1–20 kHz"]
+{
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-400-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-greek-700-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2 — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   61 packages/ui/test/save-export.browser.spec.ts:77:3 › Original skin — Save / Save-As-&-Export › Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed INI file (10.5s)
+  ✘   57 packages/ui/test/chart-zoom.browser.spec.ts:66:1 › double-clicking the X axis resets the frequency range to 1–20 kHz (16.6s)
+
+[browser diagnostics — "chart maximise fills the main area, keeps the toolbar, and restores" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   64 packages/ui/test/original-layout.browser.spec.ts:108:1 › chart maximise fills the main area, keeps the toolbar, and restores (654ms)
+
+[browser diagnostics — "the box-losses modal opens from the Box tab and closes" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   65 packages/ui/test/original-skin.browser.spec.ts:146:1 › the box-losses modal opens from the Box tab and closes (592ms)
+
+[browser diagnostics — "Save-As/Export menu → Export driver (.wdr) still downloads a .wdr file (unchanged action)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   66 packages/ui/test/save-export.browser.spec.ts:94:3 › Original skin — Save / Save-As-&-Export › Save-As/Export menu → Export driver (.wdr) still downloads a .wdr file (unchanged action) (517ms)
+
+[browser diagnostics — "dragging the Y axis sets a manual range (panel flagged y-manual)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   67 packages/ui/test/chart-zoom.browser.spec.ts:89:1 › dragging the Y axis sets a manual range (panel flagged y-manual) (562ms)
+
+[browser diagnostics — "hovering the chart draws ONE horizontal level line where the cursor crosses the curve" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   68 packages/ui/test/original-layout.browser.spec.ts:121:1 › hovering the chart draws ONE horizontal level line where the cursor crosses the curve (601ms)
+
+[browser diagnostics — "the Color button cycles the current design trace colour (and wraps)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   69 packages/ui/test/original-skin.browser.spec.ts:155:1 › the Color button cycles the current design trace colour (and wraps) (574ms)
+
+[browser diagnostics — "Save-As/Export menu → Share link (http:) writes the design into the address bar" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   70 packages/ui/test/save-export.browser.spec.ts:103:3 › Original skin — Save / Save-As-&-Export › Save-As/Export menu → Share link (http:) writes the design into the address bar (675ms)
+
+[browser diagnostics — "double-clicking the Y axis resets it to auto" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   71 packages/ui/test/chart-zoom.browser.spec.ts:97:1 › double-clicking the Y axis resets it to auto (638ms)
+
+[browser diagnostics — "a drag-select draws a horizontal level line for BOTH selection cursors" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   72 packages/ui/test/original-layout.browser.spec.ts:129:1 › a drag-select draws a horizontal level line for BOTH selection cursors (573ms)
+
+[browser diagnostics — "the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   73 packages/ui/test/original-skin.browser.spec.ts:166:1 › the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values) (522ms)
+
+[browser diagnostics — "Modern header exposes Save and the combined Save-As/Export menu (no separate Save As button)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   74 packages/ui/test/save-export.browser.spec.ts:112:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Modern header exposes Save and the combined Save-As/Export menu (no separate Save As button) (494ms)
+
+[browser diagnostics — "the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "Modern: Save writes an OpenISD project via the stubbed picker" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   75 packages/ui/test/original-skin.browser.spec.ts:176:1 › the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning (457ms)
+  ✘   76 packages/ui/test/save-export.browser.spec.ts:119:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Modern: Save writes an OpenISD project via the stubbed picker (420ms)
+
+[browser diagnostics — "the Vented pane labels the tuning readout "1st port resonance"" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "Modern: Save-As/Export menu → Save as OpenISD project (.json) prompts the picker" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   77 packages/ui/test/original-skin.browser.spec.ts:187:1 › the Vented pane labels the tuning readout "1st port resonance" (507ms)
+  ✘   78 packages/ui/test/save-export.browser.spec.ts:128:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Modern: Save-As/Export menu → Save as OpenISD project (.json) prompts the picker (459ms)
+
+[browser diagnostics — "the projects checkbox toggles a compare overlay trace visibility (not delete)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "Classic: Save (disk icon) writes an OpenISD project via the stubbed picker" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   79 packages/ui/test/original-skin.browser.spec.ts:194:1 › the projects checkbox toggles a compare overlay trace visibility (not delete) (441ms)
+  ✘   80 packages/ui/test/save-export.browser.spec.ts:138:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Classic: Save (disk icon) writes an OpenISD project via the stubbed picker (445ms)
+
+[browser diagnostics — "a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "Classic: no separate Save As icon — Save-As/Export menu covers it" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   81 packages/ui/test/original-skin.browser.spec.ts:215:1 › a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in) (492ms)
+  ✘   82 packages/ui/test/save-export.browser.spec.ts:148:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Classic: no separate Save As icon — Save-As/Export menu covers it (529ms)
+
+[browser diagnostics — "the Filters tab quick-adds real filter types and drives the store" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "Classic: Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed project" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   83 packages/ui/test/original-skin.browser.spec.ts:224:1 › the Filters tab quick-adds real filter types and drives the store (465ms)
+  ✘   84 packages/ui/test/save-export.browser.spec.ts:155:3 › Modern and Classic skins — Save/Save-As-&-Export are wired identically › Classic: Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed project (413ms)
+
+[browser diagnostics — "the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "opening a share link generated from the Original skin restores Original + its active project tab" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   86 packages/ui/test/save-export.browser.spec.ts:169:3 › Share link carries the sender's skin and active tab (not a generic default) › opening a share link generated from the Original skin restores Original + its active project tab (451ms)
+  ✘   85 packages/ui/test/original-skin.browser.spec.ts:244:1 › the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model) (499ms)
+
+[browser diagnostics — "PR panel summary + StatBar reflect the SAME chosen unit as the entered field (Vb → cu ft)" (test FAILED)]
+{
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/winisd/src/index.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/DriverBrowser.vue?vue&type=style&index=0&scoped=3275dcd0&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/SignalPanel.vue — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/presets.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/drivers-bundle.json?import — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/fields/units.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/DriverPanel.vue — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/GraphToolbar.vue — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/GraphGrid.vue — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/utils/fileSave.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/utils/wprMapping.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/types.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/constants.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/complex.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/driver.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/circuit.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/sweep.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/alignments.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/filters.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/@fs/home/john/work/winisd/openisd/packages/engine/src/formulas.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/ExportMenu.vue?vue&type=style&index=0&scoped=f233b196&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/PRPanel.vue — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/BoxPanel.vue?vue&type=style&index=0&scoped=b64ee3f6&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/SkinPicker.vue?vue&type=style&index=0&scoped=b5f9d282&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/utils/canvas.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/GraphPanel.vue?vue&type=style&index=0&scoped=58e375e6&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/FiltersPanel.vue?vue&type=style&index=0&scoped=b7098c9f&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/DriverWhatIfPanel.vue?vue&type=style&index=0&scoped=95b504dc&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/OptionsModal.vue?vue&type=style&index=0&scoped=356319b4&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/DriverEditorModal.vue?vue&type=style&index=0&scoped=450e75c0&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/utils/prLibrary.ts — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/PREditModal.vue?vue&type=style&index=0&scoped=f4d050f9&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/PRWhatIfPanel.vue?vue&type=style&index=0&scoped=824fe479&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/shells/original/OgFilters.vue?vue&type=style&index=0&scoped=acd141d3&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/NumInput.vue?vue&type=style&index=0&scoped=069bc239&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/shells/original/OgTune.vue?vue&type=style&index=0&scoped=e25bad18&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/shells/original/OgNewProject.vue?vue&type=style&index=0&scoped=d04331c9&lang.css — net::ERR_CONNECTION_REFUSED",
+    "FAILED http://localhost:4100/src/components/HelpTip.vue?vue&type=style&index=0&scoped=3d46cde4&lang.css — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   62 packages/ui/test/app.browser.spec.ts:392:1 › PR panel summary + StatBar reflect the SAME chosen unit as the entered field (Vb → cu ft) (30.1s)
+
+[browser diagnostics — "opening a share link restores the pinned graph marker (cursorF/pinnedF/cursorLocked)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+
+[browser diagnostics — "a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   87 packages/ui/test/save-export.browser.spec.ts:190:3 › Share link carries the sender's skin and active tab (not a generic default) › opening a share link restores the pinned graph marker (cursorF/pinnedF/cursorLocked) (585ms)
+  ✘   88 packages/ui/test/original-skin.browser.spec.ts:269:1 › a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified) (625ms)
+
+[browser diagnostics — "Options dialog → Units → "Reset to Metric" reverts a toggled field without touching the stored design" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   89 packages/ui/test/app.browser.spec.ts:407:1 › Options dialog → Units → "Reset to Metric" reverts a toggled field without touching the stored design (369ms)
+
+[browser diagnostics — "the Tune fields accept multi-character typing (no reformat-while-typing clobber)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   90 packages/ui/test/original-skin.browser.spec.ts:300:1 › the Tune fields accept multi-character typing (no reformat-while-typing clobber) (407ms)
+
+[browser diagnostics — "Options dialog → General → Username persists across a reload (local-only pref)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   91 packages/ui/test/app.browser.spec.ts:434:1 › Options dialog → General → Username persists across a reload (local-only pref) (375ms)
+
+[browser diagnostics — "v-expo-step fields keep clean decimals while spinning (grid-aligned step)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   92 packages/ui/test/original-skin.browser.spec.ts:316:1 › v-expo-step fields keep clean decimals while spinning (grid-aligned step) (459ms)
+
+[browser diagnostics — "Options dialog → Plot Window → Colors: a Background override actually paints the chart canvas" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   93 packages/ui/test/app.browser.spec.ts:445:1 › Options dialog → Plot Window → Colors: a Background override actually paints the chart canvas (485ms)
+
+[browser diagnostics — "NumInput spinner keeps fixed decimal places (no compounding float precision)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   94 packages/ui/test/original-skin.browser.spec.ts:326:1 › NumInput spinner keeps fixed decimal places (no compounding float precision) (518ms)
+
+[browser diagnostics — "Options dialog → Plot Window → Limits: setting SPL Start/End flags the SPL chart as manually-ranged" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   95 packages/ui/test/app.browser.spec.ts:462:1 › Options dialog → Plot Window → Limits: setting SPL Start/End flags the SPL chart as manually-ranged (459ms)
+
+[browser diagnostics — "NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   96 packages/ui/test/original-skin.browser.spec.ts:336:1 › NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp) (354ms)
+
+[browser diagnostics — "class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)" (test FAILED)]
+{
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "networkErrors": [
+    "FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED"
+  ]
+}
+
+  ✘   97 packages/ui/test/original-skin.browser.spec.ts:351:1 › class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types) (300ms)

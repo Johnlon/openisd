@@ -1,0 +1,80 @@
+  openisd_drivers (OpenIsd drivers): 1904 drivers
+  openisd_drivers (OpenIsd drivers): 76 passive radiators (meta-only)
+
+Bundled 1904 WDR files + 76 passive radiators → packages/ui/src/drivers-bundle.json (1973 KB raw)
+
+> openisd@0.1.0 lint
+> eslint packages/
+
+
+/home/john/work/winisd/openisd/packages/ui/test/driver-search.browser.spec.ts
+  15:6  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+> openisd@0.1.0 typecheck
+> npm run typecheck:engine && npm run typecheck:winisd && npm run typecheck:ui
+
+
+> openisd@0.1.0 typecheck:engine
+> tsc -p packages/engine --noEmit
+
+
+> openisd@0.1.0 typecheck:winisd
+> tsc -p packages/winisd --noEmit
+
+
+> openisd@0.1.0 typecheck:ui
+> vue-tsc -p packages/ui --noEmit
+
+
+> openisd@0.1.0 test
+> npm run test:unit && npx playwright test
+
+
+> openisd@0.1.0 test:unit
+> vitest run
+
+
+ RUN  v3.2.6 /home/john/work/winisd/openisd
+
+ ✓ |ui| test/units.test.ts (7 tests) 36ms
+ ✓ |ui| test/fieldRegistry.test.ts (6 tests) 76ms
+ ✓ |ui| test/fileSave.test.ts (9 tests) 59ms
+ ✓ |engine| test/formulas.test.ts (9 tests) 30ms
+ ✓ |engine| test/alignments.test.ts (28 tests) 45ms
+ ✓ |engine| test/power-compression.test.ts (2 tests) 91ms
+ ✓ |engine| test/added-mass.test.ts (4 tests) 100ms
+ ✓ |engine| test/sweep.test.ts (10 tests) 75ms
+ ✓ |engine| test/engine.test.ts (33 tests) 72ms
+ ✓ |engine| test/golden.test.ts (6 tests) 133ms
+ ✓ |winisd| test/driver-json.test.ts (5 tests) 80ms
+ ✓ |winisd| test/driver-projection.test.ts (8 tests) 71ms
+ ✓ |winisd| test/wpr.test.ts (10 tests) 77ms
+ ✓ |winisd| test/wdr.test.ts (9 tests) 111ms
+ ✓ |winisd| test/driver-class.test.ts (10 tests) 187ms
+ ✓ |ui| test/store-filters-reactivity.test.ts (2 tests) 50ms
+ ✓ |ui| test/persist.test.ts (9 tests) 323ms
+ ✓ |ui| test/wprMapping.test.ts (8 tests) 51ms
+ ✓ |engine| test/driver.test.ts (24 tests) 165ms
+ ✓ |ui| test/drivers-bundle.test.ts (8 tests) 63ms
+ ✓ |winisd| test/driver-roundtrip.test.ts (4 tests) 38ms
+ ✓ |engine| test/circuit.test.ts (8 tests) 44ms
+ ✓ |winisd| test/roundtrip.test.ts (3 tests) 22ms
+ ✓ |ui| test/skins.test.ts (5 tests) 37ms
+ ✓ |ui| test/toneGenerator.test.ts (5 tests) 16ms
+ ✓ |ui| test/config.test.ts (2 tests) 16ms
+ ✓ |engine| test/complex.test.ts (35 tests) 41ms
+ ✓ |winisd| test/driver-derive.test.ts (7 tests) 33ms
+ ✓ |engine| test/architecture.test.ts (3 tests) 23ms
+ ✓ |ui| test/series.test.ts (4 tests) 29ms
+
+ Test Files  30 passed (30)
+      Tests  283 passed (283)
+   Start at  04:04:27
+   Duration  6.87s (transform 6.75s, setup 0ms, collect 23.83s, tests 2.20s, environment 36ms, prepare 17.45s)
+
+Error: http://localhost:4100 is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.
+
+ci: exit 1 — log retained at ci-logs/ci-20260723T030319Z.log

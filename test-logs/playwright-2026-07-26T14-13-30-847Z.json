@@ -1,0 +1,358 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/modal-escape.browser.spec.ts",
+      "packages/ui/test/pr-library.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-26T14-13-30-847Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "modal-escape.browser.spec.ts",
+      "file": "modal-escape.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Escape dismisses the driver library modal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6877,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:13:35.424Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6331fa3298ecf32a6c00-301952396408673ff539",
+          "file": "modal-escape.browser.spec.ts",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "Escape dismisses the Define Driver modal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4433,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:13:42.743Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6331fa3298ecf32a6c00-cb476bebed2c65f7b12a",
+          "file": "modal-escape.browser.spec.ts",
+          "line": 15,
+          "column": 1
+        },
+        {
+          "title": "Escape dismisses the Driver editor modal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4906,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:13:47.249Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6331fa3298ecf32a6c00-d501c7de83e75ba19914",
+          "file": "modal-escape.browser.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "Escape dismisses the passive-radiator Edit modal",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5036,
+                  "error": {
+                    "message": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n",
+                    "stack": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/modal-escape.browser.spec.ts:48:53",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/modal-escape.browser.spec.ts",
+                      "column": 53,
+                      "line": 48
+                    },
+                    "snippet": "  46 |   // Click Passive Radiator tab where the PR Edit button is located\n  47 |   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();\n> 48 |   await page.locator('button', { hasText: 'Edit' }).click();\n     |                                                     ^\n  49 |   const heading = page.getByRole('heading', { name: /Edit passive radiator/ });\n  50 |   await expect(heading).toBeVisible();\n  51 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/modal-escape.browser.spec.ts",
+                        "column": 53,
+                        "line": 48
+                      },
+                      "message": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n\n\n  46 |   // Click Passive Radiator tab where the PR Edit button is located\n  47 |   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();\n> 48 |   await page.locator('button', { hasText: 'Edit' }).click();\n     |                                                     ^\n  49 |   const heading = page.getByRole('heading', { name: /Edit passive radiator/ });\n  50 |   await expect(heading).toBeVisible();\n  51 |\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/modal-escape.browser.spec.ts:48:53\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Escape dismisses the passive-radiator Edit modal\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:13:52.207Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/modal-escape.browser-Escap-2f5f0-passive-radiator-Edit-modal/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/modal-escape.browser-Escap-2f5f0-passive-radiator-Edit-modal/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/modal-escape.browser.spec.ts",
+                    "column": 53,
+                    "line": 48
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6331fa3298ecf32a6c00-c684a136e3ad0cd99fc2",
+          "file": "modal-escape.browser.spec.ts",
+          "line": 40,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "pr-library.browser.spec.ts",
+      "file": "pr-library.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Browse-PR popup lists bundled passive radiators and loads one",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 7007,
+                  "error": {
+                    "message": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n",
+                    "stack": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n\n    at openPrEditor (/home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts:14:53)\n    at /home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts:19:3",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts",
+                      "column": 53,
+                      "line": 14
+                    },
+                    "snippet": "  12 |   await page.locator('select#og-box-type').selectOption('pr');\n  13 |   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();\n> 14 |   await page.locator('button', { hasText: 'Edit' }).click();\n     |                                                     ^\n  15 |   await expect(page.getByRole('heading', { name: /Edit passive radiator/ })).toBeVisible();\n  16 | }\n  17 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts",
+                        "column": 53,
+                        "line": 14
+                      },
+                      "message": "Error: locator.click: Error: strict mode violation: locator('button').filter({ hasText: 'Edit' }) resolved to 2 elements:\n    1) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Full editor for this driver in the current project.\">✎ Edit</button> aka getByTitle('Full editor for this driver')\n    2) <button class=\"edit-btn\" data-v-25cf01a8=\"\" title=\"Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax.\">✎ Edit</button> aka getByRole('button', { name: '✎ Edit' })\n\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Edit' })\u001b[22m\n\n\n  12 |   await page.locator('select#og-box-type').selectOption('pr');\n  13 |   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();\n> 14 |   await page.locator('button', { hasText: 'Edit' }).click();\n     |                                                     ^\n  15 |   await expect(page.getByRole('heading', { name: /Edit passive radiator/ })).toBeVisible();\n  16 | }\n  17 |\n\u001b[2m    at openPrEditor (/home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts:14:53)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts:19:3\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Browse-PR popup lists bundled passive radiators and loads one\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-26T14:13:35.287Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/pr-library.browser-Browse--8a267-ive-radiators-and-loads-one/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/pr-library.browser-Browse--8a267-ive-radiators-and-loads-one/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/pr-library.browser.spec.ts",
+                    "column": 53,
+                    "line": 14
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "0c1d199c60ff4267cdbf-fe8d71281acf08b564c0",
+          "file": "pr-library.browser.spec.ts",
+          "line": 18,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-26T14:13:30.875Z",
+    "duration": 26804.709,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

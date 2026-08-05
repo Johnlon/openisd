@@ -1,5 +1,11 @@
 # WinISD Driver Archive
 
+**Not loaded into the app (2026-07-31, human decision).** Removed from `drivers/sources.json`
+— reference material only, not an active driver source. This README already said "do not use
+for new designs" below while the app was still bundling and showing all 1121 of these in the
+driver picker; that inconsistency is what this fixes. Browse the files directly if you need
+one — do not re-add this entry to `sources.json` without checking with the human first.
+
 This directory contains 1121 driver files extracted from the WinISD v7 distribution — these drivers are from **circa 2006 or earlier and are obsolete**.
 
 ## Why this folder exists

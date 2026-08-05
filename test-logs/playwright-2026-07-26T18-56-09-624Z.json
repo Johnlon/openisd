@@ -1,0 +1,400 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/project-switching.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-26T18-56-09-624Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "project-switching.browser.spec.ts",
+      "file": "project-switching.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Project switching on original skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 48,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[original] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5643,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:84:29",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 29,
+                          "line": 84
+                        },
+                        "snippet": "  82 |       const onBeta = await active(page);\n  83 |       expect(onBeta.name).toBe('Beta');\n> 84 |       expect(onBeta.driver).toBe('Beta driver');\n     |                             ^\n  85 |       expect(onBeta.fs).toBe(55);\n  86 |       expect(onBeta.box).toBe('sealed');\n  87 |     });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 29,
+                            "line": 84
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n\n  82 |       const onBeta = await active(page);\n  83 |       expect(onBeta.name).toBe('Beta');\n> 84 |       expect(onBeta.driver).toBe('Beta driver');\n     |                             ^\n  85 |       expect(onBeta.fs).toBe(55);\n  86 |       expect(onBeta.box).toBe('sealed');\n  87 |     });\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:84:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:12.097Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 29,
+                        "line": 84
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-857f20b3bd37e21831c7",
+              "file": "project-switching.browser.spec.ts",
+              "line": 52,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5276,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:21.058Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-37c2a0f4cfe6ac2162aa",
+              "file": "project-switching.browser.spec.ts",
+              "line": 89,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is unsaved — it is flagged modified in the list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4416,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:26.606Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-7bf090e2295c0d9c772d",
+              "file": "project-switching.browser.spec.ts",
+              "line": 118,
+              "column": 5
+            }
+          ]
+        },
+        {
+          "title": "Project switching on modern skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 48,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[modern] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5128,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:84:29",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 29,
+                          "line": 84
+                        },
+                        "snippet": "  82 |       const onBeta = await active(page);\n  83 |       expect(onBeta.name).toBe('Beta');\n> 84 |       expect(onBeta.driver).toBe('Beta driver');\n     |                             ^\n  85 |       expect(onBeta.fs).toBe(55);\n  86 |       expect(onBeta.box).toBe('sealed');\n  87 |     });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 29,
+                            "line": 84
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Beta driver\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n\n  82 |       const onBeta = await active(page);\n  83 |       expect(onBeta.name).toBe('Beta');\n> 84 |       expect(onBeta.driver).toBe('Beta driver');\n     |                             ^\n  85 |       expect(onBeta.fs).toBe(55);\n  86 |       expect(onBeta.box).toBe('sealed');\n  87 |     });\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:84:29\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:31.075Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 29,
+                        "line": 84
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-47935ea92f1a69f1bf7f",
+              "file": "project-switching.browser.spec.ts",
+              "line": 52,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5131,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:38.591Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-82988fa6ea97662e1e1a",
+              "file": "project-switching.browser.spec.ts",
+              "line": 89,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is unsaved — it is flagged modified in the list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4268,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:56:44.011Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-779c688cb417c4d3cbb5",
+              "file": "project-switching.browser.spec.ts",
+              "line": 118,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-26T18:56:09.637Z",
+    "duration": 38817.737,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

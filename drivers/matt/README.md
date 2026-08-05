@@ -1,5 +1,10 @@
 # Matt (mtg90) driver collection
 
+**Not loaded into the app (2026-07-31, human decision).** Removed from `drivers/sources.json`
+— interesting reference material, not an active driver source for the app. Browse the files
+directly if you need one — do not re-add this entry to `sources.json` without checking with
+the human first.
+
 Contributor: Matt, known as mtg90 on AVS Forum
 Source: https://www.avsforum.com/threads/common-sub-driver-winisd-files.2928258/
 
@@ -17,7 +22,6 @@ These are real measured T/S parameters, not manufacturer spec-sheet data. Varian
 
 - **Keep it in the filename** — it is the contributor's original file name and must not be changed.
 - **Do not carry it into `Brand=` or `Model=`** — strip `WT3 ` from those fields.
-- Every WT3 file has a `openisd.yml` recording this provenance for display in the UI.
 
 ---
 

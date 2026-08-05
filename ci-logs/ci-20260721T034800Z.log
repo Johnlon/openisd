@@ -1,0 +1,152 @@
+
+> openisd@0.1.0 lint
+> eslint packages/
+
+
+/home/john/work/winisd/openisd/packages/ui/test/driver-search.browser.spec.ts
+  15:6  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+> openisd@0.1.0 typecheck
+> npm run typecheck:engine && npm run typecheck:winisd && npm run typecheck:ui
+
+
+> openisd@0.1.0 typecheck:engine
+> tsc -p packages/engine --noEmit
+
+
+> openisd@0.1.0 typecheck:winisd
+> tsc -p packages/winisd --noEmit
+
+
+> openisd@0.1.0 typecheck:ui
+> vue-tsc -p packages/ui --noEmit
+
+
+> openisd@0.1.0 test
+> npm run test:unit && npx playwright test
+
+
+> openisd@0.1.0 test:unit
+> vitest run
+
+
+ RUN  v3.2.6 /home/john/work/winisd/openisd
+
+ ✓ |ui| test/fieldRegistry.test.ts (6 tests) 29ms
+ ✓ |engine| test/power-compression.test.ts (2 tests) 30ms
+ ✓ |engine| test/circuit.test.ts (8 tests) 21ms
+ ✓ |engine| test/added-mass.test.ts (4 tests) 47ms
+ ✓ |engine| test/alignments.test.ts (23 tests) 19ms
+ ✓ |engine| test/driver.test.ts (24 tests) 22ms
+ ✓ |engine| test/engine.test.ts (33 tests) 31ms
+ ✓ |engine| test/complex.test.ts (35 tests) 27ms
+ ✓ |engine| test/sweep.test.ts (10 tests) 52ms
+ ✓ |engine| test/golden.test.ts (6 tests) 79ms
+ ✓ |winisd| test/driver-roundtrip.test.ts (4 tests) 14ms
+ ✓ |winisd| test/driver-projection.test.ts (8 tests) 20ms
+ ✓ |winisd| test/wdr.test.ts (9 tests) 14ms
+ ✓ |winisd| test/driver-class.test.ts (10 tests) 19ms
+ ✓ |winisd| test/driver-json.test.ts (5 tests) 43ms
+ ✓ |ui| test/persist.test.ts (6 tests) 18ms
+ ✓ |ui| test/store-filters-reactivity.test.ts (2 tests) 85ms
+ ✓ |winisd| test/driver-derive.test.ts (7 tests) 55ms
+ ✓ |ui| test/drivers-bundle.test.ts (8 tests) 11ms
+ ✓ |ui| test/skins.test.ts (5 tests) 9ms
+ ✓ |ui| test/toneGenerator.test.ts (5 tests) 8ms
+ ✓ |engine| test/architecture.test.ts (3 tests) 10ms
+ ✓ |ui| test/config.test.ts (2 tests) 5ms
+ ✓ |engine| test/formulas.test.ts (9 tests) 9ms
+ ✓ |winisd| test/roundtrip.test.ts (3 tests) 11ms
+
+ Test Files  25 passed (25)
+      Tests  237 passed (237)
+   Start at  04:48:24
+   Duration  3.36s (transform 3.12s, setup 0ms, collect 10.57s, tests 689ms, environment 17ms, prepare 7.56s)
+
+
+Running 77 tests using 9 workers
+
+  -   1 packages/ui/test/driver-search.browser.spec.ts:15:6 › driver library search returns only matching drivers (and renders the duplicate-name case)
+  ✓   2 packages/ui/test/modal-escape.browser.spec.ts:6:1 › Escape dismisses the driver library modal (2.7s)
+  ✓   7 packages/ui/test/classic-skin.browser.spec.ts:14:1 › choosing Classic swaps to the WinISD shell (Projects, tab rail, Color) (2.7s)
+  ✓   4 packages/ui/test/micka-crosscheck.browser.spec.ts:44:3 › micka.de: Sealed Butterworth: Fs=37Hz, Qts=0.38, Vas=30L → Qtc=0.707 (3.4s)
+  ✓   5 packages/ui/test/driver-invalid.browser.spec.ts:16:1 › setting Fs to 0 shows a per-chart error message instead of crashing or blanking (3.3s)
+  ✓   6 packages/ui/test/pr-library.browser.spec.ts:18:1 › Browse-PR popup lists bundled passive radiators and loads one (3.3s)
+  ✓  10 packages/ui/test/app.browser.spec.ts:8:1 › app shell renders — side panel and graph grid are populated (2.5s)
+  ✓   9 packages/ui/test/original-skin.browser.spec.ts:55:1 › choosing Original swaps to the ported WinISD shell (titlebar, projects, graph) (2.7s)
+  ✓  11 packages/ui/test/modal-escape.browser.spec.ts:15:1 › Escape dismisses the Define Driver modal (1.7s)
+  ✓   8 packages/ui/test/chart-zoom.browser.spec.ts:23:1 › frequency dropdown defaults to 1–20 kHz (3.9s)
+  ✓  14 packages/ui/test/driver-invalid.browser.spec.ts:44:1 › setting Re to 0 (a different required field) also shows the per-chart message (1.8s)
+  ✓  12 packages/ui/test/classic-skin.browser.spec.ts:29:1 › the 3rd rail tab label tracks the box type (specialist tab) (2.1s)
+  ✓   3 packages/ui/test/persistence.browser.spec.ts:8:1 › state persists via one key (openisd.state) and never writes the redundant openisd_v2 (6.0s)
+  ✓  17 packages/ui/test/original-skin.browser.spec.ts:62:1 › the toolbar ports the mock icon buttons + chart-select (2.2s)
+  ✓  15 packages/ui/test/visual.browser.spec.ts:77:1 › SPL panel renders correctly for sealed 20L box (2.9s)
+  ✓  13 packages/ui/test/micka-crosscheck.browser.spec.ts:44:3 › micka.de: Vented 30L box, ø5cm×10cm port: Fs=37Hz, Qts=0.38, Vas=30L (3.2s)
+  ✓  18 packages/ui/test/modal-escape.browser.spec.ts:26:1 › Escape dismisses the Driver editor modal (2.2s)
+  ✓  16 packages/ui/test/app.browser.spec.ts:14:1 › in-browser self-test passes all three physics gates (3.1s)
+  ✓  21 packages/ui/test/classic-skin.browser.spec.ts:45:1 › the tab rail switches editors — Driver uses the WinISD layout, Box reuses the shared BoxPanel (2.0s)
+  ✓  20 packages/ui/test/driver-invalid.browser.spec.ts:56:1 › missing Pe drops only the thermal-limit line — Max-SPL chart still draws, and the issue is listed (dismissable) (2.1s)
+  ✓  19 packages/ui/test/chart-zoom.browser.spec.ts:27:1 › choosing 1–500 Hz narrows the range; charts still render (2.9s)
+  ✓  22 packages/ui/test/original-skin.browser.spec.ts:68:1 › the chart-select dropdown switches the shared GraphPanel (1.8s)
+  ✓  25 packages/ui/test/app.browser.spec.ts:29:1 › box type change to sealed re-renders enclosure panel (1.8s)
+  ✓  24 packages/ui/test/modal-escape.browser.spec.ts:38:1 › Escape dismisses the passive-radiator Edit modal (2.1s)
+  ✓  26 packages/ui/test/classic-skin.browser.spec.ts:58:1 › the chart-type selector re-renders the shared GraphPanel (1.6s)
+  ✓  23 packages/ui/test/visual.browser.spec.ts:97:1 › SPL panel renders correctly for vented 30L box with ø5cm×10cm port (2.6s)
+  ✓  27 packages/ui/test/driver-invalid.browser.spec.ts:86:1 › box volume Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition) (2.0s)
+  ✓  30 packages/ui/test/app.browser.spec.ts:34:1 › box type change to vented shows vent controls (1.4s)
+  ✓  28 packages/ui/test/chart-zoom.browser.spec.ts:33:1 › choosing 1–40 kHz zooms all the way out (2.7s)
+  ✓  29 packages/ui/test/original-skin.browser.spec.ts:76:1 › all seven project tabs render their ported content (2.4s)
+  ✓  33 packages/ui/test/driver-invalid.browser.spec.ts:107:1 › missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning (1.8s)
+  ✓  31 packages/ui/test/classic-skin.browser.spec.ts:69:1 › the chosen skin is remembered across a reload (local preference) (2.3s)
+  ✓  34 packages/ui/test/app.browser.spec.ts:40:1 › shared BoxPanel reads decimal places from the field registry (vent diameter = 2 dp) (1.4s)
+  ✓  32 packages/ui/test/visual.browser.spec.ts:120:1 › SPL panel renders correctly for bandpass4 15L+20L box (2.6s)
+  ✓  36 packages/ui/test/original-skin.browser.spec.ts:96:1 › the Box tab exposes all six box types and drives the shared store for supported ones (1.7s)
+  ✓  37 packages/ui/test/app.browser.spec.ts:48:1 › share link encodes state in URL hash (1.1s)
+  ✓  35 packages/ui/test/chart-zoom.browser.spec.ts:39:1 › the chosen frequency range persists across reload (2.3s)
+  ✓  39 packages/ui/test/original-skin.browser.spec.ts:113:1 › the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab (1.4s)
+  ✓  38 packages/ui/test/visual.browser.spec.ts:147:1 › SPL panel renders correctly for passive radiator 30L box (2.0s)
+  ✓  40 packages/ui/test/app.browser.spec.ts:121:1 › sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 and fc=58.5Hz in stat bar (1.6s)
+  ✓  41 packages/ui/test/chart-zoom.browser.spec.ts:58:1 › dragging the X axis changes the frequency range (dropdown shows custom) (2.1s)
+  ✓  42 packages/ui/test/original-skin.browser.spec.ts:128:1 › an externally loaded box type re-syncs the Box tab (no desync while pending) (1.4s)
+  ✓  43 packages/ui/test/app.browser.spec.ts:146:1 › sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.707 and fc=68.8Hz (1.8s)
+  ✓  45 packages/ui/test/original-skin.browser.spec.ts:145:1 › the box-losses modal opens from the Box tab and closes (1.6s)
+  ✓  44 packages/ui/test/chart-zoom.browser.spec.ts:66:1 › double-clicking the X axis resets the frequency range to 1–20 kHz (2.2s)
+  ✓  46 packages/ui/test/app.browser.spec.ts:171:1 › vented box: 30L box with 5cm bore, 10cm port tunes to Fb=37.9Hz (Helmholtz resonator) (1.4s)
+  ✓  47 packages/ui/test/original-skin.browser.spec.ts:154:1 › the Color button cycles the current design trace colour (and wraps) (2.0s)
+  ✓  48 packages/ui/test/chart-zoom.browser.spec.ts:89:1 › dragging the Y axis sets a manual range (panel flagged y-manual) (2.0s)
+  ✓  49 packages/ui/test/app.browser.spec.ts:209:1 › bandpass4 box: 15L rear + 20L front + ø5cm×10cm port — stat bar shows box:bandpass4, Vb:15.0L and peak port velocity (2.1s)
+  ✓  50 packages/ui/test/original-skin.browser.spec.ts:165:1 › the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values) (1.3s)
+  ✓  51 packages/ui/test/chart-zoom.browser.spec.ts:97:1 › double-clicking the Y axis resets it to auto (1.7s)
+  ✓  53 packages/ui/test/original-skin.browser.spec.ts:175:1 › the Vented pane labels the tuning readout "1st port resonance" (1.3s)
+  ✓  52 packages/ui/test/app.browser.spec.ts:265:1 › passive radiator: 30L box, 50g PR, 0.5mm/N Cms — stat bar shows Fp=37.9Hz (1.7s)
+  ✓  54 packages/ui/test/original-skin.browser.spec.ts:182:1 › the projects checkbox toggles a compare overlay trace visibility (not delete) (1.3s)
+  ✓  55 packages/ui/test/original-skin.browser.spec.ts:203:1 › a compare overlay can be removed with its ✕ button (1.1s)
+  ✓  56 packages/ui/test/original-skin.browser.spec.ts:211:1 › the Filters tab quick-adds real filter types and drives the store (1.3s)
+  ✓  57 packages/ui/test/original-skin.browser.spec.ts:231:1 › the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model) (1.3s)
+  ✓  58 packages/ui/test/original-skin.browser.spec.ts:256:1 › a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified) (1.9s)
+  ✓  59 packages/ui/test/original-skin.browser.spec.ts:287:1 › the Tune fields accept multi-character typing (no reformat-while-typing clobber) (1.3s)
+  ✓  60 packages/ui/test/original-skin.browser.spec.ts:303:1 › v-expo-step fields keep clean decimals while spinning (grid-aligned step) (1.3s)
+  ✓  61 packages/ui/test/original-skin.browser.spec.ts:313:1 › NumInput spinner keeps fixed decimal places (no compounding float precision) (1.4s)
+  ✓  62 packages/ui/test/original-skin.browser.spec.ts:323:1 › NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp) (1.2s)
+  ✓  63 packages/ui/test/original-skin.browser.spec.ts:338:1 › class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types) (40.0s)
+  ✓  64 packages/ui/test/original-skin.browser.spec.ts:366:1 › Original save bar is no taller than its buttons (compact legend) (1.2s)
+  ✓  65 packages/ui/test/original-skin.browser.spec.ts:377:1 › Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm) (1.2s)
+  ✓  66 packages/ui/test/original-skin.browser.spec.ts:383:1 › Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re) (1.3s)
+  ✓  67 packages/ui/test/original-skin.browser.spec.ts:402:1 › Original skin buttons have readable dark text on their light fill (1.2s)
+  ✓  68 packages/ui/test/original-skin.browser.spec.ts:413:1 › New Project collects the project name first and shows it in the titlebar (1.6s)
+  ✓  69 packages/ui/test/original-skin.browser.spec.ts:432:1 › New Project starts fresh — it discards the previous design (filters, compare, params) (2.0s)
+  ✓  70 packages/ui/test/original-skin.browser.spec.ts:464:1 › the New Project wizard sets box type + volume then opens the driver picker (1.6s)
+  ✓  71 packages/ui/test/original-skin.browser.spec.ts:485:1 › Original toolbar: Copy share link writes the design into the address bar (1.1s)
+  ✓  72 packages/ui/test/original-skin.browser.spec.ts:492:1 › the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified) (1.7s)
+  ✓  73 packages/ui/test/original-skin.browser.spec.ts:516:1 › the chosen skin is remembered across a reload (local preference) (1.4s)
+  ✓  74 packages/ui/test/original-skin.browser.spec.ts:521:1 › Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp) (1.3s)
+  ✓  75 packages/ui/test/original-skin.browser.spec.ts:537:1 › R1: an open Driver Editor is reopened after a reload (1.8s)
+  ✓  76 packages/ui/test/original-skin.browser.spec.ts:551:1 › R1: an open Tune with uncommitted what-if values is preserved across a reload (2.3s)
+  ✓  77 packages/ui/test/original-skin.browser.spec.ts:572:1 › R1 refresh fidelity: box type, active tab, and selected chart survive a reload (2.2s)
+
+  1 skipped
+  76 passed (1.8m)
+ci: exit 0 — log retained at ci-logs/ci-20260721T034800Z.log

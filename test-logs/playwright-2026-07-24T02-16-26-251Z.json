@@ -1,0 +1,193 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/original-skin.browser.spec.ts",
+      "-g",
+      "reverts a toggled unit"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T02-16-26-251Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5220,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:874:20",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 20,
+                      "line": 874
+                    },
+                    "snippet": "  872 |   });\n  873 |   const siBefore = await readMadd();\n> 874 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  875 |\n  876 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  877 |   await expect(page.locator('.opt-modal')).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 20,
+                        "line": 874
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n\n  872 |   });\n  873 |   const siBefore = await readMadd();\n> 874 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  875 |\n  876 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  877 |   await expect(page.locator('.opt-modal')).toBeVisible();\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:874:20\u001b[22m"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "INITIAL UNIT: g\n"
+                    },
+                    {
+                      "text": "INITIAL VALUE: 0.0000\n"
+                    },
+                    {
+                      "text": "PAGE CONSOLE: NumInput Emit: 0.075\n"
+                    },
+                    {
+                      "text": "VALUE AFTER FILL: 75.0000\n"
+                    },
+                    {
+                      "text": "PAGE CONSOLE: NumInput Emit: 0.075\n"
+                    },
+                    {
+                      "text": "VALUE AFTER CLICK TO KG: 0.0750\n"
+                    },
+                    {
+                      "text": "PAGE CONSOLE: STORE STATE.P inside evaluate: {\"Vb\":0.03,\"Vf\":0.015,\"ventD\":0.05,\"ventL\":0.1,\"Ql\":10,\"Qa\":100,\"Qp\":100,\"nDrivers\":1,\"wiring\":\"parallel\",\"Pin\":1,\"Rs\":0.1,\"prName\":\"Custom PR\",\"prSd\":0.0133,\"prNum\":1,\"prMmd\":0.01,\"prMadd\":0,\"prCms\":0.0008,\"prRms\":1,\"prXmax\":0.012,\"prMode\":\"winisd\",\"fmin\":1,\"fmax\":20000,\"N\":400,\"circuitModel\":\"winisd\",\"filters\":[],\"vcTempRise\":0,\"alfaVC\":0.0039,\"driverAddedMass\":0,\"endCorrection\":0.732,\"rgAtDriverSide\":true,\"tlPortModel\":false,\"forceFlatResponse\":false,\"splXmaxLimited\":false}\n"
+                    }
+                  ],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:16:27.895Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 20,
+                    "line": 874
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-033822eb2532ba5b03d3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 845,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T02:16:26.259Z",
+    "duration": 7218.4929999999995,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

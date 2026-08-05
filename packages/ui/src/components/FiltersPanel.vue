@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { state } from '../store.js';
-import { limits } from '../fields/fieldRegistry.js';
 import type { FilterType } from '@openisd/engine';
 
 const defaults: Record<FilterType, Record<string, number>> = {
@@ -8,6 +7,8 @@ const defaults: Record<FilterType, Record<string, number>> = {
   lowpass:  { fc: 200, Q: 0.7071 },
   linkwitz: { f0: 50,  Q0: 0.7, fp: 20, Qp: 0.5 },
   peaking:  { fc: 300, Q: 1.0, gain: -6 },
+  lowshelf:  { fc: 150,  Q: 0.7071, gain: 6 },
+  highshelf: { fc: 2000, Q: 0.7071, gain: 6 },
 };
 
 function addFilter(type: FilterType) {
@@ -33,10 +34,10 @@ function num(v: number | undefined, dec: number): number | undefined { return (v
           <input type="checkbox" v-model="flt.enabled" title="Toggle this high-pass filter on/off — bypassed when unchecked, frequencies below cutoff roll through">
           <span class="flt-tag">HP</span>
           <span class="fp">fc</span>
-          <input v-expo-step type="number" v-limits step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
           <span class="fu">Hz</span>
           <span class="fp">Q</span>
-          <input v-expo-step type="number" v-limits step="0.01" min="0.1" :value="num(flt.Q,4)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q,4)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi">
           <button class="fdel" @click="removeFilter(i)" title="Remove this high-pass filter from the chain — low-frequency rolloff will no longer be applied">×</button>
         </div>
       </template>
@@ -47,10 +48,10 @@ function num(v: number | undefined, dec: number): number | undefined { return (v
           <input type="checkbox" v-model="flt.enabled" title="Toggle this low-pass filter on/off — bypassed when unchecked, frequencies above cutoff roll through">
           <span class="flt-tag">LP</span>
           <span class="fp">fc</span>
-          <input v-expo-step type="number" v-limits step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
           <span class="fu">Hz</span>
           <span class="fp">Q</span>
-          <input v-expo-step type="number" v-limits step="0.01" min="0.1" :value="num(flt.Q,4)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q,4)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi">
           <button class="fdel" @click="removeFilter(i)" title="Remove this low-pass filter from the chain — high-frequency rolloff will no longer be applied">×</button>
         </div>
       </template>
@@ -61,20 +62,20 @@ function num(v: number | undefined, dec: number): number | undefined { return (v
           <input type="checkbox" v-model="flt.enabled" title="Toggle this Linkwitz transform on/off — bypassed when unchecked, bass extension will not be applied">
           <span class="flt-tag">LT</span>
           <span class="fp">f₀</span>
-          <input v-expo-step type="number" v-limits step="1" min="1" :value="num(flt.f0,1)" @input="e=>flt.f0=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="1" min="1" :value="num(flt.f0,1)" @input="e=>flt.f0=+(e.target as HTMLInputElement).value" class="fi">
           <span class="fu">Hz</span>
           <span class="fp">Q₀</span>
-          <input v-expo-step type="number" v-limits step="0.01" min="0.1" :value="num(flt.Q0,3)" @input="e=>flt.Q0=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q0,3)" @input="e=>flt.Q0=+(e.target as HTMLInputElement).value" class="fi">
           <button class="fdel" @click="removeFilter(i)" title="Remove this Linkwitz transform from the chain — active bass extension will no longer be applied">×</button>
         </div>
         <div class="flt-row flt-sub">
           <span style="width:20px"></span>
           <span class="flt-tag" style="color:var(--mut)">→</span>
           <span class="fp">fp</span>
-          <input v-expo-step type="number" v-limits step="1" min="1" :value="num(flt.fp,1)" @input="e=>flt.fp=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="1" min="1" :value="num(flt.fp,1)" @input="e=>flt.fp=+(e.target as HTMLInputElement).value" class="fi">
           <span class="fu">Hz</span>
           <span class="fp">Qp</span>
-          <input v-expo-step type="number" v-limits step="0.01" min="0.1" :value="num(flt.Qp,3)" @input="e=>flt.Qp=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Qp,3)" @input="e=>flt.Qp=+(e.target as HTMLInputElement).value" class="fi">
         </div>
       </template>
 
@@ -84,14 +85,48 @@ function num(v: number | undefined, dec: number): number | undefined { return (v
           <input type="checkbox" v-model="flt.enabled" title="Toggle this parametric EQ band on/off — bypassed when unchecked, boost/cut will not be applied">
           <span class="flt-tag">PEQ</span>
           <span class="fp">fc</span>
-          <input v-expo-step type="number" v-limits step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
+          <input type="number" step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
           <span class="fu">Hz</span>
           <span class="fp">Q</span>
-          <input v-expo-step type="number" v-limits step="0.01" min="0.1" :value="num(flt.Q,3)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi2">
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q,3)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi2">
           <span class="fp">G</span>
-          <input type="number" step="0.5" v-limits="limits('filterGain')" :value="num(flt.gain,1)" @input="e=>flt.gain=+(e.target as HTMLInputElement).value" class="fi2">
+          <input type="number" step="0.5" :value="num(flt.gain,1)" @input="e=>flt.gain=+(e.target as HTMLInputElement).value" class="fi2">
           <span class="fu">dB</span>
           <button class="fdel" @click="removeFilter(i)" title="Remove this parametric EQ band from the chain — the boost/cut at this frequency will no longer be applied">×</button>
+        </div>
+      </template>
+
+      <!-- Low-shelf -->
+      <template v-else-if="flt.type === 'lowshelf'">
+        <div class="flt-row">
+          <input type="checkbox" v-model="flt.enabled" title="Toggle this low-shelf filter on/off — bypassed when unchecked, shelving boost/cut will not be applied">
+          <span class="flt-tag">LS</span>
+          <span class="fp">fc</span>
+          <input type="number" step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
+          <span class="fu">Hz</span>
+          <span class="fp">Q</span>
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q,3)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi2">
+          <span class="fp">G</span>
+          <input type="number" step="0.5" :value="num(flt.gain,1)" @input="e=>flt.gain=+(e.target as HTMLInputElement).value" class="fi2">
+          <span class="fu">dB</span>
+          <button class="fdel" @click="removeFilter(i)" title="Remove this low-shelf filter from the chain — the boost/cut below this frequency will no longer be applied">×</button>
+        </div>
+      </template>
+
+      <!-- High-shelf -->
+      <template v-else-if="flt.type === 'highshelf'">
+        <div class="flt-row">
+          <input type="checkbox" v-model="flt.enabled" title="Toggle this high-shelf filter on/off — bypassed when unchecked, shelving boost/cut will not be applied">
+          <span class="flt-tag">HS</span>
+          <span class="fp">fc</span>
+          <input type="number" step="1" min="1" :value="num(flt.fc,1)" @input="e=>flt.fc=+(e.target as HTMLInputElement).value" class="fi">
+          <span class="fu">Hz</span>
+          <span class="fp">Q</span>
+          <input type="number" step="0.01" min="0.1" :value="num(flt.Q,3)" @input="e=>flt.Q=+(e.target as HTMLInputElement).value" class="fi2">
+          <span class="fp">G</span>
+          <input type="number" step="0.5" :value="num(flt.gain,1)" @input="e=>flt.gain=+(e.target as HTMLInputElement).value" class="fi2">
+          <span class="fu">dB</span>
+          <button class="fdel" @click="removeFilter(i)" title="Remove this high-shelf filter from the chain — the boost/cut above this frequency will no longer be applied">×</button>
         </div>
       </template>
 
@@ -106,6 +141,8 @@ function num(v: number | undefined, dec: number): number | undefined { return (v
       <button @click="addFilter('lowpass')" title="Add a low-pass filter — rolls off frequencies above the cutoff at 12 dB/oct (2nd order Butterworth)">+ LP</button>
       <button @click="addFilter('linkwitz')" title="Add a Linkwitz transform — shifts the sealed box resonance from Fc/Qtc to a new Fp/Qp for active bass extension">+ Linkwitz</button>
       <button @click="addFilter('peaking')" title="Add a parametric EQ band — boost or cut a specific frequency range with adjustable centre frequency, Q, and gain">+ Peaking EQ</button>
+      <button @click="addFilter('lowshelf')" title="Add a low-shelf filter — boosts or cuts low frequencies below the cutoff with adjustable gain and Q">+ Low-shelf</button>
+      <button @click="addFilter('highshelf')" title="Add a high-shelf filter — boosts or cuts high frequencies above the cutoff with adjustable gain and Q">+ High-shelf</button>
     </div>
   </fieldset>
 </template>

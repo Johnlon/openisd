@@ -26,7 +26,7 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { RHO, C } from './constants.js';
+
 import { hotRe } from './driver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
 import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
@@ -61,10 +61,14 @@ export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): nu
  */
 export function portImpedance(w: number, P: SweepParams): Complex {
   const Sp = P.Sp!, Leff = P.Leff!;
-  const Map = RHO * Leff / Sp, Rap = portLoss(w, Map, P);
+  const tempK = P.tempK ?? 293.15;
+  const c     = 343.68 * Math.sqrt(tempK / 293.15);
+  const rho   = 1.20095 * (293.15 / tempK);
+
+  const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
   if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));
-  const k    = w / C;
-  const Z0   = RHO * C / Sp;
+  const k    = w / c;
+  const Z0   = rho * c / Sp;
   const a    = Math.sqrt(Sp / Math.PI);              // equivalent piston radius
   const Zrad = cx(Z0 * 0.25 * (k * a) * (k * a), 0); // resistive radiation load at the mouth
   const th   = cTanh(cx(k * Leff / (P.Qp || 100), k * Leff));
@@ -89,6 +93,10 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   const wiring = P.wiring || 'parallel';
   const eg     = P.eg;
   const Sdt    = drv.Sd * n;
+
+  const tempK = P.tempK ?? 293.15;
+  const c     = 343.68 * Math.sqrt(tempK / 293.15);
+  const rho   = 1.20095 * (293.15 / tempK);
 
   // Voice coil impedance — two variants matching WinISD's model split:
   //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)
@@ -133,7 +141,7 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   // Box acoustic compliance Cab = Vb/(ρc²)
   // Loss resistances in parallel with compliance: Ral (leakage) and Raa (absorption)
   // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
-  const Cab = P.Vb / (RHO * C * C);
+  const Cab = P.Vb / (rho * c * c);
   const Zc  = cInv(cx(0, w * Cab));
   const Ql  = P.Ql || 10;
   const Qa  = P.Qa || 100;
@@ -175,9 +183,9 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
 
   } else if (box === 'bandpass4') {
     // 4th-order bandpass: rear sealed chamber + front vented chamber
-    const Cabr   = P.Vb / (RHO * C * C);
+    const Cabr   = P.Vb / (rho * c * c);
     const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));
-    const Cabf   = P.Vf! / (RHO * C * C);
+    const Cabf   = P.Vf! / (rho * c * c);
     const Zportf = portImpedance(w, P);
     const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
     Zbox = cAdd(Zr, Zf);

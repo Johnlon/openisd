@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from 'vue';
-import { state, pinCompare } from '../store.js';
+import { state } from '../store.js';
 
 const showHelp = ref(false);
 import { TABS } from '../utils/series.js';
+import type { ChartTabId } from '../utils/series.js';
 
-function toggleGraph(id: string) {
+function toggleGraph(id: ChartTabId) {
   const i = state.graphs.indexOf(id);
   if (i >= 0) { if (state.graphs.length > 1) state.graphs.splice(i, 1); }
   else state.graphs.push(id);
 }
 
-function removeCompare(i: number) { state.compare.splice(i, 1); }
-function clearCompare() { state.compare = []; }
 
 // Frequency-axis (X) range shared by every chart — a dropdown of preset spans, all
 // starting at 1 Hz. Selecting one sets fmin/fmax and re-sweeps. "custom" only shows
@@ -78,22 +77,12 @@ onBeforeUnmount(stopNudge);
       </select>
     </span>
     <span class="sep"></span>
-    <button @click="pinCompare" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; and overlays its curves on all graphs for comparison">+ Copy project</button>
-    <template v-if="state.compare.length">
-      <span class="lab">vs</span>
-      <span v-for="(d, i) in state.compare" :key="i"
-            class="gchip on" :style="{ borderColor: d.color, color: d.color }"
-            :title="`Remove '${d.name}' from comparison overlays`"
-            @click="removeCompare(i)">{{ d.name }} ✕</span>
-      <button @click="clearCompare" title="Remove all comparison overlays from graphs">clear</button>
-    </template>
-    <span class="sep"></span>
     <span class="tgroup">
       <span class="lab" title="Cursor frequency. Hover a graph to read any point; click a graph, type here, or use the ◄ ► arrows to lock the crosshair at a frequency. Click the graph again to unlock.">Cursor:</span>
       <button class="nudge-btn" @pointerdown="startNudge(-1)" @pointerup="stopNudge" @pointerleave="stopNudge"
               title="Step the cursor down ~1% (hold to spin)">◄</button>
       <input class="cursor-hz"
-             type="number" v-limits min="1" max="40000" step="0.1"
+             type="number" min="1" max="40000" step="0.1"
              :value="effectiveF ? effectiveF.toFixed(1) : ''"
              @change="setCursorHz"
              placeholder="Hz" />

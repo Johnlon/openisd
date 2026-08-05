@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, applyState, markProjectSaved, pinCompare, openProjectAdditive
+  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState
 } from '../store.js';
 import { serialize, stateToUrl, download } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
@@ -23,7 +23,7 @@ import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from '
 import { projectNameFromFilename, projectFilename, copyOfName } from '../utils/projectFile.js';
 import { buildWprInput } from '../utils/wprMapping.js';
 import { toWpr } from '@openisd/winisd';
-import type { SerializedState } from '../types.js';
+import type { SerializedState, DriverJSON, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
@@ -47,7 +47,7 @@ watch(() => state.project.name, (name) => {
 
 export function useDesignIO() {
   function projectJsonText(): string {
-    return JSON.stringify(serialize(state, driverJSON.value, state.compare), null, 2);
+    return JSON.stringify(serialize(state, driverJSON.value), null, 2);
   }
 
   /** Adopt the picked file's name as the project name — the file names the project. */
@@ -56,14 +56,25 @@ export function useDesignIO() {
   }
 
   /** Save — overwrites the previously-picked file in place; first save behaves like Save As. */
-  async function saveProject(): Promise<void> {
+  /** Returns true when the project was written, false when the user cancelled the file
+   *  dialog — a caller doing "save, then close" must not close on a cancelled save. */
+  async function saveProject(): Promise<boolean> {
     const suggested = projectFilename(state.project.name);
     const result = await fsSaveProject(projectJsonText(), suggested, fileHandle.value);
-    if (result.cancelled) return;
+    if (result.cancelled) return false;
     fileHandle.value = result.handle;
     adoptFileName(result.handle, suggested);
+    // SAVED means written to disk. Only a write that completed and closed proves that, so
+    // only that clears the unsaved state. The download fallback (Firefox/Safari) hands the
+    // bytes to the browser and hears nothing back — claiming "saved" there would be a guess
+    // presented as a fact, and the user would lose work believing it was safe.
+    if (!result.written) {
+      flash('Project downloaded — the browser cannot confirm it was written, so it is still marked unsaved');
+      return false;
+    }
     markProjectSaved();
-    flash(result.handle ? 'Project saved' : 'Project downloaded');
+    flash('Project saved');
+    return true;
   }
 
   /**
@@ -77,12 +88,16 @@ export function useDesignIO() {
     if (result.cancelled) return;
     fileHandle.value = result.handle;
     adoptFileName(result.handle, suggested);
+    if (!result.written) {
+      flash('Project downloaded — the browser cannot confirm it was written, so it is still marked unsaved');
+      return;
+    }
     markProjectSaved();
-    flash(result.handle ? 'Project saved' : 'Project downloaded');
+    flash('Project saved');
   }
 
   async function shareLink(): Promise<void> {
-    const url = await stateToUrl(serialize(state, driverJSON.value, state.compare));
+    const url = await stateToUrl(serialize(state, driverJSON.value));
     try { history.replaceState(null, '', url); } catch { /* replaceState can throw on some file:// origins — non-fatal */ }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(
@@ -107,14 +122,14 @@ export function useDesignIO() {
     download(sanitizeFilename(driverRaw.value.name) + '.wpr', toWpr(input), 'text/plain');
   }
 
-  function parseWprToState(text: string): any {
+  function parseWprToState(text: string): SerializedState {
     const sections: Record<string, Record<string, string>> = {};
     let currentSection: Record<string, string> | null = null;
     const lines = text.split(/\r?\n/);
     const driverLines: string[] = [];
     let inDriver = false;
     
-    for (let line of lines) {
+    for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) continue;
       
@@ -145,8 +160,8 @@ export function useDesignIO() {
     }
 
     const driverWdr = driverLines.join('\r\n');
-    const driverModel = getDriverModel().constructor.fromWdr(driverWdr);
-    const driverJson = driverModel.toJSON();
+    const driverModel = ((getDriverModel().constructor as unknown) as { fromWdr: (wdr: string) => { toJSON: () => Record<string, unknown> } }).fromWdr(driverWdr);
+    const driverJson = driverModel.toJSON() as unknown as DriverJSON;
 
     const boxSec = sections['Box'] || {};
     const bType = parseInt(boxSec['BType'] || '1', 10);
@@ -230,14 +245,16 @@ export function useDesignIO() {
       description: pSec['Description'] || '',
       creator: pSec['Creator'] || '',
       created: pSec['CreateDate'] || '',
+      modified: '',
     };
 
     return {
+      v: 2,
       box: boxType,
-      P,
+      P: P as unknown as UiParams,
       driver: driverJson,
       project,
-      compare: [],
+      graphs: [],
     };
   }
 
@@ -254,29 +271,26 @@ export function useDesignIO() {
       const text = rd.result as string;
       try {
         if (isWdr || (nameLower.endsWith('.wdr') || (/^\s*\[Driver\]/.test(text) && !/\[Box\]/.test(text)))) {
-          pinCompare();
           setDriverFromWdr(text);
         } else if (isWpr || /\[Box\]/.test(text)) {
           const stateObj = parseWprToState(text);
-          openProjectAdditive(stateObj);
+          applyState(stateObj);
           state.project.name = projectNameFromFilename(f.name);
         } else if (isOwdr || nameLower.endsWith('.json') || isOwpr) {
           const parsed = JSON.parse(text);
           if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
-            pinCompare();
-            setDriverFromSerialized(parsed);
+              setDriverFromSerialized(parsed);
           } else {
-            openProjectAdditive(parsed as SerializedState);
+            applyState(parsed as SerializedState);
             state.project.name = projectNameFromFilename(f.name);
           }
         } else {
           if (/^\s*\{/.test(text)) {
             const parsed = JSON.parse(text);
             if (parsed && typeof parsed === 'object' && ('inputs' in parsed) && !('box' in parsed)) {
-              pinCompare();
-              setDriverFromSerialized(parsed);
+                  setDriverFromSerialized(parsed);
             } else {
-              openProjectAdditive(parsed as SerializedState);
+              applyState(parsed as SerializedState);
               state.project.name = projectNameFromFilename(f.name);
             }
           } else {

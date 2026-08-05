@@ -55,6 +55,7 @@ export interface DriverRaw {
   manufacturer?: string;
   providedBy?: string;
   comment?: string;
+  added?: string;
   datasheetUrl?: string;
   manuPageUrl?: string;
   distributorPageUrl?: string;
@@ -77,6 +78,24 @@ export interface DriverRaw {
   magnetDepth?: number;
   fLe?: number;
   Le2?: number;
+  Dd?: number;
+  Hg?: number;
+  Hc?: number;
+  no?: number;
+  SPLref?: number;
+  USPL?: number;
+  Vd?: number;
+  SPLmaxLF?: number;
+  Mpow?: number;
+  SPLmax?: number;
+  Mcost?: number;
+  Rme?: number;
+  gamma?: number;
+  magnet?: number;
+  basket?: number;
+  outer?: number;
+  VCd?: number;
+  basketDisplacement?: number;
 }
 
 /**
@@ -109,7 +128,7 @@ export type Wiring = 'series' | 'parallel';
 export type CircuitModel = 'winisd' | 'gyrator';
 
 /** Signal-chain filter descriptor. Which optional fields apply depends on `type`. */
-export type FilterType = 'highpass' | 'lowpass' | 'linkwitz' | 'peaking';
+export type FilterType = 'highpass' | 'lowpass' | 'linkwitz' | 'peaking' | 'lowshelf' | 'highshelf';
 
 export interface Filter {
   /** UI list key (crypto.randomUUID). Carried through state; ignored by the engine. */
@@ -161,6 +180,7 @@ export interface SweepParams {
   prXmax?: number;
   // Signal chain
   filters?: Filter[];
+  tempK?: number;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. WINISD.md §12c.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
@@ -230,6 +250,24 @@ export interface SweepResult {
    * `classifyFlatClamp` — a clamped "flat" response is not flat, and must not look it.
    */
   flatClamped: number | null;
+  /**
+   * The EQ/filter chain's OWN electrical response — WinISD's three "(EQ/Filter)" charts.
+   * Depends only on `SweepParams.filters` and the frequency grid: not on the driver, not
+   * on the box. Unity (0 dB, 0 rad, 0 ms) when no filter is enabled.
+   *
+   * 0 dB is defined by WinISD Pro's help, "Filter/equalizer behavioral simulator":
+   * "Filter system is logically located at electrical side. 0 dB gain at filter chain
+   * means that voltage at driver terminal is equal that is specified at 'signal'-tab."
+   *
+   * Force-flat's boost is deliberately NOT included: it is applied downstream as a real
+   * gain on the output curves, never through the filter chain, so this stays the response
+   * of the filters the user actually declared.
+   */
+  fltMag: number[];
+  /** Filter-chain phase in RADIANS, unwrapped — same convention as `phase`. */
+  fltPhase: number[];
+  /** Filter-chain group delay in ms, derived from `fltPhase` by the same τg as `gd`. */
+  fltGd: number[];
 }
 
 /** Max-SPL / max-power output. `xlim[i]` = Xmax is the limiting factor at point i. */

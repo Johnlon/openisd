@@ -1,4 +1,4 @@
-import type { AppState, Design, DriverJSON, SerializedState, UiState } from '../types.js';
+import type { AppState, DriverJSON, SerializedState, UiState } from '../types.js';
 
 // Share-link payload: gzip (native CompressionStream — Baseline widely available since May
 // 2023, no library needed) then base64url. JSON compresses well (repetitive key names), so
@@ -22,17 +22,13 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
   return new TextDecoder().decode(buf);
 }
 
-export function serialize(state: AppState, driver: DriverJSON, compare: Design[]): SerializedState {
+export function serialize(state: AppState, driver: DriverJSON): SerializedState {
   return {
     v: 2,
     driver,
     box: state.box,
     P: state.P,
     graphs: state.graphs,
-    // Curves are omitted deliberately (derived, and they would bloat every save and share
-    // link) — applyState re-sweeps each row. `visible` IS carried: a hidden overlay that
-    // reappears on reload is the same silent-drop failure as a dropped overlay.
-    compare: compare.map(d => ({ driver: d.driver, box: d.box, P: d.P, name: d.name, color: d.color, visible: d.visible })),
     ui: state.ui,
     project: state.project,
     // Graph cursor/marker/band-selection — carried the same way tab/chart are: both a local

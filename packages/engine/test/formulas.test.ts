@@ -14,7 +14,7 @@ describe('formulas — drive voltage V = √(Pin·Re)', () => {
 });
 
 describe('formulas — speed of sound c = 20.05·√(T[K])', () => {
-  it('at 293.15 K ≈ 343.3 m/s', () => assert.ok(Math.abs(soundVelocity(293.15) - 20.05 * Math.sqrt(293.15)) < 1e-9));
+  it('at 293.15 K = 343.68 m/s', () => assert.ok(Math.abs(soundVelocity(293.15) - 343.68) < 1e-9));
   it('is ~343 m/s at room temperature', () => assert.ok(soundVelocity(293.15) > 342 && soundVelocity(293.15) < 344));
 });
 

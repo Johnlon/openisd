@@ -1,4 +1,6 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const __PLATFORM_USER__: string | undefined;
 /**
  * Original shell — a faithful wholesale port of the `mock/` WinISD 0.7.0.950
  * recreation (mock/index.html + mock/style.css), wired to the shared store + engine.
@@ -17,25 +19,28 @@
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driver, driverRaw, driverShort, pinCompare,
+  state, driver, driverRaw, driverShort, driverJSON,
   syncedP, curvesData, maxData, driverErrors,
-  isModified, resetProjectToGround, _ground, markProjectSaved,
+  isModified, resetProjectToGround, _ground, markProjectSaved, newProject,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
   formatInUnit as fmtU,
   setDriverFromRaw,
+  enterVentField, clearVentField, ventFieldState,
 } from '../../store.js';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { DriverRaw } from '@openisd/engine';
 import type { BoxType } from '@openisd/engine';
-import type { PRLibEntry, BundledPR } from '../../types.js';
-import { RHO, C,
+import type { PRLibEntry, BundledPR, Design } from '../../types.js';
+import { C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
-         driveVoltage, soundVelocity, sweep, maxCurves } from '@openisd/engine';
-import { TABS, buildPlotData } from '../../utils/series.js';
+         prTuning,
+         driveVoltage, soundVelocity, airDensity } from '@openisd/engine';
+import { TAB_META, parseChartTabId, buildPlotData } from '../../utils/series.js';
+import type { ChartTabId } from '../../utils/series.js';
 import { DPAL } from '../../presets.js';
 import { copyOfName, uniqueName } from '../../utils/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../utils/toneGenerator.js';
 import { useDesignIO } from '../../composables/useDesignIO.js';
+import { useEscToClose } from '../../composables/useEscToClose.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -45,12 +50,12 @@ import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../../fiel
 import OgFilters from './OgFilters.vue';
 import OgTune from './OgTune.vue';
 import OgNewProject from './OgNewProject.vue';
-import DriverEditorModal from '../../components/DriverEditorModal.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
+import { editProjectDriver } from '../../composables/useDriverSelection.js';
 
 const { saveProject, importFile, about } = useDesignIO();
 
@@ -107,25 +112,76 @@ const enclosureNavLabel = computed(() =>
 const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
 // ---- Live engine-derived readouts (never faked literals) -----------------------
-// Sealed/PR rear-chamber resonance: Fc = Fs·√(1 + Vas/Vb).
+// Sealed rear-chamber resonance: Fc = Fs·√(1 + Vas/Vb). Correct for a chamber with no port.
 const rearResonance = computed<number | null>(() => {
   const d = driver.value;
   if (!d || !(state.P.Vb > 0)) return null;
   return d.Fs * Math.sqrt(1 + d.Vas / state.P.Vb);
 });
+// WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
+// series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
+// ignores the PR entirely. On WinISD's own controlled-trial inputs prTuning() returns 72.25 Hz,
+// matching it exactly, where the sealed formula gives 194.87. winisd_research/GAPS.md §A3.
+const prFh = computed<number | null>(() => {
+  if (!(state.P.Vb > 0) || !(state.P.prSd > 0) || !(state.P.prCms > 0)) return null;
+  return prTuning(state.P);
+});
+/** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
+const boxResonance = computed<number | null>(() =>
+  selectedBox.value === 'pr' ? prFh.value : rearResonance.value);
 // Vent geometry (vented / bandpass4): cross-sectional area and Helmholtz tuning.
-const ventArea = computed(() => Math.PI * (state.P.ventD / 2) ** 2);           // m²
-function helmholtzFb(volume: number): number | null {
-  if (!(volume > 0) || !(ventArea.value > 0)) return null;
-  const Sp = ventArea.value;
-  const Leff = state.P.ventL + state.P.endCorrection * state.P.ventD;
-  const Map = RHO * Leff / Sp, Cab = volume / (RHO * C * C);
-  return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
-}
+const ventArea = computed(() => {
+  if (state.P.ventShape === 'slotted') {
+    return state.P.ventW * state.P.ventH;
+  }
+  return Math.PI * (state.P.ventD / 2) ** 2;
+});           // m²
 // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber
 // tunes on its own front volume Vf. Same closed form the engine's circuit uses.
-const ventFb = computed<number | null>(() => helmholtzFb(state.P.Vb));
-const frontTuning = computed<number | null>(() => helmholtzFb(state.P.Vf));
+// Box-tab tuning entry (vented). The setter goes through enterVentField so the field is
+// marked Entered and the vent LENGTH re-solves — WinISD's direction. The getter reads
+// state.P.Fb, which the store keeps solved when the roles are the other way round.
+const fbEntered = computed<number>({
+  get: () => state.P.Fb,
+  set: (v: number) => {
+    if (v == null || isNaN(v) || v <= 0) {
+      clearVentField('Fb');
+    } else {
+      enterVentField('Fb', v);
+    }
+  },
+});
+const fbRearEntered = computed<number>({
+  get: () => state.P.Frc ?? 50,
+  set: (v: number) => {
+    state.P.Frc = v;
+  },
+});
+const ventLEntered = computed<number>({
+  get: () => state.P.ventL,
+  set: (v: number) => {
+    if (v == null || isNaN(v) || v <= 0) {
+      clearVentField('ventL');
+    } else {
+      enterVentField('ventL', v);
+    }
+  },
+});
+const ventDModel = computed<number>({
+  get: () => state.P.ventD,
+  set: (v: number) => enterVentField('ventD', v),
+});
+const ventWModel = computed<number>({
+  get: () => state.P.ventW,
+  set: (v: number) => enterVentField('ventW', v),
+});
+const ventHModel = computed<number>({
+  get: () => state.P.ventH,
+  set: (v: number) => enterVentField('ventH', v),
+});
+// E / C / N for the two members whose roles can swap.
+const fbState    = computed(() => ventFieldState('Fb'));
+const ventLState = computed(() => ventFieldState('ventL'));
 // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
 // c/(2·L), a standing wave in the vent, DISTINCT from the box Helmholtz tuning ventFb. Uses the
 // PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly: its 86.87 Hz =
@@ -143,7 +199,7 @@ const prQms = computed(() => calcPrQms(state.P.prMmd, state.P.prCms, state.P.prR
 // The mock's full chart menu; each maps to a real engine curve id (TABS) or null.
 // Null items stay listed (fidelity) but draw no fabricated curve — the graph shows a
 // clean "not available" state, honest about what the engine can and can't compute.
-type ChartItem = { label: string; tab: string | null; sep?: boolean };
+type ChartItem = { label: string; tab: ChartTabId | null; sep?: boolean };
 const CHART_ITEMS: ChartItem[] = [
   { label: 'Transfer function magnitude', tab: 'TFMag' },
   { label: 'Transfer function phase', tab: 'Phase' },
@@ -163,20 +219,23 @@ const CHART_ITEMS: ChartItem[] = [
   { label: 'Front port - Air velocity', tab: 'Port' },
   { label: 'Front port - Gain', tab: null },
   { label: 'Intrachamber Port - Air velocity', tab: null },
-  { label: 'Transfer function magnitude (EQ/Filter)', tab: null, sep: true },
-  { label: 'Transfer function phase (EQ/Filter)', tab: null },
-  { label: 'Group Delay (EQ/Filter)', tab: null },
+  { label: 'Transfer function magnitude (EQ/Filter)', tab: 'FltMag', sep: true },
+  { label: 'Transfer function phase (EQ/Filter)', tab: 'FltPhase' },
+  { label: 'Group Delay (EQ/Filter)', tab: 'FltGD' },
 ];
-const chartTab = computed({
-  get: () => state.ui.originalChartTab ?? 'SPL',
-  set: (v: string) => { state.ui.originalChartTab = v; },
+// `state.ui` is persisted as plain strings, so the read side goes through the set's one
+// string→member boundary: a chart id this build no longer declares falls back to the
+// default rather than selecting a chart that cannot be drawn.
+const chartTab = computed<ChartTabId>({
+  get: () => parseChartTabId(state.ui.originalChartTab),
+  set: (v: ChartTabId) => { state.ui.originalChartTab = v; },
 });
 // The currently-chosen chart label (persisted separately so a "not available" pick sticks).
 const chartLabel = computed({
   get: () => state.ui.originalChartLabel ?? 'SPL',
   set: (v: string) => { state.ui.originalChartLabel = v; },
 });
-const chartMeta = computed(() => TABS.find(t => t.id === chartTab.value));
+const chartMeta = computed(() => TAB_META[chartTab.value]);
 const chartUnavailable = computed(() => {
   const item = CHART_ITEMS.find(i => i.label === chartLabel.value);
   return item != null && item.tab == null;
@@ -215,6 +274,9 @@ function onFile(e: Event) {
   const input = e.target as HTMLInputElement;
   const f = input.files?.[0];
   if (f) {
+    // Open the file as a project of its own. The project already open keeps its own row
+    // and its own contents — opening one project must not fold another into it.
+    openNewProject();
     importFile(f);
   }
   input.value = '';
@@ -232,9 +294,12 @@ const SAMPLES = [
 ];
 
 function loadSample(sample: typeof SAMPLES[number]) {
-  copyCurrentProject();
+  // Opens the sample as a project in its own right. It used to call copyCurrentProject()
+  // first, so opening a sample silently forked whatever you had open into a "Copy of …"
+  // row — one project's contents appearing inside another's list is the coupling this
+  // shell is not allowed to have.
+  openNewProject();
   setDriverFromRaw(sample.driver);
-  state.driverSource = { ...sample.driver };
   state.project.name = sample.name;
   const nowStr = new Date().toISOString().slice(0, 10);
   state.project.creator = typeof __PLATFORM_USER__ !== 'undefined' ? __PLATFORM_USER__ : 'john';
@@ -246,17 +311,17 @@ function loadSample(sample: typeof SAMPLES[number]) {
 }
 
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
-const projectVisible = ref(true);
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
-  visible: projectVisible.value !== false,
+  // Visibility is the project row's own fact — read it, never keep a second copy.
+  visible: activeProject.value?.visible !== false,
 }));
 const cursorVal = computed<number | null>(() => {
   const f = cursorHz.value;
   if (pending.value || chartUnavailable.value || f == null) return null;
-  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
+  const p = buildPlotData(chartTab.value, state.P.fmin, state.P.fmax, currentDesign.value, overlays.value, driverErrors.value,
     { bare: true, primaryColor: WINISD_TRACE.value }).value;
   if (!p) return null;
   const s = p.series.find(x => !x.phantom);
@@ -282,6 +347,7 @@ watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure'
 // ---- Projects list -------------------------------------------------------------
 const activeProjectId = ref('proj-' + Math.random().toString(36).substring(7));
 const openProjects = ref<any[]>([]);
+const activeProject = computed(() => openProjects.value.find(p => p.id === activeProjectId.value) ?? null);
 let isSwapping = false;
 
 onMounted(() => {
@@ -297,14 +363,14 @@ onMounted(() => {
       project: { ...state.project },
       _ground: _ground.value,
       isModified: isModified.value,
-      visible: projectVisible.value,
+      visible: true,
       color: WINISD_TRACE.value,
     }];
   }
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
-watch([() => state.box, () => state.P, () => driverRaw.value, curvesData, maxData, () => state.project, isModified, projectVisible, isDriverWhatIfActive], () => {
+watch([() => state.box, () => state.P, () => driverRaw.value, curvesData, maxData, () => state.project, isModified, isDriverWhatIfActive], () => {
   if (isSwapping) return;
   if (isDriverWhatIfActive.value) return;
   const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
@@ -318,59 +384,40 @@ watch([() => state.box, () => state.P, () => driverRaw.value, curvesData, maxDat
     activeItem.project = { ...state.project };
     activeItem._ground = _ground.value;
     activeItem.isModified = isModified.value;
-    activeItem.visible = projectVisible.value;
+    // NOT visible: that is the row's own fact, set only by its checkbox. Re-deriving it
+    // here from a second copy is what made the checkbox spring back on some projects.
   }
 }, { deep: true, immediate: true });
 
-// Maintain state.compare reactively so GraphPanel and buildPlotData can render curves
-watch(openProjects, (projects) => {
-  if (isSwapping) return;
-  const inactive = projects.filter(p => p.id !== activeProjectId.value);
-  state.compare = inactive.map(p => ({
-    id: p.id,
-    name: p.name,
-    driver: p.driver,
-    box: p.box,
-    P: p.P,
-    curves: p.curves,
-    maxCurves: p.maxCurves,
-    project: p.project,
-    _ground: p._ground,
-    isModified: p.isModified,
-    visible: p.visible,
-    color: p.color,
-  })) as any;
-}, { deep: true });
+// The other open projects, as drawable overlays. A COMPUTED VIEW built for the graph and
+// nothing else: no project is written into another project's state to get drawn, and none
+// is reconstructed back out of it.
+const overlays = computed<Design[]>(() =>
+  openProjects.value
+    .filter(p => p.id !== activeProjectId.value && p.visible !== false)
+    .map(p => ({
+      driver: p.driver, box: p.box, P: p.P,
+      curves: p.curves, maxCurves: p.maxCurves,
+      name: p.name, color: p.color, visible: true,
+    })) as Design[],
+);
 
-// Sync external changes to state.compare back to openProjects
-watch(() => state.compare, (compareList) => {
-  if (isSwapping) return;
-  const currentInactiveNames = openProjects.value.filter(p => p.id !== activeProjectId.value).map(p => p.name).join(',');
-  const incomingNames = compareList.map(c => c.name).join(',');
-  if (currentInactiveNames === incomingNames) {
-    return;
-  }
-
-  const activeItem = openProjects.value.find(p => p.id === activeProjectId.value);
-  const inactiveItems = compareList.map(c => {
-    const existing = openProjects.value.find(p => p.name === c.name);
-    return {
-      id: existing?.id || c.id || ('proj-' + Math.random().toString(36).substring(7)),
-      name: c.name,
-      driver: c.driver,
-      box: c.box,
-      P: c.P,
-      curves: c.curves,
-      maxCurves: c.maxCurves,
-      project: c.project || { name: c.name || '' },
-      _ground: c._ground,
-      isModified: c.isModified ?? false,
-      visible: c.visible !== false,
-      color: c.color,
-    };
+/** Write the live editor state back into the active project's own row. */
+function syncActiveRowFromStore() {
+  const activeItem = activeProject.value;
+  if (!activeItem) return;
+  Object.assign(activeItem, {
+    driver: driverRaw.value,
+    box: state.box,
+    P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+    curves: curvesData.value,
+    maxCurves: maxData.value,
+    name: state.project.name || driverShort(driverRaw.value),
+    project: { ...state.project },
+    _ground: _ground.value,
+    isModified: isModified.value,
   });
-  openProjects.value = activeItem ? [activeItem, ...inactiveItems] : [...inactiveItems];
-}, { deep: true });
+}
 
 function selectProject(p: any) {
   if (p.id === activeProjectId.value) return;
@@ -378,37 +425,19 @@ function selectProject(p: any) {
   isSwapping = true;
 
   // 1. Sync current active editor state back to the active project in openProjects
-  const activeItem = openProjects.value.find(x => x.id === activeProjectId.value);
-  if (activeItem) {
-    const currentP = { ...state.P };
-    currentP.filters = (currentP.filters || []).map(f => ({ ...f }));
-    
-    Object.assign(activeItem, {
-      driver: driverRaw.value,
-      box: state.box,
-      P: currentP,
-      curves: curvesData.value,
-      maxCurves: maxData.value,
-      name: state.project.name || driverShort(driverRaw.value),
-      project: { ...state.project },
-      _ground: _ground.value,
-      isModified: isModified.value,
-      visible: projectVisible.value,
-    });
-  }
+  syncActiveRowFromStore();
 
   // 2. Load the target project into the active editor
   const targetDesign = JSON.parse(JSON.stringify(p));
   
   state.box = targetDesign.box;
-  Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map(f => ({ ...f })) });
+  Object.assign(state.P, { ...targetDesign.P, filters: (targetDesign.P.filters || []).map((f: any) => ({ ...f })) });
   setDriverFromRaw(targetDesign.driver ? (targetDesign.driver as any) : null);
   
   const targetProj = targetDesign.project ? targetDesign.project : { name: targetDesign.name || '', creator: '', created: '', modified: '', description: '' };
   Object.assign(state.project, targetProj);
 
   _ground.value = targetDesign._ground || JSON.stringify({ box: state.box, P: state.P, driver: driverJSON.value, project: state.project });
-  projectVisible.value = targetDesign.visible !== false;
   activeProjectId.value = targetDesign.id;
 
   isSwapping = false;
@@ -418,7 +447,6 @@ function selectProject(p: any) {
   if (newActiveItem) {
     newActiveItem.name = state.project.name || driverShort(driverRaw.value);
     newActiveItem.isModified = isModified.value;
-    newActiveItem.visible = projectVisible.value;
   }
 }
 
@@ -448,18 +476,80 @@ function copyCurrentProject() {
   openProjects.value.push(d);
 }
 
+/** Open a brand-new, independent project row and make it active. */
+function openNewProject() {
+  syncActiveRowFromStore();
+  const id = 'proj-' + Math.random().toString(36).substring(7);
+  openProjects.value.push({
+    id,
+    name: '',
+    driver: driverRaw.value,
+    box: state.box,
+    P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+    curves: curvesData.value,
+    maxCurves: maxData.value,
+    project: { ...state.project },
+    _ground: _ground.value,
+    isModified: false,
+    color: DPAL[openProjects.value.length % DPAL.length],
+    visible: true,
+  });
+  activeProjectId.value = id;
+}
+
+// ---- Closing a project ---------------------------------------------------------
+// Any project can be closed, including the first one and the last one — a project you
+// cannot close is a trap. Unsaved work is never discarded silently: closing a modified
+// project asks, and the ask names all three outcomes rather than making "Cancel" secretly
+// mean "throw my work away".
+const closeChallenge = ref<any | null>(null);
+useEscToClose(() => closeChallenge.value !== null, () => { closeChallenge.value = null; });
+
+function requestCloseProject(p: any) {
+  if (!p) return;
+  const unsaved = p.id === activeProjectId.value ? isModified.value : p.isModified;
+  if (unsaved) { closeChallenge.value = p; return; }
+  closeProject(p);
+}
+
+async function saveThenClose(p: any) {
+  closeChallenge.value = null;
+  if (p.id !== activeProjectId.value) selectProject(p);   // Save always writes the live design
+  const saved = await saveProject();
+  if (saved === false) return;    // the user backed out of the file dialog — keep the project
+  closeProject(p);
+}
+
 function closeProject(p: any) {
+  closeChallenge.value = null;
+  const others = openProjects.value.filter(x => x.id !== p.id);
   if (p.id === activeProjectId.value) {
-    if (openProjects.value.length > 1) {
-      const firstComp = openProjects.value.find(x => x.id !== p.id);
-      if (firstComp) {
-        selectProject(firstComp);
-        openProjects.value = openProjects.value.filter(x => x.id !== p.id);
-      }
+    if (others.length) {
+      selectProject(others[0]);
+      openProjects.value = openProjects.value.filter(x => x.id !== p.id);
+      return;
     }
-  } else {
-    openProjects.value = openProjects.value.filter(x => x.id !== p.id);
+    // Closing the last project leaves the app on a fresh empty one rather than on nothing.
+    openProjects.value = [];
+    newProject();
+    activeProjectId.value = 'proj-' + Math.random().toString(36).substring(7);
+    openProjects.value = [{
+      id: activeProjectId.value,
+      name: state.project.name || driverShort(driverRaw.value),
+      driver: driverRaw.value,
+      box: state.box,
+      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      curves: curvesData.value,
+      maxCurves: maxData.value,
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: false,
+      visible: true,
+      color: WINISD_TRACE.value,
+    }];
+    return;
   }
+  openProjects.value = others;
 }
 
 // ---- Resizable / collapsible layout --------------------------------------------
@@ -500,7 +590,7 @@ function onNavSplitDown(e: PointerEvent): void {
 }
 function onBottomSplitDown(e: PointerEvent): void {
   if (bottomCollapsed.value) return;
-  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(DEFAULT_BOTTOM_H, Math.max(120, rect.bottom - ev.clientY)); });
+  startSplitDrag(e, (rect, ev) => { state.ui.originalBottomH = Math.min(400, Math.max(120, rect.bottom - ev.clientY)); });
 }
 
 // ---- Driver identity + placement ----------------------------------------------
@@ -529,6 +619,7 @@ const driveV = computed<number>({
 // Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
 const advTemp = ref(state.ui.envDefaults.tempK);
+watch(advTemp, (v) => { state.P.tempK = v; }, { immediate: true });
 const advHumidity = ref(state.ui.envDefaults.humidityPct);
 const advPressure = ref(state.ui.envDefaults.pressurePa);
 const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
@@ -544,7 +635,7 @@ const optionsOpen = ref(false);
 
 // Tune (inline What-If) and Edit (full editor modal) reuse the shared driver editors.
 // Both need the driver-source snapshot seeded first, exactly as the Classic skin does.
-function startTune() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriver = true; }
+function startTune() { state.editDriver = true; }
 
 // ---- PR selection header (Enclosure tab, PR box type) — mirrors the Driver tab's
 // Brand/Model + Select Driver header, but for the passive radiator. The load handlers
@@ -574,7 +665,7 @@ function loadBundledPREntry(pr: BundledPR) {
   prEditOpen.value = true;
 }
 function defineNewPREntry() { prBrowseOpen.value = false; prDefineOpen.value = true; }
-function startEdit() { if (!state.driverSource) state.driverSource = { ...driverRaw.value } as DriverRaw; state.editDriverInfo = true; }
+function startEdit() { editProjectDriver(); }
 
 // R1 refresh fidelity — preserve an open Tune (what-if) + its uncommitted buffer across a
 // reload. Original-scoped: only this shell reads/writes these state.ui fields, so Modern and
@@ -605,7 +696,14 @@ watch(isModified, (val) => {
 // so preserving it across refresh is just persisting the open flag and reopening. Original-
 // scoped (Modern/Classic never set originalEditorOpen).
 watch(() => state.editDriverInfo, (open) => { state.ui.originalEditorOpen = open; });
-watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverInfo = true; }, { immediate: true });
+// RESTORE ONLY — hence the `!state.editDriverInfo` guard, the same shape the Tune watcher
+// above uses. The line above MIRRORS every ordinary open into `originalEditorOpen`, so
+// without the guard this fires on those too and re-points the editor at the PROJECT's
+// driver: "Add new Driver" and the My Drivers ✎ both opened correctly and then had their
+// subject silently swapped, so OK overwrote the design instead of saving to My Drivers.
+watch(() => state.ui.originalEditorOpen, (open) => {
+  if (open && !state.editDriverInfo) editProjectDriver();
+}, { immediate: true });
 
 </script>
 
@@ -613,7 +711,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
   <div class="original-root">
     <!-- ================= Title bar ================= -->
     <div class="titlebar">
-      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode<template v-if="state.project.name"> — {{ state.project.name }}{{ isModified ? ' *' : '' }}</template></span></div>
+      <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode (ALIGNED)<template v-if="state.project.name"> — {{ state.project.name }}{{ isModified ? ' *' : '' }}</template></span></div>
       <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
     </div>
 
@@ -694,16 +792,16 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                  @click="selectProject(p)">
               <input type="checkbox" :checked="p.visible !== false"
                      @click.stop
-                     @change.stop="p.visible = ($event.target as HTMLInputElement).checked; if (p.id === activeProjectId) projectVisible = p.visible"
+                     @change.stop="p.visible = ($event.target as HTMLInputElement).checked"
                      title="Show/hide this project's trace on the graph">
               <span>{{ p.name }}</span>
             </div>
           </div>
           <div class="proj-actions">
             <button class="link-btn" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="copyCurrentProject">＋ Copy</button>
-            <button class="link-btn close-btn" :disabled="openProjects.length <= 1"
-                    title="Close (remove) the selected project — mimics WinISD's right-click Delete"
-                    @click="closeProject(openProjects.find(pr => pr.id === activeProjectId))">✕ Close</button>
+            <button class="link-btn close-btn"
+                    title="Close the selected project. Unsaved work is not discarded silently — you are asked first."
+                    @click="requestCloseProject(activeProject)">✕ Close</button>
           </div>
         </div>
 
@@ -725,7 +823,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
         <div class="graph-wrap">
-          <GraphPanel v-if="!pending && !chartUnavailable" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" />
+          <GraphPanel v-if="!pending && !chartUnavailable" :tabId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
           <div v-else class="graph-empty">
             <template v-if="pending">
               <div class="graph-empty-h">{{ boxLabel }}</div>
@@ -776,13 +874,21 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
           </div>
 
           <div class="box-layout">
-            <div v-if="!isDual" class="box-fields-col">
+            <div v-if="!isDual" class="box-fields-col" style="width: 312px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
                 <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               </div>
               <div class="field-row">
-                <div class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                <!-- A vented chamber's tuning is a real design choice (the port is an extra
+                     degree of freedom), so WinISD makes it entered and solves the vent LENGTH
+                     from it. A sealed chamber has no port, so Fsc is fully determined by Vb
+                     and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
+                <template v-if="selectedBox === 'vented'">
+                  <div v-if="fbState === 'E'" class="field entered"><label>Tuning freq (Fb)</label><NumInput v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-else class="field"><label>Tuning freq (Fb)</label><input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                </template>
+                <div v-else class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
@@ -791,13 +897,35 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
-                <div class="field-row"><div class="field"><label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row">
+                  <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
+                    <label>Tuning freq (Frc)</label>
+                    <NumInput v-model="fbRearEntered" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <UnitToggle field="Frc" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                  <div v-else class="field">
+                    <label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label>
+                    <input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                </div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
-                <div class="field-row"><div class="field"><label>Tuning freq</label><input class="calculated greyed" :value="fmtU(frontTuning, 'frontTuning', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="frontTuning" group="freq" base="Hz" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row">
+                  <div v-if="fbState === 'E'" class="field entered">
+                    <label>{{ selectedBox === 'bandpass4' || selectedBox === 'bandpass6' || selectedBox === 'abc' ? 'Tuning freq (Ffc)' : 'Tuning freq' }}</label>
+                    <NumInput v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                  <div v-else class="field">
+                    <label>{{ selectedBox === 'bandpass4' || selectedBox === 'bandpass6' || selectedBox === 'abc' ? 'Tuning freq (Ffc)' : 'Tuning freq' }}</label>
+                    <input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                </div>
               </div>
             </template>
 
@@ -871,6 +999,11 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                  pane (and so the whole bottom track, which is auto-sized) whenever a box type
                  with notes was picked, shifting the chart above. -->
             <div class="box-notes-col">
+              <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
+              <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
+              <p v-if="selectedBox === 'pr'" class="hint"><b>PR (Fp):</b> Helmholtz-like tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
+              <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>
+              <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
               <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
               <p v-if="pending" class="hint pending-note"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
             </div>
@@ -921,27 +1054,77 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
         <!-- ===== Enclosure / Vents tab ===== -->
         <section v-show="activeTab === 'enclosure'" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
-          <!-- vented -->
-          <div v-if="selectedBox === 'vented'" style="--label-w:120px;">
+          <!-- vented / bandpass4 -->
+          <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'">
             <div class="section-header">Vents</div>
             <div class="two-col">
-              <div>
+              <!-- Column 1: Config -->
+              <div class="vent-config-col">
                 <div class="field-row">
                   <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
-                  <div class="field"><label>Shape</label><svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="none" stroke="#1868d1" stroke-width="2"/></svg> round</div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vent diameter</label><NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" /><UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Vent length</label><NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" /><UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" /></div>
+                  <div class="field">
+                    <label>Shape</label>
+                    <select v-model="state.P.ventShape">
+                      <option value="round">round</option>
+                      <option value="slotted">slotted</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>End Correction</label>
+                  <div class="field entered">
+                    <label>End Correction</label>
                     <select v-model.number="state.P.endCorrection" style="width:190px">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>
                 </div>
               </div>
+
+              <!-- Column 2: Dimensions -->
+              <div class="vent-dims-col">
+                <div v-if="state.P.ventShape === 'slotted'">
+                  <div class="field-row">
+                    <div class="field entered">
+                      <label>Slot width</label>
+                      <NumInput v-model="ventWModel" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
+                      <UnitToggle field="ventW" group="length" base="cm" unit-class="unit unit-cyc" />
+                    </div>
+                  </div>
+                  <div class="field-row">
+                    <div class="field entered">
+                      <label>Slot height</label>
+                      <NumInput v-model="ventHModel" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
+                      <UnitToggle field="ventH" group="length" base="cm" unit-class="unit unit-cyc" />
+                    </div>
+                  </div>
+                </div>
+                <div v-else>
+                  <div class="field-row">
+                    <div class="field entered">
+                      <label>Vent diameter</label>
+                      <NumInput v-model="ventDModel" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
+                      <UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-row">
+                  <div v-if="ventLState === 'E'" class="field entered">
+                    <label>Vent length</label>
+                    <NumInput v-model="ventLEntered" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
+                    <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
+                  </div>
+                  <div v-else class="field">
+                    <label>Vent length</label>
+                    <input class="calculated greyed" :value="fmtU(state.P.ventL, 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
+                    <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 3: Readouts -->
               <div>
                 <div class="field-row">
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(ventArea, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
@@ -951,6 +1134,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
                 </div>
               </div>
             </div>
+            <p class="hint" style="margin-top: 8px;">The vent length is calculated to meet the target tuning frequency ({{ selectedBox === 'bandpass4' ? 'Ffc' : 'Fb' }}) entered on the Box tab.</p>
           </div>
 
           <!-- passive radiator -->
@@ -988,26 +1172,13 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             </div>
           </div>
 
-          <!-- bandpass4: single front vent (real) -->
-          <div v-else-if="selectedBox === 'bandpass4'">
-            <div class="section-header">Vents</div>
-            <div class="vent-groups">
-              <div class="vent-col">
-                <div class="vent-col-title">Front chamber</div>
-                <div class="field-row"><div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div></div>
-                <div class="field-row"><div class="field entered"><label>Diameter</label><NumInput v-model="state.P.ventD" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" /><UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Length</label><NumInput v-model="state.P.ventL" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" /><UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" /></div></div>
-                <div class="field-row"><div class="field"><label>Resonance</label><input class="calculated greyed" :value="fmtU(ventFb, 'ventFb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="ventFb" group="freq" base="Hz" unit-class="unit" /></div></div>
-              </div>
-            </div>
-          </div>
 
           <!-- closed box: no vents -->
           <div v-else-if="selectedBox === 'sealed'">
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
               <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit" /></div>
+              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(prFh, 'prFh', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="prFh" group="freq" base="Hz" unit-class="unit" /></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
           </div>
@@ -1059,7 +1230,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 
         <!-- ===== Advanced tab ===== -->
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
-          <div class="two-col">
+          <div class="two-col adv-two-col">
             <div style="--label-w:118px;">
               <div class="field-row"><div class="field entered"><label>Temperature</label><NumInput v-model="advTemp" field="advTemp" group="temp" base="K" :precision="2" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field entered"><label>Relative humidity</label><input v-expo-step type="number" v-limits="limits('advHumidity')" v-model.number="advHumidity"><span class="unit">%</span></div></div>
@@ -1068,12 +1239,12 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
             <p class="env-arrow">&#8594;</p>
             <div style="--label-w:96px;">
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="RHO.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="airDensity(advTemp).toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
             </div>
             <div class="checkbox-col">
               <AdvancedOptions />
             </div>
-            <p class="hint side-hint">The environment values above are not modelled by the sweep yet.</p>
+            <p class="hint side-hint">The temperature above scales sound velocity and air density in the simulation.</p>
           </div>
         </section>
 
@@ -1122,9 +1293,28 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
       </div>
     </div>
 
+    <!-- ===== Close an unsaved project: three named outcomes ===== -->
+    <!-- A confirm() cannot express three, so its "Cancel" would have had to secretly mean
+         "discard my work". Each button here says what it does to the work. -->
+    <div v-if="closeChallenge" class="overlay on">
+      <div class="modal narrow">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Close project</span></div>
+          <div class="win-controls"><span class="close-btn" @click="closeChallenge = null">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p><b>{{ closeChallenge.name || 'This project' }}</b> has unsaved changes.</p>
+          <div class="close-actions">
+            <button class="btn" title="Save the project to its file, then close it" @click="saveThenClose(closeChallenge)">Save and close</button>
+            <button class="btn" title="Close the project and lose the changes made since it was last saved" @click="closeProject(closeChallenge)">Close without saving</button>
+            <button class="btn" title="Leave the project open exactly as it is" @click="closeChallenge = null">Keep it open</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== Tune (mock-styled docked What-If) + full Driver editor (shared, for now) ===== -->
     <OgTune v-if="state.editDriver" />
-    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
     <OgNewProject v-if="newProjectOpen" @close="newProjectOpen = false" />
 
@@ -1232,8 +1422,26 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 /* overflow:visible + a stacking context ABOVE the content panel lets the active
    tab extend past the column edge and paint over the panel's left spine, so it
    reads as one continuous shape with the panel (the break-through notch). */
-.quad-bottomleft { grid-area:rail; background:#f0f0f0; display:flex; flex-direction:column; padding:6px 0 6px 8px; min-height:0; min-width:0; overflow:visible; position:relative; z-index:3; }
-.quad-bottomleft .panel-title { margin-right:8px; flex:none; }
+.quad-bottomleft {
+  grid-area: rail;
+  background: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 6px;
+  border-right: none;
+  min-height: 0;
+  min-width: 0;
+  box-sizing: border-box;
+  z-index: 3;
+}
+.quad-bottomleft .panel-title {
+  color: #1a5fa6;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  margin-right: 0;
+}
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
 .quad-signalgen-wrap { flex:none; }
@@ -1245,33 +1453,50 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .project-row.is-unsaved:hover { background: #ffe680; }
 .project-row.is-unsaved.selected { background: #1868d1; border-left-color: #ffd07d; }
 .project-row input[type=checkbox] { accent-color:#1868d1; }
-.project-row span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.project-row span { flex:1; min-width:0; word-break:break-word; overflow-wrap:anywhere; }
 .project-row.is-unsaved span { font-style: italic; }
 .project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
 /* Action row under the list — stands in for WinISD's right-click project menu. */
+.close-actions { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.close-actions .btn { width:100%; }
 .proj-actions { display:flex; gap:16px; margin-top:6px; }
 .close-btn { color:#b02a2a; }
 .close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
 .signal-gen-row input[type=number] { width:70px; }
-.project-nav { list-style:none; margin:0; padding:2px 0 0; position:relative; flex:none; }
-/* Book-of-tabs: inactive tabs stop at the panel's left spine; the active tab
-   shares the panel's fill and breaks 2px through the spine so it reads as a
-   physical notch of the panel. The panel's #888 left border is the unifying
-   vertical line the tabs hang off. */
-.project-nav li { position:relative; background:#e4e4e4; border:1px solid #888; border-right:none; border-radius:7px 0 0 7px; padding:3px 8px 3px 12px; line-height:1.2; margin:0 0 -1px 0; cursor:pointer; z-index:1; box-shadow:inset -6px 0 6px -6px rgba(0,0,0,.12); }
-.project-nav li:hover:not(.active) { background:#dbeaff; }
-/* Active tab flares OUT into the panel with concave fillets (top-right + bottom-
-   right), like a notebook tab, rather than convex corners poking in. The fillets
-   are pseudo-elements: a rounded transparent box whose box-shadow spreads the
-   panel fill around the curve, carving the concave. */
-.project-nav li.active { background:#f7f7f7; font-weight:600; border-radius:7px 0 0 7px; margin-right:-2px; padding-right:14px; z-index:2; box-shadow:none; }
-.project-nav li.active::before,
-.project-nav li.active::after {
-  content:""; position:absolute; right:-1px; width:8px; height:8px; background:transparent;
+.project-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 100%;
 }
-.project-nav li.active::before { top:-8px; border-bottom-right-radius:8px; box-shadow:3px 3px 0 3px #f7f7f7; }
-.project-nav li.active::after  { bottom:-8px; border-top-right-radius:8px; box-shadow:3px -3px 0 3px #f7f7f7; }
+.project-nav li {
+  padding: 3px 8px;
+  text-align: center;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #1b1b1b;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  list-style-type: none;
+  line-height: 1.25;
+}
+.project-nav li:hover {
+  background: #eef2f7;
+}
+.project-nav li.active {
+  background: #cfe4f7;
+  font-weight: 600;
+}
 .color-btn { border:1px solid #999; text-align:center; cursor:pointer; font-weight:600; }
 .color-btn:hover { filter:brightness(1.05); }
 /* Docked in the toolbar's cursor-readout, beside the chart-max button. */
@@ -1283,7 +1508,7 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; max-height:45vh; position:relative; z-index:0; }
+.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; max-height:45vh; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:flex-start; }
 .tab-section { display:none; }
@@ -1321,6 +1546,14 @@ watch(() => state.ui.originalEditorOpen, (open) => { if (open) state.editDriverI
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
 .vent-col .field label { width:110px; }
 .project-tab .field label { width: 70px; }
+.vent-config-col .field label {
+  width: 130px;
+  margin-right: 6px;
+}
+.vent-dims-col .field label {
+  width: 110px;
+  margin-right: 6px;
+}
 .field-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; justify-content:flex-start; }
 .field { display:flex; align-items:center; gap:6px; justify-content:flex-start; flex:none; }
 .field label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; }
@@ -1350,6 +1583,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col { display:flex; flex-direction:column; gap:8px; margin-left:24px; flex:none; width:290px; }
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 .checkbox-col label input[type=checkbox] { flex:none; }
+
+.adv-two-col { gap: 10px; }
+.adv-two-col .checkbox-col { margin-left: 0; width: 285px; }
+.adv-two-col .side-hint { width: 190px; }
 
 /* filters tab fills the panel */
 .tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
@@ -1386,4 +1623,24 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }
 .footer-buttons button:hover { background:#dbeaff; border-color:#7fb3ff; }
 .footer-buttons button.ok-btn { color:#1b7d1b; }
+
+/* Style overrides to make shared modals look native in original Win32 skin */
+.original-root :deep(.modal) {
+  border-radius: 0;
+  border: 1px solid #888;
+  background: #f7f7f7;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35);
+}
+.original-root :deep(.modal h2) {
+  background: #e9e9e9;
+  border-bottom: 1px solid #bbb;
+  padding: 8px 12px;
+  font-size: 15px;
+  margin: 0;
+  font-weight: normal;
+  font-family: inherit;
+}
+.original-root :deep(.de-tabs) {
+  border-bottom: none;
+}
 </style>
