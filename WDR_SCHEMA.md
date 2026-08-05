@@ -245,30 +245,86 @@ manual check. WinISD resolves inconsistencies via the C/E mode system (see §5.1
 warnings. These groups document WinISD's internal parameter dependency graph — which fields
 it treats as computable from which others — not a runtime validation dialog.
 
-| #   | Fields in group          | Formula / relationship                                                                                          |
-| --- | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| 1   | Qms, Fs, Cms, Rms        | `Rms = 2π·Fs·Mms/Qms` (Mms implicit via `Cms = 1/(Mms·(2π·Fs)²)`)                                               |
-| 2   | BL, Fs, Mms, Re, Qes     | `Qes = 2π·Fs·Mms·Re / BL²`                                                                                      |
-| 3   | Rme, BL, Re              | `Rme = BL² / Re`                                                                                                |
-| 4   | Rme, Fs, Mms, Qes        | `Rme = 2π·Fs·Mms / Qes` (alternate path to same Rme)                                                            |
-| 5   | **Qts, Qms, Qes**        | `Qts = (Qms · Qes) / (Qms + Qes)` — **the group that fires when Qts is entered manually alongside Qms and Qes** |
-| 6   | Sd, Dd                   | `Dd = 2·√(Sd/π)`                                                                                                |
-| 7   | Mcost, Rme, Hc, Hg, Xmax | `Mcost = f(Rme, Hc, Hg, Xmax)` — always 0 in practice because Hc/Hg are never populated                         |
-| 8   | Mpow, BL, Re             | `Mpow = BL / √Re`                                                                                               |
-| 9   | Mpow, Rme                | `Mpow = √Rme`                                                                                                   |
-| 10  | Cms, Vas, Sd             | `Vas = ρ₀ · c² · Sd² · Cms`                                                                                     |
-| 11  | Fs, Mms, Cms             | `Fs = 1 / (2π·√(Mms·Cms))`                                                                                      |
-| 12  | EBP, Fs, Qes             | `EBP = Fs / Qes`                                                                                                |
-| 13  | gamma, BL, Mms           | `gamma = BL / Mms`                                                                                              |
-| 14  | no, c, Fs, Qes, Vas      | `η₀ = (4π²/c³)·Fs³·Vas/Qes`                                                                                     |
-| 15  | no, Sd, BL, Mms, Re      | `η₀ = (ρ₀/(2π·c))·BL²·Sd²/(Mms²·Re)` (alternate efficiency route)                                               |
-| 16  | SPLmax, Pe, SPL          | `SPLmax = SPL + 10·log10(Pe)`                                                                                   |
-| 17  | USPL, SPL, Re            | `USPL = SPL + 10·log10(8/Re)` where 8 = 2.83²                                                                   |
-| 18  | no, SPL, roo, c          | `SPL = 10·log10(η₀) + 10·log10(ρ₀·c²/(2π)) + 109` ⚠ inferred — converts efficiency to sensitivity               |
-| 19  | Xmax, Hc, Hg             | `Xmax = abs(Hc − Hg) / 2` — only active when Hc and Hg are entered                                              |
-| 20  | Vd, Sd, Xmax             | `Vd = Sd · Xmax`                                                                                                |
-| 21  | Gloss, Fs, Xmax          | `Gloss = f(Fs, Xmax)` — exact formula unknown; Fs and Xmax bound cone displacement range at resonance           |
-| 22  | SPLmaxLF, roo, Vd        | `SPLmaxLF = f(ρ₀, Vd)` — exact formula unknown; excursion-limited SPL at 20 Hz                                  |
+| #   | Fields in group          | Formula / relationship                                                                                                      |
+| --- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Qms, Fs, Cms, Rms        | `Rms = 2π·Fs·Mms/Qms` (Mms implicit via `Cms = 1/(Mms·(2π·Fs)²)`)                                                           |
+| 2   | BL, Fs, Mms, Re, Qes     | `Qes = 2π·Fs·Mms·Re / BL²`                                                                                                  |
+| 3   | Rme, BL, Re              | `Rme = BL² / Re`                                                                                                            |
+| 4   | Rme, Fs, Mms, Qes        | `Rme = 2π·Fs·Mms / Qes` (alternate path to same Rme)                                                                        |
+| 5   | **Qts, Qms, Qes**        | `Qts = (Qms · Qes) / (Qms + Qes)` — **the group that fires when Qts is entered manually alongside Qms and Qes**             |
+| 6   | Sd, Dd                   | `Dd = 2·√(Sd/π)`                                                                                                            |
+| 7   | Mcost, Rme, Hc, Hg, Xmax | `Mcost = f(Rme, Hc, Hg, Xmax)` — always 0 in practice because Hc/Hg are never populated                                     |
+| 8   | Mpow, BL, Re             | `Mpow = BL / √Re`                                                                                                           |
+| 9   | Mpow, Rme                | `Mpow = √Rme`                                                                                                               |
+| 10  | Cms, Vas, Sd             | `Vas = ρ₀ · c² · Sd² · Cms`                                                                                                 |
+| 11  | Fs, Mms, Cms             | `Fs = 1 / (2π·√(Mms·Cms))`                                                                                                  |
+| 12  | EBP, Fs, Qes             | `EBP = Fs / Qes`                                                                                                            |
+| 13  | gamma, BL, Mms           | `gamma = BL / Mms`                                                                                                          |
+| 14  | no, c, Fs, Qes, Vas      | `η₀ = (4π²/c³)·Fs³·Vas/Qes`                                                                                                 |
+| 15  | no, Sd, BL, Mms, Re      | `η₀ = (ρ₀/(2π·c))·BL²·Sd²/(Mms²·Re)` (alternate efficiency route)                                                           |
+| 16  | SPLmax, Pe, SPL          | `SPLmax = SPL + 10·log10(Pe)`                                                                                               |
+| 17  | USPL, SPL, Re            | `USPL = SPL + 10·log10(8/Re)` where 8 = 2.83²                                                                               |
+| 18  | no, SPL, roo, c          | `SPL = 10·log10(η₀) + 10·log10(ρ₀·c²/(2π)) + 109` ⚠ inferred — converts efficiency to sensitivity                           |
+| 19  | Xmax, Hc, Hg             | `Xmax = abs(Hc − Hg) / 2` — **verified firing 2026-08-05**, but only when `Vd` is absent. Row 20 takes precedence; see §4.1 |
+| 20  | Vd, Sd, Xmax             | `Vd = Sd · Xmax`                                                                                                            |
+| 21  | Gloss, Fs, Xmax          | `Gloss = f(Fs, Xmax)` — exact formula unknown; Fs and Xmax bound cone displacement range at resonance                       |
+| 22  | SPLmaxLF, roo, Vd        | `SPLmaxLF = f(ρ₀, Vd)` — exact formula unknown; excursion-limited SPL at 20 Hz                                              |
+
+### 4.1 How the solver actually behaves — ONE rule
+
+Established 2026-08-05 by a human driving WinISD through ~15 states and recording each.
+Every observation below was reproduced arithmetically.
+
+> Repeat until nothing changes: for each relation, if exactly ONE member is unknown and every
+> other member has a value — **entered OR already calculated** — fill it. An entered value is
+> never recomputed and never questioned. A field is never filled from a value that was itself
+> derived from it.
+
+That is the whole model: constraint propagation to a fixpoint. It is not precedence and it is
+not recency — both were proposed here earlier and both are wrong.
+
+**What follows from it:**
+
+- **Entered pins.** `Dd := 300` re-derived `Sd` (blank) but left `Vd` at its typed 200, even
+  though `Sd × Xmax` then implied 35343. Delete `Vd` and it fills with 35343.
+- **A field in two relations is served by whichever has a single hole.** `Sd` sits in row 6
+  (`Sd = π·Dd²/4`) and row 20 (`Sd = Vd/Xmax`). With `Dd` entered, row 6 fires and `Sd` ignores
+  `Xmax` entirely. Delete `Dd` and row 6 has two unknowns, so row 20 takes over and `Sd` starts
+  tracking `Vd`/`Xmax` — with `Dd` now derived _from_ `Sd`.
+- **Calculated values DO feed further calculations, but never in a cycle.** `Vd, Xmax → Sd → Dd`
+  propagates two hops. What it will not do is derive a field from a value that descends from it:
+  deleting `Hg` blanked `Xmax` rather than falling back to `Vd/Sd`, because `Vd` had itself been
+  calculated from `Sd × Xmax`.
+- **Fill every member and the app goes inert.** Nothing recomputes because nothing is unknown.
+  It looks like the calculations have broken; there is simply no hole left to fill.
+- **Contradiction is invisible.** `Sd = 1.0` entered beside `Dd = 300` entered — off by 14× —
+  produces no warning, no mark, no correction. Neither can be recomputed, so neither is ever
+  compared. This is why the `TfrmParErrors` "consistency check failed" dialog in the binary has
+  never been observed firing: by construction there is never a conflict to report.
+
+**Where two relations could both fill the same hole, row 20 (`Vd = Sd × Xmax`) LOSES.** It is
+the fallback, used only when nothing else can supply the field. Observed twice:
+
+| hole   | competing routes                       | winner |
+| ------ | -------------------------------------- | ------ |
+| `Xmax` | row 19 `\|Hc−Hg\|/2` vs row 20 `Vd/Sd` | row 19 |
+| `Sd`   | row 6 `π·Dd²/4` vs row 20 `Vd/Xmax`    | row 6  |
+
+Physically consistent: `Dd` and `Hc`/`Hg` are measured geometry, while `Vd` is a displacement
+volume derived FROM geometry. WinISD treats row 20 as producing `Vd` and runs it backwards only
+as a last resort — which is why `Xmax` takes `Vd/Sd` when `Hc`/`Hg` are blank, and takes the
+geometry answer as soon as they are not.
+
+**These are not independent groups but one connected GRAPH.** `Dd ↔ Sd ↔ {Vd, Xmax}` is a
+single component, so an edit to `Dd` can propagate as far as `Xmax`, two hops away.
+
+**`Hc`/`Hg` flip `C`↔`N` while holding no value.** `|Hc − Hg|/2 = Xmax` is one equation in two
+unknowns, so at most one of them is ever reachable — and the `abs()` leaves even that ambiguous
+(`Hg = Hc ± 2·Xmax`). The mark states whether the field is reachable, not whether it holds
+anything, which is why one can read `C` while blank (`DISCOVERIES.md` BUG-005).
+
+**openisd does not reproduce this.** See `DRIVER_RECORD_MODEL.md`. This section records what
+WinISD does because the parity suite needs it, not as a specification to follow.
 
 ## 5. Constraints and rules
 
@@ -468,51 +524,11 @@ in `drivers/sample/PARSTATE-FINDINGS.md` (which carries a WARNING that its posit
 Conclusion: The field ordering is independent of the ParState, which is reasonable as this
 is a K/V pair file format order should not matter.
 
-### 8.5 Emitting ParState from a driver record
+### 8.5 Where the emit rules live
 
-**The chain is `driver.yml` → `openisd.yml` → `.wdr`, and calculation happens at the FIRST
-arrow only.**
-
-    driver.yml          datasheet values ONLY. Never stores a calculated value. A field the
-                        datasheet omitted is absent, derivable or not.
-      |
-      |  CALCULATION HAPPENS HERE — every derivable missing field is computed, and every
-      |  field acquires its C/E/N flag.
-      v
-    openisd.yml         complete. Every field carries a value and a C/E/N flag. The flag is a
-                        first-class member of the openisd driver MODEL, not a serialisation
-                        detail — it is carried in memory and persisted to the file.
-      |
-      |  PURE PROJECTION — no calculation, no derivation, no defaulting.
-      v
-    .wdr                the ParState string is read straight off the model's flags.
-
-The consequence that matters: **there is exactly one place calculation occurs.** The `.wdr`
-emitter is a serialiser with no formula in it, so the two emitters — the export in
-`winisd_tools` and the browser export in `openisd` — cannot drift, because neither computes
-anything. Both project the same model.
-
-The flag is assigned as the record enters `openisd.yml`:
-
-| in `driver.yml` | calculable? | `openisd.yml` holds | ParState | WinISD's behaviour on load                                                  |
-| --------------- | ----------- | ------------------- | -------- | --------------------------------------------------------------------------- |
-| has a value     | —           | the datasheet value | `E`      | pinned. Changing its inputs has no effect, and no warning is issued         |
-| no value        | yes         | the computed value  | `C`      | recalculates live and instantly as inputs change; written correctly on save |
-| no value        | no          | no value            | `N`      | same as `C` — recalculates live if it ever becomes derivable                |
-
-`calculable?` is only ever asked of a **missing** field. For a present one it has no
-consequence: a value in `driver.yml` came from the datasheet, so `E` is the honest mark
-regardless of whether anything could also have derived it.
-
-The behaviour column is empirically verified — see §5.1. Storing the computed value rather
-than `0` alongside `C` costs nothing, because WinISD recalculates either way, and it makes both
-files self-describing for every consumer that is not WinISD.
-
-**Open — workspace ledger QP18.** Row 1 marks a datasheet value `E`, and `E` pins it. Where a
-datasheet prints a **dependent** field alongside its own inputs — routinely Qts with Qms and
-Qes — writing all three `E` pins a set that may be mutually inconsistent at printed precision,
-and §5.1 records that WinISD issues no warning. §5.1's own instruction for that case is the
-opposite: mark the dependent field `C` and let WinISD derive it.
+How openisd decides each field's ParState character when it writes a `.wdr` — and what its
+own `driver.yml` / `openisd.yml` records do and do not store — is DESIGN, not an observation
+about WinISD, so it is not in this document. See `DRIVER_RECORD_MODEL.md`.
 
 ## 9. WinISD simulation model — key facts
 

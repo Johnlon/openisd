@@ -1,5 +1,6 @@
 import { computed, type ComputedRef } from 'vue';
 import type { CellState, FieldCell } from '@openisd/winisd';
+import type { ConsistencyIssue } from '@openisd/engine';
 
 /**
  * Driver provenance presentation — the ONE place the E/C/N marks and the Q-group rule are
@@ -42,4 +43,24 @@ export function useQGroupIncomplete(cellOf: (field: string) => FieldCell): Compu
     const v = cellOf(k).value;
     return typeof v === 'number' && isFinite(v) && v > 0;
   }).length < 2);
+}
+
+/** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
+function pct(relative: number): string {
+  const p = relative * 100;
+  return p >= 100 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
+}
+
+/**
+ * The DQ tooltip for one field, or '' when nothing about it disagrees. The mark appears on
+ * EVERY member of an inconsistent group, so the text names the whole group and says which way
+ * and by how much it is out — "inconsistent" on its own tells the human nothing to act on.
+ */
+export function consistencyNote(issues: readonly ConsistencyIssue[], field: string): string {
+  const mine = issues.filter(i => i.fields.includes(field));
+  if (mine.length === 0) return '';
+  return mine.map(i =>
+    `${i.fields.join(', ')} disagree by ${pct(i.relative)}: ${i.formula}. `
+    + `Every field in the group is marked — correct one of them, or clear one to let it be calculated.`
+  ).join('\n');
 }

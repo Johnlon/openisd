@@ -13,8 +13,8 @@
  * exists.
  */
 
-import { deriveDriver, solveConsistencyGroup, C, RHO } from '@openisd/engine';
-import type { DriverRaw, Driver as EngineDriver, DriverError } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup, checkConsistency, C, RHO } from '@openisd/engine';
+import type { DriverRaw, Driver as EngineDriver, DriverError, ConsistencyIssue } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
 
@@ -48,6 +48,8 @@ export interface DriverJSON {
 interface Derivation {
   /** Resolved SI values for every derivable field (core T/S + Dia/Vd/η₀/SPL/c/roo). */
   fields: Record<string, number>;
+  /** The entered numerics the resolution started from, in engine field names. */
+  entered: Record<string, number>;
   errors: DriverError[];
 }
 
@@ -107,6 +109,9 @@ export class Driver {
   readonly #inputs: Record<string, number | string> = {};
   // Memoised derivation; invalidated (→ null) on every mutation.
   #cache: Derivation | null = null;
+  // Memoised consistency verdict; costs one extra solve per entered field, so it is only
+  // computed when something asks for it, and dropped alongside #cache on every mutation.
+  #issues: ConsistencyIssue[] | null = null;
   readonly #listeners = new Set<DriverListener>();
 
   // ── round-trip carry (set only when built via fromWdr) ────────────────────────
@@ -154,6 +159,15 @@ export class Driver {
   /** Whole-driver issue list — the Apply gate and the summary read this. */
   errors(): DriverError[] {
     return this.#derive().errors;
+  }
+
+  /**
+   * The consistency groups (WDR_SCHEMA §4) whose members contradict each other beyond their
+   * own precision. Every member of a reported group carries the mark; nothing is blocked by
+   * one — an inconsistent driver still simulates, still saves, still exports.
+   */
+  consistencyIssues(): ConsistencyIssue[] {
+    return this.#issues ??= checkConsistency(this.#derive().entered);
   }
 
   /**
@@ -350,6 +364,7 @@ export class Driver {
 
   #invalidate(): void {
     this.#cache = null;
+    this.#issues = null;
     // Copy so a listener that unsubscribes mid-notify does not disturb iteration.
     for (const fn of [...this.#listeners]) fn();
   }
@@ -389,7 +404,7 @@ export class Driver {
     // The resolved `r` (Sd filled from Dia, third Q filled) is what it checks, so a
     // Dia-only or two-Q driver validates the same as the editor's canApply did.
     const { errors } = deriveDriver(r as unknown as DriverRaw);
-    this.#cache = { fields: r, errors };
+    this.#cache = { fields: r, entered, errors };
     return this.#cache;
   }
 

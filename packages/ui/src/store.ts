@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reactive, computed, ref, shallowRef, watch } from 'vue';
 import { sweep, maxCurves, classifyFinite, classifyMaxFinite, classifyFlatClamp, validateParams } from '@openisd/engine';
-import type { Driver, DriverRaw, DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
+import type { Driver, DriverRaw, DriverError, ConsistencyIssue, SweepResult, MaxCurvesResult, BoxType } from '@openisd/engine';
 import { Driver as DriverModel, type DriverJSON, type FieldCell } from '@openisd/winisd';
 import type { AppState, UiParams, SyncedParams, SerializedState } from './types.js';
 import { parseChartTabId } from './utils/series.js';
@@ -362,6 +362,12 @@ export const driverJSON = computed<DriverJSON>(() => {
 export const driverErrors = computed<DriverError[]>(() => {
   void _version.value; void _whatIfVersion.value;
   return _effModel().errors();
+});
+// The consistency-group verdict for the EFFECTIVE model — what the what-if panels mark their
+// fields from, so a panel and the driver editor cannot disagree about the same driver.
+export const driverConsistencyIssues = computed<ConsistencyIssue[]>(() => {
+  void _version.value; void _whatIfVersion.value;
+  return _effModel().consistencyIssues();
 });
 // driverWarnings: human-readable messages for all errors and warns — used by DriverPanel
 export const driverWarnings = computed<string[]>(() => driverErrors.value.map(e => e.message));

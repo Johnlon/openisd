@@ -1,39 +1,8 @@
-# Driver library data model
+# Driver type classification and matching
 
-## File format — WDR
-
-Each driver is a single `.wdr` file (WinISD Driver Record). The format is plain
-`key=value`, one field per line, with a `[Driver]` section header. Standard fields
-are defined by WinISD; unknown fields are silently ignored by WinISD and other
-parsers, making the format safely extensible.
-
-### Standard T/S fields
-
-| Field        | Unit | Notes                                      |
-| ------------ | ---- | ------------------------------------------ |
-| `Brand`      | —    | Manufacturer name                          |
-| `Model`      | —    | Model number                               |
-| `Fs`         | Hz   | Free-air resonant frequency                |
-| `Qts`        | —    | Total Q                                    |
-| `Qes`        | —    | Electrical Q                               |
-| `Qms`        | —    | Mechanical Q                               |
-| `Vas`        | m³   | Equivalent acoustic compliance volume      |
-| `Sd`         | m²   | Effective piston area                      |
-| `Re`         | Ω    | DC voice-coil resistance                   |
-| `Le`         | H    | Voice-coil inductance                      |
-| `BL`         | T·m  | Force factor                               |
-| `Xmax`       | m    | Linear peak excursion (one-way)            |
-| `Mms`        | kg   | Moving mass including air load             |
-| `Cms`        | m/N  | Mechanical compliance                      |
-| `Rms`        | kg/s | Mechanical resistance                      |
-| `Pe`         | W    | Rated power (RMS)                          |
-| `Znom`       | Ω    | Nominal impedance                          |
-| `Vd`         | m³   | Peak displacement volume (= Sd × Xmax)     |
-| `Dd`         | m    | Effective piston diameter                  |
-| `ProvidedBy` | —    | Free-text credit for who supplied the data |
-| `Comment`    | —    | Free-text notes                            |
-
----
+The `.wdr` format and its fields are in `WDR_SCHEMA.md`; openisd's own record model is in
+`DRIVER_RECORD_MODEL.md`. This document is neither — it is the design for two features built
+on top of them.
 
 ## Future feature: driver type classification and matching
 

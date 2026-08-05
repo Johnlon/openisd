@@ -2,6 +2,7 @@ export * from './types.js';
 export * from './constants.js';
 export * from './complex.js';
 export * from './driver.js';
+export * from './consistency.js';
 export * from './params.js';
 export * from './circuit.js';
 export * from './sweep.js';
