@@ -2,216 +2,221 @@
 /**
  * bundle-drivers.mjs
  *
- * Pre-bundles all WDR files from bundled driver collections into
- * src/drivers-bundle.json so the app can load them instantly without
- * hitting the GitHub API.
+ * Pre-bundles the driver records of every bundled collection into
+ * packages/ui/src/drivers-bundle.json, so the app loads them instantly without hitting
+ * the GitHub API.
  *
- * WDR files exist only for the driver types WinISD supports (woofer, tweeter).
- * OpenISD also supports passive radiators, which carry an openisd.yml but
- * no WDR. Those are bundled separately into `passiveRadiators` (fed to the
- * Browse-PR popup, never the woofer/tweeter driver browser). A driver's type is
- * read from the single non-`data_sources` sub-key under the meta's `specs:` map.
+ * "Bundled" = a source in drivers/sources.json whose GitHub URL names a repo that is
+ * checked out locally: this repo, or a sibling beside it (winisd_drivers holds the
+ * driver database). A source whose repo is not on disk stays federated — the app
+ * fetches it live from the GitHub API at runtime.
  *
- * "Bundled" = sources whose URL points at this repo
- * (github.com/Johnlon/openisd). Federated third-party sources are
- * still fetched live from GitHub at runtime.
+ * FORMAT — `openisd.yml` EXCLUSIVELY, at <collection>/<brand>/<sku>/openisd.yml. It is
+ * the canonical driver record (ARCHITECTURE.md AD-8), written by winisd_tools.
  *
- * Run automatically via `npm run build` → prebuild script.
+ * Nothing else is read. `.owdr` is purely a UI concern — the extension the app writes
+ * and reads when a user saves a driver to their own disk — and never appears in a
+ * collection. `.wdr` is WinISD's file format, which the app reads and writes in memory
+ * from a driver record: an import/export concern, not a library record.
+ *
+ * PROJECTION — the bundle carries the app's own driver shape (`DriverJSON`), not the
+ * raw record. `openisd.yml` states every value with its origin, its printed reading, its
+ * precision and its definition; the browser needs the resolved numbers. Projecting one
+ * canonical record onto a different output format is a required step (AD-8), and it is
+ * what keeps the bundle at ~1 MB instead of the corpus's ~16 MB of provenance prose.
+ *
+ * Run automatically via `npm run dev` / `npm run build` (predev/prebuild hook).
  * Can also be run manually: node scripts/bundle-drivers.mjs
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
-import { join, extname, relative, dirname } from 'path';
+import { join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
 
+const RECORD_FILE = 'openisd.yml';
+
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
+const WORKSPACE = join(ROOT, '..');
 const sources = JSON.parse(
   readFileSync(join(ROOT, 'drivers/sources.json'), 'utf8')
 ).sources;
 
-// Sources whose URLs match this repo are bundled locally.
-// Accepts both repo names so bundling keeps working across the GitHub rename.
-const REPO_RE = /github\.com\/Johnlon\/(?:resonate|openisd)\/tree\/[^/]+\/(.+)/i;
-const DRIVERS_REPO_RE = /github\.com\/Johnlon\/winisd_drivers\/tree\/[^/]+\/(.+)/i;
+/**
+ * Where a local source's records live. `path` is relative to this repo, so a sibling
+ * repo is `../<repo>/…` — these repos reference each other by path, never by GitHub URL.
+ * Anything resolving outside the workspace is refused rather than bundled.
+ */
+function localPathOf(src) {
+  if (!src.path) return null;                       // no path ⇒ federated, not ours to bundle
+  const resolved = resolve(ROOT, src.path);
+  const inside = resolve(WORKSPACE);
+  if (resolved !== inside && !resolved.startsWith(inside + sep)) {
+    console.warn(`  REFUSED path outside the workspace: ${src.path}`);
+    return null;
+  }
+  return existsSync(resolved) ? resolved : undefined;   // undefined ⇒ declared but absent
+}
 
-function walkWdr(dir) {
+function walkRecords(dir) {
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (entry.name.startsWith('_')) continue;   // _ dirs are cache/scratch — excluded from bundle
-      files.push(...walkWdr(join(dir, entry.name)));
-    } else if (extname(entry.name).toLowerCase() === '.wdr') {
+      if (entry.name.startsWith('_')) continue;   // _ dirs are cache/scratch — never bundled
+      files.push(...walkRecords(join(dir, entry.name)));
+    } else if (entry.name.toLowerCase() === RECORD_FILE) {
       files.push(join(dir, entry.name));
     }
   }
   return files;
 }
 
-// Find every openisd.yml under a collection (the per-driver metadata file
-// that exists for ALL driver types, WDR or not). Skips _ cache/scratch dirs.
-function walkMeta(dir) {
-  const files = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (entry.name.startsWith('_')) continue;
-      files.push(...walkMeta(join(dir, entry.name)));
-    } else if (entry.name === 'openisd.yml' || entry.name === 'openisd.yml' || entry.name === 'openisd.yml') {
-      files.push(join(dir, entry.name));
-    }
+// openisd.yml spec key → the Driver model's own field name. The two differ for Znom→Z
+// and BL→Bl; `packages/winisd/src/parstate.ts` MODELED_SLOTS is the authority, and this
+// map covers exactly the slots it declares. Everything else a record carries
+// (voice_coil_dia_mm, Hg_mm, weight_kg, …) is not modelled by the app and is not bundled.
+const SPEC_TO_FIELD = {
+  Znom: 'Z', Fs: 'Fs', Pe: 'Pe', Re: 'Re', Le: 'Le', BL: 'Bl', Xmax: 'Xmax',
+  Cms: 'Cms', Qms: 'Qms', Qes: 'Qes', Qts: 'Qts', Rms: 'Rms', Mms: 'Mms',
+  Sd: 'Sd', Vas: 'Vas',
+};
+
+// data_sources role → the app's link field.
+const SOURCE_TO_LINK = {
+  manufacturer_datasheet: 'datasheetUrl',
+  manufacturer_product_page: 'manuPageUrl',
+  distributor_page: 'distributorPageUrl',
+};
+
+/** A record-level `{ value, origin, definition }` wrapper's value. */
+const valueOf = node => (node && typeof node === 'object' && 'value' in node ? node.value : undefined);
+
+/**
+ * A spec entry's number. The value lives at readings[origin].read_value — there is no
+ * flat copy, by design: the origin names which source won, and each source keeps its own
+ * reading. Falls back to the sole reading when a record names no winner.
+ */
+function specValue(entry) {
+  const readings = entry?.readings;
+  if (!readings || typeof readings !== 'object') return undefined;
+  const chosen = readings[entry.origin] ?? Object.values(readings)[0];
+  const v = chosen?.read_value;
+  return typeof v === 'number' && isFinite(v) ? v : undefined;
+}
+
+/** The specs section this driver's numbers live in. A coax bundles its woofer half. */
+function specSection(specs, driverType) {
+  if (!specs) return null;
+  if (driverType === 'tweeter' && specs.tweeter) return specs.tweeter;
+  return specs.woofer ?? specs.tweeter ?? Object.values(specs)[0] ?? null;
+}
+
+/** Project one openisd.yml record onto the app's DriverJSON shape. */
+function project(record) {
+  const inputs = {};
+  const driverType = valueOf(record.driver_type);
+  const section = specSection(record.specs, driverType);
+
+  for (const [specKey, field] of Object.entries(SPEC_TO_FIELD)) {
+    const v = specValue(section?.[specKey]);
+    if (v !== undefined) inputs[field] = v;
   }
-  return files;
-}
 
-// The driver type is the single non-`data_sources` sub-key under `specs:`
-// (e.g. passive_radiator, woofer, tweeter) — the authoritative spec-derived signal.
-function specType(meta) {
-  const specs = meta?.specs;
-  if (!specs || typeof specs !== 'object') return '';
-  const keys = Object.keys(specs).filter(k => k !== 'data_sources');
-  return keys.length === 1 ? keys[0] : '';
-}
+  const brand = valueOf(record.brand);
+  const model = valueOf(record.model);
+  if (brand) inputs.brand = brand;
+  if (model) inputs.model = model;
+  const manufacturer = valueOf(record.manufacturer);
+  if (manufacturer) inputs.manufacturer = manufacturer;
 
-const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
-const specVal = (block, field) => num(block?.[field]?.value);
+  // Brand-led, with manufacturer trailing only when it says something the brand does not —
+  // the same rule as `driverShort()` in packages/ui/src/store.ts, which is what the app uses
+  // to name this driver everywhere else. A driver is sold and filed under its BRAND, so the
+  // brand leads; `manufacturer` is second-order.
+  const lead = brand || manufacturer;
+  const trailer = brand && manufacturer && manufacturer !== brand ? `(${manufacturer})` : '';
+  const name = [lead, model, trailer].filter(Boolean).join(' ').trim();
+
+  for (const [role, url] of Object.entries(valueOf(record.data_sources) ?? {})) {
+    const field = SOURCE_TO_LINK[role];
+    if (field && url) inputs[field] = url;
+    if (role === valueOf(record.authoritative) && url) inputs.sourceUrl = url;
+  }
+
+  const disposition = valueOf(record.disposition);
+  return { inputs, driverType, name, disposition };
+}
 
 const bundle = {
   _generated: 'AUTO-GENERATED by scripts/bundle-drivers.mjs — DO NOT EDIT MANUALLY. ' +
     'See packages/ui/src/drivers-bundle.README.md for full details.',
   sources: [],
-  // Meta-only passive radiators (no WDR); consumed by the Browse-PR popup.
-  passiveRadiators: [],
 };
 
 for (const [key, src] of Object.entries(sources)) {
-  let localPath;
-  const m = src.url?.match(REPO_RE);
-  if (m) {
-    localPath = join(ROOT, m[1]);
-  } else {
-    const mDrivers = src.url?.match(DRIVERS_REPO_RE);
-    if (mDrivers) {
-      localPath = join(ROOT, '..', 'winisd_drivers', mDrivers[1]);
+  const localPath = localPathOf(src);
+  if (localPath === null) continue;                  // federated — fetched at runtime
+  if (localPath === undefined) {
+    console.warn(`  SKIP ${key} (${src.name}) — ${src.path} is not checked out; the app will show none of its drivers`);
+    continue;
+  }
+
+  console.log(`\n${key} (${src.name})\n  reading ${src.path}`);
+
+  let recordPaths;
+  try { recordPaths = walkRecords(localPath); }
+  catch { console.warn(`  SKIP ${key} (${src.name}) — path not found: ${localPath}`); continue; }
+  console.log(`  found ${recordPaths.length} ${RECORD_FILE} files`);
+
+  const files = [];
+  const skipped = [];
+  const perGroup = new Map();          // top path segment (the brand) → kept count
+  let done = 0;
+
+  for (const p of recordPaths) {
+    const rel = relative(localPath, p).replace(/\\/g, '/');
+    const group = rel.split('/')[0];
+    const record = parseYaml(readFileSync(p, 'utf8'));
+    const { inputs, driverType, name, disposition } = project(record ?? {});
+
+    // A record with no resonance and no cone area cannot be simulated or filtered;
+    // it would render as an unusable row. Listed below, never silently dropped.
+    // Also skip if disposition is explicitly set and not "ok".
+    if ((inputs.Fs === undefined && inputs.Sd === undefined) || (disposition !== undefined && disposition !== 'ok')) {
+      skipped.push(rel + (disposition && disposition !== 'ok' ? ` (${disposition})` : ''));
+    } else {
+      files.push({
+        // path within the source (forward-slashed) — the unique id together with the
+        // source key; never rely on the display name, which can repeat.
+        path: rel,
+        name: name || rel,
+        ...(driverType ? { driverType } : {}),
+        record: { inputs },
+      });
+      perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
+    }
+
+    if (++done % 250 === 0 || done === recordPaths.length) {
+      console.log(`  ${String(done).padStart(5)}/${recordPaths.length} projected — ${files.length} usable, ${skipped.length} unusable`);
     }
   }
-  if (!localPath) continue;
 
-  let wdrPaths;
-  try { wdrPaths = walkWdr(localPath); }
-  catch { console.warn(`  SKIP ${src.name} — path not found: ${localPath}`); continue; }
-
-  const files = wdrPaths.map(p => {
-    const content = readFileSync(p, 'utf8');
-    // Extract DateModified or DateAdded for UI sorting (prefer Modified)
-    const dm = content.match(/^DateModified=(.+)$/m);
-    const da = content.match(/^DateAdded=(.+)$/m);
-    const date = (dm?.[1] || da?.[1] || '').trim();
-    // Extract link fields from openisd.yml sidecar
-    let sidecarPath = join(dirname(p), 'openisd.yml');
-    if (!existsSync(sidecarPath)) sidecarPath = join(dirname(p), 'openisd.yml');
-    if (!existsSync(sidecarPath)) sidecarPath = p.replace(/\.wdr$/i, 'openisd.yml');
-    const sidecar = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : '';
-    const ymlVal = key => { const m = sidecar.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); if (!m) return ''; const v = m[1].trim(); return (v === 'null' || v === '~') ? '' : v; };
-    const datasheet    = ymlVal('datasheet_url');
-    const manu_page_url     = ymlVal('manu_page_url');
-    const distributor_page_url   = ymlVal('distributor_page_url');
-    const frd          = ymlVal('frd_url');
-    const impedance    = ymlVal('zma_url');
-    const driver_type  = ymlVal('driver_type');
-    const freq_low_hz  = ymlVal('freq_low_hz');
-    const freq_high_hz = ymlVal('freq_high_hz');
-    const has_woofer   = /^\s+woofer:\s*$/m.test(sidecar);
-    const has_tweeter  = /^\s+tweeter:\s*$/m.test(sidecar);
-    return {
-      // path within the source (forward-slashed) — the unique id together with the
-      // source key; never rely on the display name, which can repeat across files.
-      path: relative(localPath, p).replace(/\\/g, '/'),
-      name: p.split(/[\\/]/).pop().replace(/\.wdr$/i, ''),
-      date,
-      content,
-      ...(datasheet    ? { datasheet }    : {}),
-      ...(manu_page_url     ? { manu_page_url }     : {}),
-      ...(distributor_page_url   ? { distributor_page_url }   : {}),
-      ...(frd          ? { frd }          : {}),
-      ...(impedance    ? { impedance }    : {}),
-      ...(driver_type  ? { driver_type }  : {}),
-      ...(freq_low_hz  ? { freq_low_hz }  : {}),
-      ...(freq_high_hz ? { freq_high_hz } : {}),
-      ...(has_woofer   ? { has_woofer }   : {}),
-      ...(has_tweeter  ? { has_tweeter }  : {}),
-    };
-  });
+  for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
+  }
+  if (skipped.length) {
+    console.log(`  ${skipped.length} records carry neither Fs nor Sd and are NOT bundled, first 5:`);
+    for (const rel of skipped.slice(0, 5)) console.log(`    - ${rel}`);
+  }
 
   bundle.sources.push({ key, name: src.name, files });
-  console.log(`  ${key} (${src.name}): ${files.length} drivers`);
-
-  // Passive radiators: openisd.yml whose spec-derived type is passive_radiator.
-  // These have no WDR, so they never appear in the woofer/tweeter list above.
-  let prCount = 0;
-  for (const metaPath of walkMeta(localPath)) {
-    let meta;
-    try { meta = parseYaml(readFileSync(metaPath, 'utf8')); }
-    catch { continue; }
-    if (specType(meta) !== 'passive_radiator') continue;
-    const block = meta.specs.passive_radiator;
-    bundle.passiveRadiators.push({
-      key,
-      sourceName: src.name,
-      path: relative(localPath, metaPath).replace(/\\/g, '/'),
-      name: [meta.brand, meta.model].filter(Boolean).join(' ') || relative(localPath, dirname(metaPath)).replace(/\\/g, '/'),
-      brand: meta.brand || '',
-      model: meta.model || '',
-      // Only the fields the manufacturer publishes for a PR; Fs/Mms/Rms/Xmax are
-      // typically absent and are intentionally omitted rather than fabricated.
-      Sd:  specVal(block, 'Sd'),
-      Cms: specVal(block, 'Cms'),
-      Vas: specVal(block, 'Vas'),
-      weightKg: specVal(block, 'weight_kg'),
-      datasheet: meta.datasheet_url || '',
-      manu_page_url: meta.manu_page_url || '',
-    });
-    prCount++;
-  }
-  if (prCount) console.log(`  ${key} (${src.name}): ${prCount} passive radiators (meta-only)`);
+  console.log(`  → ${files.length} records bundled from ${key}`);
 }
 
 const total = bundle.sources.reduce((n, s) => n + s.files.length, 0);
 const outPath = join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json');
+writeFileSync(outPath, JSON.stringify(bundle));
 
-// Guard: never overwrite a non-empty bundle with an EMPTY one. When the source data is
-// incomplete — a sibling driver repo mid-rebuild, or a source URL that no longer resolves —
-// the walk yields zero drivers and/or zero passive radiators. This runs on dev/test server
-// startup, so a hard failure would block the server; instead KEEP the last-good bundle, warn
-// loudly, and exit 0 so the app still boots with real data. A genuinely-empty publish is opted
-// into by deleting the existing file first (then there is nothing to protect).
-let wouldEmpty = false;
-if (existsSync(outPath)) {
-  let prev = null;
-  try { prev = JSON.parse(readFileSync(outPath, 'utf8')); } catch { /* unparseable → treat as no prior */ }
-  if (prev) {
-    const prevTotal = (prev.sources || []).reduce((n, s) => n + (s.files?.length || 0), 0);
-    const prevPr = (prev.passiveRadiators || []).length;
-    const emptiesDrivers = total === 0 && prevTotal > 0;
-    const emptiesPrs = bundle.passiveRadiators.length === 0 && prevPr > 0;
-    if (emptiesDrivers || emptiesPrs) {
-      wouldEmpty = true;
-      console.warn(
-        `\nWARNING: keeping the existing ${relative(ROOT, outPath)} — this build is empty where it was not ` +
-        `(drivers ${prevTotal}→${total}, passive radiators ${prevPr}→${bundle.passiveRadiators.length}).`,
-      );
-      console.warn(
-        '  The SOURCE data looks incomplete — check the sibling winisd_drivers checkout / source URLs. ' +
-        'The bundle is left UNCHANGED (not wiped). ' +
-        `To force a genuinely-empty bundle, delete ${relative(ROOT, outPath)} first, then re-run.`,
-      );
-    }
-  }
-}
-
-if (wouldEmpty) {
-  console.log('\nBundle left unchanged (empty-build guard). Existing driver data preserved.');
-} else {
-  writeFileSync(outPath, JSON.stringify(bundle));
-  const kb = Math.round(JSON.stringify(bundle).length / 1024);
-  console.log(`\nBundled ${total} WDR files + ${bundle.passiveRadiators.length} passive radiators → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
-}
+const kb = Math.round(JSON.stringify(bundle).length / 1024);
+console.log(`\nBundled ${total} driver records → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
+if (total === 0) console.warn('WARNING: the bundle is EMPTY — the app will show no bundled drivers.');

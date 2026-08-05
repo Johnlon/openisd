@@ -48,10 +48,21 @@ export function driveVoltage(pin: number, re: number): number {
   return Math.sqrt(pin * re);
 }
 
+/** The reference temperature `C` and `RHO` are quoted at: 20 °C in kelvin. */
+const T_REF_K = 293.15;
+
 /**
- * Speed of sound in air from absolute temperature: c = 20.05 · √(T[K]) m/s.
- * (20.05 = √(γ·R/M) for dry air.) At 293.15 K this is ≈ 343.3 m/s.
+ * Speed of sound in air from absolute temperature: c = C · √(T[K] / T_REF_K) m/s.
+ * At T_REF_K this returns `C` exactly.
  */
 export function soundVelocity(tempKelvin: number): number {
-  return 20.05 * Math.sqrt(tempKelvin);
+  return C * Math.sqrt(tempKelvin / T_REF_K);
+}
+
+/**
+ * Air density from absolute temperature, based on the ideal gas law:
+ * ρ(T) = RHO · (T_REF_K / T). At T_REF_K this returns `RHO` exactly.
+ */
+export function airDensity(tempKelvin: number): number {
+  return RHO * (T_REF_K / tempKelvin);
 }

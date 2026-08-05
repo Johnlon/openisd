@@ -1,6 +1,6 @@
 # OpenISD — Code Review Findings
 
-Full-codebase review covering Python scrapers, JavaScript/Vue, and repository
+Full-codebase review covering JavaScript/Vue and repository
 structure/documentation. Every correctness finding was verified against the
 source before listing. Each finding states the exact file, the failure scenario,
 and a preventative practice.
@@ -8,77 +8,6 @@ and a preventative practice.
 Finding numbers (`§N`) are **stable IDs** referenced by `VIBE_CODING.md`; they are
 never reused or renumbered. A resolved finding is removed and its number left as a
 gap. New findings take the next free number. Verify the two docs agree after any edit.
-
----
-
-## Correctness bugs — Python (scrapers)
-
-### 1. `scripts/scrapers/scrape_pe.py:188` — pagination silently truncates catalogs
-
-`if len(items) >= (data.get("total") or 0) or not page: break` — when the API
-response omits `total`, `(... or 0)` makes the test `len(items) >= 0`, always
-true → the loop stops after the first 50-item page. A 120-driver brand whose
-response lacks `total` yields only 50 drivers.
-
-**Preventative:** never coerce a missing count to `0` as a loop bound; treat
-absent `total` as "unknown" and rely on `not page` to terminate.
-
-### 2. `scripts/scrapers/scrape_pe.py:309` — frequency regex mis-scales kHz ranges
-
-Low-end unit is optional `(kHz|Hz)?`, high-end is required. Input `"1.5 – 20 kHz"`
-→ `freq_low_hz = 1.5` (unscaled) while `freq_high_hz = 20000`.
-
-**Preventative:** when only the trailing unit is present, apply it to both
-endpoints. `pdf_lib.find_freq_range` already does this — share that logic.
-
-### 3. `scripts/scrapers/scrape_wavecor.py:251` — label gate reads the wrong cell
-
-`if "recommended" not in label and "frequency range" not in label: continue` — a
-"Recommended amplifier power [W]" row passes the gate, then `cells[2]` reads e.g.
-`100` → writes `freq_high_hz: 100` from a wattage.
-
-**Preventative:** anchor labels to exact phrases ("frequency range"/"upper
-frequency limit"); don't substring-match "recommended".
-
-### 5. `scripts/scraper_lib.py` vs `scripts/scrapers/scraper_lib.py` — two copies — ◐ PARTLY RESOLVED
-
-**◐ PARTLY RESOLVED (verified):** `scripts/scrapers/scraper_lib.py` now re-exports the
-infrastructure functions (`is_new_url`, `mark_scraped`, `run_scraper`, …) from `_plib`
-(= `scripts/scraper_lib.py`) rather than defining its own divergent copies, so those no
-longer drift; the duplicate `scrape_sbacoustics.py` has also been removed (one copy).
-**Still open:** two modules named `scraper_lib.py` remain importable from two locations
-(958 vs 1045 lines — the second adds extraction helpers), so the naming ambiguity and
-split-brain risk are reduced but not eliminated.
-
-**Preventative:** one canonical `scraper_lib.py`; the other becomes a thin
-re-export or is deleted (or renamed, e.g. `extract_lib.py`, to end the name clash).
-
-### 6. `scripts/scrapers/scrape_pe.py:337-353` — PDF errors swallowed with bare `except: pass`
-
-Fetch/extract exceptions are discarded with no `_problems.log` entry, violating
-CLAUDE.md's "log full traceback, item identity, and source URL." A brand whose
-PDFs all 404 reports clean.
-
-**Preventative:** catch → record to problem log with SKU+URL → continue. Never
-bare `pass`. (Runs in a `ProcessPoolExecutor` worker, so return the error to the
-parent to log.)
-
-### 7. `scripts/scrapers/scrape_pe.py:419-421` (+ `scraper_lib.py:486`) — error URLs never retried
-
-`mark_scraped(url, status="error: …")` adds the URL to `manifest["scraped"]`, and
-`is_new_url` skips anything in that set → a transient timeout permanently excludes
-a driver until someone runs `--refresh` (which re-scrapes everything).
-
-**Preventative:** only skip URLs with `status == "ok"`; always re-attempt
-error/skip statuses.
-
-### 8. `scripts/scrapers/pdf_lib.py:356-360` — OCR cache keyed by filename only, never invalidated
-
-A re-downloaded PDF with the same name keeps serving stale extracted text, so
-corrected vendor T/S values are never picked up.
-
-**Preventative:** include content hash or mtime/size in the cache key; invalidate
-`.txt` when the PDF is re-fetched.
 
 ---
 
@@ -110,31 +39,15 @@ applies"), `FEATURES.md` dated "as of mid-2025" snapshots.
 **Preventative:** CI grep over `*.md` for
 `preserved for history|~~|previously|as of <date>|^\s*- \[x\]` — fail the build.
 
-### 14. Broken cross-references to `drivers/WDR_FILE_MODEL_AND_WORKFLOWS.md`
-
-Referenced from `CLAUDE.md:145`, `PLAN_SCRAPING.md:4`, `drivers/README.md:6`,
-`drivers/SCRAPING_RULES.md:240`, but the file is at repo root. All four links 404.
-
-**Preventative:** move the file to `drivers/` (matches all four refs) and add a
-markdown link-checker to CI.
-
-_(2026-07-20 update: `WDR_FILE_MODEL_AND_WORKFLOWS.md` was merged into `WDR_SCHEMA.md`
-as its "Appendix — file model & link-field workflows"; inbound refs repointed there.)_
-
 ### 15. Competing "canonical" / roadmap sources
 
-`FEATURES.md:190` names `drivers/README.md` canonical while `WDR_SCHEMA.md:3` and
-`wdr_meta_schema.py` are the real sources of truth; `FEATURES.md`, `COMPARISON.md`,
-and `BACKLOG.md` all act as the roadmap; `FEATURES.md` still documents the
-obsolete `_meta.json` sidecar. 16 root `.md` files sit beside an empty `docs/`
-dir.
+`FEATURES.md:190` names `drivers/README.md` canonical while `WDR_SCHEMA.md:3` is the
+real source of truth; `FEATURES.md`, `COMPARISON.md`, and `BACKLOG.md` all act as the
+roadmap. 16 root `.md` files sit beside an empty `docs/` dir.
 
 **Preventative:** one roadmap (`BACKLOG.md`), one canonical schema doc
 (`WDR_SCHEMA.md`); other docs link rather than restate. Consolidate root docs into
 `docs/` or remove the empty dir.
-
-_(2026-07-20 update: `FEATURES.md`, `WINISD_OPENISD_COMPARISON.md`, `OTHER_TOOLS.md`,
-`SPEAKER_TOOL_LANDSCAPE.md` were merged into `FEATURE_COMPARISON.md`.)_
 
 ---
 
@@ -142,24 +55,22 @@ _(2026-07-20 update: `FEATURES.md`, `WINISD_OPENISD_COMPARISON.md`, `OTHER_TOOLS
 
 Generalised rules worth adding to `CLAUDE.md`/CI:
 
-1. **One source of truth per concern** — collapse duplicate `scraper_lib.py` and
+1. **One source of truth per concern** — collapse duplicate modules and
    duplicate roadmap/canonical docs. (5, 15)
-2. **Validation lives in the shared write path** — never per-scraper; assert with
+2. **Validation lives in the shared write path** — never per-caller; assert with
    a test.
 3. **Never coerce a missing value into a control-flow bound** — absent ≠ 0/empty.
    (1)
-4. **No bare `except: pass` in scrapers** — log SKU+URL+traceback then continue.
    (6)
-5. **Retry policy by status** — only skip `status == "ok"`. (7)
-6. **Cache keys must include content identity** (hash/mtime), never just a
+4. **Retry policy by status** — only skip `status == "ok"`. (7)
+5. **Cache keys must include content identity** (hash/mtime), never just a
    filename. (8)
-7. **Share extraction helpers** instead of re-implementing regexes per scraper.
    (2, 3)
-8. **Guard against missing optional fields and zero denominators** before
+6. **Guard against missing optional fields and zero denominators** before
    arithmetic in `packages/engine/src`/`sweep`. (11)
-9. **Stable entity ids** — derive from persisted data, never a module counter that
+7. **Stable entity ids** — derive from persisted data, never a module counter that
    resets.
-10. **CI guards for doc rules** — no-history grep + markdown link-checker. (13, 14)
+8. **CI guards for doc rules** — no-history grep + markdown link-checker. (13, 14)
 
 ---
 
@@ -216,7 +127,7 @@ systematic offset on all volume/SPL/tuning math, with no user temperature input.
 (`packages/engine/src/driver.ts:113`) but now carries a comment explaining it is a
 WinISD per-field edit-state flag sequence and mapping the positions to the WDR field
 order (`:111-112`). The maintainability wart is annotated, not removed — a data-driven
-builder (as `scraper_lib.py`'s `_parstate` does) would eliminate the literal.
+builder driven by per-field state would eliminate the literal.
 
 ### Already listed above (engine-related)
 

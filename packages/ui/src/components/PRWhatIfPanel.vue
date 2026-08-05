@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver } from '../store.js';
-import { precision as fieldDp } from '../fields/fieldRegistry.js';
 import { prTuning, prMassForFp, ventedAlignment } from '@openisd/engine';
 import NumInput from './NumInput.vue';
 
@@ -32,7 +31,7 @@ function close() { emit('close'); }
     <div class="whatif-hint">What-If: added mass updates the graph live.</div>
     <div class="row" title="Extra mass bolted to the PR cone. Shifts Fp down. WinISD: 'Added mass'.">
       <label>Added mass</label>
-      <NumInput v-model="state.P.prMadd" :scale="1000" :precision="fieldDp('prMadd')" />
+      <NumInput v-model="state.P.prMadd" :scale="1000" :precision="4" />
       <span class="u">g</span>
     </div>
     <div class="row" title="Total moving mass = Mms + added mass.">
@@ -56,11 +55,8 @@ function close() { emit('close'); }
 </template>
 
 <style scoped>
-/* position:fixed (not absolute) — escapes the tab's own small height-budget
-   ancestor so the overlay always has room, matching DriverWhatIfPanel. */
-.prwi { position: fixed; right: 24px; bottom: 24px; z-index: 20; width: 280px;
-  max-height: 80vh; overflow-y: auto;
+.prwi { position: absolute; right: 8px; bottom: 8px; z-index: 20; width: 280px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 12px; }
+  box-shadow: 0 6px 24px rgba(0,0,0,.25); padding: 10px 12px; }
 .prwi .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
 </style>

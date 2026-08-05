@@ -1,0 +1,375 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/original-skin.browser.spec.ts",
+      "-g",
+      "Original skin"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T02-08-43-888Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Original skin buttons have readable dark text on their light fill",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4940,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:08:45.501Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b225ebc3b7f8b0e87aad",
+          "file": "original-skin.browser.spec.ts",
+          "line": 441,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5311,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:866:20",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 20,
+                      "line": 866
+                    },
+                    "snippet": "  864 |   });\n  865 |   const siBefore = await readMadd();\n> 866 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  867 |\n  868 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  869 |   await expect(page.locator('.opt-modal')).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 20,
+                        "line": 866
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n\n  864 |   });\n  865 |   const siBefore = await readMadd();\n> 866 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  867 |\n  868 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  869 |   await expect(page.locator('.opt-modal')).toBeVisible();\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:866:20\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:08:50.597Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 20,
+                    "line": 866
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-033822eb2532ba5b03d3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 845,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options → General → Environment default seeds a fresh mount's Advanced-pane Temperature (not a hardcoded literal)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9798,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:08:57.360Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-fa130114f746ab4a27a6",
+          "file": "original-skin.browser.spec.ts",
+          "line": 877,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog is centered on screen, not pinned to the top (own overlay, not the shell's)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5259,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:09:07.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-4e4c8971cb09fc19c14f",
+          "file": "original-skin.browser.spec.ts",
+          "line": 893,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5433,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:09:12.605Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e663fabe007baab233c5",
+          "file": "original-skin.browser.spec.ts",
+          "line": 908,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Project Modified styling (yellow highlight/is-unsaved class) is preserved when switching back and forth",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5575,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:09:18.067Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3f7015f2b3bc6099d481",
+          "file": "original-skin.browser.spec.ts",
+          "line": 937,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Revert/reset button resets modifications correctly",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5537,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:09:23.670Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-4ca69596243f18601c7b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 971,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T02:08:43.896Z",
+    "duration": 45453.868,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

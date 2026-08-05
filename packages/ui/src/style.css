@@ -65,6 +65,21 @@ legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:upper
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
 .row .u { width:34px; color:var(--mut); font-size:11px; text-align:left }
+/* Driver provenance marks — the CellClass values from composables/useDriverCells.ts, styled
+   ONCE for every skin so the driver editor and a what-if panel can never disagree about what
+   Entered / Calculated / Not-entered looks like. Each skin's own token block supplies the
+   actual hues. Two selector shapes: the class lands on the <input> itself (NumInput
+   fallthrough) or on a wrapper around it. */
+input.st-e, .st-e input { color:var(--good) }
+input.st-c, .st-c input { color:var(--acc) }
+input.st-n, .st-n input { color:var(--mut) }
+/* Required-but-missing. Red is reserved for genuine alerts, and a field the simulation cannot
+   run without is one. Bold border = this field is required; red = and it is empty.
+   !important because an alert must outrank a container's own border styling: a panel that
+   sets `border: 1px solid #999` on its inputs does so from a scoped rule, which otherwise
+   wins on specificity and silently swallows the warning. */
+input.de-input-mandatory { border-width:2px !important }
+input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
 button { background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:5px 10px; cursor:pointer; font:inherit }
 button:hover { border-color:var(--acc) }
 button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font-weight:600 }
@@ -79,6 +94,9 @@ button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font
 .pmbadge-dv  { color:var(--mut);  border-color:var(--line) }
 .pr-derived { opacity:0.65 }
 .pr-roval { font-size:11px; color:var(--acc2); text-align:right; flex:0 0 96px; font-style:italic }
+/* A genuine unreachable-target warning, so --acc2 (the reserved attention colour) is correct
+   here — this is not helper text. See .claude/rules/openisd-ui-design.md, alert-colour reserve. */
+.pr-warn { color:var(--acc2); font-size:10.5px; line-height:1.45; margin:2px 0 6px }
 .btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px }
 .btns button:disabled { opacity:.4; cursor:not-allowed }
 .save-dlg { margin-top:6px; display:flex; flex-direction:column; gap:5px; padding:8px; background:var(--panel2); border:1px solid var(--line); border-radius:5px }
@@ -117,7 +135,6 @@ a { color:var(--acc) }
 .pr-lib-name:hover { color:var(--acc) }
 .pr-lib-del { background:none; border:none; color:var(--mut); cursor:pointer; padding:0 4px; font-size:13px }
 .pr-lib-del:hover { color:var(--bad) }
-.pr-lib-hdr { padding:4px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); background:var(--panel2); border-bottom:1px solid var(--line) }
 .status { font-size:12px; color:var(--mut); padding:8px 2px }
 .status.err { color:var(--bad) }
 .status.loading { padding:24px 8px; text-align:center; animation:pulse 1.4s ease-in-out infinite }
@@ -184,3 +201,47 @@ a { color:var(--acc) }
   /* Touch-friendly tap targets */
   button { min-height: 30px }
 }
+/* Original & Classic Win32 skin modal/options overrides */
+.skin-original .modal,
+.skin-original .opt-modal,
+.skin-classic .modal,
+.skin-classic .opt-modal {
+  border-radius: 0 !important;
+  border: 1px solid #888 !important;
+  background: #f7f7f7 !important;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35) !important;
+}
+.skin-original .modal h2,
+.skin-original .opt-h2,
+.skin-classic .modal h2,
+.skin-classic .opt-h2 {
+  background: #e9e9e9 !important;
+  border-bottom: 1px solid #bbb !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+  font-weight: bold !important;
+  font-family: inherit !important;
+  color: #1b1b1b !important;
+}
+.skin-original .de-tabs,
+.skin-original .opt-tabs,
+.skin-classic .de-tabs,
+.skin-classic .opt-tabs {
+  border-bottom: none !important;
+}
+
+.skin-classic {
+  --bg: #ffffff; --panel: #ffffff; --panel2: #f4f5f6; --line: #d7d7d7;
+  --fg: #1b1b1b; --mut: #555; --acc: #2f6db5; --acc2: #b8790f; --good: #2e8b57; --bad: #c62828;
+  --chart-bg: #ffffff; --chart-grid: #e9e9e9; --chart-text: #555555;
+  --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
+}
+
+.skin-original {
+  --bg: #f2f2f2; --panel: #f7f7f7; --panel2: #ececec; --line: #bbb;
+  --fg: #1a1a1a; --mut: #555; --acc: #1868d1; --acc2: #b8790f; --good: #1b7d1b; --bad: #b02a2a;
+  --chart-bg: #ffffff; --chart-grid: #e0e0e0; --chart-text: #555;
+  --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
+}
+

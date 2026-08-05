@@ -12,7 +12,10 @@ import { ref, computed } from 'vue';
 import { state, isModified, newProject, markProjectSaved } from '../../store.js';
 import type { BoxType } from '@openisd/engine';
 
+import { useEscToClose } from '../../composables/useEscToClose.js';
+
 const emit = defineEmits<{ close: [] }>();
+useEscToClose(() => true, () => emit('close'));
 
 const BOX_OPTIONS: { id: BoxType; label: string }[] = [
   { id: 'sealed',    label: 'Closed' },
@@ -51,7 +54,7 @@ function create() {
 </script>
 
 <template>
-  <div class="overlay open" @click.self="emit('close')">
+  <div class="overlay open">
     <div class="modal">
       <div class="modal-titlebar">
         <div class="tb-left"><span class="app-icon"></span><span>New Project</span></div>

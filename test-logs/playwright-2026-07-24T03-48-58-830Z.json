@@ -1,0 +1,469 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/project-name-file.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T03-48-58-830Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "project-name-file.browser.spec.ts",
+      "file": "project-name-file.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "＋ Copy names the new row after the PROJECT, not the driver",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 12583,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m3\u001b[39m\nReceived: \u001b[31m5\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 5 elements\u001b[22m\n\u001b[2m       - unexpected value \"5\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m3\u001b[39m\nReceived: \u001b[31m5\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 5 elements\u001b[22m\n\u001b[2m       - unexpected value \"5\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:160:22",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                      "column": 22,
+                      "line": 160
+                    },
+                    "snippet": "  158 |   await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Copy' }).first().click();\n  159 |   const rows = page.locator('.projects-list .project-row');\n> 160 |   await expect(rows).toHaveCount(3);                         // current + saved overlay + the new copy\n      |                      ^\n  161 |   await expect(rows.nth(2)).toContainText('Copy of glob 3');\n  162 |\n  163 |   // A second copy must not collide with the first."
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 22,
+                        "line": 160
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m3\u001b[39m\nReceived: \u001b[31m5\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 5 elements\u001b[22m\n\u001b[2m       - unexpected value \"5\"\u001b[22m\n\n\n  158 |   await page.locator('.quad-projects-wrap .link-btn', { hasText: 'Copy' }).first().click();\n  159 |   const rows = page.locator('.projects-list .project-row');\n> 160 |   await expect(rows).toHaveCount(3);                         // current + saved overlay + the new copy\n      |                      ^\n  161 |   await expect(rows.nth(2)).toContainText('Copy of glob 3');\n  162 |\n  163 |   // A second copy must not collide with the first.\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:160:22\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"＋ Copy names the new row after the PROJECT, not the driver\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-24T03:50:18.625Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--c09e9--the-PROJECT-not-the-driver/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--c09e9--the-PROJECT-not-the-driver/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                    "column": 22,
+                    "line": 160
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c1ed5108499a00b8f29e-1bbef4446e1fed73aa1e",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 152,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "Open… names the project after the file it came from",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 65,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the FILE name wins over the name stored inside the file — spaces preserved",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9052,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:00.678Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-7f1bfe644d30bf9ecd21",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "a bare .json project file names the project too",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9839,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:09.888Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-c9eb5a07179737eeaf8e",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "the whole snapshot lands — the design AND the comparison overlays it was saved with",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 14845,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:89:24",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 24,
+                          "line": 89
+                        },
+                        "snippet": "  87 |     await openProjectFile(page, 'glob 3.owpr');\n  88 |     const rows = page.locator('.projects-list .project-row');\n> 89 |     await expect(rows).toHaveCount(2);                       // current + the saved overlay\n     |                        ^\n  90 |     await expect(rows.nth(1)).toContainText('Copy of glob');\n  91 |     const vb = await page.evaluate(async () => {\n  92 |       const modPath = '/src/store.ts';"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 24,
+                            "line": 89
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n\n\n  87 |     await openProjectFile(page, 'glob 3.owpr');\n  88 |     const rows = page.locator('.projects-list .project-row');\n> 89 |     await expect(rows).toHaveCount(2);                       // current + the saved overlay\n     |                        ^\n  90 |     await expect(rows.nth(1)).toContainText('Copy of glob');\n  91 |     const vb = await page.evaluate(async () => {\n  92 |       const modPath = '/src/store.ts';\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:89:24\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"the whole snapshot lands — the design AND the comparison overlays it was saved with\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:19.756Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 24,
+                        "line": 89
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-581d5b43be0241eff26e",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 86,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Saving keeps the project name and the file name equal",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 100,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Save suggests the project name verbatim — spaces are NOT mangled into underscores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9627,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:36.353Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-eda0dd4ba2df70419af1",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "the picked file renames the project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9944,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:46.151Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-22707fc2bb15e6dd4fe1",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 117,
+              "column": 3
+            },
+            {
+              "title": "a FIRST Save As (nothing open yet) is not a copy — it keeps the project name",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10918,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:49:56.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-3eb6def6a3c5994fa831",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 128,
+              "column": 3
+            },
+            {
+              "title": "renaming the project releases the open file, so the next Save asks where to put it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11494,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:50:07.085Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-874a876d930b04fcacc6",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 134,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T03:48:58.840Z",
+    "duration": 93481.133,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

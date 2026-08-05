@@ -1,0 +1,180 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/project-name-file.browser.spec.ts",
+      "-g",
+      "the whole snapshot lands"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T03-19-40-901Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "project-name-file.browser.spec.ts",
+      "file": "project-name-file.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Open… names the project after the file it came from",
+          "file": "project-name-file.browser.spec.ts",
+          "line": 65,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the whole snapshot lands — the design AND the comparison overlays it was saved with",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9345,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:87:24",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                          "column": 24,
+                          "line": 87
+                        },
+                        "snippet": "  85 |     await openProjectFile(page, 'glob 3.owpr');\n  86 |     const rows = page.locator('.projects-list .project-row');\n> 87 |     await expect(rows).toHaveCount(2);                       // current + the saved overlay\n     |                        ^\n  88 |     await expect(rows.nth(1)).toContainText('Copy of glob');\n  89 |     const vb = await page.evaluate(async () => {\n  90 |       const modPath = '/src/store.ts';"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                            "column": 24,
+                            "line": 87
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.projects-list .project-row')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m4\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row')\u001b[22m\n\u001b[2m    14 × locator resolved to 4 elements\u001b[22m\n\u001b[2m       - unexpected value \"4\"\u001b[22m\n\n\n  85 |     await openProjectFile(page, 'glob 3.owpr');\n  86 |     const rows = page.locator('.projects-list .project-row');\n> 87 |     await expect(rows).toHaveCount(2);                       // current + the saved overlay\n     |                        ^\n  88 |     await expect(rows.nth(1)).toContainText('Copy of glob');\n  89 |     const vb = await page.evaluate(async () => {\n  90 |       const modPath = '/src/store.ts';\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts:87:24\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"the whole snapshot lands — the design AND the comparison overlays it was saved with\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-24T03:19:42.075Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-name-file.browser--1d212--overlays-it-was-saved-with/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-name-file.browser.spec.ts",
+                        "column": 24,
+                        "line": 87
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c1ed5108499a00b8f29e-581d5b43be0241eff26e",
+              "file": "project-name-file.browser.spec.ts",
+              "line": 84,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T03:19:40.909Z",
+    "duration": 10967.85,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

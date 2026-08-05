@@ -1,114 +1,74 @@
-# Project state model
+# OpenISD — state & memory model
 
-Layered project state — **ground → modified → what-if**, plus a parallel **edit** state.
-This governs unsaved-change tracking, what-if previews, edit dialogs, and — critically —
-**which state the charts render**.
+What the app remembers, where each fact lives, and the exact moment a change becomes part
+of the user's design. Every dialog, picker and panel obeys this; a component that does not
+is a defect, not a variation.
 
-> Status: **being implemented incrementally.**
->
-> - **Increment 1 — ground↔modified (DONE):** the store tracks a **ground** fingerprint
->   (`store.ts` `markProjectSaved` / `isModified` / `resetProjectToGround`). `App.vue` marks
->   the just-loaded design as ground; the design is **modified** when it differs. The Original
->   skin's Save bar is wired to it: an Unsaved indicator, **Save Changes** (adopt current as
->   ground), **Reset state** (revert to ground). This is additive — components still read
->   `state.P`/`state.box` directly; the layer only observes/restores them.
-> - **Increment 2 — driver what-if priorityState overlay (DONE):** `store.ts` holds a driver
->   what-if overlay (`startDriverWhatIf` / `keepDriverWhatIf` / `cancelDriverWhatIf` /
->   `setWhatIfFromRaw` / `isDriverWhatIfActive`). The **effective** accessors (`driver`,
->   `driverRaw`, `driverErrors`) resolve to the overlay when active, else the committed model —
->   this IS the priorityState indirection: reactive readers hang off the effective accessors and
->   start/keep/cancel just swap which layer they resolve to. **`driverJSON` stays
->   committed-only** (persistence + the ground fingerprint), so a live what-if previews on the
->   charts but never dirties the modified/ground state until **Keep**. OgTune drives the
->   lifecycle; Modern/Classic never start an overlay, so effective ≡ committed there (Invariant 1).
-> - **Increment 3 — edit-dialog buffer + box/params what-if (TODO):** the **edit** dialog
->   (charts ignore the buffer until **Accept**) still runs through the shared DriverEditorModal;
->   and the overlay is currently **driver-only** — box-type / param what-ifs are not yet routed
->   through a layer. Both extend the same priorityState machinery.
+The code that implements it is `packages/ui/src/store.ts` plus the two composables
+`composables/useDriverSelection.ts` (draft → commit) and `composables/useDriverLibrary.ts`
+(the library picker). The rule that keeps skins from diverging is ARCHITECTURE.md AD-7.
 
-## The state layers
+---
 
-Each layer is a **complete copy** of the project state.
+## The layers
 
-| Layer        | Exists when                                                                          | Created by copying                      |
-| ------------ | ------------------------------------------------------------------------------------ | --------------------------------------- |
-| **Ground**   | always (the last loaded / last saved project)                                        | —                                       |
-| **Modified** | the project has unsaved changes                                                      | ground + the change                     |
-| **What-if**  | a what-if is active (shared by ALL what-if popups **and** what-if expander sections) | the current modified state, else ground |
-| **Edit**     | an edit dialog is open                                                               | the current modified state, else ground |
+| Layer                | Holds                                                        | Changed by                                       | Survives a refresh |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------------------ | ------------------ |
+| **Library / disk**   | `.wdr` / `.owdr` files, the bundled catalogue, My Drivers    | scrapers, releases, an explicit save             | yes                |
+| **Baseline**         | the driver exactly as it was loaded                          | a load, or saving to My Drivers                  | no                 |
+| **Ground**           | fingerprint of the last loaded/saved project                 | open, save, New Project                          | no                 |
+| **Committed design** | box, params and the `Driver` model the charts are drawn from | a deliberate commit (OK, Keep, an edit in place) | yes (localStorage) |
+| **What-if overlay**  | a live copy the charts read while tuning                     | scrubbing a what-if control                      | no                 |
+| **Dialog draft**     | one dialog's working copy                                    | typing in that dialog                            | no                 |
 
-Strict hierarchy: **ground → modified → what-if**. **Edit** is a parallel top layer that the
-charts do **not** react to (until the edit is accepted).
+Reads resolve to the highest layer that exists: what-if overlay if one is active, else the
+committed design. That is the whole mechanism — starting, keeping and cancelling a what-if
+only change which layer resolves.
 
-## Chart reactivity (priority)
+## The rules
 
-The charts render the highest-priority state that currently exists:
+1. **Choosing a driver EMBEDS it in the project.** WinISD has no driver database: its driver
+   manager handles one driver on disk, disconnected from any open project, and selecting one
+   copies it in. OpenISD follows that model — choosing copies the driver into the project,
+   closes the picker, and returns the user to the project. There is no live link back to the
+   library row, the saved My Driver or the file it came from, so later edits change the
+   project's copy alone. Editing is a separate act, from the Driver panel's Edit button.
+2. **A dialog edits its own draft.** Typing in the driver editor changes that dialog's copy
+   only. OK writes the draft into the design; Cancel discards it.
+3. **Cancel means byte-identical.** After Cancel the design must match what it was before
+   the dialog opened — including provenance marks, not just visible numbers. If a Cancel
+   path needs to restore a snapshot, it uses `revertDriverTo`, which does not move the
+   baseline: undoing an edit is not loading a driver.
+4. **A what-if is not a modification.** Scrubbing a live what-if never dirties the project.
+   Keep commits it (and the project becomes modified); Cancel drops it.
+5. **Reset goes back to the library, not to your last keystroke.** The baseline is the
+   driver as chosen, set at the moment it is embedded, so Reset returns to the
+   manufacturer's values however much has been typed over them since.
+6. **Escape dismisses one dialog — the top-most.** A dialog opened over another takes the
+   key; the one underneath stays open (`useEscToClose`).
+7. **Provenance is recorded where entry happens.** E/C/N marks come from `enter`/`clear` on
+   the `Driver` model, never reconstructed downstream from "is the field present".
+   See [docs/DRIVER_ADT_DESIGN.md](docs/DRIVER_ADT_DESIGN.md).
+8. **One record per concept.** There is one committed driver and one baseline. A component
+   that keeps its own parallel copy of either is the bug.
+9. **A saved driver IS its `<brand>/<model>`.** That identity — brand, never manufacturer —
+   is what My Drivers keys on, what the row key and the delete button use, and what Save
+   matches: Save overwrites the entry holding the resulting identity and adds one when none
+   does. Editing brand or model therefore saves a new driver. Clone forks deliberately, as
+   `"Copy of " + <old model>`.
 
-1. **what-if** state, if active;
-2. else **modified** state, if it exists;
-3. else **ground** state.
+## What persists
 
-The charts **never** react to the edit state while an edit dialog is open.
+`localStorage` (`openisd.state`) and the share link carry the **committed design** only —
+box, params, the driver with its marks, project metadata, and local presentation prefs.
+Drafts and active what-ifs are deliberately excluded: an uncommitted value must never come
+back after a refresh looking like a decision the user made.
 
-## Creation rules
+## Applying it to a new dialog
 
-- **On load** the project is clean — only the ground state exists.
-- **First change to the project** (e.g. box type Passive-Radiator → Ported) creates the
-  modified state: copy the ground state, apply the change.
-- **Starting a what-if** creates the what-if state: copy the current modified state; if
-  there is no modified state, copy the ground state.
-- **Opening an edit dialog** creates the edit state the same way (copy of modified, else
-  ground).
-
-## What-if lifecycle (previews LIVE on the charts)
-
-The what-if dialog's accept button is labelled **"Keep"**.
-
-- While active, spinner / field changes are applied to the **what-if state only**.
-- **"Keep"** (accept): the what-if state **replaces** the current modified state; the
-  what-if state is destroyed. If there was no modified state, a modified state is **created
-  from** the what-if state, then the what-if state is destroyed.
-- **"Cancel"**: the what-if state is destroyed. Chart priority reverts to whichever of
-  modified / ground state was in effect **before** the what-if began.
-
-## Edit-dialog lifecycle (affects charts only on accept)
-
-Identical to the what-if lifecycle **except the charts do not react to the edit state**. The
-edit dialog's accept button is labelled **"Accept"**.
-
-- **Open**: create the edit state (copy of modified, else ground).
-- Changes in the dialog mutate the edit state only; the charts do **not** update.
-- **"Accept"**: the edit state **replaces** the modified state (edit state destroyed); if
-  there was no modified state, one is **created from** the edit state.
-- **Dismiss / Cancel**: the edit state is discarded (lost); nothing changes.
-
-## Save / Reset (the modified state)
-
-- While a modified state is active, the app shows **unsaved-change indicators**.
-- **Save**: persist the modified state to storage; on success the modified state **replaces
-  the ground state** (no modified state remains).
-- **Reset state**: discard the current modified state (revert to ground).
-
-## Button labels & tooltips
-
-| Context                       | Accept     | Discard         |
-| ----------------------------- | ---------- | --------------- |
-| **What-if** dialog / expander | **Keep**   | **Cancel**      |
-| **Edit** dialog               | **Accept** | **Cancel**      |
-| **Modified** state (project)  | **Save**   | **Reset state** |
-
-Every one of these buttons carries a **hover tooltip explaining exactly what it does** to the
-state (e.g. "Keep — apply these what-if changes to the project", "Accept — commit the edited
-values to the project", "Reset state — discard all unsaved changes and return to the last
-saved version"). The tooltip is required, not optional — the state transitions are subtle and
-the user must be able to see the consequence before clicking.
-
-## The two editor types (why both exist)
-
-- **What-if dialog / expander** — changes **preview live** on the charts (via the what-if
-  state) while you scrub.
-- **Edit dialog** — changes affect the charts **only when accepted** (**Accept**) and the
-  dialog is dismissed (via edit state → modified state).
-
-This is the contract every skin's editors must honour: what-if is immediate; edit is
-commit-on-accept.
+- Seed a draft from the layer you were sent from, never from a half-loaded intermediate.
+- Give the user OK / Cancel, and make Cancel a true no-op.
+- Commit through the store's own functions so the ground fingerprint, the baseline and the
+  charts all update together.
+- Put the behaviour in a composable, not in a skin (AD-7) — three skins mean three chances
+  to get the commit boundary wrong.

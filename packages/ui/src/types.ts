@@ -6,6 +6,23 @@ import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesRes
 import type { DriverJSON } from '@openisd/winisd';
 import type { SkinId } from './skins.js';
 
+/**
+ * The closed set of chart curves the engine can draw. Every member MUST appear in
+ * `TAB_META` and in `CURVE_BUILDERS` in `utils/series.ts` — both are
+ * `Record<ChartTabId, …>`, so declaring a member without implementing it is a COMPILE
+ * ERROR, not a chart that silently draws nothing. Adding a curve is therefore: add the
+ * member here, then fix the two build errors.
+ *
+ * `parseChartTabId()` in `utils/series.ts` is the one string→member boundary; persisted
+ * and shared blobs carry plain strings and go through it.
+ *
+ * The `Flt*` members are the filter chain's own response (WinISD's "(EQ/Filter)" charts);
+ * every other member is a property of the driver+box system.
+ */
+export type ChartTabId =
+  | 'SPL' | 'TFMag' | 'Excursion' | 'Port' | 'GD' | 'Zmag' | 'Zph' | 'Phase'
+  | 'MaxSPL' | 'MaxPwr' | 'FltMag' | 'FltPhase' | 'FltGD';
+
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {
   xs: number[];
@@ -122,8 +139,46 @@ export interface BundledPR {
 export interface UiParams {
   Vb: number;
   Vf: number;
+  ventShape: 'round' | 'slotted';
   ventD: number;
+  ventW: number;
+  ventH: number;
   ventL: number;
+  /** Box tuning. Tied to Vb/ventD/ventL by one Helmholtz relation — see `entered`. */
+  Fb: number;
+  /** Rear chamber tuning frequency (e.g. for bandpass6) */
+  Frc?: number;
+  /**
+   * Passive-radiator system tuning (WinISD: Fp). Tied to `prMadd` by one relation — the PR's
+   * intrinsic Mmd/Cms/Sd plus Vb are given, and added mass is what moves the tuning. Enter a
+   * target tuning and the mass is solved; enter a mass and the tuning is. See `entered`.
+   */
+  prFp: number;
+  /**
+   * Which box/vent fields the user ENTERED. Presence ⇒ Entered: the value is held and never
+   * recomputed. Absence ⇒ Calculated, re-solved whenever an entered member changes.
+   *
+   * Same model as the driver's provenance (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and
+   * the same reason: STATE_MODEL.md rule 7 — provenance is recorded where entry happens,
+   * never reconstructed downstream from "is the field present".
+   *
+   * `Fb` and `ventL` are the pair this arbitrates, and BOTH stay fields.
+   *
+   * **WinISD's direction is the default and is what ships**: `{Vb, ventD, Fb}` entered, vent
+   * length calculated — change the diameter and the LENGTH moves while the tuning holds.
+   * WinISD itself offers no way to reverse that; its Vents tab renders length, cross area and
+   * port resonance greyed/calculated, with only vent count and diameter editable (confirmed
+   * live against 0.7.0.950).
+   *
+   * The reverse — enter `ventL`, let the tuning be solved — falls out of the entered-set
+   * model rather than being copied from WinISD. It costs nothing to allow, and it is the
+   * foundation the "pin any subset and solve the rest" vent solver builds on (BACKLOG P2).
+   * Storing one member and deriving the other would have baked one direction into the schema
+   * and made that later work a rewrite.
+   *
+   * Solved by `composables/useVentGroup.ts`.
+   */
+  entered: Record<string, true>;
   Ql: number;
   Qa: number;
   Qp: number;
@@ -164,6 +219,7 @@ export interface UiParams {
   forceFlatResponse: boolean;
   /** Plot the SPL chart backed off to Xmax (engine `splXlim`) instead of the raw SPL. */
   splXmaxLimited: boolean;
+  tempK?: number;
 }
 
 /**
@@ -233,8 +289,7 @@ export interface UiState {
 export interface AppState {
   box: BoxType;
   P: UiParams;
-  graphs: string[];
-  compare: Design[];
+  graphs: ChartTabId[];
   editDriver: boolean;
   /** Driver EDIT pane (Brand/Model/Comment/Provided by) — distinct from editDriver (What-If T/S tweaking). */
   editDriverInfo: boolean;
@@ -244,7 +299,6 @@ export interface AppState {
   dragRange: DragRange | null;
   browseOpen: boolean;
   defineOpen: boolean;
-  driverSource: DriverRaw | null;
   yRanges: Record<string, YRange>;
   ui: UiState;
   /** Project-level metadata — WinISD Project tab (Creator/Created/Modified/Description). */
@@ -269,7 +323,6 @@ export interface SerializedState {
   box: BoxType;
   P: UiParams;
   graphs: string[];
-  compare: Array<{ driver: Driver | null; box: BoxType; P: SweepParams; name?: string; color?: string; visible?: boolean }>;
   // A local save carries the full ui; stateToUrl() carries most of it too (skin, active
   // tab/chart), stripping only personal working state (open-editor buffer, unit prefs) —
   // see persist.ts.

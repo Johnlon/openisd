@@ -12,7 +12,7 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2008
  */
 
-import { RHO, P0, FLAT_MAX_BOOST_DB } from './constants.js';
+import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { withAddedMass } from './driver.js';
@@ -52,6 +52,28 @@ export function unwrap(p: number[]): number[] {
 }
 
 /**
+ * Group delay in ms from an UNWRAPPED phase array (radians) on grid `fs` (Hz).
+ *
+ * τg = −dφ/dω, by central difference on the log-spaced grid.
+ *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
+ *
+ * ONE definition, shared by the system group delay (`gd`) and the filter-chain group
+ * delay (`fltGd`) — the two charts must not be able to disagree about what τg means.
+ */
+export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
+  const gd: number[] = [];
+  for (let i = 0; i < fs.length; i++) {
+    const a = Math.max(0, i - 1), b = Math.min(fs.length - 1, i + 1);
+    const dw = 2 * Math.PI * (fs[b] - fs[a]);
+    const tau = dw !== 0 ? -(phaseUnwrapped[b] - phaseUnwrapped[a]) / dw * 1000 : 0;
+    // A flat phase gives `-(0)`, which is NEGATIVE zero. There is no such delay, and
+    // `Object.is` — hence `assert.strict.equal` and any `1 / τ` — treats it as its own value.
+    gd.push(tau === 0 ? 0 : tau);
+  }
+  return gd;
+}
+
+/**
  * Frequency sweep across a log-spaced range.
  *
  * Far-field pressure at 1 m (half-space piston in infinite baffle):
@@ -72,8 +94,13 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
   // Driver-side added mass (WINISD.md §12c) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
+  const tempK = P.tempK ?? 293.15;
+  const rho   = 1.20095 * (293.15 / tempK);
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
-  const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], gd = [], phase = [];
+  const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
+  // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
+  // (unwrapped after the loop, like `phase`).
+  const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
   for (let i = 0; i <= N; i++) {
     const f   = f0 * Math.pow(f1 / f0, i / N);
     const s   = solve(f, d, box, P);
@@ -81,7 +108,12 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
     // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
     const Hf  = applyFilters(f, P.filters);
-    const Hc  = cMul(cScale(cMul(cx(0, w), s.U0), RHO / (2 * Math.PI * r)), Hf);
+    // The chain's own electrical response — the "(EQ/Filter)" charts. Same -200 dB silence
+    // sentinel as `spl`, for the pathological |H| = 0 (e.g. a notch landing on a grid point).
+    const fltAbs = cAbs(Hf);
+    fltMag.push(fltAbs > 0 ? 20 * Math.log10(fltAbs) : -200);
+    fltPhaseWrapped.push(cArg(Hf));
+    const Hc  = cMul(cScale(cMul(cx(0, w), s.U0), rho / (2 * Math.PI * r)), Hf);
     const UD  = cMul(s.UD, Hf);
     const UP  = cMul(s.UP, Hf);
     const pm  = cAbs(Hc);
@@ -100,12 +132,9 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
   const ph = unwrap(phase);
-  for (let i = 0; i < fs.length; i++) {
-    const a = Math.max(0, i - 1), b = Math.min(fs.length - 1, i + 1);
-    const dw = 2 * Math.PI * (fs[b] - fs[a]);
-    // τg = −dφ/dω  https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
-    gd.push(dw !== 0 ? -(ph[b] - ph[a]) / dw * 1000 : 0);
-  }
+  const gd = groupDelayMs(fs, ph);
+  const fltPhase = unwrap(fltPhaseWrapped);
+  const fltGd = groupDelayMs(fs, fltPhase);
 
   // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the
   // passband reference, applied as a REAL line-level gain: SPL flattens and the excursion /
@@ -144,7 +173,8 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     splXlim.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
   }
 
-  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, splXlim, xlimited, flatClamped };
+  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, splXlim, xlimited, flatClamped,
+           fltMag, fltPhase, fltGd };
 }
 
 /**
@@ -191,30 +221,60 @@ export function maxCurves(drv: Driver, box: BoxType, P: SweepParams): MaxCurvesR
  * Postcondition: classify a sweep result's finiteness so a degenerate design is
  * never a silently blank chart. A precondition on inputs can't foresee a
  * frequency-dependent singularity, so this is the belt-and-braces at the exit.
- * Returns a DriverError-shaped issue (same channel as deriveDriver), or null:
- *   - null  — every plotted point is finite (sentinels like −200 dB count as finite)
- *   - warn  — some points non-finite (isolated singularity); the curve still draws
- *             with a gap, so name the frequency
- *   - error — the primary curve (spl) has no finite point at all: nothing usable
+ * Returns a DriverError-shaped issue (same channel as deriveDriver), or null — see
+ * `classifyArrays` below for the three-way rule the two postconditions share.
  */
 export function classifyFinite(sw: SweepResult): DriverError | null {
-  const arrays = [sw.spl, sw.phase, sw.exc, sw.excPR, sw.pv, sw.zmag, sw.zph, sw.gd];
+  // Every array that reaches a chart. The filter-chain trio is included for the same
+  // reason as the rest: it is plotted, so a non-finite point in it must not be silent.
+  const arrays = [sw.spl, sw.phase, sw.exc, sw.excPR, sw.pv, sw.zmag, sw.zph, sw.gd,
+                  sw.fltMag, sw.fltPhase, sw.fltGd];
+  return classifyArrays(sw.fs, arrays, 'sweep',
+    'Simulation produced no usable values — check the box volume and driver parameters.');
+}
+
+/**
+ * Postcondition for `maxCurves`, the other engine output that reaches a chart.
+ *
+ * `classifyFinite` cannot cover it: `MaxCurvesResult` is computed AFTER the sweep it is
+ * derived from, and can be non-finite while every sweep array is perfectly finite. The
+ * reachable case is a driver with NEITHER `Pe` NOR `Xmax`: `maxCurves` then has no limit
+ * to apply, `vUse = min(Infinity, Infinity)`, and `maxspl`/`maxpwr` are `Infinity` at
+ * every frequency — which propagates into the chart's own `ymax` scaling and takes the
+ * axis with it. `deriveDriver` warns that each limit LINE is missing; that is a different
+ * statement from "these two charts have no drawable value at all".
+ */
+export function classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
+  return classifyArrays(mx.fs, [mx.maxspl, mx.maxpwr], 'maxCurves',
+    'Max-SPL and Max-power are undefined at every frequency — with neither a rated power (Pe) '
+    + 'nor a peak excursion (Xmax) there is no limit to plot. Set Pe or Xmax on the driver.');
+}
+
+/**
+ * The shared finiteness rule, so the two postconditions above cannot drift apart.
+ * `fs` is the frequency grid the arrays are sampled on; `arrays` are the plotted series.
+ *   - null  — every plotted point is finite (sentinels like −200 dB count as finite)
+ *   - error — EVERY grid point has at least one non-finite observable: nothing usable
+ *   - warn  — otherwise; the curve still draws with a gap, so name the frequency
+ */
+function classifyArrays(fs: number[], arrays: number[][], field: string,
+                        pervasiveMessage: string): DriverError | null {
   const badIdx = new Set<number>();
   for (const arr of arrays)
     for (let i = 0; i < arr.length; i++)
       if (!Number.isFinite(arr[i])) badIdx.add(i);
   if (badIdx.size === 0) return null;
 
-  // Every frequency has a non-finite observable → nothing usable to draw. (Test on
-  // the whole grid, not on spl alone: spl carries a finite −200 dB silence sentinel
-  // that would mask a pervasive breakdown, e.g. Vb=0 → exc/zmag all NaN but spl=−200.)
-  if (badIdx.size === sw.fs.length)
-    return { level: 'error', field: 'sweep', message: 'Simulation produced no usable values — check the box volume and driver parameters.' };
+  // Test on the whole grid, not on the headline series alone: `spl` carries a finite
+  // −200 dB silence sentinel that would mask a pervasive breakdown (Vb=0 → exc/zmag all
+  // NaN but spl=−200), so "the primary series has a finite point" is not enough to call
+  // the result usable.
+  if (badIdx.size === fs.length) return { level: 'error', field, message: pervasiveMessage };
 
   // Otherwise an isolated singularity: the curve still draws (the renderer gaps
   // non-finite points); name the affected frequency so the gap isn't a mystery.
-  const freqs = [...badIdx].sort((a, b) => a - b).map(i => sw.fs[i]);
+  const freqs = [...badIdx].sort((a, b) => a - b).map(i => fs[i]);
   const near = freqs.slice(0, 3).map(f => f >= 100 ? f.toFixed(0) : f.toFixed(1)).join(', ');
   const more = freqs.length > 3 ? ` (+${freqs.length - 3} more)` : '';
-  return { level: 'warn', field: 'sweep', message: `Simulation undefined near ${near} Hz${more} — likely a numerical singularity; the curve has a gap there.` };
+  return { level: 'warn', field, message: `Simulation undefined near ${near} Hz${more} — likely a numerical singularity; the curve has a gap there.` };
 }

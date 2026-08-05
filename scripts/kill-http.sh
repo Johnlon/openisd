@@ -20,27 +20,27 @@ ports=("$@")
 
 # On WSL/Linux the dev server is a native Linux process; the Windows kill chain
 # (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
-#
-# The loop must not return until the port is ACTUALLY free: `kill -9` returns as soon as
-# the signal is queued, so a caller that starts its own server immediately (playwright's
-# webServer command is `kill-http.sh 4100 && npm run dev -- --port 4100`) could still hit
-# EADDRINUSE and abort the whole suite. Poll until lsof reports nothing.
 if [ -z "${MSYSTEM:-}" ]; then
   for port in "${ports[@]}"; do
-    pids=$(lsof -ti :"$port" 2>/dev/null || true)
-    [ -z "$pids" ] && continue
-    echo "port $port: killing PID(s) $pids"
-    kill $pids 2>/dev/null || true
-    for attempt in $(seq 1 20); do
-      sleep 0.5
+    # Loop until the port is genuinely free, exactly as the Windows branch below does.
+    # Killing once and assuming it worked is what let an orphan survive into the next
+    # run: `lsof` reporting a PID is not proof the socket is released a moment later.
+    for attempt in $(seq 1 10); do
       pids=$(lsof -ti :"$port" 2>/dev/null || true)
-      if [ -z "$pids" ]; then
-        echo "port $port: free after $attempt check(s)"
-        break
+      [ -z "$pids" ] && break
+      echo "port $port: [attempt $attempt] killing PID(s) $pids"
+      # SIGTERM once so a server can close its sockets; SIGKILL from then on, because a
+      # process that ignored TERM will not honour a second one.
+      if [ "$attempt" -eq 1 ]; then
+        kill $pids 2>/dev/null || true
+      else
+        kill -9 $pids 2>/dev/null || true
       fi
-      kill -9 $pids 2>/dev/null || true
-      [ "$attempt" = "20" ] && echo "port $port: WARNING — still occupied by $pids, proceeding anyway"
+      sleep 1
     done
+    if [ -n "$(lsof -ti :"$port" 2>/dev/null || true)" ]; then
+      echo "port $port: WARNING — still occupied after 10 attempts, proceeding anyway"
+    fi
   done
   echo "done"
   exit 0

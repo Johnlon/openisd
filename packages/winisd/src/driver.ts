@@ -13,7 +13,7 @@
  * exists.
  */
 
-import { deriveDriver, C, RHO } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup, C, RHO } from '@openisd/engine';
 import type { DriverRaw, Driver as EngineDriver, DriverError } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
@@ -83,7 +83,16 @@ const WDR_META: ReadonlyArray<[string, string]> = [
   ['MagnetDepth', 'magnetDepth'],
   ['fLe', 'fLe'],
   ['Le2', 'Le2'],
+  ['DateAdded', 'added'],
 ];
+
+// Carried fields whose WDR value is a NUMBER, not text. They are parsed on import so the
+// model holds one shape per field: the editor writes them back as numbers, and a field
+// that is a string on load and a number after an edit is two shapes of one concept.
+const WDR_META_NUMERIC = new Set([
+  'Xlim', 'hvc', 'hag', 'hc', 'numVC', 'VCCon', 'tc', 'Rth', 'Cth', 'loss',
+  'thick', 'depth', 'magnetDepth', 'fLe', 'Le2',
+]);
 
 // Format a modeled cell value back to a WDR value string. toPrecision(6) matches the
 // exporter's rounding, so an overlaid value stays numerically equal to the source.
@@ -113,12 +122,18 @@ export class Driver {
   enter(field: string, value: number | string | undefined | null): void {
     if (value === undefined || value === null || value === '') { this.clear(field); return; }
     this.#inputs[field] = value;
+    if (field === 'brand' || field === 'model' || field === 'manufacturer') {
+      delete this.#inputs.name;
+    }
     this.#invalidate();
   }
 
   /** Drop the human value → the field reverts to Computed (C) if derivable, else N. */
   clear(field: string): void {
     delete this.#inputs[field];
+    if (field === 'brand' || field === 'model' || field === 'manufacturer') {
+      delete this.#inputs.name;
+    }
     this.#invalidate();
   }
 
@@ -272,7 +287,13 @@ export class Driver {
     // or a plain DriverRaw. This does not touch toWdr (which echoes #wdrRaw) or ParState.
     for (const [wdrKey, field] of WDR_META) {
       const v = raw[wdrKey];
-      if (v != null && v !== '') d.#inputs[field] = v;
+      if (v == null || v === '') continue;
+      if (WDR_META_NUMERIC.has(field)) {
+        const n = parseFloat(v);
+        if (isFinite(n)) d.#inputs[field] = n;
+      } else {
+        d.#inputs[field] = v;
+      }
     }
     const name = [raw.Brand, raw.Model].filter(x => x && x.length).join(' ').trim();
     if (name) d.#inputs.name = name;
@@ -336,37 +357,29 @@ export class Driver {
   #derive(): Derivation {
     if (this.#cache) return this.#cache;
 
-    // Start from the entered SI numerics. Every `== null` guard below means an entered
-    // (E) value is never overwritten by a computed one and instead feeds downstream —
-    // WinISD's fixed-E override semantics. This is the single derivation authority; the
-    // UI must not re-implement any of it.
-    const r: Record<string, number> = {};
+    // Start from the entered SI numerics. `Dia` is this class's own name for the
+    // engine's `Dd` — translate it going in and out so solveConsistencyGroup (which
+    // only knows `Dd`) still sees/produces it under this class's field name.
+    const entered: Record<string, number> = {};
     for (const k in this.#inputs) {
       const v = this.#inputs[k];
-      if (typeof v === 'number' && isFinite(v)) r[k] = v;
+      if (typeof v === 'number' && isFinite(v)) entered[k] = v;
     }
+    if (entered.Dia != null && entered.Dd == null) entered.Dd = entered.Dia;
 
-    // Two passes so a freshly-derived value can feed the next (Cms → Mms → Rms/Bl).
-    for (let pass = 0; pass < 2; pass++) {
-      if (r.Sd == null && r.Dia != null) r.Sd = Math.PI * (r.Dia / 2) ** 2;
-      if (r.Dia == null && r.Sd != null) r.Dia = 2 * Math.sqrt(r.Sd / Math.PI);
+    // The single derivation authority for the core T/S consistency group — the UI must
+    // not re-implement any of it. `== null` guards inside it mean an entered (E) value
+    // is never overwritten by a computed one and instead feeds downstream — WinISD's
+    // fixed-E override semantics.
+    const r = solveConsistencyGroup(entered) as Record<string, number>;
+    if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
-      if (r.Qts == null && r.Qes != null && r.Qms != null) r.Qts = r.Qes * r.Qms / (r.Qes + r.Qms);
-      if (r.Qes == null && r.Qts != null && r.Qms != null) r.Qes = r.Qts * r.Qms / (r.Qms - r.Qts);
-      if (r.Qms == null && r.Qts != null && r.Qes != null) r.Qms = r.Qts * r.Qes / (r.Qes - r.Qts);
-
-      if (r.Fs != null && r.Vas != null && r.Sd != null) {
-        const Cas = r.Vas / (RHO * C * C);                 // Cms = Vas/(ρc²·Sd²)
-        if (r.Cms == null) r.Cms = Cas / (r.Sd * r.Sd);
-        if (r.Mms == null) r.Mms = 1 / ((2 * Math.PI * r.Fs) ** 2 * r.Cms);
-        if (r.Rms == null && r.Qms != null) r.Rms = 2 * Math.PI * r.Fs * r.Mms / r.Qms;
-        if (r.Bl == null && r.Re != null && r.Qes != null) r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
-      }
-      if (r.Vd == null && r.Sd != null && r.Xmax != null) r.Vd = r.Sd * r.Xmax;
-      if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
-        r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
-      if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
-    }
+    // no/SPL — NOT part of solveConsistencyGroup (three disagreeing constants exist
+    // across the codebase, see its docstring); kept here, unchanged from before, so
+    // this class's own behaviour doesn't shift as a side effect of the consolidation.
+    if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
+      r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
+    if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
 
     // Air constants autofill (state C) until overridden — matches the sim's constants.
     if (r.c == null) r.c = C;

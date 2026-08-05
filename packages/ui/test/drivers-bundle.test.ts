@@ -6,7 +6,7 @@
  * never its display name (Brand + Model legitimately repeats: two dated files of
  * the same driver share one name). If these invariants break, the driver browser
  * renders phantom/duplicated rows because the v-for :key collides. See
- * .claude/context/ui-rules.md "Unique list-key rule" and drivers/sources.schema.md.
+ * .claude/rules/openisd-ui-design.md "Unique list-key rule" and drivers/sources.schema.md.
  */
 
 import { describe, it } from 'vitest';
@@ -19,13 +19,8 @@ interface SourcesJson {
   version: number;
   sources: Record<string, { name?: string; url?: string }>;
 }
-interface BundlePR {
-  key: string; path: string; name?: string; model?: string;
-  Sd?: number | null; Cms?: number | null; Vas?: number | null;
-}
 interface BundleJson {
   sources: Array<{ key: string; files: Array<{ name?: string; path?: string }> }>;
-  passiveRadiators?: BundlePR[];
 }
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..');
@@ -39,11 +34,12 @@ describe('sources.json (v2 keyed map)', () => {
     assert.ok(sources.version >= 2, `version must be >= 2 for the map schema (got ${sources.version})`);
   });
 
-  it('every source has a non-empty key, name, and url', () => {
+  it('every source has a non-empty key, name, and url or path', () => {
     for (const [key, src] of Object.entries(sources.sources)) {
       assert.ok(key && typeof key === 'string', `source key must be a non-empty string (got ${JSON.stringify(key)})`);
       assert.ok(src.name, `source "${key}" must have a name`);
-      assert.ok(src.url, `source "${key}" must have a url`);
+      const s = src as { url?: string; path?: string };
+      assert.ok(s.url || s.path, `source "${key}" must have a url or a path`);
     }
   });
 });
@@ -81,36 +77,6 @@ describe('drivers-bundle.json — driver identity = sourceKey + path', () => {
           'The browser v-for :key would collide and render phantom/duplicated rows.',
         );
         seen.set(id, f.name);
-      }
-    }
-  });
-});
-
-describe('drivers-bundle.json — passive radiators (meta-only, no WDR)', () => {
-  const prs = bundle.passiveRadiators ?? [];
-
-  it('bundles passive radiators as a separate list (never mixed into source files)', () => {
-    assert.ok(Array.isArray(bundle.passiveRadiators), 'bundle must carry a passiveRadiators array');
-    // The wavecor collection has 7 PR metas; guard against silent regressions to 0.
-    assert.ok(prs.length > 0, 'expected at least one bundled passive radiator');
-  });
-
-  it('every PR has a unique (key, path) identity and a display name', () => {
-    const seen = new Set<string>();
-    for (const pr of prs) {
-      assert.ok(pr.key && pr.path, `PR missing key/path: ${JSON.stringify(pr)}`);
-      const id = pr.key + '/' + pr.path;
-      assert.equal(seen.has(id), false, `duplicate PR identity "${id}"`);
-      seen.add(id);
-      assert.ok(pr.name || pr.model, `PR "${id}" has no name/model`);
-    }
-  });
-
-  it('PR spec fields are numeric-or-absent — never fabricated placeholders', () => {
-    for (const pr of prs) {
-      for (const k of ['Sd', 'Cms', 'Vas'] as const) {
-        const v = pr[k];
-        assert.ok(v == null || typeof v === 'number', `PR "${pr.key}/${pr.path}" ${k} must be a number or null (got ${JSON.stringify(v)})`);
       }
     }
   });

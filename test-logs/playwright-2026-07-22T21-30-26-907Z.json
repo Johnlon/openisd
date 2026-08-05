@@ -1,0 +1,457 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "-g",
+      "toolbar ports the mock|Save / Save-As|Share link \\(Export menu\\)|carries the sender"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-22T21-30-26-907Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100",
+      "url": "http://localhost:4100",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the toolbar ports the mock icon buttons + chart-select",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3652,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-22T21:30:36.405Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-296b56335e5e2ee4a636",
+          "file": "original-skin.browser.spec.ts",
+          "line": 62,
+          "column": 1
+        },
+        {
+          "title": "Original toolbar: Share link (Export menu) writes the design into the address bar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3610,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-22T21:30:40.232Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e06304915610322d96aa",
+          "file": "original-skin.browser.spec.ts",
+          "line": 497,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "save-export.browser.spec.ts",
+      "file": "save-export.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Original skin — Save / Save-As-&-Export",
+          "file": "save-export.browser.spec.ts",
+          "line": 38,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Save prompts the (stubbed) picker and writes a valid OpenISD project JSON",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3665,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:36.378Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-bc4dca9722ae0519a71a",
+              "file": "save-export.browser.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "Save twice reuses the SAME retained handle — only the first click prompts the picker",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3554,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:40.202Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-5291ab1f9e1e0ff236fd",
+              "file": "save-export.browser.spec.ts",
+              "line": 57,
+              "column": 3
+            },
+            {
+              "title": "the menu has no separate \"Save\" toolbar button anymore — Save As lives in the combined menu",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2678,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:43.788Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-4ca2ae1708fccc9c3966",
+              "file": "save-export.browser.spec.ts",
+              "line": 64,
+              "column": 3
+            },
+            {
+              "title": "Save As... (Save-As/Export menu) always re-prompts the picker, even after a prior Save",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2895,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:46.491Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-a442a3cf11030c8d10f7",
+              "file": "save-export.browser.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "Save-As/Export menu → Save as WinISD project (.wpr) downloads a well-formed INI file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2125,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:49.410Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-11cc92e531d22f3dc8f7",
+              "file": "save-export.browser.spec.ts",
+              "line": 77,
+              "column": 3
+            },
+            {
+              "title": "Save-As/Export menu → Export driver (.wdr) still downloads a .wdr file (unchanged action)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1951,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:51.938Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-767746b4ea7dafed7d99",
+              "file": "save-export.browser.spec.ts",
+              "line": 94,
+              "column": 3
+            },
+            {
+              "title": "Save-As/Export menu → Share link (http:) writes the design into the address bar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2046,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:53.903Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-9a83da1f5079b23cb29e",
+              "file": "save-export.browser.spec.ts",
+              "line": 103,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Share link carries the sender's skin and active tab (not a generic default)",
+          "file": "save-export.browser.spec.ts",
+          "line": 168,
+          "column": 6,
+          "specs": [
+            {
+              "title": "opening a share link generated from the Original skin restores Original + its active project tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2098,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-22T21:30:55.964Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b87bb645f35cbe182b00-389f8fae2d3e8e554019",
+              "file": "save-export.browser.spec.ts",
+              "line": 169,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-22T21:30:26.914Z",
+    "duration": 30890.846,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

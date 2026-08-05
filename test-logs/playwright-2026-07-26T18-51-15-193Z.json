@@ -1,0 +1,516 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/project-switching.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-26T18-51-15-193Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "project-switching.browser.spec.ts",
+      "file": "project-switching.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Project switching on original skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 44,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[original] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 15263,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveClass\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\nExpected pattern: \u001b[32m/selected/\u001b[39m\nReceived string:  \u001b[31m\"project-row is-unsaved\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveClass\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\u001b[22m\n\u001b[2m    14 × locator resolved to <div data-v-25cf01a8=\"\" class=\"project-row is-unsaved\" title=\"Project — Alpha (Click to select)\">…</div>\u001b[22m\n\u001b[2m       - unexpected value \"project-row is-unsaved\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveClass\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\nExpected pattern: \u001b[32m/selected/\u001b[39m\nReceived string:  \u001b[31m\"project-row is-unsaved\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveClass\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\u001b[22m\n\u001b[2m    14 × locator resolved to <div data-v-25cf01a8=\"\" class=\"project-row is-unsaved\" title=\"Project — Alpha (Click to select)\">…</div>\u001b[22m\n\u001b[2m       - unexpected value \"project-row is-unsaved\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:71:46",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 46,
+                          "line": 71
+                        },
+                        "snippet": "  69 |       // Switch to Alpha — the active editor must actually become Alpha.\n  70 |       await rowByText(page, 'Alpha').click();\n> 71 |       await expect(rowByText(page, 'Alpha')).toHaveClass(/selected/);\n     |                                              ^\n  72 |       const onAlpha = await active(page);\n  73 |       expect(onAlpha.name).toBe('Alpha');\n  74 |       expect(onAlpha.box).toBe('vented');            // Alpha is the demo (vented), Beta is sealed"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 46,
+                            "line": 71
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveClass\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\nExpected pattern: \u001b[32m/selected/\u001b[39m\nReceived string:  \u001b[31m\"project-row is-unsaved\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveClass\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.projects-list .project-row').filter({ hasText: 'Alpha' })\u001b[22m\n\u001b[2m    14 × locator resolved to <div data-v-25cf01a8=\"\" class=\"project-row is-unsaved\" title=\"Project — Alpha (Click to select)\">…</div>\u001b[22m\n\u001b[2m       - unexpected value \"project-row is-unsaved\"\u001b[22m\n\n\n  69 |       // Switch to Alpha — the active editor must actually become Alpha.\n  70 |       await rowByText(page, 'Alpha').click();\n> 71 |       await expect(rowByText(page, 'Alpha')).toHaveClass(/selected/);\n     |                                              ^\n  72 |       const onAlpha = await active(page);\n  73 |       expect(onAlpha.name).toBe('Alpha');\n  74 |       expect(onAlpha.box).toBe('vented');            // Alpha is the demo (vented), Beta is sealed\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:71:46\u001b[22m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ uncaught page errors (1):\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Unhandled error during execution of app errorHandler\"\n  ],\n  \"pageErrors\": [\n    \"Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\"\n  ],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:51:16.864Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBVbmhhbmRsZWQgZXJyb3IgZHVyaW5nIGV4ZWN1dGlvbiBvZiBhcHAgZXJyb3JIYW5kbGVyIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbCiAgICAiTWF4aW11bSByZWN1cnNpdmUgdXBkYXRlcyBleGNlZWRlZC4gVGhpcyBtZWFucyB5b3UgaGF2ZSBhIHJlYWN0aXZlIGVmZmVjdCB0aGF0IGlzIG11dGF0aW5nIGl0cyBvd24gZGVwZW5kZW5jaWVzIGFuZCB0aHVzIHJlY3Vyc2l2ZWx5IHRyaWdnZXJpbmcgaXRzZWxmLiBQb3NzaWJsZSBzb3VyY2VzIGluY2x1ZGUgY29tcG9uZW50IHRlbXBsYXRlLCByZW5kZXIgZnVuY3Rpb24sIHVwZGF0ZWQgaG9vayBvciB3YXRjaGVyIHNvdXJjZSBmdW5jdGlvbi4iCiAgXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 46,
+                        "line": 71
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-857f20b3bd37e21831c7",
+              "file": "project-switching.browser.spec.ts",
+              "line": 48,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6908,
+                      "error": {
+                        "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ uncaught page errors (2):\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.",
+                        "stack": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ uncaught page errors (2):\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                          "column": 13,
+                          "line": 119
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                            "column": 13,
+                            "line": 119
+                          },
+                          "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ uncaught page errors (2):\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n    Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\n\n\u001b[90m   at \u001b[39mfixtures.ts:119\n\n  117 |     }\n  118 |     if (failures.length) {\n> 119 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  120 |     }\n  121 |   }, { auto: true }],\n  122 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:119:13)\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] a copied project is fully independent — editing the copy does not touch the original\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Unhandled error during execution of app errorHandler\",\n    \"[Vue warn]: Unhandled error during execution of app errorHandler\"\n  ],\n  \"pageErrors\": [\n    \"Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\",\n    \"Maximum recursive updates exceeded. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.\"\n  ],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:51:36.179Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBVbmhhbmRsZWQgZXJyb3IgZHVyaW5nIGV4ZWN1dGlvbiBvZiBhcHAgZXJyb3JIYW5kbGVyIiwKICAgICJbVnVlIHdhcm5dOiBVbmhhbmRsZWQgZXJyb3IgZHVyaW5nIGV4ZWN1dGlvbiBvZiBhcHAgZXJyb3JIYW5kbGVyIgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbCiAgICAiTWF4aW11bSByZWN1cnNpdmUgdXBkYXRlcyBleGNlZWRlZC4gVGhpcyBtZWFucyB5b3UgaGF2ZSBhIHJlYWN0aXZlIGVmZmVjdCB0aGF0IGlzIG11dGF0aW5nIGl0cyBvd24gZGVwZW5kZW5jaWVzIGFuZCB0aHVzIHJlY3Vyc2l2ZWx5IHRyaWdnZXJpbmcgaXRzZWxmLiBQb3NzaWJsZSBzb3VyY2VzIGluY2x1ZGUgY29tcG9uZW50IHRlbXBsYXRlLCByZW5kZXIgZnVuY3Rpb24sIHVwZGF0ZWQgaG9vayBvciB3YXRjaGVyIHNvdXJjZSBmdW5jdGlvbi4iLAogICAgIk1heGltdW0gcmVjdXJzaXZlIHVwZGF0ZXMgZXhjZWVkZWQuIFRoaXMgbWVhbnMgeW91IGhhdmUgYSByZWFjdGl2ZSBlZmZlY3QgdGhhdCBpcyBtdXRhdGluZyBpdHMgb3duIGRlcGVuZGVuY2llcyBhbmQgdGh1cyByZWN1cnNpdmVseSB0cmlnZ2VyaW5nIGl0c2VsZi4gUG9zc2libGUgc291cmNlcyBpbmNsdWRlIGNvbXBvbmVudCB0ZW1wbGF0ZSwgcmVuZGVyIGZ1bmN0aW9uLCB1cGRhdGVkIGhvb2sgb3Igd2F0Y2hlciBzb3VyY2UgZnVuY3Rpb24uIgogIF0sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--f4b85-does-not-touch-the-original/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--f4b85-does-not-touch-the-original/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                        "column": 13,
+                        "line": 119
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-37c2a0f4cfe6ac2162aa",
+              "file": "project-switching.browser.spec.ts",
+              "line": 85,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is unsaved — it is flagged modified in the list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5040,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:51:46.147Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-7bf090e2295c0d9c772d",
+              "file": "project-switching.browser.spec.ts",
+              "line": 114,
+              "column": 5
+            }
+          ]
+        },
+        {
+          "title": "Project switching on modern skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 44,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[modern] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30263,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 39,
+                            "line": 12
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.modern-root') to be visible\u001b[22m\n\n\n  10 |     store.state.ui.skin = s;\n  11 |   }, { mod: STORE, s: skin });\n> 12 |   await page.locator(`.${skin}-root`).waitFor({ state: 'visible' });\n     |                                       ^\n  13 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  14 | }\n  15 |\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:12:39)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:49:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:51:51.517Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-47935ea92f1a69f1bf7f",
+              "file": "project-switching.browser.spec.ts",
+              "line": 48,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30198,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 39,
+                            "line": 12
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.modern-root') to be visible\u001b[22m\n\n\n  10 |     store.state.ui.skin = s;\n  11 |   }, { mod: STORE, s: skin });\n> 12 |   await page.locator(`.${skin}-root`).waitFor({ state: 'visible' });\n     |                                       ^\n  13 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  14 | }\n  15 |\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:12:39)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:86:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] a copied project is fully independent — editing the copy does not touch the original\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:52:24.244Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--34551-does-not-touch-the-original/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--34551-does-not-touch-the-original/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-82988fa6ea97662e1e1a",
+              "file": "project-switching.browser.spec.ts",
+              "line": 85,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is unsaved — it is flagged modified in the list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30144,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 39,
+                            "line": 12
+                          },
+                          "message": "Error: locator.waitFor: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.modern-root') to be visible\u001b[22m\n\n\n  10 |     store.state.ui.skin = s;\n  11 |   }, { mod: STORE, s: skin });\n> 12 |   await page.locator(`.${skin}-root`).waitFor({ state: 'visible' });\n     |                                       ^\n  13 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  14 | }\n  15 |\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:12:39)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:115:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] a copied project is unsaved — it is flagged modified in the list\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:52:56.062Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--1828c-lagged-modified-in-the-list/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--1828c-lagged-modified-in-the-list/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-779c688cb417c4d3cbb5",
+              "file": "project-switching.browser.spec.ts",
+              "line": 114,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-26T18:51:15.206Z",
+    "duration": 131348.115,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  }
+}

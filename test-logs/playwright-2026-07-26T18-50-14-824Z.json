@@ -1,0 +1,576 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/project-switching.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-26T18-50-14-824Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "project-switching.browser.spec.ts",
+      "file": "project-switching.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Project switching on original skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 44,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[original] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4241,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:49:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:49:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:16.940Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--a6e68--switches-the-active-editor/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-857f20b3bd37e21831c7",
+              "file": "project-switching.browser.spec.ts",
+              "line": 48,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3761,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:86:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:86:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] a copied project is fully independent — editing the copy does not touch the original\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:23.475Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--f4b85-does-not-touch-the-original/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--f4b85-does-not-touch-the-original/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-37c2a0f4cfe6ac2162aa",
+              "file": "project-switching.browser.spec.ts",
+              "line": 85,
+              "column": 5
+            },
+            {
+              "title": "[original] a copied project is unsaved — it is flagged modified in the list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3964,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:115:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:115:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[original] a copied project is unsaved — it is flagged modified in the list\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:29.310Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--d66a0-lagged-modified-in-the-list/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--d66a0-lagged-modified-in-the-list/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-7bf090e2295c0d9c772d",
+              "file": "project-switching.browser.spec.ts",
+              "line": 114,
+              "column": 5
+            }
+          ]
+        },
+        {
+          "title": "Project switching on modern skin",
+          "file": "project-switching.browser.spec.ts",
+          "line": 44,
+          "column": 8,
+          "specs": [
+            {
+              "title": "[modern] two loaded projects both appear, and clicking a row switches the active editor",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3670,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:49:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:49:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] two loaded projects both appear, and clicking a row switches the active editor\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:35.206Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--b226a--switches-the-active-editor/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-47935ea92f1a69f1bf7f",
+              "file": "project-switching.browser.spec.ts",
+              "line": 48,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is fully independent — editing the copy does not touch the original",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3456,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:86:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:86:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] a copied project is fully independent — editing the copy does not touch the original\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:40.899Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--34551-does-not-touch-the-original/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--34551-does-not-touch-the-original/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-82988fa6ea97662e1e1a",
+              "file": "project-switching.browser.spec.ts",
+              "line": 85,
+              "column": 5
+            },
+            {
+              "title": "[modern] a copied project is unsaved — it is flagged modified in the list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3584,
+                      "error": {
+                        "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.",
+                        "stack": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\n    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:115:7",
+                        "location": {
+                          "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                          "column": 14,
+                          "line": 8
+                        },
+                        "snippet": "   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                            "column": 14,
+                            "line": 8
+                          },
+                          "message": "Error: Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object.\n\n   6 | async function gotoSkin(page: Page, skin: 'original' | 'modern'): Promise<void> {\n   7 |   await page.goto('/');\n>  8 |   await page.evaluate(async (mod, s) => {\n     |              ^\n   9 |     const store = await import(/* @vite-ignore */ mod as any);\n  10 |     store.state.ui.skin = s;\n  11 |   }, STORE, skin);\n\u001b[2m    at gotoSkin (/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:8:14)\u001b[22m\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts:115:7\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "\n[browser diagnostics — \"[modern] a copied project is unsaved — it is flagged modified in the list\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-07-26T18:50:46.185Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "browser-console-and-network",
+                          "contentType": "application/json",
+                          "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--1828c-lagged-modified-in-the-list/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/john/work/winisd/openisd/test-results/project-switching.browser--1828c-lagged-modified-in-the-list/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/project-switching.browser.spec.ts",
+                        "column": 14,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "17276e3c949728093e4d-779c688cb417c4d3cbb5",
+              "file": "project-switching.browser.spec.ts",
+              "line": 114,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-26T18:50:14.832Z",
+    "duration": 35343.916000000005,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}

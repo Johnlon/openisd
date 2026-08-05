@@ -1,9 +1,9 @@
 /**
  * Build-config sanity checks.
  *
- * These tests guard against regressions where scraper cache directories
- * (_html/, datasheets/) get picked up by Vite's file watcher and cause
- * continuous dev-server reloads that make the app unusable.
+ * Transient files live in build/ (AGENTS.md §"Scratch files"). These tests guard
+ * against regressions where that scratch space gets watched by Vite — causing
+ * continuous dev-server reloads — or committed to the repo.
  */
 
 import { describe, it } from 'vitest';
@@ -22,12 +22,11 @@ describe('vite.config.js', () => {
   // side effects and keeps the test framework-agnostic).
   const viteConfig = readFileSync(VITE_CONFIG_PATH, 'utf8');
 
-  it('excludes all _-prefixed scraper cache dirs (_html, _datasheets, …) from the file watcher so active scraper runs do not reload the dev server', () => {
+  it('excludes build/ from the file watcher so writing scratch files never reloads the dev server', () => {
     assert.ok(
-      viteConfig.includes('_*'),
-      'vite.config.js server.watch.ignored must exclude drivers/**/_*/ directories. ' +
-      'All scraper cache/scratch dirs are _-prefixed (_html, _datasheets); without this, ' +
-      'scraper writes trigger continuous full-page reloads, making the dev server unusable.'
+      viteConfig.includes('**/build/**'),
+      'vite.config.js server.watch.ignored must exclude build/ — it is the repo scratch ' +
+      'space, and a write there would otherwise trigger a full-page reload.'
     );
   });
 });
@@ -38,11 +37,11 @@ describe('.gitignore', () => {
   const GITIGNORE_PATH = join(ROOT, '.gitignore');
   const gitignore = readFileSync(GITIGNORE_PATH, 'utf8');
 
-  it('excludes all _-prefixed scraper cache dirs (_html, _datasheets, …) so raw HTML and PDFs never bloat the repo', () => {
+  it('excludes build/ so scratch files are never committed', () => {
     assert.ok(
-      gitignore.includes('_*'),
-      '.gitignore must exclude drivers/**/_*/ — all scraper cache/scratch dirs are ' +
-      '_-prefixed (_html raw HTML, _datasheets PDFs); source URLs live in openisd.yml sidecars.'
+      gitignore.split(/\r?\n/).some(l => l.trim() === 'build/'),
+      '.gitignore must exclude build/ — every throwaway script, probe output and log ' +
+      'goes there, and none of it belongs in git.'
     );
   });
 });

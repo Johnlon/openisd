@@ -14,16 +14,16 @@
     "typecheck:winisd": "tsc -p packages/winisd --noEmit",
     "typecheck:ui": "vue-tsc -p packages/ui --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:unit",
-    "ci": "bash scripts/ci.sh",
+    "ci": "npm run lint && npm run typecheck && npm run test",
     "predev": "node scripts/bundle-drivers.mjs && npm run lint",
     "dev": "vite",
     "prebuild": "node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "npm run test:unit && npx playwright test",
+    "test": "npm run test:unit && bash scripts/test-browser.sh",
     "test:unit": "vitest run",
-    "test:crosscheck": "npx playwright test packages/ui/test/micka-crosscheck.browser.spec.js --timeout=60000",
-    "test:visual": "npx playwright test packages/ui/test/visual.browser.spec.js",
+    "test:crosscheck": "bash scripts/test-browser.sh packages/ui/test/micka-crosscheck.browser.spec.ts --timeout=60000",
+    "test:visual": "bash scripts/test-browser.sh packages/ui/test/visual.browser.spec.ts",
     "gen-scenarios": "vite-node packages/ui/test/gen-scenarios.ts",
     "gen-golden": "vite-node packages/engine/test/gen-golden.ts"
   },
@@ -56,8 +56,7 @@
     "vite": "^8.0.16",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^3.2.6",
-    "vue-tsc": "^2.2.12",
-    "yaml": "^2.9.0"
+    "vue-tsc": "^2.2.12"
   },
   "dependencies": {
     "@openisd/engine": "*",

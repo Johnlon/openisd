@@ -4,7 +4,7 @@
  * stat bar, with the narrow-screen Controls|Graphs toggle. Extracted verbatim from
  * App.vue when skins were introduced; behaviour is unchanged. Owns only presentation
  * (the responsive/collapse state); app lifecycle (persist/hash/self-test) stays in
- * App.vue above every shell, and the DriverBrowser/Flash overlays are global there.
+ * App.vue above every shell, and the DriverBrowserMd/Flash overlays are global there.
  */
 import { ref, onMounted, onUnmounted } from 'vue';
 import AppHeader from '../../components/AppHeader.vue';

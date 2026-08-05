@@ -50,18 +50,12 @@ imported directly in Node for testing without stubs or jsdom.
 
 ## 3. Testing strategy — two suites, both required
 
-Python testing for the driver data pipeline (parsing/extraction `pytest` unit
-tests) lives in the sibling [`winisd_tools`](../winisd_tools) repo, not here —
-see its `testing-python.md`.
-
 ### JS core tests — Vitest + `node:assert`
 
 For everything in `packages/engine/src/`. Fast, deterministic, no browser.
 
 - Physics gates (sealed≡closed-form, sensitivity, vented rolloff + twin Z-peaks), `.wdr` parse/serialize round-trips, alignment + PR math, driver dedup.
 - Run: `npm run test:unit`
-
-Rules: `.claude/context/testing-js-core.md`
 
 ### Browser tests — Playwright (headless browser)
 
@@ -70,8 +64,6 @@ Rules: `.claude/context/testing-js-core.md`
 All `packages/ui/test/*.browser.spec.js` must import from `packages/ui/test/fixtures.js` (not `@playwright/test` directly) — that module's `browserLog` auto-fixture captures and asserts on console errors, Vue warnings, and failed network requests for every test. A green DOM assertion is not enough.
 
 Run: `npx playwright test`
-
-Rules: `.claude/context/testing-js-ui.md`
 
 **Tooling is deliberately minimal: Vitest + Playwright, nothing else.** Do not add another test runner (Jest / Mocha / etc.).
 
@@ -115,9 +107,9 @@ This project has been developed exclusively on **Windows 11 with Git Bash**. Oth
 Always use the project scripts — do not run `npm run dev`, `vite`, or ad-hoc commands directly.
 
 ```bash
-bash scripts/dev-4200.sh      # agent dev server: health checks then Vite at http://localhost:4200
-bash scripts/stop-http.sh 4200  # stop the agent dev server
-bash scripts/preview-4000.sh  # human lightweight preview at http://localhost:4000 (no health checks)
+bash scripts/start-http.sh    # dev server on 4000: health checks then Vite at http://localhost:4000
+bash scripts/stop-http.sh     # stop it
+bash scripts/preview-4000.sh  # lightweight preview of the BUILT dist on 4000 (no health checks)
 bash scripts/health-check.sh  # full gate: lint + typecheck + JS unit + browser tests
 bash scripts/build-release.sh # GITHUB_PAGES production build → packages/ui/dist/
 ```
@@ -136,36 +128,3 @@ npm run lint
 ```
 
 CI runs lint, unit tests, and Playwright on every push.
-
----
-
-## 8. Standing coding patterns (merged from CODING_PATTERNS.md, 2026-07-20)
-
-This section maintains version-controlled coding patterns and design systems for the OpenISD application.
-
-### Domain-Specific Testing
-
-- Core TS logic (`packages/engine/src/`): unit tests in vitest (`npm run test:unit`)
-- UI and E2E integration: Playwright tests (`npx playwright test`)
-
-### Numeric entry constraints — schema-enforced, no unconstrained inputs (2026-07-23)
-
-**Every numeric field the UI shows MUST have enforced min/max bounds, and the bounds live in
-the field registry (`packages/ui/src/fields/fieldRegistry.ts`) — never ad-hoc per input.**
-Human directive 2026-07-23 after fields were found accepting negatives.
-
-- The registry is the constraints SSOT: every `kind: 'number'` spec carries BOTH `min` and
-  `max` (`fieldRegistry.test.ts` fails the build if one is missing). For `modeled` fields the
-  bounds are in the MODEL's unit (SI base — the space `NumInput` emits); for unmodeled
-  reference fields, the spec's documented `unit`.
-- **`NumInput` enforces automatically**: a `field="<registry-id>"` binding pulls the registry
-  bounds (explicit `:min`/`:max` props override). Passing `field` alone (without
-  `group`/`base`) is valid purely to bind constraints.
-- **Raw `<input type="number">` is only acceptable WITH `v-limits`** (
-  `packages/ui/src/directives/limits.ts`): pass `limits('<id>')` (registry bounds), a scaled
-  variant when the input displays a non-model unit, or use bare `v-limits` to adopt the
-  element's own native min/max attrs. The directive stamps native attrs (spinner can't leave
-  the range) and clamps typed out-of-range values so the model can never retain one.
-- **When adding any new numeric input**: register the field (or reuse its spec), then bind via
-  `NumInput field=…` or `v-limits`. A numeric input with neither is a defect, not a style
-  choice.

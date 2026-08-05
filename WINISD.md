@@ -441,16 +441,15 @@ regenerated from current datasheet values when this occurs.
 ### WDR field order and ParState
 
 `ParState` is the last WinISD-native field in a WDR file. Fields after `ParState` are
-ignored by WinISD. OpenISD's provenance metadata lives in the companion `openisd.yml` sidecar, not in the WDR.
+ignored by WinISD. OpenISD's provenance metadata lives in the driver record (`openisd.yml`), not in the WDR.
 
 `ParState` is a 49-character string: each position is `E` (user-Entered), `C` (Calculated
 by WinISD from other entered values), or `N` (Not set). The mapping of positions to
 parameter names has been reverse-engineered via single-parameter probes in `drivers/sample/`
 and is documented in `drivers/sample/README.md`.
 
-**The data pipeline's ParState builder** (sibling `winisd_tools` repo's
-`scraper_lib.py:_parstate()`) dynamically constructs ParState based on which
-fields were actually sourced from the datasheet:
+**A ParState builder** constructs ParState from which fields were actually sourced from the
+datasheet, rather than writing a fixed template:
 
 - **E** — field is present and non-zero (user-entered or sourced from datasheet)
 - **C** — field is computed from available dependencies (e.g., Vd from Sd+Xmax, EBP from Fs+Qes+Qms)
@@ -498,9 +497,9 @@ Air properties (standard 20°C, overridable via WinISD UI):
   c=343.684120962152
   roo=1.20095217714682
 
-Physical dimensions (not currently extracted):
+Physical dimensions (not currently extracted by scrapers):
   Thick, Depth, MagDepth, Magnet, Basket, Outer, Vcd, DVol
-  (See the sibling winisd_tools repo's SCRAPING_TODO.md: Physical dimension extraction gap)
+  (See BACKLOG.md: Physical dimension extraction gap)
 ```
 
 **Do NOT store Qts** when Qms and Qes are both present — see consistency rule above.
@@ -542,116 +541,6 @@ is pure WDR metadata, not part of WinISD's 49-position internal state machine.
 **TODO — OpenISD WDR writer (future):** When OpenISD gains the ability to write WDR files, it must write `VCCon=2`
 when the user has selected series wiring. The save bug is WinISD-specific — OpenISD's own writer should write the
 correct value. See BACKLOG.md.
-
-## 12b. Air Pressure field — clearing it triggers an unrecoverable crash loop (user-reported 2026-07-20)
-
-**Bug:** In the environment inputs (Advanced pane / Options → General, where Air pressure is
-entered, e.g. `101325.0` Pa), **clearing the Air Pressure field** puts WinISD into an
-inescapable modal error loop reporting **"Cannot convert floating point number"**. The dialog
-re-raises on every interaction, so the field can never be corrected — the only way out is to
-**force-crash / kill the app**. An empty air-pressure value is evidently parsed as a float with
-no empty-string guard, and the error handler re-enters the same parse.
-
-**Source:** direct observation by the human (john), 2026-07-20. Not yet re-verified by an
-automated probe here.
-
-**Implication for OpenISD:** the equivalent field (`advPressure` in the field registry) must
-guard an empty/blank entry — never parse a blank as a float and never leave the user trapped.
-NumInput already reverts an invalid entry to the last valid value on blur; keep that behaviour
-and cover it with a test so OpenISD cannot reproduce the WinISD trap.
-
-## 12c. Thermal power-compression + driver added-mass ARE simulated (directly verified 2026-07-21)
-
-The human ran controlled single-field tests in WinISD 0.7.0.950 (Driver pane → Advanced options),
-watching the Impedance/SPL charts. This is **primary evidence** and overrides WinISD's own stale
-help text (`thielesmall.html`) which claims the thermal params are "not used yet in simulations".
-
-| Field changed                         | Observed                                          | Conclusion                                               |
-| ------------------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
-| **Voice coil temp rise**              | Impedance floor rose ~21 → 23 Ω; SPL curve flexed | Hot `Re` is applied → **power compression is simulated** |
-| **Voice coil resistance TC (AlfaVC)** | Impedance rose (with a temp rise set)             | AlfaVC scales the hot-`Re` term → **used**               |
-| **Added mass to cone = 100 g**        | Impedance resonance peak moved 70 → 25 Hz         | Added straight into `Mms` → **used**                     |
-
-The added-mass result also settles the **unit = grams**: `Fs ∝ 1/√Mms`, so 70→25 Hz means
-`Mms` rose `(70/25)² = 7.84×`; a +100 g add implies `Mms_old ≈ 14.6 g` (a plausible cone mass).
-100 kg would be nonsensical — confirms the field is grams, not kg (the screenshot transcription of
-`view_1_driver_drivers_standard.md` wrongly reads "kg").
-
-**Model:** `Re(hot) = Re·(1 + AlfaVC·ΔT)`, then all Re-dependent quantities (Qes, Qts, sensitivity,
-impedance floor, Max-SPL) recompute from the hot Re. Added mass: `Mms += Madd`, then Fs/Qts/Vas-behaviour
-follow. `R(t)`/`C(t)` (time-evolution of ΔT) were NOT tested and are bypassed when ΔT is entered directly.
-
-**Implication for OpenISD:** these are genuine feature gaps, not WinISD-only inert inputs — OpenISD's
-sweep assumes a cold, constant `Re` and ignores driver added-mass. See BACKLOG (power-compression model;
-driver-side added mass). The field registry entries stay `modeled: false` until implemented.
-
-### ⚠ Assumption — NOT directly verified
-
-> **WinISD's Options → General "Environment" group (Temperature/Air pressure/Relative
-> humidity) seeds a brand-new project's own Advanced-pane values.**
-
-`docs/winisd/options_general.png` and `view_6_advanced.png` show identical values (293.15 K /
-101325.0 Pa / 30.0000% / 343.68 m/s), consistent with the Options dialog's Environment group
-being the app-level default that a new WinISD project's Advanced pane starts from. This has not
-been confirmed by creating a fresh WinISD project after changing the Options dialog's values.
-
-OpenISD implements the corresponding behaviour as its own design choice regardless of this
-being unverified in real WinISD: `state.ui.envDefaults` (Options dialog → General → Environment)
-seeds `OriginalShell.vue`/`ClassicShell.vue`'s local Advanced-pane refs on mount, replacing what
-was a hardcoded literal — an already-open project's Advanced-pane values are never overwritten
-by editing the Options dialog. See BACKLOG.md (Options dialog entry).
-
-## 12d. Advanced-pane simulation options — the five checkboxes (implemented 2026-07-23)
-
-WinISD's Advanced pane carries a column of five simulation-fidelity checkboxes
-(`docs/winisd/info/view_6_advanced.md`), all unchecked by default. OpenISD implements all five.
-Design and rationale: `PLAN_ADVANCED_SIM_OPTIONS.md`.
-
-| WinISD label                                        | `.wpr` key     | OpenISD                                                                               |
-| --------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------- |
-| `Simulate voice coil inductance`                    | `VCInd`        | Alias over `P.circuitModel` (`store.simVcInductance`): off = `winisd`, on = `gyrator` |
-| `Force flat response`                               | `FlatResponse` | `SweepParams.forceFlatResponse` — auto-EQ, capped at `FLAT_MAX_BOOST_DB` (20 dB)      |
-| `Use "transmission line"-model for port simulation` | `TLPorts`      | `SweepParams.tlPortModel` — lossy duct in `circuit.portImpedance()`                   |
-| `Rg is at driver side`                              | none known     | `SweepParams.rgAtDriverSide` — per-driver Rg vs one Rg at the amplifier               |
-| `SPL graph is Xmax limited`                         | none known     | `sweep().splXlim` / `.xlimited`, selected for the SPL chart by `P.splXmaxLimited`     |
-
-### ⚠ Assumption — NOT directly verified
-
-> **What these five toggles actually DO inside WinISD.**
-
-The bundled WinISD help (`research/winisd/help/`) predates the Advanced pane and documents none
-of them. The only primary evidence is the `.wpr` corpus, whose `[SimulatorOptions]` section
-carries `VCInd` / `FlatResponse` / `TLPorts` — and **every sampled file has all three at `0`**
-(`WINISD_WPR_FILE_SCHEMA.md` §10), so no behavioural difference could be observed. The semantics
-OpenISD implements are reasoned from the labels and from where the flags live in the file format,
-not from observation:
-
-- **`Force flat response` is read as auto-EQ**, not as a normalized display mode. The flag sits
-  in `[SimulatorOptions]` beside two physics-model flags rather than in `[PlotSettings]`, and
-  OpenISD already has a normalized-display chart (Transfer function magnitude, §17) that would
-  make a display reading redundant. Flattening a 24 dB/oct rolloff demands unbounded boost, so
-  OpenISD caps it at 20 dB and raises a warn naming the frequency where the cap binds — an
-  uncapped inverse filter would present a physically impossible design as achievable.
-- **`Simulate voice coil inductance` is read as "Le in the acoustic path"**, which is exactly the
-  circuit-model switch §9 already documents. Whether WinISD ALSO drops Le from the impedance plot
-  when unchecked is unknown; OpenISD keeps Le in the impedance plot either way (its historic
-  behaviour), so an existing design's Z curve never moves.
-- **`Rg is at driver side` is read as source-resistance placement.** OpenISD's historic behaviour
-  folds `Rs` into each driver's coil branch before the wiring scale factor, i.e. it was already
-  permanently "at driver side"; the toggle adds the amplifier-side alternative (one `Rg` in series
-  with the whole array). The two are algebraically identical for a single driver. **OpenISD
-  defaults this ON — WinISD ships it unchecked.** The default was kept at OpenISD's existing
-  behaviour so no saved design changes on upgrade; matching WinISD's default is an open question
-  (`BACKLOG.md` Q3).
-- **`Rg is at driver side` and `SPL graph is Xmax limited` have no known `.wpr` key.** They are
-  therefore NOT written to an exported project file — inventing a key would produce a file WinISD
-  misreads. Whether WinISD stores them elsewhere (app-level settings) or the corpus predates them
-  is unresolved.
-
-The transmission-line port model needs no assumption about WinISD: it is standard duct acoustics,
-and OpenISD's implementation reduces to the existing lumped port mass exactly as ω→0 (asserted to
-second order in `advanced-options.test.ts`), so enabling it never moves the box tuning. Note it
-models the PORT, not a transmission-line ENCLOSURE (quarter-wave box — still backlogged).
 
 ## 11. SpeakerBoxLite API — CORS finding
 
@@ -812,18 +701,11 @@ actually uses each field — verified against `packages/engine`.
 - **SPL** — Power sensitivity [dB/W], 1 m, half-space (2π); directly related to η₀.
 - **Voicecoils (numVC)** — Descriptive: number of voice coils (1 normal, 2 = dual-voice-coil).
 
-**Thermal** — power-compression IS simulated (directly verified 2026-07-21, WinISD 0.7.0.950,
-by the human — see §12c). WinISD's legacy `thielesmall.html` help text claims the thermal params are
-"not used yet in simulations", but that text is **stale for this version**: the empirical test
-below shows the impedance and SPL curves change when the thermal inputs change.
+**Thermal** — WinISD notes these are "not used yet in simulations":
 
-- **Voice coil temp rise** [K] (Driver pane → Advanced options) — the static coil ΔT above ambient.
-  **USED**: raising it lifts hot `Re`, so the impedance floor rises and SPL drops (power compression).
-- **AlfaVC** — VC resistance temperature coefficient [1/K]; copper ≈ 0.0039. **USED**: with a
-  non-zero temp rise, `Re(hot) = Re·(1 + AlfaVC·ΔT)`; raising AlfaVC raises the impedance.
-- **R(t)** — Thermal resistance, voice coil → ambient [K/W]. Governs how ΔT _evolves_ over time from
-  power; **untested** — with temp rise set directly this is bypassed, so likely still inert.
-- **C(t)** — Thermal capacity of the voice-coil assembly [J/K]. Same — time-domain dynamics, untested.
+- **AlfaVC** — VC resistance temperature coefficient [1/K]; copper ≈ 0.0039.
+- **R(t)** — Thermal resistance, voice coil → ambient [K/W].
+- **C(t)** — Thermal capacity of the voice-coil assembly [J/K].
 
 **Figure of merit** — all derived/read-only:
 
@@ -972,20 +854,20 @@ Version: WinISD Pro 0.7 (Linearteam).
 
 ## 16. WDR fields that are non-functional in WinISD — historic parity only
 
-These fields exist in the WDR format and are written by the data pipeline / OpenISD's own
-writers for WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
+These fields exist in the WDR format and are written by OpenISD's WDR exporter for
+WinISD compatibility, but they have **no effect on any WinISD simulation output**. They are
 present purely because real WinISD files contain them and omitting them could prevent correct
 round-trip import. OpenISD includes them for historic parity with WinISD, not because they
 drive any curve or calculation.
 
 ### Confirmed no simulation effect — WinISD help says so explicitly
 
-| Field      | Source                                                                                         | What WinISD actually does with it                                                                                                                                                                                |
-| ---------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Znom**   | `thielesmall.html`: _"not used in simulation"_                                                 | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
-| **alfaVC** | WinISD legacy help text says _"not used yet"_ but **directly verified USED** 2026-07-21 (§12c) | VC resistance temperature coefficient. With a non-zero Voice-coil-temp-rise it scales hot `Re = Re·(1+AlfaVC·ΔT)` — raising it raises the impedance curve. WinISD's legacy help text is stale for 0.7.0.950.     |
-| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ (untested)                                 | Thermal resistance (VC→ambient). Governs time-evolution of ΔT; bypassed when temp rise is set directly. Not re-tested.                                                                                           |
-| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ (untested)                                 | Thermal capacity. Same time-domain dynamics — not re-tested.                                                                                                                                                     |
+| Field      | Source                                              | What WinISD actually does with it                                                                                                                                                                                |
+| ---------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Znom**   | `thielesmall.html`: _"not used in simulation"_      | Label only — shown in the driver browser and editor as the nominal impedance rating. WinISD uses Re (not Znom) as the power/voltage reference throughout. OpenISD uses it for the 4Ω/8Ω/16Ω browser filter only. |
+| **alfaVC** | `thielesmall.html`: _"not used yet in simulations"_ | Voice coil resistance temperature coefficient. Shown in the Advanced parameters tab. No simulation path consumes it.                                                                                             |
+| **Rt**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal resistance (VC to ambient). Same — displayed, not simulated.                                                                                                                                             |
+| **Ct**     | `thielesmall.html`: _"not used yet in simulations"_ | Thermal capacity. Same — displayed, not simulated.                                                                                                                                                               |
 
 ### Pure metadata — no functional role at all
 
@@ -1004,8 +886,8 @@ shown on the Dimensions tab for the builder's reference. **WinISD does not subtr
 displacement (DVol) from box volume** — users must do that manually. Source: `faq.html`:
 _"WinISD doesn't take driver displacement into account."_
 
-These are written as `0` by the data pipeline because the data is not yet extracted from
-datasheets. See the sibling winisd_tools repo's SCRAPING_TODO.md (Physical dimension extraction gap).
+These are written as `0` because the data is not extracted from datasheets. See BACKLOG.md
+(Physical dimension extraction gap).
 
 ### Inert in practice — but WOULD affect output if entered
 
@@ -1018,7 +900,7 @@ datasheets. See the sibling winisd_tools repo's SCRAPING_TODO.md (Physical dimen
 ### VCCon — sets UI dropdown; simulation effect for DVC unverified
 
 VCCon (parallel/series) sets the connection-type dropdown when WinISD loads the file.
-For **single-VC drivers** (VCCon=1, essentially all scraped files) this is a no-op — there
+For **single-VC drivers** (VCCon=1, essentially every real file) this is a no-op — there
 is only one configuration. For **dual-VC drivers** (numVC=2), the dropdown would logically
 affect Re and BL (series doubles both; parallel halves Re), but whether WinISD actually uses
 VCCon to adjust simulation calculations for DVC drivers **has not been verified** in our

@@ -1,0 +1,393 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "driver-invalid.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-23T04-26-53-301Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100",
+      "url": "http://localhost:4100",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "driver-invalid.browser.spec.ts",
+      "file": "driver-invalid.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a persisted driver with Fs=0 shows a per-chart error message instead of crashing or blanking",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2771,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T04:27:02.239Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "74906f44dfc043febe2f-d393e5ed60533dbc184f",
+          "file": "driver-invalid.browser.spec.ts",
+          "line": 33,
+          "column": 1
+        },
+        {
+          "title": "a persisted driver with Re=0 (a different required field) also shows the per-chart message",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2169,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T04:27:05.134Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "74906f44dfc043febe2f-b4d69d75bd7d902989cf",
+          "file": "driver-invalid.browser.spec.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "title": "missing Pe drops only the thermal-limit line — Max-SPL chart still draws, and the issue is listed (dismissable)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7002,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:85:24",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                      "column": 24,
+                      "line": 85
+                    },
+                    "snippet": "  83 |   // (amber, not a blocking error), and it is dismissable.\n  84 |   const issues = page.locator('.drv-issues');\n> 85 |   await expect(issues).toBeVisible();\n     |                        ^\n  86 |   await expect(issues).not.toHaveClass(/is-error/);\n  87 |   await expect(issues).toContainText(/Pe/);\n  88 |   await expect(issues).toContainText(/thermal-limit line/i);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                        "column": 24,
+                        "line": 85
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n\n  83 |   // (amber, not a blocking error), and it is dismissable.\n  84 |   const issues = page.locator('.drv-issues');\n> 85 |   await expect(issues).toBeVisible();\n     |                        ^\n  86 |   await expect(issues).not.toHaveClass(/is-error/);\n  87 |   await expect(issues).toContainText(/Pe/);\n  88 |   await expect(issues).toContainText(/thermal-limit line/i);\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:85:24"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"missing Pe drops only the thermal-limit line — Max-SPL chart still draws, and the issue is listed (dismissable)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T04:27:07.320Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-mis-da666-ssue-is-listed-dismissable-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-mis-da666-ssue-is-listed-dismissable-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                    "column": 24,
+                    "line": 85
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "74906f44dfc043febe2f-72d176bab60d17b5c23e",
+          "file": "driver-invalid.browser.spec.ts",
+          "line": 63,
+          "column": 1
+        },
+        {
+          "title": "box volume Vb = 0 surfaces a blocking \"no usable values\" error (finiteness postcondition)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6567,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:104:24",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                      "column": 24,
+                      "line": 104
+                    },
+                    "snippet": "  102 |\n  103 |   const issues = page.locator('.drv-issues');\n> 104 |   await expect(issues).toBeVisible();\n      |                        ^\n  105 |   await expect(issues).toHaveClass(/is-error/);\n  106 |   await expect(issues).toContainText(/no usable values|box volume/i);\n  107 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                        "column": 24,
+                        "line": 104
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n\n  102 |\n  103 |   const issues = page.locator('.drv-issues');\n> 104 |   await expect(issues).toBeVisible();\n      |                        ^\n  105 |   await expect(issues).toHaveClass(/is-error/);\n  106 |   await expect(issues).toContainText(/no usable values|box volume/i);\n  107 |\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:104:24"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"box volume Vb = 0 surfaces a blocking \"no usable values\" error (finiteness postcondition)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T04:27:15.052Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-box-7858f-r-finiteness-postcondition-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-box-7858f-r-finiteness-postcondition-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                    "column": 24,
+                    "line": 104
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "74906f44dfc043febe2f-2b0aca15ab62ef773ad4",
+          "file": "driver-invalid.browser.spec.ts",
+          "line": 93,
+          "column": 1
+        },
+        {
+          "title": "missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6729,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:128:24",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                      "column": 24,
+                      "line": 128
+                    },
+                    "snippet": "  126 |\n  127 |   const issues = page.locator('.drv-issues');\n> 128 |   await expect(issues).toBeVisible();\n      |                        ^\n  129 |   await expect(issues).not.toHaveClass(/is-error/);\n  130 |   await expect(issues).toContainText(/Xmax/);\n  131 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                        "column": 24,
+                        "line": 128
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.drv-issues')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.drv-issues')\u001b[22m\n\n\n  126 |\n  127 |   const issues = page.locator('.drv-issues');\n> 128 |   await expect(issues).toBeVisible();\n      |                        ^\n  129 |   await expect(issues).not.toHaveClass(/is-error/);\n  130 |   await expect(issues).toContainText(/Xmax/);\n  131 | });\n    at /home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts:128:24"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"missing Xmax drops only the excursion limit line — Excursion chart still draws, issue is a warning\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T04:27:22.420Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-mis-8a939-ll-draws-issue-is-a-warning/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/driver-invalid.browser-mis-8a939-ll-draws-issue-is-a-warning/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/driver-invalid.browser.spec.ts",
+                    "column": 24,
+                    "line": 128
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "74906f44dfc043febe2f-af8bbdbc7d30d09f4a00",
+          "file": "driver-invalid.browser.spec.ts",
+          "line": 114,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-23T04:26:53.309Z",
+    "duration": 36057.114,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

@@ -52,11 +52,10 @@ function create() {
 }
 
 function close() { emit('close'); }
-function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 </script>
 
 <template>
-  <div class="overlay on" @click="onBackdrop">
+  <div class="overlay on">
     <div class="modal">
       <h2>Define new passive radiator<button class="x" @click="close" title="Close">✕</button></h2>
       <div class="body">

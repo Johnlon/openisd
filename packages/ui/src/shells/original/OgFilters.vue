@@ -23,8 +23,10 @@ const QUICK_ADD: { type: FilterType; label: string }[] = [
   { type: 'highpass', label: '+ HP' },
   { type: 'linkwitz', label: '+ LT' },
   { type: 'peaking',  label: '+ PEQ' },
+  { type: 'lowshelf',  label: '+ LS' },
+  { type: 'highshelf', label: '+ HS' },
 ];
-const BADGE: Record<FilterType, string> = { highpass: 'HP', lowpass: 'LP', linkwitz: 'LT', peaking: 'PEQ' };
+const BADGE: Record<FilterType, string> = { highpass: 'HP', lowpass: 'LP', linkwitz: 'LT', peaking: 'PEQ', lowshelf: 'LS', highshelf: 'HS' };
 // Mirrors the shared FiltersPanel's defaults. NOT a shared constant: single-sourcing it
 // would mean editing FiltersPanel (a Modern-rendered component), which Invariant 1 forbids
 // for a cosmetic reason — so this is a deliberate per-skin copy; keep in sync if either moves.
@@ -33,6 +35,8 @@ const DEFAULTS: Record<FilterType, Record<string, number>> = {
   lowpass:  { fc: 200, Q: 0.7071 },
   linkwitz: { f0: 50,  Q0: 0.7, fp: 20, Qp: 0.5 },
   peaking:  { fc: 300, Q: 1.0, gain: -6 },
+  lowshelf:  { fc: 150,  Q: 0.7071, gain: 6 },
+  highshelf: { fc: 2000, Q: 0.7071, gain: 6 },
 };
 
 const editing = ref<string | null>(null);
@@ -53,6 +57,7 @@ function fnum(v: number | undefined, dp: number): string { return v != null && i
 function summary(f: Filter): string {
   if (f.type === 'linkwitz') return `f0 ${fnum(f.f0, 0)} / fp ${fnum(f.fp, 0)} Hz`;
   if (f.type === 'peaking')  return `fc ${fnum(f.fc, 0)} Hz · Q ${fnum(f.Q, 2)} · ${fnum(f.gain, 1)} dB`;
+  if (f.type === 'lowshelf' || f.type === 'highshelf') return `fc ${fnum(f.fc, 0)} Hz · Q ${fnum(f.Q, 2)} · ${fnum(f.gain, 1)} dB`;
   return `fc ${fnum(f.fc, 0)} Hz · Q ${fnum(f.Q, 3)}`;
 }
 </script>
@@ -76,11 +81,11 @@ function summary(f: Filter): string {
         </div>
 
         <div v-if="editing === f.id" class="filter-edit-body">
-          <template v-if="f.type === 'highpass' || f.type === 'lowpass' || f.type === 'peaking'">
+          <template v-if="f.type === 'highpass' || f.type === 'lowpass' || f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
             <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" v-model.number="f.fc"> Hz</label>
             <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" v-model.number="f.Q"></label>
           </template>
-          <template v-if="f.type === 'peaking'">
+          <template v-if="f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
             <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" v-model.number="f.gain"> dB</label>
           </template>
           <template v-if="f.type === 'linkwitz'">

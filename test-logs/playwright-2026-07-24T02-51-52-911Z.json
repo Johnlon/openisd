@@ -1,0 +1,171 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/advanced-options.browser.spec.ts",
+      "-g",
+      "voice coil"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T02-51-52-911Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "advanced-options.browser.spec.ts",
+      "file": "advanced-options.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "\"Simulate voice coil inductance\" moves the acoustic response and tracks the circuit model",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5069,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0.5\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0.5\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:103:42",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                      "column": 42,
+                      "line": 103
+                    },
+                    "snippet": "  101 |   // Le entering the acoustic path attenuates the top end — the demo driver's 0.7 mH is\n  102 |   // ~4.4 Ω at 1 kHz against Re = 5.6 Ω, so this is a visible change, not a rounding wobble.\n> 103 |   expect(maxDiff(after.spl, before.spl)).toBeGreaterThan(0.5);\n      |                                          ^\n  104 |\n  105 |   // It is the SAME setting as SignalPanel's circuit-model select, not a second flag.\n  106 |   const model = await page.evaluate(async (mod) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                        "column": 42,
+                        "line": 103
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0.5\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n  101 |   // Le entering the acoustic path attenuates the top end — the demo driver's 0.7 mH is\n  102 |   // ~4.4 Ω at 1 kHz against Re = 5.6 Ω, so this is a visible change, not a rounding wobble.\n> 103 |   expect(maxDiff(after.spl, before.spl)).toBeGreaterThan(0.5);\n      |                                          ^\n  104 |\n  105 |   // It is the SAME setting as SignalPanel's circuit-model select, not a second flag.\n  106 |   const model = await page.evaluate(async (mod) => {\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:103:42\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"\"Simulate voice coil inductance\" moves the acoustic response and tracks the circuit model\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-24T02:51:55.256Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---8629c-nd-tracks-the-circuit-model/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---8629c-nd-tracks-the-circuit-model/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                    "column": 42,
+                    "line": 103
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-871247e564b3470ad805",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 95,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T02:51:52.923Z",
+    "duration": 7820.052000000001,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

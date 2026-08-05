@@ -40,7 +40,7 @@ describe('persistence — provenance + carried fields survive a serialize round-
     // This scraper marks every field E; clear a derivable one so the fixture carries a
     // genuine C (Cms recomputes from Fs/Vas/Sd) alongside the E fields.
     src.clear('Cms');
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON(), [])));
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON())));
     const back = restore(wire.driver);
 
     // The fixture must actually contain both an E and a C field, or the test is vacuous.
@@ -54,12 +54,12 @@ describe('persistence — provenance + carried fields survive a serialize round-
 
   it('a carried pass-through field (Basket) survives — raw() would have dropped it', () => {
     const src = Driver.fromWdr(wdrText);
-    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON(), [])));
+    const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON())));
     assert.match(restore(wire.driver).toWdr(), /^Basket=/m);
   });
 
   it('serialize stamps v:2 and stores the full DriverJSON (inputs present)', () => {
-    const ser = serialize(miniState, Driver.fromWdr(wdrText).toJSON(), []);
+    const ser = serialize(miniState, Driver.fromWdr(wdrText).toJSON());
     assert.equal(ser.v, 2);
     assert.ok('inputs' in ser.driver, 'driver payload is the full DriverJSON');
   });
@@ -105,11 +105,11 @@ describe('share link carries skin + view context but not editor/working state', 
   }
 
   it('serialize() carries the full ui (incl. skin) so localStorage remembers everything', () => {
-    assert.equal(serialize(uiState, drv, []).ui?.skin, 'classic');
+    assert.equal(serialize(uiState, drv).ui?.skin, 'classic');
   });
 
   it('stateToUrl() keeps skin + active tab + chart but drops the open-editor buffer', async () => {
-    const shared = decodeShare(await stateToUrl(serialize(uiState, drv, [])));
+    const shared = decodeShare(await stateToUrl(serialize(uiState, drv)));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'shareable view context (ui) travels');
     assert.equal(ui!.skin, 'classic');                    // recipient lands on the SENDER's skin
@@ -138,10 +138,10 @@ describe('share link carries skin + view context but not editor/working state', 
       { driver: drv, box: 'vented', P: {}, name: 'Compare A', color: '#ff0000' },
       { driver: drv, box: 'sealed', P: {}, name: 'Compare B', color: '#00ff00' },
     ] } as unknown as AppState;
-    const json = JSON.stringify(serialize(loaded, drv, loaded.compare as unknown as never[]));
+    const json = JSON.stringify(serialize(loaded, drv));
     const plainBase64Len = Buffer.from(json, 'utf8').toString('base64').length;
 
-    const url = await stateToUrl(serialize(loaded, drv, loaded.compare as unknown as never[]));
+    const url = await stateToUrl(serialize(loaded, drv));
     const gzipBase64Len = url.match(/[#&]s=([^&]+)/)![1].length;
 
     assert.ok(gzipBase64Len < plainBase64Len,
@@ -150,7 +150,7 @@ describe('share link carries skin + view context but not editor/working state', 
 
   it('carries the graph cursor/marker (live hover + locked/pinned) — both, if both are set', async () => {
     const withCursor = { ...uiState, cursorF: 123.4, pinnedF: 500, cursorLocked: true } as unknown as AppState;
-    const local = serialize(withCursor, drv, []);
+    const local = serialize(withCursor, drv);
     assert.deepEqual(local.cursor, { f: 123.4, pinnedF: 500, locked: true, range: null });
 
     const shared = decodeShare(await stateToUrl(local));
@@ -159,7 +159,7 @@ describe('share link carries skin + view context but not editor/working state', 
 
   it('carries the dragged frequency band selection (fLo/fHi only — stats are per-panel derived)', async () => {
     const withBand = { ...uiState, dragRange: { fLo: 31.6, fHi: 100, stats: { peak: 1 } } } as unknown as AppState;
-    const local = serialize(withBand, drv, []);
+    const local = serialize(withBand, drv);
     assert.deepEqual(local.cursor!.range, { fLo: 31.6, fHi: 100 }); // stats stripped
 
     const shared = decodeShare(await stateToUrl(local));
@@ -168,6 +168,6 @@ describe('share link carries skin + view context but not editor/working state', 
 
   it('an unset cursor serializes as all-null/false, not omitted (no special-casing "nothing pinned")', () => {
     const noCursor = { ...uiState, cursorF: null, pinnedF: null, cursorLocked: false } as unknown as AppState;
-    assert.deepEqual(serialize(noCursor, drv, []).cursor, { f: null, pinnedF: null, locked: false, range: null });
+    assert.deepEqual(serialize(noCursor, drv).cursor, { f: null, pinnedF: null, locked: false, range: null });
   });
 });

@@ -1,0 +1,2526 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "original-skin.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-23T10-16-12-709Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100",
+      "url": "http://localhost:4100",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3435,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:40.873Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-c148086e8c944d18a0c9",
+          "file": "original-skin.browser.spec.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "title": "the toolbar ports the mock icon buttons + chart-select",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2624,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:44.533Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-296b56335e5e2ee4a636",
+          "file": "original-skin.browser.spec.ts",
+          "line": 62,
+          "column": 1
+        },
+        {
+          "title": "the chart-select dropdown switches the shared GraphPanel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2804,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:47.181Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-85fce85233dd24455e62",
+          "file": "original-skin.browser.spec.ts",
+          "line": 69,
+          "column": 1
+        },
+        {
+          "title": "all seven project tabs render their ported content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3360,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:50.010Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-cb899c6abf1835048236",
+          "file": "original-skin.browser.spec.ts",
+          "line": 77,
+          "column": 1
+        },
+        {
+          "title": "the Box tab exposes all six box types and drives the shared store for supported ones",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2629,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:53.394Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b1039f25797ea3ffd29c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 97,
+          "column": 1
+        },
+        {
+          "title": "the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2316,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:56.043Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-80f1362cb8b7952bf9ab",
+          "file": "original-skin.browser.spec.ts",
+          "line": 114,
+          "column": 1
+        },
+        {
+          "title": "an externally loaded box type re-syncs the Box tab (no desync while pending)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7715,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.tab-section.active')\nExpected pattern: \u001b[32m/response model pending/i\u001b[39m\nReceived string:  \u001b[31m\"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.tab-section.active')\u001b[22m\n\u001b[2m    14 × locator resolved to <section data-v-25cf01a8=\"\" class=\"tab-section active\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.tab-section.active')\nExpected pattern: \u001b[32m/response model pending/i\u001b[39m\nReceived string:  \u001b[31m\"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.tab-section.active')\u001b[22m\n\u001b[2m    14 × locator resolved to <section data-v-25cf01a8=\"\" class=\"tab-section active\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:133:24",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 24,
+                      "line": 133
+                    },
+                    "snippet": "  131 |   const boxTab = page.locator('.tab-section.active');\n  132 |   await page.locator('select#og-box-type').selectOption('abc');\n> 133 |   await expect(boxTab).toContainText(/response model pending/i);\n      |                        ^\n  134 |\n  135 |   await page.evaluate(async () => {\n  136 |     const modPath = '/src/store.ts';"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 24,
+                        "line": 133
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.tab-section.active')\nExpected pattern: \u001b[32m/response model pending/i\u001b[39m\nReceived string:  \u001b[31m\"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.tab-section.active')\u001b[22m\n\u001b[2m    14 × locator resolved to <section data-v-25cf01a8=\"\" class=\"tab-section active\">…</section>\u001b[22m\n\u001b[2m       - unexpected value \"Box TypeClosedVentedPassive Radiator4th Order Bandpass6th Order BandpassABC (Aperiodic Bi-Chamber)Rear chamberVolumeLFhHzAdvanced->\"\u001b[22m\n\n\n  131 |   const boxTab = page.locator('.tab-section.active');\n  132 |   await page.locator('select#og-box-type').selectOption('abc');\n> 133 |   await expect(boxTab).toContainText(/response model pending/i);\n      |                        ^\n  134 |\n  135 |   await page.evaluate(async () => {\n  136 |     const modPath = '/src/store.ts';\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:133:24"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"an externally loaded box type re-syncs the Box tab (no desync while pending)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:16:58.380Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-an-e-a7788-ab-no-desync-while-pending-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-an-e-a7788-ab-no-desync-while-pending-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 24,
+                    "line": 133
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-d60d507b9d09eb4bde02",
+          "file": "original-skin.browser.spec.ts",
+          "line": 129,
+          "column": 1
+        },
+        {
+          "title": "the box-losses modal opens from the Box tab and closes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2357,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:06.995Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-30ff1ebf3453954b5a11",
+          "file": "original-skin.browser.spec.ts",
+          "line": 146,
+          "column": 1
+        },
+        {
+          "title": "the Color button cycles the current design trace colour (and wraps)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3068,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"rgb(201, 201\u001b[7m, 46\u001b[27m)\"\u001b[39m\nReceived: \u001b[31m\"rgb(\u001b[7m46, \u001b[27m201, 201)\"\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"rgb(201, 201\u001b[7m, 46\u001b[27m)\"\u001b[39m\nReceived: \u001b[31m\"rgb(\u001b[7m46, \u001b[27m201, 201)\"\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:163:22",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 22,
+                      "line": 163
+                    },
+                    "snippet": "  161 |   // The mock palette has 7 colours, so 7 clicks total returns to the start.\n  162 |   for (let i = 0; i < 6; i++) await swatch.click();\n> 163 |   expect(await bg()).toBe(before);\n      |                      ^\n  164 | });\n  165 |\n  166 | test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 22,
+                        "line": 163
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"rgb(201, 201\u001b[7m, 46\u001b[27m)\"\u001b[39m\nReceived: \u001b[31m\"rgb(\u001b[7m46, \u001b[27m201, 201)\"\u001b[39m\n\n  161 |   // The mock palette has 7 colours, so 7 clicks total returns to the start.\n  162 |   for (let i = 0; i < 6; i++) await swatch.click();\n> 163 |   expect(await bg()).toBe(before);\n      |                      ^\n  164 | });\n  165 |\n  166 | test('the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)', async ({ page }) => {\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:163:22"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Color button cycles the current design trace colour (and wraps)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:09.464Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--a6d4e-ign-trace-colour-and-wraps-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--a6d4e-ign-trace-colour-and-wraps-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 22,
+                    "line": 163
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-623e0e86277cfbd1f9ea",
+          "file": "original-skin.browser.spec.ts",
+          "line": 155,
+          "column": 1
+        },
+        {
+          "title": "the bandpass Box tab shows calculated Frc + Tuning-freq readouts (real values)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2527,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:14.242Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-9bd2a73fe5e62ede69c9",
+          "file": "original-skin.browser.spec.ts",
+          "line": 166,
+          "column": 1
+        },
+        {
+          "title": "the Vented \"1st port resonance\" shows the vent pipe resonance c/(2·ventL), not the box tuning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2343,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:16.935Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3fd9a03c4cdd06bf9419",
+          "file": "original-skin.browser.spec.ts",
+          "line": 176,
+          "column": 1
+        },
+        {
+          "title": "the Vented pane labels the tuning readout \"1st port resonance\"",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2086,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:19.298Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-f8a72e2d132d972a4766",
+          "file": "original-skin.browser.spec.ts",
+          "line": 187,
+          "column": 1
+        },
+        {
+          "title": "the projects checkbox toggles a compare overlay trace visibility (not delete)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2145,
+                  "error": {
+                    "message": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'visible')\n    at eval (eval at evaluate (:303:30), <anonymous>:4:31)\n    at async <anonymous>:329:30",
+                    "stack": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'visible')\n    at eval (eval at evaluate (:303:30), <anonymous>:4:31)\n    at async <anonymous>:329:30\n    at eval (eval at evaluate (:303:30), <anonymous>:4:31)\n    at async <anonymous>:329:30\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:204:27",
+                    "location": {
+                      "file": "eval at evaluate (:303:30), <anonymous>",
+                      "column": 31,
+                      "line": 4
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "eval at evaluate (:303:30), <anonymous>",
+                        "column": 31,
+                        "line": 4
+                      },
+                      "message": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'visible')\n    at eval (eval at evaluate (:303:30), <anonymous>:4:31)\n    at async <anonymous>:329:30\n    at eval (eval at evaluate (:303:30), <anonymous>:4:31)\n    at async <anonymous>:329:30\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:204:27"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the projects checkbox toggles a compare overlay trace visibility (not delete)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:21.400Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--eb5bf-race-visibility-not-delete-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--eb5bf-race-visibility-not-delete-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "eval at evaluate (:303:30), <anonymous>",
+                    "column": 31,
+                    "line": 4
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-2d281f4c66162de32c80",
+          "file": "original-skin.browser.spec.ts",
+          "line": 194,
+          "column": 1
+        },
+        {
+          "title": "a compare overlay is closed by selecting its row then Close (WinISD right-click Delete stand-in)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2882,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:24.484Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e6f61972a62ca3f7d847",
+          "file": "original-skin.browser.spec.ts",
+          "line": 215,
+          "column": 1
+        },
+        {
+          "title": "the Filters tab quick-adds real filter types and drives the store",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3305,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:238:13",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 13,
+                      "line": 238
+                    },
+                    "snippet": "  236 |     return s.state.P.filters.length;\n  237 |   });\n> 238 |   expect(n).toBe(1);\n      |             ^\n  239 |\n  240 |   await panel.locator('.filter-del').click();\n  241 |   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 13,
+                        "line": 238
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\n  236 |     return s.state.P.filters.length;\n  237 |   });\n> 238 |   expect(n).toBe(1);\n      |             ^\n  239 |\n  240 |   await panel.locator('.filter-del').click();\n  241 |   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:238:13"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Filters tab quick-adds real filter types and drives the store\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:27.496Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--f89e8--types-and-drives-the-store/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--f89e8--types-and-drives-the-store/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 13,
+                    "line": 238
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-6ee20322526ce60bb722",
+          "file": "original-skin.browser.spec.ts",
+          "line": 224,
+          "column": 1
+        },
+        {
+          "title": "the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3790,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:262:26",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 26,
+                      "line": 262
+                    },
+                    "snippet": "  260 |   await fsInput.fill(String(before + 6));\n  261 |   await fsInput.dispatchEvent('input');\n> 262 |   expect(await readFs()).toBeCloseTo(before + 6, 1); // live preview updated the shared store\n      |                          ^\n  263 |\n  264 |   await tune.locator('button', { hasText: 'Cancel' }).click();\n  265 |   await expect(tune).toBeHidden();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 26,
+                        "line": 262
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m\n\n  260 |   await fsInput.fill(String(before + 6));\n  261 |   await fsInput.dispatchEvent('input');\n> 262 |   expect(await readFs()).toBeCloseTo(before + 6, 1); // live preview updated the shared store\n      |                          ^\n  263 |\n  264 |   await tune.locator('button', { hasText: 'Cancel' }).click();\n  265 |   await expect(tune).toBeHidden();\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:262:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:32.262Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--7ba9f-eep-Cancel-per-state-model-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--7ba9f-eep-Cancel-per-state-model-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 26,
+                    "line": 262
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-6f4e488b03aaad847076",
+          "file": "original-skin.browser.spec.ts",
+          "line": 244,
+          "column": 1
+        },
+        {
+          "title": "a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 4664,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:291:26",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 26,
+                      "line": 291
+                    },
+                    "snippet": "  289 |   await fsInput.dispatchEvent('input');\n  290 |\n> 291 |   expect(await readFs()).toBeCloseTo(before + 6, 1); // effective driver previews the what-if live\n      |                          ^\n  292 |   await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied yet\n  293 |\n  294 |   await tune.locator('button', { hasText: 'Keep' }).click();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 26,
+                        "line": 291
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m43\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m6\u001b[39m\n\n  289 |   await fsInput.dispatchEvent('input');\n  290 |\n> 291 |   expect(await readFs()).toBeCloseTo(before + 6, 1); // effective driver previews the what-if live\n      |                          ^\n  292 |   await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied yet\n  293 |\n  294 |   await tune.locator('button', { hasText: 'Keep' }).click();\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:291:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:37.617Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-a-li-0ce95-E-MODEL-what-if-≠-modified-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-a-li-0ce95-E-MODEL-what-if-≠-modified-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 26,
+                    "line": 291
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-9af29261b77f0b11e551",
+          "file": "original-skin.browser.spec.ts",
+          "line": 269,
+          "column": 1
+        },
+        {
+          "title": "the Tune fields accept multi-character typing (no reformat-while-typing clobber)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3143,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m42\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m5\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m42\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m5\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:313:14",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 14,
+                      "line": 313
+                    },
+                    "snippet": "  311 |     return s.driverRaw.value.Fs;\n  312 |   });\n> 313 |   expect(fs).toBeCloseTo(42, 1);\n      |              ^\n  314 | });\n  315 |\n  316 | test('v-expo-step fields keep clean decimals while spinning (grid-aligned step)', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 14,
+                        "line": 313
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m42\u001b[39m\nReceived: \u001b[31m37\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m5\u001b[39m\n\n  311 |     return s.driverRaw.value.Fs;\n  312 |   });\n> 313 |   expect(fs).toBeCloseTo(42, 1);\n      |              ^\n  314 | });\n  315 |\n  316 | test('v-expo-step fields keep clean decimals while spinning (grid-aligned step)', async ({ page }) => {\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:313:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Tune fields accept multi-character typing (no reformat-while-typing clobber)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:43.788Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--554f7-ormat-while-typing-clobber-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--554f7-ormat-while-typing-clobber-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 14,
+                    "line": 313
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b3e310793583668c3a8b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 300,
+          "column": 1
+        },
+        {
+          "title": "v-expo-step fields keep clean decimals while spinning (grid-aligned step)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:48.262Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-21f245a46cd3d02a39e3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 316,
+          "column": 1
+        },
+        {
+          "title": "NumInput spinner keeps fixed decimal places (no compounding float precision)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2229,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:50.956Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e7f10d7702cbf9403b9c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 326,
+          "column": 1
+        },
+        {
+          "title": "NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2234,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006123456\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.023876544\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006123456\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.023876544\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:348:14",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 14,
+                      "line": 348
+                    },
+                    "snippet": "  346 |     return s.state.P.Vb; // stored in m³ (display L ÷ 1000)\n  347 |   });\n> 348 |   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp \"0.00612\"\n      |              ^\n  349 | });\n  350 |\n  351 | test('class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 14,
+                        "line": 348
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006123456\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.023876544\u001b[39m\n\n  346 |     return s.state.P.Vb; // stored in m³ (display L ÷ 1000)\n  347 |   });\n> 348 |   expect(vb).toBeCloseTo(0.006123456, 9); // MODEL retains full precision — never the 2-dp \"0.00612\"\n      |              ^\n  349 | });\n  350 |\n  351 | test('class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:348:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"NumInput dp is screen-formatting only — the model keeps FULL precision (not truncated to dp)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:53.203Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-NumI-f8d3d-cision-not-truncated-to-dp-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-NumI-f8d3d-cision-not-truncated-to-dp-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 14,
+                    "line": 348
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-616f480ba43de9be73a2",
+          "file": "original-skin.browser.spec.ts",
+          "line": 336,
+          "column": 1
+        },
+        {
+          "title": "class-level: NO Original-skin spinner gains decimal places while spinning (all fields, all box types)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 73243,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:17:56.386Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3b60eba57306373e1192",
+          "file": "original-skin.browser.spec.ts",
+          "line": 351,
+          "column": 1
+        },
+        {
+          "title": "Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3608,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:09.782Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-8f355967ad2bd12c67a8",
+          "file": "original-skin.browser.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "field constraints: negative/out-of-range entry is rejected or clamped everywhere (schema-enforced)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3037,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:13.416Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-28550d61687a8e127f96",
+          "file": "original-skin.browser.spec.ts",
+          "line": 390,
+          "column": 1
+        },
+        {
+          "title": "Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2444,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:16.475Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-0491f228f0dbb277bd6f",
+          "file": "original-skin.browser.spec.ts",
+          "line": 416,
+          "column": 1
+        },
+        {
+          "title": "Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2746,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m71.42857142857143\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m70.42857142857143\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m71.42857142857143\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m70.42857142857143\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:438:15",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 15,
+                      "line": 438
+                    },
+                    "snippet": "  436 |     return s.state.P.Pin;\n  437 |   });\n> 438 |   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re\n      |               ^\n  439 | });\n  440 |\n  441 | test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 15,
+                        "line": 438
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m71.42857142857143\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n\nExpected precision:    1\nExpected difference: < \u001b[32m0.05\u001b[39m\nReceived difference:   \u001b[31m70.42857142857143\u001b[39m\n\n  436 |     return s.state.P.Pin;\n  437 |   });\n> 438 |   expect(pin).toBeCloseTo((20 * 20) / re, 1); // editing V back-calculates W = V²/Re\n      |               ^\n  439 | });\n  440 |\n  441 | test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:438:15"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:18.937Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Sign-52a58-em-input-power-W↔V-P-V²-Re-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Sign-52a58-em-input-power-W↔V-P-V²-Re-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 15,
+                    "line": 438
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-68c11d42263fdbaeed99",
+          "file": "original-skin.browser.spec.ts",
+          "line": 422,
+          "column": 1
+        },
+        {
+          "title": "Original skin buttons have readable dark text on their light fill",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2467,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:23.183Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-b225ebc3b7f8b0e87aad",
+          "file": "original-skin.browser.spec.ts",
+          "line": 441,
+          "column": 1
+        },
+        {
+          "title": "New Project collects the project name first and shows it in the titlebar",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2756,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"My Sub Build\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"My Sub Build\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:467:16",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 16,
+                      "line": 467
+                    },
+                    "snippet": "  465 |     return s.state.project.name;\n  466 |   });\n> 467 |   expect(name).toBe('My Sub Build');\n      |                ^\n  468 |   await expect(page.locator('.titlebar')).toContainText('My Sub Build');\n  469 | });\n  470 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 16,
+                        "line": 467
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"My Sub Build\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n\n  465 |     return s.state.project.name;\n  466 |   });\n> 467 |   expect(name).toBe('My Sub Build');\n      |                ^\n  468 |   await expect(page.locator('.titlebar')).toContainText('My Sub Build');\n  469 | });\n  470 |\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:467:16"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"New Project collects the project name first and shows it in the titlebar\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:25.774Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-New--a3f82-nd-shows-it-in-the-titlebar/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-New--a3f82-nd-shows-it-in-the-titlebar/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 16,
+                    "line": 467
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-88764b78b862977cd220",
+          "file": "original-skin.browser.spec.ts",
+          "line": 452,
+          "column": 1
+        },
+        {
+          "title": "New Project starts fresh — it discards the previous design (filters, compare, params)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 10652,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.overlay.open').locator('.np-warn')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.overlay.open').locator('.np-warn')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.overlay.open').locator('.np-warn')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.overlay.open').locator('.np-warn')\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:487:43",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 43,
+                      "line": 487
+                    },
+                    "snippet": "  485 |   await page.locator('.tb-btn[title*=\"New project\"]').click();\n  486 |   const modal = page.locator('.overlay.open');\n> 487 |   await expect(modal.locator('.np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes\n      |                                           ^\n  488 |   await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip\n  489 |   await modal.locator('select').selectOption('sealed');        // step 2 box type\n  490 |   await modal.locator('button', { hasText: 'Next' }).click();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 43,
+                        "line": 487
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.overlay.open').locator('.np-warn')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.overlay.open').locator('.np-warn')\u001b[22m\n\n\n  485 |   await page.locator('.tb-btn[title*=\"New project\"]').click();\n  486 |   const modal = page.locator('.overlay.open');\n> 487 |   await expect(modal.locator('.np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes\n      |                                           ^\n  488 |   await modal.locator('button', { hasText: 'Next' }).click();  // step 1 name → skip\n  489 |   await modal.locator('select').selectOption('sealed');        // step 2 box type\n  490 |   await modal.locator('button', { hasText: 'Next' }).click();\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:487:43"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"New Project starts fresh — it discards the previous design (filters, compare, params)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:29.745Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iCiAgXSwKICAicGFnZUVycm9ycyI6IFtdLAogICJuZXR3b3JrRXJyb3JzIjogW10KfQ=="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-New--4f687-ign-filters-compare-params-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-New--4f687-ign-filters-compare-params-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 43,
+                    "line": 487
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e5043df9aecd402c1676",
+          "file": "original-skin.browser.spec.ts",
+          "line": 471,
+          "column": 1
+        },
+        {
+          "title": "the New Project wizard sets box type + volume then opens the driver picker",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2403,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.042\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    3\nExpected difference: < \u001b[32m0.0005\u001b[39m\nReceived difference:   \u001b[31m0.012000000000000004\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.042\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    3\nExpected difference: < \u001b[32m0.0005\u001b[39m\nReceived difference:   \u001b[31m0.012000000000000004\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:520:17",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 17,
+                      "line": 520
+                    },
+                    "snippet": "  518 |   });\n  519 |   expect(st.box).toBe('vented');\n> 520 |   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³\n      |                 ^\n  521 |   expect(st.browse).toBe(true); // hands off to the driver picker\n  522 | });\n  523 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 17,
+                        "line": 520
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.042\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    3\nExpected difference: < \u001b[32m0.0005\u001b[39m\nReceived difference:   \u001b[31m0.012000000000000004\u001b[39m\n\n  518 |   });\n  519 |   expect(st.box).toBe('vented');\n> 520 |   expect(st.vb).toBeCloseTo(0.042, 3); // 42 L → 0.042 m³\n      |                 ^\n  521 |   expect(st.browse).toBe(true); // hands off to the driver picker\n  522 | });\n  523 |\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:520:17"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the New Project wizard sets box type + volume then opens the driver picker\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:41.437Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--e1581-hen-opens-the-driver-picker/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-the--e1581-hen-opens-the-driver-picker/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 17,
+                    "line": 520
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-d9f473b45cd0e1e2c575",
+          "file": "original-skin.browser.spec.ts",
+          "line": 503,
+          "column": 1
+        },
+        {
+          "title": "Original toolbar: Share link (Export menu) writes the design into the address bar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2129,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Original toolbar: Share link (Export menu) writes the design into the address bar\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:44.819Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iCiAgXSwKICAicGFnZUVycm9ycyI6IFtdLAogICJuZXR3b3JrRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e06304915610322d96aa",
+          "file": "original-skin.browser.spec.ts",
+          "line": 524,
+          "column": 1
+        },
+        {
+          "title": "a pinned graph cursor survives the share link — opening it shows the same marker",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2673,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"a pinned graph cursor survives the share link — opening it shows the same marker\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:47.045Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-38b22ec0f6e6377825fd",
+          "file": "original-skin.browser.spec.ts",
+          "line": 531,
+          "column": 1
+        },
+        {
+          "title": "a dragged frequency band selection survives the share link",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4220,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"a dragged frequency band selection survives the share link\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:49.735Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iCiAgXSwKICAicGFnZUVycm9ycyI6IFtdLAogICJuZXR3b3JrRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-943133950bab6c46a2d8",
+          "file": "original-skin.browser.spec.ts",
+          "line": 556,
+          "column": 1
+        },
+        {
+          "title": "the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4747,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Save bar tracks modified state; Save adopts it, Reset reverts it (STATE_MODEL ground↔modified)\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:53.975Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-77f52ac872139535092b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 581,
+          "column": 1
+        },
+        {
+          "title": "the chosen skin is remembered across a reload (local preference)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2277,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the chosen skin is remembered across a reload (local preference)\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:19:58.736Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-0b502f63267e8ba9692b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 605,
+          "column": 1
+        },
+        {
+          "title": "Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg, resonance drops)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2352,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.05\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.05\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.05\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.05\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:633:16",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 16,
+                      "line": 633
+                    },
+                    "snippet": "  631 |     return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;\n  632 |   });\n> 633 |   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model\n      |                ^\n  634 |   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)\n  635 | });\n  636 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 16,
+                        "line": 633
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.05\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.05\u001b[39m\n\n  631 |     return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;\n  632 |   });\n> 633 |   expect(madd).toBeCloseTo(0.05, 6);            // 50 g entered → 0.05 kg in the engine model\n      |                ^\n  634 |   expect(await peakHz()).toBeLessThan(before);  // heavier cone → lower resonance (sweep re-ran with it)\n  635 | });\n  636 |\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:633:16"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg, resonance drops)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:01.028Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iCiAgXSwKICAicGFnZUVycm9ycyI6IFtdLAogICJuZXR3b3JrRXJyb3JzIjogW10KfQ=="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Driv-8f0e6-model-g→kg-resonance-drops-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Driv-8f0e6-model-g→kg-resonance-drops-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 16,
+                    "line": 633
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-888c1dcb489a30754469",
+          "file": "original-skin.browser.spec.ts",
+          "line": 610,
+          "column": 1
+        },
+        {
+          "title": "Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:04.411Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-8e385beab8f1711a987c",
+          "file": "original-skin.browser.spec.ts",
+          "line": 637,
+          "column": 1
+        },
+        {
+          "title": "R1: an open Driver Editor is reopened after a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2771,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"R1: an open Driver Editor is reopened after a reload\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:06.852Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-7ec310f75fb0a1cba4b0",
+          "file": "original-skin.browser.spec.ts",
+          "line": 653,
+          "column": 1
+        },
+        {
+          "title": "R1: an open Tune with uncommitted what-if values is preserved across a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4451,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"R1: an open Tune with uncommitted what-if values is preserved across a reload\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:09.640Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-3f33752458d2a2709b1b",
+          "file": "original-skin.browser.spec.ts",
+          "line": 667,
+          "column": 1
+        },
+        {
+          "title": "R1 refresh fidelity: box type, active tab, and selected chart survive a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3005,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"R1 refresh fidelity: box type, active tab, and selected chart survive a reload\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:14.105Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IiwKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-061d73aa650b8eef6816",
+          "file": "original-skin.browser.spec.ts",
+          "line": 688,
+          "column": 1
+        },
+        {
+          "title": "clicking an entered field's unit label rescales the DISPLAY and keeps the model SI",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2291,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.024\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.024\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:735:30",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 30,
+                      "line": 735
+                    },
+                    "snippet": "  733 |   await expect(vol).toHaveValue('6.00');\n  734 |   await expect(label).toHaveText('L');\n> 735 |   expect(await readVb(page)).toBeCloseTo(0.006, 9);   // stored in SI m³\n      |                              ^\n  736 |\n  737 |   await label.click();           // L → cu ft\n  738 |   await expect(label).toHaveText('cu ft');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 30,
+                        "line": 735
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.006\u001b[39m\nReceived: \u001b[31m0.03\u001b[39m\n\nExpected precision:    9\nExpected difference: < \u001b[32m0.0000000005\u001b[39m\nReceived difference:   \u001b[31m0.024\u001b[39m\n\n  733 |   await expect(vol).toHaveValue('6.00');\n  734 |   await expect(label).toHaveText('L');\n> 735 |   expect(await readVb(page)).toBeCloseTo(0.006, 9);   // stored in SI m³\n      |                              ^\n  736 |\n  737 |   await label.click();           // L → cu ft\n  738 |   await expect(label).toHaveText('cu ft');\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:735:30"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"clicking an entered field's unit label rescales the DISPLAY and keeps the model SI\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:17.129Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-clic-35d7a-PLAY-and-keeps-the-model-SI/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-clic-35d7a-PLAY-and-keeps-the-model-SI/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 30,
+                    "line": 735
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e92bf8806b15365e80af",
+          "file": "original-skin.browser.spec.ts",
+          "line": 724,
+          "column": 1
+        },
+        {
+          "title": "a calculated readout also rescales when its unit is rotated (Hz → kHz)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 14,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2261,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"a calculated readout also rescales when its unit is rotated (Hz → kHz)\"]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\",\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:20.442Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iLAogICAgIltWdWUgd2Fybl06IEZhaWxlZCB0byByZXNvbHZlIGNvbXBvbmVudDogQWR2YW5jZWRPcHRpb25zXG5JZiB0aGlzIGlzIGEgbmF0aXZlIGN1c3RvbSBlbGVtZW50LCBtYWtlIHN1cmUgdG8gZXhjbHVkZSBpdCBmcm9tIGNvbXBvbmVudCByZXNvbHV0aW9uIHZpYSBjb21waWxlck9wdGlvbnMuaXNDdXN0b21FbGVtZW50LiBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIsCiAgICAiW1Z1ZSB3YXJuXTogRmFpbGVkIHRvIHJlc29sdmUgY29tcG9uZW50OiBBZHZhbmNlZE9wdGlvbnNcbklmIHRoaXMgaXMgYSBuYXRpdmUgY3VzdG9tIGVsZW1lbnQsIG1ha2Ugc3VyZSB0byBleGNsdWRlIGl0IGZyb20gY29tcG9uZW50IHJlc29sdXRpb24gdmlhIGNvbXBpbGVyT3B0aW9ucy5pc0N1c3RvbUVsZW1lbnQuIFxuICBhdCA8T3JpZ2luYWxTaGVsbD4gXG4gIGF0IDxBcHA+IgogIF0sCiAgInBhZ2VFcnJvcnMiOiBbXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-f09782d5552e01d332d0",
+          "file": "original-skin.browser.spec.ts",
+          "line": 749,
+          "column": 1
+        },
+        {
+          "title": "Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 14,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2663,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.1\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.1\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:779:28",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 28,
+                      "line": 779
+                    },
+                    "snippet": "  777 |     return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;\n  778 |   });\n> 779 |   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model\n      |                            ^\n  780 |\n  781 |   await unit.click();                              // g → kg\n  782 |   await expect(unit).toHaveText('kg');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 28,
+                        "line": 779
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.1\u001b[39m\n\n  777 |     return (await import(/* @vite-ignore */ modPath)).state.P.driverAddedMass;\n  778 |   });\n> 779 |   expect(await readMadd()).toBeCloseTo(0.1, 6);   // 100 g entered → 0.1 kg in the model\n      |                            ^\n  780 |\n  781 |   await unit.click();                              // g → kg\n  782 |   await expect(unit).toHaveText('kg');\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:779:28"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg)\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Failed to resolve component: AdvancedOptions\\nIf this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:22.826Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBGYWlsZWQgdG8gcmVzb2x2ZSBjb21wb25lbnQ6IEFkdmFuY2VkT3B0aW9uc1xuSWYgdGhpcyBpcyBhIG5hdGl2ZSBjdXN0b20gZWxlbWVudCwgbWFrZSBzdXJlIHRvIGV4Y2x1ZGUgaXQgZnJvbSBjb21wb25lbnQgcmVzb2x1dGlvbiB2aWEgY29tcGlsZXJPcHRpb25zLmlzQ3VzdG9tRWxlbWVudC4gXG4gIGF0IDxPcmlnaW5hbFNoZWxsPiBcbiAgYXQgPEFwcD4iCiAgXSwKICAicGFnZUVycm9ycyI6IFtdLAogICJuZXR3b3JrRXJyb3JzIjogW10KfQ=="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Adde-1bb29-→-kg-the-model-stays-SI-kg-/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Adde-1bb29-→-kg-the-model-stays-SI-kg-/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 28,
+                    "line": 779
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-43b5da15f6944b59ee65",
+          "file": "original-skin.browser.spec.ts",
+          "line": 765,
+          "column": 1
+        },
+        {
+          "title": "Advanced Temperature: K → °C converts via OFFSET; the model stays in kelvin",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 15,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2299,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:26.551Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-036185c89d221fc4344a",
+          "file": "original-skin.browser.spec.ts",
+          "line": 787,
+          "column": 1
+        },
+        {
+          "title": "Voice coil temp rise, resistance TC, and added mass all convert (no runaway precision)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 15,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2481,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:28.963Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-a3d2d6bf8e5e2037b006",
+          "file": "original-skin.browser.spec.ts",
+          "line": 804,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 15,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2240,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:862:20",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                      "column": 20,
+                      "line": 862
+                    },
+                    "snippet": "  860 |   });\n  861 |   const siBefore = await readMadd();\n> 862 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  863 |\n  864 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  865 |   await expect(page.locator('.opt-modal')).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 20,
+                        "line": 862
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeCloseTo\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m, \u001b[22mprecision\u001b[2m)\u001b[22m\n\nExpected: \u001b[32m0.075\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\nExpected precision:    6\nExpected difference: < \u001b[32m0.0000005\u001b[39m\nReceived difference:   \u001b[31m0.075\u001b[39m\n\n  860 |   });\n  861 |   const siBefore = await readMadd();\n> 862 |   expect(siBefore).toBeCloseTo(0.075, 6);\n      |                    ^\n  863 |\n  864 |   await page.locator('.tb-btn[title=\"Options\"]').click();\n  865 |   await expect(page.locator('.opt-modal')).toBeVisible();\n    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:862:20"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Original skin: Options dialog → \"Reset to Metric\" reverts a toggled unit (kg → g) app-wide without touching the model\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:31.468Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-1241c--without-touching-the-model/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                    "column": 20,
+                    "line": 862
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-033822eb2532ba5b03d3",
+          "file": "original-skin.browser.spec.ts",
+          "line": 845,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options → General → Environment default seeds a fresh mount's Advanced-pane Temperature (not a hardcoded literal)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 16,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4136,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:34.686Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-fa130114f746ab4a27a6",
+          "file": "original-skin.browser.spec.ts",
+          "line": 873,
+          "column": 1
+        },
+        {
+          "title": "Original skin: Options dialog is centered on screen, not pinned to the top (own overlay, not the shell's)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 16,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2027,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T10:20:38.935Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-4e4c8971cb09fc19c14f",
+          "file": "original-skin.browser.spec.ts",
+          "line": 889,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-23T10:16:12.726Z",
+    "duration": 268355.067,
+    "expected": 32,
+    "skipped": 0,
+    "unexpected": 16,
+    "flaky": 0
+  }
+}

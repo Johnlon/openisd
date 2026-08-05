@@ -1,0 +1,171 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/original-skin.browser.spec.ts",
+      "-g",
+      "Open the two samples and switch between them"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T01-47-00-382Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 30120,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                        "column": 13,
+                        "line": 118
+                      },
+                      "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ uncaught page errors (1):\n    uniqueName is not defined\n\n\u001b[90m   at \u001b[39mfixtures.ts:118\n\n  116 |     }\n  117 |     if (failures.length) {\n> 118 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  119 |     }\n  120 |   }, { auto: true }],\n  121 | });\n\u001b[2m    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:118:13)\u001b[22m"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts",
+                        "column": 73,
+                        "line": 911
+                      },
+                      "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.sample-item').filter({ hasText: 'Generic 1\" Tweeter' })\u001b[22m\n\u001b[2m    - locator resolved to <div data-v-25cf01a8=\"\" class=\"menu-item sample-item\">Generic 1\" Tweeter</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    52 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  909 |   // 2. Open second sample: \"Generic 1\\\" Tweeter\"\n  910 |   await page.locator('.tb-btn.has-menu[title=\"Open project\"]').click();\n> 911 |   await page.locator('.sample-item', { hasText: 'Generic 1\" Tweeter' }).click();\n      |                                                                         ^\n  912 |\n  913 |   // 3. Verify that we have three projects in the flat sidebar list\n  914 |   const rows = page.locator('.projects-list .project-row');\n\u001b[2m    at /home/john/work/winisd/openisd/packages/ui/test/original-skin.browser.spec.ts:911:73\u001b[22m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [\n    \"[Vue warn]: Unhandled error during execution of native event handler \\n  at <OriginalShell> \\n  at <App>\"\n  ],\n  \"pageErrors\": [\n    \"uniqueName is not defined\"\n  ],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-24T01:47:02.075Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFsKICAgICJbVnVlIHdhcm5dOiBVbmhhbmRsZWQgZXJyb3IgZHVyaW5nIGV4ZWN1dGlvbiBvZiBuYXRpdmUgZXZlbnQgaGFuZGxlciBcbiAgYXQgPE9yaWdpbmFsU2hlbGw+IFxuICBhdCA8QXBwPiIKICBdLAogICJwYWdlRXJyb3JzIjogWwogICAgInVuaXF1ZU5hbWUgaXMgbm90IGRlZmluZWQiCiAgXSwKICAibmV0d29ya0Vycm9ycyI6IFtdCn0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-b56ca-n-highlight-moves-correctly/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/original-skin.browser-Orig-b56ca-n-highlight-moves-correctly/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-e663fabe007baab233c5",
+          "file": "original-skin.browser.spec.ts",
+          "line": 904,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T01:47:00.388Z",
+    "duration": 32262.810999999998,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

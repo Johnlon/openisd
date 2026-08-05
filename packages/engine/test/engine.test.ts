@@ -642,6 +642,23 @@ describe('Filter dispatcher (evalFilter)', () => {
     assert.ok(Math.abs(cAbs(H) - 1) < 0.001,
       `linkwitz at 10 kHz: |H| = ${cAbs(H).toFixed(6)}, expected ~1.0`);
   });
+  it('evalFilter routes "lowshelf" and returns boost/cut at DC and unity gain at HF', () => {
+    const GAIN_DB = 6;
+    const FC = 150;
+    const H_dc = evalFilter(1, { type: 'lowshelf', fc: FC, Q: Math.SQRT1_2, gain: GAIN_DB });
+    const H_hf = evalFilter(10000, { type: 'lowshelf', fc: FC, Q: Math.SQRT1_2, gain: GAIN_DB });
+    assert.ok(Math.abs(20 * Math.log10(cAbs(H_dc)) - GAIN_DB) < 0.1, `lowshelf at 1Hz: expected ~${GAIN_DB} dB`);
+    assert.ok(Math.abs(20 * Math.log10(cAbs(H_hf)) - 0) < 0.1, `lowshelf at 10kHz: expected ~0 dB`);
+  });
+
+  it('evalFilter routes "highshelf" and returns unity gain at DC and boost/cut at HF', () => {
+    const GAIN_DB = 6;
+    const FC = 2000;
+    const H_dc = evalFilter(1, { type: 'highshelf', fc: FC, Q: Math.SQRT1_2, gain: GAIN_DB });
+    const H_hf = evalFilter(20000, { type: 'highshelf', fc: FC, Q: Math.SQRT1_2, gain: GAIN_DB });
+    assert.ok(Math.abs(20 * Math.log10(cAbs(H_dc)) - 0) < 0.1, `highshelf at 1Hz: expected ~0 dB`);
+    assert.ok(Math.abs(20 * Math.log10(cAbs(H_hf)) - GAIN_DB) < 0.1, `highshelf at 20kHz: expected ~${GAIN_DB} dB`);
+  });
 
   it('evalFilter returns unity 1+0i for an unknown filter type — safe no-op fallback', () => {
     // Deliberately invalid filter type to exercise the default branch; cast past the

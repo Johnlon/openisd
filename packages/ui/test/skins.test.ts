@@ -19,21 +19,21 @@ describe('skin resolution', () => {
     assert.equal(resolveSkin('modern'), 'modern');
   });
 
-  it('auto resolves to the default responsive shell (modern for now)', () => {
-    assert.equal(resolveSkin('auto'), 'modern');
+  it('auto resolves to the default responsive shell (original for now)', () => {
+    assert.equal(resolveSkin('auto'), 'original');
   });
 
   it('original passes straight through to the original shell (the mock recreation)', () => {
     assert.equal(resolveSkin('original'), 'original');
   });
 
-  it('SKIN_IDS lists exactly the OFFERED skins, auto first — Classic is mothballed, not listed', () => {
-    const expected: SkinId[] = ['auto', 'original', 'modern'];
+  it('SKIN_IDS lists exactly the OFFERED skins, auto first — Classic, Original and Modern are all listed', () => {
+    const expected: SkinId[] = ['auto', 'classic', 'original', 'modern'];
     assert.deepEqual(SKIN_IDS, expected);
   });
 
-  it('the mothballed classic is absent from the picker but still a valid SkinId', () => {
-    assert.ok(!SKIN_IDS.includes('classic'), 'Classic must not be offered in the picker');
-    assert.equal(resolveSkin('classic'), 'classic', 'but a persisted classic pref must still render');
+  it('classic is present in the picker and resolves to the classic shell', () => {
+    assert.ok(SKIN_IDS.includes('classic'), 'Classic must be offered in the picker');
+    assert.equal(resolveSkin('classic'), 'classic', 'and resolves to classic shell');
   });
 });

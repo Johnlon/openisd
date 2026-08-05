@@ -1,0 +1,521 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/advanced-options.browser.spec.ts"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-23T11-15-01-725Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "bash scripts/kill-http.sh 4100 && npm run dev -- --port 4100",
+      "url": "http://localhost:4100",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "advanced-options.browser.spec.ts",
+      "file": "advanced-options.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all five Advanced toggles are present and none is inert",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5220,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:15:40.344Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-af738c069efa38b58943",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 80,
+          "column": 1
+        },
+        {
+          "title": "\"Simulate voice coil inductance\" moves the acoustic response and tracks the circuit model",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5323,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:15:45.858Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-871247e564b3470ad805",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 95,
+          "column": 1
+        },
+        {
+          "title": "\"Force flat response\" flattens the SPL curve and charges the boost to excursion",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:15:51.263Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-d03c24433669fac2eb00",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 113,
+          "column": 1
+        },
+        {
+          "title": "the transmission-line port model changes port behaviour, and is offered only for a vented box",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5862,
+                  "error": {
+                    "message": "Error: the port air velocity must respond to the pipe resonance\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0.08088146989738183\u001b[39m",
+                    "stack": "Error: the port air velocity must respond to the pipe resonance\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0.08088146989738183\u001b[39m\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:147:100",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                      "column": 100,
+                      "line": 147
+                    },
+                    "snippet": "  145 |   await waitForResweep(page, token);\n  146 |   const after = await curves(page);\n> 147 |   expect(maxDiff(after.pv, before.pv), 'the port air velocity must respond to the pipe resonance').toBeGreaterThan(1);\n      |                                                                                                    ^\n  148 |\n  149 |   // A sealed box has no port to model, so the control says so instead of pretending.\n  150 |   await page.evaluate(async (mod) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                        "column": 100,
+                        "line": 147
+                      },
+                      "message": "Error: the port air velocity must respond to the pipe resonance\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0.08088146989738183\u001b[39m\n\n  145 |   await waitForResweep(page, token);\n  146 |   const after = await curves(page);\n> 147 |   expect(maxDiff(after.pv, before.pv), 'the port air velocity must respond to the pipe resonance').toBeGreaterThan(1);\n      |                                                                                                    ^\n  148 |\n  149 |   // A sealed box has no port to model, so the control says so instead of pretending.\n  150 |   await page.evaluate(async (mod) => {\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:147:100"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the transmission-line port model changes port behaviour, and is offered only for a vented box\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:15:57.108Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser-t-08808-fered-only-for-a-vented-box/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser-t-08808-fered-only-for-a-vented-box/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                    "column": 100,
+                    "line": 147
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-7528f5c21af1d88b3465",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 138,
+          "column": 1
+        },
+        {
+          "title": "\"Rg is at driver side\" moves the response once more than one driver is wired",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7682,
+                  "error": {
+                    "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ console errors (1):\n    WebSocket connection to 'ws://localhost:4100/?token=DagXr9z1eUXW' failed: ",
+                    "stack": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ console errors (1):\n    WebSocket connection to 'ws://localhost:4100/?token=DagXr9z1eUXW' failed: \n    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:118:13)",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                      "column": 13,
+                      "line": 118
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39mfixtures.ts:118\n\n  116 |     }\n  117 |     if (failures.length) {\n> 118 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  119 |     }\n  120 |   }, { auto: true }],\n  121 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                        "column": 13,
+                        "line": 118
+                      },
+                      "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ console errors (1):\n    WebSocket connection to 'ws://localhost:4100/?token=DagXr9z1eUXW' failed: \n\n   at fixtures.ts:118\n\n  116 |     }\n  117 |     if (failures.length) {\n> 118 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  119 |     }\n  120 |   }, { auto: true }],\n  121 | });\n    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:118:13)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"\"Rg is at driver side\" moves the response once more than one driver is wired\"]\n{\n  \"consoleErrors\": [\n    \"WebSocket connection to 'ws://localhost:4100/?token=DagXr9z1eUXW' failed: \"\n  ],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": []\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:16:06.649Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogWwogICAgIldlYlNvY2tldCBjb25uZWN0aW9uIHRvICd3czovL2xvY2FsaG9zdDo0MTAwLz90b2tlbj1EYWdYcjl6MWVVWFcnIGZhaWxlZDogIgogIF0sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbXQp9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---3959b-re-than-one-driver-is-wired/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---3959b-re-than-one-driver-is-wired/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                    "column": 13,
+                    "line": 118
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-49d96caacae2aa726fee",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 157,
+          "column": 1
+        },
+        {
+          "title": "\"SPL graph is Xmax limited\" swaps the plotted curve for the achievable one",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 811,
+                  "error": {
+                    "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n",
+                    "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:70:14",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                      "column": 14,
+                      "line": 70
+                    },
+                    "snippet": "  68 |\n  69 | test.beforeEach(async ({ page }) => {\n> 70 |   await page.goto('/');\n     |              ^\n  71 |   await page.locator('.skin-picker select').selectOption('original');\n  72 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  73 |   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                        "column": 14,
+                        "line": 70
+                      },
+                      "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n\n\n  68 |\n  69 | test.beforeEach(async ({ page }) => {\n> 70 |   await page.goto('/');\n     |              ^\n  71 |   await page.locator('.skin-picker select').selectOption('original');\n  72 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  73 |   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:70:14"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                        "column": 13,
+                        "line": 118
+                      },
+                      "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED\n\n   at fixtures.ts:118\n\n  116 |     }\n  117 |     if (failures.length) {\n> 118 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  119 |     }\n  120 |   }, { auto: true }],\n  121 | });\n    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:118:13)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"\"SPL graph is Xmax limited\" swaps the plotted curve for the achievable one\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:16:20.049Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDEwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---47b48-urve-for-the-achievable-one/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser---47b48-urve-for-the-achievable-one/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                    "column": 14,
+                    "line": 70
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-7b216db318f7f33b9fbc",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 174,
+          "column": 1
+        },
+        {
+          "title": "the Advanced toggles survive a reload — they are design state, not view state",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 593,
+                  "error": {
+                    "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n",
+                    "stack": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:70:14",
+                    "location": {
+                      "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                      "column": 14,
+                      "line": 70
+                    },
+                    "snippet": "  68 |\n  69 | test.beforeEach(async ({ page }) => {\n> 70 |   await page.goto('/');\n     |              ^\n  71 |   await page.locator('.skin-picker select').selectOption('original');\n  72 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  73 |   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                        "column": 14,
+                        "line": 70
+                      },
+                      "message": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4100/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:4100/\", waiting until \"load\"\u001b[22m\n\n\n  68 |\n  69 | test.beforeEach(async ({ page }) => {\n> 70 |   await page.goto('/');\n     |              ^\n  71 |   await page.locator('.skin-picker select').selectOption('original');\n  72 |   await page.waitForFunction(() => (window as unknown as { _selfTestDone?: boolean })._selfTestDone === true);\n  73 |   await page.locator('.project-nav li', { hasText: 'Advanced' }).click();\n    at /home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts:70:14"
+                    },
+                    {
+                      "location": {
+                        "file": "/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts",
+                        "column": 13,
+                        "line": 118
+                      },
+                      "message": "Error: Browser diagnostics not clean — 1 category with issues:\n✗ same-origin network failures (1):\n    FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED\n\n   at fixtures.ts:118\n\n  116 |     }\n  117 |     if (failures.length) {\n> 118 |       throw new Error(`Browser diagnostics not clean — ${failures.length} categor${failures.length === 1 ? 'y' : 'ies'} with issues:\\n${failures.join('\\n')}`);\n      |             ^\n  119 |     }\n  120 |   }, { auto: true }],\n  121 | });\n    at Object.base.extend.browserLog.auto (/home/john/work/winisd/openisd/packages/ui/test/fixtures.ts:118:13)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "\n[browser diagnostics — \"the Advanced toggles survive a reload — they are design state, not view state\" (test FAILED)]\n{\n  \"consoleErrors\": [],\n  \"consoleWarnings\": [],\n  \"pageErrors\": [],\n  \"networkErrors\": [\n    \"FAILED http://localhost:4100/ — net::ERR_CONNECTION_REFUSED\"\n  ]\n}\n\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-07-23T11:16:25.043Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-console-and-network",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb25zb2xlRXJyb3JzIjogW10sCiAgImNvbnNvbGVXYXJuaW5ncyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10sCiAgIm5ldHdvcmtFcnJvcnMiOiBbCiAgICAiRkFJTEVEIGh0dHA6Ly9sb2NhbGhvc3Q6NDEwMC8g4oCUIG5ldDo6RVJSX0NPTk5FQ1RJT05fUkVGVVNFRCIKICBdCn0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser-t-be5f7-design-state-not-view-state/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/john/work/winisd/openisd/test-results/advanced-options.browser-t-be5f7-design-state-not-view-state/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/john/work/winisd/openisd/packages/ui/test/advanced-options.browser.spec.ts",
+                    "column": 14,
+                    "line": 70
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "d5ab1c2b335138d05de9-41bfddc489d99442a6eb",
+          "file": "advanced-options.browser.spec.ts",
+          "line": 201,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-23T11:15:01.762Z",
+    "duration": 84458.12800000001,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

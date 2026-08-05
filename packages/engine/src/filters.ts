@@ -78,6 +78,38 @@ export function peakingEQ(f: number, fc: number, Q: number, gainDb: number): Com
 }
 
 /**
+ * 2nd-order Low-shelf filter.
+ * H(s) = A * (s² + (√A/Q)·s + A) / (A·s² + (√A/Q)·s + 1)
+ * where A = 10^(gainDb/40).
+ */
+export function lowShelf(f: number, fc: number, Q = Math.SQRT1_2, gainDb: number): Complex {
+  const w = 2 * Math.PI * f;
+  const w0 = 2 * Math.PI * fc;
+  const A  = Math.pow(10, gainDb / 40);
+  const sqA = Math.sqrt(A);
+  return biquad(w,
+    A, A * sqA * w0 / Q, A * A * w0 * w0,
+    A, sqA * w0 / Q, w0 * w0
+  );
+}
+
+/**
+ * 2nd-order High-shelf filter.
+ * H(s) = A * (A·s² + (√A/Q)·s + 1) / (s² + (√A/Q)·s + A)
+ * where A = 10^(gainDb/40).
+ */
+export function highShelf(f: number, fc: number, Q = Math.SQRT1_2, gainDb: number): Complex {
+  const w = 2 * Math.PI * f;
+  const w0 = 2 * Math.PI * fc;
+  const A  = Math.pow(10, gainDb / 40);
+  const sqA = Math.sqrt(A);
+  return biquad(w,
+    A * A, A * sqA * w0 / Q, A * w0 * w0,
+    1, sqA * w0 / Q, A * w0 * w0
+  );
+}
+
+/**
  * Evaluate one filter descriptor at frequency f.
  * Returns complex H(jω) — multiply onto Hc, UD, UP in sweep.js.
  */
@@ -87,6 +119,8 @@ export function evalFilter(f: number, flt: Omit<Filter, 'enabled'>): Complex {
     case 'lowpass':  return lowPass(f, flt.fc!, flt.Q);
     case 'linkwitz': return linkwitz(f, flt.f0!, flt.Q0!, flt.fp!, flt.Qp!);
     case 'peaking':  return peakingEQ(f, flt.fc!, flt.Q!, flt.gain!);
+    case 'lowshelf': return lowShelf(f, flt.fc!, flt.Q!, flt.gain!);
+    case 'highshelf': return highShelf(f, flt.fc!, flt.Q!, flt.gain!);
     default:         return cx(1, 0);
   }
 }

@@ -98,9 +98,25 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ VENTS / PORTED ============================
   {
+    id: 'ventShape', label: 'Vent shape', pane: 'Vents', kind: 'enum', unit: '',
+    provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
+    options: ['round', 'slotted'],
+    description: 'Circular or rectangular/slotted port geometry.',
+  },
+  {
     id: 'ventD', label: 'Vent diameter', pane: 'Vents', kind: 'number', unit: 'cm', precision: 2, min: 0.001, max: 2,
     provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
     description: 'Circular port diameter; feeds the tuning solver via port area. WinISD 2 dp (10.20 cm).',
+  },
+  {
+    id: 'ventW', label: 'Slot width', pane: 'Vents', kind: 'number', unit: 'cm', precision: 2, min: 0.001, max: 2,
+    provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
+    description: 'Slotted port width.',
+  },
+  {
+    id: 'ventH', label: 'Slot height', pane: 'Vents', kind: 'number', unit: 'cm', precision: 2, min: 0.001, max: 2,
+    provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
+    description: 'Slotted port height.',
   },
   {
     id: 'ventL', label: 'Vent length', pane: 'Vents', kind: 'number', unit: 'cm', precision: 1, min: 0.001, max: 10,

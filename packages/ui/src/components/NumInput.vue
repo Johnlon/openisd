@@ -5,7 +5,7 @@ import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../fie
 import { fieldById } from '../fields/fieldRegistry.js';
 
 const props = withDefaults(defineProps<{
-  modelValue: number;
+  modelValue: number | null | undefined;
   scale?: number;       // display = SI value × scale
   precision?: number;
   step?: string;
@@ -22,20 +22,24 @@ const props = withDefaults(defineProps<{
   group?: UnitGroup;
   field?: string;
   base?: string;        // the field's default unit token
+  mandatory?: boolean;
 }>(), {
+  modelValue: null,
   scale: 1,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
+  mandatory: false,
 });
 
-const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
+const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>();
 
 // Unit-bound mode is active only when the caller supplies the full triple.
 const unitized = computed(() => props.group != null && props.field != null && props.base != null);
 const token = computed(() => (unitized.value ? unitToken(props.field!, props.base!) : ''));
 // SI ↔ display. Unit-bound mode uses the affine registry conversion (handles temperature's
 // offset); otherwise the fixed `scale` multiply. Both keep the model in SI.
-function toDisp(si: number): number {
+function toDisp(si: number | null): number {
+  if (si == null) return 0;
   return unitized.value ? toDisplay(si, props.group!, token.value) : si * props.scale;
 }
 function fromDisp(disp: number): number {
@@ -52,12 +56,16 @@ const focused = ref(false);
 // compounding float like 7.98600001). Typing sets this true; focus / Arrow-Up-Down / wheel
 // reset it, so a step always reformats.
 const typing = ref(false);
+// The field holds characters that are not a number (`validity.badInput`). Tracked separately
+// from `display` because such an entry is deliberately NOT copied into `display` — see onInput.
+const badEntry = ref(false);
 
 // Fixed-decimal display (WinISD convention): `precision` is the number of DECIMAL
 // places, so the field width doesn't jump as the value changes (e.g. Vb always
 // "6.00", never "6" then "6.003"). Was toPrecision (significant figures) which gave
 // variable decimals.
-function fmt(v: number): string {
+function fmt(v: number | null | undefined): string {
+  if (v == null) return '';
   const s = toDisp(v);
   return isFinite(s) ? s.toFixed(eprec.value) : '';
 }
@@ -78,6 +86,7 @@ watch([token, eprec], () => {
 function onFocus() {
   focused.value = true;
   typing.value = false;   // a step done right after focusing must still reformat
+  badEntry.value = false;
   // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
   display.value = fmt(props.modelValue);
 }
@@ -113,6 +122,30 @@ const dispMax = computed<number | undefined>(() => effMax.value === undefined ? 
 
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
+  if (t.value === '') {
+    // `<input type="number">` reports value === '' for TWO different things: a field the user
+    // actually emptied, and a field holding characters it cannot parse as a number — the "-"
+    // of a negative being typed, "1e" on the way to "1e3". `validity.badInput` is the DOM's
+    // own discriminator between them (verified in Chromium: "-" ⇒ value '', badInput true;
+    // a cleared field ⇒ value '', badInput false).
+    //
+    // Only a genuinely empty field means "clear this". Treating a HALF-TYPED number as a clear
+    // emitted null, which every v-model consumer of a number-typed model (state.P.Vb) took
+    // literally — so the first keystroke of "-5" blanked the value and the charts with it.
+    //
+    // `display` is still set to '' on BOTH paths, and must be: Vue's :value patch compares its
+    // new value against the LIVE el.value and writes whenever they differ, so leaving `display`
+    // at the old formatted string ("30.00") makes the very next re-render overwrite the "-" the
+    // user just typed and move the caret to the end. '' matches el.value exactly (that is what
+    // the DOM reports for a badInput entry), so Vue writes nothing and the typed characters —
+    // which the browser keeps on screen regardless — survive untouched.
+    badEntry.value = t.validity.badInput;
+    display.value = '';
+    if (badEntry.value) return;   // partial entry: nothing was cleared, so emit nothing
+    emit('update:modelValue', null);
+    return;
+  }
+  badEntry.value = false;
   const v = parseFloat(t.value);   // display-space
   const si = fromDisp(v);          // back to SI (the model's units)
   if (typing.value || !isFinite(v)) {
@@ -131,19 +164,37 @@ function onInput(e: Event) {
   if (valid(si)) emit('update:modelValue', si);
 }
 
-function onBlur() {
+function onBlur(e: Event) {
   focused.value = false;
+  badEntry.value = false;
   // Do NOT re-parse the DOM here: onInput already emitted the actual (full-precision) value on
   // every valid change, and the spinner path formats the DOM string to dp — re-parsing it would
   // truncate the model to dp (dp is presentation only). Just reformat the display from the model;
   // an invalid in-progress entry reverts to the last valid value the same way.
   display.value = fmt(props.modelValue);
+  // An unparseable entry left `display` untouched (see onInput), so Vue's :value diff sees no
+  // change and would leave the rejected characters on screen. Push the resting value into the
+  // DOM directly. Safe here and only here — focus has already left, so no caret to disturb.
+  const t = e.target as HTMLInputElement;
+  if (t.value !== display.value) t.value = display.value;
 }
 
-// Red-flag an in-progress invalid entry ('' and a lone '-' are neutral while typing).
+// Red-flag an in-progress invalid entry, on the keystroke that makes it invalid rather than on
+// blur. Two ways to be invalid: out of the field's range, or not a number at all. '' and a lone
+// '-' are neutral — nothing has been entered yet, so there is nothing to complain about.
 const invalid = computed(() => {
+  if (badEntry.value) return true;
   if (display.value === '' || display.value === '-') return false;
   return !valid(fromDisp(parseFloat(display.value)));
+});
+
+const classes = computed(() => {
+  const isEmp = props.modelValue == null || props.modelValue <= 0 || display.value === '';
+  return {
+    'inp-bad': invalid.value,
+    'de-input-mandatory': props.mandatory,
+    'de-input-empty': props.mandatory && isEmp,
+  };
 });
 
 // Spinner step ≈ one decade below the value's magnitude (a power of ten), so it feels
@@ -167,10 +218,17 @@ const stepAttr = computed<string | number>(() => {
 
 <template>
   <input type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="{ 'inp-bad': invalid }"
+    :class="classes"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
 </template>
 
 <style scoped>
 input.inp-bad { border-color: var(--bad); }
+input.de-input-mandatory {
+  border-width: 2px !important;
+}
+input.de-input-empty {
+  border-color: var(--bad) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important;
+}
 </style>

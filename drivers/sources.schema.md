@@ -19,21 +19,20 @@ The **key** is a short, stable source id — for bundled sources it is the
 sources it is a short slug (`mwisbest-winisd`). The key never changes once
 published; it is half of every driver's identity.
 
-| Field         | Type   | Notes                                                                                                    |
-| ------------- | ------ | -------------------------------------------------------------------------------------------------------- |
-| `name`        | string | Display name shown in the browser's source tag. Keep it clean — no "(bundled)" noise.                    |
-| `url`         | string | GitHub tree URL. If it matches `github.com/Johnlon/openisd/tree/<branch>/<path>` (or the legacy `resonate` repo name) the source is **bundled** (walked at build time into `drivers-bundle.json`); otherwise it is **federated** (fetched live from the GitHub API at runtime — e.g. anything pointing at the sibling `winisd_drivers` repo). |
-| `description` | string | Provenance, count, licence notes, and the refresh command where applicable.                              |
-| `license`     | string | Licence / attribution.                                                                                   |
+| Field         | Type   | Notes                                                                                                                                                                                                                                                                           |
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string | Display name shown in the browser's source tag. Keep it clean — no "(bundled)" noise.                                                                                                                                                                                           |
+| `url`         | string | GitHub tree URL. If it matches `github.com/Johnlon/resonate/tree/<branch>/<path>` the source is **bundled** (listed at build time in `drivers-bundle.json`, records read from `openisd.yml` only); otherwise it is **federated** (fetched live from the GitHub API at runtime). |
+| `description` | string | Provenance, count, licence notes, and the refresh command where applicable.                                                                                                                                                                                                     |
+| `license`     | string | Licence / attribution.                                                                                                                                                                                                                                                          |
 
 ## Driver identity — hard rule
 
 A driver's unique identity is **`<source key>` + `<path within that source>`**,
 never its display name (Brand + Model legitimately repeats — two dated files of
-the same driver share one name). The bundler emits each file's `path` (relative
-to the source folder, forward-slashed) alongside the source `key`; the browser
-keys its `v-for` list on `sourceKey + '/' + path`. See the "Unique list-key rule"
-in `.claude/context/ui-rules.md`.
+the same driver share one name). Every record carries its `path` (relative to the
+source folder, forward-slashed) alongside the source `key`; the browser keys its
+`v-for` list on `sourceKey + '/' + path`.
 
 ## Adding a source
 

@@ -1,0 +1,24 @@
+{
+  "inputs": {
+    "name": "Demo - Generic 6.5\" Woofer",
+    "brand": "Demo",
+    "model": "Generic 6.5\" Woofer",
+    "manufacturer": "OpenISD",
+    "providedBy": "OpenISD",
+    "comment": "Generic demo 6.5-inch woofer — the app's default driver. Not a real product; representative T/S values for trying the tool.",
+    "added": "20260701",
+    "Fs": 37,
+    "Qts": 0.378,
+    "Qes": 0.4,
+    "Qms": 7,
+    "Vas": 0.03,
+    "Sd": 0.0133,
+    "Re": 5.6,
+    "Le": 0.0007,
+    "Xmax": 0.005,
+    "Pe": 60,
+    "Z": 8,
+    "numVC": 1,
+    "VCCon": 1
+  }
+}

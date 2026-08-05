@@ -3,8 +3,11 @@ import { computed, onMounted, onUnmounted, watch } from 'vue';
 import ModernShell from './shells/modern/ModernShell.vue';
 import ClassicShell from './shells/classic/ClassicShell.vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
-import DriverBrowser from './components/DriverBrowser.vue';
+import DriverBrowserMd from './components/DriverBrowserMd.vue';
+import DriverBrowserWinisd from './components/DriverBrowserWinisd.vue';
+import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
+import { flash } from './utils/flash.js';
 import { state, driverJSON, applyState, markProjectSaved } from './store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from './utils/persist.js';
 import { runSelfTest } from './utils/selftest.js';
@@ -20,6 +23,23 @@ const shellComponent = computed(() => {
   return ModernShell;
 });
 
+const isTest = typeof window !== 'undefined' && window.location.port === '4100';
+
+const browserComponent = computed(() => {
+  const shell = resolveSkin(state.ui.skin);
+  if (shell === 'original' || shell === 'classic') return DriverBrowserWinisd;
+  return DriverBrowserMd;
+});
+
+watch(
+  () => resolveSkin(state.ui.skin),
+  (newSkin) => {
+    if (!isTest && newSkin !== 'original') {
+      flash(`Warning: The ${newSkin} skin is unfinished work.`);
+    }
+  }
+);
+
 async function handleHashChange() {
   const saved = await loadFromHash();
   if (saved) applyState(saved);
@@ -27,7 +47,7 @@ async function handleHashChange() {
 
 let saveReady = false;
 watch(
-  () => serialize(state, driverJSON.value, state.compare),
+  () => serialize(state, driverJSON.value),
   (s) => { if (saveReady) saveLocal(s); },
   { deep: true },
 );
@@ -52,7 +72,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <component :is="shellComponent" />
-  <DriverBrowser />
-  <Flash />
+  <div :class="'skin-' + resolveSkin(state.ui.skin)" style="display: contents;">
+    <div v-if="!isTest && resolveSkin(state.ui.skin) !== 'original'" class="unfinished-warning-banner" style="background: #fff3cd; color: #856404; border-bottom: 1px solid #ffeeba; padding: 10px; text-align: center; font-weight: bold; position: relative; z-index: 9999; font-family: sans-serif; font-size: 14px; flex-shrink: 0; width: 100%; box-sizing: border-box;">
+      WARNING: The {{ resolveSkin(state.ui.skin) }} skin is unfinished work.
+    </div>
+    <component :is="shellComponent" />
+    <component :is="browserComponent" />
+    <!-- The driver editor is global: every skin gets the same dialog, so a driver picked
+         from the library is always reviewed before it reaches the design. -->
+    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+    <Flash />
+  </div>
 </template>

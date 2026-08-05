@@ -1,15 +1,9 @@
 import { test, expect } from './fixtures.js';
-import type { Page } from '@playwright/test';
 
-// When a driver is missing a required T/S parameter (Fs/Re absent or 0), deriveDriver
-// returns { value: null, errors: [...] }. The UI must NOT crash or silently blank the
-// graphs — every affected chart must show a readable message naming the problem, and the
-// console must stay clean.
-//
-// Entry constraints (input-constraints gate, DEVELOPMENT.md §8) mean an invalid value can
-// no longer be TYPED into existence — the What-If editor clamps 0 up to the field minimum.
-// An invalid driver still arrives via persisted/imported data, so these tests seed it
-// through localStorage (the loadLocal() path App.vue restores on mount) and reload.
+// When a driver is missing a required T/S parameter (e.g. Fs set to 0 in the
+// What-If editor), deriveDriver returns { value: null, errors: [...] }. The UI
+// must NOT crash or silently blank the graphs — every affected chart must show a
+// readable message naming the problem, and the console must stay clean.
 //
 // The shared fixture (fixtures.js) already fails the test on ANY console error,
 // page error, or network failure — so a crash cascade (the previous behaviour:
@@ -17,43 +11,44 @@ import type { Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
 });
 
-// Persist a demo-like driver with `overrides` applied, then reload so the app restores it.
-async function reloadWithDriver(page: Page, overrides: Record<string, number>): Promise<void> {
-  await page.evaluate((ov) => {
-    const driver = { name: 'Broken Test Driver', brand: 'Test', model: 'Broken',
-      Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300, Sd: 0.0133, Re: 5.6,
-      Le: 0.0007, Xmax: 0.0050, Pe: 60, Z: 8, ...ov };
-    localStorage.setItem('openisd.state', JSON.stringify({ v: 1, driver }));
-  }, overrides);
-  await page.reload();
-}
-
-test('a persisted driver with Fs=0 shows a per-chart error message instead of crashing or blanking', async ({ page }) => {
-  await reloadWithDriver(page, { Fs: 0 });
-
-  // Every chart panel must show the error message region naming the Fs problem.
+test('setting Fs to 0 shows a per-chart error message instead of crashing or blanking', async ({ page }) => {
+  // Baseline: charts render with the demo driver.
   const panels = page.locator('#ggrid .gpanel');
   await expect(panels.first()).toBeVisible();
-  const messages = page.locator('#ggrid .gpanel .gmsg');
-  await expect(messages.first()).toBeVisible();
-  await expect(messages).toHaveCount(await panels.count());
-  await expect(messages.first()).toContainText(/Fs/);
-  await expect(messages.first()).toContainText(/required/i);
+  const panelCount = await panels.count();
+  expect(panelCount).toBeGreaterThan(0);
 
-  // Entering a valid Fs in the What-If editor brings the charts back.
+  // Open the What-If editor and set Fs to empty (below the 1 Hz minimum → invalid).
   await page.locator('text=What-If? ✎').click();
   const fsInput = page.locator('label').filter({ hasText: 'Fs' })
     .locator('..').locator('input[type="number"]');
+  await fsInput.fill('');
+  await fsInput.press('Tab');
+
+  // Every chart panel must now show the error message region naming the Fs problem.
+  const messages = page.locator('#ggrid .gpanel .gmsg');
+  await expect(messages.first()).toBeVisible();
+  await expect(messages).toHaveCount(panelCount);
+  await expect(messages.first()).toContainText(/Fs/);
+  await expect(messages.first()).toContainText(/required/i);
+
+  // Restore a valid Fs — the charts must come back (canvas visible, message gone).
   await fsInput.fill('37');
   await fsInput.press('Tab');
   await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
   await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
 });
 
-test('a persisted driver with Re=0 (a different required field) also shows the per-chart message', async ({ page }) => {
-  await reloadWithDriver(page, { Re: 0 });
+test('setting Re to 0 (a different required field) also shows the per-chart message', async ({ page }) => {
+  await page.locator('text=What-If? ✎').click();
+  const reInput = page.locator('label').filter({ hasText: /^Re$/ })
+    .locator('..').locator('input[type="number"]');
+  await reInput.fill('');
+  await reInput.press('Tab');
 
   const messages = page.locator('#ggrid .gpanel .gmsg');
   await expect(messages.first()).toBeVisible();
@@ -90,26 +85,22 @@ test('missing Pe drops only the thermal-limit line — Max-SPL chart still draws
   await expect(page.locator('.drv-issues')).toHaveCount(0);
 });
 
-test('persisted Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition)', async ({ page }) => {
+test('box volume Vb = 0 surfaces a blocking "no usable values" error (finiteness postcondition)', async ({ page }) => {
   // A *valid* driver can still yield a non-finite sweep: Vb=0 makes cInv(0) poison
-  // exc/zmag with NaN at every frequency. Entry constraints stop Vb=0 being TYPED
-  // (registry floor), so seed it through persisted state — the classifyFinite
-  // postcondition must catch it and surface a blocking error via the issue list —
-  // never a silent blank chart, and no console error (the fixture fails the test on
-  // any console/page error).
-  await page.evaluate(() => {
-    localStorage.setItem('openisd.state', JSON.stringify({ v: 1, P: { Vb: 0 } }));
-  });
-  await page.reload();
+  // exc/zmag with NaN at every frequency. The classifyFinite postcondition must catch
+  // it and surface a blocking error via the issue list — never a silent blank chart,
+  // and no console error (the fixture fails the test on any console/page error).
+  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
+    .locator('..').locator('input[type="number"]');
+  await vbInput.fill('0');
+  await vbInput.press('Tab');
 
   const issues = page.locator('.drv-issues');
   await expect(issues).toBeVisible();
   await expect(issues).toHaveClass(/is-error/);
   await expect(issues).toContainText(/no usable values|box volume/i);
 
-  // Entering a valid volume clears the error.
-  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
-    .locator('..').locator('input[type="number"]');
+  // Restore a valid volume — the error clears.
   await vbInput.fill('30');
   await vbInput.press('Tab');
   await expect(page.locator('.drv-issues.is-error')).toHaveCount(0);
@@ -132,4 +123,42 @@ test('missing Xmax drops only the excursion limit line — Excursion chart still
   await expect(issues).toBeVisible();
   await expect(issues).not.toHaveClass(/is-error/);
   await expect(issues).toContainText(/Xmax/);
+});
+
+// The chart panel is the ONLY place the Original and Classic skins can report an issue:
+// `.drv-issues` lives in DriverPanel, which only ModernShell mounts. Before GraphPanel read
+// `allIssues`, a box-parameter or finiteness error reached no chart at all and the default
+// skin showed a blank plot with no explanation. These two lock that in.
+
+test('Vb = 0 blocks the chart itself with a named message, not just the issue list', async ({ page }) => {
+  const vbInput = page.locator('label').filter({ hasText: 'Box volume Vb' })
+    .locator('..').locator('input[type="number"]');
+  await vbInput.fill('0');
+  await vbInput.press('Tab');
+
+  const messages = page.locator('#ggrid .gpanel .gmsg');
+  await expect.poll(() => messages.count()).toBeGreaterThan(0);
+  await expect(messages.first()).toContainText(/no usable values|box volume/i);
+
+  await vbInput.fill('30');
+  await vbInput.press('Tab');
+  await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
+});
+
+test('a warning annotates the chart without blocking it', async ({ page }) => {
+  // Missing Xmax drops one reference line. The curve is still correct, so the chart must
+  // draw AND carry the note — a warn that blocked the chart would be a regression, and a
+  // warn with nowhere to appear is the defect these tests exist to prevent.
+  await page.locator('text=What-If? ✎').click();
+  const xmaxInput = page.locator('label').filter({ hasText: /^Xmax/ })
+    .locator('..').locator('input[type="number"]');
+  await xmaxInput.fill('0');
+  await xmaxInput.press('Tab');
+
+  await expect(page.locator('#ggrid .gpanel canvas').first()).toBeVisible();
+  await expect(page.locator('#ggrid .gpanel .gmsg')).toHaveCount(0);
+
+  const warn = page.locator('#ggrid .gpanel .gwarn');
+  await expect.poll(() => warn.count()).toBeGreaterThan(0);
+  await expect(warn.first()).toContainText(/Xmax/);
 });

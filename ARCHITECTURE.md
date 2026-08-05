@@ -353,4 +353,161 @@ is made as framework-agnostic as feasible. See
 [docs/DRIVER_ADT_DESIGN.md](docs/DRIVER_ADT_DESIGN.md).
 
 **Status:** Goal adopted. Migration pending — layered on top of the `@openisd`
-rename, not a rushed pass. Phased steps: [archive/PLAN_DRIVER_ADT.md](archive/PLAN_DRIVER_ADT.md).
+rename, not a rushed pass. Phased steps: [PLAN_DRIVER_ADT.md](PLAN_DRIVER_ADT.md).
+
+## AD-7: Shared behaviour lives in a composable, never duplicated per skin
+
+**Decision:** OpenISD ships three interchangeable skins (`classic`, `original`, `modern`,
+`packages/ui/src/skins.ts`) over the same store and engine. Any behaviour more than pure
+presentation — a commit boundary, a derivation, a load/save flow — is written **once**, in a
+composable under `packages/ui/src/composables/`, and every skin calls it. A skin file must
+never re-implement logic another skin already has; that is the bug, not a style preference.
+
+**Rationale:**
+
+- Three skins sharing one composable is one chance to get a commit boundary (STATE_MODEL.md
+  rule 2/3) or a derivation right. Three skins each with their own copy is three chances to
+  get it wrong, and a fix applied to one silently leaves the other two stale — exactly the
+  divergence class STATE_MODEL.md's dialog rules exist to prevent.
+- Matches AD-6's own layering: `winisd-ui` is already defined as "framework-agnostic glue...
+  the only layer that knows a UI framework exists" — a composable is that layer's concrete
+  form. AD-7 is AD-6's boundary applied specifically to the skin-multiplicity problem AD-6
+  does not itself call out.
+
+**Existing examples, not a hypothetical:** `useDriverSelection.ts` (draft → commit, shared by
+all three skins' driver editors), `useVentGroup.ts` and `usePrGroup.ts` (the vent/PR
+entered-set solvers, AD-8), `useDesignIO.ts` (save/export, shared by every skin's toolbar).
+
+**Status:** Adopted, enforced by convention; no automated gate yet checking a skin file for
+duplicated logic.
+
+## AD-9: Strong typing over loose bags
+
+**Decision (human, 2026-07-31):** No more untyped grab-bag types — an all-optional
+interface accepting fields a given consumer never reads, a `Record<string, any>`, a shape
+whose real contract is narrower than its declared type. Every type states exactly what it
+holds and why; every boundary that can fail validates and reports, rather than accepting
+anything and hoping. This governs AD-8 below and applies project-wide, not only to drivers.
+
+**Evidence this is a real problem, not a style preference:** `DriverRaw`
+(`packages/engine/src/types.ts`) is declared as ~40 all-optional fields — full T/S numerics
+alongside `brand`/`comment`/four separate URL fields. `deriveDriver(d: DriverRaw)`
+(`packages/engine/src/driver.ts:29`) takes the whole interface as its parameter type but
+only ever reads a handful of the numeric fields. The metadata fields duplicate — without any
+provenance — exactly what `OpenISDDriver` (AD-8) already models properly. `DriverRaw` is
+retired under this decision; nothing inherits its shape unmodified.
+
+## AD-8: the driver model — `OpenISDDriver` is the app; `WinISDDriver` is a serialiser
+
+**Decision (human, 2026-07-31):** The application is built around `OpenISDProject` and
+`OpenISDDriver`. `OpenISDDriver`'s on-disk form is `openisd.yml` — the same schema, byte
+for byte; `.owdr` is the extension the browser app uses for the identical content when
+reading or writing a single driver to local disk. There is one parse, not two, whether the
+source is a library `openisd.yml` or a user's `.owdr`.
+
+**`OpenISDDriver` owns the app.** It is the live, long-held in-memory model — every T/S
+field, every derived value, all E/C/N provenance, all consistency-group derivation (Fs from
+Mms+Cms, Cms from Fs+Vas+Sd, the whole family this session verified against real WinISD
+behaviour). It is strongly typed against the real `openisd.yml` shape, confirmed against
+`winisd_tools/scrapers/scrapers/lib/model_driver.py` and `model_openisd.py`'s `MetaFile` (the
+actual `driver.yml → openisd.yml` projection) — **not one uniform envelope, four distinct
+ones depending on what kind of field it is:**
+
+- **`SpecEntry`** (T/S fields, inside `specs:` only) — no flat value. `origin` names the
+  winning source; a required `readings` dict (≥1 source) carries each source's own
+  `{actual_reading, read_value, read_precision}`; the number is only reachable at
+  `readings[origin].read_value`.
+- **`ScrapedField<T>`** (record-level metadata — `manufacturer`, `brand`, `model`) — has a
+  flat `value: T`, plus `origin`, an *optional* `readings` (only populated when ≥2 sources
+  disagreed), `definition`, `dq`.
+- **`DerivedField<T>`** (pipeline-computed — `sku`, `name`) — `value: T` + `definition` +
+  `grounds` (evidence list). No `origin`/`readings` — not read from a source, built.
+- **`BookkeepingField<T>`** (pure pipeline fact — `uuid`) — just `value: T` + `definition`.
+
+The flat `{value, origin, read_precision, definition}` shape stated in an earlier draft of
+this decision was wrong and unverified — corrected here against the real pydantic models.
+
+**`WinISDDriver` is solely a serialisation device.** A strongly-typed class with
+validations — not a loose bag — but no app/calculation logic belongs on it, architecturally,
+at all: it does not derive, does not hold live state, does not persist between calls.
+- **Export:** `OpenISDDriver`'s already-resolved values populate a `WinISDDriver` instance
+  immediately before it is serialised to `.wdr` text, then discarded.
+- **Import:** `.wdr` text populates a `WinISDDriver` instance; those as-read values are then
+  diffed against what `OpenISDDriver` would independently derive, surfacing any mismatch as
+  a data-quality signal (e.g. a value hand-edited in classic WinISD outside the app) rather
+  than silently overwriting.
+- `.wdr` is therefore 100% derivable from `OpenISDDriver` — generated on demand, never
+  stored. Same relationship upstream: `openisd.yml` is 100% derivable from `driver.yml`
+  (`winisd_tools/DESIGN.md` §10b).
+
+**Today's `Driver` class dies.** Checked, not assumed: its internal storage
+(`#inputs: Record<string, number|string>`) is flat, the same shape as a parsed `.wdr`, and
+none of `openisd.yml`'s per-field (`origin`/`read_precision`/`definition`) or record-level
+(`quality`/`disposition`/`data_sources`) structure exists in it anywhere — it is WinISD's
+data model wearing a neutral name, not `openisd.yml`'s. Per AD-4 (extract, do not rewrite),
+its validated derivation *algorithms* are not thrown away — they move onto `OpenISDDriver`,
+since that is where live edits happen and where "recompute the rest" has to live. But the
+class itself, as a long-lived stateful object the app instantiates and holds, has no
+remaining architectural role once `OpenISDDriver` takes that job. `WinISDDriver` does not
+inherit `Driver`'s derivation machinery — under AD-9, it does not carry that logic at all.
+
+**`DriverRaw` is retired — see AD-9.** The calc layer (`deriveDriver`, `sweep`) still needs
+*some* flat numeric input to do arithmetic on, so a narrow successor type is needed at that
+boundary — but it must be scoped to exactly what those functions read, typed under AD-9, not
+a rename of `DriverRaw`'s current shape.
+
+**Scope: the driver record only.** This decision covers `OpenISDDriver`/`WinISDDriver`
+specifically. Box/vent/PR/filter/signal/UI-navigation state — the rest of live `AppState` —
+has no fields in `openisd.yml` and none are added; that stays `OpenISDProject`'s
+(`.owpr`'s) concern. The multi-layer state model (ground/baseline/committed/modified,
+`STATE_MODEL.md`) is multiple COPIES of the one `OpenISDDriver` shape, not different shapes
+of it.
+
+**Blocking gap — must be fixed before "no data loss" is true:** `SPL` (a manufacturer's
+directly PRINTED sensitivity figure, not derived) is a canonical spec field
+(`CANONICAL_SPEC_FIELDS`, `winisd_tools/record_registries.py:273-284`) with no equivalent
+anywhere in today's engine types. A record scraped with a printed `specs.woofer.SPL` value
+has nowhere to go. Everything else checked matches cleanly — WDR-carried dimension fields
+(`thick_mm`, `depth_mm`, `magnet_depth_mm`, `Hc_mm`, `Hg_mm`) map directly, and every
+*calculated* field's absence from the schema (`no`/η₀, `Vd`, `SPLmax`, `SPLmaxLF`, `Mpow`,
+`Mcost`, `Rme`, `gamma`) is correct under `winisd_tools/DESIGN.md` §10a, not a gap.
+
+**Decision (human, 2026-07-31): `openisd.yml` is read and written EXCLUSIVELY by JS/TS code
+owned by the OpenISD project — never by Python.** This settles the mechanism, not yet the
+value, of the `origin`-for-a-live-edit question below. When `winisd_tools` needs an
+`openisd.yml` produced from a `driver.yml`, it does not write one itself in Python — it
+invokes the JS/TS code via an API (shape TBD) taking two arguments: the input `driver.yml`
+path and the output `openisd.yml` path. The JS/TS side performs the actual read/write. This
+extends `winisd_tools/DESIGN.md` §10b ("`openisd.yml` is 100% derivable from `driver.yml`")
+with its mechanism, and matches the yml→wdr pattern already logged in `BACKLOG.md` ("Stop
+reading `.wdr` in the app") — Python invokes JS as an external program in both directions,
+so there is exactly one implementation of each transform, not two languages each carrying
+their own copy. **Not yet designed:** the API's concrete shape (CLI subprocess call, as the
+yml→wdr case already specifies, or something else) — needs its own plan alongside that item.
+
+**Decision (human, 2026-07-31): resolved — the lifecycle of `origin` for a live edit.**
+`data_sources` (and each field's `origin`) already carries through from `driver.yml` into
+`openisd.yml`, confirmed against a real record (`fs10-20a8/openisd.yml`:
+`data_sources: { value: { manufacturer_product_page: <url> } }`). The rule:
+
+- A field's `origin` stays whatever it was extracted as (`manufacturer_datasheet`, etc.)
+  until the human overwrites it in the UI, at which point it becomes `SourceRole.MANUAL`.
+- Reset (STATE_MODEL.md's existing ground/baseline layering — no new mechanism) reloads the
+  prior snapshot, which restores whatever `origin` it held before the edit. Nothing new
+  needed here; this is what ground/baseline already does.
+- A field that is normally *calculated* (§10a: never stored) and is then manually entered
+  MUST be written to the `.owdr` with `origin: manual` — it is now an asserted fact, not
+  something to silently re-derive. Clearing/resetting it reverts it to calculated and
+  **removes it from storage again** — the same enter/clear pattern already proven this
+  session on `useVentGroup.ts`/`usePrGroup.ts` (`enterVentField`/`clearVentField`) and
+  already present in today's `Driver.enter()`/`.clear()`, ported onto `OpenISDDriver`'s
+  nested shape rather than newly invented.
+
+**Small remaining gap, mechanical not architectural:** for a `manual`-origin entry, what
+happens to `read_precision` and `actual_reading` — omitted (no printed form has a rounding
+half-width or a source string to echo), or synthesized somehow? Needs an answer before the
+schema write is implemented, but does not block the rule above.
+
+**Not yet implemented** — needs its own plan: the `OpenISDDriver` type and its YAML
+reader/writer, the `WinISDDriver` class and its validations, and how `Driver`'s current
+methods redistribute between them.

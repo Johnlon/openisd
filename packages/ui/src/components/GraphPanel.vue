@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { state, driver, driverErrors, syncedP, curvesData, maxData } from '../store.js';
-import { TABS, buildPlotData } from '../utils/series.js';
+import { state, driver, allIssues, syncedP, curvesData, maxData } from '../store.js';
+import { TAB_META, buildPlotData } from '../utils/series.js';
+import type { ChartTabId } from '../utils/series.js';
 import { drawOne } from '../utils/canvas.js';
 import { DPAL } from '../presets.js';
-import type { Geo } from '../types.js';
+import type { Geo, Design } from '../types.js';
 
 // `bare`/`primaryColor` are the classic (WinISD) chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the skin's Color swatch. Both
 // default off so every other consumer (modern's GraphGrid) is unaffected.
-const props = defineProps<{ tabId: string; bare?: boolean; primaryColor?: string }>();
+// `overlays` are the extra traces drawn behind the current design — other PROJECTS the
+// caller wants seen alongside this one (the Original skin's open project rows). A design
+// never holds another design to get it drawn, so there is no default set to fall back to:
+// no overlays passed means this project is drawn alone.
+const props = defineProps<{ tabId: ChartTabId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
+
+const overlayDesigns = computed(() => props.overlays ?? []);
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
-const meta     = computed(() => TABS.find(t => t.id === props.tabId) || { name: props.tabId });
+const meta     = computed(() => TAB_META[props.tabId]);
 
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
@@ -22,17 +29,32 @@ const currentDesign = computed(() => ({
 }));
 
 // buildPlotData returns { value, errors }: value is the drawable bundle (null when the
-// driver is invalid OR the sweep is mid-recompute), errors are the driver issues.
+// driver is invalid OR the sweep is mid-recompute), errors are the issues to explain it.
+// `allIssues` rather than `driverErrors` alone: a box parameter the engine rejects (Vb = 0)
+// and a sweep that produced no finite point are both reasons a chart cannot be drawn, and
+// this panel is the only place the Original and Classic skins can say so.
 const plot        = computed(() =>
-  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, state.compare, driverErrors.value,
+  buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, overlayDesigns.value, allIssues.value,
     { bare: props.bare, primaryColor: props.primaryColor })
 );
 const plotData    = computed(() => plot.value.value);
 const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));
-// Show the blocking message only when there is no plot AND the reason is a real error
-// (a required T/S param). A transient null during sweep recompute has no errors → we
-// simply don't redraw until the curves arrive, no message.
-const blocked     = computed(() => !plotData.value && blockErrors.value.length > 0);
+// An error-level issue blocks the chart, FULL STOP — the Result contract says an error means
+// the value is unusable for the purpose, so a curve drawn from it is a lie whether or not the
+// arrays exist. Both cases reach here and only one of them used to:
+//   • a missing required T/S param — no driver, so no plot object at all;
+//   • a degenerate design like Vb = 0 — a VALID driver whose sweep is NaN at every frequency.
+//     `curves` is non-null there, so a `!plotData` test read it as "fine" and the panel showed
+//     a blank canvas with no explanation. Original and Classic have no issue list; the chart
+//     is the only place they can say anything.
+// A transient null during sweep recompute carries NO errors, so it still shows nothing —
+// that case is covered by the errors array being empty, not by the plot being null.
+const blocked     = computed(() => blockErrors.value.length > 0);
+// Warnings never block: the curve is drawn and the canvas already gaps the bad points, so
+// the chart is usable and the note explains the gap. Suppressed while `blocked`, where the
+// error message is the whole story.
+const warnings    = computed(() =>
+  blocked.value ? [] : plot.value.errors.filter(e => e.level === 'warn'));
 
 // Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
 // auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
@@ -48,23 +70,6 @@ const viewPlot  = computed(() => {
 });
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { delete state.yRanges[props.tabId]; }
-
-// Options dialog → Plot Window → Colors: user overrides for the 4 swatches OpenISD has a real
-// hook for (grid/label/background/Pe-limit-trace — see canvas.ts + OptionsModal.vue header
-// comment for which of WinISD's 6 swatches this covers). Passed to canvas.ts as CSS custom
-// properties on the canvas element itself — the SAME mechanism canvas.ts already used to read
-// the dark-skin defaults, so an absent override still falls through to the skin's own CSS.
-const canvasColorVars = computed(() => {
-  const c = state.ui.chartColors;
-  if (!c) return {};
-  const v: Record<string, string> = {};
-  if (c.otherLines) v['--chart-grid'] = c.otherLines;
-  if (c.labels)     v['--chart-text'] = c.labels;
-  if (c.background) v['--chart-bg-override'] = c.background;
-  if (c.xmaxLimit)  v['--chart-pelimit'] = c.xmaxLimit;
-  if (c.cursor)     { v['--chart-cross'] = c.cursor; v['--chart-band-line'] = c.cursor; }
-  return v;
-});
 
 const effectiveF = computed(() =>
   state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF)
@@ -352,13 +357,12 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocClick);
 });
 
-watch([viewPlot, effectiveF, localDragRange, blocked, canvasColorVars], redraw, { flush: 'post' });
+watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
 </script>
 
 <template>
   <div class="gpanel" :class="{ 'y-manual': !!yOverride }">
     <canvas ref="canvasEl"
-            :style="canvasColorVars"
             @pointerdown="onPointerDown"
             @pointerup="onPointerUp"
             @pointermove="onPointerMove"
@@ -372,6 +376,9 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasColorVars], redraw, 
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
       <div class="gmsg-foot">Fix the driver parameters to restore this chart.</div>
+    </div>
+    <div v-if="warnings.length" class="gwarn" :title="warnings.map(w => w.message).join('\n')">
+      <span v-for="w in warnings" :key="w.level + w.field" class="gwarn-line">{{ w.message }}</span>
     </div>
   </div>
 
@@ -414,6 +421,31 @@ canvas { touch-action: none; }
 .gmsg-title { font-size: 13px; font-weight: 600; color: var(--fg); }
 .gmsg-line  { font-size: 11px; color: var(--mut); line-height: 1.4; max-width: 90%; }
 .gmsg-foot  { font-size: 11px; color: var(--mut); margin-top: 4px; font-style: italic; }
+
+/* Non-blocking note over a chart that DID draw: the curve is usable and the canvas has
+   already gapped the bad points, so this sits at the foot rather than covering anything.
+   `--acc2` is the warn colour `.drv-issues-list li.warn` already uses. */
+.gwarn {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px 6px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border-top: 1px solid var(--acc2);
+}
+.gwarn-line {
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--acc2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .ctx-menu {
   position: fixed;

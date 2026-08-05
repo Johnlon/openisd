@@ -14,19 +14,22 @@ import type { DriverRaw, Driver } from '@openisd/engine';
 export function toWdr(raw: DriverRaw): string {
   const { value: d } = deriveDriver(raw);
   if (!d) return '';
-  const Sd  = d.Sd, Vd = Sd * (d.Xmax || 0), Dd = 2 * Math.sqrt(Sd / Math.PI);
+  // Vd/Dd both come from deriveDriver's own solveConsistencyGroup pass now (Vd in m³,
+  // matching this file's needs directly) — no local recomputation. Vd defaults to 0
+  // rather than being left absent: WinISD writes Vd=0 when Xmax is unset, not a blank.
+  const Vd = d.Vd ?? 0;
   const g   = (x: number | null | undefined, p = 6): string | number => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
   const brand = raw.brand || '', model = raw.model || '';
   const ParState = parstate(raw, d);
   const L = [
     '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=' + (raw.manufacturer || ''),
-    'ProvidedBy=' + (raw.providedBy || 'OpenISD'), 'Comment=' + (raw.comment || ''), 'DateAdded=', 'DateModified=',
+    'ProvidedBy=' + (raw.providedBy || 'OpenISD'), 'Comment=' + (raw.comment || ''), 'DateAdded=' + (raw.added || ''), 'DateModified=',
     'Qts=' + g(d.Qts), 'Znom=' + g(d.Z || d.Re),
     'Fs=' + g(d.Fs), 'Pe=' + g(d.Pe), 'Re=' + g(d.Re), 'Le=' + g(d.Le),
     'BL=' + g(d.Bl), 'Xmax=' + g(d.Xmax),
     'Cms=' + g(d.Cms), 'Qms=' + g(d.Qms), 'Qes=' + g(d.Qes), 'Rms=' + g(d.Rms),
     'Mms=' + g(d.Mms), 'Sd=' + g(d.Sd), 'Vas=' + g(d.Vas),
-    'Vd=' + g(Vd), 'Dd=' + g(Dd), 'numVC=' + (raw.numVC || 1), 'VCCon=' + (raw.VCCon || 2),
+    'Vd=' + g(Vd), 'Dd=' + g(d.Dd), 'numVC=' + (raw.numVC || 1), 'VCCon=' + (raw.VCCon || 2),
     'Xlim=' + g(raw.Xlim), 'hvc=' + g(raw.hvc), 'hag=' + g(raw.hag), 'hc=' + g(raw.hc),
     'tc=' + g(raw.tc), 'Rth=' + g(raw.Rth), 'Cth=' + g(raw.Cth), 'loss=' + g(raw.loss),
     'Thick=' + g(raw.thick), 'Depth=' + g(raw.depth), 'MagnetDepth=' + g(raw.magnetDepth),

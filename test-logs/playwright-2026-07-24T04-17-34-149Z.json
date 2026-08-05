@@ -1,0 +1,236 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/john/work/winisd/openisd/node_modules/@playwright/test/cli.js",
+      "test",
+      "packages/ui/test/original-skin.browser.spec.ts",
+      "-g",
+      "a live Tune what-if is isolated"
+    ],
+    "configFile": "/home/john/work/winisd/openisd/playwright.config.js",
+    "rootDir": "/home/john/work/winisd/openisd/packages/ui/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/john/work/winisd/openisd/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/john/work/winisd/openisd/packages/ui/test",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.browser.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-logs/playwright-2026-07-24T04-17-34-149Z.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 9,
+    "webServer": {
+      "command": "npx vite --port 4200 --strictPort",
+      "url": "http://localhost:4200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "original-skin.browser.spec.ts",
+      "file": "original-skin.browser.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7835,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC DONE --- active item updated with Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT RUN --- projects len: 1 swapping: false\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT DONE --- state.compare set with names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RUN --- compareList len: 0 names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN NAMES --- currentInactive:  incoming: \n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RETURN EARLY ---\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC DONE --- active item updated with Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT RUN --- projects len: 1 swapping: false\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT DONE --- state.compare set with names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RUN --- compareList len: 0 names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN NAMES --- currentInactive:  incoming: \n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RETURN EARLY ---\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC DONE --- active item updated with Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT RUN --- projects len: 1 swapping: false\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT DONE --- state.compare set with names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RUN --- compareList len: 0 names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN NAMES --- currentInactive:  incoming: \n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RETURN EARLY ---\n"
+                    },
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 37 model Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: true Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: true Fs: 43\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: true Fs: 43\n"
+                    },
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 43 model Fs: 37\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC RUN --- swapping: false what-if: false Fs: 43\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_SYNC DONE --- active item updated with Fs: 43\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT RUN --- projects len: 1 swapping: false\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_OUT DONE --- state.compare set with names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RUN --- compareList len: 0 names: []\n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN NAMES --- currentInactive:  incoming: \n"
+                    },
+                    {
+                      "text": "--- OG_WATCH_COMPARE_IN RETURN EARLY ---\n"
+                    },
+                    {
+                      "text": "--- TEST readFs --- raw Fs: 43 model Fs: 43\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-24T04:17:35.489Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbb100df156434a33a55-9af29261b77f0b11e551",
+          "file": "original-skin.browser.spec.ts",
+          "line": 275,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-24T04:17:34.157Z",
+    "duration": 9362.622,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

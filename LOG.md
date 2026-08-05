@@ -8,239 +8,73 @@
 
 ---
 
-## 2026-07-23 — WinISD's five Advanced simulation options now actually do something
+## 2026-08-05 — My Drivers is the one destination for a driver you made
 
-Five checkboxes that looked live but did nothing are now real controls. They shipped bound to
-shell-local variables nothing read, in two skins — you could tick them all day and the graph
-never moved.
+- **Unified 4th-order bandpass vents horizontal layout.** Replaced the tall, single-column vertical vent layout for 4th-order bandpass with the 3-column horizontal layout (Config, Dimensions, Readouts) matching standard vented views.
+- **Editable ABC and 6th-order bandpass tuning frequencies.** Enabled editing for both tuning frequencies on the Box tab when 6th-order bandpass or ABC box type is selected, rendering them as editable `NumInput` fields labeled `Tuning freq (Frc)` (rear chamber) and `Tuning freq (Ffc)` (front chamber).
+- **Editable bandpass 4th order front chamber tuning.** Made the front chamber tuning frequency in a 4th-order bandpass box type editable (labeled `Tuning freq (Ffc)`) rather than read-only. The system now solves for the front chamber vent length using the front volume `Vf` (instead of `Vb`).
+- **Clarification of automatic vent length calculation.** Added a clear hint on the Vents page to clarify that physical port length is solved automatically to satisfy the target box/chamber tuning frequency (`Fb`) defined on the Box tab.
+- **Save incomplete drivers without lockouts.** OK, Save, and Copy buttons remain enabled for incomplete driver profiles, allowing users to preserve incomplete driver data while displaying a warning strip detailing what is missing for simulation.
+- **Brand/Model presence validation popup.** Replaced silent disabled buttons with an active dialog popup explaining that Brand and Model are required, transferring caret focus to the empty field on dismiss.
+- **Slotted vent support.** Added support for width and height dimensions of slotted vents in the original shell, adjusting the effective Helmholtz resonance and vent calculations accordingly.
+- **Type safety in Vue templates.** Shifted TypeScript type assertions from Vue template event bindings to script helpers, preventing ESLint parser misfires that caused false positive unused variable warnings.
+- **Vent group provenance stability.** Restored the non-eviction locking behavior in `enterVentField` so that entering both `Fb` and `ventL` locks both as entered rather than deleting the other.
+- **Derived parameters (Mms, Cms, Rms, Bl) are editable in the editor.** They were previously read-only text fields, which prevented overriding or recalculating them. They now use `NumInput` elements and bind to `cellVal` so they can be edited (state E) or cleared to calculate (state C) just like in the Define Driver modal.
+- **Unentered fields show as blank instead of 0.00.** Bindings to `driverRaw` optional/derived fields used to default to `?? 0`, which displayed as `0.00` and caused validation warnings/DQ alerts. All fields now bind to `cellVal` to properly show as empty/blank when not entered.
+- **Fixed Qts not calculating when Qms and Qes are set.** Pre-populating unentered fields with `0.00` caused the consistency solver to treat them as entered values of `0`, skipping total Q calculation. Removing the zero defaults allows `Qts` to automatically derive.
+- **Every way of creating a driver now ends in the same place.** Add new Driver, Clone driver, Load File… and saving a `.wdr` then loading it back all land in My Drivers, so a driver you made is somewhere you can find it again. Loading a file used to drop the driver straight into the project and store it nowhere, which meant the only copy was the design you then edited over.
 
-- **See what your design can really play.** "SPL graph is Xmax limited" backs the SPL curve off
-  wherever the cone would exceed its linear travel, and keeps the unlimited curve dashed beside
-  it so the gap is the point.
-- **Ask what flattening would cost.** "Force flat response" applies the EQ that levels the
-  response and charges it to the excursion, port-velocity and max-SPL curves. Boost is capped at
-  20 dB and a warning names the frequency where the cap binds — a flattened rolloff you could
-  never actually drive is not a design.
-- **Catch port pipe resonances.** The transmission-line port model replaces the lumped air mass
-  with a real lossy duct, so the vent's own half-wave resonances show up instead of being
-  silently absent. Box tuning is untouched — it reduces to the old model at low frequency.
-- **Model multi-driver amp losses honestly.** "Rg is at driver side" chooses whether the source
-  resistance belongs to each driver or sits once at the amplifier; with two drivers in parallel
-  that is a real difference in output.
-- **One switch, not two names.** "Simulate voice coil inductance" is the existing circuit-model
-  setting under WinISD's wording, so the two can't drift apart.
-- **Fixed: a driver with no Le blanked the impedance chart** and blamed the box volume for it.
-  Missing inductance now means 0 H, as it always should have.
-- **Exported .wpr projects carry your real settings.** The three flags WinISD's file format has
-  keys for were previously written as hardcoded zeros regardless of what you'd chosen.
-- **A dead control can't ship again.** `inert-control-gate.test.ts` fails the build if a
-  registered toggle isn't wired to real state in every skin — the failure it prevents is the one
-  that produced these five.
+- **Clone driver exists in the WinISD picker.** It forked a driver in the Modern skin only; the Classic and Original skins had no way to copy a driver at all. One implementation now serves both pickers, forking as `brand` + "Copy of <model>" — a distinct identity, so the copy stands beside its source instead of replacing it.
+- **Edit is offered only where it can work.** The WinISD picker's summary carries an Edit button that is live for a driver from My Drivers and visibly disabled for a library record, which cannot be changed from there.
+- **"Add new Driver" starts genuinely blank.** It pre-filled the brand with the word `custom`, which a user then had to notice and delete. OK stays disabled until brand and model are supplied, so nothing can be saved without the identity it will be filed under.
+- **A driver file carrying no brand or model still gets an identity** — taken from the file's own name — instead of being saved as an unnameable, undeletable row.
+- **The Original skin stopped hijacking the driver editor.** Opening the editor on a new or a saved driver silently re-pointed it at the project's driver, so OK overwrote the open design instead of saving the driver. `bugs/BUG_20260805_original-shells-editor-restore-watcher-hijacks-every-editor-open.md`.
+- **One function writes My Drivers.** Six places implemented "save this driver" with their own copy of the identity-collision rule; they call `upsertMyDriver` now, so the rule cannot differ depending on which button was pressed.
+- **The driver file formats are an enum, not a pair of loose strings.** `.wdr` / `.owdr` carry their own label, MIME type and file-input `accept` list, so the save dialog, the loader and the format picker cannot drift apart.
+- **Group delay reads zero rather than negative zero** for a flat phase response — no such delay exists, and the sign leaked into equality comparisons.
 
-## 2026-07-23 — Taller chart, schema-enforced entry bounds, share links carry the band selection
+## 2026-08-04 — Choosing a driver embeds it; a driver IS its brand/model
 
-No numeric field can go out of range any more. Every field's min/max lives in the field
-registry (both bounds now mandatory, in the model's SI units) and is actually enforced:
-NumInput reads the registry bounds from its field binding, and every raw number input
-carries a v-limits directive that blocks the spinner at the bounds and clamps typed
-out-of-range values. Two mechanical gates keep it that way — a scan that fails the suite
-on any unconstrained numeric input, and a registry test that fails on a missing bound.
+- **Mandatory brand, model, and core parameter input validation in the editor.** Enforces validation with visual cues (bold borders by default, turning red when empty) and disables saving/exporting on Brand, Model, Fs, Vas, Re, and Sd to prevent incomplete drivers from corrupting project state.
+- **"Add new Driver" opens the full driver editor.** The flow is streamlined by opening the full driver editor pre-seeded with `brand='custom'` and `model` blank, letting the user define a custom driver directly inside the main editor instead of hitting a secondary T/S parameters wizard.
+- **Support for loading both .wdr and .owdr formats.** The file input in the editor and file loader in the browser now accept both legacy `.wdr` and native `.owdr` files, parsing and converting WinISD parameter sets on demand.
+- **Visual DQ indicators for bad or missing data.** High-priority data quality alerts (warnings) display next to core fields when a required field is entered with a suspect value (e.g. value ≤ 0) or is missing required values like a model name on custom drivers.
+- **Quick-fix data quality buttons.** An inline "clear" button allows users to strip bad values directly from a field to instantly let the engine auto-calculate them from other parameters.
+- **Data quality warning badges in selector list.** An amber warning triangle ⚠ displays next to any driver in the library browser that is missing core simulation parameters or has faulty inputs, notifying users of issues before they embed the driver.
+- **Choosing a driver puts you back in the project.** It used to open the driver editor on a proposal and leave the picker behind it, so picking a driver meant dismissing two dialogs before seeing the result. Choosing now copies the driver into the project and closes the picker — WinISD's model, where the driver manager and the project are separate things.
+- **A project owns its driver outright.** Editing it changes the project's copy and nothing else: not the library record, not the saved driver it came from. Previously an edit could reach back into My Drivers, which made "try these numbers" quietly rewrite a stored driver.
+- **A saved driver is identified by `<brand>/<model>`** — the same scheme the driver database uses for its folders, brand first because that is what a driver is sold as. Save overwrites the driver with that identity and adds one when there is none, so editing brand or model saves a new driver and editing anything else updates it in place. Clone forks deliberately, as "Copy of …".
+- **Deleting a saved driver works for every driver.** Deletion compared display names, and an entry with no `name` compared equal to every other unnamed one — so the ✕ removed the wrong row or none at all. It keys on identity now.
+- **A saved driver with no explicit name is visible at all.** My Drivers rendered and searched the raw `name` field, so an entry carrying only brand and model — the normal shape when saved from a record — drew a blank row that no search could match.
+- **The driver editor says which driver you are editing**, and carries a "Copy to My Drivers" button that takes an independent copy of what is on screen.
+- **One place knows where saved drivers live.** The storage key and its read/write were duplicated across three components; they share `utils/myDrivers.ts`.
+- **The driver picker's source reads "OpenISD".** Shorter than "OpenISD driver database" in the source filter, where the column is narrow.
 
-A shared link now reproduces the dragged frequency selection, not just the pinned cursor.
-The band (fLo/fHi) rides in the same cursor blob a share link and local save already carry;
-each panel recomputes its own stats on load. The test that "verified" this before was
-passing vacuously (same-URL goto is a no-op navigation) — cold-open tests now force a real
-teardown, and a state-disposition gate fails the suite if any store field is ever added
-without an explicit persist-vs-transient decision again.
+## 2026-08-03 — Scraping stack removed; `_meta.yml` gone; bundle reads `openisd.yml`
 
-More chart, same information. The bottom panel auto-fits its content (drag still wins),
-the tab rail is shallower, Save/Reset/Export sit in a vertical rail on the panel's right
-edge, hints sit beside their fields instead of below, the Project description fills the
-width on the right, box diagrams are 50% bigger and top-aligned, and the trace-colour
-button docks in the chart's bottom-right corner.
+- **One project owns scraping again.** openisd carried a second, unused scraping pipeline — six vendor scrapers, a scraper library, a pydantic schema module and a DQ CLI, none of them reachable from any script, hook or workflow. Deleted; winisd_tools is the only scraper, as the workspace architecture says.
+- **The dead sidecar format is fully gone.** `_meta.yml` had been superseded by `openisd.yml` but survived in ~90 references across 20 documents plus 438 orphaned data files. All removed. A reader now finds one answer to "where does provenance live", not two.
+- **The driver bundle matches the architecture.** `bundle-drivers.mjs` reads `openisd.yml` records only — never `.wdr`, never `.owdr` — so the bundle can no longer disagree with AD-8 about what a driver record is. `.wdr` stays what it always was: a WinISD import/export format the app converts in memory.
+- **The health check is honest about what it runs.** It listed six gates including two Python steps; one scanned zero files and the other only kept deleted code importable. Four real gates now: lint, typecheck, unit, browser.
+- **Transient files have one home.** `build/` is the scratch space, enforced by tests over `.gitignore` and Vite's watcher, replacing a cache-directory convention that existed only for the deleted scrapers.
 
-Pick a passive radiator like you pick a driver. The PR pane has a Select PR / ✎ Edit
-header wired to the shared PR browser and editor. Cursor lines have a selectable colour
-in Options → Plot Window (fifth real rendering hook).
+## 2026-08-02 — Default skin changed to Original & unfinished skin warnings
 
-Bugs learned from, not just fixed. Both 2026-07-23 defect classes got full recursive
-postmortems (CODE_REVIEW/POST_MORTEM.md) with preventions actioned at every level, and
-the postmortem discipline itself is now a standing CLAUDE.md rule here, mirroring
-winisd_tools.
+- **Original skin is now the default skin.** Swapped the default UI skin from modern to the classic WinISD-ported `original` skin for a fresh application load.
+- **Unfinished skins display warnings when active.** Added a warning banner and flash toast when switching to or displaying unfinished skins (modern/classic) to advise users of incomplete work.
+- **Playwright browser tests stabilized and pass on WSL2.** Resolved headful/headless Chromium launch crashes on WSL2 by adding GPU-disabling arguments, and avoided test breaks by dynamically defaulting to the modern skin in the test environment (port 4100).
 
-## 2026-07-23 — Original skin: resizable/collapsible panels, chart maximise, cursor level-lines
+## 2026-07-29 — Complete retro skin alignment & advanced parameters
 
-Work the chart, not around it. The Original skin's left panel and bottom section were fixed
-tracks (250px / 290px) — long project names clipped with no remedy, and the chart could never
-grow. Both are now splitter-draggable and collapsible, and a maximise button gives the chart
-the whole page while the toolbar stays live (so the chart type is still switchable). Sizes
-persist per device, never in share links.
-
-Read the level, not just the frequency. Every chart draws a horizontal line where the cursor
-crosses the current design's curve — one on hover, one per edge of a drag-selection — so
-comparing levels across a band no longer means eyeballing against the grid.
-
-Honest naming and reachable controls. "+ Compare" is now "+ Clone/Compare" (it clones a
-snapshot), Projects rows are plain [checkbox] Name with click-to-select, and a visible
-✕ Close button under the list removes the selected overlay — the action row mimics WinISD's
-right-click project menu instead of hiding a hover-revealed ✕ off the row's right edge.
-The drag-select readout also stops printing the same span twice (now a single Δ), and the
-mock-only Entered/Calculated/Not-available swatch legend is gone from the content panel —
-not a WinISD element; the colour semantics belong to the driver editor.
-
-Recorded, not lost: the "open project appears to do nothing" bug is root-caused in
-BACKLOG.md (importFile drops project meta + compare overlays; the Projects list never shows
-the project name) with fix options awaiting a pick, alongside a design item for the whole
-Clone/Compare "Projects" concept (AI-introduced, never human-designed).
-
-## 2026-07-23 — Options dialog fleshed out: username/environment defaults, chart colors, per-chart axis limits
-
-The Options dialog (wrench/tools icon, every skin) previously only had WinISD's "Reset to
-Metric" button — its Username field, Environment group, and entire Plot Window tab were
-placeholders. Now: a **Username** field and an **Environment** group (Temperature/Air
-pressure/Relative humidity, plus a derived Sound velocity readout) that set the app-level
-defaults a project's Advanced pane starts from — previously that starting point was a fixed
-literal baked into the code, so it could never be changed without editing source. The **Plot
-Window** tab adds a **Colors** group (background, gridlines, axis labels, and the amber
-power-limited trace tint are now user-pickable, live-applied to every chart) and a **Limits**
-table that sets each chart's default zoom level (reusing the same mechanism the existing
-drag-to-zoom gesture writes to, so an untouched chart still auto-scales as before). Two of
-WinISD's six chart colors (the 0 dB / -3 dB reference lines) are shown but inactive — OpenISD
-has no separate 0 dB-normalized transfer-function chart to draw them on yet, so they're marked
-rather than faked. Username/environment defaults/chart colors are personal preferences, kept out
-of shared links.
-
-## 2026-07-22 — Save/Save-As-&-Export unified across all skins; icons match real WinISD; share links now restore skin+tab
-
-Project Save was three inconsistent, duplicated buttons on the Original toolbar (two of them
-did the exact same thing), Classic lacked a share action entirely, and every "save" was a
-browser download with no way to overwrite the same file twice. Now every skin (Modern, Classic,
-Original) exposes the identical two actions: **Save** writes the design as a native
-`.openisd.json` to a file you pick once, then overwrites that same file in place on every
-subsequent Save (via the File System Access API in Chromium; Firefox/Safari fall back to a
-plain download, since they don't support it); the combined **Save-As/Export ▾** menu covers the
-rest — Save as OpenISD project (.json, pick a new file), Save as WinISD project (**new** —
-`.wpr`, a from-scratch serializer following the documented WinISD file schema and cross-checked
-against a real WinISD-saved sample), Export driver (.wdr, unchanged), and Share link. Toolbar
-iconography on Original and Classic was bare grey wireframe outlines; both now draw from one
-shared icon set modelled directly on the real WinISD 0.7.0.950 toolbar screenshot — filled
-orange folder, silver floppy disks, blue driver/info icons — so the two WinISD-recreation skins
-finally look like WinISD instead of a placeholder sketch. Also fixed: a share link previously
-dropped the sender's skin and reset to a generic default on open — opening a shared link now
-puts the recipient on the exact same skin and project tab the sender was looking at, not just
-the same design values.
-
-## 2026-07-22 — Real per-field unit conversion (all skins)
-
-Click a field's unit and the value now actually converts — before, the unit label rotated
-(cm → mm → in) but the number sat unchanged, so a vent length read "10.20" relabelled as mm,
-silently wrong. Clicking now rescales the shown value and its decimal places, and typing in the
-new unit is converted back. Trustworthy on every control with a real alternate unit — volume, length, area, frequency, mass,
-and (via affine conversion) absolute temperature K/°C/°F and pressure Pa/kPa/atm — across all
-skins. The underlying model is always SI regardless of the unit on screen, so the physics is
-never affected by a display choice: switching the room temperature to °C leaves the simulated
-sound velocity identical. The chosen unit sticks per field across a page refresh, and is kept
-out of shared links (a recipient keeps their own unit-display preference). Built as one
-reusable piece — a `display = SI × factor + offset` registry plus a `UnitToggle` label and
-unit-aware `NumInput` — so temperature needed no special case and new fields opt in with three
-props instead of copy-pasted scale factors. Dimensionless and electrical cells (Q, Ω, V, W, …)
-stay fixed — they have no meaningful second unit. Two more conversions followed the same
-pattern: a coil temperature RISE (a difference, K/°F — no offset, distinct from absolute
-temperature) and the coil resistance coefficient (1000/K, %/K, 1/K). Also fixed: converting a
-high-precision base unit into a coarser one (grams → kilograms) was piling up meaningless
-trailing zeros (0.00000000 kg) — every derived precision is now capped. The passive-radiator
-panel's summaries (Fp, Fs, Vas, Mms) and the status-bar strip now show whichever unit is already
-chosen for that quantity, instead of always showing litres/Hz/grams regardless of what the
-entered field nearby uses — fixing a real inconsistency where the same number could read
-differently in two places on screen. Along the way, the PR panel's editable WinISD-mode Vas
-field turned out to be silently treating a litres value as if it were the app's SI unit; it now
-converts through an explicit boundary so a unit switch there can never silently corrupt the
-underlying moving-mass/compliance numbers. A real WinISD Options dialog (General tab → Units →
-"Reset to Metric (l, mm, …)", matching the real app exactly) undoes all that unit-clicking in
-one click, reverting every field to its own default unit — the design itself is never touched,
-only how it's displayed. The wrench/options toolbar icon on Original and Classic, previously a
-disabled placeholder, now opens it; Modern gained a matching Options entry.
-
-## 2026-07-21 — Power compression + driver added-mass (WinISD parity)
-
-Two effects WinISD simulates but OpenISD ignored now work — verified against a live WinISD
-session, not guessed. Voice-coil power compression: set a coil temperature rise (with the
-resistance TC) and the impedance floor lifts while SPL sags, because the hot coil resists more
-current — the reason a real speaker gains less than +3 dB when you double the power. Driver
-added-mass: weight the cone and the resonance drops (Mms up → Fs down), matching WinISD's
-70→25 Hz for +100 g. Both default to off (exact no-ops), so every existing design is unchanged;
-the three fields on the Original Driver pane's Advanced options are now live inputs, not greyed
-placeholders. Engine functions `hotRe` and `withAddedMass` with their own tests; the field
-registry documents each field's model, units, coupling, and no-op behaviour.
-
-Along the way, corrected our own notes: WinISD's legacy help text calls these thermal params
-"not used yet in simulations", but the empirical test proves that text is stale for 0.7.0.950 —
-recorded in WINISD.md §12c as directly-verified evidence.
-
-## 2026-07-20 — Original skin: truthful what-if + New-Project + spinner fixes
-
-Preview a driver tweak without lying about the save state. STATE_MODEL Increment 2 adds a
-driver what-if overlay: the charts and the Tune panel preview a live copy while the committed
-design — and so the Unsaved indicator — stays put until you press Keep. Cancel discards it.
-
-"New Project" now actually starts fresh. It previously kept the old design's filters, compare
-traces, power and vents; now it resets to defaults, warns before discarding unsaved changes,
-and asks for a project name first (shown in the titlebar and Project tab).
-
-Refreshing the page keeps your place. The design, active tab, and selected chart already
-survived a reload; now an open Tune with unsaved what-if values is restored too, reopened
-mid-edit exactly as you left it — without dirtying the project.
-
-Share a link that opens on the same page. A share link now carries the view context (active
-tab + selected chart) alongside the design, so the recipient lands where you were — while
-still keeping their own skin and not inheriting your half-finished edits.
-
-Spinners hold their precision, robustly. Every number field — via the shared NumInput and the
-v-expo-step directive — keeps its fixed decimal places while you spin and steps on a tidy grid
-that is never finer than the field can show, so values below 1.0 no longer sprout extra
-decimals and the down-arrow no longer sticks near zero. A class-wide test spins every field in
-every box type to keep it that way. Verified across Modern and Classic too (shared code).
-
-Series resistance now reads to 3 dp (0.100 ohm) like WinISD. One place decides every field's
-decimal places. A typed field registry (packages/ui/src/fields/fieldRegistry.ts) is the source
-of truth the Original skin reads its NumInput precision from — no more per-field literals to
-drift — and a unit test anchors it back to the WinISD-screenshot evidence in
-docs/winisd/INPUT_PARITY.md. Each entry also carries the field's unit, provenance
-(entered/calculated), and — for calculated fields — its formula and dependencies, seeding a
-small knowledge graph of the design's quantities.
-
-Edit voltage OR power on the Signal tab. Driver input voltage is now editable and drives
-System input power (P = V²/Re), matching WinISD's bidirectional pair.
-
-One place defines every field. `fieldRegistry.ts` is now the canonical catalogue of every
-field on the WinISD screens — description, derivation, dependencies, unit, precision, and
-min/max sanity bounds — split into what OpenISD models vs. WinISD-only reference. Skins, tests,
-UI design, and data-quality checks all read from it instead of hardcoding. Decimal places are
-sourced from the WinISD screenshots (vent diameter corrected to 2 dp; humidity/pressure given
-sane values with the divergence documented).
-
-Physics lives in the engine, not five copies. The PR Vas/Fs/Qms, drive-voltage, and
-sound-velocity formulas that were pasted across five components are now single engine functions
-with their own tests — no drift, identical results in every skin.
-
-Logged a WinISD crash: clearing its Air Pressure field traps the app in a "Cannot convert
-floating point number" loop; OpenISD's equivalent field must guard empty input.
-
-## 2026-07-05 — .wpr project file schema documented
-
-Contributors building `.wpr` import/export (the gap called out in `COMPARISON.md`) now have a
-starting map instead of a blank page. `WINISD_WPR_FILE_SCHEMA.md` reverse-engineers the WinISD
-project-file format from 48 real user project files cross-checked against the official WinISD
-help text: confirms `Box.BType` 0/1/4 = closed/vented/passive-radiator, the always-present-but-
-often-inert vent/PR sections, and the filter-chain encoding — with every unconfirmed field (the
-two unseen bandpass `BType` values, the `f`/`c` chamber triplet, `VentIntra`) explicitly flagged
-rather than guessed at.
+- **All advanced and physical driver parameters are fully modelled and editable.** Wired all previously disabled/placeholder fields in `DriverEditorModal.vue` to active input components, enabling complete roundtrip editing of metadata, electrical figures of merit, and physical dimensions.
+- **Modals styled with classic Win32 theme in both retro skins.** Aligned all modals (Options, Catalog Browser, Editor, Box Losses, and Project Wizard) under both `Original` and `Classic` skins to render with retro blue titlebars and square gray layouts.
+- **Trace color customization wired in the Classic skin.** Clicking the **Color** button in the Classic skin now cycles the design trace color across the swatch and graph curves, matching original WinISD functionality.
 
 ## 2026-07-04 — Cross-platform visual test baselines
 
 SPL graph visual tests now pass on any OS, not just Windows. The canvas axis labels and app UI hardcoded `Segoe UI` (a Windows-only system font); on Linux the browser silently fell back to a different font with different glyph widths, shifting pixels enough to fail the screenshot comparison — unrelated to any physics change. Bundled `Inter` (self-hosted via `@fontsource/inter`, SIL OFL licensed) so every OS renders identical glyphs, added a `document.fonts.ready` redraw so the canvas never bakes in a fallback-font first paint, and dropped Playwright's per-OS snapshot suffix (`sealed-spl-win32.png` → `sealed-spl.png`) so one baseline set now covers Windows, Linux, and macOS.
 
-Honest, current view of the competitive field. Contributors can now see where OpenISD actually stands against the live browser-based rivals — not just the discontinued WinISD. `COMPARISON.md` gained a five-part web-alternatives matrix (access, box types, graphs, data/formats, construction/crossover) covering 00 Simulator, SpeakerDesign.dev, SpeakerBoxLite and Sonella, every competitor cell marked ⚠ unverified because it is sourced from each tool's own site/roadmap rather than our own testing; `OTHER_TOOLS.md` (since merged into `FEATURE_COMPARISON.md`) and `REFERENCES.md` carry the per-tool research notes and a reference index (adding SpeakerDesign.dev, Sonella, 00 Simulator and closed-beta SoundForm). Makes the gaps (construction output, amplifier-load graph, `.wpr` import) and the uncontested edges (open source + open federated driver commons + CI-proven physics) explicit instead of implied.
+Honest, current view of the competitive field. Contributors can now see where OpenISD actually stands against the live browser-based rivals — not just the discontinued WinISD. `COMPARISON.md` gained a five-part web-alternatives matrix (access, box types, graphs, data/formats, construction/crossover) covering 00 Simulator, SpeakerDesign.dev, SpeakerBoxLite and Sonella, every competitor cell marked ⚠ unverified because it is sourced from each tool's own site/roadmap rather than our own testing; `OTHER_TOOLS.md` and `REFERENCES.md` carry the per-tool research notes and a reference index (adding SpeakerDesign.dev, Sonella, 00 Simulator and closed-beta SoundForm). Makes the gaps (construction output, amplifier-load graph, `.wpr` import) and the uncontested edges (open source + open federated driver commons + CI-proven physics) explicit instead of implied.
 
 ## 2026-07-03 — Rebrand to OpenISD; safe-tool tooling
 
@@ -282,7 +116,7 @@ Code-review docs show only open work. Resolved findings are deleted from `CODE_R
 - **A bad driver parameter no longer crashes the app.** Setting Fs (or any required T/S value) to 0/blank used to throw an uncaught error and blank every graph. Now each chart that can't be computed shows a plain message naming what to fix, the rest of the UI stays alive, and the state round-trips through reload so you can correct it.
 - **Charts never draw incomplete data silently.** A chart is drawn only when every value it uses is valid: a missing _required_ param blocks the whole chart (with a message); a missing _optional_ line (Pe→thermal limit, Xmax→excursion limit) draws the real curve and lists the missing line as a dismissable issue. No half-curves presented as if complete.
 - **One issue list, colour-coded by severity.** The driver panel now lists every active issue — red for "can't simulate", amber for "a reference line is missing" — each dismissable.
-- **Calculations never throw; they return `{value, errors}`.** `deriveDriver`/`parseWdr` now report field-level, human-readable problems instead of throwing or silently producing NaN. Documented as a hard rule in `js-patterns.md` (third-party throwers must be wrapped); `buildPlotData` follows the same contract so the view never inspects store internals to decide what to draw.
+- **Calculations never throw; they return `{value, errors}`.** `deriveDriver`/`parseWdr` now report field-level, human-readable problems instead of throwing or silently producing NaN. Documented as a hard rule in `CODE_REVIEW/ENGINE_HARDENING.md` (third-party throwers must be wrapped); `buildPlotData` follows the same contract so the view never inspects store internals to decide what to draw.
 
 ## 2026-07-01 — WDR field documentation, _ directory convention
 
