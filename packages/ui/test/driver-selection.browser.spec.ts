@@ -52,7 +52,9 @@ async function pickSeededDriver(page: Page) {
 }
 
 test('choosing a driver embeds it in the project and closes the picker', async ({ page }) => {
-  await page.goto('/');
+  // No goto here: beforeEach already loaded the seeded page. A third navigation cancels the
+  // second load's in-flight requests — `icon.svg` aborts — and the fixture rightly counts an
+  // aborted same-origin request as a network failure.
   const before = (await page.locator('.nm').first().textContent())?.trim();
 
   await pickSeededDriver(page);

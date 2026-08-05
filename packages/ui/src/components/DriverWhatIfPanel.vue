@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import { state, driver, driverRaw, driverCell, driverJSON, driverBaseline, driverBaselineName,
-         enterDriverField, clearDriverField, resetDriverToBaseline, revertDriverTo } from '../store.js';
+         driverConsistencyIssues, enterDriverField, clearDriverField, resetDriverToBaseline,
+         revertDriverTo } from '../store.js';
 import { ebp } from '@openisd/engine';
 import { upsertMyDriver } from '../utils/myDrivers.js';
-import { cellClassOf, useQGroupIncomplete, Q_GROUP } from '../composables/useDriverCells.js';
+import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../composables/useDriverCells.js';
 import NumInput from './NumInput.vue';
 
 // Inline What-If editor — NOT a modal. It replaces the Driver-tab summary in place
@@ -172,6 +173,11 @@ function fieldClasses(f: Fld): Record<string, boolean> {
     'de-input-empty': mandatory && shown === '',
   };
 }
+
+// Consistency-group DQ mark. Typing a value that contradicts the rest of its group — an Mms
+// the entered Fs and Cms cannot produce — marks EVERY member of that group, here and in the
+// driver editor alike. It is a mark only: nothing on this panel is disabled by it.
+const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, key);
 </script>
 
 <template>
@@ -185,6 +191,7 @@ function fieldClasses(f: Fld): Record<string, boolean> {
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
+      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
       <span class="u">{{ f.unit }}</span>
     </div>
 
@@ -201,6 +208,7 @@ function fieldClasses(f: Fld): Record<string, boolean> {
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
+      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
       <span class="u">{{ f.unit }}</span>
     </div>
 
@@ -210,6 +218,7 @@ function fieldClasses(f: Fld): Record<string, boolean> {
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
+      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
       <span class="u">{{ f.unit }}</span>
     </div>
     <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override

@@ -72,13 +72,11 @@ export function solveConsistencyGroup(d: DriverRaw): DriverRaw {
         r.Bl = Math.sqrt(2 * Math.PI * r.Fs * r.Mms * r.Re / r.Qes);
     }
 
-    // Auto-derive physical Xmax if missing but Hc and Hg are present. Confirmed WinISD
-    // behavior, not an invented formula — proof: WinISD's own help file states this
-    // verbatim: "Xmax ... usually calculated as abs(Hc-Hg)/2 ... WinISD does not multiply
-    // with any of these factors" (research/winisd/help/thielesmall.html, "Xmax" entry
-    // under Large-Signal Parameter section — reproduce by opening that file and reading
-    // the Xmax <dd>). Cross-confirmed as consistency group 19 in WDR_SCHEMA.md §4.
-    if (!(r.Xmax! > 0) && r.Hc! > 0 && r.Hg! > 0) r.Xmax = Math.abs(r.Hc! - r.Hg!) / 2;
+    // Xmax is INPUT ONLY and is never derived (human ruling 2026-08-05): it is a stated
+    // physical limit of the driver, and a limit the manufacturer did not state is not ours
+    // to invent. `abs(Hc-Hg)/2` is one geometric convention among several — WinISD's help
+    // says "usually calculated as" — and a value produced that way would be indistinguishable
+    // from one the manufacturer published while carrying none of its authority.
 
     // Peak displacement volume, SI (m³) — matches wdr.ts's file-format convention and
     // the UI's storage convention (DriverEditorModal.vue scales ×1e6 only for cm³ display).

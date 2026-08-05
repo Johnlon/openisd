@@ -80,6 +80,12 @@ input.st-n, .st-n input { color:var(--mut) }
    wins on specificity and silently swallows the warning. */
 input.de-input-mandatory { border-width:2px !important }
 input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
+/* Field-level DQ mark — a value that is recorded and wrong (not physical, or contradicting the
+   other members of its consistency group). Styled ONCE, like the provenance marks above, so the
+   driver editor and a what-if panel show one driver's data quality the same way. Amber: a
+   warning about data, not an alert that stops anything. The title attribute carries the reason,
+   hence the help cursor. */
+.de-dq { font-size:11px; color:var(--acc2); flex-shrink:0; cursor:help }
 button { background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:5px 10px; cursor:pointer; font:inherit }
 button:hover { border-color:var(--acc) }
 button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font-weight:600 }

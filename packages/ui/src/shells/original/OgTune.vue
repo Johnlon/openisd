@@ -10,11 +10,11 @@
  * single-sourced in the store/ADT.
  */
 import { computed, reactive, watch } from 'vue';
-import { state, driver, driverCell, enterDriverField, clearDriverField,
+import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
          startDriverWhatIf, keepDriverWhatIf, cancelDriverWhatIf, setWhatIfFromBaseline } from '../../store.js';
 import { ebp } from '@openisd/engine';
 import { precision as fieldDp, limits } from '../../fields/fieldRegistry.js';
-import { cellClassOf, useQGroupIncomplete, Q_GROUP } from '../../composables/useDriverCells.js';
+import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../composables/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 
 type NumKey = 'Fs' | 'Qts' | 'Qes' | 'Qms' | 'Vas' | 'Sd' | 'Re' | 'Le' | 'Xmax' | 'Pe' | 'Bl' | 'Mms';
@@ -92,6 +92,11 @@ function fieldClasses(key: NumKey, scale: number): Record<string, boolean> {
   };
 }
 
+// Consistency-group DQ mark. Typing a value that contradicts the rest of its group — an Mms
+// the entered Fs and Cms cannot produce — marks EVERY member of that group, here and in the
+// driver editor alike. It is a mark only: nothing on this panel is disabled by it.
+const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, key);
+
 const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
@@ -128,6 +133,7 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
         <label>{{ f.label }}</label>
         <div class="tune-unit">
           <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -150,6 +156,7 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
           <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -161,6 +168,7 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
         <label>{{ f.label }}</label>
         <div class="tune-unit">
           <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.scale)" :class="fieldClasses(f.key, f.scale)" :value="fieldVal(f.key, f.scale)" @input="onField(f.key, f.scale, $event)" @blur="onBlur(f.key)">
+          <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
           <span v-if="f.unit">{{ f.unit }}</span>
         </div>
       </div>
@@ -181,9 +189,10 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
 
 <style scoped>
 /* Ported from mock/style.css .tune-panel (docked, non-modal what-if editor). */
+/* Width follows its content: two columns of label(34) + gap(6) + input(78) + gap(4) + unit(~26). */
 .tune-panel {
   position: fixed; right: 24px; bottom: 24px; z-index: 60;
-  width: 420px; max-width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto;
+  width: 340px; max-width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto;
   background: #f7f7f7; border: 1px solid #888; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 14px 14px; font-size: 13px;
 }
@@ -192,8 +201,9 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
 .tune-titlebar .close-btn:hover { background: #e64545; color: #fff; }
 .tune-hint { color: #777; font-style: italic; font-size: 11.5px; margin-bottom: 8px; }
 .tune-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
-.tune-fld { min-width: 0; }
-.tune-fld label { display: block; font-size: 11px; color: #555; margin-bottom: 2px; }
+/* Right-aligned so each label ends against its own input. 34px holds the widest ("Xmax"). */
+.tune-fld { min-width: 0; display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 6px; }
+.tune-fld label { font-size: 11px; color: #555; text-align: right; white-space: nowrap; }
 .tune-fld .opt-lbl { color: #999; font-style: italic; }
 .tune-unit { display: flex; align-items: center; gap: 4px; }
 /* Sized to its own content, not to the column. 78px holds the widest value any of these

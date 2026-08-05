@@ -8,7 +8,7 @@ import { Driver as DriverModel } from '@openisd/winisd';
 import NumInput from './NumInput.vue';
 import { precision } from '../fields/fieldRegistry.js';
 import { useEscToClose } from '../composables/useEscToClose.js';
-import { cellClassOf, useQGroupIncomplete } from '../composables/useDriverCells.js';
+import { cellClassOf, useQGroupIncomplete, consistencyNote } from '../composables/useDriverCells.js';
 import { saveTextAs } from '../utils/fileSave.js';
 import { upsertMyDriver } from '../utils/myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
@@ -105,6 +105,20 @@ function isBadValue(field: string): boolean {
   const _ = trigger.value;
   const v = draftDriver.value.cell(field).value;
   return typeof v === 'number' && !(v > 0);
+}
+
+const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.';
+
+// INCONSISTENT — the field belongs to a consistency group (WDR_SCHEMA §4) whose members
+// contradict each other beyond their own precision. The ADT decides; every member of the
+// group is marked, because none of them is more wrong than the others. Like every other DQ
+// state here it blocks nothing: the driver still simulates, saves and exports.
+const issues = computed(() => { const _ = trigger.value; return draftDriver.value.consistencyIssues(); });
+
+/** The one DQ mark per field: its reason, or '' when there is nothing to say. */
+function dqNote(field: string): string {
+  if (isBadValue(field)) return BAD_VALUE_NOTE;
+  return consistencyNote(issues.value, field);
 }
 
 // Two lists, never merged: a missing Brand does not blank a chart, and a missing Fs does not
@@ -331,28 +345,28 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <div class="de-fld" title="Electrical Q factor — motor damping. WinISD: Qes">
                 <label>Qes</label>
                 <NumInput :class="cellClass('Qes')" :mandatory="qIncomplete" :model-value="cellVal('Qes')" :scale="1" :precision="3" @update:model-value="v => setNum('Qes', v)">
-                </NumInput><span v-if="isBadValue('Qes')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
               <div class="de-fld" title="Mechanical Q factor — suspension damping. WinISD: Qms">
                 <label>Qms</label>
                 <NumInput :class="cellClass('Qms')" :mandatory="qIncomplete" :model-value="cellVal('Qms')" :scale="1" :precision="3" @update:model-value="v => setNum('Qms', v)">
-                </NumInput><span v-if="isBadValue('Qms')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
               <div class="de-fld" title="Total Q factor = Qes·Qms/(Qes+Qms). WinISD: Qts">
                 <label>Qts</label>
                 <NumInput :class="cellClass('Qts')" :mandatory="qIncomplete" :model-value="cellVal('Qts')" :scale="1" :precision="3" @update:model-value="v => setNum('Qts', v)">
-                </NumInput><span v-if="isBadValue('Qts')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
               <div class="de-fld" title="Free-air resonance frequency. WinISD: Fs">
                 <label>Fs</label>
                 <NumInput :class="cellClass('Fs')" :mandatory="true" :model-value="cellVal('Fs')" :scale="1" :precision="2" @update:model-value="v => setNum('Fs', v)">
-                </NumInput><span v-if="isBadValue('Fs')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Fs')" class="de-dq" :title="dqNote('Fs')">&#9888;</span>
                 <span class="u">Hz</span>
               </div>
               <div class="de-fld" title="Equivalent compliance volume. WinISD: Vas">
                 <label>Vas</label>
                 <NumInput :class="cellClass('Vas')" :mandatory="true" :model-value="cellVal('Vas')" :scale="1000" :precision="precision('Vas')" @update:model-value="v => setNum('Vas', v)">
-                </NumInput><span v-if="isBadValue('Vas')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Vas')" class="de-dq" :title="dqNote('Vas')">&#9888;</span>
                 <span class="u">L</span>
               </div>
             </div>
@@ -364,58 +378,58 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <div class="de-fld" title="Derived: Mms = 1 / ((2π·Fs)²·Cms) — total moving mass.">
                 <label>Mms</label>
                 <NumInput :class="cellClass('Mms')" :model-value="cellVal('Mms')" :scale="1000" :precision="2" @update:model-value="v => setNum('Mms', v)">
-                </NumInput><span v-if="isBadValue('Mms')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Mms')" class="de-dq" :title="dqNote('Mms')">&#9888;</span>
                 <span class="u">g</span>
               </div>
               <div class="de-fld" title="Derived: Cms = Vas / (ρc²·Sd²) — suspension compliance.">
                 <label>Cms</label>
                 <NumInput :class="cellClass('Cms')" :model-value="cellVal('Cms')" :scale="1000" :precision="4" @update:model-value="v => setNum('Cms', v)">
-                </NumInput><span v-if="isBadValue('Cms')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Cms')" class="de-dq" :title="dqNote('Cms')">&#9888;</span>
                 <span class="u">mm/N</span>
               </div>
               <div class="de-fld" title="Derived: Rms = 2π·Fs·Mms/Qms — suspension mechanical resistance.">
                 <label>Rms</label>
                 <NumInput :class="cellClass('Rms')" :model-value="cellVal('Rms')" :scale="1" :precision="4" @update:model-value="v => setNum('Rms', v)">
-                </NumInput><span v-if="isBadValue('Rms')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Rms')" class="de-dq" :title="dqNote('Rms')">&#9888;</span>
                 <span class="u">Ns/m</span>
               </div>
               <div class="de-fld" title="DC voice coil resistance. WinISD: Re">
                 <label>Re</label>
                 <NumInput :class="cellClass('Re')" :mandatory="true" :model-value="cellVal('Re')" :scale="1" :precision="3" @update:model-value="v => setNum('Re', v)">
-                </NumInput><span v-if="isBadValue('Re')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Re')" class="de-dq" :title="dqNote('Re')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" title="Derived: Bl = √(2π·Fs·Mms·Re / Qes) — motor force factor.">
                 <label>BL</label>
                 <NumInput :class="cellClass('Bl')" :model-value="cellVal('Bl')" :scale="1" :precision="3" @update:model-value="v => setNum('Bl', v)">
-                </NumInput><span v-if="isBadValue('Bl')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Bl')" class="de-dq" :title="dqNote('Bl')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
               <div class="de-fld" title="Diaphragm/dome depth — WinISD: Dd">
                 <label>Dd</label>
-                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="isBadValue('Dd')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
                 <span class="u">m</span>
               </div>
               <div class="de-fld" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
                 <label>Le</label>
                 <NumInput :class="cellClass('Le')" :model-value="cellVal('Le')" :scale="1000" :precision="3" @update:model-value="v => setNum('Le', v)">
-                </NumInput><span v-if="isBadValue('Le')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Le')" class="de-dq" :title="dqNote('Le')">&#9888;</span>
                 <span class="u">mH</span>
               </div>
               <div class="de-fld" title="Effective piston area. WinISD: Sd">
                 <label>Sd</label>
                 <NumInput :class="cellClass('Sd')" :mandatory="true" :model-value="cellVal('Sd')" :scale="1e4" :precision="precision('Sd')" @update:model-value="v => setNum('Sd', v)">
-                </NumInput><span v-if="isBadValue('Sd')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Sd')" class="de-dq" :title="dqNote('Sd')">&#9888;</span>
                 <span class="u">cm²</span>
               </div>
               <div class="de-fld" title="Voice-coil inductance corner frequency — WinISD: fLe">
                 <label>fLe</label>
-                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" :scale="1000" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="isBadValue('fLe')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" :scale="1000" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
                 <span class="u">kHz</span>
               </div>
               <div class="de-fld" title="Le semi-inductance coefficient — WinISD: KLe">
                 <label>KLe</label>
-                <NumInput :class="cellClass('Le2')" :model-value="cellVal('Le2')" @update:model-value="v => setNum('Le2', v)"></NumInput><span v-if="isBadValue('Le2')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Le2')" :model-value="cellVal('Le2')" @update:model-value="v => setNum('Le2', v)"></NumInput><span v-if="dqNote('Le2')" class="de-dq" :title="dqNote('Le2')">&#9888;</span>
                 <span class="u">H·√Hz</span>
               </div>
             </div>
@@ -427,33 +441,33 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <div class="de-fld" title="Peak one-way linear excursion. WinISD: Xmax">
                 <label>Xmax</label>
                 <NumInput :class="cellClass('Xmax')" :model-value="cellVal('Xmax')" :scale="1000" :precision="3" @update:model-value="v => setNum('Xmax', v)">
-                </NumInput><span v-if="isBadValue('Xmax')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Xmax')" class="de-dq" :title="dqNote('Xmax')">&#9888;</span>
                 <span class="u">mm peak</span>
               </div>
               <div class="de-fld" title="Voice coil former height above/below the gap — WinISD: hc.">
                 <label>Hc</label>
-                <NumInput :class="cellClass('hc')" :model-value="cellVal('hc')" :scale="1000" @update:model-value="v => setNum('hc', v)"></NumInput><span v-if="isBadValue('hc')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('hc')" :model-value="cellVal('hc')" :scale="1000" @update:model-value="v => setNum('hc', v)"></NumInput><span v-if="dqNote('hc')" class="de-dq" :title="dqNote('hc')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
               <div class="de-fld" title="Magnetic gap height — WinISD: hag.">
                 <label>Hg</label>
-                <NumInput :class="cellClass('hag')" :model-value="cellVal('hag')" :scale="1000" @update:model-value="v => setNum('hag', v)"></NumInput><span v-if="isBadValue('hag')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('hag')" :model-value="cellVal('hag')" :scale="1000" @update:model-value="v => setNum('hag', v)"></NumInput><span v-if="dqNote('hag')" class="de-dq" :title="dqNote('hag')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
               <div class="de-fld" title="Volume displaced by the cone at Xmax — WinISD: Vd.">
                 <label>Vd</label>
-                <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" :scale="1e6" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="isBadValue('Vd')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" :scale="1e6" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="dqNote('Vd')" class="de-dq" :title="dqNote('Vd')">&#9888;</span>
                 <span class="u">cm³</span>
               </div>
               <div class="de-fld" title="Mechanical excursion limit before physical damage — WinISD: Xlim.">
                 <label>Xlim</label>
-                <NumInput :class="cellClass('Xlim')" :model-value="cellVal('Xlim')" :scale="1000" @update:model-value="v => setNum('Xlim', v)"></NumInput><span v-if="isBadValue('Xlim')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Xlim')" :model-value="cellVal('Xlim')" :scale="1000" @update:model-value="v => setNum('Xlim', v)"></NumInput><span v-if="dqNote('Xlim')" class="de-dq" :title="dqNote('Xlim')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
               <div class="de-fld" title="Rated continuous power handling. WinISD: Pe">
                 <label>Pe</label>
                 <NumInput :class="cellClass('Pe')" :model-value="cellVal('Pe')" :scale="1" :precision="1" @update:model-value="v => setNum('Pe', v)">
-                </NumInput><span v-if="isBadValue('Pe')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Pe')" class="de-dq" :title="dqNote('Pe')">&#9888;</span>
                 <span class="u">W</span>
               </div>
             </div>
@@ -464,28 +478,28 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             <div class="de-cols">
               <div class="de-fld" title="Reference efficiency — WinISD: no">
                 <label>no</label>
-                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="isBadValue('no')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :scale="100" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
                 <span class="u">%</span>
               </div>
               <div class="de-fld" title="Nominal impedance — label only, not used in simulation. WinISD: Znom. OpenISD field: Z">
                 <label>Znom</label>
                 <NumInput :class="cellClass('Z')" :model-value="cellVal('Z')" :scale="1" :precision="3" @update:model-value="v => setNum('Z', v)">
-                </NumInput><span v-if="isBadValue('Z')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                </NumInput><span v-if="dqNote('Z')" class="de-dq" :title="dqNote('Z')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" title="Unity SPL — WinISD: USPL">
                 <label>USPL</label>
-                <NumInput :class="cellClass('USPL')" :model-value="cellVal('USPL')" @update:model-value="v => setNum('USPL', v)"></NumInput><span v-if="isBadValue('USPL')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('USPL')" :model-value="cellVal('USPL')" @update:model-value="v => setNum('USPL', v)"></NumInput><span v-if="dqNote('USPL')" class="de-dq" :title="dqNote('USPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" title="Rated sensitivity — WinISD: SPL">
                 <label>SPL</label>
-                <NumInput :class="cellClass('SPL')" :model-value="cellVal('SPL')" @update:model-value="v => setNum('SPL', v)"></NumInput><span v-if="isBadValue('SPL')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('SPL')" :model-value="cellVal('SPL')" @update:model-value="v => setNum('SPL', v)"></NumInput><span v-if="dqNote('SPL')" class="de-dq" :title="dqNote('SPL')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" title="Number of voice coils — WinISD: numVC">
                 <label>Voicecoils</label>
-                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="isBadValue('numVC')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
               </div>
               <div class="de-fld" title="Dual voice coil wiring — WinISD: Connection">
                 <label>Connection</label>
@@ -502,17 +516,17 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             <div class="de-cols">
               <div class="de-fld" title="Voice coil resistance temperature coefficient — WinISD: AlfaVC">
                 <label>AlfaVC</label>
-                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="isBadValue('tc')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
                 <span class="u">1000/K</span>
               </div>
               <div class="de-fld" title="Thermal resistance voice coil→ambient — WinISD: R(t)">
                 <label>R(t)</label>
-                <NumInput :class="cellClass('Rth')" :model-value="cellVal('Rth')" @update:model-value="v => setNum('Rth', v)"></NumInput><span v-if="isBadValue('Rth')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Rth')" :model-value="cellVal('Rth')" @update:model-value="v => setNum('Rth', v)"></NumInput><span v-if="dqNote('Rth')" class="de-dq" :title="dqNote('Rth')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
               <div class="de-fld" title="Thermal capacitance — WinISD: C(t)">
                 <label>C(t)</label>
-                <NumInput :class="cellClass('Cth')" :model-value="cellVal('Cth')" @update:model-value="v => setNum('Cth', v)"></NumInput><span v-if="isBadValue('Cth')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Cth')" :model-value="cellVal('Cth')" @update:model-value="v => setNum('Cth', v)"></NumInput><span v-if="dqNote('Cth')" class="de-dq" :title="dqNote('Cth')">&#9888;</span>
                 <span class="u">J/K</span>
               </div>
             </div>
@@ -523,32 +537,32 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             <div class="de-cols">
               <div class="de-fld" title="Max SPL, low-frequency-limited — WinISD: SPLmaxLF">
                 <label>SPLmaxLF</label>
-                <NumInput :class="cellClass('SPLmaxLF')" :model-value="cellVal('SPLmaxLF')" @update:model-value="v => setNum('SPLmaxLF', v)"></NumInput><span v-if="isBadValue('SPLmaxLF')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('SPLmaxLF')" :model-value="cellVal('SPLmaxLF')" @update:model-value="v => setNum('SPLmaxLF', v)"></NumInput><span v-if="dqNote('SPLmaxLF')" class="de-dq" :title="dqNote('SPLmaxLF')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" title="Max SPL — WinISD: SPLmax">
                 <label>SPLmax</label>
-                <NumInput :class="cellClass('SPLmax')" :model-value="cellVal('SPLmax')" @update:model-value="v => setNum('SPLmax', v)"></NumInput><span v-if="isBadValue('SPLmax')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('SPLmax')" :model-value="cellVal('SPLmax')" @update:model-value="v => setNum('SPLmax', v)"></NumInput><span v-if="dqNote('SPLmax')" class="de-dq" :title="dqNote('SPLmax')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" title="Motional electrical resistance at resonance — WinISD: Rme">
                 <label>Rme</label>
-                <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="isBadValue('Rme')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Rme')" :model-value="cellVal('Rme')" @update:model-value="v => setNum('Rme', v)"></NumInput><span v-if="dqNote('Rme')" class="de-dq" :title="dqNote('Rme')">&#9888;</span>
                 <span class="u">Ns/m</span>
               </div>
               <div class="de-fld" title="Motor figure of merit — WinISD: gamma">
                 <label>gamma</label>
-                <NumInput :class="cellClass('gamma')" :model-value="cellVal('gamma')" @update:model-value="v => setNum('gamma', v)"></NumInput><span v-if="isBadValue('gamma')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('gamma')" :model-value="cellVal('gamma')" @update:model-value="v => setNum('gamma', v)"></NumInput><span v-if="dqNote('gamma')" class="de-dq" :title="dqNote('gamma')">&#9888;</span>
                 <span class="u">N/(A·kg)</span>
               </div>
               <div class="de-fld" title="Power-limited motor figure of merit — WinISD: Mpow">
                 <label>Mpow</label>
-                <NumInput :class="cellClass('Mpow')" :model-value="cellVal('Mpow')" @update:model-value="v => setNum('Mpow', v)"></NumInput><span v-if="isBadValue('Mpow')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Mpow')" :model-value="cellVal('Mpow')" @update:model-value="v => setNum('Mpow', v)"></NumInput><span v-if="dqNote('Mpow')" class="de-dq" :title="dqNote('Mpow')">&#9888;</span>
                 <span class="u">N/√W</span>
               </div>
               <div class="de-fld" title="Cost-normalised motor figure of merit — WinISD: Mcost">
                 <label>Mcost</label>
-                <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="isBadValue('Mcost')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('Mcost')" :model-value="cellVal('Mcost')" @update:model-value="v => setNum('Mcost', v)"></NumInput><span v-if="dqNote('Mcost')" class="de-dq" :title="dqNote('Mcost')">&#9888;</span>
                 <span class="u">kg/s</span>
               </div>
               <div class="de-fld st-c" title="Derived: EBP = Fs / Qes — Efficiency Bandwidth Product. Read-only, not entered directly. WinISD: EBP">
@@ -557,7 +571,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               </div>
               <div class="de-fld" title="Cone material loss factor — WinISD: Gloss">
                 <label>Gloss</label>
-                <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="isBadValue('loss')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span>
+                <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="dqNote('loss')" class="de-dq" :title="dqNote('loss')">&#9888;</span>
                 <span class="u">%</span>
               </div>
             </div>
@@ -582,14 +596,14 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         <div v-if="tab === 'Dimensions'" class="de-dims">
           <div class="de-dimlist">
             <div class="de-hdr">Dimensions</div>
-            <div class="de-fld" title="Frame flange thickness — WinISD: Thick"><label>Thick</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="isBadValue('thick')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">in</span></div>
-            <div class="de-fld" title="Overall driver depth — WinISD: Depth"><label>Depth</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="isBadValue('depth')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Magnet stack depth — WinISD: Magnet depth"><label>Magnet Depth</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="isBadValue('magnetDepth')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Magnet diameter — WinISD: Magnet"><label>Magnet</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="isBadValue('magnet')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Basket/frame diameter — WinISD: Basket"><label>Basket</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="isBadValue('basket')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Overall outer frame diameter — WinISD: Outer"><label>Outer</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="isBadValue('outer')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Voice coil diameter — WinISD: VCd"><label>VCd</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="isBadValue('VCd')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Basket displacement volume — WinISD: Dvol"><label>Dvol</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" :scale="1e6" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="isBadValue('basketDisplacement')" class="de-dq" title="Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.">&#9888;</span><span class="u">cm³</span></div>
+            <div class="de-fld" title="Frame flange thickness — WinISD: Thick"><label>Thick</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><span class="u">in</span></div>
+            <div class="de-fld" title="Overall driver depth — WinISD: Depth"><label>Depth</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Magnet stack depth — WinISD: Magnet depth"><label>Magnet Depth</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Magnet diameter — WinISD: Magnet"><label>Magnet</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Basket/frame diameter — WinISD: Basket"><label>Basket</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Overall outer frame diameter — WinISD: Outer"><label>Outer</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Voice coil diameter — WinISD: VCd"><label>VCd</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><span class="u">m</span></div>
+            <div class="de-fld" title="Basket displacement volume — WinISD: Dvol"><label>Dvol</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" :scale="1e6" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><span class="u">cm³</span></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
@@ -843,14 +857,8 @@ input.st-n, .de-fld.st-n input { color: var(--mut); }
   border-color: #d9381e !important;
   box-shadow: 0 0 0 1px rgba(217, 56, 30, .25) !important;
 }
-/* Bad data (a value of zero or less where none is physical). It is DISPLAYED, not hidden —
-   the point is that someone recorded it and it is wrong, which a blank field cannot say. */
-.de-dq {
-  font-size: 11px;
-  color: #c97600;
-  flex-shrink: 0;
-  cursor: help;
-}
+/* `.de-dq`, the field-level DQ mark, is styled in style.css — the what-if panels wear the same
+   mark, so one driver's data quality cannot look different in two places. */
 
 /* One strip, above the footer, naming everything that stops the driver simulating. It never
    disables a button — see the DQ block in the script for why. */

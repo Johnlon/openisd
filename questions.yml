@@ -1,5 +1,5 @@
 prefix: QO
-next: 21
+next: 25
 questions:
 - id: QO1
   title: UI TODO List
@@ -555,6 +555,38 @@ questions:
       QUESTION FOR THE HUMAN: is another session/agent running in openisd right now? If so the
       browser suite cannot be trusted until it stops, and no "all gates green" claim can be made.
       If not, the 4321 server is an orphan to hunt down and the SIGKILL needs its own diagnosis.
+  - at: '2026-08-05'
+    text: |-
+      CAUSE FOUND, and the suite is now runnable to green: it is WORKER CONCURRENCY, not chromium
+      alone. Measured today, same tree, same box, back to back:
+
+        npx playwright test                (4 workers, the default)  ->  84 failed / 100 passed,
+            693 x ERR_CONNECTION_REFUSED and WebSocket resets — the vite dev server on 4100 DIED
+            partway through and every later test hit a dead port.
+        npx playwright test --workers=1                              ->  188 passed, 0 failed,
+            exit 0, ZERO connection failures. 9.2 min.
+
+      Four chromium instances plus the dev server is more than this WSL2 box survives — dmesg
+      already shows `chrome-headless: potentially unexpected fatal signal 5` (trap int3), and a
+      standalone launch fails roughly 2 tries in 3. Memory is NOT the constraint (16 GB free
+      throughout, no OOM kill in dmesg).
+
+      So `--workers=1` is the working invocation here. Two things follow, neither done yet because
+      they are the human's call:
+        (a) should playwright.config.js pin `workers: 1` (honest for this box, slower for a CI that
+            could take more), or should it stay default with the flag passed by hand?
+        (b) a run that dies mid-way must not read as 84 product failures. The tell is unambiguous —
+            hundreds of ERR_CONNECTION_REFUSED — so the reporter could fail the RUN with "the dev
+            server died" instead of blaming the tests.
+
+      Also fixed today, both of which were making the suite look worse than it was:
+        - `driver-selection.browser.spec.ts:54` did a THIRD `page.goto('/')` on top of the two in
+          its beforeEach; the extra navigation cancelled the previous load's `icon.svg` and the
+          fixture correctly reported an aborted same-origin request. The goto was redundant —
+          deleted, not the guard.
+        - editing source WHILE the suite runs makes vite hot-reload under the tests and shows up as
+          "same-origin network failures" naming the edited files with `?t=` HMR stamps. Two runs
+          were discarded for this. It is not flake and it is not the code; it is the tree moving.
 - id: QO11
   title: Every field must be editable so a CALCULATED value can be overridden — 17 panel readouts are
     read-only spans
@@ -661,9 +693,14 @@ questions:
       value '', badInput false), carrying a badEntry flag so the field is red on that same
       keystroke, and resyncing the DOM on blur. Full-precision emit and caret behaviour untouched —
       both proven by tests.
+  - at: '2026-08-05'
+    text: |-
+      2026-08-05: QO11.1 ticked. Bl and Mms are editable on both OgTune.vue and DriverWhatIfPanel.vue.
+      EBP is excluded by the QO20 ruling "ebp stays readonly" — it is not a driver field and typing
+      one has no defined meaning.
   items:
   - text: 'WhatIf panel: make Qts, Mms and EBP editable — they are pr-roval read-only spans today'
-    done: false
+    done: true
   - text: 'WhatIf panel: narrow the numeric input fields'
     done: true
   - text: 'WhatIf panel: a blank Q autocalculates from the other two, with the editor''s E/C/N colourisation
@@ -677,7 +714,7 @@ questions:
 - id: QO12
   title: 'Over-determined driver: entering Mms while Fs/Vas/Sd stay E is accepted silently and poisons
     Bl/Rms'
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -739,6 +776,89 @@ questions:
       QO20, which is where it should be read. Nothing in it applies to this over-determined-driver
       question. `inbox.py` has no verb to delete a note, so it is retracted in place rather than
       removed.
+  - at: '2026-08-05'
+    text: |-
+      IMPLEMENTED 2026-08-05 (not committed). One mechanism serves this ruling and QP18's, as ruled.
+
+        detector   packages/engine/src/consistency.ts -> checkConsistency(entered): ConsistencyIssue[]
+                   Groups are WDR_SCHEMA.md section 4 verbatim (rows 1,2,3,4,5,6,8,9,10,11,13,20).
+                   Detection only: it reads the solve, it never feeds one. No computed value moved —
+                   regenerating packages/engine/test/fixtures/golden/ produced zero content changes.
+        exposure   Driver.consistencyIssues() (packages/winisd/src/driver.ts), memoised, dropped on
+                   every mutation; store.driverConsistencyIssues for the effective model.
+        render     .de-dq beside EVERY member of a disagreeing group, in DriverEditorModal.vue,
+                   shells/original/OgTune.vue and components/DriverWhatIfPanel.vue. Blocks nothing.
+
+      TOLERANCE — not a chosen number. Each field's uncertainty is half the last significant decimal of
+      the value AS STORED (Vas = 0.0355 => +-0.00005 m3); a COMPUTED field has no literal, so its
+      uncertainty is propagated by bumping each entered field by its own half-ulp and re-solving. A
+      group is reported only when the residual exceeds the sum of those intervals. This is what stops
+      the 2026-08-05 failure being repeated in the other direction: a fixed tol: 0.01 was three times
+      wider than the 0.174% error it existed to catch, whereas a precision-derived interval is by
+      construction narrower than any disagreement the recorded digits can express.
+
+      THE OVER-DETERMINED TRIGGER WAS DELIBERATELY NOT BUILT — see the note added to QO13 the same day.
+      Every library driver is over-determined by construction (E means "present in the file", not
+      "asserted by a human"), so that trigger would mark all 1912 of them. The inconsistent trigger
+      delivers this ruling anyway: over-determination only harms when it contradicts, and the
+      contradiction is what fires.
+
+      NOT MARKED, and it is a judgement worth a human eye: Bl and Rms, which are recomputed FROM the
+      impossible Mms, carry no mark. They reconcile perfectly with the group they were computed from.
+      Marking them needs taint propagation, which is a second mechanism; both rulings say the GROUP is
+      the unit, so the group is what is marked.
+  - at: '2026-08-05'
+    text: |-
+      2026-08-05 — the strongest evidence yet for this feature, from the human driving WinISD:
+
+        "A field might have two conflicting calculated solutions trying to write to it and one of them
+         wins BUT there is no DQ indicated on that conflicted field."
+
+      This is a DISTINCT failure from the entered-vs-entered case. There, neither field can be
+      recomputed, so nothing is ever compared and WinISD structurally cannot notice. HERE the
+      comparison is free: both routes are computable, they disagree, and the engine writes the winner
+      and discards the loser without a word.
+
+      Measured in the human's own state — Hc=1, Hg=2, Vd=1413720cm3, Sd=0.1707, Xmax blank:
+          route 19 geometry : Xmax = 0.5000 m   WINS, written
+          route 20 volume   : Xmax = 8.2819 m   discarded silently, 17x larger
+
+      WHY OPENISD'S DETECTOR COVERS IT ANYWAY, with no extra mechanism: once the winner writes
+      Xmax = 0.5, row 20 holds all three members and they no longer reconcile — Sd x Xmax = 85350 cm3
+      against Vd = 1413720 cm3, out by 17x. checkConsistency fires on {Vd, Sd, Xmax} and marks all
+      three, per the QP18 ruling that the group is the unit.
+
+      So the losing route cannot vanish silently here: writing the winner is exactly what makes the
+      loser's group inconsistent. No taint tracking and no second mechanism needed.
+
+          WinISD                                          openisd
+          two entered fields contradict     invisible     marked
+          two routes disagree               invisible     marked (winner's value fails loser's group)
+
+      WinISD is not failing to warn. It fills holes and never checks — which is why TfrmParErrors
+      sits in winisd.exe having never been observed to fire.
+  answer:
+    at: '2026-08-05'
+    text: |-
+      "if this causes dq error then please add dq note at side of affected fields"
+
+      RULED: an over-determined driver is NOT blocked and NOT silently accepted. Every field
+      implicated in the over-determination carries a DQ note beside it.
+
+      This is the same principle as QP18, ruled the same day: when a consistency group loses
+      consistency, the mark goes on EVERY member of the group, not on one nominated field. A reader
+      looking at any implicated field must see that something disagrees. Here the trigger is
+      different — the group is over-determined rather than merely inconsistent — but the remedy is
+      identical, and the two should share one mechanism rather than growing two.
+
+      The defect: solveConsistencyGroup only fills nulls. It never checks whether the entered set
+      already over-determines the group, so entering Mms while Fs and Cms remain entered is accepted
+      and poisons Bl and Rms with no warning anywhere.
+
+      Why it is now urgent rather than theoretical: QO11 made derived fields editable in the What-If
+      panels on 2026-08-05 (Bl and Mms on OgTune.vue and DriverWhatIfPanel.vue). That is what the
+      human asked for, and it is precisely what makes this reachable from the UI. Every newly
+      editable derived field is a route to a wrong chart with no warning until this lands.
 - id: QO13
   title: Qts never recalculates from Qms/Qes because a library driver arrives with EVERY field marked
     Entered
@@ -770,6 +890,37 @@ questions:
             others (the same eviction rule QO12 needs).
         (c) Leave it: the user clears the field they want recomputed. Cheap, but the panel then
             shows all-green "entered" for values nobody entered, which is false provenance.
+  - at: '2026-08-05'
+    text: |-
+      MEASURED 2026-08-05 against the real bundle (packages/ui/src/drivers-bundle.json, 1912 drivers),
+      while implementing the QP18 / QO12 DQ mark. QO13's claim is TRUE AS WRITTEN, and it is general:
+
+        Library drivers reach the app as `DriverModel.fromJSON(f.record)` (useDriverSelection.ts:87),
+        whose `inputs` bag becomes `#inputs` wholesale — and presence in `#inputs` IS state E.
+        Count of the 16 core fields marked E, over the whole bundle:
+            14 fields E : 412 drivers     13 : 588     12 : 423     11 : 120     10 : 68
+            <=9         : 301 drivers
+        A T/S set is determined by ~6 independent values. So essentially the WHOLE library arrives
+        over-determined, and "E" here does NOT mean "a human asserted this" — it means "this key was
+        present in the file". There is no third mark and no session-scoped edit flag: `enter()` is the
+        only mutation path and construction uses it, so the model cannot tell the two apart.
+
+      CONSEQUENCE FOR QO12, and what shipped: an OVER-DETERMINED trigger would fire on every driver in
+      the library, which makes the mark wallpaper. It was therefore NOT built. What shipped is the
+      INCONSISTENT trigger only (packages/engine/src/consistency.ts), and it covers the QO12 case in
+      full — verified against QO12's own repro:
+
+          demo driver, untouched          -> 0 issues (over-determined, but everything reconciles)
+          type Mms = 30 g                 -> 1 issue: Fs, Mms, Cms marked, "disagree by 28.2%",
+                                             Fs = 1/(2pi*sqrt(Mms*Cms)) gives 26.57 Hz vs the 37 entered
+
+      Over-determination that does not contradict corrupts nothing — whichever path computes a derived
+      value gives the same answer. The only over-determination worth marking is the one that shows up
+      as an inconsistency, and that is exactly what fires.
+
+      WHAT IS STILL OPEN HERE: this does not answer QO13's own question. The stale-Qts symptom
+      ("editing Qms leaves the old Qts sitting there") is untouched — it now merely acquires a DQ mark
+      once the stale value drifts beyond precision. QO13's (a)/(b)/(c) still needs a human ruling.
 - id: QO14
   title: Driver editor shows E/C/N colour on only 14 of 27 Parameters fields — the other 13 are permanently
     black
@@ -801,6 +952,21 @@ questions:
       including the passthrough/WDR-only ones, and N gets its own visible colour), or only of the
       simulated T/S set (then the untracked fields need a visibly different, deliberately inert
       treatment and the legend must say so)? Half-and-half is the one answer that is wrong.
+  - at: '2026-08-05'
+    text: |-
+      IMPLEMENTED. Every numeric field in the driver editor now reports E/C/N — 44 NumInputs across
+      Parameters, Advanced parameters and Dimensions carry :class="cellClass('<field>')", where
+      before only 14 did. `input.st-n` also changed from var(--fg) to var(--mut): N used to render
+      in exactly the black an untracked field had, so "not entered" and "not tracked at all" were
+      indistinguishable — which is what "mms is calculating but it's black" was reporting.
+
+      Locked in by `packages/ui/test/driver-editor-mandatory.browser.spec.ts` — "every Parameters
+      input reports its E/C/N state" walks the DOM and fails naming any input without an st-e/st-c/
+      st-n class, so a field added without one cannot pass silently.
+
+      The underlying question in this item is NOT closed by that: whether E/C/N is a property of
+      every driver field or only of the simulated T/S set is still the human's to rule. What has
+      changed is that the panel is now consistent either way, instead of half-and-half.
 - id: QO15
   title: 'Driver editor unit/binding defects: SPLref vs SPL, fLe scale x1000, VCCon 0/1 vs WinISD 1/2,
     Dimensions in metres, Thick in inches'
@@ -877,6 +1043,24 @@ questions:
       cannot reflow the grid; (c) let the modal grow. The horizontal scrollbar the human also saw
       comes from the same fixed sizing: .de-cols is `grid-template-columns: 165px 165px 165px 1fr`
       inside a 770px modal capped at 96vw, so any window under ~700px CSS px overflows sideways.
+  - at: '2026-08-05'
+    text: |-
+      IMPLEMENTED. The per-field `required` word is gone from the labels. It was inside a
+      `flex: 0 0 62px` label, so it wrapped, grew every row it touched, and pushed the fixed-height
+      dialog into a scrollbar exactly when the human had most to read.
+
+      What replaced it:
+        - the red 2px border stays (NumInput :mandatory), and the Q trio now red-borders as a GROUP
+          while fewer than two of Qts/Qes/Qms are usable — no single member is required, so no
+          single member is marked;
+        - ONE strip above the footer (.de-incomplete) lists every reason the driver will not
+          simulate, read from draftDriver.errors() so the engine stays the only authority;
+        - the dialog GROWS to hold it — `height: 550px` became `min-height: 550px`, and the strip's
+          own `max-height/overflow-y: auto` was deleted after the human reported it scrolling.
+
+      MEASURED after the change, 1400x900, worst case (all T/S cleared AND no brand/model):
+        modal 626/626 · body 416/416 · strip 76/76 — scrollHeight == clientHeight everywhere,
+        horizontally too, and the page itself does not scroll. Screenshot: build/editor-incomplete.png
 - id: QO17
   title: Entered zero is treated as 'not entered' (isFieldEmpty value<=0), so 0.00 raises no DQ mark;
     the quick-fix CLEAR button is dead CSS
@@ -909,6 +1093,23 @@ questions:
            distinct message ("0 is not a physical value for Fs").
         2. The OK gate (isIdentityIncomplete) must fail on BOTH, but say which.
         3. Delete .de-dq-badge / .de-dq-fix / the stale comment.
+  - at: '2026-08-05'
+    text: |-
+      IMPLEMENTED, per the human's ruling that 0.00 is a value and a bad one.
+
+        - isFieldEmpty (which folded "entered zero" into "not entered") is gone. What is left is
+          isBadValue(field): a number that is not > 0, whatever its E/C/N state.
+        - A bad value is DISPLAYED as entered — 0.00 stays 0.00 — and carries a ⚠ .de-dq marker
+          beside its unit, with a tooltip saying it is bad data and that clearing the field is what
+          lets the value be calculated instead.
+        - Not-entered still renders blank. The two states no longer share a presentation.
+        - It does NOT block saving (see QO18): the human keeps their typing either way.
+        - The dead `.de-dq-badge` / `.de-dq-fix` CSS and the stale comment describing the removed
+          quick-fix CLEAR button are deleted.
+
+      Locked in by "an entered zero is BAD DATA, shown and flagged — not treated as blank" in
+      driver-editor-mandatory.browser.spec.ts: it types 0 into Fs and asserts the field still reads
+      0.00, that .de-dq is visible, and that OK stays enabled.
 - id: QO18
   title: Editor's OK gate omits the Q-pair check, so a driver the engine cannot simulate can be committed
   status: decided
@@ -1032,7 +1233,7 @@ questions:
       revert, and this session must not "tidy" any of it.
 - id: QO20
   title: EBP is not a driver field — what should typing one DO? (blocks the last of QO11.1)
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1068,3 +1269,317 @@ questions:
       WHAT IS NEEDED: which field an entered EBP should drive (Qes, or Fs), or a ruling that EBP
       stays a read-out. It is currently a read-out on both panels, tooltipped
       "EBP = Fs / Qes — a read-out of the two fields above, not a field of its own."
+  answer:
+    at: '2026-08-05'
+    text: |-
+      "ebp stays readonly"
+
+      RULED: EBP is a read-out and stays one. Do not make it editable, and do not revisit this
+      under the QO11 "every field must be editable" heading — that rule is about overriding a
+      CALCULATED DRIVER FIELD, and EBP is not a driver field at all.
+
+      Why it is not one: EBP = Fs/Qes is computed in engine/src/alignments.ts, not produced by
+      solveConsistencyGroup, so cell('EBP') is permanently N. An entered EBP would sit in an inert
+      box nothing reads. Solving it backwards is ambiguous — one equation, two unknowns, so it
+      could set Qes or Fs, which are different edits with different consequences — and inventing
+      that rule is calculation logic, which openisd/AGENTS.md gates on explicit human permission.
+
+      Both panels tooltip it as a read-out of the two fields above it. QO11.1 is therefore complete
+      as far as it can be: Bl and Mms are editable, EBP is out of scope by ruling.
+- id: QO21
+  title: Two documents cover the driver record model — DRIVER_RECORD_MODEL.md and WDR_FILE_MODEL_AND_WORKFLOWS.md
+  status: open
+  raised: '2026-08-05'
+  body: ''
+  notes:
+  - at: '2026-08-05'
+    text: |-
+      Raised 2026-08-05. The human ruled that openisd's own record model does not belong in
+      WDR_SCHEMA.md:
+
+        "why would information about the driver.yml and openisd.yml be in the WDR_SCHEMA.md file.
+         That file should be known facts about WDR and winisd, not openisd specific files. so we need
+         a different document covering the openisd models."
+
+      Correct, and the file's own PROVENANCE header says as much: it is reverse-engineered
+      observation of a format we do not control. Our record model is a design decision. Section 8.5
+      was moved to a new openisd/DRIVER_RECORD_MODEL.md, leaving a pointer.
+
+      THE OPEN POINT. openisd/ now has a 28th root markdown file, and there was already a candidate
+      home: WDR_FILE_MODEL_AND_WORKFLOWS.md, whose H1 is literally "Driver library data model".
+      Its content is mostly the WDR field table plus a future-feature section on driver-type
+      classification — so its NAME and its TITLE disagree with each other, and both overlap the new
+      file.
+
+      This is the doc-sprawl finding CODE_REVIEW_1 records as still live: 27 root .md files, six
+      root plans, three roadmaps, no partition rule. I added to it rather than resolving it, because
+      merging or renaming an existing document is a judgement about what the docs are FOR.
+
+      Options:
+        (a) Leave both. DRIVER_RECORD_MODEL.md owns the openisd side; WDR_FILE_MODEL_AND_WORKFLOWS.md
+            keeps the WDR field table and the classification plan. Needs its title corrected, since
+            "Driver library data model" now describes the other file.
+        (b) Fold WDR_FILE_MODEL_AND_WORKFLOWS.md into the two documents that now cover its halves —
+            the field table duplicates WDR_SCHEMA 2/3, and the classification section is a plan, not
+            a model. That deletes a file rather than adding one.
+        (c) Something else.
+
+      Recommend (b): its field table is a second copy of WDR_SCHEMA's, which is exactly the drift
+      risk the single-source rule exists to prevent.
+- id: QO22
+  title: Xmax is INPUT ONLY — never derived (ruled 2026-08-05)
+  status: decided
+  raised: '2026-08-05'
+  body: ''
+  answer:
+    at: '2026-08-05'
+    text: |-
+      "No it's madness" — openisd does NOT reproduce WinISD's Xmax derivation.
+
+      Xmax is a measured physical limit, the one member of {Vd, Sd, Xmax} that is not arithmetic.
+      It is INPUT ONLY. Vd = Sd x Xmax runs one direction: Vd is computed when absent, never solved
+      backwards.
+
+      Three reasons, recorded in openisd/DRIVER_RECORD_MODEL.md 5:
+        - CIRCULAR. Manufacturers publish Vd computed as Sd x Xmax, so deriving Xmax back returns our
+          own number dressed as corroboration. A group that cannot disagree cannot be a check either.
+        - IT INVENTS A LIMIT. A derived Xmax draws an excursion limit line. A limit the manufacturer
+          never stated is not ours to assert, and a wrong line is worse than no line.
+        - WINISD'S OWN ANSWER IS NOT STABLE. Two routes, undocumented precedence, so the same driver
+          yields a different Xmax depending which fields happen to be populated.
+
+      WinISD's actual behaviour stays documented in WDR_SCHEMA.md 4.1 — verified, including the
+      precedence order and the Hc/Hg C-while-blank marks — because the parity suite needs it. It is a
+      record of what WinISD does, not a specification to follow.
+
+      CONSEQUENCE FOR QO8: this is a deliberate divergence. The side-by-side suite must expect
+      openisd to report no Xmax where WinISD synthesises one.
+
+      Code was already in this state: the abs(Hc-Hg)/2 derivation was deleted from
+      packages/engine/src/driver.ts and the reverse Vd solve was never added. 398 unit tests pass,
+      golden fixtures byte-identical.
+  notes:
+  - at: '2026-08-05'
+    text: |-
+      2026-08-05 REOPENED — the ruling as recorded is too broad, and the evidence changed under it.
+
+      WHAT IS NOW ESTABLISHED, by direct observation in WinISD:
+        Xmax = Vd / Sd IS a real WinISD derivation, and {Vd, Sd, Xmax} solves in ALL THREE
+        directions. Observed: Vd=140cm3, Sd=0.0095 -> Xmax displayed 14.7mm. 140e-6/0.0095 =
+        14.7368mm. Exact to the displayed digit. So "Xmax is never calculated" is wrong as stated.
+
+      WHAT IS NOT ESTABLISHED:
+        Xmax = |Hc-Hg|/2 has never been observed to fire. The group membership {Xmax, Hc, Hg} comes
+        from winisd.exe binary strings (WDR_SCHEMA 4, offset ~8894); the FORMULA comes from the help
+        file's definition of the quantity — "usually calculated as abs(Hc-Hg)/2" — which describes
+        industry practice, not this program's behaviour. And WDR_SCHEMA 4 row 7 notes Hc/Hg are
+        "never populated" in practice, so the precondition has never been met. Untested.
+
+      CODE STATE: the |Hc-Hg|/2 derivation was deleted from driver.ts and stays deleted — it is
+      unevidenced. Vd = Sd * Xmax remains ONE-DIRECTIONAL: openisd solves Vd, never Sd or Xmax.
+
+      WHY THIS IS HARDER THAN ONE FIELD:
+        1. Xmax is both a stated physical measurement and a member of an exact identity. A derived
+           Xmax means "the excursion implied by a published Vd", not "the linear limit the
+           manufacturer measured". Same number, different claim.
+        2. Manufacturers usually compute Vd AS Sd x Xmax, so deriving Xmax back is often circular —
+           it returns our own number. A group that cannot conflict cannot be used as a check either.
+        3. THE REAL QUESTION IS NOT ABOUT XMAX. GAPS.md A4 already records it: "E/C/N derivation is
+           one-directional; WinISD's is a group solver". openisd derives one way; WinISD solves in
+           whichever direction the data allows. {Vd, Sd, Xmax} is only where it became visible.
+
+      So the decision is whether openisd becomes a group solver, which is far larger than this field,
+      and it moves computed values on every record holding two of any group's three members.
+  - at: '2026-08-05'
+    text: |-
+      2026-08-05 — BOTH ROUTES ARE REAL, and they are ORDERED. Human ran the test:
+
+        "If I set Vd to 0 it's not entered, then the other calc kicks in of Hc and Hg - but Vd/Sd
+         takes precedence"
+
+      So row 19 (Xmax = abs(Hc-Hg)/2) is LIVE code in WinISD, not a dormant relation. It had simply
+      never been seen because row 20 outranks it and Vd is almost always present. My "no evidence
+      for route 1" was right about the evidence and wrong about the conclusion — the precondition
+      had never been cleared, and clearing it is what exposed the behaviour.
+
+        priority 1   Xmax = Vd / Sd            (row 20, run backwards)
+        priority 2   Xmax = abs(Hc - Hg) / 2   (row 19)
+
+      THE GENERAL FINDING, which is worth more than the Xmax case: a field appearing in two relation
+      groups is not an ambiguity in the table — WinISD picks between the routes in a FIXED ORDER.
+      This is now observed for two fields:
+
+        Xmax   Vd/Sd  beats  abs(Hc-Hg)/2                     (this session)
+        Rme    2pi.Fs.Mms/Qes  beats  BL^2/Re                 (winisd_research GAPS.md A5)
+
+      Any implementation claiming to match WinISD must reproduce the ORDER, not merely the formulas.
+      Two implementations with identical correct formulas will disagree on a record that supplies
+      inputs for both routes — which is exactly how the Rme 0.174% discrepancy presented itself
+      earlier today before it was traced to inconsistent Cms/Vas inputs.
+
+      Recorded in openisd/WDR_SCHEMA.md 4.1, with row 19 re-annotated "verified firing 2026-08-05,
+      but only when Vd is absent".
+
+      STILL OPEN, and unchanged by this: whether openisd becomes a group solver at all. It currently
+      derives one-directionally (Vd from Sd x Xmax only). Matching WinISD means solving in every
+      direction AND honouring the precedence order — and it moves computed values on every record
+      holding two of any group's three members.
+- id: QO23
+  title: Is WinISD's field solver PRECEDENCE-ordered or LAST-EDIT-WINS? One 3-edit test settles it
+  status: decided
+  raised: '2026-08-05'
+  body: ''
+  notes:
+  - at: '2026-08-05'
+    text: |-
+      Raised 2026-08-05 by the human:
+
+        "Sd is also influenced by Dd - hmm it's a big graph where some values are definitely entered
+         or not entered, at the same time it looks like the last manual update determines the
+         calculated values."
+
+      THE CORRECTION THIS FORCES. I recorded in WDR_SCHEMA 4.1 that WinISD has a FIXED PRECEDENCE
+      between two routes to Xmax (Vd/Sd outranking abs(Hc-Hg)/2). That was one observation — Vd
+      present, Vd wins — and it does NOT distinguish precedence from recency. If the rule is "last
+      manual edit wins", Vd won because it was typed later, and the precedence I documented is my
+      invention. 4.1 has been corrected to state both hypotheses and to warn against building on
+      either.
+
+      RECENCY EXPLAINS MORE THAN PRECEDENCE DOES:
+        - Hc/Hg flipping C <-> N: they are C when reachable from the current anchor, N when not.
+        - Qts pinning when entered: the anchor is whatever was touched last.
+        - Why WinISD never warns about an inconsistency: there is nothing to warn about if the graph
+          simply re-solves around the newest edit. This would also explain the TfrmParErrors dialog
+          that exists in the binary but was never observed firing (WDR_SCHEMA 4).
+
+      IT IS ONE GRAPH, NOT INDEPENDENT GROUPS. Dd = 2*sqrt(Sd/pi) (row 6) makes Sd two-way with Dd,
+      and Sd also sits in row 20 {Vd, Sd, Xmax}, so Dd <-> Sd <-> {Vd, Xmax} is a single connected
+      component: editing Dd can propagate as far as Xmax.
+
+      THE TEST — three edits in WinISD, five minutes:
+        1. Enter Hc and Hg. Xmax should take the geometry answer.
+        2. Enter Vd. Check Xmax switches to Vd/Sd.
+        3. Re-edit Hc.
+           Xmax returns to abs(Hc-Hg)/2  -> RECENCY.
+           Xmax stays on Vd/Sd           -> PRECEDENCE.
+
+      WHY IT MATTERS BEYOND CURIOSITY. If the rule is recency, then WinISD's C/E/N marks are not a
+      property of the DATA at all — they are a property of the EDIT HISTORY, and the same .wdr opened
+      twice with different edit sequences carries different marks. That would make ParState
+      unreproducible from a record alone, which bears directly on QP8's emit rules and on QO8's
+      parity suite.
+  - at: '2026-08-05'
+    text: |-
+      2026-08-05 — TIE-BREAK ESTABLISHED, completing the rule closed above.
+
+      When two relations could each fill the same hole, row 20 (Vd = Sd x Xmax) LOSES. It is the
+      fallback, used only when nothing else can supply the field. Observed twice:
+
+        hole    competing routes                              winner
+        Xmax    row 19 |Hc-Hg|/2   vs  row 20 Vd/Sd           row 19
+        Sd      row 6  pi.Dd^2/4   vs  row 20 Vd/Xmax         row 6
+
+      Physically consistent: Dd and Hc/Hg are measured geometry; Vd is a displacement volume derived
+      FROM geometry. WinISD treats row 20 as producing Vd and only runs it backwards as a last resort.
+
+      This retro-explains the FIRST observation of the session — Xmax appearing to come from Vd/Sd
+      "in preference" to the geometry route. It did not: Hc and Hg were blank, so the preferred route
+      was unavailable, not outranked.
+
+      Supersedes the note above marking the tie-break untested. The human's intermediate reading that
+      "Sd tracks Vd preferentially" is not reproduced under controlled conditions — with Dd, Xmax and
+      Vd all entered and Sd blank, Sd comes from Dd.
+  answer:
+    at: '2026-08-05'
+    text: |-
+      NEITHER. Settled 2026-08-05 by the human driving WinISD through ~15 states, every one
+      reproduced arithmetically. Both hypotheses in the question are wrong.
+
+      THE RULE, and it is the whole model:
+
+          A relation fires only when exactly ONE of its members is unknown.
+          An entered value is never recomputed, and never questioned.
+
+      EVIDENCE, each independently checked:
+        - Dd:=300 re-derived Sd (blank) but left Vd at its typed 200, though Sd x Xmax implied 35343.
+          Deleting Vd filled it with 35343 exactly.
+        - Sd sits in TWO relations: row 6 (Sd = pi.Dd^2/4) and row 20 (Sd = Vd/Xmax). With Dd entered,
+          row 6 fires and Sd ignores Xmax completely. Delete Dd and row 6 has two unknowns, so row 20
+          takes over — Sd tracks Vd/Xmax and Dd becomes derived FROM Sd (356.8mm from Sd=0.1, exact).
+        - Deleting Hg blanked Xmax rather than falling back to Vd/Sd, because Vd was itself derived at
+          that moment. A derived value is not an anchor; deriving from it would be circular.
+        - Fill every member and the app goes inert — nothing recomputes because nothing is unknown.
+          The human read this as "the calcs just stop working". There is simply no hole left to fill.
+        - Sd:=2 beside Dd:=300, both entered: Dd does not follow (it would be 1596mm). No propagation
+          between two entered fields.
+
+      WHY THE EARLIER READINGS WERE WRONG:
+        - PRECEDENCE came from one observation where Hc/Hg were blank, so there was no contest.
+        - RECENCY was refuted by the final step: the newest edits were Sd and Vd, yet Xmax derived
+          from Hc/Hg.
+
+      CONSEQUENCE THAT MATTERS MOST: contradiction is INVISIBLE by construction. Sd=1.0 entered
+      beside Dd=300 entered — off by 14x — produces no warning, no mark, no correction, because
+      neither can be recomputed and so neither is ever compared. That is why the TfrmParErrors
+      "consistency check failed" dialog exists in winisd.exe but has never been observed firing.
+
+      It also means openisd's DQ marking (QP18/QO12) has no WinISD counterpart at all. It is not a
+      parity feature; it is something WinISD structurally cannot do.
+
+      Recorded in openisd/WDR_SCHEMA.md 4.1.
+- id: QO24
+  title: Implement GAPS.md section F — 11 ranked WinISD-parity fixes, analysis complete, none applied
+  status: open
+  raised: '2026-08-05'
+  body: ''
+  notes:
+  - at: '2026-08-05'
+    text: |-
+      winisd_research/GAPS.md section F is a ranked, costed list of 11 fixes against the openisd
+      `original` skin, every one backed by live WinISD evidence or a recomputation against the
+      function actually in the tree. NONE are applied — that file records findings only and says so.
+
+      Two are described there as ACTIVELY BLOCKING work. Items 3, 4, 6 and 9 are pure corrections to
+      misleading text under openisd/ and cost almost nothing.
+
+      Read GAPS.md in full before starting: each item cites its evidence tier (live / derived / open)
+      and the exact file:line it corrects. Do not re-derive.
+
+      CAUTION on item 11: GAPS.md A4 says explicitly "Do not copy the numbers" — the Re/Rms/Cms
+      recompute residuals (~1.3%) are real and unexplained (DISCOVERIES BUG-006), so the group-solve
+      BEHAVIOUR is the spec, not WinISD's exact outputs. That item also depends on QO23's solver rule
+      and on the probe campaign in winisd_research/PROMPT_solver_probe_campaign.md, so it is the one
+      item that should NOT be started until that campaign has run.
+  items:
+  - text: 'A3: bind the PR pane''s Fh to prTuning() — trivial, export path already computes it, screen
+      and file currently disagree (72.25 vs 194.87 Hz)'
+    done: false
+  - text: 'A7: default end correction to 0.6 (WinISD''s own value) and allow free numeric entry — shipped
+      default 0.732 misses vent length by 4.6%'
+    done: false
+  - text: 'E.2: delete the ''.wpr is binary; needs reverse-engineering'' claim — it is plain INI and a
+      serialiser ships. This claim has parked import as a hard job'
+    done: false
+  - text: 'E.2: flip the QB3 row to NO on the WinISD side — WinISD has no alignment tool, ruled out three
+      ways. openisd is ahead here, do not remove its buttons'
+    done: false
+  - text: 'A5: implement Rme, gamma and Mpow from the pinned formulas; mark Gloss/SPLmaxLF/SPLmax/Mcost
+      honestly as stored pass-through, not ''calculated'''
+    done: false
+  - text: 'E.3: clear the six stale rows in INPUT_PARITY.md and WINISD_OPENISD_COMPARISON.md that mark
+      shipped features as missing'
+    done: false
+  - text: 'A1: reverse the vented direction — Fb entered, vent length solved via ventLength(), per chamber.
+      Highest-value item. Surfaces ventLength''s hidden 5mm clamp'
+    done: false
+  - text: 'A6: wire humidity and pressure per the QO7 ruling, and surface air density beside sound velocity'
+    done: false
+  - text: 'E.4: re-mark the six ''assumed'' alignment rows as untested — ''assumed'' reads as a weak yes,
+      and one such row (QB3) turned out to be a confident no'
+    done: false
+  - text: 'D: one confirming live run for the Signal-pane Power/Voltage/Rg cascade — Rg is absent from
+      the power formula; the 4.0->3.9 shift is a display-rounding round-trip'
+    done: false
+  - text: 'A4: make the driver editor a group solver rather than a fixed substitution chain — LARGE, and
+      BLOCKED on the probe campaign. Do not copy WinISD''s numbers'
+    done: false
