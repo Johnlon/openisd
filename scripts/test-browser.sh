@@ -19,4 +19,30 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/kill-http.sh" 4100
-exec npx playwright test "$@"
+
+# Run with full CPU parallelism first. If an OOM/SIGKILL crash or failure occurs,
+# retry unpassed/failed tests using --last-failed with reduced workers.
+set +e
+npx playwright test --workers=100% "$@"
+STATUS=$?
+set -e
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed (workers=4)..." >&2
+  bash "$SCRIPT_DIR/kill-http.sh" 4100
+  set +e
+  npx playwright test --last-failed --workers=4 "$@"
+  STATUS=$?
+  set -e
+fi
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "⚠️ Secondary retry failed (exit code $STATUS). Final fallback with --last-failed (workers=1)..." >&2
+  bash "$SCRIPT_DIR/kill-http.sh" 4100
+  npx playwright test --last-failed --workers=1 "$@"
+  STATUS=$?
+fi
+
+exit $STATUS
