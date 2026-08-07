@@ -13,7 +13,9 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveDriver } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup } from '../src/driver.js';
+import type { DriverRaw } from '../src/types.js';
+
 
 // ── Q-derivation test values ─────────────────────────────────────────────────
 const QES = 0.400;    // electrical Q — resistance damping from voice coil
@@ -234,3 +236,42 @@ describe('deriveDriver — Q-factor derivation branches', () => {
     );
   });
 });
+
+describe('solveConsistencyGroup — full fixpoint solver mode', () => {
+  it('solves Hc bi-directionally when Hg and Xmax are provided (underhung default)', () => {
+    const res = solveConsistencyGroup({ Hg: 0.008, Xmax: 0.003 } as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+    assert.equal(res.Hc, 0.002, 'Hc must solve to Hg - 2*Xmax = 0.002 m');
+  });
+
+  it('solves Hg bi-directionally when Hc and Xmax are provided', () => {
+    const res = solveConsistencyGroup({ Hc: 0.015, Xmax: 0.005 } as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+    assert.ok(Math.abs(res.Hg - 0.005) < 1e-6, `Hg must solve to Hc - 2*Xmax = 0.005 m, got ${res.Hg}`);
+  });
+
+
+  it('prioritizes Row 6 (Dd -> Sd) over Row 20 (Vd/Xmax -> Sd)', () => {
+    const res = solveConsistencyGroup({ Dd: 0.200, Vd: 0.0001, Xmax: 0.005 } as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+    const expectedSd = Math.PI * 0.100 ** 2; // ~0.0314159
+    assert.ok(Math.abs(res.Sd - expectedSd) < 1e-6, `expected Row 6 Sd ~${expectedSd}, got ${res.Sd}`);
+  });
+
+  it('executes a 4-hop multi-cascade derivation from minimal 6-input set', () => {
+    const res = solveConsistencyGroup({
+      Fs: 35.0,
+      Qes: 0.40,
+      Qms: 4.50,
+      Vas: 0.045,
+      Re: 6.0,
+      Dd: 0.210,
+    } as unknown as DriverRaw, { full: true }) as unknown as Record<string, number>;
+
+    assert.ok(res.Sd > 0, 'Sd must be calculated (Hop 1)');
+    assert.ok(res.Cms > 0, 'Cms must be calculated (Hop 2)');
+    assert.ok(res.Mms > 0, 'Mms must be calculated (Hop 3)');
+    assert.ok(res.Bl > 0, 'Bl must be calculated (Hop 4)');
+    assert.ok(res.Rms > 0, 'Rms must be calculated (Hop 4)');
+    assert.ok(res.Qts > 0, 'Qts must be calculated');
+    assert.ok(res.no > 0, 'no must be calculated');
+  });
+});
+
