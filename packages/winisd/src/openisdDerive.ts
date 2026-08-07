@@ -37,7 +37,8 @@ export function deriveOpenISDFields(entered: Readonly<Record<string, number>>): 
   }
   if (filtered.Dia != null && filtered.Dd == null) filtered.Dd = filtered.Dia;
 
-  const r = solveConsistencyGroup(filtered) as Record<string, number>;
+  const r = solveConsistencyGroup(filtered, { full: true }) as Record<string, number>;
+
   if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
   // no/SPL — NOT part of solveConsistencyGroup (three disagreeing constants exist

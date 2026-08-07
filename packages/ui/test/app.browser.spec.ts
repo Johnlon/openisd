@@ -14,7 +14,7 @@ test('app shell renders — side panel and graph grid are populated', async ({ p
 test('in-browser self-test passes all three physics gates', async ({ page }) => {
   const logs: string[] = [];
   page.on('console', msg => logs.push(msg.text()));
-  await page.goto('/');
+  await page.reload();
   await page.waitForFunction(() => window._selfTestDone === true, { timeout: 5000 })
     .catch(() => {});
   logs.find(l => l.includes('[OpenISD self-test]'));  // presence checked implicitly via gates

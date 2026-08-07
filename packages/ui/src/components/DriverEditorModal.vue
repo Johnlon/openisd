@@ -405,10 +405,10 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
                 </NumInput><span v-if="dqNote('Bl')" class="de-dq" :title="dqNote('Bl')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
-              <div class="de-fld" title="Diaphragm/dome depth — WinISD: Dd">
+              <div class="de-fld" title="Diaphragm/dome diameter — WinISD: Dd">
                 <label>Dd</label>
-                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
-                <span class="u">m</span>
+                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" :scale="1000" :precision="1" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
+                <span class="u">mm</span>
               </div>
               <div class="de-fld" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
                 <label>Le</label>
@@ -444,16 +444,17 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
                 </NumInput><span v-if="dqNote('Xmax')" class="de-dq" :title="dqNote('Xmax')">&#9888;</span>
                 <span class="u">mm peak</span>
               </div>
-              <div class="de-fld" title="Voice coil former height above/below the gap — WinISD: hc.">
+              <div class="de-fld" title="Voice coil former height above/below the gap — WinISD: Hc.">
                 <label>Hc</label>
-                <NumInput :class="cellClass('hc')" :model-value="cellVal('hc')" :scale="1000" @update:model-value="v => setNum('hc', v)"></NumInput><span v-if="dqNote('hc')" class="de-dq" :title="dqNote('hc')">&#9888;</span>
+                <NumInput :class="cellClass('Hc')" :model-value="cellVal('Hc')" :scale="1000" @update:model-value="v => setNum('Hc', v)"></NumInput><span v-if="dqNote('Hc')" class="de-dq" :title="dqNote('Hc')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
-              <div class="de-fld" title="Magnetic gap height — WinISD: hag.">
+              <div class="de-fld" title="Magnetic gap height — WinISD: Hg.">
                 <label>Hg</label>
-                <NumInput :class="cellClass('hag')" :model-value="cellVal('hag')" :scale="1000" @update:model-value="v => setNum('hag', v)"></NumInput><span v-if="dqNote('hag')" class="de-dq" :title="dqNote('hag')">&#9888;</span>
+                <NumInput :class="cellClass('Hg')" :model-value="cellVal('Hg')" :scale="1000" @update:model-value="v => setNum('Hg', v)"></NumInput><span v-if="dqNote('Hg')" class="de-dq" :title="dqNote('Hg')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
+
               <div class="de-fld" title="Volume displaced by the cone at Xmax — WinISD: Vd.">
                 <label>Vd</label>
                 <NumInput :class="cellClass('Vd')" :model-value="cellVal('Vd')" :scale="1e6" @update:model-value="v => setNum('Vd', v)"></NumInput><span v-if="dqNote('Vd')" class="de-dq" :title="dqNote('Vd')">&#9888;</span>
@@ -580,11 +581,11 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld cl-dim" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld st-c" title="Speed of sound — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>c</label>
                 <input type="text" readonly :value="C.toFixed(2)"><span class="u">m/s</span>
               </div>
-              <div class="de-fld cl-dim" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
+              <div class="de-fld st-c" title="Air density — OpenISD's engine constant, fixed at 20°C (packages/engine/src/constants.ts). Not adjustable in this editor.">
                 <label>roo</label>
                 <input type="text" readonly :value="RHO.toFixed(5)"><span class="u">kg/m³</span>
               </div>

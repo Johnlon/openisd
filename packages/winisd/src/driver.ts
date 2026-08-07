@@ -386,7 +386,8 @@ export class Driver {
     // not re-implement any of it. `== null` guards inside it mean an entered (E) value
     // is never overwritten by a computed one and instead feeds downstream — WinISD's
     // fixed-E override semantics.
-    const r = solveConsistencyGroup(entered) as Record<string, number>;
+    const r = solveConsistencyGroup(entered, { full: true }) as Record<string, number>;
+
     if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
     // no/SPL — NOT part of solveConsistencyGroup (three disagreeing constants exist

@@ -55,6 +55,8 @@ const blocked     = computed(() => blockErrors.value.length > 0);
 // error message is the whole story.
 const warnings    = computed(() =>
   blocked.value ? [] : plot.value.errors.filter(e => e.level === 'warn'));
+const warningsDismissed = ref(false);
+watch(warnings, () => { warningsDismissed.value = false; });
 
 // Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
 // auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
@@ -371,14 +373,16 @@ watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' }
             @dblclick="onDblClick"
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
+    <div v-if="warnings.length && !warningsDismissed" class="gwarn gwarn-pill" :title="warnings.map(w => w.message).join('\n')">
+      <span class="gwarn-icon">⚠</span>
+      <span class="gwarn-text">{{ warnings[0].message }}</span>
+      <button class="gwarn-x" @click.stop="warningsDismissed = true" title="Dismiss warning">✕</button>
+    </div>
     <div ref="readEl" class="gread"></div>
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
       <div class="gmsg-foot">Fix the driver parameters to restore this chart.</div>
-    </div>
-    <div v-if="warnings.length" class="gwarn" :title="warnings.map(w => w.message).join('\n')">
-      <span v-for="w in warnings" :key="w.level + w.field" class="gwarn-line">{{ w.message }}</span>
     </div>
   </div>
 
@@ -422,29 +426,50 @@ canvas { touch-action: none; }
 .gmsg-line  { font-size: 11px; color: var(--mut); line-height: 1.4; max-width: 90%; }
 .gmsg-foot  { font-size: 11px; color: var(--mut); margin-top: 4px; font-style: italic; }
 
-/* Non-blocking note over a chart that DID draw: the curve is usable and the canvas has
-   already gapped the bad points, so this sits at the foot rather than covering anything.
-   `--acc2` is the warn colour `.drv-issues-list li.warn` already uses. */
-.gwarn {
+/* Non-blocking warning pill in the chart header: sits cleanly beside the title
+   without obscuring graph curves, axis tick labels, or cursor readouts. */
+.gwarn-pill {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 3px 6px;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  border-top: 1px solid var(--acc2);
+  left: 120px;
+  top: 3px;
+  max-width: calc(100% - 240px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--panel) 90%, var(--acc2) 10%);
+  border: 1px solid var(--acc2);
+  border-radius: 3px;
+  z-index: 3;
+  pointer-events: auto;
 }
-.gwarn-line {
+.gwarn-icon {
+  font-size: 11px;
+  color: var(--acc2);
+  flex-shrink: 0;
+}
+.gwarn-text {
   font-size: 10px;
-  line-height: 1.3;
+  line-height: 1.2;
   color: var(--acc2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.gwarn-x {
+  background: transparent;
+  border: none;
+  color: var(--acc2);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 0 2px;
+  margin-left: 2px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.gwarn-x:hover {
+  opacity: 1;
 }
 
 .ctx-menu {
