@@ -6,19 +6,24 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ## Tech Stack
 
-### Client-Side UI App
+### Client-Side UI App (`@ui`)
 
 - Vue 3, TypeScript, Vanilla CSS, Vite
-- Playwright for browser testing
-- Incorporates the application's client-side backend logic directly within the frontend app bundle
+- Covers tightly coupled UI aspects, views, styling, layouts, and DOM-specific components
 
-### Core Calculation Engine
+### Client-Side View/Controller Logic (`@logic`)
+
+- Reactive stores, driver libraries, and controller logic divorced of direct UI dependencies to enable easy unit testing
+
+### Core Calculation Engine (`@engine`)
 
 - `@openisd/engine`: A distinct module for electro-acoustic calculations and equivalent circuit solving
+- All mathematical/acoustical calculations MUST live in this module; no math logic is permitted in `@ui` or `@logic`
+- Parameter inputs are passed to `@engine` strictly via argument/parameter parsing
 
-### WDR File Projection
+### WDR File Projection (`@wdr`)
 
-- `@openisd/winisd`: A distinct module for parsing, writing, and projecting legacy WinISD driver (.wdr) and project (.wpr) files
+- `@openisd/winisd`: A distinct module for parsing, writing, and projecting legacy WinISD driver (.wdr) and project (.wpr) files from/to the in-memory model
 
 ### Infrastructure
 
@@ -34,22 +39,25 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ### Architecture Patterns
 
-- Decoupled core engine: calculations are kept isolated from presentation adaptors
-- Vue reactive stores for state management
+- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, and `@wdr`
+- Avoid all global variables: globals are prohibited to prevent side effects and ensure code remains maintainable and testable
 - Classic and Original UI skin variants wrapping the core components
 
 ### Testing Strategy
 
-- Unit tests: logic verified by `vitest` in `test/` subdirectories
-- Browser tests: UI and solver flows verified by `playwright`
+- **Functional UI Tests**: `@ui` components and presentation layers MUST be verified via Playwright functional/browser tests, not unit tests
+- **Unit Tests**: `@logic`, `@engine`, and `@wdr` logic are covered by unit tests using `vitest`
+- **Multi-Level Coverage**: Each feature requires a functional test at the UI level and supporting unit tests at the component and function level
 
 ### Git Workflow
 
 - Working branch: `dev`
 - Release branch: `main` (only release processes commit here)
-- All commits require automated health checks to be green (lint + typecheck + unit)
+- All commits require automated health checks to be green (lint + typecheck + unit + OpenSpec)
 
 ## Important Constraints
 
-- calculation logic cannot be changed without explicit user permission
+- Calculation logic cannot be changed without explicit user permission
 - 4000 is the only application port allowed for live previews and builds
+- Avoid any mathematical or acoustic calculation logic in `@ui` or `@logic`
+- Global variables are prohibited to guarantee testability and maintainability
