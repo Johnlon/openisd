@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
+ */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { getProvenanceInfo, PROVENANCE_MAP } from '../src/utils/provenance.js';

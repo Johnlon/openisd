@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/app-shell/spec.md?html
+ */
 import { describe, it, beforeEach } from 'vitest';
 import assert from 'node:assert/strict';
 import { state } from '../src/store.js';

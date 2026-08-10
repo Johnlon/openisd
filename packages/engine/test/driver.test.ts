@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Unit tests for packages/engine/src/driver.ts
  *
  * Covers: deriveDriver {value,errors} contract and Q-derivation branches.

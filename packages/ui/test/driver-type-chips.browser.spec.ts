@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
+ */
 import { test, expect } from './fixtures.js';
 import { Chip } from '../src/driverType.js';
 

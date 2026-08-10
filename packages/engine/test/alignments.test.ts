@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Direct unit tests for src/core/alignments.js
  *
  * Each test describes the physical scenario and the expected outcome in terms

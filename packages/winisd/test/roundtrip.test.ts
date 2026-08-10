@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * @openisd/winisd — real-world .wdr import/export round-trip via the Driver ADT.
  *
  * Uses a committed real driver fixture (Tang Band W5-1138SMF) to verify that

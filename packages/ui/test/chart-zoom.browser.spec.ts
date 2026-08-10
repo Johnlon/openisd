@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
+ */
 import { test, expect } from './fixtures.js';
 import type { Page, Locator } from '@playwright/test';
 

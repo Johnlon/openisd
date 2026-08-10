@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Unit tests for src/core/sweep.js — targeting the branch coverage gaps
  * not covered by engine.test.mjs:
  *   - Line 53: fmin/fmax/N parameter defaults (10, 1000, 400)

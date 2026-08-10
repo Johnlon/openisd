@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * @openisd/winisd — Driver ADT as the single derivation authority (Phase 4a).
  *
  * The Driver must derive every field the editor displays — not just the engine's core

@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
+ */
+/**
  * Layout-review screenshots for the two non-modal What-If panels. Saved to docs/winisd/ per
  * the "save every screenshot" rule — a shot that is only looked at is one that has to be
  * retaken.

@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Unit tests for src/formulas.ts — the UI-facing closed-form derivations that were
  * previously copy-pasted across the skins/panels (PR Vas/Fs/Qms, drive voltage, sound
  * velocity). These are ADDITIONS consolidating existing duplicated formulas; the expected

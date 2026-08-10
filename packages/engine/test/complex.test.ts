@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Direct unit tests for src/core/complex.js
  *
  * Complex arithmetic is the mathematical foundation of the circuit solver.

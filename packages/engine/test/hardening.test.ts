@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Engine hardening — acceptance tests for CODE_REVIEW/ENGINE_HARDENING.md.
  *
  * The contract under test: the engine communicates failure through the `Result`/issue

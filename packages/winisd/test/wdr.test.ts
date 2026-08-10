@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * Unit tests for @openisd/winisd — WDR serialisation (fresh-authored export path).
  *
  * Covers: toWdr fallback branches and parstate E/C/N provenance. Parsing/import is the

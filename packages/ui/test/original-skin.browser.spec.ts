@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Original (WinISD) skin — the wholesale port of the `mock/` prototype, wired to the
