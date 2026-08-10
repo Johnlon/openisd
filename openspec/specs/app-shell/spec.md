@@ -18,11 +18,11 @@ The application SHALL render modal controls with backdrop dismissals and escape 
 
 Verifying Tests:
 
-- packages/ui/test/app.browser.spec.ts
-- packages/ui/test/modal-escape.browser.spec.ts
-- packages/ui/test/cursor-lock.test.ts
-- packages/ui/test/config.test.ts
-- packages/ui/test/architecture.test.ts
+- packages/ui/test/ui/app.browser.spec.ts
+- packages/ui/test/ui/modal-escape.browser.spec.ts
+- packages/ui/test/logic/cursor-lock.test.ts
+- packages/ui/test/ui/config.test.ts
+- packages/ui/test/ui/architecture.test.ts
 
 ### Requirement: Vent Tuning Dimensions and Calculations
 
@@ -36,5 +36,5 @@ The application SHALL support vent parameter edits and auto-solve vent dimension
 
 Verifying Tests:
 
-- packages/ui/test/vent-group.test.ts
-- packages/ui/test/driver-browser-winisd-controls.browser.spec.ts
+- packages/ui/test/logic/vent-group.test.ts
+- packages/ui/test/db/driver-browser-winisd-controls.browser.spec.ts
