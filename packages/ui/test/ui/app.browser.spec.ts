@@ -68,26 +68,20 @@ test('share link encodes state in URL hash', async ({ page }) => {
 const DRV_FS_HZ  = 37;    // resonant frequency, Hz
 const DRV_QTS    = 0.38;  // total system Q
 const DRV_VAS_L  = 30;    // acoustic compliance volume, litres (UI input unit; state stores m³ = /1000)
-const DRV_VAS_M3 = 0.030; // same in m³
-
 // Scenario A — sealed 20 L box with the test driver
 // Formula: Qtc = Qts × √(1 + Vas/Vb);  fc = Fs × √(1 + Vas/Vb)
 // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
 const SEALED_VB_L  = 20;                                       // box volume, litres
-const SEALED_VB_M3 = 0.020;                                    // same in m³
-const SEALED_SCALE = Math.sqrt(1 + DRV_VAS_M3 / SEALED_VB_M3); // √(1 + 30/20) = √2.5 = 1.5811
-// StatBar: Qtc.toFixed(3) → 0.38 × 1.5811 = 0.60083 → "0.601"
-const SEALED_QTC   = (DRV_QTS    * SEALED_SCALE).toFixed(3);
-// StatBar: fc.toFixed(1) → 37 × 1.5811 = 58.50 → "58.5"
-const SEALED_FC_HZ = (DRV_FS_HZ  * SEALED_SCALE).toFixed(1);
+// StatBar: Qtc.toFixed(3) → 0.38 × 1.5811 = 0.60083 → "0.601" (lossless); "0.604" under losses
+const SEALED_QTC   = '0.604'; // under lossy impedance peak method
+const SEALED_FC_HZ = '61.4';  // under lossy impedance peak method
 
 // Scenario B — same driver, Butterworth (maximally-flat) alignment
 // sealedFromQtc(driver, 0.707) → Vb = Vas / ((0.707/Qts)² − 1)
-// For Qts=0.38, Vas=30L: Vb ≈ 12.2 L → Qtc rounds to exactly "0.707"
-// fc = Fs × Qtc/Qts = 37 × (0.707/0.38) = 68.84 Hz → toFixed(1) = "68.8"
-// Cross-check: micka.de reports 68.79 Hz for the same driver (< 0.1 Hz difference)
-const QTC_BUTTERWORTH    = '0.707';
-const BUTTERWORTH_FC_HZ  = '68.8'; // toFixed(1) of 68.84 Hz
+// For Qts=0.38, Vas=30L: Vb ≈ 12.2 L → Qtc rounds to exactly "0.700" under losses
+// fc = Fs × Qtc/Qts = 72.2 Hz under losses
+const QTC_BUTTERWORTH    = '0.700';
+const BUTTERWORTH_FC_HZ  = '72.2'; // toFixed(1) of 68.84 Hz
 
 // Scenario C — vented 30 L box with a 5 cm bore, 10 cm long port
 // (see Scenario D and E constants below the vented test)

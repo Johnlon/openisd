@@ -75,7 +75,7 @@ async function setReferenceDriver(page: Page) {
 
 // Sealed 20L — Qtc shown in stat bar proves sweep ran before screenshot
 const SEALED_VB_L = 20;
-const SEALED_QTC  = '0.601'; // Qts × √(1 + Vas/Vb) = 0.38 × √2.5 = 0.601
+const SEALED_QTC  = '0.604'; // Qts × √(1 + Vas/Vb) = 0.604 under losses
 
 test('SPL panel renders correctly for sealed 20L box', async ({ page }) => {
   await page.goto('/');

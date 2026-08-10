@@ -87,8 +87,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await sdf.fill('');
     await ddf.fill('210.0');
 
-    // Sd = pi * (21.0/2)^2 = 346.4 cm²
-    await expect(sdf).toHaveValue('346.4');
+    // Sd = pi * (21.0/2)^2 = 346.36 cm²
+    await expect(sdf).toHaveValue('346.36');
     await expect(sdf).toHaveClass(/st-c/);
   });
 
@@ -99,8 +99,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await ddf.fill('');
     await sdf.fill('346.4');
 
-    // Dd = 2 * sqrt(346.4 / pi) = 210.0 mm
-    await expect(ddf).toHaveValue('210.0');
+    // Dd = 2 * sqrt(346.4 / pi) = 210.01 mm
+    await expect(ddf).toHaveValue('210.01');
     await expect(ddf).toHaveClass(/st-c/);
   });
 
@@ -174,8 +174,8 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await vdf.fill('100.0');
     await xmaxf.fill('5.0');
 
-    // Row 6 (Dd -> Sd) gives ~314.2 cm² (vs Row 20 Vd/Xmax = 200 cm²)
-    await expect(sdf).toHaveValue('314.2');
+    // Row 6 (Dd -> Sd) gives ~314.16 cm² (vs Row 20 Vd/Xmax = 200 cm²)
+    await expect(sdf).toHaveValue('314.16');
     await expect(sdf).toHaveClass(/st-c/);
   });
 
@@ -359,7 +359,7 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     const initialDd = await ddf.inputValue();
 
     await ddf.fill('999.0');
-    await expect(ddf).toHaveValue('999.0');
+    await expect(ddf).toHaveValue('999.00');
 
     // Click Reset button in modal footer
     await page.getByRole('button', { name: 'Reset', exact: true }).click();
