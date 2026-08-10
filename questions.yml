@@ -501,8 +501,7 @@ questions:
       \ L773-931. testing-python.md and\ndriver-data-rules.md have 11 genuinely unowned\
       \ rules; raised as a separate\nquestion rather than written into a sibling repo."
 - id: QO10
-  title: "Browser suite is unrunnable-to-green locally \u2014 chromium SIGKILLed at\
-    \ launch, plus a rogue vite on 4321"
+  title: "Browser suite runs green with --workers=1; the default 4-worker run overloads this WSL2 box and kills the dev server, which reads as false test failures. See the 2026-08-05 note: 188 passed / 0 failed at --workers=1."
   status: open
   raised: '2026-08-05'
   body: ''
@@ -552,6 +551,8 @@ questions:
       \ under the tests and shows up as\n    \"same-origin network failures\" naming\
       \ the edited files with `?t=` HMR stamps. Two runs\n    were discarded for this.\
       \ It is not flake and it is not the code; it is the tree moving."
+  - at: '2026-08-10'
+    text: "Verified: the browser suite runs. Ran `npx playwright test packages/ui/test/ui/box-loss-mode.browser.spec.ts` -- chromium launched and 2/2 passed. The original title ('unrunnable-to-green locally / chromium SIGKILLed at launch') was stale and wrong; it was already superseded by the 2026-08-05 CAUSE-FOUND note (worker concurrency, --workers=1 is green). Title corrected today. Note: an assistant work-summary had repeated the stale title as a current fact -- that was inaccurate."
 - id: QO11
   title: "Every field must be editable so a CALCULATED value can be overridden \u2014\
     \ 17 panel readouts are read-only spans"

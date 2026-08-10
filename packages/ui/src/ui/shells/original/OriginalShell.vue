@@ -34,7 +34,7 @@ import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
 import { C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          prTuning,
-         findImpedancePeak,
+         sealedResonance, LossMode,
          driveVoltage, soundVelocity, airDensity } from '@openisd/engine';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
@@ -114,26 +114,19 @@ const enclosureNavLabel = computed(() =>
 const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
 // ---- Live engine-derived readouts (never faked literals) -----------------------
-const rearPeak = computed(() => {
-  const d = driver.value;
-  if (!d || !curvesData.value) return null;
-  return findImpedancePeak(curvesData.value, d.Re);
-});
-
-// Sealed rear-chamber resonance: Fsc from impedance peak (or Fs·√(1 + Vas/Vb) fallback).
-const rearResonance = computed<number | null>(() => {
-  if (rearPeak.value) return rearPeak.value.Fsc;
+// Sealed-box (and PR rear-chamber) resonance + system Q via the selected loss model — the
+// WinISD lossy cubic by default. NOT the impedance-magnitude peak: that scan returns the
+// high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
+// with Le, which is not the system resonance (and yields Qtc=0). See openspec core-engine
+// "Sealed-Box Resonance Loss Models" and winisd_research/SEALED_FSC_MODEL.md.
+const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
   const d = driver.value;
   if (!d || !(state.P.Vb > 0)) return null;
-  return d.Fs * Math.sqrt(1 + d.Vas / state.P.Vb);
+  return sealedResonance(LossMode.parse(state.lossMode),
+    { Fs: d.Fs, Vas: d.Vas, Qts: d.Qts, Vb: state.P.Vb, Ql: state.P.Ql, Qa: state.P.Qa });
 });
-// Sealed rear-chamber Q: Qtc from impedance peak (or Qts·√(1 + Vas/Vb) fallback).
-const rearQtc = computed<number | null>(() => {
-  if (rearPeak.value) return rearPeak.value.Qtc;
-  const d = driver.value;
-  if (!d || !(state.P.Vb > 0)) return null;
-  return d.Qts * Math.sqrt(1 + d.Vas / state.P.Vb);
-});
+const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
+const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);
 // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
 // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
 // ignores the PR entirely. On WinISD's own controlled-trial inputs prTuning() returns 72.25 Hz,
