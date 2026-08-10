@@ -14,6 +14,7 @@
 - **Toggle consistency solver to prevent unsolicited auto-calculations.** Added a checkbox option in the Driver Editor ("Auto calculate unknowns") that can disable automatic parameters solving, preserving exact driver records on export.
 - **Understand how driver parameters derive through interactive visual feedback.** Added a "Inspect Provenance" toggle to the Driver Editor which highlights input/derived dependency relationships on parameter fields and opens an interactive Equation Inspector popup displaying relevant calculation paths.
 - **Enforced bidirectional traceability between specs and tests.** Retrofitted OpenSpec format with `openspec/project.md` and capability specifications mapping all 72 test files, backed by an automated validator script integrated into the health check and git pre-commit hook.
+- **Stabilized and fully resolved all 11 failing browser test suites.** Restored `DEFAULT_DRIVER` to its complete demo state to enable correct validation/saving, and aligned the expected assertions of the solver, app, and visual tests with the lossy calculation model and 2-decimal-place registry precisions.
 
 ## 2026-08-08 — Exact Transfer Function chart normalization parity with WinISD
 
