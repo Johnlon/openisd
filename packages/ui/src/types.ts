@@ -288,6 +288,8 @@ export interface UiState {
 /** The reactive application state held in the store. */
 export interface AppState {
   box: BoxType;
+  /** Sealed-box loss model — a LossMode wire value (@openisd/engine). Default winisd-lossy. */
+  lossMode: string;
   P: UiParams;
   graphs: ChartTabId[];
   editDriver: boolean;
@@ -321,6 +323,7 @@ export interface SerializedState {
   // DriverRaw here instead — handled on load (setDriverFromSerialized).
   driver: DriverJSON;
   box: BoxType;
+  lossMode?: string;
   P: UiParams;
   graphs: string[];
   // A local save carries the full ui; stateToUrl() carries most of it too (skin, active

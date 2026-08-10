@@ -20,7 +20,7 @@ import { tuningFromLength } from '@openisd/engine';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to sample" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.owdr.
-export const DEFAULT_DRIVER: DriverRaw = { name: '', brand: '', model: '', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
+export const DEFAULT_DRIVER: DriverRaw = { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
 
 const P_DEFAULTS: UiParams = {
   Vb:0.030, Vf:0.015, ventShape:'round', ventD:0.05, ventW:0.10, ventH:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
@@ -79,6 +79,7 @@ function defaultP(): UiParams {
 
 export const state: AppState = getOrInit('state', () => reactive({
   box:       'vented',
+  lossMode:  'winisd-lossy',
   P:         defaultP(),
   graphs:    ['SPL', 'Excursion', 'Zmag', 'GD'],
   editDriver: false,
@@ -519,6 +520,7 @@ export function newProject(): void {
 export function applyState(o: SerializedState): void {
   if (o.driver) setDriverFromSerialized(o.driver);
   if (o.box) state.box = o.box;
+  if (o.lossMode) state.lossMode = o.lossMode;
   // Verbatim, for the same reason as resetProjectToGround: a persisted design carries both
   // vent-group members and the entered set, so a restore has nothing to compute.
   //
