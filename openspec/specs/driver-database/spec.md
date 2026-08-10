@@ -23,9 +23,9 @@ Verifying Tests:
 - packages/winisd/test/driver-hardening.test.ts
 - packages/winisd/test/driver-json.test.ts
 - packages/winisd/test/driver-projection.test.ts
-- packages/winisd/test/openisdDerive.test.ts
-- packages/winisd/test/openisdRecord.test.ts
-- packages/winisd/test/openisdYaml.test.ts
+- packages/winisd/test/native/openisdDerive.test.ts
+- packages/winisd/test/native/openisdRecord.test.ts
+- packages/winisd/test/native/openisdYaml.test.ts
 
 ### Requirement: File Import / Export Formats (.wdr, .wpr, .owdr)
 
@@ -41,8 +41,8 @@ Verifying Tests:
 
 - packages/winisd/test/driver-roundtrip.test.ts
 - packages/winisd/test/roundtrip.test.ts
-- packages/winisd/test/wdr.test.ts
-- packages/winisd/test/wpr.test.ts
+- packages/winisd/test/classic/wdr.test.ts
+- packages/winisd/test/classic/wpr.test.ts
 
 ### Requirement: Library Search and Organization
 
@@ -56,10 +56,10 @@ The UI SHALL allow browsing, searching, and filtering drivers inside the databas
 
 Verifying Tests:
 
-- packages/ui/test/driver-search-name.test.ts
-- packages/ui/test/driver-search-interactive.browser.spec.ts
-- packages/ui/test/driver-favorites.browser.spec.ts
-- packages/ui/test/driver-count.browser.spec.ts
-- packages/ui/test/drivers-bundle.test.ts
-- packages/ui/test/driver-scope-chip.browser.spec.ts
-- packages/ui/test/driver-summary-winisd.browser.spec.ts
+- packages/ui/test/db/driver-search-name.test.ts
+- packages/ui/test/db/driver-search-interactive.browser.spec.ts
+- packages/ui/test/db/driver-favorites.browser.spec.ts
+- packages/ui/test/db/driver-count.browser.spec.ts
+- packages/ui/test/db/drivers-bundle.test.ts
+- packages/ui/test/db/driver-scope-chip.browser.spec.ts
+- packages/ui/test/db/driver-summary-winisd.browser.spec.ts

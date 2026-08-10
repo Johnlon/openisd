@@ -41,7 +41,7 @@ Verifying Tests:
 - packages/engine/test/engine.test.ts
 - packages/engine/test/advanced-options.test.ts
 - packages/engine/test/complex.test.ts
-- packages/ui/test/micka-crosscheck.browser.spec.ts
+- packages/ui/test/logic/micka-crosscheck.browser.spec.ts
 
 ### Requirement: Frequency Sweeps & Output Quantities
 

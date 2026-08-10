@@ -18,10 +18,10 @@ The driver editor SHALL clearly mark parameter fields based on their derivation 
 
 Verifying Tests:
 
-- packages/ui/test/driver-editor-solver.browser.spec.ts
-- packages/ui/test/driver-editor-provenance.browser.spec.ts
-- packages/ui/test/driver-type-chips.browser.spec.ts
-- packages/ui/test/driver-type-chips.test.ts
+- packages/ui/test/logic/driver-editor-solver.browser.spec.ts
+- packages/ui/test/logic/driver-editor-provenance.browser.spec.ts
+- packages/ui/test/ui/driver-type-chips.browser.spec.ts
+- packages/ui/test/ui/driver-type-chips.test.ts
 
 ### Requirement: Auto-calculate and Solving Controls
 
@@ -35,8 +35,8 @@ The editor SHALL provide a toggle to disable the consistency solver, allowing us
 
 Verifying Tests:
 
-- packages/ui/test/driver-editor-solver.browser.spec.ts
-- packages/ui/test/provenance.test.ts
+- packages/ui/test/logic/driver-editor-solver.browser.spec.ts
+- packages/ui/test/logic/provenance.test.ts
 
 ### Requirement: Parameter Validation & Integrity Guards
 
@@ -50,9 +50,9 @@ The editor MUST block saving or exporting drivers containing invalid parameters 
 
 Verifying Tests:
 
-- packages/ui/test/driver-editor-mandatory.browser.spec.ts
-- packages/ui/test/consistency-dq.browser.spec.ts
-- packages/ui/test/driver-invalid.browser.spec.ts
+- packages/ui/test/logic/driver-editor-mandatory.browser.spec.ts
+- packages/ui/test/logic/consistency-dq.browser.spec.ts
+- packages/ui/test/logic/driver-invalid.browser.spec.ts
 
 ### Requirement: Interactive Provenance and Equation Inspector
 
@@ -66,4 +66,4 @@ The editor SHALL support parameter provenance inspection, highlighting dependent
 
 Verifying Tests:
 
-- packages/ui/test/driver-provenance-inspector.browser.spec.ts
+- packages/ui/test/logic/driver-provenance-inspector.browser.spec.ts

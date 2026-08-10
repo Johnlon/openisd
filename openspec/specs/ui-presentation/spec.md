@@ -18,9 +18,9 @@ The UI series utility MUST map raw engine sweep results into graph renderer seri
 
 Verifying Tests:
 
-- packages/ui/test/chart-types.test.ts
-- packages/ui/test/chart-zoom.browser.spec.ts
-- packages/ui/test/record-animation.browser.spec.ts
+- packages/ui/test/ui/chart-types.test.ts
+- packages/ui/test/ui/chart-zoom.browser.spec.ts
+- packages/ui/test/ui/record-animation.browser.spec.ts
 
 ### Requirement: Multi-Skin UI Presentation Layouts
 
@@ -34,12 +34,12 @@ The UI SHALL support multiple distinct skin layouts (Modern, Classic, Original) 
 
 Verifying Tests:
 
-- packages/ui/test/skins.test.ts
-- packages/ui/test/visual.browser.spec.ts
-- packages/ui/test/original-narrow.browser.spec.ts
-- packages/ui/test/original-layout.browser.spec.ts
-- packages/ui/test/classic-skin.browser.spec.ts
-- packages/ui/test/original-skin.browser.spec.ts
+- packages/ui/test/ui/skins.test.ts
+- packages/ui/test/ui/visual.browser.spec.ts
+- packages/ui/test/ui/original-narrow.browser.spec.ts
+- packages/ui/test/ui/original-layout.browser.spec.ts
+- packages/ui/test/ui/classic-skin.browser.spec.ts
+- packages/ui/test/ui/original-skin.browser.spec.ts
 
 ### Requirement: Tone Generator Utility
 
@@ -53,4 +53,4 @@ The UI SHALL provide a tone generator modal tool generating acoustic test wavefo
 
 Verifying Tests:
 
-- packages/ui/test/toneGenerator.test.ts
+- packages/ui/test/logic/toneGenerator.test.ts

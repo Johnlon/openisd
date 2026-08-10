@@ -18,8 +18,8 @@ The system SHALL load and save project parameters in WinISD `.wpr` format and na
 
 Verifying Tests:
 
-- packages/ui/test/openisd-project.test.ts
-- packages/ui/test/original-projects.browser.spec.ts
+- packages/ui/test/logic/openisd-project.test.ts
+- packages/ui/test/db/original-projects.browser.spec.ts
 
 ### Requirement: Persistent Storage and State Reactivity
 
@@ -33,10 +33,10 @@ The application state, including filters, favorites, and open projects, SHALL pe
 
 Verifying Tests:
 
-- packages/ui/test/persist.test.ts
-- packages/ui/test/persistence.browser.spec.ts
-- packages/ui/test/store-filters-reactivity.test.ts
-- packages/ui/test/store-issue-channel.test.ts
+- packages/ui/test/logic/persist.test.ts
+- packages/ui/test/logic/persistence.browser.spec.ts
+- packages/ui/test/logic/store-filters-reactivity.test.ts
+- packages/ui/test/logic/store-issue-channel.test.ts
 
 ### Requirement: My Drivers Selection and What-If Simulations
 
@@ -50,8 +50,8 @@ The project manager SHALL allow selecting drivers from "My Drivers" library and 
 
 Verifying Tests:
 
-- packages/ui/test/driver-selection.browser.spec.ts
-- packages/ui/test/my-drivers.browser.spec.ts
-- packages/ui/test/my-drivers-filtering.browser.spec.ts
-- packages/ui/test/whatif-panel-fields.browser.spec.ts
-- packages/ui/test/whatif-panel-shots.browser.spec.ts
+- packages/ui/test/db/driver-selection.browser.spec.ts
+- packages/ui/test/db/my-drivers.browser.spec.ts
+- packages/ui/test/db/my-drivers-filtering.browser.spec.ts
+- packages/ui/test/logic/whatif-panel-fields.browser.spec.ts
+- packages/ui/test/logic/whatif-panel-shots.browser.spec.ts

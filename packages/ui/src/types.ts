@@ -4,7 +4,7 @@
  */
 import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 import type { DriverJSON } from '@openisd/winisd';
-import type { SkinId } from './skins.js';
+import type { SkinId } from './ui/skins.js';
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in
