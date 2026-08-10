@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
 /* Golden-master regression test.  Runs under Vitest (npm run test:unit).
  * Reads committed fixtures from test/fixtures/golden/*.json and asserts the
  * engine reproduces every number exactly.  Exact === is intentional: the engine

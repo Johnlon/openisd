@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
+ */
+/**
  * The store is the single enforced engine→UI seam (ESLint forbids components importing
  * `sweep`/`maxCurves` directly), so it is where the engine's hardening layers have to be
  * unioned into one issue list. These pin the WIRING — that `allIssues` actually carries

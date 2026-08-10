@@ -13,6 +13,7 @@
 - **Calculated system resonance (Fsc) and Q (Qtc) match WinISD's lossy physical models.** Implemented `findImpedancePeak` analyzing simulated electrical impedance magnitude curve to extract actual resonance frequency and Q-factor under box leakage losses (Ql).
 - **Toggle consistency solver to prevent unsolicited auto-calculations.** Added a checkbox option in the Driver Editor ("Auto calculate unknowns") that can disable automatic parameters solving, preserving exact driver records on export.
 - **Understand how driver parameters derive through interactive visual feedback.** Added a "Inspect Provenance" toggle to the Driver Editor which highlights input/derived dependency relationships on parameter fields and opens an interactive Equation Inspector popup displaying relevant calculation paths.
+- **Enforced bidirectional traceability between specs and tests.** Retrofitted OpenSpec format with `openspec/project.md` and capability specifications mapping all 72 test files, backed by an automated validator script integrated into the health check and git pre-commit hook.
 
 ## 2026-08-08 — Exact Transfer Function chart normalization parity with WinISD
 

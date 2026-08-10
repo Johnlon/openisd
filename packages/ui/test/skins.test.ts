@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
+ */
+/**
  * Skin resolution — the pure mapping from a chosen skin to the shell that renders it.
  *
  * `classic` is MOTHBALLED: retired from the picker (not in SKIN_IDS) but still resolves,

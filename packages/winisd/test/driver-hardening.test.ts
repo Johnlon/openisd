@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * @openisd/winisd — the Driver ADT must not smuggle a non-finite Q past the engine's
  * input guard (CODE_REVIEW.md §11, CODE_REVIEW/ENGINE_HARDENING.md).
  *

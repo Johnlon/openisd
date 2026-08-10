@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
+ */
+/**
  * Classic (WinISD) skin — selecting it swaps the whole shell, and the reused editor
  * panels + chart drive the same store. Proves the skin seam works end-to-end and that
  * no shell forks logic: switching tabs mounts the shared panels; the chart-type selector

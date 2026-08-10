@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/app-shell/spec.md?html
+ */
+/**
  * The vent group's E/C/N provenance — which of Vb / ventD / Fb / ventL is HELD and which is
  * SOLVED.
  *

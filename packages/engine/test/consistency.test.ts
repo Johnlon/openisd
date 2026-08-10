@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * Unit tests for packages/engine/src/consistency.ts — the consistency-group detector.
  *
  * The two behaviours the human ruled on (workspace ledger QP18, openisd ledger QO12) are the

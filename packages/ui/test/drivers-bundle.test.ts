@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * Driver-identity invariants for the sources.json map (v2) and the generated
  * bundle.
  *

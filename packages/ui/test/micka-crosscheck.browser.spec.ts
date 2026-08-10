@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
+ */
+/**
  * External oracle tests — micka.de loudspeaker enclosure calculator.
  * https://www.micka.de/en/index.php#ideal
  *

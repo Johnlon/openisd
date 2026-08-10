@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
+ */
+/**
  * Smoke test for the openisd.yml record types (openisdRecord.ts, ARCHITECTURE.md AD-8).
  * Not a round-trip test yet (no YAML reader/writer exists — AD-8 Step 3) — this proves the
  * TYPE is actually constructible against real data, not just that it compiles in isolation.

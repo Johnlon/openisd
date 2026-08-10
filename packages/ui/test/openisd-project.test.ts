@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
+ */
 import { describe, it, expect } from 'vitest';
 import { OpenISDProject, type ProjectContent } from '../src/model/OpenISDProject.js';
 import { toSnapshot, fromSnapshot } from '../src/model/workspace.js';

@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/app-shell/spec.md?html
+ */
+/**
  * Build-config sanity checks.
  *
  * Transient files live in build/ (AGENTS.md §"Scratch files"). These tests guard

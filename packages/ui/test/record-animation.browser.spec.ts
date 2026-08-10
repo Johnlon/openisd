@@ -1,3 +1,6 @@
+/**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
+ */
 /* eslint-disable playwright/no-wait-for-timeout --
    This file is a FRAME RECORDER, not a test: it drives the UI and writes screenshots
    for a walkthrough animation. The pauses are the capture interval — the thing being

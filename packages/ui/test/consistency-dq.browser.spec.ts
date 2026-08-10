@@ -1,4 +1,7 @@
 /**
+ * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
+ */
+/**
  * The consistency-group DQ mark — workspace ledger QP18 and openisd ledger QO13's sibling
  * QO12, one mechanism for both rulings:
  *
