@@ -77,4 +77,41 @@ describe('Sealed-Box Resonance Loss Models', () => {
       expect(LossMode.parse(null)).toBe(LossMode.Default);
     });
   });
+
+  // Dayton Audio Epique E150HE-44 in a 6 L sealed box — the case the user reported showing a
+  // broken "20 kHz / Qtc 0" readout (that came from the impedance-peak scan, which for any
+  // driver with voice-coil inductance returns the HF inductive rise as the global |Z| max).
+  //
+  // GOLDEN = WinISD Pro's own readout, measured by the user:
+  //   WinISD lossy (Ql=10, Qa=100, 6 L):  Fsc 63.17 Hz,  Qtc 0.599
+  //   Lossless (Ql=Qa=999999):            Fsc 60.32 Hz,  Qtc 0.596
+  // The algorithm reproduces these BIT-EXACTLY when fed WinISD's own derived Qts. WinISD
+  // derives Qts≈0.3952 for this driver via its Re_eff / voice-coil-temperature convention
+  // (SEALED_FSC_MODEL.md §5), NOT the nominal Qts=0.39 from Qms=2.94/Qes=0.45. That derivation
+  // is a driver-solver concern separate from the box model.
+  describe('Dayton E150HE-44 in 6L sealed — WinISD golden', () => {
+    const box = { Fs: 40, Vas: 0.007645536, Vb: 0.006, Ql: 10, Qa: 100 };
+    const QTS_WINISD = 0.3952; // WinISD's derived Qts for this driver (Re_eff convention)
+
+    it('reproduces WinISD lossy 63.17 Hz / 0.599 with WinISD-derived Qts', () => {
+      const r = sealedResonance(LossMode.WinisdLossy, { ...box, Qts: QTS_WINISD });
+      expect(r.Fsc).toBeCloseTo(63.17, 2);
+      expect(r.Qtc).toBeCloseTo(0.599, 3);
+    });
+    it('reproduces WinISD lossless 60.32 Hz / 0.596 with WinISD-derived Qts', () => {
+      const r = sealedResonance(LossMode.Lossless, { ...box, Qts: QTS_WINISD });
+      expect(r.Fsc).toBeCloseTo(60.32, 2);
+      expect(r.Qtc).toBeCloseTo(0.596, 3);
+    });
+    it('every mode returns a physical resonance, never the 20 kHz impedance-peak artifact', () => {
+      for (const q of [0.39, QTS_WINISD]) {
+        for (const m of LossMode.ALL) {
+          const r = sealedResonance(m, { ...box, Qts: q });
+          expect(r.Fsc).toBeGreaterThan(40);
+          expect(r.Fsc).toBeLessThan(100); // NOT ~20000
+          expect(r.Qtc).toBeGreaterThan(0.4); // NOT 0
+        }
+      }
+    });
+  });
 });
