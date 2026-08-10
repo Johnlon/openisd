@@ -12,8 +12,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { fromYaml, toYaml } from '../src/openisdYaml.js';
-import type { OpenISDRecord } from '../src/openisdRecord.js';
+import { fromYaml, toYaml } from '../src/native/openisdYaml.js';
+import type { OpenISDRecord } from '../src/native/openisdRecord.js';
 
 const FIXTURE_DIR = dirname(fileURLToPath(import.meta.url));
 const REAL_YAML = readFileSync(join(FIXTURE_DIR, 'fixtures/real_openisd_fs10-20a8.yml'), 'utf8');

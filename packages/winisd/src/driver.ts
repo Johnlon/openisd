@@ -15,7 +15,7 @@
 
 import { deriveDriver, solveConsistencyGroup, checkConsistency, C, RHO } from '@openisd/engine';
 import type { DriverRaw, Driver as EngineDriver, DriverError, ConsistencyIssue } from '@openisd/engine';
-import { toWdr as toWdrRaw } from './wdr.js';
+import { toWdr as toWdrRaw } from './classic/wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
 
 /** E/C/N edit-state of one field. */

@@ -8,7 +8,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { deriveOpenISDFields } from '../src/openisdDerive.js';
+import { deriveOpenISDFields } from '../src/native/openisdDerive.js';
 
 // Beyma 10BR60/V2 real values, this session's batch-recompute fixture
 // (CALC_FINDINGS_FOR_REVIEW.md "Rms, Cms recompute correctly on delete; Re ALSO recomputes").
