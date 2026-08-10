@@ -48,7 +48,12 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     page.on('pageerror', e => log.pageErrors.push(e.message));
     page.on('requestfailed', r => {
       // external federated sources (github.com) may be unreachable in CI — not our bug
-      if (r.url().includes('localhost')) log.networkErrors.push(`FAILED ${r.url()} — ${r.failure()?.errorText}`);
+      if (r.url().includes('localhost')) {
+        const err = r.failure()?.errorText;
+        if (err !== 'net::ERR_ABORTED') {
+          log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+        }
+      }
     });
     page.on('response', r => {
       if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);

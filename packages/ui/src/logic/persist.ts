@@ -27,6 +27,7 @@ export function serialize(state: AppState, driver: DriverJSON): SerializedState 
     v: 2,
     driver,
     box: state.box,
+    lossMode: state.lossMode,
     P: state.P,
     graphs: state.graphs,
     ui: state.ui,

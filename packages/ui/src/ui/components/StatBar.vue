@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver, syncedP, curvesData } from '../../logic/store.js';
-import { ebp, prTuning } from '@openisd/engine';
+import { ebp, prTuning, LossMode, sealedResonance } from '@openisd/engine';
 
 const drv = driver;
 const P = syncedP;
@@ -36,8 +36,13 @@ const stats = computed<StatsInvalid | StatsValid>(() => {
   // correction (always defaulting to 0.732) and ignored which member the user entered.
   const fb = (box === 'vented') ? p.Fb : null;
   const fp = (box === 'pr') ? prTuning(p) : null;
-  const Qtc = (box === 'sealed') ? d.Qts * Math.sqrt(1 + d.Vas / p.Vb) : null;
-  const fc  = (box === 'sealed') ? d.Fs * Math.sqrt(1 + d.Vas / p.Vb) : null;
+  // Sealed Fsc/Qtc under the selected loss model (Lossless / Conventional / WinISD, default WinISD).
+  const sealed = (box === 'sealed')
+    ? sealedResonance(LossMode.parse(state.lossMode),
+        { Fs: d.Fs, Vas: d.Vas, Qts: d.Qts, Vb: p.Vb, Ql: p.Ql, Qa: p.Qa })
+    : null;
+  const fc  = sealed ? sealed.Fsc : null;
+  const Qtc = sealed ? sealed.Qtc : null;
   const maxPV = (box === 'vented' || box === 'bandpass4') ? Math.max(...s.pv) : null;
   const maxPRx = (box === 'pr') ? Math.max(...s.excPR) : null;
   return { box, Vb: p.Vb, fc, Qtc, fb, fp, f3, f6, f10, peakZ, maxPV, maxPRx, ebpVal: ebp(d), prXmax: p.prXmax };

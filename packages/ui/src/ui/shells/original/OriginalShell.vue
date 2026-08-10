@@ -26,6 +26,7 @@ import {
   formatInUnit as fmtU,
   setDriverFromRaw,
   enterVentField, clearVentField, ventFieldState,
+  newProject,
 } from '../../../logic/store.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
@@ -442,7 +443,22 @@ const activeProject = computed(() => openProjects.value.find(p => p.id === activ
 let isSwapping = false;
 
 onMounted(() => {
-  // App starts with no projects open by default
+  if (openProjects.value.length === 0) {
+    openProjects.value = [{
+      id: activeProjectId.value,
+      name: state.project.name || driverShort(driverRaw.value),
+      driver: driverRaw.value,
+      box: state.box,
+      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      curves: curvesData.value,
+      maxCurves: maxData.value,
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: isModified.value,
+      visible: true,
+      color: WINISD_TRACE.value,
+    }];
+  }
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
@@ -605,9 +621,24 @@ function closeProject(p: any) {
       openProjects.value = openProjects.value.filter(x => x.id !== p.id);
       return;
     }
-    // Closing the last project leaves the app with no open projects.
+    // Closing the last project leaves the app on a fresh empty one rather than on nothing.
     openProjects.value = [];
-    activeProjectId.value = '';
+    newProject();
+    activeProjectId.value = 'proj-' + Math.random().toString(36).substring(7);
+    openProjects.value = [{
+      id: activeProjectId.value,
+      name: state.project.name || driverShort(driverRaw.value),
+      driver: driverRaw.value,
+      box: state.box,
+      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
+      curves: curvesData.value,
+      maxCurves: maxData.value,
+      project: { ...state.project },
+      _ground: _ground.value,
+      isModified: false,
+      visible: true,
+      color: WINISD_TRACE.value,
+    }];
     return;
   }
   openProjects.value = others;

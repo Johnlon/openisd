@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { state, driver, enterVentField } from '../../logic/store.js';
-import { sealedFromQtc, ventedAlignment } from '@openisd/engine';
+import { sealedFromQtc, ventedAlignment, LossMode } from '@openisd/engine';
 import NumInput from './NumInput.vue';
 import PRPanel from './PRPanel.vue';
 
@@ -75,6 +75,13 @@ function autoVentAlign() {
         <label>Box volume Vb</label>
         <NumInput v-model="state.P.Vb" :scale="1000" :precision="4" />
         <span class="u">L</span>
+      </div>
+      <div class="row" v-if="state.box === 'sealed'"
+        title="Sealed resonance (Fsc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
+        <label>Fsc model</label>
+        <select id="lossmode" v-model="state.lossMode" style="flex:1">
+          <option v-for="m in LossMode.ALL" :key="m.value" :value="m.value">{{ m.label }}</option>
+        </select>
       </div>
       <div class="btns" style="margin-bottom:2px">
         <button class="losses-toggle" @click="showLosses = !showLosses"

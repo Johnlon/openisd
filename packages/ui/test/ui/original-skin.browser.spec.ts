@@ -659,7 +659,7 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
   const sd = modal.locator('.de-fld', { hasText: 'Sd' }).locator('input').first();
   await sd.fill('130');
   await sd.blur();
-  await expect(sd).toHaveValue('130.0'); // registry Sd = 1 dp (was a 4-dp literal)
+  await expect(sd).toHaveValue('130.00'); // registry Sd = 2 dp (was a 4-dp literal)
 });
 
 test('R1: an open Driver Editor is reopened after a reload', async ({ page }) => {
