@@ -25,6 +25,14 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 - `@openisd/winisd`: A distinct module for parsing, writing, and projecting legacy WinISD driver (.wdr) and project (.wpr) files from/to the in-memory model
 
+### Native OpenISD Storage (`@owdr` / `@owpr`)
+
+- Distinct modules/serializers for reading and writing native OpenISD driver (.owdr) and project (.owpr) files from/to the in-memory model
+
+### Database Management (`@db`)
+
+- Logic module for indexing, searching, and managing the local driver library and project databases (e.g. My Drivers store, favorites, and project lists)
+
 ### Infrastructure
 
 - Static HTML/JS deployable to GitHub Pages
@@ -39,7 +47,7 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ### Architecture Patterns
 
-- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, and `@wdr`
+- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, `@wdr`, `@owdr`, `@owpr`, and `@db`
 - Avoid all global variables: globals are prohibited to prevent side effects and ensure code remains maintainable and testable
 - Classic and Original UI skin variants wrapping the core components
 
