@@ -119,7 +119,7 @@ const FIELDS: FieldSpec[] = [
     description: 'Slotted port height.',
   },
   {
-    id: 'ventL', label: 'Vent length', pane: 'Vents', kind: 'number', unit: 'cm', precision: 1, min: 0.001, max: 10,
+    id: 'ventL', label: 'Vent length', pane: 'Vents', kind: 'number', unit: 'cm', precision: 2, min: 0.001, max: 10,
     provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
     description: 'Port length; with diameter sets Fb. OpenISD enters it in cm (editable) — WinISD derives it in m; 1 dp cm keeps sub-mm resolution.',
   },
@@ -145,14 +145,14 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ PASSIVE RADIATOR ============================
   {
-    id: 'prSd', label: 'Sd', pane: 'PassiveRadiator', kind: 'number', unit: 'cm²', precision: 1, min: 0.0001, max: 10,
+    id: 'prSd', label: 'Sd', pane: 'PassiveRadiator', kind: 'number', unit: 'cm²', precision: 2, min: 0.0001, max: 10,
     provenance: 'entered', modeled: true, appliesTo: ['pr'],
-    description: 'Passive-radiator effective piston area. WinISD 1 dp (95.0 cm²).',
+    description: 'Passive-radiator effective piston area. OpenISD 2 dp.',
   },
   {
-    id: 'prXmax', label: 'Xmax', pane: 'PassiveRadiator', kind: 'number', unit: 'mm', precision: 1, min: 0, max: 0.5,
+    id: 'prXmax', label: 'Xmax', pane: 'PassiveRadiator', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.5,
     provenance: 'entered', modeled: true, appliesTo: ['pr'],
-    description: 'Passive-radiator peak linear excursion. WinISD 1 dp (mm).',
+    description: 'Passive-radiator peak linear excursion. OpenISD 2 dp.',
   },
   {
     id: 'prNum', label: 'Num. of PRs', pane: 'PassiveRadiator', kind: 'number', unit: '', precision: 0, min: 1, max: 16,
@@ -160,7 +160,7 @@ const FIELDS: FieldSpec[] = [
     description: 'Count of passive radiators (integer).',
   },
   {
-    id: 'prMadd', label: 'Added mass to cone', pane: 'PassiveRadiator', kind: 'number', unit: 'g', precision: 1, min: 0, max: 5,
+    id: 'prMadd', label: 'Added mass to cone', pane: 'PassiveRadiator', kind: 'number', unit: 'g', precision: 2, min: 0, max: 5,
     provenance: 'entered', modeled: true, appliesTo: ['pr'],
     description: 'Mass added to the passive radiator to tune its Fp. WinISD 1 dp (g).',
   },
@@ -191,12 +191,12 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ SIGNAL ============================
   {
-    id: 'Pin', label: 'System input power', pane: 'Signal', kind: 'number', unit: 'W', precision: 1, min: 0, max: 100000,
+    id: 'Pin', label: 'System input power', pane: 'Signal', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
     provenance: 'entered', modeled: true, appliesTo: 'all',
-    description: 'Primary drive level (power). Voltage is derived from it (P = V²/Re). WinISD 1 dp (140.0 W).',
+    description: 'Primary drive level (power). Voltage is derived from it (P = V²/Re). OpenISD 2 dp.',
   },
   {
-    id: 'driveV', label: 'Driver input voltage (each)', pane: 'Signal', kind: 'number', unit: 'V', precision: 1, min: 0, max: 1000,
+    id: 'driveV', label: 'Driver input voltage (each)', pane: 'Signal', kind: 'number', unit: 'V', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', modeled: true, appliesTo: 'all',
     formula: 'driveV = √(Pin · Re)', dependsOn: ['Pin', 'Re'],
     description: 'Per-driver drive voltage; editable and bidirectional with Pin via P = V²/Re. WinISD 1 dp (15.2 V).',
@@ -224,17 +224,17 @@ const FIELDS: FieldSpec[] = [
 
   // ============================ BOX LOSSES ============================
   {
-    id: 'Ql', label: 'Leakage Ql', pane: 'Box losses', kind: 'number', unit: '', precision: 1, min: 0.1, max: 1000,
+    id: 'Ql', label: 'Leakage Ql', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
     provenance: 'entered', modeled: true, appliesTo: 'all',
     description: 'Enclosure leakage loss Q.',
   },
   {
-    id: 'Qa', label: 'Absorption Qa', pane: 'Box losses', kind: 'number', unit: '', precision: 1, min: 0.1, max: 1000,
+    id: 'Qa', label: 'Absorption Qa', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
     provenance: 'entered', modeled: true, appliesTo: 'all',
     description: 'Enclosure absorption (fill) loss Q.',
   },
   {
-    id: 'Qp', label: 'Port Qp', pane: 'Box losses', kind: 'number', unit: '', precision: 1, min: 0.1, max: 1000,
+    id: 'Qp', label: 'Port Qp', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
     provenance: 'entered', modeled: true, appliesTo: ['vented', 'bandpass4'],
     description: 'Port (vent) loss Q.',
   },
@@ -246,7 +246,7 @@ const FIELDS: FieldSpec[] = [
     description: 'Ambient temperature; feeds sound velocity + air density. WinISD 2 dp (293.15 K).',
   },
   {
-    id: 'advHumidity', label: 'Relative humidity', pane: 'Advanced', kind: 'number', unit: '%', precision: 1, min: 0, max: 100,
+    id: 'advHumidity', label: 'Relative humidity', pane: 'Advanced', kind: 'number', unit: '%', precision: 2, min: 0, max: 100,
     provenance: 'entered', modeled: true, appliesTo: 'all',
     description: 'Ambient relative humidity. WinISD prints 4 dp (30.0000 %) but that is spurious precision; OpenISD uses 1 dp (deliberate, documented divergence — a percentage needs no more).',
   },
@@ -349,17 +349,17 @@ const FIELDS: FieldSpec[] = [
     description: 'Moving mass. OpenISD shows grams at 2 dp — equivalent to WinISD\'s 5 dp in kg (×1000).',
   },
   {
-    id: 'Sd', label: 'Sd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm²', precision: 1, min: 0.0001, max: 10,
+    id: 'Sd', label: 'Sd', pane: 'Driver: Parameters', kind: 'number', unit: 'cm²', precision: 2, min: 0.0001, max: 10,
     provenance: 'entered', modeled: true, appliesTo: 'all',
-    description: 'Effective piston area. OpenISD shows cm² at 1 dp — WinISD\'s 4 dp in m² (≈1 cm² steps) is too coarse; 1 dp cm² keeps sub-cm² resolution (documented divergence).',
+    description: 'Effective piston area. OpenISD shows cm² at 2 dp.',
   },
   {
-    id: 'Xmax', label: 'Xmax', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 1, min: 0, max: 0.5,
+    id: 'Xmax', label: 'Xmax', pane: 'Driver: Parameters', kind: 'number', unit: 'mm', precision: 2, min: 0, max: 0.5,
     provenance: 'entered', modeled: true, appliesTo: 'all',
-    description: 'Peak linear excursion. OpenISD shows mm at 1 dp — WinISD\'s 3 dp in m (=1 mm steps) is too coarse; 1 dp mm keeps 0.1 mm resolution (documented divergence).',
+    description: 'Peak linear excursion. OpenISD shows mm at 2 dp.',
   },
   {
-    id: 'Pe', label: 'Pe', pane: 'Driver: Parameters', kind: 'number', unit: 'W', precision: 1, min: 0, max: 100000,
+    id: 'Pe', label: 'Pe', pane: 'Driver: Parameters', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
     provenance: 'entered', modeled: true, appliesTo: 'all',
     description: 'Thermal power handling. WinISD 1 dp (W).',
   },

@@ -268,12 +268,23 @@ function onPointerUp(e: PointerEvent) {
   dragOrigin = null;
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
   state.dragRange = null;
-  // Click toggles a locked marker: first click locks the crosshair at that
-  // frequency (hover stops moving it); clicking again unlocks and resumes hover.
+  // Click locks or moves the marker:
+  // - Clicking an unlocked chart locks the cursor at that frequency.
+  // - Clicking near the already pinned location unlocks it.
+  // - Clicking somewhere else while locked moves the cursor to the new location UNLOCKED.
   const f = freqAt(e.clientX);
   if (f === null) return;
-  if (state.cursorLocked) { state.cursorLocked = false; }
-  else { state.pinnedF = f; state.cursorLocked = true; }
+  if (state.cursorLocked && state.pinnedF !== null && Math.abs(Math.log10(f) - Math.log10(state.pinnedF)) < 0.02) {
+    state.cursorLocked = false;
+  } else if (state.cursorLocked) {
+    state.pinnedF = f;
+    state.cursorF = f;
+    state.cursorLocked = false;
+  } else {
+    state.pinnedF = f;
+    state.cursorF = f;
+    state.cursorLocked = true;
+  }
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click

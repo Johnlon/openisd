@@ -1,4 +1,4 @@
-import { C, passbandRef } from '@openisd/engine';
+import { C, passbandRef, rolloffFreq } from '@openisd/engine';
 import type { Driver, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/engine';
 import { DPAL } from '../presets.js';
 import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
@@ -83,14 +83,11 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
     const ymin = Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5);
-    // F3 / F6: first frequency (low→high) where SPL reaches within N dB of the passband peak.
-    // Same reference as StatBar.findF3 — the passband level of the curve being drawn.
-    const rolloff = (drop: number): number | null => { for (let i = 0; i < sw.fs.length; i++) if (ys[i] >= mx2 - drop) return sw.fs[i]; return null; };
     // Reference lines (F3/F6/F10) + their legend — OpenISD value-add, but WinISD's plot is
     // a bare trace, so the classic skin passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
-      const f3 = rolloff(3), f6 = rolloff(6), f10 = rolloff(10);
+      const f3 = rolloffFreq(sw, 3), f6 = rolloffFreq(sw, 6), f10 = rolloffFreq(sw, 10);
       if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
       if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
@@ -99,13 +96,9 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   },
 
   TFMag: ({ meta, sw }) => {
-    // Renormalize the SAME sw.spl data so 0 dB = the passband reference level (the sweep's
-    // own peak, ignoring the -200 "no output" sentinel) — WINISD.md §17's documented
-    // relationship between the two charts. The 0 dB / -3 dB lines are the chart's defining
-    // feature (not optional annotations like SPL's F3/F6/F10), so they're always drawn,
-    // bare or not.
-    const ref = passbandRef(sw.spl);
-    const rel = sw.spl.map(v => (Number.isFinite(v) && v > SILENCE_DB) ? v - ref : v);
+    // The engine calculates sw.tfMag normalized so 0 dB = high-frequency passband asymptote.
+    // The 0 dB / -3 dB reference lines are the chart's defining feature, so they're always drawn.
+    const rel = sw.tfMag;
     const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }];
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
     series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });

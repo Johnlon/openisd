@@ -114,6 +114,43 @@ function railLabel(t: string): string { return t === 'Passive Radiator' ? BOX_TY
 
 // cursor readout (top-right): frequency + the selected chart's value there
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
+const fmin = computed(() => state.P.fmin ?? 1);
+const fmax = computed(() => state.P.fmax ?? 20000);
+
+function setCursorHz(e: Event) {
+  const v = parseFloat((e.target as HTMLInputElement).value);
+  if (isFinite(v) && v > 0) {
+    state.pinnedF = Math.max(fmin.value, Math.min(fmax.value, v));
+    state.cursorLocked = true;
+  } else {
+    state.pinnedF = null;
+    state.cursorLocked = false;
+  }
+}
+
+function spinHz(dir: number, factor = 1.02) {
+  const current = cursorHz.value ?? ((fmin.value * fmax.value) ** 0.5);
+  let nextF = dir > 0 ? current * factor : current / factor;
+  if (dir > 0 && nextF <= current) nextF = current + 0.1;
+  if (dir < 0 && nextF >= current) nextF = current - 0.1;
+  state.pinnedF = Math.max(fmin.value, Math.min(fmax.value, nextF));
+  state.cursorLocked = true;
+}
+
+function onHzKeydown(e: KeyboardEvent) {
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    spinHz(1, e.shiftKey ? 1.05 : 1.02);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    spinHz(-1, e.shiftKey ? 1.05 : 1.02);
+  }
+}
+
+function onHzWheel(e: WheelEvent) {
+  const dir = e.deltaY < 0 ? 1 : -1;
+  spinHz(dir, e.shiftKey ? 1.05 : 1.02);
+}
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: classicTraceColor.value,
@@ -194,7 +231,16 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
         <span class="cl-drop">&#9662;</span>
       </label>
       <div class="cl-readout" title="Cursor readout — hover or click the graph to place the marker">
-        <div>{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</div>
+        <div class="cl-hz-input-wrap">
+          <input class="cl-hz-input" type="number" :min="fmin" :max="fmax" step="any"
+                 :value="cursorHz != null ? cursorHz.toFixed(2) : ''"
+                 @change="setCursorHz"
+                 @keydown="onHzKeydown"
+                 @wheel.prevent="onHzWheel"
+                 placeholder="Hz"
+                 title="Cursor frequency in Hz. Type or use ArrowUp/Down/wheel to spin logarithmically within chart limits" />
+          <span class="cl-hz-unit">Hz</span>
+        </div>
         <div>{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</div>
       </div>
       <SkinPicker />
@@ -414,6 +460,19 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 .cl-chartsel select:focus { outline: none; }
 .cl-drop { color: #3a6ea5; font-size: 11px; }
 .cl-readout { margin-left: auto; text-align: right; line-height: 1.25; font-variant-numeric: tabular-nums; font-size: 15px; min-width: 120px; }
+.cl-hz-input-wrap { display: inline-flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.cl-hz-input {
+  width: 86px;
+  font-size: 13px;
+  padding: 1px 4px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--fg);
+  text-align: right;
+}
+.cl-hz-input:focus { outline: none; border-color: var(--acc); }
+.cl-hz-unit { font-size: 13px; color: var(--fg); }
 
 /* body grid */
 /* Freeform whitespace layout — WinISD has NO structural divider rules (no cross that

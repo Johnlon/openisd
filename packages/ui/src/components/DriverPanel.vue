@@ -170,14 +170,14 @@ function applyDefine(raw: DriverRaw) {
       <div class="drvspecs">
         <span class="ds">Fs <b>{{ (+d.Fs||0).toFixed(0) }} Hz</b></span> ·
         <span class="ds">Qts <b>{{ (drv?.Qts||0).toFixed(3) }}</b></span> ·
-        <span class="ds">Vas <b>{{ (d.Vas*1000).toFixed(1) }} L</b></span> ·
+        <span class="ds">Vas <b>{{ (d.Vas*1000).toFixed(2) }} L</b></span> ·
         <span class="ds">Sd <b>{{ (d.Sd*1e4).toFixed(0) }} cm²</b></span> ·
-        <span class="ds">Re <b>{{ (+d.Re||0).toFixed(1) }} Ω</b></span> ·
-        <span class="ds">Xmax <b>{{ (d.Xmax*1000).toFixed(1) }} mm</b></span> ·
+        <span class="ds">Re <b>{{ (+d.Re||0).toFixed(2) }} Ω</b></span> ·
+        <span class="ds">Xmax <b>{{ (d.Xmax*1000).toFixed(2) }} mm</b></span> ·
         <span class="ds"
               title="EBP = Fs / Qes — Efficiency Bandwidth Product. Below 50: sealed enclosure preferred. Above 100: vented preferred. 50–100: either works well.">EBP <b>{{ ebpVal != null ? ebpVal.toFixed(0) : '—' }}</b> → {{ sug }}</span> ·
         <span class="ds">Bl <b>{{ drv?.Bl != null ? drv.Bl.toFixed(2) : '—' }} T·m</b></span> ·
-        <span class="ds">Mms <b>{{ drv?.Mms != null ? (drv.Mms*1000).toFixed(1) : '—' }} g</b></span>
+        <span class="ds">Mms <b>{{ drv?.Mms != null ? (drv.Mms*1000).toFixed(2) : '—' }} g</b></span>
       </div>
       <div v-if="d.providedBy || d.comment || drvLinks.length" class="drvsource">
         <span v-if="d.providedBy || d.comment">{{ [d.providedBy, d.comment].filter(Boolean).join(' · ') }}</span>
@@ -229,8 +229,8 @@ function applyDefine(raw: DriverRaw) {
         <span class="u">L</span></div>
       <div class="row"><label>Sd</label>
         <input v-expo-step type="number" v-limits step="any" min="0.5" max="6000"
-               :value="rawOrFmt('Sd',(d.Sd*1e4).toFixed(1))"
-               :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toFixed(1)) }"
+               :value="rawOrFmt('Sd',(d.Sd*1e4).toFixed(2))"
+               :class="{ 'inp-bad': badInput('Sd',(d.Sd*1e4).toFixed(2)) }"
                @input="e => numInput('Sd',1e4,(e.target as HTMLInputElement).value)" @blur="numBlur('Sd')"
                title="Effective piston area — from datasheet. WinISD: Sd. Must be 0.5–6000 cm²">
         <span class="u">cm²</span></div>
@@ -255,8 +255,8 @@ function applyDefine(raw: DriverRaw) {
            title="Peak one-way linear excursion. Required to show the Excursion and Max-SPL curves — omit if not on the datasheet. WinISD: Xmax. 0.1–500 mm">
         <label>Xmax <span class="opt-lbl">opt</span></label>
         <input v-expo-step type="number" v-limits step="any" min="0" max="500"
-               :value="rawOrFmt('Xmax',(d.Xmax*1000).toFixed(1))"
-               :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toFixed(1)) }"
+               :value="rawOrFmt('Xmax',(d.Xmax*1000).toFixed(2))"
+               :class="{ 'inp-bad': badInput('Xmax',(d.Xmax*1000).toFixed(2)) }"
                @input="e => numInput('Xmax',1000,(e.target as HTMLInputElement).value)" @blur="numBlur('Xmax')">
         <span class="u">mm</span></div>
       <div class="row"

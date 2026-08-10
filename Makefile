@@ -31,12 +31,15 @@ start-fast:
 drivers:
 	node scripts/bundle-drivers.mjs
 
+.PHONY: start-4000
+start-4000:
+	SKIP_HEALTH_CHECKS=1 npm_config_ignore_scripts=true bash scripts/start-http.sh 4000
+
 # FASTEST: rebuild the driver bundle + serve it on 4000.
 # No lint, no typecheck, no unit tests, no DQ check.
 # npm_config_ignore_scripts stops `npm run dev` firing the predev hook (bundle + lint),
 # so the bundle above is the only pre-step.
-fast: drivers
-	SKIP_HEALTH_CHECKS=1 npm_config_ignore_scripts=true bash scripts/start-http.sh 4000
+fast: drivers start-4000
 
 # Stop the dev server on port 4000
 stop:

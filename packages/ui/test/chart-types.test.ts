@@ -11,6 +11,8 @@
  *   "Filter system is logically located at electrical side. 0 dB gain at filter chain
  *    means that voltage at driver terminal is equal that is specified at 'signal'-tab."
  *
+ * Specification: docs/spec/SPEC_UI.md §1.1 "Decoupled Chart Series Building"
+ *
  * Run: npm run test:unit
  */
 

@@ -10,7 +10,7 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
   // 1. Open the project driver editor
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
 
   // 2. Locate the brand and model input elements
@@ -92,7 +92,7 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
 async function openParameters(page: import('@playwright/test').Page) {
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 }

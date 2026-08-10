@@ -13,6 +13,8 @@ When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and 
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification — "user can checkout with valid cart" tells you exactly what capability exists — and survives refactors because it doesn't care about internal structure.
 
+**Spec Traceability**: Every test block MUST include a comment linking back to its exact defining specification document (e.g. [`SPEC_ENGINE.md §3.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_ENGINE.md?html#L30) or [`SPEC_UI.md §1.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_UI.md?html#L10)). This guarantees 2-way traceability between documentation and test coverage. Always use `http://localhost:8000/winisd/openisd/...` links with `?html` appended before line anchors for markdown file viewer compatibility.
+
 See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
 
 ## Seams — where tests go

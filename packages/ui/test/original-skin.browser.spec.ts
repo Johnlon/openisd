@@ -246,7 +246,7 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
 
 test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
   await expect(tune).toBeVisible();
   await expect(tune.locator('button', { hasText: 'Keep' })).toBeVisible();
@@ -286,7 +286,7 @@ test('a live Tune what-if is isolated from the modified state until Keep (STATE_
   });
   const before = await readFs();
 
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.fill(String(before + 6));
@@ -303,7 +303,7 @@ test('a live Tune what-if is isolated from the modified state until Keep (STATE_
 
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
   await fsInput.click();
   await fsInput.press('Control+a');
@@ -371,7 +371,7 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
   }
   // The docked Tune panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const tuneInputs = await page.locator('.tune-panel input[type="number"]').all();
   for (let i = 0; i < tuneInputs.length; i++) checked += await assertSpinnerHoldsDp(tuneInputs[i], `Tune #${i}`);
 
@@ -410,7 +410,7 @@ test('field constraints: negative/out-of-range entry is rejected or clamped ever
   await expect(rh).toHaveValue('100');     // ceiling too, not just the floor
   // 3. Tune what-if panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const fs = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).first().locator('input');
   await fs.fill('-40');
   await expect(fs).toHaveValue('1');
@@ -645,7 +645,7 @@ test('Driver pane: WinISD-parity added-mass field feeds the engine model (g→kg
 
 test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   const modal = page.locator('.overlay.on');
   await expect(modal).toContainText("Edit Project's Driver");
   await modal.locator('.de-tab', { hasText: 'Parameters' }).first().click(); // Vas/Sd live on the Parameters tab
@@ -664,7 +664,7 @@ test('R1: an open Driver Editor is reopened after a reload', async ({ page }) =>
   await page.reload();
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.overlay.on')).toContainText("Edit Project's Driver");
 
   await page.waitForFunction(() => (localStorage.getItem('openisd.state') || '').includes('originalEditorOpen'),
@@ -678,7 +678,7 @@ test('R1: an open Tune with uncommitted what-if values is preserved across a rel
   await page.reload();
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const fsInput = page.locator('.tune-panel .tune-fld', { hasText: 'Fs' }).locator('input');
   const before = Number(await fsInput.inputValue());
   await fsInput.fill(String(before + 7));

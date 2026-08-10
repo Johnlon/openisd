@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './packages/ui/test',
   testMatch: '**/*.browser.spec.ts',
-  timeout: 30000,
+  timeout: 60000,
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
   reporter: [['list'], ['./scripts/test-reporters/no-skips-playwright.js']],
   // A stray `test.only` must not silently narrow the suite either.

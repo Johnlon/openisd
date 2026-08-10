@@ -25,7 +25,7 @@ const {
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
   toggleType, toggleZ, clearParamFilters,
   filteredFiles, displayedFiles, listTruncated, listedCount,
-  filteredMyDrivers, myDriverName, myDriverEntry, driverId, editMyDriver, deleteMyDriver,
+  filteredMyDrivers, myDriverName, myDriverEntry, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
   favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverKey,
   driverScope, cycleDriverScope,
   previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
@@ -51,12 +51,7 @@ useEscToClose(() => state.browseOpen, close);
 // The T/S define form (state.defineOpen) remains available from other entry points.
 function openNew() { openNewDriver(); }
 
-// Edit is enabled ONLY for a My Drivers selection: a library record is read-only, and the
-// project's own driver is edited from the Driver panel, not from here.
-function editSelected() {
-  const my = previewFile.value?.myDriverData;
-  if (my) editMyDriver(my);
-}
+
 
 // Closing the picker drops any open summary, so reopening lands on the list rather than on
 // whatever was last being read.
@@ -233,10 +228,8 @@ watch(() => state.browseOpen, val => { if (val) openedLibrary(); else pickFile(n
                     @click="toggleFavorite(previewFile)">★</button>
             <button class="clone-btn" @click="cloneDriver(previewFile)"
                     title="Copy this driver into My Drivers as &quot;Copy of …&quot; — an independent driver you can then edit">Clone driver</button>
-            <button class="edit-btn" :disabled="!previewFile.myDriverData" @click="editSelected"
-                    :title="previewFile.myDriverData
-                      ? 'Edit this saved driver — changes the My Drivers entry, not the project'
-                      : 'Only a driver from My Drivers can be edited. Clone this one first, or edit the project\'s driver from the Driver panel.'">Edit</button>
+            <button class="edit-btn" @click="editOverviewDriver(previewFile)"
+                    title="Edit this driver's parameters — saving will add or update in My Drivers">Edit</button>
             <button class="use-btn" @click="chooseDriver(previewFile)"
                     title="Open this driver in the editor — it replaces the design only when you press OK">Use</button>
           </div>
@@ -252,11 +245,19 @@ watch(() => state.browseOpen, val => { if (val) openedLibrary(); else pickFile(n
                  :href="lnk.href" target="_blank" rel="noopener"
                  class="prev-link">{{ lnk.label }} ↗</a>
             </div>
-            <div v-if="previewData.brand || previewData.model || previewData.manufacturer || previewData.notes || previewData.added || previewData.providedBy"
+            <div v-if="previewData.brand || previewData.model || previewData.sku || previewData.series || previewData.manufacturer || previewData.description || previewData.notes || previewData.added || previewData.providedBy"
                  class="prev-textinfo">
-              <div v-if="previewData.brand || previewData.model" class="prev-textrow">
-                <span class="prev-src-lbl">Brand / Model</span>
-                {{ [previewData.brand, previewData.model].filter(Boolean).join(' — ') }}
+              <div v-if="previewData.brand" class="prev-textrow">
+                <span class="prev-src-lbl">Brand</span> {{ previewData.brand }}
+              </div>
+              <div v-if="previewData.series" class="prev-textrow">
+                <span class="prev-src-lbl">Series</span> {{ previewData.series }}
+              </div>
+              <div v-if="previewData.model" class="prev-textrow">
+                <span class="prev-src-lbl">Model</span> {{ previewData.model }}
+              </div>
+              <div v-if="previewData.sku" class="prev-textrow">
+                <span class="prev-src-lbl">SKU</span> <code>{{ previewData.sku }}</code>
               </div>
               <div v-if="previewData.manufacturer" class="prev-textrow">
                 <span class="prev-src-lbl">Manufacturer</span> {{ previewData.manufacturer }}
@@ -266,6 +267,9 @@ watch(() => state.browseOpen, val => { if (val) openedLibrary(); else pickFile(n
               </div>
               <div v-if="previewData.added" class="prev-textrow">
                 <span class="prev-src-lbl">Date added</span> {{ previewData.added }}
+              </div>
+              <div v-if="previewData.description" class="prev-textrow prev-desc">
+                <span class="prev-src-lbl">Description</span> {{ previewData.description }}
               </div>
               <div v-if="previewData.notes" class="prev-textrow prev-notes">
                 <span class="prev-src-lbl">Notes</span> {{ previewData.notes }}

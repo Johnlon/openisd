@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue';
 import type { DriverRaw } from '@openisd/engine';
 import type { DriverJSON } from '@openisd/winisd';
 import { state, driverShort } from '../store.js';
-import { selectDriver, driverFromFileText, editMyDriver } from './useDriverSelection.js';
+import { selectDriver, driverFromFileText, editMyDriver, editOverviewDriver } from './useDriverSelection.js';
 import { DriverType, Chip } from '../driverType.js';
 import { DriverScope } from '../driverScope.js';
 import { loadMyDrivers, saveMyDrivers, removeMyDriver, upsertMyDriver, driverId, MY_DRIVERS_KEY } from '../utils/myDrivers.js';
@@ -575,6 +575,12 @@ const previewData = computed(() => {
   if (d) {
     const n = (v: number | undefined, scale = 1): number | null => (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
     const Fs = n(d.Fs), Qes = n(d.Qes);
+    const pathSku = f.path ? f.path.split('/')[1] : null;
+    const sku = (d as any).sku || pathSku || null;
+    const series = (d as any).series || null;
+    const description = (d as any).description || null;
+    const productImage = (d as any).productImage || null;
+
     return {
       name: d.name || f.name || 'My Driver',
       source: f.myDriverData ? 'My Drivers' : f.sourceName,
@@ -582,6 +588,10 @@ const previewData = computed(() => {
       providedBy: d.providedBy || '',
       brand: d.brand || null,
       model: d.model || null,
+      sku,
+      series,
+      description,
+      productImage,
       manufacturer: d.manufacturer || null,
       notes: d.comment || null,
       added: d.added || null,
@@ -786,7 +796,7 @@ export function useDriverLibrary() {
     // list
     filteredFiles, displayedFiles, listTruncated, listedCount,
     // my drivers
-    myDrivers, filteredMyDrivers, myDriverName, myDriverEntry, driverId, editMyDriver,
+    myDrivers, filteredMyDrivers, myDriverName, myDriverEntry, driverId, editMyDriver, editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // custom sources
     customUrl, loadCustom,

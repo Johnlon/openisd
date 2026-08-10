@@ -78,7 +78,7 @@ function walkRecords(dir) {
 const SPEC_TO_FIELD = {
   Znom: 'Z', Fs: 'Fs', Pe: 'Pe', Re: 'Re', Le: 'Le', BL: 'Bl', Xmax: 'Xmax',
   Cms: 'Cms', Qms: 'Qms', Qes: 'Qes', Qts: 'Qts', Rms: 'Rms', Mms: 'Mms',
-  Sd: 'Sd', Vas: 'Vas',
+  Sd: 'Sd', Vas: 'Vas', numVC: 'numVC', VCCon: 'VCCon',
 };
 
 // data_sources role → the app's link field.
@@ -123,19 +123,26 @@ function project(record) {
   }
 
   const brand = valueOf(record.brand);
-  const model = valueOf(record.model);
+  const rawModel = valueOf(record.model);
+  const sku = valueOf(record.sku);
+  const series = valueOf(record.series);
+
+  // Model slug used for display title: uppercase SKU when present, else rawModel
+  const modelSlug = sku ? sku.toUpperCase() : rawModel;
   if (brand) inputs.brand = brand;
-  if (model) inputs.model = model;
+  if (rawModel) inputs.model = rawModel;
+  if (sku) inputs.sku = sku;
+  if (series) inputs.series = series;
   const manufacturer = valueOf(record.manufacturer);
   if (manufacturer) inputs.manufacturer = manufacturer;
+  const description = valueOf(record.description);
+  if (description) inputs.description = description;
+  const productImage = valueOf(record.product_image);
+  if (productImage) inputs.productImage = productImage;
 
-  // Brand-led, with manufacturer trailing only when it says something the brand does not —
-  // the same rule as `driverShort()` in packages/ui/src/store.ts, which is what the app uses
-  // to name this driver everywhere else. A driver is sold and filed under its BRAND, so the
-  // brand leads; `manufacturer` is second-order.
   const lead = brand || manufacturer;
-  const trailer = brand && manufacturer && manufacturer !== brand ? `(${manufacturer})` : '';
-  const name = [lead, model, trailer].filter(Boolean).join(' ').trim();
+  const parts = [lead, series, modelSlug].filter(Boolean);
+  const name = parts.join(' - ').trim();
 
   for (const [role, url] of Object.entries(valueOf(record.data_sources) ?? {})) {
     const field = SOURCE_TO_LINK[role];

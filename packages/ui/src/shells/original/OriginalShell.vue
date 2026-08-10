@@ -21,7 +21,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   state, driver, driverRaw, driverShort, driverJSON,
   syncedP, curvesData, maxData, driverErrors,
-  isModified, resetProjectToGround, _ground, markProjectSaved, newProject,
+  isModified, resetProjectToGround, _ground, markProjectSaved,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
   formatInUnit as fmtU,
   setDriverFromRaw,
@@ -33,6 +33,7 @@ import type { PRLibEntry, BundledPR, Design } from '../../types.js';
 import { C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          prTuning,
+         findImpedancePeak,
          driveVoltage, soundVelocity, airDensity } from '@openisd/engine';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../utils/series.js';
 import type { ChartTabId } from '../../utils/series.js';
@@ -112,11 +113,25 @@ const enclosureNavLabel = computed(() =>
 const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
 // ---- Live engine-derived readouts (never faked literals) -----------------------
-// Sealed rear-chamber resonance: Fc = Fs·√(1 + Vas/Vb). Correct for a chamber with no port.
+const rearPeak = computed(() => {
+  const d = driver.value;
+  if (!d || !curvesData.value) return null;
+  return findImpedancePeak(curvesData.value, d.Re);
+});
+
+// Sealed rear-chamber resonance: Fsc from impedance peak (or Fs·√(1 + Vas/Vb) fallback).
 const rearResonance = computed<number | null>(() => {
+  if (rearPeak.value) return rearPeak.value.Fsc;
   const d = driver.value;
   if (!d || !(state.P.Vb > 0)) return null;
   return d.Fs * Math.sqrt(1 + d.Vas / state.P.Vb);
+});
+// Sealed rear-chamber Q: Qtc from impedance peak (or Qts·√(1 + Vas/Vb) fallback).
+const rearQtc = computed<number | null>(() => {
+  if (rearPeak.value) return rearPeak.value.Qtc;
+  const d = driver.value;
+  if (!d || !(state.P.Vb > 0)) return null;
+  return d.Qts * Math.sqrt(1 + d.Vas / state.P.Vb);
 });
 // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
 // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
@@ -312,6 +327,82 @@ function loadSample(sample: typeof SAMPLES[number]) {
 
 // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
 const cursorHz = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
+const fmin = computed(() => state.P.fmin ?? 1);
+const fmax = computed(() => state.P.fmax ?? 20000);
+
+const isHzInputFocused = ref(false);
+const hzInputText = ref('');
+
+watch(cursorHz, (newF) => {
+  if (!isHzInputFocused.value) {
+    hzInputText.value = newF != null ? newF.toFixed(2) : '';
+  }
+}, { immediate: true });
+
+function onHzInputFocus() {
+  isHzInputFocused.value = true;
+  hzInputText.value = cursorHz.value != null ? cursorHz.value.toFixed(2) : '';
+}
+
+function onHzInputBlur() {
+  isHzInputFocused.value = false;
+  commitHzInput();
+}
+
+function commitHzInput() {
+  const v = parseFloat(hzInputText.value);
+  if (isFinite(v) && v > 0) {
+    const clamped = Math.max(fmin.value, Math.min(fmax.value, v));
+    state.pinnedF = clamped;
+    state.cursorF = clamped;
+    state.cursorLocked = true;
+  } else {
+    state.pinnedF = null;
+    state.cursorF = null;
+    state.cursorLocked = false;
+  }
+}
+
+function spinHz(dir: number, factor = 1.02) {
+  const current = cursorHz.value ?? ((fmin.value * fmax.value) ** 0.5);
+  let nextF = dir > 0 ? current * factor : current / factor;
+  if (dir > 0 && nextF <= current) nextF = current + 0.1;
+  if (dir < 0 && nextF >= current) nextF = current - 0.1;
+  const clamped = Math.max(fmin.value, Math.min(fmax.value, nextF));
+  state.pinnedF = clamped;
+  state.cursorF = clamped;
+  state.cursorLocked = true;
+  hzInputText.value = clamped.toFixed(2);
+}
+
+function onHzKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
+    (e.target as HTMLInputElement).blur();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    spinHz(1, e.shiftKey ? 1.05 : 1.02);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    spinHz(-1, e.shiftKey ? 1.05 : 1.02);
+  }
+}
+
+function onHzWheel(e: WheelEvent) {
+  const dir = e.deltaY < 0 ? 1 : -1;
+  spinHz(dir, e.shiftKey ? 1.05 : 1.02);
+}
+
+let holdTimer: ReturnType<typeof setTimeout> | null = null, holdInterval: ReturnType<typeof setInterval> | null = null;
+function startNudge(dir: number) {
+  spinHz(dir, 1.02);
+  holdTimer = setTimeout(() => { holdInterval = setInterval(() => spinHz(dir, 1.02), 60); }, 300);
+}
+function stopNudge() {
+  if (holdTimer) clearTimeout(holdTimer);
+  if (holdInterval) clearInterval(holdInterval);
+  holdTimer = holdInterval = null;
+}
+onUnmounted(stopNudge);
 const currentDesign = computed(() => ({
   driver: driver.value, box: state.box, P: syncedP.value,
   curves: curvesData.value, maxCurves: maxData.value, name: 'Current', color: WINISD_TRACE.value,
@@ -351,22 +442,7 @@ const activeProject = computed(() => openProjects.value.find(p => p.id === activ
 let isSwapping = false;
 
 onMounted(() => {
-  if (openProjects.value.length === 0) {
-    openProjects.value = [{
-      id: activeProjectId.value,
-      name: state.project.name || driverShort(driverRaw.value),
-      driver: driverRaw.value,
-      box: state.box,
-      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
-      curves: curvesData.value,
-      maxCurves: maxData.value,
-      project: { ...state.project },
-      _ground: _ground.value,
-      isModified: isModified.value,
-      visible: true,
-      color: WINISD_TRACE.value,
-    }];
-  }
+  // App starts with no projects open by default
 });
 
 // Keep the active item in openProjects completely in sync with the live store active design
@@ -529,24 +605,9 @@ function closeProject(p: any) {
       openProjects.value = openProjects.value.filter(x => x.id !== p.id);
       return;
     }
-    // Closing the last project leaves the app on a fresh empty one rather than on nothing.
+    // Closing the last project leaves the app with no open projects.
     openProjects.value = [];
-    newProject();
-    activeProjectId.value = 'proj-' + Math.random().toString(36).substring(7);
-    openProjects.value = [{
-      id: activeProjectId.value,
-      name: state.project.name || driverShort(driverRaw.value),
-      driver: driverRaw.value,
-      box: state.box,
-      P: { ...state.P, filters: (state.P.filters || []).map(f => ({ ...f })) },
-      curves: curvesData.value,
-      maxCurves: maxData.value,
-      project: { ...state.project },
-      _ground: _ground.value,
-      isModified: false,
-      visible: true,
-      color: WINISD_TRACE.value,
-    }];
+    activeProjectId.value = '';
     return;
   }
   openProjects.value = others;
@@ -770,7 +831,30 @@ watch(() => state.ui.originalEditorOpen, (open) => {
         </div>
       </div>
       <div class="cursor-readout">
-        <span class="ro-hz">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
+        <span class="ro-hz">
+          <button class="nudge-btn"
+                  @pointerdown="startNudge(-1)"
+                  @pointerup="stopNudge"
+                  @pointerleave="stopNudge"
+                  title="Spin frequency down logarithmically within chart limits (hold to spin)">◄</button>
+          <input class="ro-hz-input"
+                 type="text"
+                 :value="hzInputText"
+                 @input="hzInputText = ($event.target as HTMLInputElement).value"
+                 @focus="onHzInputFocus"
+                 @blur="onHzInputBlur"
+                 @keydown="onHzKeydown"
+                 @wheel.prevent="onHzWheel"
+                 placeholder="—"
+                 title="Cursor frequency in Hz (XXXXX.XX). Type or use ArrowUp/ArrowDown/wheel/◄► to spin logarithmically." />
+          <button class="nudge-btn"
+                  @pointerdown="startNudge(1)"
+                  @pointerup="stopNudge"
+                  @pointerleave="stopNudge"
+                  title="Spin frequency up logarithmically within chart limits (hold to spin)">►</button>
+          <span class="ro-hz-unit">Hz</span>
+          <span style="display:none">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
+        </span>
         <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
         <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
                 @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
@@ -786,7 +870,10 @@ watch(() => state.ui.originalEditorOpen, (open) => {
         <div class="quad-projects-wrap">
           <div class="panel-title">Projects</div>
           <div class="projects-list">
-            <div v-for="p in openProjects" :key="p.id" class="project-row"
+            <div v-if="openProjects.length === 0" class="project-empty-row" style="padding: 12px 10px; color: var(--mut, #888); font-style: italic; font-size: 12px; text-align: center;">
+              no project open
+            </div>
+            <div v-else v-for="p in openProjects" :key="p.id" class="project-row"
                  :class="{ selected: p.id === activeProjectId, 'trace-hidden': p.visible === false, 'is-unsaved': p.isModified }"
                  :title="'Project — ' + p.name + (p.id === activeProjectId ? ' (Active)' : ' (Click to select)')"
                  @click="selectProject(p)">
@@ -890,6 +977,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 </template>
                 <div v-else class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
+              <div v-if="selectedBox === 'sealed'" class="field-row">
+                <div class="field"><label>Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
+              </div>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
 
@@ -908,6 +998,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                     <input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
+                </div>
+                <div v-if="selectedBox === 'bandpass4'" class="field-row">
+                  <div class="field"><label>Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
                 </div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
@@ -1368,7 +1461,43 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; }
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; gap:12px; white-space:nowrap; }
-.cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; }
+.cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
+.ro-hz-input {
+  width: 82px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border: 1px solid var(--line, #bbb);
+  border-radius: 3px;
+  background: var(--panel, #fff);
+  color: var(--fg, #222);
+}
+.ro-hz-input:focus {
+  outline: none;
+  border-color: var(--acc, #1868d1);
+}
+.ro-hz .nudge-btn {
+  font-size: 10px;
+  padding: 1px 4px;
+  background: none;
+  border: 1px solid var(--line, #bbb);
+  border-radius: 3px;
+  color: var(--mut, #666);
+  cursor: pointer;
+  margin: 0 2px;
+}
+.ro-hz .nudge-btn:hover {
+  color: var(--fg, #222);
+  border-color: var(--acc, #1868d1);
+}
+.ro-hz-unit {
+  font-size: 12px;
+  color: var(--mut, #666);
+  margin-left: 3px;
+}
 .cursor-readout .ro-val { min-width:76px; text-align:right; }
 /* Boosted vs the shared component's subtle default — easy to miss among the readout numbers. */
 .cursor-readout :deep(.skin-picker) { margin-top:0; padding:3px 8px; border:1px solid #7fb3ff; border-radius:3px; background:#eaf3ff; }
