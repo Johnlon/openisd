@@ -51,7 +51,7 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ### Architecture Patterns
 
-- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, `@wdr`, `@owdr`, `@owpr`, `@db`, and `@logging`
+- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, `@wdr`, `@wpr`, `@owdr`, `@owpr`, `@db`, and `@logging`
 - Avoid all global variables: globals are prohibited to prevent side effects and ensure code remains maintainable and testable
 - Classic and Original UI skin variants wrapping the core components
 
