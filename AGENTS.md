@@ -29,9 +29,17 @@
 
 **Doc-only exception:** when a commit (or the full set of commits in a push) touches **only** `*.md` files, `pre-commit`/`pre-push` skip lint/typecheck/test/CI automatically — a doc-only change has no runtime behaviour for those gates to check. This is enforced by the hooks themselves (they detect doc-only via `git diff --name-only`), not by passing `--no-verify` — any commit/push that includes even one non-`.md` file always runs the full gate. Never use `--no-verify` to get this effect manually.
 
+**Test Documentation & Spec Traceability — hard rule:**
+Every test block (unit, integration, or browser) MUST include a top-level JSDoc/comment linking directly back to its defining specification document (`.md` file + section heading, e.g. [`SPEC_ENGINE.md §3.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_ENGINE.md#L30) or [`SPEC_UI.md §1.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_UI.md#L10)). Every specification section MUST list its verifying tests. A test without an explicit specification doc link is incomplete.
+
+**Link Formatting Rules:**
+
+- **In repository `.md` files**: Always use relative links (e.g. `docs/spec/SPEC_ENGINE.md#L30` or `../../docs/spec/SPEC_ENGINE.md`).
+- **In AI prompt outputs / responses to the user**: ALWAYS format links using `http://localhost:8000/winisd/openisd/...` URLs (appending `?html` before line anchors for `.md` files, e.g. `http://localhost:8000/winisd/openisd/docs/spec/SPEC_ENGINE.md?html#L30`) so they render as HTML in the documentation viewer. NEVER output `file://` URLs.
+
 **TDD — red→green, in this order:**
 
-1. Write a test that reproduces the bug and fails (for the right reason).
+1. Write a test that reproduces the bug and fails (for the right reason), linking to its defining specification doc.
 2. Watch it fail.
 3. Apply the fix.
 4. Watch it pass.
@@ -199,14 +207,14 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 
 **Available utility scripts:**
 
-| Script                          | Purpose                                                                                                                              |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `scripts/start-http.sh`         | Vite dev on 4000. Runs health-check first, kills the port, starts in bg. Writes PID to `.server-4000.pid`.                           |
-| `scripts/stop-http.sh`          | Stop the server on 4000.                                                                                                             |
-| `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                                                         |
-| `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).                                  |
-| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                                                |
-| `scripts/health-check.sh`       | All health checks: lint, type check, unit tests, browser tests. Single entry point.                                                  |
+| Script                          | Purpose                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `scripts/start-http.sh`         | Vite dev on 4000. Runs health-check first, kills the port, starts in bg. Writes PID to `.server-4000.pid`. |
+| `scripts/stop-http.sh`          | Stop the server on 4000.                                                                                   |
+| `scripts/kill-http.sh [port …]` | Kill all processes on specified ports. Never call ad-hoc — use stop-http.sh.                               |
+| `scripts/preview-4000.sh`       | Human's lightweight preview: kills 4000–4005 then starts `vite preview` on 4000 (no health checks).        |
+| `scripts/build-release.sh`      | Production dist build (`GITHUB_PAGES=true`). Release workflow only; never run ad-hoc.                      |
+| `scripts/health-check.sh`       | All health checks: lint, type check, unit tests, browser tests. Single entry point.                        |
 
 ---
 
@@ -227,8 +235,8 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 
 | Port | Purpose                                                                | Started by                |
 | ---- | ---------------------------------------------------------------------- | ------------------------- |
-| 4000 | **The app.** Every build, preview and check — the human's live window   | `scripts/preview-4000.sh` |
-| 4100 | Playwright's own vite, started and torn down by the test runner itself  | `playwright.config.js`    |
+| 4000 | **The app.** Every build, preview and check — the human's live window  | `scripts/preview-4000.sh` |
+| 4100 | Playwright's own vite, started and torn down by the test runner itself | `playwright.config.js`    |
 
 - **The AI starts NO server on any other port.** No `npx vite --port <n>`, no `npm run dev` on an ad-hoc port, no second instance "just to probe". A check that needs a running app uses 4000.
 - **4100 belongs to Playwright.** `npx playwright test` starts and stops it; never start it or point a probe at it by hand. An interrupted run leaves it held and the next run refuses with "4100 is already used" — clearing that stale one with `bash scripts/kill-http.sh 4100` is the exception, and only when no run is in flight.
@@ -324,9 +332,10 @@ If you cannot name the device with all six points, you do not have enough inform
 
 ---
 
-## External claims — require evidence, label inline
+## External claims — require evidence, label inline — hard rule
 
 - Never assert facts about external systems (WinISD, LEAP, REW, websites, APIs) without primary-source evidence obtained in the current conversation: a tool call, a fetched URL, a read file, or directly observed output.
+- **NEVER DEFEND AN INFERRED ROOT CAUSE OR CONJECTURE AS FACT.** If the exact internal binary execution path, disassembly, or code line of an external tool is not directly observed, explicitly state that it is an unverified hypothesis (`⚠ unverified`). Never double down, speculate, or defend inferred internal mechanisms to the human.
 - **Render JS SPAs with Playwright — do not conclude a page is empty from `WebFetch`/`curl`.** Most modern tool sites (loudspeakerlab.io, speakerboxlite.com, simulator.00aud.io, speakerdesign.dev, sonella.app …) are client-side SPAs: `WebFetch` and `curl` return only the empty app shell, which is **not** evidence about the tool. To get primary-source evidence, drive the site with headless Chromium via the repo's Playwright (`@playwright/test` — `import { chromium }`), `waitUntil: 'networkidle'`, expand any accordions/tabs, then read `document.body.innerText`. Put the throwaway probe script in `build/` (never `/tmp`) and delete it when done. Forum posts and search snippets are second-hand — prefer the rendered app, and only fall back to them when the app cannot be driven. Findings obtained this way are directly observed output (primary evidence); still mark anything the render did not settle as "⚠ unverified".
 - **The user must not have to verify my claims.** Any unverified external claim must be flagged inline with "⚠ unverified" before it reaches the user.
 - Inferred or assumed behaviour **must** be labelled as such. Record tool-behaviour assumptions in `WINISD.md` with an explicit "⚠ Assumption — NOT directly verified" marker.

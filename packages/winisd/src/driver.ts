@@ -112,7 +112,16 @@ export class Driver {
   // Memoised consistency verdict; costs one extra solve per entered field, so it is only
   // computed when something asks for it, and dropped alongside #cache on every mutation.
   #issues: ConsistencyIssue[] | null = null;
+  #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
+
+  get autoCalculate(): boolean { return this.#autoCalculate; }
+  set autoCalculate(val: boolean) {
+    if (this.#autoCalculate !== val) {
+      this.#autoCalculate = val;
+      this.#invalidate();
+    }
+  }
 
   // ── round-trip carry (set only when built via fromWdr) ────────────────────────
   // Every [Driver] key read from the source .wdr, in file order, with its raw value —
@@ -386,16 +395,18 @@ export class Driver {
     // not re-implement any of it. `== null` guards inside it mean an entered (E) value
     // is never overwritten by a computed one and instead feeds downstream — WinISD's
     // fixed-E override semantics.
-    const r = solveConsistencyGroup(entered, { full: true }) as Record<string, number>;
+    const r = this.#autoCalculate
+      ? (solveConsistencyGroup(entered, { full: true }) as Record<string, number>)
+      : { ...entered };
 
     if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
-    // no/SPL — NOT part of solveConsistencyGroup (three disagreeing constants exist
-    // across the codebase, see its docstring); kept here, unchanged from before, so
-    // this class's own behaviour doesn't shift as a side effect of the consolidation.
-    if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
-      r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
-    if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
+    if (this.#autoCalculate) {
+      // no/SPL — NOT part of solveConsistencyGroup
+      if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
+        r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
+      if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
+    }
 
     // Air constants autofill (state C) until overridden — matches the sim's constants.
     if (r.c == null) r.c = C;

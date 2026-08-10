@@ -15,7 +15,7 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState
+  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState, curvesData
 } from '../store.js';
 import { serialize, stateToUrl, download } from '../utils/persist.js';
 import { flash } from '../utils/flash.js';
@@ -118,7 +118,7 @@ export function useDesignIO() {
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     const driverSection = getDriverModel().toWdr();
-    const input = buildWprInput(state.box, state.P, driver.value, driverSection, state.project, new Date());
+    const input = buildWprInput(state.box, state.P, driver.value, driverSection, state.project, new Date(), curvesData.value);
     download(sanitizeFilename(driverRaw.value.name) + '.wpr', toWpr(input), 'text/plain');
   }
 

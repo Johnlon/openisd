@@ -29,20 +29,44 @@ const rangeSel = computed({
 });
 
 const effectiveF = computed(() => state.cursorLocked ? state.pinnedF : (state.cursorF ?? state.pinnedF));
+const fmin = computed(() => state.P.fmin ?? 1);
+const fmax = computed(() => state.P.fmax ?? 20000);
 
 function setCursorHz(e: Event) {
   const v = parseFloat((e.target as HTMLInputElement).value);
-  if (isFinite(v) && v > 0) { state.pinnedF = v; state.cursorLocked = true; }
+  if (isFinite(v) && v > 0) {
+    state.pinnedF = Math.max(fmin.value, Math.min(fmax.value, v));
+    state.cursorLocked = true;
+  }
   else { state.pinnedF = null; state.cursorLocked = false; }
 }
 
+function spinHz(dir: number, factor = 1.02) {
+  const current = effectiveF.value ?? state.cursorF ?? ((fmin.value * fmax.value) ** 0.5);
+  let nextF = dir > 0 ? current * factor : current / factor;
+  if (dir > 0 && nextF <= current) nextF = current + 0.1;
+  if (dir < 0 && nextF >= current) nextF = current - 0.1;
+  state.pinnedF = Math.max(fmin.value, Math.min(fmax.value, nextF));
+  state.cursorLocked = true;
+}
+
 function nudge(dir: number) {
-  const f = effectiveF.value ?? state.cursorF;
-  if (!f) return;
-  // step ~1% of current frequency (log-uniform feel), min 0.1 Hz
-  const step = Math.max(0.1, f * 0.01);
-  state.pinnedF = Math.max(0.1, f + dir * step);
-  state.cursorLocked = true;   // stepping the marker locks it so hover doesn't override
+  spinHz(dir, 1.02);
+}
+
+function onHzKeydown(e: KeyboardEvent) {
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    spinHz(1, e.shiftKey ? 1.05 : 1.02);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    spinHz(-1, e.shiftKey ? 1.05 : 1.02);
+  }
+}
+
+function onHzWheel(e: WheelEvent) {
+  const dir = e.deltaY < 0 ? 1 : -1;
+  spinHz(dir, e.shiftKey ? 1.05 : 1.02);
 }
 
 // Press-and-hold auto-repeat for the ◄ ► arrows: one step immediately, then repeat
@@ -78,16 +102,19 @@ onBeforeUnmount(stopNudge);
     </span>
     <span class="sep"></span>
     <span class="tgroup">
-      <span class="lab" title="Cursor frequency. Hover a graph to read any point; click a graph, type here, or use the ◄ ► arrows to lock the crosshair at a frequency. Click the graph again to unlock.">Cursor:</span>
+      <span class="lab" title="Cursor frequency. Hover a graph to read any point; click a graph, type here, or use the ◄ ► arrows or scroll wheel to spin the crosshair logarithmically within chart limits. Click the graph again to unlock.">Cursor:</span>
       <button class="nudge-btn" @pointerdown="startNudge(-1)" @pointerup="stopNudge" @pointerleave="stopNudge"
-              title="Step the cursor down ~1% (hold to spin)">◄</button>
+              title="Spin frequency down logarithmically within chart limits (hold to spin)">◄</button>
       <input class="cursor-hz"
-             type="number" min="1" max="40000" step="0.1"
-             :value="effectiveF ? effectiveF.toFixed(1) : ''"
+             type="number" :min="fmin" :max="fmax" step="any"
+             :value="effectiveF ? effectiveF.toFixed(2) : ''"
              @change="setCursorHz"
-             placeholder="Hz" />
+             @keydown="onHzKeydown"
+             @wheel.prevent="onHzWheel"
+             placeholder="Hz"
+             title="Cursor frequency in Hz. Type or use ArrowUp/ArrowDown/wheel to spin logarithmically within chart limits." />
       <button class="nudge-btn" @pointerdown="startNudge(1)" @pointerup="stopNudge" @pointerleave="stopNudge"
-              title="Step the cursor up ~1% (hold to spin)">►</button>
+              title="Spin frequency up logarithmically within chart limits (hold to spin)">►</button>
     </span>
     <span class="sep"></span>
     <button class="nudge-btn help-btn" @click="showHelp = true" title="Graph interaction guide — hover, click, drag, right-click">Graph help ?</button>
@@ -143,7 +170,7 @@ onBeforeUnmount(stopNudge);
 
 <style scoped>
 .cursor-hz {
-  width: 62px;
+  width: 84px;
   font-size: 11px;
   padding: 1px 4px;
   background: var(--panel2);

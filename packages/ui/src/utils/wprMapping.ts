@@ -16,8 +16,8 @@
  *                see OriginalShell.vue's rearResonance)
  *   pr         → 4, Vr/Fr = prTuning(P), Npr = prNum, [PassiveRadiator] from the PR T/S
  */
-import { sealedFc, tuningFromLength, prTuning, prVas, prQms, prFsWithMass } from '@openisd/engine';
-import type { Driver } from '@openisd/engine';
+import { sealedFc, tuningFromLength, prTuning, prVas, prQms, prFsWithMass, findImpedancePeak } from '@openisd/engine';
+import type { Driver, SweepResult } from '@openisd/engine';
 import type { WprInput } from '@openisd/winisd';
 import type { BoxType, UiParams, ProjectMeta } from '../types.js';
 
@@ -37,6 +37,7 @@ export function buildWprInput(
   driverSection: string,
   project: ProjectMeta,
   now: Date,
+  curves?: SweepResult | null,
 ): WprInput {
   const Sp = Math.PI * (P.ventD / 2) ** 2;
   const modifyDate = `${now.getUTCFullYear()}${pad2(now.getUTCMonth() + 1)}${pad2(now.getUTCDate())}`;
@@ -62,8 +63,11 @@ export function buildWprInput(
     },
   };
 
+  const peak = (driver && curves) ? findImpedancePeak(curves, driver.Re) : null;
+  const sealedFr = peak ? peak.Fsc : ((driver && sealedFc(driver, P.Vb)) ?? 0);
+
   if (box === 'sealed') {
-    input.box.Fr = (driver && sealedFc(driver, P.Vb)) ?? 0;
+    input.box.Fr = sealedFr;
   } else if (box === 'vented') {
     // The solved tuning from the store's vent group, not a recompute from the length. The two
     // agree whenever the group is determined — but if BOTH Fb and ventL are entered (allowed,
@@ -78,7 +82,7 @@ export function buildWprInput(
       // this must become false there rather than silently writing a false flag.
       crossCalculated: !P.entered.ventCrossArea };
   } else if (box === 'bandpass4') {
-    input.box.Fr = (driver && sealedFc(driver, P.Vb)) ?? 0; // rear: sealed, driver's own chamber
+    input.box.Fr = sealedFr; // rear: sealed, driver's own chamber
     input.box.Vf = P.Vf;
     input.box.Ff = tuningFromLength(P.Vf, P.ventL, Sp, P.endCorrection); // front: vented
     input.box.SdFront = Sp;

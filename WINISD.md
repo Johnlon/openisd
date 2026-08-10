@@ -915,13 +915,43 @@ anyway, so this path is never exercised by normal WinISD users.
 
 Both charts display the **same underlying data series** (system frequency response). The only difference is Y axis reference:
 
-| Chart                       | Y axis                         | Reference                                          |
-| --------------------------- | ------------------------------ | -------------------------------------------------- |
-| SPL                         | Absolute dB SPL at input power | Driver sensitivity + power offset                  |
-| Transfer function magnitude | Relative dB                    | 0 dB = passband output; −3 dB reference line drawn |
+| Chart                       | Y axis                         | Reference                                                            |
+| --------------------------- | ------------------------------ | -------------------------------------------------------------------- |
+| SPL                         | Absolute dB SPL at input power | Driver sensitivity + power offset                                    |
+| Transfer function magnitude | Relative dB                    | 0 dB = high-frequency passband asymptote; −3 dB reference line drawn |
 
 The cursor readout (−9.896 dB at 38.01 Hz) is identical in both screenshots, confirming no separate computation.
 
 ### Implication for OpenISD
 
-"Transfer function magnitude" is a **display mode on the SPL chart**, not a new engine series. Implementation: subtract the passband SPL reference level from the curve, draw 0 dB and −3 dB dashed reference lines, relabel Y axis from "dB SPL" to "dB".
+"Transfer function magnitude" is a **display mode on the SPL chart**, not a new engine series. Implementation: subtract the high-frequency passband asymptote reference level (`sw.spl[sw.spl.length - 1]`) from the curve so 0 dB represents the flat passband response (ensuring any resonant peak sits above 0 dB), draw 0 dB and −3 dB dashed reference lines, and relabel Y axis from "dB SPL" to "dB".
+
+## 18. Fsc and Qtc lossy calculations and DVC connection calibration
+
+### Lossy Sealed Resonance ($F_{sc}$) and Q ($Q_{tc}$) Shift
+In classic WinISD, the system resonance frequency ($F_{sc}$) and system Q ($Q_{tc}$) values displayed in the UI and exported as `Fr` in `.wpr` project files are recalculations derived from the simulated physical model including box losses rather than raw lossless formulas.
+
+- **The Leakage Loss ($Q_L$) Effect:** While box absorption loss ($Q_a$) has no effect on system resonance, box leakage ($Q_L$) acts as a physical leak (an acoustic mass in parallel with box compliance). This parallel mass increases system stiffness at resonance, shifting the system impedance peak and the actual resonance frequency $F_{sc}$ upward.
+- **Example:** For $Fs = 40\text{ Hz}$, $Vas = 10\text{ L}$, $Vb = 10\text{ L}$:
+  - **Lossless box ($Q_L=10000$):** WinISD calculates $F_{sc} = 56.57\text{ Hz}$, matching the lossless formula $F_s\sqrt{1+Vas/Vb} = 56.57\text{ Hz}$.
+  - **Lossy box ($Q_L=10$):** WinISD calculates $F_{sc} = 59.16\text{ Hz}$.
+- **OpenISD Implementation:** To maintain parity, OpenISD implements the Thiele-Small impedance peak finder (`findImpedancePeak`) which analyzes the simulated electrical impedance magnitude curve (`zmag`) dynamically to locate the actual peak frequency ($F_{sc}$) and calculate the system Q-factor ($Q_{tc}$) taking leakage losses into account.
+
+### Dual Voice Coil (DVC) Connection Calibration
+DVC drivers (`numVC=2`) allow voice coil connections to be wired in Series or Parallel.
+
+- **Dropdown Parameter Scaling:** Switching the connection dropdown in WinISD's driver editor scales the displayed driver parameters:
+  - Switching from **Parallel** to **Series** multiplies $R_e$ by 4 and $BL$ by 2.
+  - Switching from **Series** to **Parallel** divides $R_e$ by 4 and $BL$ by 2.
+- **The VCCon Save Bug:** Classic WinISD has a known project writer bug where it always exports `VCCon=1` (Parallel) to the `.wpr` project file, regardless of the user's selected dropdown option. However, the simulation calculations remain correct as long as the parameters loaded into the solver match the active configuration.
+
+## 19. WinISD Auto-Calculation Update Bug (UI update lag)
+
+### The Recalculation Trigger Bug
+Classic WinISD has a known UI calculation dependency bug where the calculated values (such as `Fsc` and `Qtc`) do not always update immediately in response to typing single characters in active box or signal fields (e.g. typing `1` of `10` L in the volume edit box can freeze `Fsc` at a stale intermediate value of `120.70 Hz` derived from a volume of `1.0` L).
+
+- **Forced Update Techniques:** To force WinISD's VCL UI controls to process the change and refresh the dependent calculated values:
+  - **Large Perturbation:** Change the volume/parameter to a vastly different value (e.g. `100` L), wait for recalculation, and change it back.
+  - **Cut and Paste (Preferred):** Select all text in the edit field, Cut it (Ctrl+X), and Paste it (Ctrl+V). The deletion/re-insertion events trigger immediate VCL recalculation and refresh the display readouts instantly.
+
+

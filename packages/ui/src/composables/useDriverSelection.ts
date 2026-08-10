@@ -190,6 +190,40 @@ export function editMyDriver(d: DriverRaw): void {
   state.editDriverInfo = true;
 }
 
+/** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
+export async function editOverviewDriver(f: LibraryEntry): Promise<SelectionResult> {
+  let m: DriverModel;
+  if (f.myDriverData) {
+    m = DriverModel.fromRaw(f.myDriverData);
+    subject = { kind: 'myDriver', openedAs: driverId(f.myDriverData) };
+  } else if (f.record) {
+    m = DriverModel.fromJSON(f.record);
+    subject = { kind: 'myDriver', openedAs: '' };
+  } else {
+    let text = f.content;
+    if (!text) {
+      let res: Response;
+      try {
+        res = await fetch(rawUrlOf(f));
+      } catch (err) {
+        return { ok: false, error: 'Could not load: ' + (err as Error).message };
+      }
+      if (!res.ok) return { ok: false, error: 'Could not load: fetch failed (' + res.status + ')' };
+      text = await res.text();
+    }
+    if (!/\[Driver\]/.test(text)) return { ok: false, error: 'Could not load: file did not parse as a WDR' };
+    try {
+      m = DriverModel.fromWdr(text);
+    } catch (err) {
+      return { ok: false, error: 'Could not load: ' + (err as Error).message };
+    }
+    subject = { kind: 'myDriver', openedAs: '' };
+  }
+  editorDraft = withLinks(m, f).toJSON();
+  state.editDriverInfo = true;
+  return { ok: true };
+}
+
 /** Open the editor on the project's own driver. */
 export function editProjectDriver(): void {
   subject = { kind: 'project' };

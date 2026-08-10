@@ -16,7 +16,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { sweep, maxCurves, classifyFinite } from '@openisd/engine';
+import { sweep, maxCurves, classifyFinite, hfPassbandRef, tfMag, rolloffFreq } from '@openisd/engine';
 import { deriveDriver } from '@openisd/engine';
 
 // Reference driver: same synthetic 6.5" mid-woofer as engine.test.mjs
@@ -204,5 +204,58 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
     const r = classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
+  });
+});
+
+/**
+ * Architecture & Encapsulation Contract:
+ * All electro-acoustic calculations, normalization baseline math, and cutoff frequency derivations
+ * (tfMag, hfPassbandRef, rolloffFreq) must reside 100% inside @openisd/engine (packages/engine/src/sweep.ts),
+ * completely decoupled from UI presentation code. UI components and series builders consume pre-calculated
+ * engine data directly.
+ *
+ * Specification: docs/spec/SPEC_ENGINE.md §3.1 and §3.2
+ */
+describe('hfPassbandRef, tfMag & rolloffFreq — Encapsulated Engine Physics Calculations', () => {
+  const P = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
+
+  /**
+   * Spec Link: docs/spec/SPEC_ENGINE.md §3.1 "Transfer Function Magnitude"
+   */
+  it('hfPassbandRef returns the high-frequency asymptote level at the top end of sweep', () => {
+    const sw = sweep(DRV, BOX, P);
+    const ref = hfPassbandRef(sw.spl);
+    assert.equal(ref, sw.spl[sw.spl.length - 1], 'ref level is top-end frequency asymptote');
+  });
+
+  /**
+   * Spec Link: docs/spec/SPEC_ENGINE.md §3.1 "Transfer Function Magnitude"
+   */
+  it('tfMag returns 0.0 dB at the high-frequency asymptote and scales correctly across sweep', () => {
+    const sw = sweep(DRV, BOX, P);
+    assert.ok(Array.isArray(sw.tfMag), 'sw.tfMag array exists on SweepResult');
+    assert.equal(sw.tfMag.length, sw.spl.length, 'tfMag array length matches spl array');
+    // sw.tfMag is normalized against the theoretical reference SPL asymptote, which is very close to the top-end point
+    assert.ok(Math.abs(sw.tfMag[sw.tfMag.length - 1]) < 0.05, 'tfMag at top end of sweep is close to 0.0 dB');
+    
+    // Direct function invocation test
+    const directRes = tfMag(sw.spl);
+    assert.equal(directRes.length, sw.spl.length, 'direct tfMag invocation matches spl length');
+    assert.equal(directRes[directRes.length - 1], 0, 'direct tfMag top-end point is exactly 0.0 dB');
+  });
+
+  /**
+   * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"
+   */
+  it('rolloffFreq derives F3 (-3 dB), F6 (-6 dB), and F10 (-10 dB) cutoff frequencies inside engine', () => {
+    const sw = sweep(DRV, BOX, P);
+    const f3 = rolloffFreq(sw, 3);
+    const f6 = rolloffFreq(sw, 6);
+    const f10 = rolloffFreq(sw, 10);
+    
+    assert.ok(f3 !== null && f3 > 0, 'F3 (-3 dB) cutoff frequency is derived');
+    assert.ok(f6 !== null && f6 > 0, 'F6 (-6 dB) cutoff frequency is derived');
+    assert.ok(f10 !== null && f10 > 0, 'F10 (-10 dB) cutoff frequency is derived');
+    assert.ok(f10 < f6 && f6 < f3, 'F10 < F6 < F3 frequency ordering holds for highpass roll-off');
   });
 });

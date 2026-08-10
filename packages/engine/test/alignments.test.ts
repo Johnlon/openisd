@@ -376,3 +376,49 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
   });
 
 });
+
+// ===========================================================================
+// Lossy sealed box resonance and Q from sweep
+// ===========================================================================
+import { findImpedancePeak, sweep } from '@openisd/engine';
+
+describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () => {
+  it('calculates lossy Fsc and Qtc from the impedance curve peak', () => {
+    const drv = {
+      Fs: 40,
+      Vas: 0.010,
+      Qts: 0.4,
+      Qes: 0.444,
+      Qms: 4.0,
+      Re: 6.0,
+      Sd: 0.010,
+      Mms: 0.026,
+      Cms: 0.0006,
+      Rms: 1.5,
+      Bl: 10.0,
+      Pe: 100,
+      numVC: 1,
+    };
+    const P = {
+      Vb: 0.010,
+      Ql: 10,
+      Qa: 100,
+      Qp: 100,
+      eg: 2.83,
+      Rs: 0,
+      wiring: 'parallel' as const,
+      nDrivers: 1,
+      fmin: 10,
+      fmax: 200,
+      N: 2000,
+    };
+    const result = sweep(drv, 'sealed', P);
+    const peak = findImpedancePeak(result, drv.Re);
+    assert.ok(peak !== null);
+    // Assert peak frequency is near 54.81 Hz
+    assert.ok(Math.abs(peak.Fsc - 54.81) < 0.1, `Expected Fsc near 54.81 Hz, got ${peak.Fsc}`);
+    // Assert Qtc is near 0.481
+    assert.ok(Math.abs(peak.Qtc - 0.481) < 0.01, `Expected Qtc near 0.481, got ${peak.Qtc}`);
+  });
+});
+

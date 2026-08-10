@@ -18,12 +18,19 @@ set -euo pipefail
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cleanup_chrome() {
+  pkill -9 -f 'ms-playwright/chromium' 2>/dev/null || true
+  pkill -9 -f 'chrome_crashpad_handler' 2>/dev/null || true
+}
+trap cleanup_chrome EXIT
+cleanup_chrome
+
 bash "$SCRIPT_DIR/kill-http.sh" 4100
 
-# Run with full CPU parallelism first. If an OOM/SIGKILL crash or failure occurs,
-# retry unpassed/failed tests using --last-failed with reduced workers.
+# Run with 4 workers as requested
 set +e
-npx playwright test --workers=100% "$@"
+npx playwright test --workers=4 "$@"
 STATUS=$?
 set -e
 

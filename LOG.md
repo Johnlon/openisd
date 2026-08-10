@@ -8,6 +8,17 @@
 
 ---
 
+## 2026-08-10 — Fsc/Qtc lossy calculation, auto-calculate toggle, and parameter provenance inspector
+
+- **Calculated system resonance (Fsc) and Q (Qtc) match WinISD's lossy physical models.** Implemented `findImpedancePeak` analyzing simulated electrical impedance magnitude curve to extract actual resonance frequency and Q-factor under box leakage losses (Ql).
+- **Toggle consistency solver to prevent unsolicited auto-calculations.** Added a checkbox option in the Driver Editor ("Auto calculate unknowns") that can disable automatic parameters solving, preserving exact driver records on export.
+- **Understand how driver parameters derive through interactive visual feedback.** Added a "Inspect Provenance" toggle to the Driver Editor which highlights input/derived dependency relationships on parameter fields and opens an interactive Equation Inspector popup displaying relevant calculation paths.
+
+## 2026-08-08 — Exact Transfer Function chart normalization parity with WinISD
+
+- **Transfer Function Magnitude chart 0 dB reference level.** Fixed Transfer Function Magnitude normalization in `packages/ui/src/utils/series.ts` to anchor 0 dB to the high-frequency passband asymptote (`sw.spl[sw.spl.length - 1]`) instead of the curve's peak, preventing vertical curve offsets on resonant alignments and matching WinISD's plot behavior.
+- **Documented Transfer Function normalization contract.** Updated `WINISD.md` to formally document high-frequency passband asymptote normalization for relative dB charts.
+
 ## 2026-08-05 — My Drivers is the one destination for a driver you made
 
 - **Unified 4th-order bandpass vents horizontal layout.** Replaced the tall, single-column vertical vent layout for 4th-order bandpass with the 3-column horizontal layout (Config, Dimensions, Readouts) matching standard vented views.

@@ -37,6 +37,36 @@ export function passbandRef(spl: number[]): number {
 }
 
 /**
+ * The high-frequency passband reference level of an SPL curve, in dB — the level at the top end
+ * of the sweep grid (asymptote), matching WinISD's Transfer Function Magnitude reference level.
+ */
+export function hfPassbandRef(spl: number[]): number {
+  if (spl.length > 0 && Number.isFinite(spl[spl.length - 1]) && spl[spl.length - 1] > SILENCE_DB) {
+    return spl[spl.length - 1];
+  }
+  return passbandRef(spl);
+}
+
+/**
+ * Transfer Function Magnitude in dB relative to the high-frequency passband asymptote (0 dB).
+ */
+export function tfMag(spl: number[], ref?: number): number[] {
+  const r = ref ?? hfPassbandRef(spl);
+  return spl.map(v => (Number.isFinite(v) && v > SILENCE_DB) ? v - r : v);
+}
+
+/**
+ * First frequency (low→high, Hz) where SPL reaches within `dropDb` of the passband peak.
+ */
+export function rolloffFreq(sw: SweepResult, dropDb: number): number | null {
+  const ref = passbandRef(sw.spl);
+  for (let i = 0; i < sw.fs.length; i++) {
+    if (sw.spl[i] >= ref - dropDb) return sw.fs[i];
+  }
+  return null;
+}
+
+/**
  * Unwrap a phase array (radians) to remove ±π discontinuities.
  * https://en.wikipedia.org/wiki/Phase_unwrapping
  */
@@ -96,6 +126,7 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
   const tempK = P.tempK ?? 293.15;
   const rho   = 1.20095 * (293.15 / tempK);
+  const c     = 343.68 * Math.sqrt(tempK / 293.15);
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
@@ -173,7 +204,17 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
     splXlim.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
   }
 
-  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, splXlim, xlimited, flatClamped,
+  // Reference SPL limit from first principles (high-frequency asymptote)
+  let splRefLimit: number | undefined = undefined;
+  if (d.Fs > 0 && d.Vas > 0 && d.Qes > 0 && d.Re > 0 && P.eg > 0) {
+    const np = (P.wiring || 'parallel') === 'parallel' ? (P.nDrivers || 1) : 1;
+    const eta0 = (4 * Math.PI ** 2 / Math.pow(c, 3)) * (d.Fs ** 3 * d.Vas / d.Qes);
+    const P0_val = 20e-6;
+    const r_dist = 1;
+    splRefLimit = 10 * Math.log10((rho * c / (2 * Math.PI * r_dist * r_dist * P0_val * P0_val)) * eta0 * (P.eg * P.eg / d.Re) * np * np);
+  }
+
+  return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlim, xlimited, flatClamped,
            fltMag, fltPhase, fltGd };
 }
 

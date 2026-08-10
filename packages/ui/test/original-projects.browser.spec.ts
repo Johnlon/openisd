@@ -104,11 +104,11 @@ test('closing an unsaved project asks first, and offers all three outcomes by na
   await expect(page.locator('.project-row')).toHaveCount(1);
 });
 
-test('the last project can be closed too — the app lands on a fresh one, still drawing', async ({ page }) => {
+test('closing the last project shows no project open in the projects list', async ({ page }) => {
   await page.locator('.proj-actions button:has-text("Close")').click();
   const challenge = page.locator('.close-actions');
   if (await challenge.isVisible()) await page.locator('.close-actions button:has-text("Close without saving")').click();
 
-  await expect(page.locator('.project-row')).toHaveCount(1);
-  await expect(page.locator('.graph-wrap canvas')).toBeVisible();
+  await expect(page.locator('.project-empty-row')).toBeVisible();
+  await expect(page.locator('.project-empty-row')).toHaveText('no project open');
 });

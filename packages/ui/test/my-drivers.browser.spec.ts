@@ -147,6 +147,7 @@ test('Add new Driver saves the new driver into My Drivers and leaves the project
   const ok = page.locator(`${EDITOR} .de-footer button:has-text("OK")`);
   await expect(ok, 'OK stayed disabled with brand, model and every required parameter filled').toBeEnabled();
   await ok.click();
+  await page.locator('.save-confirm-btn').click();
   await expect(page.locator(EDITOR)).toBeHidden();
 
   expect(await savedIds(page)).toEqual([SEEDED_ID, 'Bench/Hand Built'].sort());
@@ -248,22 +249,37 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
 
 // ---- Edit enablement -------------------------------------------------------------------
 
-test('Edit is enabled for a My Drivers selection and disabled for a library one', async ({ page }) => {
+test('Edit is enabled for library driver overview and saving goes to My Drivers with brand/model prompt and overwrite warning', async ({ page }) => {
   await seed(page);
   await openPicker(page);
 
+  // Click a library driver row
   await page.locator(POOL_ROWS).first().click();
-  await expect(page.locator('.wb-modal .edit-btn'),
-    'Edit was offered on a library driver, which this picker cannot change').toBeDisabled();
+  const libEdit = page.locator('.wb-modal .edit-btn');
+  await expect(libEdit, 'Edit button must be enabled for library drivers in overview').toBeEnabled();
 
-  await page.locator('.wb-modal .cancel-btn').click();
-  await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).click();
-  const edit = page.locator('.wb-modal .edit-btn');
-  await expect(edit, 'Edit was disabled on a My Drivers selection').toBeEnabled();
+  await libEdit.click();
+  await expect(page.locator(EDITOR)).toBeVisible();
 
-  await edit.click();
-  await expect(page.locator(EDITOR)).toContainText('Edit My Driver');
-  await expect(field(page, 'Model')).toHaveValue(SEEDED_MODEL);
+  // Click OK to save to My Drivers
+  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+
+  // Save to My Drivers prompt dialog should appear with pre-filled Brand/Model
+  const savePanel = page.locator('.de-save-my-panel');
+  await expect(savePanel).toBeVisible();
+
+  // Pre-fill with existing seeded driver brand/model to trigger overwrite warning
+  await page.locator('.save-brand-input').fill(SEEDED_BRAND);
+  await page.locator('.save-model-input').fill(SEEDED_MODEL);
+
+  await expect(page.locator('.save-warn'), 'Warning should appear when saving a driver with an existing brand/model').toBeVisible();
+
+  // Save to My Drivers
+  await page.locator('.save-confirm-btn').click();
+  await expect(page.locator(EDITOR)).toBeHidden();
+
+  // Verify saved in My Drivers
+  expect(await savedIds(page)).toContain(SEEDED_ID);
 });
 
 // ---- favourites reach My Drivers -------------------------------------------------------

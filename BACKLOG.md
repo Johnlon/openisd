@@ -22,6 +22,12 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
 
 ## Next — do first
 
+- [x] [x] **Fsc / Qtc lossy calculation bug (WinISD parity).** OpenISD's UI readouts for sealed system resonance ($F_{sc}$) and Q ($Q_{tc}$) are hardcoded to the simple lossless formulas ($Fs \cdot \sqrt{1 + Vas/Vb}$), ignoring box leakage losses ($Q_L$). WinISD calculates $F_{sc}$ and $Q_{tc}$ from the actual simulated peak frequency and Q including box losses (specifically, leakage $Q_L = 10$ shifts $F_{sc}$ upward, e.g. from $56.57$ to $59.16$ Hz in a 10L box). Update the UI readouts to calculate these from the simulation's impedance peak or the lossy model equations.
+
+- [x] [x] **"Auto calculate unknowns" option (Classic WinISD parity).** WinISD has a toggle to turn off auto-calculating missing/derived driver fields in the model (and suppresses writing calculated values to .wdr export).
+
+- [x] [x] **Driver Field Provenance Inspector & Equation Inspector (Interactive UI feature).** Add a toggle in the Driver Editor ("Inspect Provenance"). Clicking any parameter field highlights all ancestor fields that participate in feeding/calculating that field. If there is more than one equation that feeds the field, color-codes each feeding collection with a distinct color key and pops up a separate non-modal overlay displaying the relevant equations and color key.
+
 - [ ] **Driver identity is `<brand>/<model-slug>`, brand is primary, and a project EMBEDS its
       driver — human direction + rulings, 2026-08-04.** All points ruled; none is open. The
       `_savedAt`-stamp identity in `utils/myDrivers.ts` is rejected — the human's words: _"that
@@ -36,8 +42,8 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
     records: `brand != manufacturer` in ZERO of them, and no record has a manufacturer without a
     brand.** So this changes no displayed name and no path today — it is correctness against the
     day the two diverge, and cannot be validated by diffing output. The `manufacturer=Parts
-    Express / brand=GRS` example does not hold: GRS records carry `manufacturer: GRS` **and**
-    `brand: GRS`, which agrees with the `../AGENTS.md` carve-out that PE *is* GRS's manufacturer.
+Express / brand=GRS` example does not hold: GRS records carry `manufacturer: GRS` **and**
+    `brand: GRS`, which agrees with the `../AGENTS.md` carve-out that PE _is_ GRS's manufacturer.
   - **A project embeds its driver.** WinISD has no driver database: its driver manager handles
     ONE driver at a time, on disk, disconnected from any open project. Selecting a driver COPIES
     it into the project. The Driver panel's edit button edits **the project's copy**, never a
@@ -70,7 +76,7 @@ Implemented items carry a second box for test status: `[x] [x]` = implemented + 
   - **⚠ CROSS-REPO (winisd_tools) — the DB directory path derives from BRAND**,
     `<brand-derived>/<model-slug>`, in scraper code AND documentation. Emitted paths do not
     change today (`dayton-audio/pro-8` stays `dayton-audio/pro-8`) because `brand ==
-    manufacturer` for the DB's records; what changes is which field is authoritative, so the path
+manufacturer` for the DB's records; what changes is which field is authoritative, so the path
     stays correct when the two ever diverge.
   - **⚠ CROSS-REPO (winisd_tools) — the record's display/model name is built from
     `<brand> <model>`**, with `manufacturer` demoted to second-order. **Records are to be
@@ -312,6 +318,29 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Alignments & helpers
 
+- [ ] **P1** **Alignment selection in New Project wizard AND changeable from the tabs (WinISD parity).**
+      WinISD's new-project wizard asks for an alignment (sealed: Butterworth/Bessel/Chebyshev/critically-damped by target Qtc; vented: QB3/SBB4/SC4/B4/…) and seeds Vb/Fb from it. OpenISD's
+      `OgNewProject.vue` has no alignment step at all, and the Box tab exposes only one-shot
+      suggest buttons (QB3-or-B4 via `ventedAlignment()`, B2 via `sealedFromQtc()` in
+      `BoxPanel.vue`). Required: an alignment picker in the New Project wizard that seeds the
+      box parameters, plus the same picker on the box/tuning tabs so the alignment can be
+      re-applied or switched after the project exists — selecting one recomputes Vb (and Fb +
+      vent length for vented) for the current driver; subsequent manual edits to Vb/Fb mean the
+      project is no longer "on" that alignment, matching WinISD's behaviour.
+      Measured ground truth for the closed-box route (the 9-item Qtc list, default 0.707, and
+      the exact Vb/Fr each choice produces): `winisd_research/CLOSED_BOX_SIM.md` (2026-08-09).
+
+- [ ] **P1** **EBP-based box-type recommendation in the New Project flow — and it must SAY so.**
+      WinISD's wizard silently pre-selects the box type from the driver's Efficiency Bandwidth
+      Product (EBP = Fs/Qes; measured 2026-08-09: the Epique E150HE-44 at EBP≈89 arrived with
+      `Vented` pre-selected, and the box-type page prints the EBP — see
+      `winisd_research/CLOSED_BOX_SIM.md`). The recommendation itself is good; the silence is
+      the defect — the human ruled they had no idea WinISD was even making a recommendation.
+      openisd's new-project flow gets the same feature done openly: show the computed EBP, the
+      suggested box type, and one sentence of why ("EBP 89 — above ~90 favours vented, below
+      ~50 favours sealed; in between either works"), with the user free to override. WinISD's
+      exact thresholds are unknown (`winisd_research/TODO.md` — flip-point probe pending);
+      until measured, use the classic 50/90 rule and label it as a rule of thumb, not parity.
 - [ ] **P1** Expand vented alignment presets (SBB4, EBS, Bessel, Chebyshev) alongside QB3/B4
 - [ ] **P2** Guided design wizard (driver → count → box type → starting params)
 - [ ] **P2** Step-response curve (time-domain, from the transfer function)
@@ -363,6 +392,12 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Learning & docs
 
+- [ ] **P1** **Every automatic decision the app makes is explained in-place** (human direction
+      2026-08-09). Wherever openisd computes, recommends, or pre-selects on the user's behalf
+      — box-type suggestion, alignment seeding, auto-calculated driver fields, DQ marks — the
+      UI states what it did and from which inputs, in visible text next to the control, not
+      only a hover tooltip. Origin: WinISD's wizard pre-selects box type from EBP with no
+      indication it is recommending anything; the human used it for years without knowing.
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
 - [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `WINISD_OPENISD_COMPARISON.md` + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)

@@ -45,9 +45,9 @@ function toDisp(si: number | null): number {
 function fromDisp(disp: number): number {
   return unitized.value ? fromDisplay(disp, props.group!, token.value) : disp / props.scale;
 }
-// Decimal places: derived per selected unit when bound, else the fixed prop.
+// Decimal places: derived per selected unit when bound, else the fixed prop (min 2 dp).
 const eprec = computed(() =>
-  unitized.value ? displayPrecision(props.precision, props.group!, props.base!, token.value) : props.precision,
+  Math.max(2, unitized.value ? displayPrecision(props.precision, props.group!, props.base!, token.value) : props.precision),
 );
 
 const focused = ref(false);

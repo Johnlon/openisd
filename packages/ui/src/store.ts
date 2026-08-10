@@ -20,7 +20,7 @@ import { tuningFromLength } from '@openisd/engine';
 
 // The app's default driver on first open (no saved selection) and the target of the
 // "Reset to sample" button. Mirrors drivers/demos/demo-generic-6.5in-woofer.owdr.
-export const DEFAULT_DRIVER: DriverRaw = { name: 'Demo - Generic 6.5" Woofer', brand: 'Demo', model: 'Generic 6.5" Woofer', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
+export const DEFAULT_DRIVER: DriverRaw = { name: '', brand: '', model: '', Fs:37, Qts:0.378, Qes:0.40, Qms:7.0, Vas:0.0300, Sd:0.0133, Re:5.6, Le:0.70e-3, Xmax:0.0050, Pe:60, Z:8 };
 
 const P_DEFAULTS: UiParams = {
   Vb:0.030, Vf:0.015, ventShape:'round', ventD:0.05, ventW:0.10, ventH:0.05, ventL:0.10, Ql:10, Qa:100, Qp:100,
@@ -47,7 +47,7 @@ const P_DEFAULTS: UiParams = {
   // WinISD Advanced-pane options. Each default is OpenISD's historic behaviour, so opening an
   // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
   // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
-  rgAtDriverSide: true, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
+  rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
   tempK: 293.15,
 };
 
@@ -626,13 +626,21 @@ export const simVcInductance = computed<boolean>({
  */
 export function driverShort(raw: DriverRaw | null | undefined): string {
   if (!raw) return 'Driver';
-  const { brand, model, manufacturer } = raw;
+  const { brand, model, manufacturer, series, sku } = raw as Record<string, unknown>;
 
-  const lead = brand || manufacturer;                     // brand, or its stand-in when absent
+  const lead = (brand as string) || (manufacturer as string);
   const trailer = brand && manufacturer && manufacturer !== brand ? `(${manufacturer})` : '';
-  const displayName = [lead, model, trailer].filter(Boolean).join(' ').trim();
+  const itemSku = sku ? String(sku).toUpperCase() : (model as string);
 
-  return (raw.name || displayName || 'Driver').replace(/\.wdr$/i, '');
+  let displayName = '';
+  if (series) {
+    displayName = [lead, series as string, itemSku].filter(Boolean).join(' - ').trim();
+    if (trailer) displayName += ` ${trailer}`;
+  } else {
+    displayName = [lead, itemSku, trailer].filter(Boolean).join(' ').trim();
+  }
+
+  return ((raw.name as string) || displayName || 'Driver').replace(/\.wdr$/i, '');
 }
 
 

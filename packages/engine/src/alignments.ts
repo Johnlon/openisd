@@ -23,7 +23,7 @@
  */
 
 import { RHO, C, END_CORRECTION } from './constants.js';
-import type { Driver, SweepParams } from './types.js';
+import type { Driver, SweepParams, SweepResult } from './types.js';
 
 /** The subset of params the PR helpers read — lets callers pass any params object
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
@@ -123,3 +123,71 @@ export function prMassForFp(P: PRParams, fp: number): number {
   const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);
   return Map * P.prSd! * P.prSd!;
 }
+
+/**
+ * Finds the actual system resonance (Fsc) and Q (Qtc) from the simulated impedance curve
+ * of a sealed/closed box, taking box leakage/absorption losses into account (TS method).
+ */
+export function findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
+  if (!result || result.fs.length === 0 || !Re || Re <= 0) return null;
+
+  let maxZ = -1;
+  let peakIdx = -1;
+  for (let i = 0; i < result.fs.length; i++) {
+    if (result.zmag[i] > maxZ) {
+      maxZ = result.zmag[i];
+      peakIdx = i;
+    }
+  }
+
+  if (peakIdx === -1 || maxZ <= Re) return null;
+
+  const peakFreq = result.fs[peakIdx];
+  const r0 = maxZ / Re;
+  if (r0 <= 1) return null;
+  const Z_target = Re * Math.sqrt(r0);
+
+  // Find f1 (below peakIdx)
+  let f1 = -1;
+  for (let i = peakIdx; i >= 0; i--) {
+    if (result.zmag[i] <= Z_target) {
+      const fA = result.fs[i];
+      const fB = result.fs[i + 1];
+      const zA = result.zmag[i];
+      const zB = result.zmag[i + 1];
+      if (zB !== zA) {
+        f1 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+      } else {
+        f1 = fA;
+      }
+      break;
+    }
+  }
+
+  // Find f2 (above peakIdx)
+  let f2 = -1;
+  for (let i = peakIdx; i < result.fs.length; i++) {
+    if (result.zmag[i] <= Z_target) {
+      const fA = result.fs[i - 1];
+      const fB = result.fs[i];
+      const zA = result.zmag[i - 1];
+      const zB = result.zmag[i];
+      if (zB !== zA) {
+        f2 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+      } else {
+        f2 = fA;
+      }
+      break;
+    }
+  }
+
+  if (f1 === -1 || f2 === -1 || f2 <= f1) {
+    return { Fsc: peakFreq, Qtc: 0 };
+  }
+
+  const Qmc = (peakFreq * Math.sqrt(r0)) / (f2 - f1);
+  const Qtc = Qmc / r0;
+
+  return { Fsc: peakFreq, Qtc };
+}
+

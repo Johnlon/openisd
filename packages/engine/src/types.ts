@@ -234,6 +234,8 @@ export interface SweepResult {
   zmag: number[];
   zph: number[];
   gd: number[];
+  /** Transfer function magnitude in dB relative to the high-frequency passband asymptote (0 dB). */
+  tfMag: number[];
   /**
    * SPL with the drive backed off wherever peak excursion would exceed Xmax
    * (WinISD Advanced: "SPL graph is Xmax limited"). Always computed, never substituted

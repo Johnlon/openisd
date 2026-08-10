@@ -94,6 +94,7 @@ test('Copy to My Drivers writes the edited driver into the saved list', async ({
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
   await modelInput.fill('Fixture Copy');
   await page.locator('.de-copy-my').click();
+  await page.locator('.save-confirm-btn').click();
 
   // A new identity (spec/fixture-copy) means a new saved driver beside the original.
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('openisd_my_drivers') ?? '[]'));
@@ -141,6 +142,7 @@ test('editing a saved driver rewrites its entry and leaves the project alone', a
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
   await modelInput.fill('Fixture Mk2');
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await page.locator('.save-confirm-btn').click();
   await expect(page.locator(EDITOR)).toBeHidden();
 
   // The rename MOVES the entry — one saved driver, under its new identity, no stale twin.
@@ -158,6 +160,7 @@ test('the picker shows the new name as soon as the editor closes', async ({ page
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
   await modelInput.fill('Renamed Live');
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await page.locator('.save-confirm-btn').click();
 
   // The picker is still open behind the editor; its list must not be stale.
   await expect(page.locator('.my-ditem', { hasText: 'Renamed Live' })).toBeVisible();
