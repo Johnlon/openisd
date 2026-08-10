@@ -12,7 +12,7 @@
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { winningReading, type OpenISDRecord, type SpecEntry } from '../src/openisdRecord.js';
+import { winningReading, type OpenISDRecord, type SpecEntry } from '../src/native/openisdRecord.js';
 
 function fsEntry(): SpecEntry {
   return {
