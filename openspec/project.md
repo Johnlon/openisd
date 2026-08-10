@@ -21,13 +21,13 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 - All mathematical/acoustical calculations MUST live in this module; no math logic is permitted in `@ui` or `@logic`
 - Parameter inputs are passed to `@engine` strictly via argument/parameter parsing
 
-### WDR File Projection (`@wdr`)
+### Classic WinISD Storage (`@wdr` / `@wpr`)
 
-- `@openisd/winisd`: A distinct module for parsing, writing, and projecting legacy WinISD driver (.wdr) and project (.wpr) files from/to the in-memory model
+- `@openisd/winisd`: A distinct module for parsing legacy WinISD driver (.wdr) and project (.wpr) files into in-memory model objects, and writing/creating them from in-memory model objects
 
 ### Native OpenISD Storage (`@owdr` / `@owpr`)
 
-- Distinct modules/serializers for reading and writing native OpenISD driver (.owdr) and project (.owpr) files from/to the in-memory model
+- Distinct modules/serializers for parsing native OpenISD driver (.owdr) and project (.owpr) files into in-memory model objects, and writing/creating them from in-memory model objects
 
 ### Database Management (`@db`)
 
