@@ -6,19 +6,23 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ## Tech Stack
 
-### Frontend
+### Client-Side UI App
 
 - Vue 3, TypeScript, Vanilla CSS, Vite
 - Playwright for browser testing
+- Incorporates the application's client-side backend logic directly within the frontend app bundle
 
-### Backend
+### Core Calculation Engine
 
-- `@openisd/engine`: Electro-acoustic calculation library in TypeScript/JS
-- `@openisd/winisd`: Parser/writer for WinISD driver files (.wdr) and project files (.wpr) in TypeScript/JS
+- `@openisd/engine`: A distinct module for electro-acoustic calculations and equivalent circuit solving
+
+### WDR File Projection
+
+- `@openisd/winisd`: A distinct module for parsing, writing, and projecting legacy WinISD driver (.wdr) and project (.wpr) files
 
 ### Infrastructure
 
-- Static HTML/JS deployable to Github Pages
+- Static HTML/JS deployable to GitHub Pages
 
 ## Project Conventions
 
