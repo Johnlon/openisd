@@ -33,6 +33,10 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 - Logic module for indexing, searching, and managing the local driver library and project databases (e.g. My Drivers store, favorites, and project lists)
 
+### Logging and Diagnostics (`@logging`)
+
+- Ancillary services for application logging, error reporting, issue tracking channels, and diagnostic assertions (e.g. data quality warnings and solver troubleshooting)
+
 ### Infrastructure
 
 - Static HTML/JS deployable to GitHub Pages
@@ -47,7 +51,7 @@ Open, community-owned loudspeaker enclosure simulator that runs in any browser.
 
 ### Architecture Patterns
 
-- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, `@wdr`, `@owdr`, `@owpr`, and `@db`
+- Strict separation of concern boundaries between `@ui`, `@logic`, `@engine`, `@wdr`, `@owdr`, `@owpr`, `@db`, and `@logging`
 - Avoid all global variables: globals are prohibited to prevent side effects and ensure code remains maintainable and testable
 - Classic and Original UI skin variants wrapping the core components
 
