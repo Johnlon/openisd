@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * Classic (WinISD) skin — selecting it swaps the whole shell, and the reused editor
  * panels + chart drive the same store. Proves the skin seam works end-to-end and that
  * no shell forks logic: switching tabs mounts the shared panels; the chart-type selector
@@ -28,6 +25,15 @@ test('choosing Classic swaps to the WinISD shell (Projects, tab rail, Color)', a
   await expect(page.locator('.cl-rtab', { hasText: 'Vented' })).toBeVisible();
   await expect(page.locator('.cl-color')).toContainText('Color');
 });
+
+test('the classic titlebar displays the build datetime', async ({ page }) => {
+  await page.locator('.skin-picker select').selectOption('classic');
+  const buildDt = page.locator('.cl-title .cl-build-datetime');
+  await expect(buildDt).toBeVisible();
+  const text = await buildDt.innerText();
+  expect(text).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+});
+
 
 test('the 3rd rail tab label tracks the box type (specialist tab)', async ({ page }) => {
   await page.locator('.skin-picker select').selectOption('classic');

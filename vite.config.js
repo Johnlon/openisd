@@ -39,6 +39,9 @@ const clearSwInDev = {
 export default defineConfig({
   root: UI_ROOT,
   base,
+  define: {
+    __BUILD_DATETIME__: JSON.stringify(new Date().toISOString().replace('T', ' ').substring(0, 19)),
+  },
   server: {
     watch: {
       // build/ is the repo's scratch space — throwaway scripts, probe output, logs.

@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Original (WinISD) skin — the wholesale port of the `mock/` prototype, wired to the
@@ -64,6 +61,14 @@ test('choosing Original swaps to the ported WinISD shell (titlebar, projects, gr
   await expect(page.locator('.original-root')).toContainText('Signal Generator');
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
 });
+
+test('the titlebar displays the build datetime', async ({ page }) => {
+  const tbCenter = page.locator('.titlebar .tb-center');
+  await expect(tbCenter).toBeVisible();
+  const text = await tbCenter.innerText();
+  expect(text).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+});
+
 
 test('the toolbar ports the mock icon buttons + chart-select', async ({ page }) => {
   // Toolbar: 8 icon controls (.tb-btn) — Open, New, Save, Revert, Save-As/Export, Manage Drivers,

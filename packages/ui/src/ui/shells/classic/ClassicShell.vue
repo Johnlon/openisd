@@ -1,4 +1,6 @@
 <script setup lang="ts">
+declare const __BUILD_DATETIME__: string;
+const buildDatetime = __BUILD_DATETIME__;
 /**
  * Classic shell — a recreation of the WinISD 0.7.0.950 desktop window (docs/winisd/*.png)
  * over OpenISD's engine and state. NOTHING here forks logic: the chart is the shared
@@ -192,9 +194,10 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
 <template>
   <div class="classic-root">
     <!-- title bar -->
-    <div class="cl-title">
+    <div class="cl-title" style="position: relative;">
       <img class="cl-app" src="/icon.svg" alt="" width="16" height="16">
       <span class="cl-tt">OpenISD — WinISD Classic Mode</span>
+      <div class="cl-build-datetime" style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666; font-family: monospace;">{{ buildDatetime }}</div>
       <span class="cl-wb">&#8211;</span><span class="cl-wb">&#9633;</span><span class="cl-wb cl-x">&#10005;</span>
     </div>
 

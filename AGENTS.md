@@ -16,6 +16,11 @@
 
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + typecheck + unit + browser) — not a hand-picked subset. A subset that passes is not evidence the suite passes.
 
+**Concurrent and isolated test execution:**
+
+- **Never run two copies of the test suite (health-check or browser test) at the same time.** Always inspect active tasks and explicitly kill any stale/older run before starting a new one.
+- **Do not run the full suite when an isolated test is sufficient.** Running the entire suite kills productivity. During the TDD/implementation loop, run only the specific target test file (e.g., `npx playwright test <path-to-test>`). Save the full health check (`bash scripts/health-check.sh`) only for the final verification gate.
+
 | Domain                           | Gate              | Command                        |
 | -------------------------------- | ----------------- | ------------------------------ |
 | JS core (`packages/engine/src/`) | unit tests        | `npm run test:unit`            |
@@ -29,23 +34,20 @@
 
 **Doc-only exception:** when a commit (or the full set of commits in a push) touches **only** `*.md` files, `pre-commit`/`pre-push` skip lint/typecheck/test/CI automatically — a doc-only change has no runtime behaviour for those gates to check. This is enforced by the hooks themselves (they detect doc-only via `git diff --name-only`), not by passing `--no-verify` — any commit/push that includes even one non-`.md` file always runs the full gate. Never use `--no-verify` to get this effect manually.
 
-**Test Documentation & Spec Traceability — hard rule:**
-Every test block (unit, integration, or browser) MUST include a top-level JSDoc/comment linking directly back to its defining specification document (`.md` file + section heading, e.g. [`SPEC_ENGINE.md §3.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_ENGINE.md#L30) or [`SPEC_UI.md §1.1`](http://localhost:8000/winisd/openisd/docs/spec/SPEC_UI.md#L10)). Every specification section MUST list its verifying tests. A test without an explicit specification doc link is incomplete.
-
 **Link Formatting Rules:**
 
 - **In repository `.md` files**: Always use relative links (e.g. `docs/spec/SPEC_ENGINE.md#L30` or `../../docs/spec/SPEC_ENGINE.md`).
 - **In AI prompt outputs / responses to the user**: ALWAYS format links using `http://localhost:8000/winisd/openisd/...` URLs (appending `?html` before line anchors for `.md` files, e.g. `http://localhost:8000/winisd/openisd/docs/spec/SPEC_ENGINE.md?html#L30`) so they render as HTML in the documentation viewer. NEVER output `file://` URLs.
 
-**TDD — red→green, in this order:**
+**TDD — red→green, in this order (HARD RULE — USE TDD EXCLUSIVELY FOR ALL CHANGES):**
 
-1. Write a test that reproduces the bug and fails (for the right reason), linking to its defining specification doc.
+1. Write a test that reproduces the bug or specifies the feature, and fails (for the right reason).
 2. Watch it fail.
-3. Apply the fix.
+3. Apply the fix/implementation.
 4. Watch it pass.
-5. Run the full gate for the domain.
+5. Run the domain-specific test suite.
 
-Never reorder. "I added a test and a fix" without having seen the test fail first is not TDD.
+Never reorder. "I added a test and a fix" without having seen the test fail first is not TDD. Every single code modification or feature addition MUST have a corresponding failing test written and observed first.
 
 **For test-first feature or bug work, invoke the `/tdd` skill** — the red→green-refactor workflow reference (what a good test is, where tests go, the anti-patterns, and the rules of the loop). Consult it before and during the loop, not after.
 
@@ -250,6 +252,9 @@ finishing the build and leaving no server up delivers half the request.
 
 - After any `node scripts/bundle-drivers.mjs`, `npm run build`, or `bash scripts/build-release.sh`, start the preview with `bash scripts/preview-4000.sh` (backgrounded) if it is not already up.
 - **Verify before reporting done:** `curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/` → must be 200, **and** the asset filename it serves must match the one just written to `packages/ui/dist/assets/`. A build reported without both checks is not reported as done.
+- **Keep the port 4000 server up-to-date:** Since the human reviews changes live on port 4000, ensure it always serves the latest build matching the current working tree.
+- **Avoid redundant driver bundle refreshes:** Do NOT run `node scripts/bundle-drivers.mjs` to refresh the drivers database if only TypeScript/Vue/CSS application code has changed. Reuse the existing bundle to speed up build and testing cycles.
+- **Refresh the driver bundle on upstream changes only:** Rebuild/refresh the driver bundle only when there is clear evidence of upstream changes inside `winisd_drivers/` or the drivers source directory.
 
 ### 4000 serves the BUILD, never the working tree
 
