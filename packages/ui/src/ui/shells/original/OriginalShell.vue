@@ -1,6 +1,8 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const __PLATFORM_USER__: string | undefined;
+declare const __BUILD_DATETIME__: string;
+const buildDatetime = __BUILD_DATETIME__;
 /**
  * Original shell — a faithful wholesale port of the `mock/` WinISD 0.7.0.950
  * recreation (mock/index.html + mock/style.css), wired to the shared store + engine.
@@ -795,8 +797,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 <template>
   <div class="original-root">
     <!-- ================= Title bar ================= -->
-    <div class="titlebar">
+    <div class="titlebar" style="position: relative;">
       <div class="tb-left"><span class="app-icon"></span><span>OpenISD — WinISD Original Mode (ALIGNED)<template v-if="state.project.name"> — {{ state.project.name }}{{ isModified ? ' *' : '' }}</template></span></div>
+      <div class="tb-center" style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666; font-family: monospace;">{{ buildDatetime }}</div>
       <div class="win-controls"><span>&#8211;</span><span>&#9633;</span><span class="close-btn">&#10005;</span></div>
     </div>
 
@@ -1075,7 +1078,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <rect x="110" y="85" width="20" height="20" fill="#0F4761"/>
                 <path d="M160,170 L130,185 L130,225 L160,240" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="136.5">
+              <svg v-show="selectedBox === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="126">
                 <polyline points="160,200 160,40 40,40 40,260 160,260 160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="40" x2="100" y2="110" stroke="#0F4761" stroke-width="4"/>
                 <line x1="100" y1="190" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
@@ -1084,7 +1087,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="136.5">
+              <svg v-show="selectedBox === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="126">
                 <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
                 <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
                 <line x1="160" y1="40" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -1100,7 +1103,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <path d="M100,110 L70,130 L70,170 L100,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
                 <rect x="50" y="140" width="20" height="20" fill="#0F4761"/>
               </svg>
-              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 15 200 270" height="136.5">
+              <svg v-show="selectedBox === 'abc'" id="og-box-diagram-abc" viewBox="0 15 200 270" height="126">
                 <path d="M 100,20 L 100,140 M 75,140 L 125,140 M 100,180 L 100,280 M 75,180 L 125,180" fill="none" stroke="#0F4761" stroke-width="4"/>
                 <path d="M 100,20 L 40,20 L 40,70 L 80,70" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
                 <path d="M 80,100 L 40,100 L 40,280 L 100,280" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
@@ -1661,7 +1664,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; max-height:45vh; position:relative; z-index:0; }
+.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:flex-start; }
 .tab-section { display:none; }
@@ -1670,7 +1673,7 @@ watch(() => state.ui.originalEditorOpen, (open) => {
    that by keeping every control at its natural width (the `flex:none` rules below) and
    letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
    what makes the clipped content still reachable, which a Win32 window cannot offer. */
-.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow:auto; }
+.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:hidden; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
 /* Columns keep their natural width and never shrink below their contents. A shrinking
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
@@ -1684,6 +1687,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
 .box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:194px; --box-col-gap:24px; }
+.box-tab-row .field-row { margin-bottom: 4px; }
+.box-tab-row .section-header { margin-bottom: 4px; padding: 2px 10px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
