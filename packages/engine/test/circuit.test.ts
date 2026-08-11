@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * Unit tests for src/core/circuit.js — targeting the branch coverage gaps
  * not covered by engine.test.mjs:
  *   - circuitModel = 'gyrator' (Le included in acoustic circuit)

@@ -12,6 +12,17 @@
 
 # Claude Code rules for this project
 
+## Priority Skin
+
+Unless otherwise instructed then the human is referring to the 'Original' OG skin and NOT the 'Classic' or 'Modern' skins.
+Do not waste time searching the Classic/Modern skins for references to what the human is talking about as the human does nto visit those views anymore.
+
+## Priority TDD Behaviour 
+
+When perfroming TDD functions tell the user you are doing TDD.
+
+When a TDD turn begin NEVER start by editing a main source file, always create a failing scenario then work on the source files.
+
 ## Quality gates — non-negotiable
 
 **Never claim success, "done", "fixed", or "ready to check" until every relevant gate is 100% green — run them, do not assume.** Before any "done" claim, run the COMPLETE gate `bash scripts/health-check.sh` (lint + typecheck + unit + browser) — not a hand-picked subset. A subset that passes is not evidence the suite passes.

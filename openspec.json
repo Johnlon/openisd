@@ -1,9 +1,0 @@
-{
-  "validation": {
-    "requireTraceability": true,
-    "rules": {
-      "feature-has-test-reference": "error",
-      "test-has-feature-reference": "error"
-    }
-  }
-}

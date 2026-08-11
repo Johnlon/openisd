@@ -36,7 +36,7 @@ import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
 import { C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          prTuning,
-         sealedResonance, LossMode,
+         sealedResonance, LossMode, sourceLoadedQts,
          driveVoltage, soundVelocity, airDensity } from '@openisd/engine';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
@@ -124,8 +124,10 @@ const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 const sealedRes = computed<{ Fsc: number; Qtc: number } | null>(() => {
   const d = driver.value;
   if (!d || !(state.P.Vb > 0)) return null;
+  // Qts is loaded by the Signal tab's series resistance Rg — see sourceLoadedQts.
+  const qts = sourceLoadedQts(d.Qms, d.Qes, d.Re, state.P.Rs, d.Qts);
   return sealedResonance(LossMode.parse(state.lossMode),
-    { Fs: d.Fs, Vas: d.Vas, Qts: d.Qts, Vb: state.P.Vb, Ql: state.P.Ql, Qa: state.P.Qa });
+    { Fs: d.Fs, Vas: d.Vas, Qts: qts, Vb: state.P.Vb, Ql: state.P.Ql, Qa: state.P.Qa });
 });
 const rearResonance = computed<number | null>(() => sealedRes.value?.Fsc ?? null);
 const rearQtc = computed<number | null>(() => sealedRes.value?.Qtc ?? null);

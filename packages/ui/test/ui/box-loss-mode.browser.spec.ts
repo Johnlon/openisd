@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- * Requirement: "Box Tab Loss-Mode Selector"
- *
  * The Box tab offers a sealed-box loss-mode selector (Lossless / Conventional Lossy / WinISD
  * Lossy) defaulting to WinISD Lossy; switching it recomputes the Fsc readout in the stat bar.
  */

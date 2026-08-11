@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
 import { test, expect } from '../fixtures.js';
 
 // The count above the driver list must always mean ONE thing: how many rows are listed right

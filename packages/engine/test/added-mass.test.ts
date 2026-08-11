@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * withAddedMass — driver-side cone mass (WinISD parity, WINISD.md §12c).
  * Adding mass to the active driver's cone raises Mms, lowering Fs and raising Q's, holding
  * the suspension (Cms, Rms), motor (Bl), Re and Sd fixed. Madd=0 must be an exact no-op so

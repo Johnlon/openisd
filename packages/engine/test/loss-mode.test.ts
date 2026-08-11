@@ -1,13 +1,10 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- * Requirement: "Sealed-Box Resonance Loss Models"
- *
  * The WinISD oracle values are WinISD Pro 0.7.0.950's own `[Box] Fr` readout, captured by
  * reverse-engineering + live gdb capture (research repo SEALED_FSC_MODEL.md §4). The reference
  * driver is Fs=40, Vas=7.47 L, with the Qts WinISD derives for it (0.395643).
  */
 import { describe, it, expect } from 'vitest';
-import { LossMode, sealedResonance, sealedFscWinisd } from '../src/lossMode.js';
+import { LossMode, sealedResonance, sealedFscWinisd, sourceLoadedQts } from '../src/lossMode.js';
 
 const DRIVER = { Fs: 40, Vas: 0.00747, Qts: 0.395643 };
 const p = (Vb: number, Ql: number, Qa = 10000) => ({ ...DRIVER, Vb, Ql, Qa });
@@ -112,6 +109,31 @@ describe('Sealed-Box Resonance Loss Models', () => {
           expect(r.Qtc).toBeGreaterThan(0.4); // NOT 0
         }
       }
+    });
+  });
+
+  // The exact user-supplied CLI scenario: openisd was silently ignoring the series source
+  // resistance Rg (the Signal tab's "Series resistance", state.P.Rs). WinISD folds Rg into the
+  // driver's electrical Q — Qes' = Qes·(Re+Rg)/Re — which raises the total Qts and therefore
+  // shifts the sealed WinISD-lossy Fsc/Qtc. Golden values are WinISD's own measured readout.
+  describe('sourceLoadedQts — Rg folded into the driver Q (the reported bug)', () => {
+    const Fs = 40, Vas = 0.00765, Qes = 0.450, Qms = 2.940, Re = 6.6, Rg = 0.1;
+    const Vb = 0.006, Ql = 10, Qa = 100;
+    const qtsNominal = 1 / (1 / Qms + 1 / Qes); // what openisd used to compute, ignoring Rg
+
+    it('Rg=0 leaves Qts at the nominal (no-source-resistance) value', () => {
+      expect(sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal)).toBeCloseTo(qtsNominal, 9);
+    });
+
+    it('--fs 40 --vas 7.65 --qes 0.450 --qms 2.940 --re 6.6 --rg 0.1 --vb 6 --ql 10 --qa 100 → Fsc=63.1762Hz Qtc=0.5995', () => {
+      const qts = sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
+      const r = sealedResonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
+      expect(r.Fsc).toBeCloseTo(63.1762, 3);
+      expect(r.Qtc).toBeCloseTo(0.5995, 3);
+    });
+
+    it('falls back to the nominal Qts when Qms/Qes/Re are unavailable', () => {
+      expect(sourceLoadedQts(0, 0, 0, Rg, 0.42)).toBe(0.42);
     });
   });
 });

@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
- */
 import { test, expect } from '../fixtures.js';
 
 // When a driver is missing a required T/S parameter (e.g. Fs set to 0 in the

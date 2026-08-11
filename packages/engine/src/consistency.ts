@@ -102,6 +102,13 @@ const RELATIONS: readonly Relation[] = [
 ];
 
 /**
+ * §4 row 5's three Q members — the ONE source of truth for which fields form the Qts/Qes/Qms
+ * group, reused by the Driver ADT's own group-staleness handling (QO13). Never redeclare this
+ * list elsewhere.
+ */
+export const Q_GROUP_FIELDS: readonly string[] = RELATIONS.find(r => r.target === 'Qts')!.fields;
+
+/**
  * Half the last significant decimal of `v` as stored: `0.0355` ⇒ 0.00005, `37` ⇒ 0.5.
  * Rounded to 12 significant digits first, so arithmetic noise from a unit conversion
  * (`30/1000` landing on 0.030000000000000002) does not read as 18 digits of precision.

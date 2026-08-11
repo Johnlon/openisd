@@ -271,6 +271,10 @@ function _effModel(): DriverModel {
 export function startDriverWhatIf(): void {
   if (_whatIf.value) return;
   const m = DriverModel.fromJSON(_model.toJSON());   // deep copy of the committed driver
+  // QO13: mark every field the copy inherits as this session's baseline, so editing a
+  // consistency group (e.g. Qes+Qms) during Tune auto-clears the one stale inherited member
+  // (e.g. a library-loaded Qts) instead of leaving it silently overriding the fresh values.
+  m.beginSession();
   _whatIfUnsub = m.subscribe(() => { _whatIfVersion.value++; });
   _whatIf.value = m;
   _whatIfVersion.value++;

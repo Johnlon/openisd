@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures.js';
 

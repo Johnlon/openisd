@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
- */
-/**
  * The consistency-group DQ mark — workspace ledger QP18 and openisd ledger QO13's sibling
  * QO12, one mechanism for both rulings:
  *
@@ -103,7 +100,11 @@ test('Tune what-if: the same mark appears on every member of the group as the dr
   await expect(tuneField(page, 'Mms').locator('.de-dq')).toHaveCount(1);
   await expect(tuneField(page, 'Re').locator('.de-dq')).toHaveCount(0);
 
-  const note = await tuneField(page, 'Mms').locator('.de-dq').getAttribute('title');
+  const dqIcon = tuneField(page, 'Mms').locator('.de-dq');
+  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
+  await dqIcon.hover();
+  await expect(tooltip).toBeVisible();
+  const note = await tooltip.textContent();
   expect(note).toMatch(/disagree by \d/);
 
   // Withdrawing the override hands Mms back to the calculation, and the group reconciles again.
@@ -134,4 +135,98 @@ test('Classic what-if: the mark is the same one, from the same model', async ({ 
 
   await expect(row('Fs').locator('.de-dq')).toHaveCount(1);
   await expect(row('Mms').locator('.de-dq')).toHaveCount(1);
+});
+
+test('Tune what-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+  await openTune(page);
+
+  const mms = tuneField(page, 'Mms').locator('input');
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
+  await mms.blur();
+
+  const dqIcon = tuneField(page, 'Mms').locator('.de-dq');
+  await expect(dqIcon).toBeVisible();
+
+  // Tooltip box should not be visible initially
+  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
+  await expect(tooltip).toBeHidden();
+
+  // Hovering should show the tooltip
+  await dqIcon.hover();
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText('disagree by');
+
+  // Verify bounding box is fully visible within viewport boundaries
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  const box = await tooltip.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+
+  // Mouse leave should hide it
+  await page.locator('.tune-panel .tune-titlebar').hover(); // Hover elsewhere
+  await expect(tooltip).toBeHidden();
+
+  // Clicking should toggle the tooltip
+  await dqIcon.click();
+  await expect(tooltip).toBeVisible();
+
+  // Clicking outside should close it
+  await page.locator('.tune-panel .tune-titlebar').click();
+  await expect(tooltip).toBeHidden();
+});
+
+test('Classic what-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
+  await page.locator('.skin-picker select').selectOption('classic');
+  await page.locator('.cl-whatif').click();
+  
+  const dep = page.locator('.dep');
+  await expect(dep).toBeVisible();
+
+  const row = (label: string) => dep.locator('.row').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}`) }) });
+  const mms = row('Mms').locator('input');
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
+  await mms.blur();
+
+  const dqIcon = row('Mms').locator('.de-dq');
+  await expect(dqIcon).toBeVisible();
+
+  const tooltip = page.locator('body > .dq-tooltip-box-Mms');
+  await expect(tooltip).toBeHidden();
+
+  // Hover
+  await dqIcon.hover();
+  await expect(tooltip).toBeVisible();
+
+  // Verify bounding box is fully visible within viewport boundaries
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  const box = await tooltip.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+
+  // Mouse leave
+  await dep.locator('.subsect', { hasText: 'Box' }).hover();
+  await expect(tooltip).toBeHidden();
+
+  // Click
+  await dqIcon.click();
+  await expect(tooltip).toBeVisible();
+
+  // Click outside
+  await dep.locator('.subsect', { hasText: 'Box' }).click();
+  await expect(tooltip).toBeHidden();
 });

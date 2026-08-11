@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
-/**
  * Persistence carries provenance (Phase 5).
  *
  * serialize() → JSON transport (localStorage/share-link/project JSON) → restore must

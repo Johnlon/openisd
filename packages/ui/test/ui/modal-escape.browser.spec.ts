@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/app-shell/spec.md?html
- */
 import { test, expect } from '../fixtures.js';
 
 // Design rule (.claude/rules/openisd-ui-design.md): pressing Escape dismisses any open modal.

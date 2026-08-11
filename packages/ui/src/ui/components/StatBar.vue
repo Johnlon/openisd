@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { state, driver, syncedP, curvesData } from '../../logic/store.js';
-import { ebp, prTuning, LossMode, sealedResonance } from '@openisd/engine';
+import { ebp, prTuning, LossMode, sealedResonance, sourceLoadedQts } from '@openisd/engine';
 
 const drv = driver;
 const P = syncedP;
@@ -36,10 +36,14 @@ const stats = computed<StatsInvalid | StatsValid>(() => {
   // correction (always defaulting to 0.732) and ignored which member the user entered.
   const fb = (box === 'vented') ? p.Fb : null;
   const fp = (box === 'pr') ? prTuning(p) : null;
-  // Sealed Fsc/Qtc under the selected loss model (Lossless / Conventional / WinISD, default WinISD).
+  // Sealed Fsc/Qtc under the selected loss model (Lossless / Conventional / WinISD, default
+  // WinISD). Qts is loaded by the Signal tab's series resistance Rg — WinISD folds Rg into the
+  // driver's electrical Q before computing Fsc/Qtc; see sourceLoadedQts.
   const sealed = (box === 'sealed')
-    ? sealedResonance(LossMode.parse(state.lossMode),
-        { Fs: d.Fs, Vas: d.Vas, Qts: d.Qts, Vb: p.Vb, Ql: p.Ql, Qa: p.Qa })
+    ? sealedResonance(LossMode.parse(state.lossMode), {
+        Fs: d.Fs, Vas: d.Vas, Qts: sourceLoadedQts(d.Qms, d.Qes, d.Re, p.Rs, d.Qts),
+        Vb: p.Vb, Ql: p.Ql, Qa: p.Qa,
+      })
     : null;
   const fc  = sealed ? sealed.Fsc : null;
   const Qtc = sealed ? sealed.Qtc : null;

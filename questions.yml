@@ -5,443 +5,464 @@ questions:
   title: UI TODO List
   status: done
   raised: '2026-08-05'
-  body: "# UI TODO List\n\n**Purpose.** This file is the ledger for `openisd` \u2014\
-    \ the record of work, open bugs, open\nquestions and pending decisions for the\
-    \ Vue/TS app and engine. Chat is transient; this file\nis the record. Anything\
-    \ raised in conversation and not written here is lost when the session\nends.\
-    \ `~/.claude/bin/open_questions.py` reads every `TODO.md` in the workspace on\
-    \ every turn\nof BOTH agents, so an open item recorded here sits in front of the\
-    \ agent until the human\nexplicitly acks it.\n"
+  body: |
+    # UI TODO List
+
+    **Purpose.** This file is the ledger for `openisd` — the record of work, open bugs, open
+    questions and pending decisions for the Vue/TS app and engine. Chat is transient; this file
+    is the record. Anything raised in conversation and not written here is lost when the session
+    ends. `~/.claude/bin/open_questions.py` reads every `TODO.md` in the workspace on every turn
+    of BOTH agents, so an open item recorded here sits in front of the agent until the human
+    explicitly acks it.
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision\
-      \ \u2014 needs triage."
+    text: Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision — needs triage.
   - at: '2026-08-05'
-    text: "not a question \u2014 migrated preamble, deleted from view"
+    text: not a question — migrated preamble, deleted from view
   answer:
     at: '2026-08-05'
     text: that is incomprehensible close it
 - id: QO2
-  title: "Question numbering \u2014 the prefix names the LEDGER"
+  title: Question numbering — the prefix names the LEDGER
   status: done
   raised: '2026-08-05'
-  body: "## Question numbering \u2014 the prefix names the LEDGER\n\nEvery question\
-    \ ID carries a directory prefix, so a Q-number is unique across the whole\nworkspace\
-    \ and a cross-repo reference is unambiguous. **This repo's prefix is `QO`.**\n\
-    \n| prefix | ledger | what lives there |\n|---|---|---|\n| `QP` | `winisd/TODO.md`\
-    \ | **P**arent \u2014 workspace-wide and parent-dir matters |\n| `QT` | `winisd_tools/TODO.md`\
-    \ | **T**ools \u2014 the scraping pipeline |\n| `QD` | `winisd_drivers/TODO.md`\
-    \ | **D**atabase \u2014 the driver data repo |\n| `QO` | `openisd/TODO.md` | **O**penisd\
-    \ \u2014 this file: the Vue/TS app and engine |\n| `QR` | `winisd_research/TODO.md`\
-    \ | **R**esearch \u2014 WinISD behaviour investigation |\n\nNumbers run independently\
-    \ per ledger: `QT1` and `QO1` are different questions. **Never write\na bare `Q12`**\
-    \ \u2014 with five ledgers it names nothing.\n\nFormat:\n\n    ### QOn. <one-line\
-    \ question> \u2014 UNDECIDED\n    - [ ] **UNDECIDED:** [QOn] <what is being decided,\
-    \ and what it costs either way>\n\nStatus prefixes: `UNDECIDED:` awaiting a human\
-    \ ruling \xB7 `DECIDED:` ruled, not yet coded \xB7\n`IMPLEMENTED:` coded and verified.\
-    \ When the human rules, flip the status and write the\nruling inline under `**Answer:**`\
-    \ in the SAME turn.\n"
+  body: |
+    ## Question numbering — the prefix names the LEDGER
+
+    Every question ID carries a directory prefix, so a Q-number is unique across the whole
+    workspace and a cross-repo reference is unambiguous. **This repo's prefix is `QO`.**
+
+    | prefix | ledger | what lives there |
+    |---|---|---|
+    | `QP` | `winisd/TODO.md` | **P**arent — workspace-wide and parent-dir matters |
+    | `QT` | `winisd_tools/TODO.md` | **T**ools — the scraping pipeline |
+    | `QD` | `winisd_drivers/TODO.md` | **D**atabase — the driver data repo |
+    | `QO` | `openisd/TODO.md` | **O**penisd — this file: the Vue/TS app and engine |
+    | `QR` | `winisd_research/TODO.md` | **R**esearch — WinISD behaviour investigation |
+
+    Numbers run independently per ledger: `QT1` and `QO1` are different questions. **Never write
+    a bare `Q12`** — with five ledgers it names nothing.
+
+    Format:
+
+        ### QOn. <one-line question> — UNDECIDED
+        - [ ] **UNDECIDED:** [QOn] <what is being decided, and what it costs either way>
+
+    Status prefixes: `UNDECIDED:` awaiting a human ruling · `DECIDED:` ruled, not yet coded ·
+    `IMPLEMENTED:` coded and verified. When the human rules, flip the status and write the
+    ruling inline under `**Answer:**` in the SAME turn.
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision\
-      \ \u2014 needs triage."
+    text: Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision — needs triage.
   - at: '2026-08-05'
-    text: "not a question \u2014 migrated numbering table"
+    text: not a question — migrated numbering table
   answer:
     at: '2026-08-05'
     text: close
 - id: QO3
-  title: "\u2753 Open questions \u2014 deferred decisions"
+  title: ❓ Open questions — deferred decisions
   status: open
   raised: '2026-08-05'
-  body: "Scope for every item below: the **WinISD picker**\n(`packages/ui/src/components/DriverBrowserWinisd.vue`,\
-    \ used by the Original and Classic\nskins). The Modern picker is left alone.\n\
-    \n**Driver identity, the embed model and the brand-vs-manufacturer rulings (human\n\
-    2026-08-04) live in `BACKLOG.md` \xA7 \"Next \u2014 do first\".** They already\
-    \ constrain several\nitems here \u2014 a driver IS its `<brand>/<model>`, choosing\
-    \ one copies it into the project,\nand My Drivers changes only through an explicit\
-    \ Save. Read them before designing Clone,\nEdit or Add-new.\n\nDetail the item\
-    \ texts do not restate:\n\n- **Add new Driver** opens the editor on a completely\
-    \ blank driver.\n- The scope chip sits beside the Favorites chip and is **orthogonal**\
-    \ to it, so all six\n  combinations are reachable \u2014 `Mine + \u2605` is my\
-    \ starred drivers, `All + \u2605` is every\n  starred driver. Rejected: bottom\
-    \ tabs (modal \u2014 you could not see a bundled and a saved\n  driver together,\
-    \ and it adds chrome to a dialog that just lost four controls) and\n  pinning\
-    \ Mine at the top (no way to see only your own once you have many).\n- The **Favorites**\
-    \ button is a filter, not a label: pressing it shows **only** the\n  drivers starred\
-    \ with that per-row toggle, and pressing it again shows the whole list \u2014\n\
-    \  an on/off filter over the same list, exactly as the type chips behave.\n- The\
-    \ star toggle sits to the right of every driver in the browser list; the Favorites\n\
-    \  button sits at the top, where **All Sources** used to be.\n- The single-click\
-    \ summary shows **everything we know about that driver** \u2014 the approach\n\
-    \  the Modern skin already takes \u2014 and **Cancel** returns to the list with\
-    \ nothing changed;\n  a driver can be starred from the summary as well as from\
-    \ its row in the list.\n- Chart types: put a complete list of the chart types\
-    \ here and mark those done, then\n  build the rest based on the winisd research\
-    \ in `../winisd_research`. DO NOT build a\n  chart if there are remaining unknowns\
-    \ \u2014 speak to the human and we will do more research.\n"
+  body: |
+    Scope for every item below: the **WinISD picker**
+    (`packages/ui/src/components/DriverBrowserWinisd.vue`, used by the Original and Classic
+    skins). The Modern picker is left alone.
+
+    **Driver identity, the embed model and the brand-vs-manufacturer rulings (human
+    2026-08-04) live in `BACKLOG.md` § "Next — do first".** They already constrain several
+    items here — a driver IS its `<brand>/<model>`, choosing one copies it into the project,
+    and My Drivers changes only through an explicit Save. Read them before designing Clone,
+    Edit or Add-new.
+
+    Detail the item texts do not restate:
+
+    - **Add new Driver** opens the editor on a completely blank driver.
+    - The scope chip sits beside the Favorites chip and is **orthogonal** to it, so all six
+      combinations are reachable — `Mine + ★` is my starred drivers, `All + ★` is every
+      starred driver. Rejected: bottom tabs (modal — you could not see a bundled and a saved
+      driver together, and it adds chrome to a dialog that just lost four controls) and
+      pinning Mine at the top (no way to see only your own once you have many).
+    - The **Favorites** button is a filter, not a label: pressing it shows **only** the
+      drivers starred with that per-row toggle, and pressing it again shows the whole list —
+      an on/off filter over the same list, exactly as the type chips behave.
+    - The star toggle sits to the right of every driver in the browser list; the Favorites
+      button sits at the top, where **All Sources** used to be.
+    - The single-click summary shows **everything we know about that driver** — the approach
+      the Modern skin already takes — and **Cancel** returns to the list with nothing changed;
+      a driver can be starred from the summary as well as from its row in the list.
+    - Chart types: put a complete list of the chart types here and mark those done, then
+      build the rest based on the winisd research in `../winisd_research`. DO NOT build a
+      chart if there are remaining unknowns — speak to the human and we will do more research.
   items:
-  - text: 'Remove UI elements: All Sources dropdown, Reset Demo Drivers, Add GitHub
-      URL, SpeakerBoxLite footer link'
+  - text: 'Remove UI elements: All Sources dropdown, Reset Demo Drivers, Add GitHub URL, SpeakerBoxLite
+      footer link'
     done: true
-  - text: "My Drivers is the ONE destination for every user-created driver \u2014\
-      \ Add new, Clone, Load File, save-and-reload"
+  - text: My Drivers is the ONE destination for every user-created driver — Add new, Clone, Load File,
+      save-and-reload
     done: true
-  - text: 'Edit Driver: enable the Edit button when a My Drivers driver is selected,
-      disabled otherwise'
+  - text: 'Edit Driver: enable the Edit button when a My Drivers driver is selected, disabled otherwise'
     done: true
-  - text: My Drivers rows carry the same star toggle and are covered by the Favorites
-      filter
+  - text: My Drivers rows carry the same star toggle and are covered by the Favorites filter
     done: true
-  - text: Scope chip cycling Bundled -> Mine -> All, orthogonal to Favorites (DECIDED
-      2026-08-04)
+  - text: Scope chip cycling Bundled -> Mine -> All, orthogonal to Favorites (DECIDED 2026-08-04)
     done: true
   - text: 'Favorites: per-row star toggle plus a Favorites filter button at the top'
     done: true
-  - text: Single click opens a driver summary with Use/Cancel and a favourite toggle,
-      not the editor
+  - text: Single click opens a driver summary with Use/Cancel and a favourite toggle, not the editor
     done: true
   - text: Implement remaining chart types from the winisd_research findings
     done: false
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision\
-      \ \u2014 needs triage."
+    text: Migrated verbatim from openisd/TODO.md. May be a TASK rather than a decision — needs triage.
   - at: '2026-08-05'
-    text: "2026-08-05, human on QO3.4: \"there is a fav flag but no mydrivers yes\"\
-      \ \u2014 the favourite flag\nexists, the My Drivers section does not. So QO3.4\
-      \ is BLOCKED on QO3.2: the star cannot cover\nMy Drivers rows until My Drivers\
-      \ rows exist. Sequence QO3.2 first, then verify QO3.4 against\nthe real section\
-      \ rather than assuming the prior note that it \"already works\"."
+    text: |-
+      2026-08-05, human on QO3.4: "there is a fav flag but no mydrivers yes" — the favourite flag
+      exists, the My Drivers section does not. So QO3.4 is BLOCKED on QO3.2: the star cannot cover
+      My Drivers rows until My Drivers rows exist. Sequence QO3.2 first, then verify QO3.4 against
+      the real section rather than assuming the prior note that it "already works".
   - at: '2026-08-05'
-    text: "RULED 2026-08-05 by the human: \"build the UI compoentns in your logical\
-      \ order\".\nBuild order: QO3.2 (My Drivers section \u2014 the blocker) -> QO3.3\
-      \ (Edit button gating) ->\nQO3.4 (star + Favorites over My Drivers rows) ->\
-      \ QO3.5 (Bundled/Mine/All scope chip).\nQO3.8 (chart types) is NOT covered by\
-      \ this ruling: its own text forbids building a chart\nwhile unknowns remain,\
-      \ so it stays open and comes back to the human."
+    text: |-
+      RULED 2026-08-05 by the human: "build the UI compoentns in your logical order".
+      Build order: QO3.2 (My Drivers section — the blocker) -> QO3.3 (Edit button gating) ->
+      QO3.4 (star + Favorites over My Drivers rows) -> QO3.5 (Bundled/Mine/All scope chip).
+      QO3.8 (chart types) is NOT covered by this ruling: its own text forbids building a chart
+      while unknowns remain, so it stays open and comes back to the human.
   - at: '2026-08-05'
-    text: "2026-08-05 verification, not a claim: QO3.2/.3/.4 were ALREADY IMPLEMENTED\
-      \ in the uncommitted\nworking tree by another session \u2014 not built this\
-      \ turn. Ticked on evidence:\npackages/ui/test/my-drivers.browser.spec.ts passes\
-      \ 9/9, including \"Edit is enabled for a My\nDrivers selection and disabled\
-      \ for a library one\" (= QO3.3) and \"a My Drivers row stars like\nany other,\
-      \ and the Favorites filter covers that section\" (= QO3.4). All four QO3.2 routes\
-      \ are\ncovered and green: Add new, Clone (saved AND library), Load File, and\
-      \ save-.wdr-and-reload.\n\nQO3.5 is NOT ticked. The code is there \u2014 driverScope.ts\
-      \ (Bundled/Mine/All enum), the segmented\ncontrol in DriverBrowserWinisd.vue,\
-      \ and both pools gated on includesBundled/includesMine in\nuseDriverLibrary.ts\
-      \ \u2014 but driver-scope-chip.browser.spec.ts will not go green on this machine.\n\
-      Two IDENTICAL consecutive runs gave DIFFERENT pass/fail sets (8-fail/1-pass,\
-      \ then 5-fail/4-pass)\nwith chromium SIGKILLed at launch. That is flaky infrastructure,\
-      \ not a code verdict, so the\nitem stays open until it can be run clean."
+    text: |-
+      2026-08-05 verification, not a claim: QO3.2/.3/.4 were ALREADY IMPLEMENTED in the uncommitted
+      working tree by another session — not built this turn. Ticked on evidence:
+      packages/ui/test/my-drivers.browser.spec.ts passes 9/9, including "Edit is enabled for a My
+      Drivers selection and disabled for a library one" (= QO3.3) and "a My Drivers row stars like
+      any other, and the Favorites filter covers that section" (= QO3.4). All four QO3.2 routes are
+      covered and green: Add new, Clone (saved AND library), Load File, and save-.wdr-and-reload.
+
+      QO3.5 is NOT ticked. The code is there — driverScope.ts (Bundled/Mine/All enum), the segmented
+      control in DriverBrowserWinisd.vue, and both pools gated on includesBundled/includesMine in
+      useDriverLibrary.ts — but driver-scope-chip.browser.spec.ts will not go green on this machine.
+      Two IDENTICAL consecutive runs gave DIFFERENT pass/fail sets (8-fail/1-pass, then 5-fail/4-pass)
+      with chromium SIGKILLed at launch. That is flaky infrastructure, not a code verdict, so the
+      item stays open until it can be run clean.
+  - at: '2026-08-11'
+    text: |-
+      2026-08-11: human said "parked" on QO3.8 (remaining chart types) — stays open, no work started, no
+      further research triggered right now. Revisit when the human raises it again.
 - id: QO4
-  title: "TODO \u2014 Engine hardening"
+  title: TODO — Engine hardening
   status: done
   raised: '2026-08-05'
-  body: "**Priority: HIGH.** The engine can still emit `NaN`/`Infinity` on degenerate\
-    \ input\nmid-sweep, producing a blank/garbage chart with no explanation. This\
-    \ undermines the\none thing the tool exists to do: produce trustworthy numbers.\n\
-    \nDesign + rationale: `CODE_REVIEW/ENGINE_HARDENING.md`. Findings:\n`CODE_REVIEW/CODE_REVIEW.md`\
-    \ \xA711, \xA716-18, \xA720-21.\n\n**Failure is communicated with the `Result`\
-    \ pattern, never by throwing** \u2014 the\nengine's contract is `{ value, errors\
-    \ }` with `error`/`warn`\nlevels. Both layers of the fix feed that one channel.\n"
+  body: |
+    **Priority: HIGH.** The engine can still emit `NaN`/`Infinity` on degenerate input
+    mid-sweep, producing a blank/garbage chart with no explanation. This undermines the
+    one thing the tool exists to do: produce trustworthy numbers.
+
+    Design + rationale: `CODE_REVIEW/ENGINE_HARDENING.md`. Findings:
+    `CODE_REVIEW/CODE_REVIEW.md` §11, §16-18, §20-21.
+
+    **Failure is communicated with the `Result` pattern, never by throwing** — the
+    engine's contract is `{ value, errors }` with `error`/`warn`
+    levels. Both layers of the fix feed that one channel.
   items:
-  - text: 'ACCEPTANCE: a driver with Vas+Qts but no Qms gives a clear message, not
-      a blank graph'
+  - text: 'ACCEPTANCE: a driver with Vas+Qts but no Qms gives a clear message, not a blank graph'
     done: true
   - text: 'ACCEPTANCE: Vb = 0 gives a clear error, not Infinity-poisoned curves'
     done: false
-  - text: 'ACCEPTANCE: an isolated mid-sweep singularity still draws the curve with
-      a gap plus a warn naming the frequency; never silently blanked'
+  - text: 'ACCEPTANCE: an isolated mid-sweep singularity still draws the curve with a gap plus a warn
+      naming the frequency; never silently blanked'
     done: false
-  - text: 'ACCEPTANCE: no code path returns a non-finite value to a chart without
-      a surfaced issue'
+  - text: 'ACCEPTANCE: no code path returns a non-finite value to a chart without a surfaced issue'
     done: true
-  - text: 'ACCEPTANCE: all existing physics tests pass unchanged; math for valid inputs
-      stays byte-identical to the goldens'
+  - text: 'ACCEPTANCE: all existing physics tests pass unchanged; math for valid inputs stays byte-identical
+      to the goldens'
     done: true
-  - text: 'ACCEPTANCE: new tests cover each rejection/partial case with a human-readable
-      scenario name'
+  - text: 'ACCEPTANCE: new tests cover each rejection/partial case with a human-readable scenario name'
     done: true
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May\
-      \ be a TASK rather than a decision \u2014 needs triage."
+    text: Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May be a TASK rather than
+      a decision — needs triage.
   - at: '2026-08-05'
-    text: '2026-08-05: background agent dispatched to consolidate CODE_REVIEW.md,
-      ENGINE_HARDENING.md,
-
-      ENGINE_HARDENING_TODO.md and REMEDIATION_PLAN.md into ENGINE_HARDENING_TODO_1.md
-      and
-
-      CODE_REVIEW_1.md, re-verifying every finding against the current code with quoted
-      evidence
-
-      per row. Stays open until that lands and the remaining live findings are known.'
+    text: |-
+      2026-08-05: background agent dispatched to consolidate CODE_REVIEW.md, ENGINE_HARDENING.md,
+      ENGINE_HARDENING_TODO.md and REMEDIATION_PLAN.md into ENGINE_HARDENING_TODO_1.md and
+      CODE_REVIEW_1.md, re-verifying every finding against the current code with quoted evidence
+      per row. Stays open until that lands and the remaining live findings are known.
   - at: '2026-08-05'
-    text: "2026-08-05 engine hardening landed. QO4.1/.4/.5/.6 ticked. QO4.2 (Vb=0\
-      \ clear error) and QO4.3\n(mid-sweep singularity gap + warn) are MET ENGINE-SIDE\
-      \ ONLY and deliberately left unticked:\nthe error is produced, correct and named,\
-      \ but the default skin has nowhere to show it.\n\nRoot cause, now reported independently\
-      \ by three agents: allIssues is consumed only by\nDriverPanel.vue, mounted only\
-      \ via ModernShell, while the default skin is 'original'\n(store.ts:92, skins.ts:27-31).\
-      \ And GraphPanel.vue:34 feeds .gmsg from driverErrors, NOT\nallIssues, and filters\
-      \ to error only \u2014 so no box-parameter or sweep issue can ever reach a\n\
-      chart. grep -ci \"issue|warn\" over OriginalShell.vue and ClassicShell.vue returns\
-      \ 0 for both.\n\nAlso fixed in the same pass: the \xA711 defect was worse than\
-      \ briefed. deriveDriver({Qts:0.5,\nQes:0.4, Qms:0.5}) returned errors:[] and\
-      \ a non-null driver at HEAD, and Qes:Infinity passed\nthe guard because Infinity\
-      \ > 0 is true. Fixed at the divide in solveConsistencyGroup\n(driver.ts:62-64),\
-      \ not at the symptom. formulas.ts duplicate literals replaced with the\nimported\
-      \ C and RHO, verified bit-identical across 273.15-350 K. Goldens unchanged:\
-      \ 6 passed,\nfixtures dir clean. 387 unit tests pass, lint and typecheck clean."
+    text: |-
+      2026-08-05 engine hardening landed. QO4.1/.4/.5/.6 ticked. QO4.2 (Vb=0 clear error) and QO4.3
+      (mid-sweep singularity gap + warn) are MET ENGINE-SIDE ONLY and deliberately left unticked:
+      the error is produced, correct and named, but the default skin has nowhere to show it.
+
+      Root cause, now reported independently by three agents: allIssues is consumed only by
+      DriverPanel.vue, mounted only via ModernShell, while the default skin is 'original'
+      (store.ts:92, skins.ts:27-31). And GraphPanel.vue:34 feeds .gmsg from driverErrors, NOT
+      allIssues, and filters to error only — so no box-parameter or sweep issue can ever reach a
+      chart. grep -ci "issue|warn" over OriginalShell.vue and ClassicShell.vue returns 0 for both.
+
+      Also fixed in the same pass: the §11 defect was worse than briefed. deriveDriver({Qts:0.5,
+      Qes:0.4, Qms:0.5}) returned errors:[] and a non-null driver at HEAD, and Qes:Infinity passed
+      the guard because Infinity > 0 is true. Fixed at the divide in solveConsistencyGroup
+      (driver.ts:62-64), not at the symptom. formulas.ts duplicate literals replaced with the
+      imported C and RHO, verified bit-identical across 273.15-350 K. Goldens unchanged: 6 passed,
+      fixtures dir clean. 387 unit tests pass, lint and typecheck clean.
   - at: '2026-08-06'
-    text: Engine hardening (preconditions, postconditions, residual input guards,
-      store issue channel, and UI warning pill) fully verified and 100% green.
+    text: Engine hardening (preconditions, postconditions, residual input guards, store issue channel,
+      and UI warning pill) fully verified and 100% green.
 - id: QO5
   title: To do
   status: done
   raised: '2026-08-05'
-  body: 'The engine-hardening changes themselves; QO4 carries the acceptance criteria
-    and the
-
-    `Result`-pattern contract. Each item states its own group: additive input guards
-    (no
-
-    formula change), the finiteness postcondition (the main remaining piece), the
-    one
-
+  body: |
+    The engine-hardening changes themselves; QO4 carries the acceptance criteria and the
+    `Result`-pattern contract. Each item states its own group: additive input guards (no
+    formula change), the finiteness postcondition (the main remaining piece), the one
     sign-off-gated change to computed numbers, and maintainability (no behaviour change).
-
-    '
   items:
-  - text: "Additive input guard (no formula change) \u2014 \xA711 `Qms == Qts`: in\
-      \ `deriveDriver`, when both `Qts` and `Qms` are given, require `Qms > Qts` (else\
-      \ `error`); otherwise `Qes = Qts\xB7Qms/(Qms\u2212Qts)` \u2192 \u221E."
+  - text: 'Additive input guard (no formula change) — §11 `Qms == Qts`: in `deriveDriver`, when both `Qts`
+      and `Qms` are given, require `Qms > Qts` (else `error`); otherwise `Qes = Qts·Qms/(Qms−Qts)` → ∞.'
     done: false
-  - text: "Additive input guard (no formula change) \u2014 \xA718 params: add a param\
-      \ precondition: `Vb > 0`, plus `Vf > 0` (bandpass), `Sp > 0` (vented), PR params\
-      \ present (`pr`). Return an `error` when unmet."
+  - text: 'Additive input guard (no formula change) — §18 params: add a param precondition: `Vb > 0`,
+      plus `Vf > 0` (bandpass), `Sp > 0` (vented), PR params present (`pr`). Return an `error` when unmet.'
     done: false
-  - text: "Finiteness postcondition (the main remaining piece) \u2014 after `sweep`/`maxCurves`,\
-      \ classify the output at the **store boundary** (the single enforced engine\u2192\
-      UI seam; keeps `sweep` plain): **Some** points non-finite \u2192 keep the arrays\
-      \ (canvas already gaps them) + a `warn` naming the affected frequency. **No**\
-      \ finite points \u2192 treat as unusable: `error`, no chart. Rule: null/error\
-      \ only when the primary series has zero finite points."
+  - text: 'Finiteness postcondition (the main remaining piece) — after `sweep`/`maxCurves`, classify the
+      output at the **store boundary** (the single enforced engine→UI seam; keeps `sweep` plain): **Some**
+      points non-finite → keep the arrays (canvas already gaps them) + a `warn` naming the affected frequency.
+      **No** finite points → treat as unusable: `error`, no chart. Rule: null/error only when the primary
+      series has zero finite points.'
     done: false
-  - text: "Finiteness postcondition (the main remaining piece) \u2014 feed both into\
-      \ the existing `.gmsg`/`.drv-issues` channel \u2014 no new UI plumbing, no `throw`,\
-      \ no interpolation across gaps."
+  - text: Finiteness postcondition (the main remaining piece) — feed both into the existing `.gmsg`/`.drv-issues`
+      channel — no new UI plumbing, no `throw`, no interpolation across gaps.
     done: false
-  - text: "\u26A0 Sign-off gated \u2014 changes computed numbers \u2014 \xA720 `constants.ts`:\
-      \ `C=345.0`, `RHO=1.184` labelled 20 \xB0C but are ~24 \xB0C values. Pick one\
-      \ reference temperature; correct values or comment. Verify exact textbook figures\
-      \ (20 \xB0C \u2248 343.2 m/s, \u22481.204 kg/m\xB3) first."
+  - text: '⚠ Sign-off gated — changes computed numbers — §20 `constants.ts`: `C=345.0`, `RHO=1.184` labelled
+      20 °C but are ~24 °C values. Pick one reference temperature; correct values or comment. Verify exact
+      textbook figures (20 °C ≈ 343.2 m/s, ≈1.204 kg/m³) first.'
     done: false
-  - text: "Maintainability (no behaviour change) \u2014 \xA721 `driver.ts`: document\
-      \ or name the 48-char `ParState` magic string."
+  - text: 'Maintainability (no behaviour change) — §21 `driver.ts`: document or name the 48-char `ParState`
+      magic string.'
     done: false
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May\
-      \ be a TASK rather than a decision \u2014 needs triage."
+    text: Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May be a TASK rather than
+      a decision — needs triage.
   - at: '2026-08-05'
-    text: "2026-08-05: the only item here needing a human ruling is the constants.ts\
-      \ question \u2014 C=345.0\nand RHO=1.184 are labelled 20 C but are ~24 C values.\
-      \ Background agent dispatched to establish\nwhat WinISD itself uses, from winisd_research\
-      \ and any back-solvable recorded output, before the\nruling is made. The other\
-      \ four items are mechanical and are covered by the review-doc\nconsolidation\
-      \ agent noted on QO4."
+    text: |-
+      2026-08-05: the only item here needing a human ruling is the constants.ts question — C=345.0
+      and RHO=1.184 are labelled 20 C but are ~24 C values. Background agent dispatched to establish
+      what WinISD itself uses, from winisd_research and any back-solvable recorded output, before the
+      ruling is made. The other four items are mechanical and are covered by the review-doc
+      consolidation agent noted on QO4.
   - at: '2026-08-05'
-    text: "2026-08-05 RESEARCH RESULT \u2014 the constants question is already settled\
-      \ and the premise here is\nstale. constants.ts now reads C=343.68, RHO=1.20095\
-      \ labelled \"20 C \u2014 WinISD\"; landed\n2026-07-03 in 409bf2d57, which regenerated\
-      \ all six golden fixtures and moved an Fb assertion\n37.2 -> 37.1 Hz. WinISD's\
-      \ own .wdr/.wpr files write c=343.684120962152 roo=1.20095217714682\nacross\
-      \ 1624 files, and those back-solve to 20 C at 30% RH to within 3-5 ppm on BOTH\
-      \ constants.\nThe textbook 343.2/1.204 are DRY air \u2014 humidity accounts\
-      \ for the whole gap. The old 345.0/1.184\nwere mutually inconsistent (23 C and\
-      \ 25 C), so no single temperature produced them.\n\nTwo residual defects the\
-      \ research surfaced, neither yet fixed:\n  - formulas.ts L56/L64 hardcode 343.68\
-      \ and 1.20095 as bare literals despite importing C and\n    RHO from constants.ts\
-      \ at L9. Same class of defect 409bf2d57 fixed elsewhere; this instance\n   \
-      \ was missed. Nothing keeps the two copies in step.\n  - openisd collects and\
-      \ persists humidity and pressure but only tempK is wired to anything\n    (winisd_research/GAPS.md\
-      \ L231-256). Humidity is exactly what accounts for WinISD's values,\n    so\
-      \ an inert humidity input is a real inconsistency."
+    text: |-
+      2026-08-05 RESEARCH RESULT — the constants question is already settled and the premise here is
+      stale. constants.ts now reads C=343.68, RHO=1.20095 labelled "20 C — WinISD"; landed
+      2026-07-03 in 409bf2d57, which regenerated all six golden fixtures and moved an Fb assertion
+      37.2 -> 37.1 Hz. WinISD's own .wdr/.wpr files write c=343.684120962152 roo=1.20095217714682
+      across 1624 files, and those back-solve to 20 C at 30% RH to within 3-5 ppm on BOTH constants.
+      The textbook 343.2/1.204 are DRY air — humidity accounts for the whole gap. The old 345.0/1.184
+      were mutually inconsistent (23 C and 25 C), so no single temperature produced them.
+
+      Two residual defects the research surfaced, neither yet fixed:
+        - formulas.ts L56/L64 hardcode 343.68 and 1.20095 as bare literals despite importing C and
+          RHO from constants.ts at L9. Same class of defect 409bf2d57 fixed elsewhere; this instance
+          was missed. Nothing keeps the two copies in step.
+        - openisd collects and persists humidity and pressure but only tempK is wired to anything
+          (winisd_research/GAPS.md L231-256). Humidity is exactly what accounts for WinISD's values,
+          so an inert humidity input is a real inconsistency.
   - at: '2026-08-06'
-    text: Engine hardening (preconditions, postconditions, residual input guards,
-      store issue channel, and UI warning pill) fully verified and 100% green.
+    text: Engine hardening (preconditions, postconditions, residual input guards, store issue channel,
+      and UI warning pill) fully verified and 100% green.
 - id: QO6
   title: Acceptance criteria
   status: done
   raised: '2026-08-05'
-  body: "## Acceptance criteria\n\n- [ ] A driver with `Vas`+`Qts` but no `Qms` \u2192\
-    \ clear message, not a blank graph.\n- [ ] `Vb = 0` \u2192 clear `error`, not\
-    \ `Infinity`-poisoned curves.\n- [ ] An isolated mid-sweep singularity \u2192\
-    \ the curve still draws with a gap + a `warn`\n      naming the frequency; it\
-    \ is never silently blanked.\n- [ ] No code path returns a non-finite value to\
-    \ a chart without a surfaced issue.\n- [ ] All existing physics tests pass unchanged;\
-    \ math for valid inputs stays\n      bit-identical (golden byte-identical).\n\
-    - [ ] New tests cover each rejection/partial case with a human-readable scenario\
-    \ name.\n"
+  body: |
+    ## Acceptance criteria
+
+    - [ ] A driver with `Vas`+`Qts` but no `Qms` → clear message, not a blank graph.
+    - [ ] `Vb = 0` → clear `error`, not `Infinity`-poisoned curves.
+    - [ ] An isolated mid-sweep singularity → the curve still draws with a gap + a `warn`
+          naming the frequency; it is never silently blanked.
+    - [ ] No code path returns a non-finite value to a chart without a surfaced issue.
+    - [ ] All existing physics tests pass unchanged; math for valid inputs stays
+          bit-identical (golden byte-identical).
+    - [ ] New tests cover each rejection/partial case with a human-readable scenario name.
   notes:
   - at: '2026-08-05'
-    text: "Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May\
-      \ be a TASK rather than a decision \u2014 needs triage."
+    text: Migrated verbatim from openisd/CODE_REVIEW/ENGINE_HARDENING_TODO.md. May be a TASK rather than
+      a decision — needs triage.
   - at: '2026-08-05'
     text: acceptance criteria merged into QO4 as items QO4.1-QO4.6
   answer:
     at: '2026-08-05'
-    text: "M and B \u2014 merge the six acceptance criteria into QO4 as its acceptance\
-      \ items, and dispatch an\nagent to implement them now."
+    text: |-
+      M and B — merge the six acceptance criteria into QO4 as its acceptance items, and dispatch an
+      agent to implement them now.
 - id: QO7
-  title: "Humidity and pressure inputs are inert \u2014 extend the model, or mark\
-    \ them visibly dead?"
+  title: Humidity and pressure inputs are inert — extend the model, or mark them visibly dead?
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Bug file: openisd/bugs/BUG_20260805_humidity-and-pressure-inputs-are-collected-persisted-and-then-ignored.md\n\
-      \nThe Advanced pane collects temperature, humidity and pressure; the Options\
-      \ dialog persists all\nthree; only tempK reaches the engine. advHumidity and\
-      \ advPressure land in local refs nothing\nreads (OriginalShell.vue:560-561).\
-      \ Params carries tempK alone (types.ts:183). The user gets no\nsignal the value\
-      \ was discarded.\n\nThis matters more than a dangling input because humidity\
-      \ is exactly what makes WinISD's\nconstants what they are: c=343.684120962152\
-      \ and roo=1.20095217714682 reproduce from\nT=293.15K, RH=30%, p=101325Pa to\
-      \ within 3-5 ppm on both. openisd hardcodes the RESULT of a 30%\nRH assumption\
-      \ while offering a humidity box that cannot change it.\n\nTwo options, and the\
-      \ choice is yours:\n  1. Extend the model \u2014 add humidityPct and pressurePa\
-      \ to Params, derive c and roo from all\n     three via the moist-air formulation,\
-      \ surface air density beside sound velocity. This moves\n     EVERY golden fixture,\
-      \ so it cannot be done silently.\n  2. Mark both inputs visibly inert \u2014\
-      \ the shell already has that pattern. No number changes.\n\nwinisd_research/GAPS.md\
-      \ A6 recommends either, and warns explicitly: do NOT re-open the\nconstants\
-      \ themselves, they already match WinISD exactly."
+    text: |-
+      Bug file: openisd/bugs/BUG_20260805_humidity-and-pressure-inputs-are-collected-persisted-and-then-ignored.md
+
+      The Advanced pane collects temperature, humidity and pressure; the Options dialog persists all
+      three; only tempK reaches the engine. advHumidity and advPressure land in local refs nothing
+      reads (OriginalShell.vue:560-561). Params carries tempK alone (types.ts:183). The user gets no
+      signal the value was discarded.
+
+      This matters more than a dangling input because humidity is exactly what makes WinISD's
+      constants what they are: c=343.684120962152 and roo=1.20095217714682 reproduce from
+      T=293.15K, RH=30%, p=101325Pa to within 3-5 ppm on both. openisd hardcodes the RESULT of a 30%
+      RH assumption while offering a humidity box that cannot change it.
+
+      Two options, and the choice is yours:
+        1. Extend the model — add humidityPct and pressurePa to Params, derive c and roo from all
+           three via the moist-air formulation, surface air density beside sound velocity. This moves
+           EVERY golden fixture, so it cannot be done silently.
+        2. Mark both inputs visibly inert — the shell already has that pattern. No number changes.
+
+      winisd_research/GAPS.md A6 recommends either, and warns explicitly: do NOT re-open the
+      constants themselves, they already match WinISD exactly.
   - at: '2026-08-05'
-    text: "2026-08-05 SETTLED BY EXPERIMENT \u2014 WinISD persists T, p and phi and\
-      \ does NOT apply them.\nopenisd's inert humidity/pressure inputs mirror WinISD's\
-      \ behaviour exactly.\n\nCORRECTION FIRST: the earlier research claim that \"\
-      .wpr does not persist T, RH or p at all\"\nis WRONG, and I repeated it. That\
-      \ agent inspected [SimulatorOptions] (VCInd, FlatResponse,\nTLPorts) and concluded\
-      \ absence. The environment is in the [Box] section:\n\n    T=293.15      temperature,\
-      \ kelvin\n    p=101325      air pressure, Pa\n    phi=0.3       relative humidity\
-      \ as a FRACTION (0.3 = 30%), not a percentage\n\nAlso in [Box]: d, Med, Nd,\
-      \ Angle, Isobarik. Human-produced probes sample1-sample4 confirm all\nthree\
-      \ round-trip independently.\n\nTHE EXPERIMENT (human-produced, C:\\tmp\\sample1..6.wpr,\
-      \ 2026-08-05):\n\nsample5 \u2014 T=303.15 AND Fs changed 100->200. The Fs edit\
-      \ forced a full recompute: Mms, Rms, Re,\nno, EBP, SPL, SPLmax, USPL, gamma,\
-      \ Rme, Mpow, Gloss all moved. c and roo did NOT. Stored SPL\nreproduces to 5e-13\
-      \ from K(c=343.684120962153, roo=1.20095217714682); had c/roo followed\nT=303.15\
-      \ (349.51 / 1.16133) the SPL would have been 113.7387 instead of the stored\
-      \ 113.8114.\n\nsample6 \u2014 Fs restored to 100, Le touched to trigger recompute,\
-      \ T=303.15. Diff against the\nsample1 baseline is EXACTLY ONE LINE: T=293.15\
-      \ -> T=303.15. Every other byte identical.\n\nSo a 10 C change with a demonstrated\
-      \ recompute produces no change in any stored value.\n\nCONSEQUENCE FOR THE RULING.\
-      \ The human ruled \"extend the model\" on 2026-08-05, before this was\nknown.\
-      \ That ruling now means something different: extending is a deliberate IMPROVEMENT\
-      \ OVER\nWinISD, not parity with it. It runs against the workspace rule \"Where\
-      \ WinISD deviates from\ntextbook acoustics, the .wdr must match WINISD \u2014\
-      \ it is the consumer\", and QO8's side-by-side\nsuite would report the difference\
-      \ as a permanent divergence (~0.07 dB at 30 C).\n\nThree options put to the\
-      \ human: extend anyway and exempt it in the parity suite; match WinISD\nby marking\
-      \ the inputs visibly inert; or extend behind an opt-in that defaults to WinISD-faithful.\n\
-      \nREMAINING UNCERTAINTY, stated honestly: one WinISD version, one driver. The\
-      \ Advanced tab's own\nSound velocity / Air density readouts were not observed\
-      \ after a T change \u2014 it is conceivable\nthey refresh on the tab while the\
-      \ saved values do not. That would not change the conclusion for\nstored data,\
-      \ which is what openisd must match."
+    text: |-
+      2026-08-05 SETTLED BY EXPERIMENT — WinISD persists T, p and phi and does NOT apply them.
+      openisd's inert humidity/pressure inputs mirror WinISD's behaviour exactly.
+
+      CORRECTION FIRST: the earlier research claim that ".wpr does not persist T, RH or p at all"
+      is WRONG, and I repeated it. That agent inspected [SimulatorOptions] (VCInd, FlatResponse,
+      TLPorts) and concluded absence. The environment is in the [Box] section:
+
+          T=293.15      temperature, kelvin
+          p=101325      air pressure, Pa
+          phi=0.3       relative humidity as a FRACTION (0.3 = 30%), not a percentage
+
+      Also in [Box]: d, Med, Nd, Angle, Isobarik. Human-produced probes sample1-sample4 confirm all
+      three round-trip independently.
+
+      THE EXPERIMENT (human-produced, C:\tmp\sample1..6.wpr, 2026-08-05):
+
+      sample5 — T=303.15 AND Fs changed 100->200. The Fs edit forced a full recompute: Mms, Rms, Re,
+      no, EBP, SPL, SPLmax, USPL, gamma, Rme, Mpow, Gloss all moved. c and roo did NOT. Stored SPL
+      reproduces to 5e-13 from K(c=343.684120962153, roo=1.20095217714682); had c/roo followed
+      T=303.15 (349.51 / 1.16133) the SPL would have been 113.7387 instead of the stored 113.8114.
+
+      sample6 — Fs restored to 100, Le touched to trigger recompute, T=303.15. Diff against the
+      sample1 baseline is EXACTLY ONE LINE: T=293.15 -> T=303.15. Every other byte identical.
+
+      So a 10 C change with a demonstrated recompute produces no change in any stored value.
+
+      CONSEQUENCE FOR THE RULING. The human ruled "extend the model" on 2026-08-05, before this was
+      known. That ruling now means something different: extending is a deliberate IMPROVEMENT OVER
+      WinISD, not parity with it. It runs against the workspace rule "Where WinISD deviates from
+      textbook acoustics, the .wdr must match WINISD — it is the consumer", and QO8's side-by-side
+      suite would report the difference as a permanent divergence (~0.07 dB at 30 C).
+
+      Three options put to the human: extend anyway and exempt it in the parity suite; match WinISD
+      by marking the inputs visibly inert; or extend behind an opt-in that defaults to WinISD-faithful.
+
+      REMAINING UNCERTAINTY, stated honestly: one WinISD version, one driver. The Advanced tab's own
+      Sound velocity / Air density readouts were not observed after a T change — it is conceivable
+      they refresh on the tab while the saved values do not. That would not change the conclusion for
+      stored data, which is what openisd must match.
   - at: '2026-08-05'
-    text: "2026-08-05 CONCLUSIVE \u2014 sample7.wpr closes the last loophole.\n\n\
-      The human DELETED c and roo and let WinISD recompute them, with T=303.15 in\
-      \ the file. Result:\nc=343.684120962153, roo=1.20095217714682 \u2014 the 20\
-      \ C values, to all 15 digits.\n\nThe recompute demonstrably ran: the only other\
-      \ difference from sample6 is last-digit float\nnoise, SPLmaxLF ...3015 -> ...3016\
-      \ and Mpow ...408 -> ...407, which is recomputation round-off.\nValues that\
-      \ were merely left untouched would be byte-identical.\n\nSo the lazy-recompute\
-      \ explanation (BUG-005) is eliminated. WinISD's c and roo are CONSTANTS.\nT,\
-      \ p and phi are stored, round-trip faithfully, and are never read. Whether the\
-      \ Advanced tab\nbriefly displays something else is now irrelevant \u2014 the\
-      \ stored value is what openisd must match,\nand it is fixed.\n\nEvidence chain,\
-      \ all human-produced, C:\\tmp\\sample1..7.wpr:\n  sample1-4  T, p, phi each\
-      \ round-trip independently in [Box]\n  sample5    full recompute via Fs at T=303.15;\
-      \ c/roo unmoved; SPL follows the unchanged K\n  sample6    single-line diff\
-      \ from baseline, T only; every other byte identical\n  sample7    c/roo deleted\
-      \ and recomputed at T=303.15; they come back as the 20 C values"
+    text: |-
+      2026-08-05 CONCLUSIVE — sample7.wpr closes the last loophole.
+
+      The human DELETED c and roo and let WinISD recompute them, with T=303.15 in the file. Result:
+      c=343.684120962153, roo=1.20095217714682 — the 20 C values, to all 15 digits.
+
+      The recompute demonstrably ran: the only other difference from sample6 is last-digit float
+      noise, SPLmaxLF ...3015 -> ...3016 and Mpow ...408 -> ...407, which is recomputation round-off.
+      Values that were merely left untouched would be byte-identical.
+
+      So the lazy-recompute explanation (BUG-005) is eliminated. WinISD's c and roo are CONSTANTS.
+      T, p and phi are stored, round-trip faithfully, and are never read. Whether the Advanced tab
+      briefly displays something else is now irrelevant — the stored value is what openisd must match,
+      and it is fixed.
+
+      Evidence chain, all human-produced, C:\tmp\sample1..7.wpr:
+        sample1-4  T, p, phi each round-trip independently in [Box]
+        sample5    full recompute via Fs at T=303.15; c/roo unmoved; SPL follows the unchanged K
+        sample6    single-line diff from baseline, T only; every other byte identical
+        sample7    c/roo deleted and recomputed at T=303.15; they come back as the 20 C values
   answer:
     at: '2026-08-05'
-    text: "UI should have an option something like \"Ignore X as per WinISD\", default\
-      \ OFF.\n\nSo openisd USES humidity and pressure by default \u2014 the physically\
-      \ correct behaviour \u2014 and the\ntoggle opts INTO WinISD's behaviour of ignoring\
-      \ them. openisd is correct out of the box; the\ncompatibility mode is the deliberate\
-      \ choice, not the other way round.\n\nConsequences to build to:\n  - Params\
-      \ gains humidityPct and pressurePa, wired through to c and roo, and thence to\
-      \ K in\n    SPL = K + 10log10(eta0) where K = 10log10(roo*c/(2*pi*p_ref^2)).\n\
-      \  - Every golden fixture moves unless the toggle is ON, so the fixtures must\
-      \ state which mode\n    produced them.\n  - QO8's parity suite runs with the\
-      \ toggle ON, so a green parity run still means what it says.\n    Comparing\
-      \ WinISD against openisd-with-real-air-properties would report a permanent ~0.07\
-      \ dB\n    divergence at 30 C and teach everyone to ignore the suite.\n  - The\
-      \ option is per project, since T/p/phi are per project in the .wpr [Box] section.\n\
-      \  - Note the unit mismatch: WinISD stores phi as a FRACTION (0.3), openisd's\
-      \ humidityPct is a\n    percentage. One conversion boundary, at the .wpr reader/writer.\n\
-      \  - Wording: \"X\" should name what is ignored, e.g. \"Ignore humidity and\
-      \ air pressure (as WinISD\n    does)\". The tooltip should say what it costs:\
-      \ SPL differs by about 0.07 dB at 30 C."
+    text: |-
+      UI should have an option something like "Ignore X as per WinISD", default OFF.
+
+      So openisd USES humidity and pressure by default — the physically correct behaviour — and the
+      toggle opts INTO WinISD's behaviour of ignoring them. openisd is correct out of the box; the
+      compatibility mode is the deliberate choice, not the other way round.
+
+      Consequences to build to:
+        - Params gains humidityPct and pressurePa, wired through to c and roo, and thence to K in
+          SPL = K + 10log10(eta0) where K = 10log10(roo*c/(2*pi*p_ref^2)).
+        - Every golden fixture moves unless the toggle is ON, so the fixtures must state which mode
+          produced them.
+        - QO8's parity suite runs with the toggle ON, so a green parity run still means what it says.
+          Comparing WinISD against openisd-with-real-air-properties would report a permanent ~0.07 dB
+          divergence at 30 C and teach everyone to ignore the suite.
+        - The option is per project, since T/p/phi are per project in the .wpr [Box] section.
+        - Note the unit mismatch: WinISD stores phi as a FRACTION (0.3), openisd's humidityPct is a
+          percentage. One conversion boundary, at the .wpr reader/writer.
+        - Wording: "X" should name what is ignored, e.g. "Ignore humidity and air pressure (as WinISD
+          does)". The tooltip should say what it costs: SPL differs by about 0.07 dB at 30 C.
 - id: QO8
-  title: Side-by-side WinISD vs openisd validation suite, with mechanically regenerable
-    golden fixtures
+  title: Side-by-side WinISD vs openisd validation suite, with mechanically regenerable golden fixtures
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "GOAL. A repeatable side-by-side validation of openisd against WinISD itself:\
-      \ same inputs into\nboth, compare the CHARTS and the FIELD CALCULATIONS, and\
-      \ fail on divergence. Today parity is\nasserted by hand-checked spot values;\
-      \ nothing mechanically proves openisd still matches.\n\nSPECIFIC SCENARIOS THAT\
-      \ MUST BE IN THE SET.\n  - Humidity wiring. Vary RH with T and p fixed, read\
-      \ WinISD's derived sound velocity and air\n    density off the Advanced pane,\
-      \ and prove RH moves them. This is the scenario that settles\n    QO7 empirically\
-      \ rather than by back-solve. Then run the same inputs through openisd and\n\
-      \    confirm identical output.\n  - Temperature wiring. T = 293.15 -> 303.15\
-      \ K, RH 30%, p 101325. Derived c should read\n    ~349.51 m/s and rho ~1.16133\
-      \ if c is derived rather than fixed.\n  - Pressure wiring. Vary p alone; confirm\
-      \ rho moves and c does not.\n  - Plus a spread of ordinary alignments across\
-      \ box types (sealed, vented, bandpass, PR) so\n    the chart comparison is not\
-      \ only environmental edge cases.\n\nFIXTURES ARE PARAMETERISED BY VALUES, NOT\
-      \ BY A DRIVER. Encode each scenario as its Thiele-\nSmall figures, electrical\
-      \ parameters and environment settings directly. Do NOT name a driver\nfrom the\
-      \ database: driver records are regenerated by the scraper pipeline and their\
-      \ values\nchange over time, so a fixture that says \"Dayton RS180-8\" silently\
-      \ re-baselines itself. A\nfixture that says Fs=37.2, Qts=0.38, Vas=23.1, Re=6.4,\
-      \ ... does not.\n\nEXTRACTION IS AUTOMATED, NOT MANUAL. Use the win32 harness\
-      \ already built in winisd_research:\n  winisd_research/lib/control.py    UI\
-      \ automation\n  winisd_research/lib/probes.py     reading values back out\n\
-      \  winisd_research/lib/wdr.py        .wdr handling\n  winisd_research/overnight_runner.py,\
-      \ runs/, screenshots/   the existing run scaffolding\n  winisd_research/vm/,\
-      \ vm_guest_assets/winisd_bin           the Windows VM WinISD runs in\nThe open\
-      \ technical problem: getting CURVES out as text rather than pixels. Reading\
-      \ a chart\nfrom a screenshot is not acceptable as a golden. Establish whether\
-      \ WinISD can export curve\ndata, or whether the harness must read the plotted\
-      \ series out of the control, and write down\nwhat was found either way.\n\n\
-      DELIVERABLES.\n  1. A scenario definition file a script can consume mechanically\
-      \ \u2014 one entry per scenario,\n     all TS/electrical/environment values\
-      \ explicit.\n  2. A generator that drives WinISD from that file and writes the\
-      \ goldens as text.\n  3. The goldens themselves, committed as test fixtures.\n\
-      \  4. A comparison test that runs openisd over the same scenario file and diffs\
-      \ against the\n     goldens, with a stated numeric tolerance and the reason\
-      \ for that tolerance.\n  5. A README beside the fixtures stating: exactly how\
-      \ they were created, which WinISD build\n     and which harness commit produced\
-      \ them, what every parameter means, and the exact command\n     to refresh them.\
-      \ A golden nobody can regenerate becomes unfalsifiable the first time it\n \
-      \    disagrees with reality.\n\nTHE EXTRACT IS ONE-OFF; THE REGENERATION MUST\
-      \ NOT BE. The point of encoding the scenarios\nmechanically is that a refresh\
-      \ is a command, not a repeat of the manual investigation."
+    text: |-
+      GOAL. A repeatable side-by-side validation of openisd against WinISD itself: same inputs into
+      both, compare the CHARTS and the FIELD CALCULATIONS, and fail on divergence. Today parity is
+      asserted by hand-checked spot values; nothing mechanically proves openisd still matches.
+
+      SPECIFIC SCENARIOS THAT MUST BE IN THE SET.
+        - Humidity wiring. Vary RH with T and p fixed, read WinISD's derived sound velocity and air
+          density off the Advanced pane, and prove RH moves them. This is the scenario that settles
+          QO7 empirically rather than by back-solve. Then run the same inputs through openisd and
+          confirm identical output.
+        - Temperature wiring. T = 293.15 -> 303.15 K, RH 30%, p 101325. Derived c should read
+          ~349.51 m/s and rho ~1.16133 if c is derived rather than fixed.
+        - Pressure wiring. Vary p alone; confirm rho moves and c does not.
+        - Plus a spread of ordinary alignments across box types (sealed, vented, bandpass, PR) so
+          the chart comparison is not only environmental edge cases.
+
+      FIXTURES ARE PARAMETERISED BY VALUES, NOT BY A DRIVER. Encode each scenario as its Thiele-
+      Small figures, electrical parameters and environment settings directly. Do NOT name a driver
+      from the database: driver records are regenerated by the scraper pipeline and their values
+      change over time, so a fixture that says "Dayton RS180-8" silently re-baselines itself. A
+      fixture that says Fs=37.2, Qts=0.38, Vas=23.1, Re=6.4, ... does not.
+
+      EXTRACTION IS AUTOMATED, NOT MANUAL. Use the win32 harness already built in winisd_research:
+        winisd_research/lib/control.py    UI automation
+        winisd_research/lib/probes.py     reading values back out
+        winisd_research/lib/wdr.py        .wdr handling
+        winisd_research/overnight_runner.py, runs/, screenshots/   the existing run scaffolding
+        winisd_research/vm/, vm_guest_assets/winisd_bin           the Windows VM WinISD runs in
+      The open technical problem: getting CURVES out as text rather than pixels. Reading a chart
+      from a screenshot is not acceptable as a golden. Establish whether WinISD can export curve
+      data, or whether the harness must read the plotted series out of the control, and write down
+      what was found either way.
+
+      DELIVERABLES.
+        1. A scenario definition file a script can consume mechanically — one entry per scenario,
+           all TS/electrical/environment values explicit.
+        2. A generator that drives WinISD from that file and writes the goldens as text.
+        3. The goldens themselves, committed as test fixtures.
+        4. A comparison test that runs openisd over the same scenario file and diffs against the
+           goldens, with a stated numeric tolerance and the reason for that tolerance.
+        5. A README beside the fixtures stating: exactly how they were created, which WinISD build
+           and which harness commit produced them, what every parameter means, and the exact command
+           to refresh them. A golden nobody can regenerate becomes unfalsifiable the first time it
+           disagrees with reality.
+
+      THE EXTRACT IS ONE-OFF; THE REGENERATION MUST NOT BE. The point of encoding the scenarios
+      mechanically is that a refresh is a command, not a repeat of the manual investigation.
 - id: QO9
   title: Where do the orphaned rules live now that .claude/context/ is deleted?
   status: decided
@@ -449,989 +470,1133 @@ questions:
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Raised 2026-08-05 on completing the QP4 deletion. Eight .claude/context/*.md\
-      \ documents are now\ndeleted. Doc-level references were repointed where an alternative\
-      \ existed, but three bodies of\nrule content have NO home anywhere in the repo:\n\
-      \n1. ui-rules.md \u2014 13 Vue design rules. ARCHITECTURE.md UI-1..UI-4 covers\
-      \ FOUR of them. The nine\n   with no home include Escape-to-close, no-stretch-fit\
-      \ fields, the alert-colour reserve and the\n   unique list-key rule. SIX SOURCE\
-      \ FILES still cite ui-rules.md by name as the authority for a\n   rule that\
-      \ no longer exists anywhere:\n     packages/ui/src/composables/useEscToClose.ts:6\n\
-      \     packages/ui/src/shells/classic/ClassicShell.vue:436 and :474\n     packages/ui/src/style.css:83\n\
-      \     packages/ui/test/drivers-bundle.test.ts:9\n     packages/ui/test/modal-escape.browser.spec.ts:3\n\
-      \n2. js-patterns.md \u2014 the five OPERATIVE rules of the Result contract:\
-      \ return a degraded value\n   rather than null where data is partially usable;\
-      \ the caller must always check errors and must\n   annotate a deliberate discard;\
-      \ wrap every third-party thrower; per-point null plus a warn for\n   partial\
-      \ failure; pure math in packages/engine/src/ stays plain-return. ENGINE_HARDENING.md\n\
-      \   preserves the SHAPE but none of the rules, and not the {level, field, message}\
-      \ breakdown.\n   Cited by name at packages/engine/src/params.ts:18 and packages/ui/src/utils/series.ts:244.\n\
-      \n3. engine-rules.md \u2014 \"never change calculation logic, physical constants,\
-      \ display precision or\n   result-affecting defaults without explicit human\
-      \ permission\", and \"micka.de/REW/WinISD\n   cross-checks are reference-only;\
-      \ a discrepancy never authorises a fix\". ARCHITECTURE.md AD-4\n   bans rewriting\
-      \ validated physics but carries NEITHER clause.\n\nItem 3 is urgent: that permission\
-      \ clause vanished at exactly the moment work started on\nconsolidating all calculation\
-      \ into JS (QP7) and on the precision library (QP10). It is the rule\nthat stops\
-      \ an agent quietly changing a constant or a formula.\n\nOptions: (a) fold the\
-      \ surviving rules into openisd/AGENTS.md, which is auto-loaded; (b) recreate\n\
-      them as path-scoped rule files under the workspace .claude/rules/ with `paths:`\
-      \ frontmatter so\nthey load only when the matching files are touched; (c) restore\
-      \ the three documents from git and\naccept .claude/context/ as a permitted exception.\
-      \ Whichever is chosen, the six source comments\nciting ui-rules.md and the two\
-      \ citing js-patterns.md need repointing."
+    text: |-
+      Raised 2026-08-05 on completing the QP4 deletion. Eight .claude/context/*.md documents are now
+      deleted. Doc-level references were repointed where an alternative existed, but three bodies of
+      rule content have NO home anywhere in the repo:
+
+      1. ui-rules.md — 13 Vue design rules. ARCHITECTURE.md UI-1..UI-4 covers FOUR of them. The nine
+         with no home include Escape-to-close, no-stretch-fit fields, the alert-colour reserve and the
+         unique list-key rule. SIX SOURCE FILES still cite ui-rules.md by name as the authority for a
+         rule that no longer exists anywhere:
+           packages/ui/src/composables/useEscToClose.ts:6
+           packages/ui/src/shells/classic/ClassicShell.vue:436 and :474
+           packages/ui/src/style.css:83
+           packages/ui/test/drivers-bundle.test.ts:9
+           packages/ui/test/modal-escape.browser.spec.ts:3
+
+      2. js-patterns.md — the five OPERATIVE rules of the Result contract: return a degraded value
+         rather than null where data is partially usable; the caller must always check errors and must
+         annotate a deliberate discard; wrap every third-party thrower; per-point null plus a warn for
+         partial failure; pure math in packages/engine/src/ stays plain-return. ENGINE_HARDENING.md
+         preserves the SHAPE but none of the rules, and not the {level, field, message} breakdown.
+         Cited by name at packages/engine/src/params.ts:18 and packages/ui/src/utils/series.ts:244.
+
+      3. engine-rules.md — "never change calculation logic, physical constants, display precision or
+         result-affecting defaults without explicit human permission", and "micka.de/REW/WinISD
+         cross-checks are reference-only; a discrepancy never authorises a fix". ARCHITECTURE.md AD-4
+         bans rewriting validated physics but carries NEITHER clause.
+
+      Item 3 is urgent: that permission clause vanished at exactly the moment work started on
+      consolidating all calculation into JS (QP7) and on the precision library (QP10). It is the rule
+      that stops an agent quietly changing a constant or a formula.
+
+      Options: (a) fold the surviving rules into openisd/AGENTS.md, which is auto-loaded; (b) recreate
+      them as path-scoped rule files under the workspace .claude/rules/ with `paths:` frontmatter so
+      they load only when the matching files are touched; (c) restore the three documents from git and
+      accept .claude/context/ as a permitted exception. Whichever is chosen, the six source comments
+      citing ui-rules.md and the two citing js-patterns.md need repointing.
   answer:
     at: '2026-08-05'
-    text: "\"restore the files but consolidate into sensible structure\"\n\"do use\
-      \ front matter to avoid unnecessary loading\"\n\nImplemented. Content recovered\
-      \ from git, none of it rewritten from memory.\n`.claude/context/` stays deleted.\n\
-      \nPath-scoped rule files are the DEFAULT placement \u2014 workspace `.claude/rules/`,\n\
-      each declaring `paths:` frontmatter so it loads only when Claude reads a file\
-      \ it\ngoverns:\n\n  openisd-result-contract.md  packages/{engine,winisd}/src,\
-      \ packages/ui/src/utils\n  openisd-engine-source.md    packages/engine/src\n\
-      \  openisd-engine-tests.md     packages/{engine,winisd}/test\n  openisd-ui-design.md\
-      \        packages/ui/src\n  openisd-ui-tests.md         packages/ui/src, packages/ui/test\n\
-      \nThe always-loaded slot took ONE rule, argued individually: the calculation-logic\n\
-      permission gate, now `AGENTS.md` \xA7\"Calculation logic \u2014 permission gate\"\
-      . It has\nto be known before deciding to make the change; scoped to `constants.ts`\
-      \ it\nwould arrive after that decision.\n\nARCHITECTURE.md \xA7UI-1..UI-4 keeps\
-      \ the four UI rules it already carries with full\nrationale; openisd-ui-design.md\
-      \ holds the other nine and points at it. One home\neach.\n\nscraping-rules.md\
-      \ is fully redundant \u2014 all 11 rules live in\nwinisd_tools/scrapers/SCRAPING.md\
-      \ L773-931. testing-python.md and\ndriver-data-rules.md have 11 genuinely unowned\
-      \ rules; raised as a separate\nquestion rather than written into a sibling repo."
+    text: |-
+      "restore the files but consolidate into sensible structure"
+      "do use front matter to avoid unnecessary loading"
+
+      Implemented. Content recovered from git, none of it rewritten from memory.
+      `.claude/context/` stays deleted.
+
+      Path-scoped rule files are the DEFAULT placement — workspace `.claude/rules/`,
+      each declaring `paths:` frontmatter so it loads only when Claude reads a file it
+      governs:
+
+        openisd-result-contract.md  packages/{engine,winisd}/src, packages/ui/src/utils
+        openisd-engine-source.md    packages/engine/src
+        openisd-engine-tests.md     packages/{engine,winisd}/test
+        openisd-ui-design.md        packages/ui/src
+        openisd-ui-tests.md         packages/ui/src, packages/ui/test
+
+      The always-loaded slot took ONE rule, argued individually: the calculation-logic
+      permission gate, now `AGENTS.md` §"Calculation logic — permission gate". It has
+      to be known before deciding to make the change; scoped to `constants.ts` it
+      would arrive after that decision.
+
+      ARCHITECTURE.md §UI-1..UI-4 keeps the four UI rules it already carries with full
+      rationale; openisd-ui-design.md holds the other nine and points at it. One home
+      each.
+
+      scraping-rules.md is fully redundant — all 11 rules live in
+      winisd_tools/scrapers/SCRAPING.md L773-931. testing-python.md and
+      driver-data-rules.md have 11 genuinely unowned rules; raised as a separate
+      question rather than written into a sibling repo.
 - id: QO10
-  title: "Browser suite runs green with --workers=1; the default 4-worker run overloads this WSL2 box and kills the dev server, which reads as false test failures. See the 2026-08-05 note: 188 passed / 0 failed at --workers=1."
+  title: 'Browser suite runs green with --workers=1; the default 4-worker run overloads this WSL2 box
+    and kills the dev server, which reads as false test failures. See the 2026-08-05 note: 188 passed
+    / 0 failed at --workers=1.'
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Found 2026-08-05 while verifying QO3.\n\nSYMPTOM: browserType.launch fails\
-      \ with \"Target page, context or browser has been closed\";\nchromium is SIGKILLed\
-      \ at launch. Failures cluster at the START of a run and then it settles.\n\n\
-      NOT worker count and NOT the app: app.browser.spec.ts passes 10/10 with --workers=1,\
-      \ and the\nsame scope-chip file run twice with identical args gave 8-fail/1-pass\
-      \ then 5-fail/4-pass.\nA full run was 9 passed of 165. Memory is not tight (16\
-      \ GB available).\n\nFOUND ALONGSIDE IT: a vite dev server on port 4321 with\
-      \ --strictPort, from openisd's own\nnode_modules, started during the test runs.\
-      \ Nothing in this repo references 4321 \u2014 no source,\nscript or config \u2014\
-      \ and AGENTS.md \"Port assignments\" mandates 4000-4299 only. It is almost\n\
-      certainly another concurrent session working in openisd (which also explains\
-      \ finding the QO3\nwork already built in an uncommitted tree). NOT killed: it\
-      \ is not mine to kill.\n\nQUESTION FOR THE HUMAN: is another session/agent running\
-      \ in openisd right now? If so the\nbrowser suite cannot be trusted until it\
-      \ stops, and no \"all gates green\" claim can be made.\nIf not, the 4321 server\
-      \ is an orphan to hunt down and the SIGKILL needs its own diagnosis."
+    text: |-
+      Found 2026-08-05 while verifying QO3.
+
+      SYMPTOM: browserType.launch fails with "Target page, context or browser has been closed";
+      chromium is SIGKILLed at launch. Failures cluster at the START of a run and then it settles.
+
+      NOT worker count and NOT the app: app.browser.spec.ts passes 10/10 with --workers=1, and the
+      same scope-chip file run twice with identical args gave 8-fail/1-pass then 5-fail/4-pass.
+      A full run was 9 passed of 165. Memory is not tight (16 GB available).
+
+      FOUND ALONGSIDE IT: a vite dev server on port 4321 with --strictPort, from openisd's own
+      node_modules, started during the test runs. Nothing in this repo references 4321 — no source,
+      script or config — and AGENTS.md "Port assignments" mandates 4000-4299 only. It is almost
+      certainly another concurrent session working in openisd (which also explains finding the QO3
+      work already built in an uncommitted tree). NOT killed: it is not mine to kill.
+
+      QUESTION FOR THE HUMAN: is another session/agent running in openisd right now? If so the
+      browser suite cannot be trusted until it stops, and no "all gates green" claim can be made.
+      If not, the 4321 server is an orphan to hunt down and the SIGKILL needs its own diagnosis.
   - at: '2026-08-05'
-    text: "CAUSE FOUND, and the suite is now runnable to green: it is WORKER CONCURRENCY,\
-      \ not chromium\nalone. Measured today, same tree, same box, back to back:\n\n\
-      \  npx playwright test                (4 workers, the default)  ->  84 failed\
-      \ / 100 passed,\n      693 x ERR_CONNECTION_REFUSED and WebSocket resets \u2014\
-      \ the vite dev server on 4100 DIED\n      partway through and every later test\
-      \ hit a dead port.\n  npx playwright test --workers=1                      \
-      \        ->  188 passed, 0 failed,\n      exit 0, ZERO connection failures.\
-      \ 9.2 min.\n\nFour chromium instances plus the dev server is more than this\
-      \ WSL2 box survives \u2014 dmesg\nalready shows `chrome-headless: potentially\
-      \ unexpected fatal signal 5` (trap int3), and a\nstandalone launch fails roughly\
-      \ 2 tries in 3. Memory is NOT the constraint (16 GB free\nthroughout, no OOM\
-      \ kill in dmesg).\n\nSo `--workers=1` is the working invocation here. Two things\
-      \ follow, neither done yet because\nthey are the human's call:\n  (a) should\
-      \ playwright.config.js pin `workers: 1` (honest for this box, slower for a CI\
-      \ that\n      could take more), or should it stay default with the flag passed\
-      \ by hand?\n  (b) a run that dies mid-way must not read as 84 product failures.\
-      \ The tell is unambiguous \u2014\n      hundreds of ERR_CONNECTION_REFUSED \u2014\
-      \ so the reporter could fail the RUN with \"the dev\n      server died\" instead\
-      \ of blaming the tests.\n\nAlso fixed today, both of which were making the suite\
-      \ look worse than it was:\n  - `driver-selection.browser.spec.ts:54` did a THIRD\
-      \ `page.goto('/')` on top of the two in\n    its beforeEach; the extra navigation\
-      \ cancelled the previous load's `icon.svg` and the\n    fixture correctly reported\
-      \ an aborted same-origin request. The goto was redundant \u2014\n    deleted,\
-      \ not the guard.\n  - editing source WHILE the suite runs makes vite hot-reload\
-      \ under the tests and shows up as\n    \"same-origin network failures\" naming\
-      \ the edited files with `?t=` HMR stamps. Two runs\n    were discarded for this.\
-      \ It is not flake and it is not the code; it is the tree moving."
+    text: |-
+      CAUSE FOUND, and the suite is now runnable to green: it is WORKER CONCURRENCY, not chromium
+      alone. Measured today, same tree, same box, back to back:
+
+        npx playwright test                (4 workers, the default)  ->  84 failed / 100 passed,
+            693 x ERR_CONNECTION_REFUSED and WebSocket resets — the vite dev server on 4100 DIED
+            partway through and every later test hit a dead port.
+        npx playwright test --workers=1                              ->  188 passed, 0 failed,
+            exit 0, ZERO connection failures. 9.2 min.
+
+      Four chromium instances plus the dev server is more than this WSL2 box survives — dmesg
+      already shows `chrome-headless: potentially unexpected fatal signal 5` (trap int3), and a
+      standalone launch fails roughly 2 tries in 3. Memory is NOT the constraint (16 GB free
+      throughout, no OOM kill in dmesg).
+
+      So `--workers=1` is the working invocation here. Two things follow, neither done yet because
+      they are the human's call:
+        (a) should playwright.config.js pin `workers: 1` (honest for this box, slower for a CI that
+            could take more), or should it stay default with the flag passed by hand?
+        (b) a run that dies mid-way must not read as 84 product failures. The tell is unambiguous —
+            hundreds of ERR_CONNECTION_REFUSED — so the reporter could fail the RUN with "the dev
+            server died" instead of blaming the tests.
+
+      Also fixed today, both of which were making the suite look worse than it was:
+        - `driver-selection.browser.spec.ts:54` did a THIRD `page.goto('/')` on top of the two in
+          its beforeEach; the extra navigation cancelled the previous load's `icon.svg` and the
+          fixture correctly reported an aborted same-origin request. The goto was redundant —
+          deleted, not the guard.
+        - editing source WHILE the suite runs makes vite hot-reload under the tests and shows up as
+          "same-origin network failures" naming the edited files with `?t=` HMR stamps. Two runs
+          were discarded for this. It is not flake and it is not the code; it is the tree moving.
   - at: '2026-08-10'
-    text: "Verified: the browser suite runs. Ran `npx playwright test packages/ui/test/ui/box-loss-mode.browser.spec.ts` -- chromium launched and 2/2 passed. The original title ('unrunnable-to-green locally / chromium SIGKILLed at launch') was stale and wrong; it was already superseded by the 2026-08-05 CAUSE-FOUND note (worker concurrency, --workers=1 is green). Title corrected today. Note: an assistant work-summary had repeated the stale title as a current fact -- that was inaccurate."
+    text: 'Verified: the browser suite runs. Ran `npx playwright test packages/ui/test/ui/box-loss-mode.browser.spec.ts`
+      -- chromium launched and 2/2 passed. The original title (''unrunnable-to-green locally / chromium
+      SIGKILLed at launch'') was stale and wrong; it was already superseded by the 2026-08-05 CAUSE-FOUND
+      note (worker concurrency, --workers=1 is green). Title corrected today. Note: an assistant work-summary
+      had repeated the stale title as a current fact -- that was inaccurate.'
 - id: QO11
-  title: "Every field must be editable so a CALCULATED value can be overridden \u2014\
-    \ 17 panel readouts are read-only spans"
+  title: Every field must be editable so a CALCULATED value can be overridden — 17 panel readouts are
+    read-only spans
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "RULED 2026-08-05 by the human: \"fields like mms arent editable - all fields\
-      \ are meant to he\neditable even calcs so that can be overrideed\".\n\nDIAGNOSIS\
-      \ (measured, not assumed). Mms IS editable where the human probably was not\
-      \ looking:\nDriverEditorModal.vue:298 renders it as a NumInput wired to setNum\
-      \ -> Driver.enter(), and\nDriver.enter() (packages/winisd/src/driver.ts:122)\
-      \ accepts ANY field id \u2014 it writes #inputs\nand cell() then reports state\
-      \ 'E'. So the E/C/N model ALREADY supports overriding a\ncalculated field; nothing\
-      \ in the model or in NumInput blocks it (NumInput has no readonly/\ndisabled,\
-      \ and Mms passes no `field` prop so no registry bounds apply).\n\nThe read-only\
-      \ surface is the PANELS. 17 readouts render as <span class=\"pr-roval\"> (or\
-      \ a\nplain summary <span class=\"ds\">) instead of an input:\n  DriverPanel.vue\
-      \ 4 \xB7 DriverWhatIfPanel.vue 3 \xB7 PRPanel.vue 8 \xB7 PRWhatIfPanel.vue 1\
-      \ \xB7 BoxPanel.vue 1\nFields: Mms x3, EBP x2, Cms x2, Bl x2, Vas, Rms, Qms,\
-      \ Fs, Tuning Fp, Total Mms, Added mass.\n\nTWO KINDS ARE MIXED IN THAT 17, and\
-      \ they are not the same decision:\n(a) DRIVER PARAMETERS (Mms, Cms, Bl, Rms,\
-      \ Qms, Fs, Vas, EBP) \u2014 these are driver fields, the\n    ruling applies\
-      \ directly, convert to NumInput + setNum so entering flips C -> E.\n(b) SYSTEM\
-      \ OUTPUTS (Tuning Fp, Total Mms) \u2014 products of the BOX + driver, not driver\
-      \ fields.\n    There is no #inputs slot to override and no defined meaning for\
-      \ pinning them. Needs the\n    human's word before being forced into the same\
-      \ shape.\n\nNOT STARTED \u2014 blocked, see the note below."
+    text: |-
+      RULED 2026-08-05 by the human: "fields like mms arent editable - all fields are meant to he
+      editable even calcs so that can be overrideed".
+
+      DIAGNOSIS (measured, not assumed). Mms IS editable where the human probably was not looking:
+      DriverEditorModal.vue:298 renders it as a NumInput wired to setNum -> Driver.enter(), and
+      Driver.enter() (packages/winisd/src/driver.ts:122) accepts ANY field id — it writes #inputs
+      and cell() then reports state 'E'. So the E/C/N model ALREADY supports overriding a
+      calculated field; nothing in the model or in NumInput blocks it (NumInput has no readonly/
+      disabled, and Mms passes no `field` prop so no registry bounds apply).
+
+      The read-only surface is the PANELS. 17 readouts render as <span class="pr-roval"> (or a
+      plain summary <span class="ds">) instead of an input:
+        DriverPanel.vue 4 · DriverWhatIfPanel.vue 3 · PRPanel.vue 8 · PRWhatIfPanel.vue 1 · BoxPanel.vue 1
+      Fields: Mms x3, EBP x2, Cms x2, Bl x2, Vas, Rms, Qms, Fs, Tuning Fp, Total Mms, Added mass.
+
+      TWO KINDS ARE MIXED IN THAT 17, and they are not the same decision:
+      (a) DRIVER PARAMETERS (Mms, Cms, Bl, Rms, Qms, Fs, Vas, EBP) — these are driver fields, the
+          ruling applies directly, convert to NumInput + setNum so entering flips C -> E.
+      (b) SYSTEM OUTPUTS (Tuning Fp, Total Mms) — products of the BOX + driver, not driver fields.
+          There is no #inputs slot to override and no defined meaning for pinning them. Needs the
+          human's word before being forced into the same shape.
+
+      NOT STARTED — blocked, see the note below.
   - at: '2026-08-05'
-    text: "BLOCKED ON A CONCURRENT SESSION, not on the work. Another Claude session\
-      \ (scratchpad id\nb8859d17-8a54-4351-8f6f-4d4f7337c8f4) is live in openisd right\
-      \ now: its vite is on 4321 and\nits untracked probe packages/ui/test/zz-probe.browser.spec.ts\
-      \ \u2014 written 2026-08-05 04:33 \u2014\ndrives EXACTLY this surface (clicks\
-      \ .edit-btn, waits for .de-modal, screenshots the driver\npanel and editor).\
-      \ Editing DriverPanel.vue / DriverEditorModal.vue while that session holds\n\
-      them risks clobbering its in-flight work. The same probe file also fails `npm\
-      \ run lint`\n(5 x playwright/no-wait-for-timeout), which is what blocks `npm\
-      \ run build` and therefore a\nfresh bundle on port 4000."
+    text: |-
+      BLOCKED ON A CONCURRENT SESSION, not on the work. Another Claude session (scratchpad id
+      b8859d17-8a54-4351-8f6f-4d4f7337c8f4) is live in openisd right now: its vite is on 4321 and
+      its untracked probe packages/ui/test/zz-probe.browser.spec.ts — written 2026-08-05 04:33 —
+      drives EXACTLY this surface (clicks .edit-btn, waits for .de-modal, screenshots the driver
+      panel and editor). Editing DriverPanel.vue / DriverEditorModal.vue while that session holds
+      them risks clobbering its in-flight work. The same probe file also fails `npm run lint`
+      (5 x playwright/no-wait-for-timeout), which is what blocks `npm run build` and therefore a
+      fresh bundle on port 4000.
   - at: '2026-08-05'
-    text: "2026-08-05 human, four more requirements \u2014 all on the What-If NON-MODAL\
-      \ panel\n(DriverWhatIfPanel.vue), verbatim:\n\n  \"ON THE WHATIF NON-modal these\
-      \ should be editable 0.73 / Mms 0.90 g / EBP 19.0 and input\n   field should\
-      \ be narrower\"\n  \"on the same non-modal if one of the three Q is blank then\
-      \ it autocalculates as the others\n   change - use the same colourisation and\
-      \ red border\"\n  \"the same non-modal needs the box vol on it\"\n\nThe first\
-      \ is exactly the defect diagnosed above: this panel is one of the five holding\n\
-      pr-roval read-only spans. The 0.73 is Qts, 0.90 g is Mms, 19.0 is EBP.\n\nThe\
-      \ Q-trio requirement is NOT merely styling. The editor already models it: qIncomplete\
-      \ in\nDriverEditorModal.vue flags all three together while fewer than two are\
-      \ usable, because any\ntwo solve the third. The panel must use the same rule\
-      \ and the same E/C/N colourisation and\nred border, so a field the app filled\
-      \ in is visibly Calculated and not mistaken for entered."
+    text: |-
+      2026-08-05 human, four more requirements — all on the What-If NON-MODAL panel
+      (DriverWhatIfPanel.vue), verbatim:
+
+        "ON THE WHATIF NON-modal these should be editable 0.73 / Mms 0.90 g / EBP 19.0 and input
+         field should be narrower"
+        "on the same non-modal if one of the three Q is blank then it autocalculates as the others
+         change - use the same colourisation and red border"
+        "the same non-modal needs the box vol on it"
+
+      The first is exactly the defect diagnosed above: this panel is one of the five holding
+      pr-roval read-only spans. The 0.73 is Qts, 0.90 g is Mms, 19.0 is EBP.
+
+      The Q-trio requirement is NOT merely styling. The editor already models it: qIncomplete in
+      DriverEditorModal.vue flags all three together while fewer than two are usable, because any
+      two solve the third. The panel must use the same rule and the same E/C/N colourisation and
+      red border, so a field the app filled in is visibly Calculated and not mistaken for entered.
   - at: '2026-08-05'
-    text: "IMPLEMENTED (agent, 2026-08-05) \u2014 with two corrections to the diagnosis\
-      \ above, both measured.\n\nCORRECTION 1 \u2014 THE PANEL. The human's screen\
-      \ is OgTune.vue (shells/original/), the Original\nskin's docked \"Tune \u2014\
-      \ What-if\", NOT DriverWhatIfPanel.vue. Evidence: store.ts:93 selects skin\n\
-      'original' on every port except 4100, so the app on 4000 is Original; and the\
-      \ human's exact\ndigits only render there \u2014 OgTune prints Mms at 2 dp (\"\
-      0.90 g\", template line 113) and EBP at\n1 dp (\"19.0\", line 114), while DriverWhatIfPanel\
-      \ printed Mms 1 dp (\"0.9\") and EBP 0 dp (\"19\").\nBOTH panels were fixed\
-      \ anyway: they hold the identical defect and the ledger named the other.\n\n\
-      CORRECTION 2 \u2014 WHICH FIELDS. Qts was ALREADY editable on both panels (OgTune\
-      \ MAIN list,\nDriverWhatIfPanel row 118). The three read-only pr-roval/tune-roval\
-      \ spans were Bl, Mms and\nEBP \u2014 so the human's unnamed \"0.73\" is Bl,\
-      \ not Qts.\n\nWHAT WAS DONE\n- New composable composables/useDriverCells.ts\
-      \ holds the ONE copy of the E/C/N class mapping\n  (CellClass enum + a TOTAL\
-      \ Record<CellState,CellClass>) and the Q-group rule. The editor's\n  local cellClass/qIncomplete\
-      \ were DELETED and now read it, so a panel cannot disagree with\n  the dialog\
-      \ about the same driver.\n- store.ts gains driverCell(field) \u2014 value +\
-      \ E/C/N from the EFFECTIVE model (what-if overlay\n  else committed). This is\
-      \ the actual fix behind the Q-trio requirement: both panels read\n  raw(), which\
-      \ carries ENTERED fields only, so a solved Q rendered blank/NaN.\n- Bl and Mms\
-      \ are now NumInput/typed fields on both panels; entering marks E and overrides,\n\
-      \  clearing calls clearDriverField and returns them to C.\n- Box volume added\
-      \ to both panels, bound to the SAME state.P.Vb the Box panel uses. OgTune\n\
-      \  snapshots Vb on open and restores it on Cancel, because the driver what-if\
-      \ overlay does not\n  cover box state.\n- Fields narrowed to 78px on both (OgTune\
-      \ was width:100%, i.e. a stretch-fit field).\n- style.css now carries ONE definition\
-      \ of .st-e/.st-c/.st-n and .de-input-mandatory/-empty,\n  token-based; NumInput's\
-      \ hardcoded #d9381e replaced with var(--bad).\n\nEBP IS NOT DONE \u2014 see\
-      \ the new question. It is not a driver field: the ADT does not derive it\n(solveConsistencyGroup\
-      \ produces no EBP) and has no slot to override, so an \"editable\" EBP\nwould\
-      \ either be an inert box nothing reads, or a backwards solve whose target is\
-      \ ambiguous.\n\nQO11.5 \u2014 THE DIAGNOSIS IN THE ITEM IS WRONG, measured.\
-      \ NumInput ALREADY flagged an\nout-of-range value on the keystroke: invalid\
-      \ (NumInput.vue) reads `display`, which the typing\npath sets to the raw text,\
-      \ and original-skin.browser.spec.ts:398 already asserted it. The REAL\ndefect:\
-      \ <input type=number> reports value === '' for BOTH an emptied field AND an\
-      \ unparseable\npartial entry, and onInput treated the second as a clear \u2014\
-      \ so the FIRST keystroke of \"-5\"\nemitted null into state.P.Vb (typed number)\
-      \ and blanked the charts. Fixed by gating the clear\non validity.badInput (verified\
-      \ in Chromium: \"-\" => value '', badInput true; a real clear =>\nvalue '',\
-      \ badInput false), carrying a badEntry flag so the field is red on that same\n\
-      keystroke, and resyncing the DOM on blur. Full-precision emit and caret behaviour\
-      \ untouched \u2014\nboth proven by tests."
+    text: |-
+      IMPLEMENTED (agent, 2026-08-05) — with two corrections to the diagnosis above, both measured.
+
+      CORRECTION 1 — THE PANEL. The human's screen is OgTune.vue (shells/original/), the Original
+      skin's docked "Tune — What-if", NOT DriverWhatIfPanel.vue. Evidence: store.ts:93 selects skin
+      'original' on every port except 4100, so the app on 4000 is Original; and the human's exact
+      digits only render there — OgTune prints Mms at 2 dp ("0.90 g", template line 113) and EBP at
+      1 dp ("19.0", line 114), while DriverWhatIfPanel printed Mms 1 dp ("0.9") and EBP 0 dp ("19").
+      BOTH panels were fixed anyway: they hold the identical defect and the ledger named the other.
+
+      CORRECTION 2 — WHICH FIELDS. Qts was ALREADY editable on both panels (OgTune MAIN list,
+      DriverWhatIfPanel row 118). The three read-only pr-roval/tune-roval spans were Bl, Mms and
+      EBP — so the human's unnamed "0.73" is Bl, not Qts.
+
+      WHAT WAS DONE
+      - New composable composables/useDriverCells.ts holds the ONE copy of the E/C/N class mapping
+        (CellClass enum + a TOTAL Record<CellState,CellClass>) and the Q-group rule. The editor's
+        local cellClass/qIncomplete were DELETED and now read it, so a panel cannot disagree with
+        the dialog about the same driver.
+      - store.ts gains driverCell(field) — value + E/C/N from the EFFECTIVE model (what-if overlay
+        else committed). This is the actual fix behind the Q-trio requirement: both panels read
+        raw(), which carries ENTERED fields only, so a solved Q rendered blank/NaN.
+      - Bl and Mms are now NumInput/typed fields on both panels; entering marks E and overrides,
+        clearing calls clearDriverField and returns them to C.
+      - Box volume added to both panels, bound to the SAME state.P.Vb the Box panel uses. OgTune
+        snapshots Vb on open and restores it on Cancel, because the driver what-if overlay does not
+        cover box state.
+      - Fields narrowed to 78px on both (OgTune was width:100%, i.e. a stretch-fit field).
+      - style.css now carries ONE definition of .st-e/.st-c/.st-n and .de-input-mandatory/-empty,
+        token-based; NumInput's hardcoded #d9381e replaced with var(--bad).
+
+      EBP IS NOT DONE — see the new question. It is not a driver field: the ADT does not derive it
+      (solveConsistencyGroup produces no EBP) and has no slot to override, so an "editable" EBP
+      would either be an inert box nothing reads, or a backwards solve whose target is ambiguous.
+
+      QO11.5 — THE DIAGNOSIS IN THE ITEM IS WRONG, measured. NumInput ALREADY flagged an
+      out-of-range value on the keystroke: invalid (NumInput.vue) reads `display`, which the typing
+      path sets to the raw text, and original-skin.browser.spec.ts:398 already asserted it. The REAL
+      defect: <input type=number> reports value === '' for BOTH an emptied field AND an unparseable
+      partial entry, and onInput treated the second as a clear — so the FIRST keystroke of "-5"
+      emitted null into state.P.Vb (typed number) and blanked the charts. Fixed by gating the clear
+      on validity.badInput (verified in Chromium: "-" => value '', badInput true; a real clear =>
+      value '', badInput false), carrying a badEntry flag so the field is red on that same
+      keystroke, and resyncing the DOM on blur. Full-precision emit and caret behaviour untouched —
+      both proven by tests.
   - at: '2026-08-05'
-    text: "2026-08-05: QO11.1 ticked. Bl and Mms are editable on both OgTune.vue and\
-      \ DriverWhatIfPanel.vue.\nEBP is excluded by the QO20 ruling \"ebp stays readonly\"\
-      \ \u2014 it is not a driver field and typing\none has no defined meaning."
+    text: |-
+      2026-08-05: QO11.1 ticked. Bl and Mms are editable on both OgTune.vue and DriverWhatIfPanel.vue.
+      EBP is excluded by the QO20 ruling "ebp stays readonly" — it is not a driver field and typing
+      one has no defined meaning.
   items:
-  - text: "WhatIf panel: make Qts, Mms and EBP editable \u2014 they are pr-roval read-only\
-      \ spans today"
+  - text: 'WhatIf panel: make Qts, Mms and EBP editable — they are pr-roval read-only spans today'
     done: true
   - text: 'WhatIf panel: narrow the numeric input fields'
     done: true
-  - text: 'WhatIf panel: a blank Q autocalculates from the other two, with the editor''s
-      E/C/N colourisation and red border'
+  - text: 'WhatIf panel: a blank Q autocalculates from the other two, with the editor''s E/C/N colourisation
+      and red border'
     done: true
   - text: 'WhatIf panel: add the box volume field'
     done: true
-  - text: NumInput swallows an invalid value while typing (onInput emits only when
-      valid(si)), so the red border waits for blur
+  - text: NumInput swallows an invalid value while typing (onInput emits only when valid(si)), so the
+      red border waits for blur
     done: true
 - id: QO12
-  title: 'Over-determined driver: entering Mms while Fs/Vas/Sd stay E is accepted
-    silently and poisons Bl/Rms'
+  title: 'Over-determined driver: entering Mms while Fs/Vas/Sd stay E is accepted silently and poisons
+    Bl/Rms'
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "MEASURED live in the running app (vite 4321, Original skin, Demo - Generic\
-      \ 6.5\" Woofer,\nEdit Project's Driver -> Parameters), 2026-08-05:\n\n  before:\
-      \ Fs=37.00 [E]  Cms=1.1956 [C]  Mms=15.48 [C]  BL=7.097 [C]  Rms=0.5140 [C]\n\
-      \  typed Mms = 30 g\n  after:  Fs=37.00 [E]  Cms=1.1956 [C]  Mms=30.00 [E] \
-      \ BL=9.881 [C]  Rms=0.9963 [C]\n\nFs, Cms and Mms are now mutually impossible:\
-      \ 1/((2pi*37)^2 * 1.1956e-3) = 15.48 g, not 30 g.\nNo error, no warning, no\
-      \ DQ mark \u2014 and BL/Rms were recomputed FROM the impossible Mms, so the\n\
-      charts moved. This is the direct consequence of QO11 (make every calculated\
-      \ field editable):\nthe ADT's solveConsistencyGroup (packages/engine/src/driver.ts:46)\
-      \ only FILLS nulls, so an\nover-determined set is never checked, only silently\
-      \ believed.\n\nTHE DECISION (WinISD does not have this problem \u2014 its group\
-      \ solver re-solves):\n  (a) SOLVE BACK: entering Mms recomputes the least-recently-entered\
-      \ member of its group\n      (e.g. Fs or Cms) and marks it C. Matches WinISD,\
-      \ needs an eviction rule.\n  (b) FLAG: keep the entered value, add an error/DQ\
-      \ mark \"Fs, Cms and Mms are inconsistent\"\n      and refuse to simulate until\
-      \ the human resolves it.\n  (c) ACCEPT: current behaviour, documented \u2014\
-      \ the human owns the contradiction.\nUntil this is ruled, every editable derived\
-      \ field is a way to produce a wrong chart silently."
+    text: |-
+      MEASURED live in the running app (vite 4321, Original skin, Demo - Generic 6.5" Woofer,
+      Edit Project's Driver -> Parameters), 2026-08-05:
+
+        before: Fs=37.00 [E]  Cms=1.1956 [C]  Mms=15.48 [C]  BL=7.097 [C]  Rms=0.5140 [C]
+        typed Mms = 30 g
+        after:  Fs=37.00 [E]  Cms=1.1956 [C]  Mms=30.00 [E]  BL=9.881 [C]  Rms=0.9963 [C]
+
+      Fs, Cms and Mms are now mutually impossible: 1/((2pi*37)^2 * 1.1956e-3) = 15.48 g, not 30 g.
+      No error, no warning, no DQ mark — and BL/Rms were recomputed FROM the impossible Mms, so the
+      charts moved. This is the direct consequence of QO11 (make every calculated field editable):
+      the ADT's solveConsistencyGroup (packages/engine/src/driver.ts:46) only FILLS nulls, so an
+      over-determined set is never checked, only silently believed.
+
+      THE DECISION (WinISD does not have this problem — its group solver re-solves):
+        (a) SOLVE BACK: entering Mms recomputes the least-recently-entered member of its group
+            (e.g. Fs or Cms) and marks it C. Matches WinISD, needs an eviction rule.
+        (b) FLAG: keep the entered value, add an error/DQ mark "Fs, Cms and Mms are inconsistent"
+            and refuse to simulate until the human resolves it.
+        (c) ACCEPT: current behaviour, documented — the human owns the contradiction.
+      Until this is ruled, every editable derived field is a way to produce a wrong chart silently.
   - at: '2026-08-05'
-    text: "The human asked for EBP to be editable on the What-If panel. Bl and Mms\
-      \ were done; EBP cannot\nbe, without a ruling.\n\nWHY IT IS DIFFERENT FROM Bl\
-      \ AND Mms. Bl and Mms are members of the ADT's derivation set:\nsolveConsistencyGroup\
-      \ produces them, Driver.enter() overrides them, cell() reports E or C. EBP\n\
-      is not there at all \u2014 it is engine/src/alignments.ts:40, `ebp(d) = d.Fs\
-      \ / d.Qes`, computed on\nthe way to the screen. So cell('EBP') is permanently\
-      \ N.\n\nTHE TWO WAYS TO MAKE IT EDITABLE, AND WHY NEITHER IS THE AGENT'S TO\
-      \ PICK:\n\n(a) Store it. enter('EBP', v) writes #inputs.EBP and cell() reports\
-      \ E \u2014 but nothing reads it.\n    The panel would show the number back and\
-      \ the charts would ignore it: a field that LOOKS\n    like an override and is\
-      \ not one. Rejected on sight.\n\n(b) Solve backwards. EBP = Fs/Qes has two unknowns,\
-      \ so an entered EBP can set EITHER\n    Qes = Fs/EBP or Fs = EBP*Qes. They are\
-      \ different edits with different consequences \u2014\n    changing Qes moves\
-      \ Qts and the whole alignment; changing Fs moves the driver's resonance.\n \
-      \   There is no way to infer which the human means, and picking one silently\
-      \ rewrites a field\n    they did not touch.\n\nAlso note (b) adds calculation\
-      \ logic, which openisd/AGENTS.md gates on explicit human\npermission in the\
-      \ conversation. Both reasons point the same way: ask.\n\nWHAT IS NEEDED: which\
-      \ field an entered EBP should drive (Qes, or Fs), or a ruling that EBP\nstays\
-      \ a read-out. It is currently a read-out on both panels, tooltipped\n\"EBP =\
-      \ Fs / Qes \u2014 a read-out of the two fields above, not a field of its own.\""
+    text: |-
+      The human asked for EBP to be editable on the What-If panel. Bl and Mms were done; EBP cannot
+      be, without a ruling.
+
+      WHY IT IS DIFFERENT FROM Bl AND Mms. Bl and Mms are members of the ADT's derivation set:
+      solveConsistencyGroup produces them, Driver.enter() overrides them, cell() reports E or C. EBP
+      is not there at all — it is engine/src/alignments.ts:40, `ebp(d) = d.Fs / d.Qes`, computed on
+      the way to the screen. So cell('EBP') is permanently N.
+
+      THE TWO WAYS TO MAKE IT EDITABLE, AND WHY NEITHER IS THE AGENT'S TO PICK:
+
+      (a) Store it. enter('EBP', v) writes #inputs.EBP and cell() reports E — but nothing reads it.
+          The panel would show the number back and the charts would ignore it: a field that LOOKS
+          like an override and is not one. Rejected on sight.
+
+      (b) Solve backwards. EBP = Fs/Qes has two unknowns, so an entered EBP can set EITHER
+          Qes = Fs/EBP or Fs = EBP*Qes. They are different edits with different consequences —
+          changing Qes moves Qts and the whole alignment; changing Fs moves the driver's resonance.
+          There is no way to infer which the human means, and picking one silently rewrites a field
+          they did not touch.
+
+      Also note (b) adds calculation logic, which openisd/AGENTS.md gates on explicit human
+      permission in the conversation. Both reasons point the same way: ask.
+
+      WHAT IS NEEDED: which field an entered EBP should drive (Qes, or Fs), or a ruling that EBP
+      stays a read-out. It is currently a read-out on both panels, tooltipped
+      "EBP = Fs / Qes — a read-out of the two fields above, not a field of its own."
   - at: '2026-08-05'
-    text: "DISREGARD THE NOTE IMMEDIATELY ABOVE THIS ONE \u2014 it is misfiled. It\
-      \ belongs to QO20 (\"EBP is\nnot a driver field \u2014 what should typing one\
-      \ DO?\") and was appended here by a concurrent agent\nsession that minted QO20\
-      \ while assuming the next free id was QO12. The text has been added to\nQO20,\
-      \ which is where it should be read. Nothing in it applies to this over-determined-driver\n\
-      question. `inbox.py` has no verb to delete a note, so it is retracted in place\
-      \ rather than\nremoved."
+    text: |-
+      DISREGARD THE NOTE IMMEDIATELY ABOVE THIS ONE — it is misfiled. It belongs to QO20 ("EBP is
+      not a driver field — what should typing one DO?") and was appended here by a concurrent agent
+      session that minted QO20 while assuming the next free id was QO12. The text has been added to
+      QO20, which is where it should be read. Nothing in it applies to this over-determined-driver
+      question. `inbox.py` has no verb to delete a note, so it is retracted in place rather than
+      removed.
   - at: '2026-08-05'
-    text: "IMPLEMENTED 2026-08-05 (not committed). One mechanism serves this ruling\
-      \ and QP18's, as ruled.\n\n  detector   packages/engine/src/consistency.ts ->\
-      \ checkConsistency(entered): ConsistencyIssue[]\n             Groups are WDR_SCHEMA.md\
-      \ section 4 verbatim (rows 1,2,3,4,5,6,8,9,10,11,13,20).\n             Detection\
-      \ only: it reads the solve, it never feeds one. No computed value moved \u2014\
-      \n             regenerating packages/engine/test/fixtures/golden/ produced zero\
-      \ content changes.\n  exposure   Driver.consistencyIssues() (packages/winisd/src/driver.ts),\
-      \ memoised, dropped on\n             every mutation; store.driverConsistencyIssues\
-      \ for the effective model.\n  render     .de-dq beside EVERY member of a disagreeing\
-      \ group, in DriverEditorModal.vue,\n             shells/original/OgTune.vue\
-      \ and components/DriverWhatIfPanel.vue. Blocks nothing.\n\nTOLERANCE \u2014\
-      \ not a chosen number. Each field's uncertainty is half the last significant\
-      \ decimal of\nthe value AS STORED (Vas = 0.0355 => +-0.00005 m3); a COMPUTED\
-      \ field has no literal, so its\nuncertainty is propagated by bumping each entered\
-      \ field by its own half-ulp and re-solving. A\ngroup is reported only when the\
-      \ residual exceeds the sum of those intervals. This is what stops\nthe 2026-08-05\
-      \ failure being repeated in the other direction: a fixed tol: 0.01 was three\
-      \ times\nwider than the 0.174% error it existed to catch, whereas a precision-derived\
-      \ interval is by\nconstruction narrower than any disagreement the recorded digits\
-      \ can express.\n\nTHE OVER-DETERMINED TRIGGER WAS DELIBERATELY NOT BUILT \u2014\
-      \ see the note added to QO13 the same day.\nEvery library driver is over-determined\
-      \ by construction (E means \"present in the file\", not\n\"asserted by a human\"\
-      ), so that trigger would mark all 1912 of them. The inconsistent trigger\ndelivers\
-      \ this ruling anyway: over-determination only harms when it contradicts, and\
-      \ the\ncontradiction is what fires.\n\nNOT MARKED, and it is a judgement worth\
-      \ a human eye: Bl and Rms, which are recomputed FROM the\nimpossible Mms, carry\
-      \ no mark. They reconcile perfectly with the group they were computed from.\n\
-      Marking them needs taint propagation, which is a second mechanism; both rulings\
-      \ say the GROUP is\nthe unit, so the group is what is marked."
+    text: |-
+      IMPLEMENTED 2026-08-05 (not committed). One mechanism serves this ruling and QP18's, as ruled.
+
+        detector   packages/engine/src/consistency.ts -> checkConsistency(entered): ConsistencyIssue[]
+                   Groups are WDR_SCHEMA.md section 4 verbatim (rows 1,2,3,4,5,6,8,9,10,11,13,20).
+                   Detection only: it reads the solve, it never feeds one. No computed value moved —
+                   regenerating packages/engine/test/fixtures/golden/ produced zero content changes.
+        exposure   Driver.consistencyIssues() (packages/winisd/src/driver.ts), memoised, dropped on
+                   every mutation; store.driverConsistencyIssues for the effective model.
+        render     .de-dq beside EVERY member of a disagreeing group, in DriverEditorModal.vue,
+                   shells/original/OgTune.vue and components/DriverWhatIfPanel.vue. Blocks nothing.
+
+      TOLERANCE — not a chosen number. Each field's uncertainty is half the last significant decimal of
+      the value AS STORED (Vas = 0.0355 => +-0.00005 m3); a COMPUTED field has no literal, so its
+      uncertainty is propagated by bumping each entered field by its own half-ulp and re-solving. A
+      group is reported only when the residual exceeds the sum of those intervals. This is what stops
+      the 2026-08-05 failure being repeated in the other direction: a fixed tol: 0.01 was three times
+      wider than the 0.174% error it existed to catch, whereas a precision-derived interval is by
+      construction narrower than any disagreement the recorded digits can express.
+
+      THE OVER-DETERMINED TRIGGER WAS DELIBERATELY NOT BUILT — see the note added to QO13 the same day.
+      Every library driver is over-determined by construction (E means "present in the file", not
+      "asserted by a human"), so that trigger would mark all 1912 of them. The inconsistent trigger
+      delivers this ruling anyway: over-determination only harms when it contradicts, and the
+      contradiction is what fires.
+
+      NOT MARKED, and it is a judgement worth a human eye: Bl and Rms, which are recomputed FROM the
+      impossible Mms, carry no mark. They reconcile perfectly with the group they were computed from.
+      Marking them needs taint propagation, which is a second mechanism; both rulings say the GROUP is
+      the unit, so the group is what is marked.
   - at: '2026-08-05'
-    text: "2026-08-05 \u2014 the strongest evidence yet for this feature, from the\
-      \ human driving WinISD:\n\n  \"A field might have two conflicting calculated\
-      \ solutions trying to write to it and one of them\n   wins BUT there is no DQ\
-      \ indicated on that conflicted field.\"\n\nThis is a DISTINCT failure from the\
-      \ entered-vs-entered case. There, neither field can be\nrecomputed, so nothing\
-      \ is ever compared and WinISD structurally cannot notice. HERE the\ncomparison\
-      \ is free: both routes are computable, they disagree, and the engine writes\
-      \ the winner\nand discards the loser without a word.\n\nMeasured in the human's\
-      \ own state \u2014 Hc=1, Hg=2, Vd=1413720cm3, Sd=0.1707, Xmax blank:\n    route\
-      \ 19 geometry : Xmax = 0.5000 m   WINS, written\n    route 20 volume   : Xmax\
-      \ = 8.2819 m   discarded silently, 17x larger\n\nWHY OPENISD'S DETECTOR COVERS\
-      \ IT ANYWAY, with no extra mechanism: once the winner writes\nXmax = 0.5, row\
-      \ 20 holds all three members and they no longer reconcile \u2014 Sd x Xmax =\
-      \ 85350 cm3\nagainst Vd = 1413720 cm3, out by 17x. checkConsistency fires on\
-      \ {Vd, Sd, Xmax} and marks all\nthree, per the QP18 ruling that the group is\
-      \ the unit.\n\nSo the losing route cannot vanish silently here: writing the\
-      \ winner is exactly what makes the\nloser's group inconsistent. No taint tracking\
-      \ and no second mechanism needed.\n\n    WinISD                            \
-      \              openisd\n    two entered fields contradict     invisible    \
-      \ marked\n    two routes disagree               invisible     marked (winner's\
-      \ value fails loser's group)\n\nWinISD is not failing to warn. It fills holes\
-      \ and never checks \u2014 which is why TfrmParErrors\nsits in winisd.exe having\
-      \ never been observed to fire."
+    text: |-
+      2026-08-05 — the strongest evidence yet for this feature, from the human driving WinISD:
+
+        "A field might have two conflicting calculated solutions trying to write to it and one of them
+         wins BUT there is no DQ indicated on that conflicted field."
+
+      This is a DISTINCT failure from the entered-vs-entered case. There, neither field can be
+      recomputed, so nothing is ever compared and WinISD structurally cannot notice. HERE the
+      comparison is free: both routes are computable, they disagree, and the engine writes the winner
+      and discards the loser without a word.
+
+      Measured in the human's own state — Hc=1, Hg=2, Vd=1413720cm3, Sd=0.1707, Xmax blank:
+          route 19 geometry : Xmax = 0.5000 m   WINS, written
+          route 20 volume   : Xmax = 8.2819 m   discarded silently, 17x larger
+
+      WHY OPENISD'S DETECTOR COVERS IT ANYWAY, with no extra mechanism: once the winner writes
+      Xmax = 0.5, row 20 holds all three members and they no longer reconcile — Sd x Xmax = 85350 cm3
+      against Vd = 1413720 cm3, out by 17x. checkConsistency fires on {Vd, Sd, Xmax} and marks all
+      three, per the QP18 ruling that the group is the unit.
+
+      So the losing route cannot vanish silently here: writing the winner is exactly what makes the
+      loser's group inconsistent. No taint tracking and no second mechanism needed.
+
+          WinISD                                          openisd
+          two entered fields contradict     invisible     marked
+          two routes disagree               invisible     marked (winner's value fails loser's group)
+
+      WinISD is not failing to warn. It fills holes and never checks — which is why TfrmParErrors
+      sits in winisd.exe having never been observed to fire.
   answer:
     at: '2026-08-05'
-    text: "\"if this causes dq error then please add dq note at side of affected fields\"\
-      \n\nRULED: an over-determined driver is NOT blocked and NOT silently accepted.\
-      \ Every field\nimplicated in the over-determination carries a DQ note beside\
-      \ it.\n\nThis is the same principle as QP18, ruled the same day: when a consistency\
-      \ group loses\nconsistency, the mark goes on EVERY member of the group, not\
-      \ on one nominated field. A reader\nlooking at any implicated field must see\
-      \ that something disagrees. Here the trigger is\ndifferent \u2014 the group\
-      \ is over-determined rather than merely inconsistent \u2014 but the remedy is\n\
-      identical, and the two should share one mechanism rather than growing two.\n\
-      \nThe defect: solveConsistencyGroup only fills nulls. It never checks whether\
-      \ the entered set\nalready over-determines the group, so entering Mms while\
-      \ Fs and Cms remain entered is accepted\nand poisons Bl and Rms with no warning\
-      \ anywhere.\n\nWhy it is now urgent rather than theoretical: QO11 made derived\
-      \ fields editable in the What-If\npanels on 2026-08-05 (Bl and Mms on OgTune.vue\
-      \ and DriverWhatIfPanel.vue). That is what the\nhuman asked for, and it is precisely\
-      \ what makes this reachable from the UI. Every newly\neditable derived field\
-      \ is a route to a wrong chart with no warning until this lands."
+    text: |-
+      "if this causes dq error then please add dq note at side of affected fields"
+
+      RULED: an over-determined driver is NOT blocked and NOT silently accepted. Every field
+      implicated in the over-determination carries a DQ note beside it.
+
+      This is the same principle as QP18, ruled the same day: when a consistency group loses
+      consistency, the mark goes on EVERY member of the group, not on one nominated field. A reader
+      looking at any implicated field must see that something disagrees. Here the trigger is
+      different — the group is over-determined rather than merely inconsistent — but the remedy is
+      identical, and the two should share one mechanism rather than growing two.
+
+      The defect: solveConsistencyGroup only fills nulls. It never checks whether the entered set
+      already over-determines the group, so entering Mms while Fs and Cms remain entered is accepted
+      and poisons Bl and Rms with no warning anywhere.
+
+      Why it is now urgent rather than theoretical: QO11 made derived fields editable in the What-If
+      panels on 2026-08-05 (Bl and Mms on OgTune.vue and DriverWhatIfPanel.vue). That is what the
+      human asked for, and it is precisely what makes this reachable from the UI. Every newly
+      editable derived field is a route to a wrong chart with no warning until this lands.
 - id: QO13
-  title: Qts never recalculates from Qms/Qes because a library driver arrives with
-    EVERY field marked Entered
+  title: Qts never recalculates from Qms/Qes because a library driver arrives with EVERY field marked
+    Entered
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "THE REPORTED SYMPTOM: \"Qts isn't calculating when Qms and Qes set.\"\n\
-      \nMEASURED, and the maths is NOT the bug. packages/engine/src/driver.ts:62 does\n\
-      Qts = Qes*Qms/(Qes+Qms) correctly, and clearing the Qts field makes it recompute\
-      \ at once \u2014\n0.400 & 7.000 -> 0.378, state C, verified live.\n\nTHE CAUSE:\
-      \ Driver.fromRaw (packages/winisd/src/driver.ts:223) writes EVERY present field\
-      \ into\n#inputs, and presence in #inputs IS state E. So a driver loaded from\
-      \ the library / demo /\nproject arrives with Qts, Qes and Qms all Entered. solveConsistencyGroup\
-      \ never overwrites an\nE value, so editing Qms or Qes leaves the stale Qts sitting\
-      \ there. The panel is behaving\nexactly as designed; the design is what is wrong.\n\
-      \nSame class of defect for Cms/Mms/Rms/Bl on any driver whose source file carries\
-      \ them.\n\nTHE DECISION:\n  (a) A WDR ParState is real provenance and is honoured\
-      \ (fromWdr already replays it). A plain\n      DriverRaw has NO provenance,\
-      \ so it should enter only the INDEPENDENT set (Fs, Vas, Sd,\n      Re, two Qs,\
-      \ Xmax, Pe, Le) and let everything derivable arrive as C.\n  (b) Keep everything\
-      \ E, and make an edit to one member of a consistency group EVICT the\n     \
-      \ others (the same eviction rule QO12 needs).\n  (c) Leave it: the user clears\
-      \ the field they want recomputed. Cheap, but the panel then\n      shows all-green\
-      \ \"entered\" for values nobody entered, which is false provenance."
+    text: |-
+      THE REPORTED SYMPTOM: "Qts isn't calculating when Qms and Qes set."
+
+      MEASURED, and the maths is NOT the bug. packages/engine/src/driver.ts:62 does
+      Qts = Qes*Qms/(Qes+Qms) correctly, and clearing the Qts field makes it recompute at once —
+      0.400 & 7.000 -> 0.378, state C, verified live.
+
+      THE CAUSE: Driver.fromRaw (packages/winisd/src/driver.ts:223) writes EVERY present field into
+      #inputs, and presence in #inputs IS state E. So a driver loaded from the library / demo /
+      project arrives with Qts, Qes and Qms all Entered. solveConsistencyGroup never overwrites an
+      E value, so editing Qms or Qes leaves the stale Qts sitting there. The panel is behaving
+      exactly as designed; the design is what is wrong.
+
+      Same class of defect for Cms/Mms/Rms/Bl on any driver whose source file carries them.
+
+      THE DECISION:
+        (a) A WDR ParState is real provenance and is honoured (fromWdr already replays it). A plain
+            DriverRaw has NO provenance, so it should enter only the INDEPENDENT set (Fs, Vas, Sd,
+            Re, two Qs, Xmax, Pe, Le) and let everything derivable arrive as C.
+        (b) Keep everything E, and make an edit to one member of a consistency group EVICT the
+            others (the same eviction rule QO12 needs).
+        (c) Leave it: the user clears the field they want recomputed. Cheap, but the panel then
+            shows all-green "entered" for values nobody entered, which is false provenance.
   - at: '2026-08-05'
-    text: "MEASURED 2026-08-05 against the real bundle (packages/ui/src/drivers-bundle.json,\
-      \ 1912 drivers),\nwhile implementing the QP18 / QO12 DQ mark. QO13's claim is\
-      \ TRUE AS WRITTEN, and it is general:\n\n  Library drivers reach the app as\
-      \ `DriverModel.fromJSON(f.record)` (useDriverSelection.ts:87),\n  whose `inputs`\
-      \ bag becomes `#inputs` wholesale \u2014 and presence in `#inputs` IS state\
-      \ E.\n  Count of the 16 core fields marked E, over the whole bundle:\n     \
-      \ 14 fields E : 412 drivers     13 : 588     12 : 423     11 : 120     10 :\
-      \ 68\n      <=9         : 301 drivers\n  A T/S set is determined by ~6 independent\
-      \ values. So essentially the WHOLE library arrives\n  over-determined, and \"\
-      E\" here does NOT mean \"a human asserted this\" \u2014 it means \"this key\
-      \ was\n  present in the file\". There is no third mark and no session-scoped\
-      \ edit flag: `enter()` is the\n  only mutation path and construction uses it,\
-      \ so the model cannot tell the two apart.\n\nCONSEQUENCE FOR QO12, and what\
-      \ shipped: an OVER-DETERMINED trigger would fire on every driver in\nthe library,\
-      \ which makes the mark wallpaper. It was therefore NOT built. What shipped is\
-      \ the\nINCONSISTENT trigger only (packages/engine/src/consistency.ts), and it\
-      \ covers the QO12 case in\nfull \u2014 verified against QO12's own repro:\n\n\
-      \    demo driver, untouched          -> 0 issues (over-determined, but everything\
-      \ reconciles)\n    type Mms = 30 g                 -> 1 issue: Fs, Mms, Cms\
-      \ marked, \"disagree by 28.2%\",\n                                       Fs\
-      \ = 1/(2pi*sqrt(Mms*Cms)) gives 26.57 Hz vs the 37 entered\n\nOver-determination\
-      \ that does not contradict corrupts nothing \u2014 whichever path computes a\
-      \ derived\nvalue gives the same answer. The only over-determination worth marking\
-      \ is the one that shows up\nas an inconsistency, and that is exactly what fires.\n\
-      \nWHAT IS STILL OPEN HERE: this does not answer QO13's own question. The stale-Qts\
-      \ symptom\n(\"editing Qms leaves the old Qts sitting there\") is untouched \u2014\
-      \ it now merely acquires a DQ mark\nonce the stale value drifts beyond precision.\
-      \ QO13's (a)/(b)/(c) still needs a human ruling."
+    text: |-
+      MEASURED 2026-08-05 against the real bundle (packages/ui/src/drivers-bundle.json, 1912 drivers),
+      while implementing the QP18 / QO12 DQ mark. QO13's claim is TRUE AS WRITTEN, and it is general:
+
+        Library drivers reach the app as `DriverModel.fromJSON(f.record)` (useDriverSelection.ts:87),
+        whose `inputs` bag becomes `#inputs` wholesale — and presence in `#inputs` IS state E.
+        Count of the 16 core fields marked E, over the whole bundle:
+            14 fields E : 412 drivers     13 : 588     12 : 423     11 : 120     10 : 68
+            <=9         : 301 drivers
+        A T/S set is determined by ~6 independent values. So essentially the WHOLE library arrives
+        over-determined, and "E" here does NOT mean "a human asserted this" — it means "this key was
+        present in the file". There is no third mark and no session-scoped edit flag: `enter()` is the
+        only mutation path and construction uses it, so the model cannot tell the two apart.
+
+      CONSEQUENCE FOR QO12, and what shipped: an OVER-DETERMINED trigger would fire on every driver in
+      the library, which makes the mark wallpaper. It was therefore NOT built. What shipped is the
+      INCONSISTENT trigger only (packages/engine/src/consistency.ts), and it covers the QO12 case in
+      full — verified against QO12's own repro:
+
+          demo driver, untouched          -> 0 issues (over-determined, but everything reconciles)
+          type Mms = 30 g                 -> 1 issue: Fs, Mms, Cms marked, "disagree by 28.2%",
+                                             Fs = 1/(2pi*sqrt(Mms*Cms)) gives 26.57 Hz vs the 37 entered
+
+      Over-determination that does not contradict corrupts nothing — whichever path computes a derived
+      value gives the same answer. The only over-determination worth marking is the one that shows up
+      as an inconsistency, and that is exactly what fires.
+
+      WHAT IS STILL OPEN HERE: this does not answer QO13's own question. The stale-Qts symptom
+      ("editing Qms leaves the old Qts sitting there") is untouched — it now merely acquires a DQ mark
+      once the stale value drifts beyond precision. QO13's (a)/(b)/(c) still needs a human ruling.
 - id: QO14
-  title: "Driver editor shows E/C/N colour on only 14 of 27 Parameters fields \u2014\
-    \ the other 13 are permanently black"
+  title: Driver editor shows E/C/N colour on only 14 of 27 Parameters fields — the other 13 are permanently
+    black
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "MEASURED live (computed colour read off every input in .de-params), 2026-08-05:\n\
-      \n  green rgb(27,125,27)  = st-e : Qes Qms Qts Fs Vas Re Sd Le Xmax Pe Znom\n\
-      \  blue  rgb(24,104,209) = st-c : Mms Cms Rms BL\n  BLACK rgb(26,26,26)   =\
-      \ no class at all : Dd(0.13) fLe KLe Hc Hg Vd(66.50) Xlim\n                \
-      \                            no(0.37) USPL SPL Voicecoils Connection\n  plus\
-      \ the whole Advanced tab (AlfaVC R(t) C(t) SPLmaxLF SPLmax Rme gamma Mpow Mcost\
-      \ Gloss)\n  and the whole Dimensions tab.\n\nDd and Vd and `no` are CALCULATED\
-      \ and displaying calculated values, in black, next to Mms\ndisplaying a calculated\
-      \ value in blue. That is the \"mms is calculating but it's black not\ngreen\
-      \ / the panel is entirely inconsistent\" report: the footer legend claims three\
-      \ states,\nand half the panel is outside the scheme entirely. Worse, an N field's\
-      \ text colour is\nvar(--fg) \u2014 the SAME black \u2014 so \"not entered\"\
-      \ and \"not tracked at all\" are indistinguishable.\n\nCause: :class=\"cellClass(...)\"\
-      \ was only ever added to 14 of the 27 NumInputs, and the\nlegend/CSS were written\
-      \ as if it were on all of them.\n\nTHE DECISION: is E/C/N a property of EVERY\
-      \ driver field (then cellClass goes on all of them,\nincluding the passthrough/WDR-only\
-      \ ones, and N gets its own visible colour), or only of the\nsimulated T/S set\
-      \ (then the untracked fields need a visibly different, deliberately inert\n\
-      treatment and the legend must say so)? Half-and-half is the one answer that\
-      \ is wrong."
+    text: |-
+      MEASURED live (computed colour read off every input in .de-params), 2026-08-05:
+
+        green rgb(27,125,27)  = st-e : Qes Qms Qts Fs Vas Re Sd Le Xmax Pe Znom
+        blue  rgb(24,104,209) = st-c : Mms Cms Rms BL
+        BLACK rgb(26,26,26)   = no class at all : Dd(0.13) fLe KLe Hc Hg Vd(66.50) Xlim
+                                                  no(0.37) USPL SPL Voicecoils Connection
+        plus the whole Advanced tab (AlfaVC R(t) C(t) SPLmaxLF SPLmax Rme gamma Mpow Mcost Gloss)
+        and the whole Dimensions tab.
+
+      Dd and Vd and `no` are CALCULATED and displaying calculated values, in black, next to Mms
+      displaying a calculated value in blue. That is the "mms is calculating but it's black not
+      green / the panel is entirely inconsistent" report: the footer legend claims three states,
+      and half the panel is outside the scheme entirely. Worse, an N field's text colour is
+      var(--fg) — the SAME black — so "not entered" and "not tracked at all" are indistinguishable.
+
+      Cause: :class="cellClass(...)" was only ever added to 14 of the 27 NumInputs, and the
+      legend/CSS were written as if it were on all of them.
+
+      THE DECISION: is E/C/N a property of EVERY driver field (then cellClass goes on all of them,
+      including the passthrough/WDR-only ones, and N gets its own visible colour), or only of the
+      simulated T/S set (then the untracked fields need a visibly different, deliberately inert
+      treatment and the legend must say so)? Half-and-half is the one answer that is wrong.
   - at: '2026-08-05'
-    text: "IMPLEMENTED. Every numeric field in the driver editor now reports E/C/N\
-      \ \u2014 44 NumInputs across\nParameters, Advanced parameters and Dimensions\
-      \ carry :class=\"cellClass('<field>')\", where\nbefore only 14 did. `input.st-n`\
-      \ also changed from var(--fg) to var(--mut): N used to render\nin exactly the\
-      \ black an untracked field had, so \"not entered\" and \"not tracked at all\"\
-      \ were\nindistinguishable \u2014 which is what \"mms is calculating but it's\
-      \ black\" was reporting.\n\nLocked in by `packages/ui/test/driver-editor-mandatory.browser.spec.ts`\
-      \ \u2014 \"every Parameters\ninput reports its E/C/N state\" walks the DOM and\
-      \ fails naming any input without an st-e/st-c/\nst-n class, so a field added\
-      \ without one cannot pass silently.\n\nThe underlying question in this item\
-      \ is NOT closed by that: whether E/C/N is a property of\nevery driver field\
-      \ or only of the simulated T/S set is still the human's to rule. What has\n\
-      changed is that the panel is now consistent either way, instead of half-and-half."
+    text: |-
+      IMPLEMENTED. Every numeric field in the driver editor now reports E/C/N — 44 NumInputs across
+      Parameters, Advanced parameters and Dimensions carry :class="cellClass('<field>')", where
+      before only 14 did. `input.st-n` also changed from var(--fg) to var(--mut): N used to render
+      in exactly the black an untracked field had, so "not entered" and "not tracked at all" were
+      indistinguishable — which is what "mms is calculating but it's black" was reporting.
+
+      Locked in by `packages/ui/test/driver-editor-mandatory.browser.spec.ts` — "every Parameters
+      input reports its E/C/N state" walks the DOM and fails naming any input without an st-e/st-c/
+      st-n class, so a field added without one cannot pass silently.
+
+      The underlying question in this item is NOT closed by that: whether E/C/N is a property of
+      every driver field or only of the simulated T/S set is still the human's to rule. What has
+      changed is that the panel is now consistent either way, instead of half-and-half.
 - id: QO15
-  title: 'Driver editor unit/binding defects: SPLref vs SPL, fLe scale x1000, VCCon
-    0/1 vs WinISD 1/2, Dimensions in metres, Thick in inches'
+  title: 'Driver editor unit/binding defects: SPLref vs SPL, fLe scale x1000, VCCon 0/1 vs WinISD 1/2,
+    Dimensions in metres, Thick in inches'
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Six concrete binding/unit defects found reading DriverEditorModal.vue against\
-      \ the model and\nconfirmed against the live panel. These are BUGS, not decisions\
-      \ \u2014 listed here so they are not\nlost, and because several are one-line\
-      \ fixes that should land with the QO14 work.\n\n1. SPL FIELD IS PERMANENTLY\
-      \ BLANK. Template line 415 reads cellVal('SPLref'), but the ADT\n   writes the\
-      \ derived value to `SPL` (packages/winisd/src/driver.ts:382, r.SPL = 112.1 +\
-      \ 10log10(no)).\n   Confirmed live: `no` shows 0.37 and SPL shows empty on a\
-      \ driver where both are derivable.\n\n2. TWO FORMULAS AND TWO CONVENTIONS FOR\
-      \ `no`, both live. The ADT computes it as a FRACTION\n   (4pi^2/c^3 * Fs^3*Vas/Qes,\
-      \ driver.ts:381) and the editor multiplies by 100 to show a %.\n   The engine's\
-      \ deriveDriver computes it as 9.64e-10*Fs^3*Vas_L/Qes and then treats it as\
-      \ a\n   PERCENT (SPLref = 112.2 + 10log10(no/100), engine/src/driver.ts:163-165).\
-      \ Also 112.1 vs\n   112.2. Both files carry comments saying this is unresolved;\
-      \ it is now user-visible.\n\n3. fLe SCALE IS INVERTED. `:scale=\"1000\"` with\
-      \ unit kHz means display = SI x 1000, i.e. Hz\n   shown as (Hz x 1000) labelled\
-      \ kHz \u2014 out by 1e6. To show Hz as kHz the scale is 1e-3.\n\n4. VCCon MAPPING\
-      \ CONTRADICTS THE FILE FORMAT. The select offers 0=Parallel / 1=Series\n   (template\
-      \ line 424), but the WDR/WinISD convention this repo documents elsewhere is\n\
-      \   1=parallel / 2=series (DriverDefineModal PARAMS entry: unit '1(parallel)/2(series)').\
-      \ A\n   driver carrying VCCon=2 matches no option and renders blank.\n\n5. Voicecoils\
-      \ shows blank where fromWdr defaults it to 1 \u2014 the editor reads cellVal('numVC')\n\
-      \   and nothing derives it, so an unspecified DVC count reads as \"no answer\"\
-      \ not \"1\".\n\n6. DIMENSIONS TAB UNITS. Depth/MagnetDepth/Magnet/Basket/Outer/VCd\
-      \ are labelled `m` with\n   scale 1 (a 6.5\" driver's basket reads 0.165), while\
-      \ the Parameters tab shows Xmax/Hc/Hg in\n   mm \u2014 and `Thick` is labelled\
-      \ `in` with no conversion at all, so it prints metres under an\n   inches label.\
-      \ WinISD shows these in mm.\n\n7. Dd is shown in metres at 2 dp (0.13 m) because\
-      \ `precision` defaults to 2 for any field\n   with no registry entry \u2014\
-      \ +/- 5 mm of resolution on a cone diameter."
+    text: |-
+      Six concrete binding/unit defects found reading DriverEditorModal.vue against the model and
+      confirmed against the live panel. These are BUGS, not decisions — listed here so they are not
+      lost, and because several are one-line fixes that should land with the QO14 work.
+
+      1. SPL FIELD IS PERMANENTLY BLANK. Template line 415 reads cellVal('SPLref'), but the ADT
+         writes the derived value to `SPL` (packages/winisd/src/driver.ts:382, r.SPL = 112.1 + 10log10(no)).
+         Confirmed live: `no` shows 0.37 and SPL shows empty on a driver where both are derivable.
+
+      2. TWO FORMULAS AND TWO CONVENTIONS FOR `no`, both live. The ADT computes it as a FRACTION
+         (4pi^2/c^3 * Fs^3*Vas/Qes, driver.ts:381) and the editor multiplies by 100 to show a %.
+         The engine's deriveDriver computes it as 9.64e-10*Fs^3*Vas_L/Qes and then treats it as a
+         PERCENT (SPLref = 112.2 + 10log10(no/100), engine/src/driver.ts:163-165). Also 112.1 vs
+         112.2. Both files carry comments saying this is unresolved; it is now user-visible.
+
+      3. fLe SCALE IS INVERTED. `:scale="1000"` with unit kHz means display = SI x 1000, i.e. Hz
+         shown as (Hz x 1000) labelled kHz — out by 1e6. To show Hz as kHz the scale is 1e-3.
+
+      4. VCCon MAPPING CONTRADICTS THE FILE FORMAT. The select offers 0=Parallel / 1=Series
+         (template line 424), but the WDR/WinISD convention this repo documents elsewhere is
+         1=parallel / 2=series (DriverDefineModal PARAMS entry: unit '1(parallel)/2(series)'). A
+         driver carrying VCCon=2 matches no option and renders blank.
+
+      5. Voicecoils shows blank where fromWdr defaults it to 1 — the editor reads cellVal('numVC')
+         and nothing derives it, so an unspecified DVC count reads as "no answer" not "1".
+
+      6. DIMENSIONS TAB UNITS. Depth/MagnetDepth/Magnet/Basket/Outer/VCd are labelled `m` with
+         scale 1 (a 6.5" driver's basket reads 0.165), while the Parameters tab shows Xmax/Hc/Hg in
+         mm — and `Thick` is labelled `in` with no conversion at all, so it prints metres under an
+         inches label. WinISD shows these in mm.
+
+      7. Dd is shown in metres at 2 dp (0.13 m) because `precision` defaults to 2 for any field
+         with no registry entry — +/- 5 mm of resolution on a cone diameter.
 - id: QO16
-  title: Required-field hint 'REQUIRED' wraps inside a 62px label and pushes the fixed-height
-    editor into scroll/clipping
+  title: Required-field hint 'REQUIRED' wraps inside a 62px label and pushes the fixed-height editor into
+    scroll/clipping
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "MEASURED live at 1400x900, Parameters tab:\n\n  all mandatory fields filled\
-      \ : .de-body scrollHeight 416 / clientHeight 415  (no scrollbar)\n  Fs, Vas,\
-      \ Re, Sd cleared     : .de-body scrollHeight 437 / clientHeight 415  (scrollbar,\
-      \ and\n                                the Voicecoils/Connection row is cut\
-      \ off \u2014 screenshot\n                                scratchpad/05-required.png)\n\
-      \nCAUSE: `.de-req-hint` (text-transform: uppercase, so it reads REQUIRED) is\
-      \ rendered INSIDE\n<label>, and .de-fld label is `width: 62px; flex: 0 0 62px\
-      \ !important`. It cannot grow, so the\nword wraps onto a second line, every\
-      \ affected row grows, and .de-modal is `height: 550px`\nfixed with .de-body\
-      \ `overflow-y: auto` \u2014 so the panel starts scrolling exactly when the user\n\
-      has the most to read. The hint also only appears when the field is ALREADY VISIBLY\
-      \ EMPTY\n(v-if=\"isFieldEmpty(...)\"), which is the \"it only shows up when\
-      \ the field is already blank /\nseems useless\" report: it repeats what the\
-      \ red 2px border already says, and pays for it in\nlayout.\n\nNote the modal\
-      \ is 770px x 550px fixed by design (\"sized to the largest tab so nothing ever\n\
-      scrolls: Advanced parameters is the widest at 748px and Parameters the tallest\
-      \ at 550px, both\nmeasured\") \u2014 that measurement was taken before the required\
-      \ hints existed, so the invariant\nthe comment states is now false.\n\nTHE DECISION:\
-      \ (a) drop the word and keep the red border + a required marker in the section\n\
-      header; (b) keep the word but move it out of the label into the unit slot /\
-      \ a tooltip so it\ncannot reflow the grid; (c) let the modal grow. The horizontal\
-      \ scrollbar the human also saw\ncomes from the same fixed sizing: .de-cols is\
-      \ `grid-template-columns: 165px 165px 165px 1fr`\ninside a 770px modal capped\
-      \ at 96vw, so any window under ~700px CSS px overflows sideways."
+    text: |-
+      MEASURED live at 1400x900, Parameters tab:
+
+        all mandatory fields filled : .de-body scrollHeight 416 / clientHeight 415  (no scrollbar)
+        Fs, Vas, Re, Sd cleared     : .de-body scrollHeight 437 / clientHeight 415  (scrollbar, and
+                                      the Voicecoils/Connection row is cut off — screenshot
+                                      scratchpad/05-required.png)
+
+      CAUSE: `.de-req-hint` (text-transform: uppercase, so it reads REQUIRED) is rendered INSIDE
+      <label>, and .de-fld label is `width: 62px; flex: 0 0 62px !important`. It cannot grow, so the
+      word wraps onto a second line, every affected row grows, and .de-modal is `height: 550px`
+      fixed with .de-body `overflow-y: auto` — so the panel starts scrolling exactly when the user
+      has the most to read. The hint also only appears when the field is ALREADY VISIBLY EMPTY
+      (v-if="isFieldEmpty(...)"), which is the "it only shows up when the field is already blank /
+      seems useless" report: it repeats what the red 2px border already says, and pays for it in
+      layout.
+
+      Note the modal is 770px x 550px fixed by design ("sized to the largest tab so nothing ever
+      scrolls: Advanced parameters is the widest at 748px and Parameters the tallest at 550px, both
+      measured") — that measurement was taken before the required hints existed, so the invariant
+      the comment states is now false.
+
+      THE DECISION: (a) drop the word and keep the red border + a required marker in the section
+      header; (b) keep the word but move it out of the label into the unit slot / a tooltip so it
+      cannot reflow the grid; (c) let the modal grow. The horizontal scrollbar the human also saw
+      comes from the same fixed sizing: .de-cols is `grid-template-columns: 165px 165px 165px 1fr`
+      inside a 770px modal capped at 96vw, so any window under ~700px CSS px overflows sideways.
   - at: '2026-08-05'
-    text: "IMPLEMENTED. The per-field `required` word is gone from the labels. It\
-      \ was inside a\n`flex: 0 0 62px` label, so it wrapped, grew every row it touched,\
-      \ and pushed the fixed-height\ndialog into a scrollbar exactly when the human\
-      \ had most to read.\n\nWhat replaced it:\n  - the red 2px border stays (NumInput\
-      \ :mandatory), and the Q trio now red-borders as a GROUP\n    while fewer than\
-      \ two of Qts/Qes/Qms are usable \u2014 no single member is required, so no\n\
-      \    single member is marked;\n  - ONE strip above the footer (.de-incomplete)\
-      \ lists every reason the driver will not\n    simulate, read from draftDriver.errors()\
-      \ so the engine stays the only authority;\n  - the dialog GROWS to hold it \u2014\
-      \ `height: 550px` became `min-height: 550px`, and the strip's\n    own `max-height/overflow-y:\
-      \ auto` was deleted after the human reported it scrolling.\n\nMEASURED after\
-      \ the change, 1400x900, worst case (all T/S cleared AND no brand/model):\n \
-      \ modal 626/626 \xB7 body 416/416 \xB7 strip 76/76 \u2014 scrollHeight == clientHeight\
-      \ everywhere,\n  horizontally too, and the page itself does not scroll. Screenshot:\
-      \ build/editor-incomplete.png"
+    text: |-
+      IMPLEMENTED. The per-field `required` word is gone from the labels. It was inside a
+      `flex: 0 0 62px` label, so it wrapped, grew every row it touched, and pushed the fixed-height
+      dialog into a scrollbar exactly when the human had most to read.
+
+      What replaced it:
+        - the red 2px border stays (NumInput :mandatory), and the Q trio now red-borders as a GROUP
+          while fewer than two of Qts/Qes/Qms are usable — no single member is required, so no
+          single member is marked;
+        - ONE strip above the footer (.de-incomplete) lists every reason the driver will not
+          simulate, read from draftDriver.errors() so the engine stays the only authority;
+        - the dialog GROWS to hold it — `height: 550px` became `min-height: 550px`, and the strip's
+          own `max-height/overflow-y: auto` was deleted after the human reported it scrolling.
+
+      MEASURED after the change, 1400x900, worst case (all T/S cleared AND no brand/model):
+        modal 626/626 · body 416/416 · strip 76/76 — scrollHeight == clientHeight everywhere,
+        horizontally too, and the page itself does not scroll. Screenshot: build/editor-incomplete.png
 - id: QO17
-  title: Entered zero is treated as 'not entered' (isFieldEmpty value<=0), so 0.00
-    raises no DQ mark; the quick-fix CLEAR button is dead CSS
+  title: Entered zero is treated as 'not entered' (isFieldEmpty value<=0), so 0.00 raises no DQ mark;
+    the quick-fix CLEAR button is dead CSS
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "THE HUMAN'S RULING (2026-08-05): \"if a field hasn't been entered then\
-      \ show it as blank not\n0.00 \u2014 make 0.00 a value (a bad one causing a dq)\"\
-      .\n\nSTATE NOW, measured:\n  - BLANK for not-entered: DONE. cellVal() returns\
-      \ null and NumInput.fmt() renders '' for\n    null, so fLe/KLe/Hc/Hg/Xlim/USPL/SPL/Voicecoils\
-      \ all show empty, not 0.00. Correct.\n  - 0.00 AS A BAD VALUE: NOT DONE. Typing\
-      \ 0 into Fs gives state E, value 0, and the panel\n    labels it `Fs REQUIRED`\
-      \ \u2014 the identical treatment a blank field gets. The cause is\n    DriverEditorModal.vue\
-      \ isFieldEmpty(): `cell.state === 'N' || cell.value == null ||\n    cell.value\
-      \ <= 0` \u2014 it folds \"entered zero\" into \"empty\", which is the exact\
-      \ distinction\n    the ruling asks for.\n  - THE QUICK-FIX BUTTON THE HUMAN\
-      \ ASKED TO REMOVE IS ALREADY GONE FROM THE MARKUP. What\n    remains is dead\
-      \ CSS: `.de-dq-badge`, `.de-dq-fix`, `.de-dq-fix:hover` (lines 753-778) plus\n\
-      \    the block comment above isFieldEmpty describing \"the DQ badge appears\
-      \ inline next to the\n    field and the quick-fix button clears the value\"\
-      . Nothing in the template uses any of it.\n    Delete the CSS and the comment,\
-      \ not just the element.\n\nWORK IMPLIED (no decision needed, it is the human's\
-      \ ruling):\n  1. isFieldEmpty splits into isNotEntered (state N / value null)\
-      \ and isBadZero (state E,\n     value <= 0). Blank -> \"required\". Entered\
-      \ zero/negative -> a DQ mark, distinct colour,\n     distinct message (\"0 is\
-      \ not a physical value for Fs\").\n  2. The OK gate (isIdentityIncomplete) must\
-      \ fail on BOTH, but say which.\n  3. Delete .de-dq-badge / .de-dq-fix / the\
-      \ stale comment."
+    text: |-
+      THE HUMAN'S RULING (2026-08-05): "if a field hasn't been entered then show it as blank not
+      0.00 — make 0.00 a value (a bad one causing a dq)".
+
+      STATE NOW, measured:
+        - BLANK for not-entered: DONE. cellVal() returns null and NumInput.fmt() renders '' for
+          null, so fLe/KLe/Hc/Hg/Xlim/USPL/SPL/Voicecoils all show empty, not 0.00. Correct.
+        - 0.00 AS A BAD VALUE: NOT DONE. Typing 0 into Fs gives state E, value 0, and the panel
+          labels it `Fs REQUIRED` — the identical treatment a blank field gets. The cause is
+          DriverEditorModal.vue isFieldEmpty(): `cell.state === 'N' || cell.value == null ||
+          cell.value <= 0` — it folds "entered zero" into "empty", which is the exact distinction
+          the ruling asks for.
+        - THE QUICK-FIX BUTTON THE HUMAN ASKED TO REMOVE IS ALREADY GONE FROM THE MARKUP. What
+          remains is dead CSS: `.de-dq-badge`, `.de-dq-fix`, `.de-dq-fix:hover` (lines 753-778) plus
+          the block comment above isFieldEmpty describing "the DQ badge appears inline next to the
+          field and the quick-fix button clears the value". Nothing in the template uses any of it.
+          Delete the CSS and the comment, not just the element.
+
+      WORK IMPLIED (no decision needed, it is the human's ruling):
+        1. isFieldEmpty splits into isNotEntered (state N / value null) and isBadZero (state E,
+           value <= 0). Blank -> "required". Entered zero/negative -> a DQ mark, distinct colour,
+           distinct message ("0 is not a physical value for Fs").
+        2. The OK gate (isIdentityIncomplete) must fail on BOTH, but say which.
+        3. Delete .de-dq-badge / .de-dq-fix / the stale comment.
   - at: '2026-08-05'
-    text: "IMPLEMENTED, per the human's ruling that 0.00 is a value and a bad one.\n\
-      \n  - isFieldEmpty (which folded \"entered zero\" into \"not entered\") is gone.\
-      \ What is left is\n    isBadValue(field): a number that is not > 0, whatever\
-      \ its E/C/N state.\n  - A bad value is DISPLAYED as entered \u2014 0.00 stays\
-      \ 0.00 \u2014 and carries a \u26A0 .de-dq marker\n    beside its unit, with\
-      \ a tooltip saying it is bad data and that clearing the field is what\n    lets\
-      \ the value be calculated instead.\n  - Not-entered still renders blank. The\
-      \ two states no longer share a presentation.\n  - It does NOT block saving (see\
-      \ QO18): the human keeps their typing either way.\n  - The dead `.de-dq-badge`\
-      \ / `.de-dq-fix` CSS and the stale comment describing the removed\n    quick-fix\
-      \ CLEAR button are deleted.\n\nLocked in by \"an entered zero is BAD DATA, shown\
-      \ and flagged \u2014 not treated as blank\" in\ndriver-editor-mandatory.browser.spec.ts:\
-      \ it types 0 into Fs and asserts the field still reads\n0.00, that .de-dq is\
-      \ visible, and that OK stays enabled."
+    text: |-
+      IMPLEMENTED, per the human's ruling that 0.00 is a value and a bad one.
+
+        - isFieldEmpty (which folded "entered zero" into "not entered") is gone. What is left is
+          isBadValue(field): a number that is not > 0, whatever its E/C/N state.
+        - A bad value is DISPLAYED as entered — 0.00 stays 0.00 — and carries a ⚠ .de-dq marker
+          beside its unit, with a tooltip saying it is bad data and that clearing the field is what
+          lets the value be calculated instead.
+        - Not-entered still renders blank. The two states no longer share a presentation.
+        - It does NOT block saving (see QO18): the human keeps their typing either way.
+        - The dead `.de-dq-badge` / `.de-dq-fix` CSS and the stale comment describing the removed
+          quick-fix CLEAR button are deleted.
+
+      Locked in by "an entered zero is BAD DATA, shown and flagged — not treated as blank" in
+      driver-editor-mandatory.browser.spec.ts: it types 0 into Fs and asserts the field still reads
+      0.00, that .de-dq is visible, and that OK stays enabled.
 - id: QO18
-  title: Editor's OK gate omits the Q-pair check, so a driver the engine cannot simulate
-    can be committed
+  title: Editor's OK gate omits the Q-pair check, so a driver the engine cannot simulate can be committed
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "MEASURED live on the 4000 build (index-BkA9hrBU.js), 2026-08-05: opened\
-      \ Edit Project's Driver\n-> Parameters, cleared Qes, Qms AND Qts, blurred.\n\
-      \n  OK disabled? FALSE \u2014 the button stayed live, the click was accepted,\
-      \ the dialog closed,\n  and the app then reported: \"At least two Q parameters\
-      \ (Qts, Qes, Qms) are required \u2014 enter\n  any two to derive the third\"\
-      .\n\nSo the editor commits a driver the engine refuses to simulate, and the\
-      \ human finds out only\nafter the dialog has gone.\n\nCAUSE, one line: DriverEditorModal.vue\
-      \ isIdentityIncomplete (:102-108) checks brand, model,\nFs, Vas, Re, Sd \u2014\
-      \ and nothing else. The Q requirement is a COUNT (\"at least two of three\"\
-      ),\nnot a per-field presence test, so it fell out of a gate written as a list\
-      \ of single fields.\nThe same omission is why no Q field carries the `required`\
-      \ hint or the mandatory red border:\nboth are driven by isFieldEmpty(<one field>),\
-      \ which cannot express \"two of these three\".\n\nTHE FIX (no decision needed\
-      \ \u2014 the engine already owns the rule at\npackages/engine/src/driver.ts:134-145):\n\
-      \  1. isIdentityIncomplete gains the count: fewer than two finite positive Q\
-      \ values blocks OK.\n  2. The Q trio gets a GROUP-level marker rather than three\
-      \ per-field ones \u2014 the trio is\n     required, no individual member is.\
-      \ Driver.cell() already surfaces the group error on all\n     three (ERROR_ALIASES\
-      \ Qts -> Qms/Qes, packages/winisd/src/driver.ts:57-60), so the\n     editor\
-      \ can read cell(k).error instead of inventing a second rule.\n  3. Same for\
-      \ the consistency constraints the engine enforces and the editor ignores:\n\
-      \     Qms > Qts and Qes > Qts."
+    text: |-
+      MEASURED live on the 4000 build (index-BkA9hrBU.js), 2026-08-05: opened Edit Project's Driver
+      -> Parameters, cleared Qes, Qms AND Qts, blurred.
+
+        OK disabled? FALSE — the button stayed live, the click was accepted, the dialog closed,
+        and the app then reported: "At least two Q parameters (Qts, Qes, Qms) are required — enter
+        any two to derive the third".
+
+      So the editor commits a driver the engine refuses to simulate, and the human finds out only
+      after the dialog has gone.
+
+      CAUSE, one line: DriverEditorModal.vue isIdentityIncomplete (:102-108) checks brand, model,
+      Fs, Vas, Re, Sd — and nothing else. The Q requirement is a COUNT ("at least two of three"),
+      not a per-field presence test, so it fell out of a gate written as a list of single fields.
+      The same omission is why no Q field carries the `required` hint or the mandatory red border:
+      both are driven by isFieldEmpty(<one field>), which cannot express "two of these three".
+
+      THE FIX (no decision needed — the engine already owns the rule at
+      packages/engine/src/driver.ts:134-145):
+        1. isIdentityIncomplete gains the count: fewer than two finite positive Q values blocks OK.
+        2. The Q trio gets a GROUP-level marker rather than three per-field ones — the trio is
+           required, no individual member is. Driver.cell() already surfaces the group error on all
+           three (ERROR_ALIASES Qts -> Qms/Qes, packages/winisd/src/driver.ts:57-60), so the
+           editor can read cell(k).error instead of inventing a second rule.
+        3. Same for the consistency constraints the engine enforces and the editor ignores:
+           Qms > Qts and Qes > Qts.
   answer:
     at: '2026-08-05'
-    text: "RULED by the human 2026-08-05, verbatim, in two steps:\n\n  \"ok button\
-      \ on driver editor not working / I need the save button to work even when the\n\
-      \   driver is incomplete\"\n\n  \"all the buttons on driver editor need to work\
-      \ regardless of driver - only brand and model\n   are 100% required as they\
-      \ are the index key. so gate the save or copy to my drivers or ok\n   buttons\
-      \ on those two fields and if clicked the popup a message saying Brand and Model\
-      \ are\n   both required.\"\n\nThis REVERSES the fix this question proposed.\
-      \ Tightening the OK gate to demand the Q pair was\nthe wrong direction: an editor\
-      \ that refuses to keep what the human has typed is worse than one\nthat keeps\
-      \ incomplete data. The engine already refuses to SIMULATE an incomplete driver\
-      \ and\nsays so on the charts \u2014 that is the right place for the rule, and\
-      \ the only place it belongs.\n\nIMPLEMENTED in DriverEditorModal.vue:\n  - No\
-      \ button is `:disabled` any more. OK / Save / Copy to My Drivers always answer\
-      \ the click.\n  - ONE gate, Brand + Model, checked AT CLICK by requireIdentity().\
-      \ Failing it opens an\n    in-dialog popup \"Brand and Model are both required\"\
-      , leaves the draft untouched, and its\n    dismiss button switches to the General\
-      \ tab and focuses whichever of the two is empty.\n    Esc closes the popup first\
-      \ (registered last on the Esc stack, innermost wins).\n  - Everything else that\
-      \ stops the driver simulating is reported, not enforced: a strip above\n   \
-      \ the footer (.de-incomplete) lists the reasons, read from draftDriver.errors()\
-      \ so the\n    engine stays the single authority \u2014 that is also how the\
-      \ group rules arrive (\"any two of\n    Qts/Qes/Qms\", \"Qms must exceed Qts\"\
-      ), which no per-field check could express.\n  - The Q trio red-borders as a\
-      \ GROUP (:mandatory=\"qIncomplete\") while fewer than two are\n    usable, since\
-      \ no single member is required.\n\nCovered by 8 passing browser tests in packages/ui/test/driver-editor-mandatory.browser.spec.ts,\n\
-      written red first."
+    text: |-
+      RULED by the human 2026-08-05, verbatim, in two steps:
+
+        "ok button on driver editor not working / I need the save button to work even when the
+         driver is incomplete"
+
+        "all the buttons on driver editor need to work regardless of driver - only brand and model
+         are 100% required as they are the index key. so gate the save or copy to my drivers or ok
+         buttons on those two fields and if clicked the popup a message saying Brand and Model are
+         both required."
+
+      This REVERSES the fix this question proposed. Tightening the OK gate to demand the Q pair was
+      the wrong direction: an editor that refuses to keep what the human has typed is worse than one
+      that keeps incomplete data. The engine already refuses to SIMULATE an incomplete driver and
+      says so on the charts — that is the right place for the rule, and the only place it belongs.
+
+      IMPLEMENTED in DriverEditorModal.vue:
+        - No button is `:disabled` any more. OK / Save / Copy to My Drivers always answer the click.
+        - ONE gate, Brand + Model, checked AT CLICK by requireIdentity(). Failing it opens an
+          in-dialog popup "Brand and Model are both required", leaves the draft untouched, and its
+          dismiss button switches to the General tab and focuses whichever of the two is empty.
+          Esc closes the popup first (registered last on the Esc stack, innermost wins).
+        - Everything else that stops the driver simulating is reported, not enforced: a strip above
+          the footer (.de-incomplete) lists the reasons, read from draftDriver.errors() so the
+          engine stays the single authority — that is also how the group rules arrive ("any two of
+          Qts/Qes/Qms", "Qms must exceed Qts"), which no per-field check could express.
+        - The Q trio red-borders as a GROUP (:mandatory="qIncomplete") while fewer than two are
+          usable, since no single member is required.
+
+      Covered by 8 passing browser tests in packages/ui/test/driver-editor-mandatory.browser.spec.ts,
+      written red first.
 - id: QO19
-  title: "TWO agents are editing this one working tree at once \u2014 no browser-suite\
-    \ result is trustworthy until one stops"
+  title: TWO agents are editing this one working tree at once — no browser-suite result is trustworthy
+    until one stops
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "EVIDENCE, measured 2026-08-05 09:09, not inferred:\n\n  file mtimes   \
-      \       DriverEditorModal.vue  08:49:43   <- NOT this session's last edit\n\
-      \                       OgTune.vue             08:55:21\n                  \
-      \     OriginalShell.vue      08:34:50\n  git status           those three are\
-      \ STAGED (`M ` in column 1) by someone else\n  processes            THREE concurrent\
-      \ `playwright test` runs (11:56, 8:25, 5:16 elapsed)\n                     \
-      \  all competing for port 4100\n  HMR aborts in this\n  session's suite log\
-      \  DriverWhatIfPanel.vue?t=  x16\n                       PRPanel.vue?t=    \
-      \        x3\n                       prLibrary.ts?t=           x2      <- files\
-      \ this session never touched\n\nThe other session is doing the QO11 work (converting\
-      \ the 17 read-only panel readouts to\ninputs) in DriverWhatIfPanel/PRPanel/OgTune,\
-      \ while this session did the driver-editor work in\nDriverEditorModal.vue and\
-      \ useDriverLibrary.ts.\n\nWHY IT MATTERS, concretely \u2014 it is not a tidiness\
-      \ complaint:\n  1. A browser suite run against a tree that is being edited under\
-      \ it produces GARBAGE. Vite\n     hot-reloads mid-test, in-flight module requests\
-      \ abort, and fixtures.ts fails the test on\n     \"same-origin network failures\"\
-      . This session reported 18 failures at 08:47 that were\n     entirely this artefact,\
-      \ and a rerun started failing from test #1 for the same reason.\n     Neither\
-      \ run says anything about whether the code is correct.\n  2. Both sessions are\
-      \ landing changes in the SAME file (DriverEditorModal.vue). Last-write\n   \
-      \  -wins, silently.\n  3. Three playwright runs on one 18-core WSL2 box, on\
-      \ top of a chromium that already\n     SIGTRAPs at launch ~2 runs in 3 (QO10),\
-      \ makes every result even less repeatable.\n\nTHE DECISION \u2014 this is the\
-      \ human's, because it is about who works where:\n  (a) One session at a time\
-      \ in openisd. The other holds the tree until its QO11 work is\n      committed;\
-      \ this session stands down and resumes after.\n  (b) This session finishes and\
-      \ the other stands down.\n  (c) Split by file, explicitly, and NEITHER runs\
-      \ the full browser suite until both are done\n      \u2014 targeted specs only,\
-      \ accepting that the gate is unverified in the meantime.\nUntil it is ruled,\
-      \ no \"the suite is green\" claim from either session should be believed."
+    text: |-
+      EVIDENCE, measured 2026-08-05 09:09, not inferred:
+
+        file mtimes          DriverEditorModal.vue  08:49:43   <- NOT this session's last edit
+                             OgTune.vue             08:55:21
+                             OriginalShell.vue      08:34:50
+        git status           those three are STAGED (`M ` in column 1) by someone else
+        processes            THREE concurrent `playwright test` runs (11:56, 8:25, 5:16 elapsed)
+                             all competing for port 4100
+        HMR aborts in this
+        session's suite log  DriverWhatIfPanel.vue?t=  x16
+                             PRPanel.vue?t=            x3
+                             prLibrary.ts?t=           x2      <- files this session never touched
+
+      The other session is doing the QO11 work (converting the 17 read-only panel readouts to
+      inputs) in DriverWhatIfPanel/PRPanel/OgTune, while this session did the driver-editor work in
+      DriverEditorModal.vue and useDriverLibrary.ts.
+
+      WHY IT MATTERS, concretely — it is not a tidiness complaint:
+        1. A browser suite run against a tree that is being edited under it produces GARBAGE. Vite
+           hot-reloads mid-test, in-flight module requests abort, and fixtures.ts fails the test on
+           "same-origin network failures". This session reported 18 failures at 08:47 that were
+           entirely this artefact, and a rerun started failing from test #1 for the same reason.
+           Neither run says anything about whether the code is correct.
+        2. Both sessions are landing changes in the SAME file (DriverEditorModal.vue). Last-write
+           -wins, silently.
+        3. Three playwright runs on one 18-core WSL2 box, on top of a chromium that already
+           SIGTRAPs at launch ~2 runs in 3 (QO10), makes every result even less repeatable.
+
+      THE DECISION — this is the human's, because it is about who works where:
+        (a) One session at a time in openisd. The other holds the tree until its QO11 work is
+            committed; this session stands down and resumes after.
+        (b) This session finishes and the other stands down.
+        (c) Split by file, explicitly, and NEITHER runs the full browser suite until both are done
+            — targeted specs only, accepting that the gate is unverified in the meantime.
+      Until it is ruled, no "the suite is green" claim from either session should be believed.
   answer:
     at: '2026-08-05'
-    text: "RULED by the human 2026-08-05: \"I carry on, other stands down\" \u2014\
-      \ this session keeps openisd;\nthe other session stops.\n\nConsequence for this\
-      \ session: the full browser suite is run ONLY on a quiet tree, and any\nresult\
-      \ from a run that overlapped another agent's edits is discarded, not explained\
-      \ away.\nThe other session's in-flight QO11 work (OgTune.vue, OriginalShell.vue,\
-      \ fieldRegistry.ts,\nDriverWhatIfPanel.vue, PRPanel.vue) stays in the tree untouched\
-      \ \u2014 standing down is not a\nrevert, and this session must not \"tidy\"\
-      \ any of it."
+    text: |-
+      RULED by the human 2026-08-05: "I carry on, other stands down" — this session keeps openisd;
+      the other session stops.
+
+      Consequence for this session: the full browser suite is run ONLY on a quiet tree, and any
+      result from a run that overlapped another agent's edits is discarded, not explained away.
+      The other session's in-flight QO11 work (OgTune.vue, OriginalShell.vue, fieldRegistry.ts,
+      DriverWhatIfPanel.vue, PRPanel.vue) stays in the tree untouched — standing down is not a
+      revert, and this session must not "tidy" any of it.
 - id: QO20
-  title: "EBP is not a driver field \u2014 what should typing one DO? (blocks the\
-    \ last of QO11.1)"
+  title: EBP is not a driver field — what should typing one DO? (blocks the last of QO11.1)
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "The human asked for EBP to be editable on the What-If panel. Bl and Mms\
-      \ were done; EBP cannot\nbe, without a ruling.\n\nWHY IT IS DIFFERENT FROM Bl\
-      \ AND Mms. Bl and Mms are members of the ADT's derivation set:\nsolveConsistencyGroup\
-      \ produces them, Driver.enter() overrides them, cell() reports E or C. EBP\n\
-      is not there at all \u2014 it is engine/src/alignments.ts:40, `ebp(d) = d.Fs\
-      \ / d.Qes`, computed on\nthe way to the screen. So cell('EBP') is permanently\
-      \ N.\n\nTHE TWO WAYS TO MAKE IT EDITABLE, AND WHY NEITHER IS THE AGENT'S TO\
-      \ PICK:\n\n(a) Store it. enter('EBP', v) writes #inputs.EBP and cell() reports\
-      \ E \u2014 but nothing reads it.\n    The panel would show the number back and\
-      \ the charts would ignore it: a field that LOOKS\n    like an override and is\
-      \ not one. Rejected on sight.\n\n(b) Solve backwards. EBP = Fs/Qes has two unknowns,\
-      \ so an entered EBP can set EITHER\n    Qes = Fs/EBP or Fs = EBP*Qes. They are\
-      \ different edits with different consequences \u2014\n    changing Qes moves\
-      \ Qts and the whole alignment; changing Fs moves the driver's resonance.\n \
-      \   There is no way to infer which the human means, and picking one silently\
-      \ rewrites a field\n    they did not touch.\n\nAlso note (b) adds calculation\
-      \ logic, which openisd/AGENTS.md gates on explicit human\npermission in the\
-      \ conversation. Both reasons point the same way: ask.\n\nRelated: QO12 asks\
-      \ the same class of question for the OVER-DETERMINED case (typing Mms while\n\
-      Fs/Cms stay entered). A ruling on QO12(a) \"solve back\" would supply the eviction\
-      \ rule that\nthis question also needs.\n\nWHAT IS NEEDED: which field an entered\
-      \ EBP should drive (Qes, or Fs), or a ruling that EBP\nstays a read-out. It\
-      \ is currently a read-out on both panels, tooltipped\n\"EBP = Fs / Qes \u2014\
-      \ a read-out of the two fields above, not a field of its own.\""
+    text: |-
+      The human asked for EBP to be editable on the What-If panel. Bl and Mms were done; EBP cannot
+      be, without a ruling.
+
+      WHY IT IS DIFFERENT FROM Bl AND Mms. Bl and Mms are members of the ADT's derivation set:
+      solveConsistencyGroup produces them, Driver.enter() overrides them, cell() reports E or C. EBP
+      is not there at all — it is engine/src/alignments.ts:40, `ebp(d) = d.Fs / d.Qes`, computed on
+      the way to the screen. So cell('EBP') is permanently N.
+
+      THE TWO WAYS TO MAKE IT EDITABLE, AND WHY NEITHER IS THE AGENT'S TO PICK:
+
+      (a) Store it. enter('EBP', v) writes #inputs.EBP and cell() reports E — but nothing reads it.
+          The panel would show the number back and the charts would ignore it: a field that LOOKS
+          like an override and is not one. Rejected on sight.
+
+      (b) Solve backwards. EBP = Fs/Qes has two unknowns, so an entered EBP can set EITHER
+          Qes = Fs/EBP or Fs = EBP*Qes. They are different edits with different consequences —
+          changing Qes moves Qts and the whole alignment; changing Fs moves the driver's resonance.
+          There is no way to infer which the human means, and picking one silently rewrites a field
+          they did not touch.
+
+      Also note (b) adds calculation logic, which openisd/AGENTS.md gates on explicit human
+      permission in the conversation. Both reasons point the same way: ask.
+
+      Related: QO12 asks the same class of question for the OVER-DETERMINED case (typing Mms while
+      Fs/Cms stay entered). A ruling on QO12(a) "solve back" would supply the eviction rule that
+      this question also needs.
+
+      WHAT IS NEEDED: which field an entered EBP should drive (Qes, or Fs), or a ruling that EBP
+      stays a read-out. It is currently a read-out on both panels, tooltipped
+      "EBP = Fs / Qes — a read-out of the two fields above, not a field of its own."
   answer:
     at: '2026-08-05'
-    text: "\"ebp stays readonly\"\n\nRULED: EBP is a read-out and stays one. Do not\
-      \ make it editable, and do not revisit this\nunder the QO11 \"every field must\
-      \ be editable\" heading \u2014 that rule is about overriding a\nCALCULATED DRIVER\
-      \ FIELD, and EBP is not a driver field at all.\n\nWhy it is not one: EBP = Fs/Qes\
-      \ is computed in engine/src/alignments.ts, not produced by\nsolveConsistencyGroup,\
-      \ so cell('EBP') is permanently N. An entered EBP would sit in an inert\nbox\
-      \ nothing reads. Solving it backwards is ambiguous \u2014 one equation, two\
-      \ unknowns, so it\ncould set Qes or Fs, which are different edits with different\
-      \ consequences \u2014 and inventing\nthat rule is calculation logic, which openisd/AGENTS.md\
-      \ gates on explicit human permission.\n\nBoth panels tooltip it as a read-out\
-      \ of the two fields above it. QO11.1 is therefore complete\nas far as it can\
-      \ be: Bl and Mms are editable, EBP is out of scope by ruling."
+    text: |-
+      "ebp stays readonly"
+
+      RULED: EBP is a read-out and stays one. Do not make it editable, and do not revisit this
+      under the QO11 "every field must be editable" heading — that rule is about overriding a
+      CALCULATED DRIVER FIELD, and EBP is not a driver field at all.
+
+      Why it is not one: EBP = Fs/Qes is computed in engine/src/alignments.ts, not produced by
+      solveConsistencyGroup, so cell('EBP') is permanently N. An entered EBP would sit in an inert
+      box nothing reads. Solving it backwards is ambiguous — one equation, two unknowns, so it
+      could set Qes or Fs, which are different edits with different consequences — and inventing
+      that rule is calculation logic, which openisd/AGENTS.md gates on explicit human permission.
+
+      Both panels tooltip it as a read-out of the two fields above it. QO11.1 is therefore complete
+      as far as it can be: Bl and Mms are editable, EBP is out of scope by ruling.
 - id: QO21
-  title: "Two documents cover the driver record model \u2014 DRIVER_RECORD_MODEL.md\
-    \ and WDR_FILE_MODEL_AND_WORKFLOWS.md"
+  title: Two documents cover the driver record model — DRIVER_RECORD_MODEL.md and WDR_FILE_MODEL_AND_WORKFLOWS.md
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Raised 2026-08-05. The human ruled that openisd's own record model does\
-      \ not belong in\nWDR_SCHEMA.md:\n\n  \"why would information about the driver.yml\
-      \ and openisd.yml be in the WDR_SCHEMA.md file.\n   That file should be known\
-      \ facts about WDR and winisd, not openisd specific files. so we need\n   a different\
-      \ document covering the openisd models.\"\n\nCorrect, and the file's own PROVENANCE\
-      \ header says as much: it is reverse-engineered\nobservation of a format we\
-      \ do not control. Our record model is a design decision. Section 8.5\nwas moved\
-      \ to a new openisd/DRIVER_RECORD_MODEL.md, leaving a pointer.\n\nTHE OPEN POINT.\
-      \ openisd/ now has a 28th root markdown file, and there was already a candidate\n\
-      home: WDR_FILE_MODEL_AND_WORKFLOWS.md, whose H1 is literally \"Driver library\
-      \ data model\".\nIts content is mostly the WDR field table plus a future-feature\
-      \ section on driver-type\nclassification \u2014 so its NAME and its TITLE disagree\
-      \ with each other, and both overlap the new\nfile.\n\nThis is the doc-sprawl\
-      \ finding CODE_REVIEW_1 records as still live: 27 root .md files, six\nroot\
-      \ plans, three roadmaps, no partition rule. I added to it rather than resolving\
-      \ it, because\nmerging or renaming an existing document is a judgement about\
-      \ what the docs are FOR.\n\nOptions:\n  (a) Leave both. DRIVER_RECORD_MODEL.md\
-      \ owns the openisd side; WDR_FILE_MODEL_AND_WORKFLOWS.md\n      keeps the WDR\
-      \ field table and the classification plan. Needs its title corrected, since\n\
-      \      \"Driver library data model\" now describes the other file.\n  (b) Fold\
-      \ WDR_FILE_MODEL_AND_WORKFLOWS.md into the two documents that now cover its\
-      \ halves \u2014\n      the field table duplicates WDR_SCHEMA 2/3, and the classification\
-      \ section is a plan, not\n      a model. That deletes a file rather than adding\
-      \ one.\n  (c) Something else.\n\nRecommend (b): its field table is a second\
-      \ copy of WDR_SCHEMA's, which is exactly the drift\nrisk the single-source rule\
-      \ exists to prevent."
+    text: |-
+      Raised 2026-08-05. The human ruled that openisd's own record model does not belong in
+      WDR_SCHEMA.md:
+
+        "why would information about the driver.yml and openisd.yml be in the WDR_SCHEMA.md file.
+         That file should be known facts about WDR and winisd, not openisd specific files. so we need
+         a different document covering the openisd models."
+
+      Correct, and the file's own PROVENANCE header says as much: it is reverse-engineered
+      observation of a format we do not control. Our record model is a design decision. Section 8.5
+      was moved to a new openisd/DRIVER_RECORD_MODEL.md, leaving a pointer.
+
+      THE OPEN POINT. openisd/ now has a 28th root markdown file, and there was already a candidate
+      home: WDR_FILE_MODEL_AND_WORKFLOWS.md, whose H1 is literally "Driver library data model".
+      Its content is mostly the WDR field table plus a future-feature section on driver-type
+      classification — so its NAME and its TITLE disagree with each other, and both overlap the new
+      file.
+
+      This is the doc-sprawl finding CODE_REVIEW_1 records as still live: 27 root .md files, six
+      root plans, three roadmaps, no partition rule. I added to it rather than resolving it, because
+      merging or renaming an existing document is a judgement about what the docs are FOR.
+
+      Options:
+        (a) Leave both. DRIVER_RECORD_MODEL.md owns the openisd side; WDR_FILE_MODEL_AND_WORKFLOWS.md
+            keeps the WDR field table and the classification plan. Needs its title corrected, since
+            "Driver library data model" now describes the other file.
+        (b) Fold WDR_FILE_MODEL_AND_WORKFLOWS.md into the two documents that now cover its halves —
+            the field table duplicates WDR_SCHEMA 2/3, and the classification section is a plan, not
+            a model. That deletes a file rather than adding one.
+        (c) Something else.
+
+      Recommend (b): its field table is a second copy of WDR_SCHEMA's, which is exactly the drift
+      risk the single-source rule exists to prevent.
 - id: QO22
-  title: "Xmax is INPUT ONLY \u2014 never derived (ruled 2026-08-05)"
+  title: Xmax is INPUT ONLY — never derived (ruled 2026-08-05)
   status: decided
   raised: '2026-08-05'
   body: ''
   answer:
     at: '2026-08-05'
-    text: "\"No it's madness\" \u2014 openisd does NOT reproduce WinISD's Xmax derivation.\n\
-      \nXmax is a measured physical limit, the one member of {Vd, Sd, Xmax} that is\
-      \ not arithmetic.\nIt is INPUT ONLY. Vd = Sd x Xmax runs one direction: Vd is\
-      \ computed when absent, never solved\nbackwards.\n\nThree reasons, recorded\
-      \ in openisd/DRIVER_RECORD_MODEL.md 5:\n  - CIRCULAR. Manufacturers publish\
-      \ Vd computed as Sd x Xmax, so deriving Xmax back returns our\n    own number\
-      \ dressed as corroboration. A group that cannot disagree cannot be a check either.\n\
-      \  - IT INVENTS A LIMIT. A derived Xmax draws an excursion limit line. A limit\
-      \ the manufacturer\n    never stated is not ours to assert, and a wrong line\
-      \ is worse than no line.\n  - WINISD'S OWN ANSWER IS NOT STABLE. Two routes,\
-      \ undocumented precedence, so the same driver\n    yields a different Xmax depending\
-      \ which fields happen to be populated.\n\nWinISD's actual behaviour stays documented\
-      \ in WDR_SCHEMA.md 4.1 \u2014 verified, including the\nprecedence order and\
-      \ the Hc/Hg C-while-blank marks \u2014 because the parity suite needs it. It\
-      \ is a\nrecord of what WinISD does, not a specification to follow.\n\nCONSEQUENCE\
-      \ FOR QO8: this is a deliberate divergence. The side-by-side suite must expect\n\
-      openisd to report no Xmax where WinISD synthesises one.\n\nCode was already\
-      \ in this state: the abs(Hc-Hg)/2 derivation was deleted from\npackages/engine/src/driver.ts\
-      \ and the reverse Vd solve was never added. 398 unit tests pass,\ngolden fixtures\
-      \ byte-identical."
+    text: |-
+      "No it's madness" — openisd does NOT reproduce WinISD's Xmax derivation.
+
+      Xmax is a measured physical limit, the one member of {Vd, Sd, Xmax} that is not arithmetic.
+      It is INPUT ONLY. Vd = Sd x Xmax runs one direction: Vd is computed when absent, never solved
+      backwards.
+
+      Three reasons, recorded in openisd/DRIVER_RECORD_MODEL.md 5:
+        - CIRCULAR. Manufacturers publish Vd computed as Sd x Xmax, so deriving Xmax back returns our
+          own number dressed as corroboration. A group that cannot disagree cannot be a check either.
+        - IT INVENTS A LIMIT. A derived Xmax draws an excursion limit line. A limit the manufacturer
+          never stated is not ours to assert, and a wrong line is worse than no line.
+        - WINISD'S OWN ANSWER IS NOT STABLE. Two routes, undocumented precedence, so the same driver
+          yields a different Xmax depending which fields happen to be populated.
+
+      WinISD's actual behaviour stays documented in WDR_SCHEMA.md 4.1 — verified, including the
+      precedence order and the Hc/Hg C-while-blank marks — because the parity suite needs it. It is a
+      record of what WinISD does, not a specification to follow.
+
+      CONSEQUENCE FOR QO8: this is a deliberate divergence. The side-by-side suite must expect
+      openisd to report no Xmax where WinISD synthesises one.
+
+      Code was already in this state: the abs(Hc-Hg)/2 derivation was deleted from
+      packages/engine/src/driver.ts and the reverse Vd solve was never added. 398 unit tests pass,
+      golden fixtures byte-identical.
   notes:
   - at: '2026-08-05'
-    text: "2026-08-05 REOPENED \u2014 the ruling as recorded is too broad, and the\
-      \ evidence changed under it.\n\nWHAT IS NOW ESTABLISHED, by direct observation\
-      \ in WinISD:\n  Xmax = Vd / Sd IS a real WinISD derivation, and {Vd, Sd, Xmax}\
-      \ solves in ALL THREE\n  directions. Observed: Vd=140cm3, Sd=0.0095 -> Xmax\
-      \ displayed 14.7mm. 140e-6/0.0095 =\n  14.7368mm. Exact to the displayed digit.\
-      \ So \"Xmax is never calculated\" is wrong as stated.\n\nWHAT IS NOT ESTABLISHED:\n\
-      \  Xmax = |Hc-Hg|/2 has never been observed to fire. The group membership {Xmax,\
-      \ Hc, Hg} comes\n  from winisd.exe binary strings (WDR_SCHEMA 4, offset ~8894);\
-      \ the FORMULA comes from the help\n  file's definition of the quantity \u2014\
-      \ \"usually calculated as abs(Hc-Hg)/2\" \u2014 which describes\n  industry\
-      \ practice, not this program's behaviour. And WDR_SCHEMA 4 row 7 notes Hc/Hg\
-      \ are\n  \"never populated\" in practice, so the precondition has never been\
-      \ met. Untested.\n\nCODE STATE: the |Hc-Hg|/2 derivation was deleted from driver.ts\
-      \ and stays deleted \u2014 it is\nunevidenced. Vd = Sd * Xmax remains ONE-DIRECTIONAL:\
-      \ openisd solves Vd, never Sd or Xmax.\n\nWHY THIS IS HARDER THAN ONE FIELD:\n\
-      \  1. Xmax is both a stated physical measurement and a member of an exact identity.\
-      \ A derived\n     Xmax means \"the excursion implied by a published Vd\", not\
-      \ \"the linear limit the\n     manufacturer measured\". Same number, different\
-      \ claim.\n  2. Manufacturers usually compute Vd AS Sd x Xmax, so deriving Xmax\
-      \ back is often circular \u2014\n     it returns our own number. A group that\
-      \ cannot conflict cannot be used as a check either.\n  3. THE REAL QUESTION\
-      \ IS NOT ABOUT XMAX. GAPS.md A4 already records it: \"E/C/N derivation is\n\
-      \     one-directional; WinISD's is a group solver\". openisd derives one way;\
-      \ WinISD solves in\n     whichever direction the data allows. {Vd, Sd, Xmax}\
-      \ is only where it became visible.\n\nSo the decision is whether openisd becomes\
-      \ a group solver, which is far larger than this field,\nand it moves computed\
-      \ values on every record holding two of any group's three members."
+    text: |-
+      2026-08-05 REOPENED — the ruling as recorded is too broad, and the evidence changed under it.
+
+      WHAT IS NOW ESTABLISHED, by direct observation in WinISD:
+        Xmax = Vd / Sd IS a real WinISD derivation, and {Vd, Sd, Xmax} solves in ALL THREE
+        directions. Observed: Vd=140cm3, Sd=0.0095 -> Xmax displayed 14.7mm. 140e-6/0.0095 =
+        14.7368mm. Exact to the displayed digit. So "Xmax is never calculated" is wrong as stated.
+
+      WHAT IS NOT ESTABLISHED:
+        Xmax = |Hc-Hg|/2 has never been observed to fire. The group membership {Xmax, Hc, Hg} comes
+        from winisd.exe binary strings (WDR_SCHEMA 4, offset ~8894); the FORMULA comes from the help
+        file's definition of the quantity — "usually calculated as abs(Hc-Hg)/2" — which describes
+        industry practice, not this program's behaviour. And WDR_SCHEMA 4 row 7 notes Hc/Hg are
+        "never populated" in practice, so the precondition has never been met. Untested.
+
+      CODE STATE: the |Hc-Hg|/2 derivation was deleted from driver.ts and stays deleted — it is
+      unevidenced. Vd = Sd * Xmax remains ONE-DIRECTIONAL: openisd solves Vd, never Sd or Xmax.
+
+      WHY THIS IS HARDER THAN ONE FIELD:
+        1. Xmax is both a stated physical measurement and a member of an exact identity. A derived
+           Xmax means "the excursion implied by a published Vd", not "the linear limit the
+           manufacturer measured". Same number, different claim.
+        2. Manufacturers usually compute Vd AS Sd x Xmax, so deriving Xmax back is often circular —
+           it returns our own number. A group that cannot conflict cannot be used as a check either.
+        3. THE REAL QUESTION IS NOT ABOUT XMAX. GAPS.md A4 already records it: "E/C/N derivation is
+           one-directional; WinISD's is a group solver". openisd derives one way; WinISD solves in
+           whichever direction the data allows. {Vd, Sd, Xmax} is only where it became visible.
+
+      So the decision is whether openisd becomes a group solver, which is far larger than this field,
+      and it moves computed values on every record holding two of any group's three members.
   - at: '2026-08-05'
-    text: "2026-08-05 \u2014 BOTH ROUTES ARE REAL, and they are ORDERED. Human ran\
-      \ the test:\n\n  \"If I set Vd to 0 it's not entered, then the other calc kicks\
-      \ in of Hc and Hg - but Vd/Sd\n   takes precedence\"\n\nSo row 19 (Xmax = abs(Hc-Hg)/2)\
-      \ is LIVE code in WinISD, not a dormant relation. It had simply\nnever been\
-      \ seen because row 20 outranks it and Vd is almost always present. My \"no evidence\n\
-      for route 1\" was right about the evidence and wrong about the conclusion \u2014\
-      \ the precondition\nhad never been cleared, and clearing it is what exposed\
-      \ the behaviour.\n\n  priority 1   Xmax = Vd / Sd            (row 20, run backwards)\n\
-      \  priority 2   Xmax = abs(Hc - Hg) / 2   (row 19)\n\nTHE GENERAL FINDING, which\
-      \ is worth more than the Xmax case: a field appearing in two relation\ngroups\
-      \ is not an ambiguity in the table \u2014 WinISD picks between the routes in\
-      \ a FIXED ORDER.\nThis is now observed for two fields:\n\n  Xmax   Vd/Sd  beats\
-      \  abs(Hc-Hg)/2                     (this session)\n  Rme    2pi.Fs.Mms/Qes\
-      \  beats  BL^2/Re                 (winisd_research GAPS.md A5)\n\nAny implementation\
-      \ claiming to match WinISD must reproduce the ORDER, not merely the formulas.\n\
-      Two implementations with identical correct formulas will disagree on a record\
-      \ that supplies\ninputs for both routes \u2014 which is exactly how the Rme\
-      \ 0.174% discrepancy presented itself\nearlier today before it was traced to\
-      \ inconsistent Cms/Vas inputs.\n\nRecorded in openisd/WDR_SCHEMA.md 4.1, with\
-      \ row 19 re-annotated \"verified firing 2026-08-05,\nbut only when Vd is absent\"\
-      .\n\nSTILL OPEN, and unchanged by this: whether openisd becomes a group solver\
-      \ at all. It currently\nderives one-directionally (Vd from Sd x Xmax only).\
-      \ Matching WinISD means solving in every\ndirection AND honouring the precedence\
-      \ order \u2014 and it moves computed values on every record\nholding two of\
-      \ any group's three members."
+    text: |-
+      2026-08-05 — BOTH ROUTES ARE REAL, and they are ORDERED. Human ran the test:
+
+        "If I set Vd to 0 it's not entered, then the other calc kicks in of Hc and Hg - but Vd/Sd
+         takes precedence"
+
+      So row 19 (Xmax = abs(Hc-Hg)/2) is LIVE code in WinISD, not a dormant relation. It had simply
+      never been seen because row 20 outranks it and Vd is almost always present. My "no evidence
+      for route 1" was right about the evidence and wrong about the conclusion — the precondition
+      had never been cleared, and clearing it is what exposed the behaviour.
+
+        priority 1   Xmax = Vd / Sd            (row 20, run backwards)
+        priority 2   Xmax = abs(Hc - Hg) / 2   (row 19)
+
+      THE GENERAL FINDING, which is worth more than the Xmax case: a field appearing in two relation
+      groups is not an ambiguity in the table — WinISD picks between the routes in a FIXED ORDER.
+      This is now observed for two fields:
+
+        Xmax   Vd/Sd  beats  abs(Hc-Hg)/2                     (this session)
+        Rme    2pi.Fs.Mms/Qes  beats  BL^2/Re                 (winisd_research GAPS.md A5)
+
+      Any implementation claiming to match WinISD must reproduce the ORDER, not merely the formulas.
+      Two implementations with identical correct formulas will disagree on a record that supplies
+      inputs for both routes — which is exactly how the Rme 0.174% discrepancy presented itself
+      earlier today before it was traced to inconsistent Cms/Vas inputs.
+
+      Recorded in openisd/WDR_SCHEMA.md 4.1, with row 19 re-annotated "verified firing 2026-08-05,
+      but only when Vd is absent".
+
+      STILL OPEN, and unchanged by this: whether openisd becomes a group solver at all. It currently
+      derives one-directionally (Vd from Sd x Xmax only). Matching WinISD means solving in every
+      direction AND honouring the precedence order — and it moves computed values on every record
+      holding two of any group's three members.
 - id: QO23
-  title: Is WinISD's field solver PRECEDENCE-ordered or LAST-EDIT-WINS? One 3-edit
-    test settles it
+  title: Is WinISD's field solver PRECEDENCE-ordered or LAST-EDIT-WINS? One 3-edit test settles it
   status: decided
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "Raised 2026-08-05 by the human:\n\n  \"Sd is also influenced by Dd - hmm\
-      \ it's a big graph where some values are definitely entered\n   or not entered,\
-      \ at the same time it looks like the last manual update determines the\n   calculated\
-      \ values.\"\n\nTHE CORRECTION THIS FORCES. I recorded in WDR_SCHEMA 4.1 that\
-      \ WinISD has a FIXED PRECEDENCE\nbetween two routes to Xmax (Vd/Sd outranking\
-      \ abs(Hc-Hg)/2). That was one observation \u2014 Vd\npresent, Vd wins \u2014\
-      \ and it does NOT distinguish precedence from recency. If the rule is \"last\n\
-      manual edit wins\", Vd won because it was typed later, and the precedence I\
-      \ documented is my\ninvention. 4.1 has been corrected to state both hypotheses\
-      \ and to warn against building on\neither.\n\nRECENCY EXPLAINS MORE THAN PRECEDENCE\
-      \ DOES:\n  - Hc/Hg flipping C <-> N: they are C when reachable from the current\
-      \ anchor, N when not.\n  - Qts pinning when entered: the anchor is whatever\
-      \ was touched last.\n  - Why WinISD never warns about an inconsistency: there\
-      \ is nothing to warn about if the graph\n    simply re-solves around the newest\
-      \ edit. This would also explain the TfrmParErrors dialog\n    that exists in\
-      \ the binary but was never observed firing (WDR_SCHEMA 4).\n\nIT IS ONE GRAPH,\
-      \ NOT INDEPENDENT GROUPS. Dd = 2*sqrt(Sd/pi) (row 6) makes Sd two-way with Dd,\n\
-      and Sd also sits in row 20 {Vd, Sd, Xmax}, so Dd <-> Sd <-> {Vd, Xmax} is a\
-      \ single connected\ncomponent: editing Dd can propagate as far as Xmax.\n\n\
-      THE TEST \u2014 three edits in WinISD, five minutes:\n  1. Enter Hc and Hg.\
-      \ Xmax should take the geometry answer.\n  2. Enter Vd. Check Xmax switches\
-      \ to Vd/Sd.\n  3. Re-edit Hc.\n     Xmax returns to abs(Hc-Hg)/2  -> RECENCY.\n\
-      \     Xmax stays on Vd/Sd           -> PRECEDENCE.\n\nWHY IT MATTERS BEYOND\
-      \ CURIOSITY. If the rule is recency, then WinISD's C/E/N marks are not a\nproperty\
-      \ of the DATA at all \u2014 they are a property of the EDIT HISTORY, and the\
-      \ same .wdr opened\ntwice with different edit sequences carries different marks.\
-      \ That would make ParState\nunreproducible from a record alone, which bears\
-      \ directly on QP8's emit rules and on QO8's\nparity suite."
+    text: |-
+      Raised 2026-08-05 by the human:
+
+        "Sd is also influenced by Dd - hmm it's a big graph where some values are definitely entered
+         or not entered, at the same time it looks like the last manual update determines the
+         calculated values."
+
+      THE CORRECTION THIS FORCES. I recorded in WDR_SCHEMA 4.1 that WinISD has a FIXED PRECEDENCE
+      between two routes to Xmax (Vd/Sd outranking abs(Hc-Hg)/2). That was one observation — Vd
+      present, Vd wins — and it does NOT distinguish precedence from recency. If the rule is "last
+      manual edit wins", Vd won because it was typed later, and the precedence I documented is my
+      invention. 4.1 has been corrected to state both hypotheses and to warn against building on
+      either.
+
+      RECENCY EXPLAINS MORE THAN PRECEDENCE DOES:
+        - Hc/Hg flipping C <-> N: they are C when reachable from the current anchor, N when not.
+        - Qts pinning when entered: the anchor is whatever was touched last.
+        - Why WinISD never warns about an inconsistency: there is nothing to warn about if the graph
+          simply re-solves around the newest edit. This would also explain the TfrmParErrors dialog
+          that exists in the binary but was never observed firing (WDR_SCHEMA 4).
+
+      IT IS ONE GRAPH, NOT INDEPENDENT GROUPS. Dd = 2*sqrt(Sd/pi) (row 6) makes Sd two-way with Dd,
+      and Sd also sits in row 20 {Vd, Sd, Xmax}, so Dd <-> Sd <-> {Vd, Xmax} is a single connected
+      component: editing Dd can propagate as far as Xmax.
+
+      THE TEST — three edits in WinISD, five minutes:
+        1. Enter Hc and Hg. Xmax should take the geometry answer.
+        2. Enter Vd. Check Xmax switches to Vd/Sd.
+        3. Re-edit Hc.
+           Xmax returns to abs(Hc-Hg)/2  -> RECENCY.
+           Xmax stays on Vd/Sd           -> PRECEDENCE.
+
+      WHY IT MATTERS BEYOND CURIOSITY. If the rule is recency, then WinISD's C/E/N marks are not a
+      property of the DATA at all — they are a property of the EDIT HISTORY, and the same .wdr opened
+      twice with different edit sequences carries different marks. That would make ParState
+      unreproducible from a record alone, which bears directly on QP8's emit rules and on QO8's
+      parity suite.
   - at: '2026-08-05'
-    text: "2026-08-05 \u2014 TIE-BREAK ESTABLISHED, completing the rule closed above.\n\
-      \nWhen two relations could each fill the same hole, row 20 (Vd = Sd x Xmax)\
-      \ LOSES. It is the\nfallback, used only when nothing else can supply the field.\
-      \ Observed twice:\n\n  hole    competing routes                            \
-      \  winner\n  Xmax    row 19 |Hc-Hg|/2   vs  row 20 Vd/Sd           row 19\n\
-      \  Sd      row 6  pi.Dd^2/4   vs  row 20 Vd/Xmax         row 6\n\nPhysically\
-      \ consistent: Dd and Hc/Hg are measured geometry; Vd is a displacement volume\
-      \ derived\nFROM geometry. WinISD treats row 20 as producing Vd and only runs\
-      \ it backwards as a last resort.\n\nThis retro-explains the FIRST observation\
-      \ of the session \u2014 Xmax appearing to come from Vd/Sd\n\"in preference\"\
-      \ to the geometry route. It did not: Hc and Hg were blank, so the preferred\
-      \ route\nwas unavailable, not outranked.\n\nSupersedes the note above marking\
-      \ the tie-break untested. The human's intermediate reading that\n\"Sd tracks\
-      \ Vd preferentially\" is not reproduced under controlled conditions \u2014 with\
-      \ Dd, Xmax and\nVd all entered and Sd blank, Sd comes from Dd."
+    text: |-
+      2026-08-05 — TIE-BREAK ESTABLISHED, completing the rule closed above.
+
+      When two relations could each fill the same hole, row 20 (Vd = Sd x Xmax) LOSES. It is the
+      fallback, used only when nothing else can supply the field. Observed twice:
+
+        hole    competing routes                              winner
+        Xmax    row 19 |Hc-Hg|/2   vs  row 20 Vd/Sd           row 19
+        Sd      row 6  pi.Dd^2/4   vs  row 20 Vd/Xmax         row 6
+
+      Physically consistent: Dd and Hc/Hg are measured geometry; Vd is a displacement volume derived
+      FROM geometry. WinISD treats row 20 as producing Vd and only runs it backwards as a last resort.
+
+      This retro-explains the FIRST observation of the session — Xmax appearing to come from Vd/Sd
+      "in preference" to the geometry route. It did not: Hc and Hg were blank, so the preferred route
+      was unavailable, not outranked.
+
+      Supersedes the note above marking the tie-break untested. The human's intermediate reading that
+      "Sd tracks Vd preferentially" is not reproduced under controlled conditions — with Dd, Xmax and
+      Vd all entered and Sd blank, Sd comes from Dd.
   answer:
     at: '2026-08-05'
-    text: "NEITHER. Settled 2026-08-05 by the human driving WinISD through ~15 states,\
-      \ every one\nreproduced arithmetically. Both hypotheses in the question are\
-      \ wrong.\n\nTHE RULE, and it is the whole model:\n\n    A relation fires only\
-      \ when exactly ONE of its members is unknown.\n    An entered value is never\
-      \ recomputed, and never questioned.\n\nEVIDENCE, each independently checked:\n\
-      \  - Dd:=300 re-derived Sd (blank) but left Vd at its typed 200, though Sd x\
-      \ Xmax implied 35343.\n    Deleting Vd filled it with 35343 exactly.\n  - Sd\
-      \ sits in TWO relations: row 6 (Sd = pi.Dd^2/4) and row 20 (Sd = Vd/Xmax). With\
-      \ Dd entered,\n    row 6 fires and Sd ignores Xmax completely. Delete Dd and\
-      \ row 6 has two unknowns, so row 20\n    takes over \u2014 Sd tracks Vd/Xmax\
-      \ and Dd becomes derived FROM Sd (356.8mm from Sd=0.1, exact).\n  - Deleting\
-      \ Hg blanked Xmax rather than falling back to Vd/Sd, because Vd was itself derived\
-      \ at\n    that moment. A derived value is not an anchor; deriving from it would\
-      \ be circular.\n  - Fill every member and the app goes inert \u2014 nothing\
-      \ recomputes because nothing is unknown.\n    The human read this as \"the calcs\
-      \ just stop working\". There is simply no hole left to fill.\n  - Sd:=2 beside\
-      \ Dd:=300, both entered: Dd does not follow (it would be 1596mm). No propagation\n\
-      \    between two entered fields.\n\nWHY THE EARLIER READINGS WERE WRONG:\n \
-      \ - PRECEDENCE came from one observation where Hc/Hg were blank, so there was\
-      \ no contest.\n  - RECENCY was refuted by the final step: the newest edits were\
-      \ Sd and Vd, yet Xmax derived\n    from Hc/Hg.\n\nCONSEQUENCE THAT MATTERS MOST:\
-      \ contradiction is INVISIBLE by construction. Sd=1.0 entered\nbeside Dd=300\
-      \ entered \u2014 off by 14x \u2014 produces no warning, no mark, no correction,\
-      \ because\nneither can be recomputed and so neither is ever compared. That is\
-      \ why the TfrmParErrors\n\"consistency check failed\" dialog exists in winisd.exe\
-      \ but has never been observed firing.\n\nIt also means openisd's DQ marking\
-      \ (QP18/QO12) has no WinISD counterpart at all. It is not a\nparity feature;\
-      \ it is something WinISD structurally cannot do.\n\nRecorded in openisd/WDR_SCHEMA.md\
-      \ 4.1."
+    text: |-
+      NEITHER. Settled 2026-08-05 by the human driving WinISD through ~15 states, every one
+      reproduced arithmetically. Both hypotheses in the question are wrong.
+
+      THE RULE, and it is the whole model:
+
+          A relation fires only when exactly ONE of its members is unknown.
+          An entered value is never recomputed, and never questioned.
+
+      EVIDENCE, each independently checked:
+        - Dd:=300 re-derived Sd (blank) but left Vd at its typed 200, though Sd x Xmax implied 35343.
+          Deleting Vd filled it with 35343 exactly.
+        - Sd sits in TWO relations: row 6 (Sd = pi.Dd^2/4) and row 20 (Sd = Vd/Xmax). With Dd entered,
+          row 6 fires and Sd ignores Xmax completely. Delete Dd and row 6 has two unknowns, so row 20
+          takes over — Sd tracks Vd/Xmax and Dd becomes derived FROM Sd (356.8mm from Sd=0.1, exact).
+        - Deleting Hg blanked Xmax rather than falling back to Vd/Sd, because Vd was itself derived at
+          that moment. A derived value is not an anchor; deriving from it would be circular.
+        - Fill every member and the app goes inert — nothing recomputes because nothing is unknown.
+          The human read this as "the calcs just stop working". There is simply no hole left to fill.
+        - Sd:=2 beside Dd:=300, both entered: Dd does not follow (it would be 1596mm). No propagation
+          between two entered fields.
+
+      WHY THE EARLIER READINGS WERE WRONG:
+        - PRECEDENCE came from one observation where Hc/Hg were blank, so there was no contest.
+        - RECENCY was refuted by the final step: the newest edits were Sd and Vd, yet Xmax derived
+          from Hc/Hg.
+
+      CONSEQUENCE THAT MATTERS MOST: contradiction is INVISIBLE by construction. Sd=1.0 entered
+      beside Dd=300 entered — off by 14x — produces no warning, no mark, no correction, because
+      neither can be recomputed and so neither is ever compared. That is why the TfrmParErrors
+      "consistency check failed" dialog exists in winisd.exe but has never been observed firing.
+
+      It also means openisd's DQ marking (QP18/QO12) has no WinISD counterpart at all. It is not a
+      parity feature; it is something WinISD structurally cannot do.
+
+      Recorded in openisd/WDR_SCHEMA.md 4.1.
 - id: QO24
-  title: "Implement GAPS.md section F \u2014 11 ranked WinISD-parity fixes, analysis\
-    \ complete, none applied"
+  title: Implement GAPS.md section F — 11 ranked WinISD-parity fixes, analysis complete, none applied
   status: open
   raised: '2026-08-05'
   body: ''
   notes:
   - at: '2026-08-05'
-    text: "winisd_research/GAPS.md section F is a ranked, costed list of 11 fixes\
-      \ against the openisd\n`original` skin, every one backed by live WinISD evidence\
-      \ or a recomputation against the\nfunction actually in the tree. NONE are applied\
-      \ \u2014 that file records findings only and says so.\n\nTwo are described there\
-      \ as ACTIVELY BLOCKING work. Items 3, 4, 6 and 9 are pure corrections to\nmisleading\
-      \ text under openisd/ and cost almost nothing.\n\nRead GAPS.md in full before\
-      \ starting: each item cites its evidence tier (live / derived / open)\nand the\
-      \ exact file:line it corrects. Do not re-derive.\n\nCAUTION on item 11: GAPS.md\
-      \ A4 says explicitly \"Do not copy the numbers\" \u2014 the Re/Rms/Cms\nrecompute\
-      \ residuals (~1.3%) are real and unexplained (DISCOVERIES BUG-006), so the group-solve\n\
-      BEHAVIOUR is the spec, not WinISD's exact outputs. That item also depends on\
-      \ QO23's solver rule\nand on the probe campaign in winisd_research/PROMPT_solver_probe_campaign.md,\
-      \ so it is the one\nitem that should NOT be started until that campaign has\
-      \ run."
+    text: |-
+      winisd_research/GAPS.md section F is a ranked, costed list of 11 fixes against the openisd
+      `original` skin, every one backed by live WinISD evidence or a recomputation against the
+      function actually in the tree. NONE are applied — that file records findings only and says so.
+
+      Two are described there as ACTIVELY BLOCKING work. Items 3, 4, 6 and 9 are pure corrections to
+      misleading text under openisd/ and cost almost nothing.
+
+      Read GAPS.md in full before starting: each item cites its evidence tier (live / derived / open)
+      and the exact file:line it corrects. Do not re-derive.
+
+      CAUTION on item 11: GAPS.md A4 says explicitly "Do not copy the numbers" — the Re/Rms/Cms
+      recompute residuals (~1.3%) are real and unexplained (DISCOVERIES BUG-006), so the group-solve
+      BEHAVIOUR is the spec, not WinISD's exact outputs. That item also depends on QO23's solver rule
+      and on the probe campaign in winisd_research/PROMPT_solver_probe_campaign.md, so it is the one
+      item that should NOT be started until that campaign has run.
   items:
-  - text: "A3: bind the PR pane's Fh to prTuning() \u2014 trivial, export path already\
-      \ computes it, screen and file currently disagree (72.25 vs 194.87 Hz)"
+  - text: 'A3: bind the PR pane''s Fh to prTuning() — trivial, export path already computes it, screen
+      and file currently disagree (72.25 vs 194.87 Hz)'
     done: false
-  - text: "A7: default end correction to 0.6 (WinISD's own value) and allow free numeric\
-      \ entry \u2014 shipped default 0.732 misses vent length by 4.6%"
+  - text: 'A7: default end correction to 0.6 (WinISD''s own value) and allow free numeric entry — shipped
+      default 0.732 misses vent length by 4.6%'
     done: false
-  - text: "E.2: delete the '.wpr is binary; needs reverse-engineering' claim \u2014\
-      \ it is plain INI and a serialiser ships. This claim has parked import as a\
-      \ hard job"
+  - text: 'E.2: delete the ''.wpr is binary; needs reverse-engineering'' claim — it is plain INI and a
+      serialiser ships. This claim has parked import as a hard job'
     done: false
-  - text: "E.2: flip the QB3 row to NO on the WinISD side \u2014 WinISD has no alignment\
-      \ tool, ruled out three ways. openisd is ahead here, do not remove its buttons"
+  - text: 'E.2: flip the QB3 row to NO on the WinISD side — WinISD has no alignment tool, ruled out three
+      ways. openisd is ahead here, do not remove its buttons'
     done: false
   - text: 'A5: implement Rme, gamma and Mpow from the pinned formulas; mark Gloss/SPLmaxLF/SPLmax/Mcost
       honestly as stored pass-through, not ''calculated'''
     done: false
-  - text: 'E.3: clear the six stale rows in INPUT_PARITY.md and WINISD_OPENISD_COMPARISON.md
-      that mark shipped features as missing'
+  - text: 'E.3: clear the six stale rows in INPUT_PARITY.md and WINISD_OPENISD_COMPARISON.md that mark
+      shipped features as missing'
     done: false
-  - text: "A1: reverse the vented direction \u2014 Fb entered, vent length solved\
-      \ via ventLength(), per chamber. Highest-value item. Surfaces ventLength's hidden\
-      \ 5mm clamp"
+  - text: 'A1: reverse the vented direction — Fb entered, vent length solved via ventLength(), per chamber.
+      Highest-value item. Surfaces ventLength''s hidden 5mm clamp'
     done: false
-  - text: 'A6: wire humidity and pressure per the QO7 ruling, and surface air density
-      beside sound velocity'
+  - text: 'A6: wire humidity and pressure per the QO7 ruling, and surface air density beside sound velocity'
     done: false
-  - text: "E.4: re-mark the six 'assumed' alignment rows as untested \u2014 'assumed'\
-      \ reads as a weak yes, and one such row (QB3) turned out to be a confident no"
+  - text: 'E.4: re-mark the six ''assumed'' alignment rows as untested — ''assumed'' reads as a weak yes,
+      and one such row (QB3) turned out to be a confident no'
     done: false
-  - text: "D: one confirming live run for the Signal-pane Power/Voltage/Rg cascade\
-      \ \u2014 Rg is absent from the power formula; the 4.0->3.9 shift is a display-rounding\
-      \ round-trip"
+  - text: 'D: one confirming live run for the Signal-pane Power/Voltage/Rg cascade — Rg is absent from
+      the power formula; the 4.0->3.9 shift is a display-rounding round-trip'
     done: false
-  - text: "A4: make the driver editor a group solver rather than a fixed substitution\
-      \ chain \u2014 LARGE, and BLOCKED on the probe campaign. Do not copy WinISD's\
-      \ numbers"
+  - text: 'A4: make the driver editor a group solver rather than a fixed substitution chain — LARGE, and
+      BLOCKED on the probe campaign. Do not copy WinISD''s numbers'
     done: false

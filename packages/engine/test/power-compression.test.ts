@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * Voice-coil thermal power compression (WinISD parity, WINISD.md §12c).
  * As the coil heats, Re rises: Re_hot = Re·(1 + alfaVC·ΔT). The same drive voltage then
  * pushes less current → SPL drops and the impedance floor rises. ΔT=0 (or alfaVC=0) must be

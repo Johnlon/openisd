@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
-/**
  * Filter edits must drive a re-sweep (CLASSIC-SKIN-review.md #1).
  *
  * The sweep is re-run by `watch([driver, syncedP, box], …)` in store.ts. `syncedP` is a

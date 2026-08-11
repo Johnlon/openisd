@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
 import { test, expect } from '../fixtures.js';
 
 // Persistence must have ONE source of truth: openisd.state (utils/persist.js,

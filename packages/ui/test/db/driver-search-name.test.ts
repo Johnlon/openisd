@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { driverShort } from '../../src/logic/store.js';

@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
-/**
  * @openisd/winisd — Driver projections for the UI store (Phase 4c).
  *
  * Seam: the store holds a long-lived Driver and needs three projections off it —
