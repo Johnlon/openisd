@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
-/**
  * @openisd/winisd — Driver.fromWdr / toWdr lossless round-trip + live provenance.
  *
  * Seam: Driver.fromWdr(text) → toWdr() must be semantically identical — every carried

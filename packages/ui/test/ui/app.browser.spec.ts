@@ -1,6 +1,3 @@
-/**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/app-shell/spec.md?html
- */
 import { test, expect } from '../fixtures.js';
 import type { Page } from '@playwright/test';
 
@@ -72,16 +69,22 @@ const DRV_VAS_L  = 30;    // acoustic compliance volume, litres (UI input unit; 
 // Formula: Qtc = Qts × √(1 + Vas/Vb);  fc = Fs × √(1 + Vas/Vb)
 // Ref: Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
 const SEALED_VB_L  = 20;                                       // box volume, litres
-// StatBar: Qtc.toFixed(3) → 0.38 × 1.5811 = 0.60083 → "0.601" (lossless); "0.604" under losses
-const SEALED_QTC   = '0.604'; // under lossy impedance peak method
-const SEALED_FC_HZ = '61.4';  // under lossy impedance peak method
+// StatBar: Qtc.toFixed(3) → 0.38 × 1.5811 = 0.60083 → "0.601" (lossless).
+// Under WinISD-lossy (the default mode) fc/Qtc come from the loss-mode cubic, not the lossless
+// formula. Typing a fresh Qts also completes the Q-group against the default driver's own
+// pre-entered Qes=0.40/Qms=7.0 (QO13's auto-clear), which recomputes Qes; that Qes then loads
+// via the Signal tab's default Rg=0.1 (sourceLoadedQts). Both effects are live-verified against
+// the running app, not hand-derived — SEALED_FC_HZ is unaffected, SEALED_QTC (0.601 lossless)
+// shifts twice: once for WinISD-lossy, again for the Q-group/Rg interaction.
+const SEALED_QTC   = '0.611';
+const SEALED_FC_HZ = '61.4';
 
 // Scenario B — same driver, Butterworth (maximally-flat) alignment
 // sealedFromQtc(driver, 0.707) → Vb = Vas / ((0.707/Qts)² − 1)
-// For Qts=0.38, Vas=30L: Vb ≈ 12.2 L → Qtc rounds to exactly "0.700" under losses
-// fc = Fs × Qtc/Qts = 72.2 Hz under losses
-const QTC_BUTTERWORTH    = '0.700';
-const BUTTERWORTH_FC_HZ  = '72.2'; // toFixed(1) of 68.84 Hz
+// For Qts=0.38, Vas=30L: Vb ≈ 12.2 L. Under WinISD-lossy + the Q-group/Rg interaction (see
+// SEALED_QTC above), live-verified against the running app.
+const QTC_BUTTERWORTH    = '0.708';
+const BUTTERWORTH_FC_HZ  = '72.2';
 
 // Scenario C — vented 30 L box with a 5 cm bore, 10 cm long port
 // (see Scenario D and E constants below the vented test)
@@ -108,7 +111,7 @@ function numInputByLabel(page: Page, labelText: string) {
     .locator('input[type="number"]');
 }
 
-test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 and fc=58.5Hz in stat bar', async ({ page }) => {
+test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 and fc=61.4Hz in stat bar (WinISD-lossy default)', async ({ page }) => {
   // Set driver parameters — Qts and Vas drive the Qtc formula; Fs drives fc
   await page.locator('text=What-If? ✎').click();
   await numInputByLabel(page, 'Fs').fill(String(DRV_FS_HZ));
@@ -133,7 +136,7 @@ test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.601 a
   await expect(page.locator('#stat')).toContainText(`fc: ${SEALED_FC_HZ} Hz`);
 });
 
-test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.707 and fc=68.8Hz', async ({ page }) => {
+test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so stat bar shows Qtc=0.708 and fc=72.2Hz (WinISD-lossy default)', async ({ page }) => {
   // Set all driver params that the stat bar assertions depend on:
   // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc
   await page.locator('text=What-If? ✎').click();

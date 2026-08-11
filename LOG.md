@@ -15,6 +15,7 @@
 - **Optimize developer loop by avoiding redundant driver bundle updates.** Added guidelines to `AGENTS.md` specifying that the driver bundle should only be updated if there are upstream changes in `winisd_drivers/`, keeping port 4000 up-to-date with application code only.
 - **Track application build time in the titlebar.** Added a build datetime display in the middle of the titlebar for both the Original and Classic skins, injected via Vite config's `define` block, and verified with Playwright tests.
 - **Enforce TDD exclusively for all changes.** Added a hard constraint in `AGENTS.md` requiring that every single code modification or feature addition must have a corresponding failing test written and observed first.
+- **Improve readability and accessibility of consistency warnings in What-If panels.** Replaced default browser tooltips on consistency warning icons (⚠) in both Original and Classic What-If panels with custom CSS tooltips that show immediately on hover or on click.
 
 ## 2026-08-10 — Fsc/Qtc lossy calculation, auto-calculate toggle, and parameter provenance inspector
 

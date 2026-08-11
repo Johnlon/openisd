@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
-/**
  * The Original skin's Projects list. Open projects are INDEPENDENT documents: one never
  * carries, rebuilds or hides another (ARCHITECTURE.md AD-7 / STATE_MODEL.md). These tests
  * pin the three ways that independence used to break —

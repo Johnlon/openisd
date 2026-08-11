@@ -13,7 +13,7 @@
  * exists.
  */
 
-import { deriveDriver, solveConsistencyGroup, checkConsistency, C, RHO } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup, checkConsistency, C, RHO, Q_GROUP_FIELDS } from '@openisd/engine';
 import type { DriverRaw, Driver as EngineDriver, DriverError, ConsistencyIssue } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './classic/wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
@@ -114,6 +114,14 @@ export class Driver {
   #issues: ConsistencyIssue[] | null = null;
   #autoCalculate = true;
   readonly #listeners = new Set<DriverListener>();
+  // QO13: the fields Entered BEFORE the current edit session began (a what-if overlay or an
+  // editor draft freshly seeded from the committed driver) — i.e. INHERITED facts the user has
+  // not personally touched this session, as opposed to a value they just typed. A field is
+  // removed the moment the user (or an auto-clear) touches it — it is no longer "untouched
+  // since session start" even if re-entered later. null = no session in progress (a bare
+  // Driver, or the committed model itself), which must never auto-clear — see
+  // #dropOldestGroupMember.
+  #sessionBaseline: Set<string> | null = null;
 
   get autoCalculate(): boolean { return this.#autoCalculate; }
   set autoCalculate(val: boolean) {
@@ -135,11 +143,56 @@ export class Driver {
   /** Human input → the field becomes Entered (E). Empty value routes to clear. */
   enter(field: string, value: number | string | undefined | null): void {
     if (value === undefined || value === null || value === '') { this.clear(field); return; }
+    // Delete-then-reinsert so JS object key order tracks RECENCY (this field becomes the
+    // newest), which #dropOldestGroupMember relies on to find the oldest sibling.
+    if (field in this.#inputs) delete this.#inputs[field];
     this.#inputs[field] = value;
+    // This field is now something the user just typed THIS session, not an inherited value —
+    // even if it was the session's original stale member and is being legitimately retyped.
+    this.#sessionBaseline?.delete(field);
     if (field === 'brand' || field === 'model' || field === 'manufacturer') {
       delete this.#inputs.name;
     }
+    if (Q_GROUP_FIELDS.includes(field)) this.#dropOldestGroupMember(Q_GROUP_FIELDS);
     this.#invalidate();
+  }
+
+  /**
+   * QO13: entering a field that completes a consistency group (all members now Entered)
+   * auto-clears the OLDEST sibling that was INHERITED from before the current edit session
+   * began, so it reverts to Computed and re-derives from what the user actually typed this
+   * session — instead of a stale value (e.g. a library-loaded Qts) silently overriding
+   * freshly-entered Qes/Qms.
+   *
+   * Deliberately does NOT fire outside a session (`#sessionBaseline === null`), and does NOT
+   * clear a field the user entered THIS session even if it completes the group — a driver is
+   * allowed to legitimately carry all group members as directly-published facts (a real
+   * manufacturer datasheet's own Qts/Qes/Qms), which `checkConsistency()` flags on mismatch
+   * rather than this method silently discarding one.
+   */
+  #dropOldestGroupMember(fields: readonly string[]): void {
+    if (!this.#sessionBaseline) return;
+    // Object.keys preserves insertion order for string keys; enter() just moved the field the
+    // caller supplied to the end, so this order is oldest-first among the group's members.
+    const present = Object.keys(this.#inputs).filter(k => fields.includes(k));
+    if (present.length < fields.length) return;
+    const stale = present.filter(k => this.#sessionBaseline!.has(k));
+    if (stale.length === 0) return; // every member was entered fresh this session — keep all
+    delete this.#inputs[stale[0]];
+  }
+
+  /**
+   * Begin an edit session (a what-if overlay or an editor draft freshly seeded from the
+   * committed driver): snapshot which fields are currently Entered so later `enter()` calls
+   * can tell an INHERITED value from one the user just typed. See #dropOldestGroupMember.
+   */
+  beginSession(): void {
+    this.#sessionBaseline = new Set(Object.keys(this.#inputs));
+  }
+
+  /** End the current edit session — later `enter()` calls no longer auto-clear group siblings. */
+  endSession(): void {
+    this.#sessionBaseline = null;
   }
 
   /** Drop the human value → the field reverts to Computed (C) if derivable, else N. */

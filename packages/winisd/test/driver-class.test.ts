@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
-/**
  * @openisd/winisd — Driver ADT (class) behaviour.
  *
  * Seam under test: the Driver public API — enter, clear, cell(field), errors(),

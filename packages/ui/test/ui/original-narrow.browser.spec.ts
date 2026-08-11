@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * Original (WinISD) skin — narrow-window rendering.
  *
  * Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area

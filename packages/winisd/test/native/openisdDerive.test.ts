@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
-/**
  * deriveOpenISDFields — tested against the exact real-WinISD fixtures already verified
  * this session (winisd_research/CALC_FINDINGS_FOR_REVIEW.md, DISCOVERIES.md), not
  * synthetic numbers, so a regression here is a regression against WinISD itself.

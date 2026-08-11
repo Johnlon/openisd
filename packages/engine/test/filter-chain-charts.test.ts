@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * Unit tests for the EQ/filter chain's OWN response — the three arrays behind WinISD's
  * "Transfer function magnitude (EQ/Filter)", "Transfer function phase (EQ/Filter)" and
  * "Group Delay (EQ/Filter)" charts.

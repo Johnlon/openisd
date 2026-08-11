@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * Unit tests for the WinISD Advanced-pane simulation options and the absent-Le
  * defect they surfaced. See PLAN_ADVANCED_SIM_OPTIONS.md.
  *

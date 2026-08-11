@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-editor/spec.md?html
- */
-/**
  * Filter parity for the `driver_type` wire contract.
  *
  * winisd_tools' `scrapers/tests/test_driver_type_enum_parity.py` proves the two

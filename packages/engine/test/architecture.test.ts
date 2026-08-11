@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * Mechanical architecture guard — AD-3 "core has no DOM" (see ARCHITECTURE.md AD-3).
  *
  * The engine (`packages/engine/src`) is pure audio physics + file I/O: it must never

@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * Signal-generator tone controller — framework-free Web Audio wrapper.
  *
  * Gesture-gated by construction: nothing happens until start() is called (from a user

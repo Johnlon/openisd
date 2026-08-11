@@ -57,6 +57,25 @@ export interface SealedParams {
 
 const LOSSLESS_LIMIT = 1e6;
 
+/**
+ * Driver total Q loaded by a series source resistance Rg (amplifier output impedance + wiring +
+ * crossover DCR — the Signal tab's "Series resistance", state.P.Rs). Rg adds to the voice-coil
+ * Re in the electrical-loss branch, so it RAISES the electrical Q: Qes' = Qes·(Re+Rg)/Re, and
+ * hence the total Q Qts = 1/(1/Qms + 1/Qes'). WinISD folds this into the sealed Fsc/Qtc it
+ * reports; ignoring Rg gives a visibly wrong resonance and Qtc (e.g. the Dayton E150HE-44 in a
+ * 6 L box at Ql=10/Qa=100/Rg=0.1 reads 63.22 Hz/0.592 instead of WinISD's 63.18 Hz/0.599).
+ *
+ * Falls back to `fallbackQts` when Qms/Qes/Re are unavailable (a driver carrying only Qts).
+ * Reference: winisd_research/SEALED_FSC_MODEL.md §5.
+ */
+export function sourceLoadedQts(
+  qms: number, qes: number, re: number, rg: number, fallbackQts: number,
+): number {
+  if (!(qms > 0) || !(qes > 0) || !(re > 0)) return fallbackQts;
+  const qesLoaded = (qes * (re + Math.max(0, rg))) / re;
+  return 1 / (1 / qms + 1 / qesLoaded);
+}
+
 /** Lossless multiplier √(1+Vas/Vb), shared by every mode's lossless baseline. */
 function boxRatio(vas: number, vb: number): number {
   return Math.sqrt(1 + vas / vb);

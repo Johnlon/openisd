@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/project-management/spec.md?html
- */
-/**
  * The non-modal What-If panels — Original's docked "Tune" (shells/original/OgTune.vue) and
  * Classic's inline panel (components/DriverWhatIfPanel.vue).
  *

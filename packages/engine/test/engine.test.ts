@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/core-engine/spec.md?html
- */
-/**
  * OpenISD — engine physics tests
  *
  * Every test describes a human-verifiable physical scenario:

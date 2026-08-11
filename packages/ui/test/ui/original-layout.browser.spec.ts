@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * Original (WinISD) skin — layout ergonomics + chart cursor level-lines.
  *
  * Covers: the ＋ Copy button naming, the ✕ overlay-remove control sitting LEFT

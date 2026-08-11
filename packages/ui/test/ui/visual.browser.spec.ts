@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * Visual regression tests — SPL graph panel.
  *
  * These tests take a screenshot of the SPL response panel for each box type and

@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/ui-presentation/spec.md?html
- */
-/**
  * The chart-type set is CLOSED, and every member must actually draw.
  *
  * `TAB_META` and `CURVE_BUILDERS` are both `Record<ChartTabId, …>`, so a member with no

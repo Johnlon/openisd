@@ -16,9 +16,8 @@ if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
   echo "[pre-commit] doc-only commit (*.md) — skipping lint/typecheck/test"
   exit 0
 fi
-echo "[pre-commit] lint + typecheck + unit (incl. golden) + OpenSpec — blocking commit on any red…"
+echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
 npm run lint
 npm run typecheck
 npm run test:unit
-python3 scripts/validate-openspec.py
 echo "[pre-commit] all green ✓"

@@ -41,8 +41,8 @@ function setIEC() {
              @change="onVoltageInput">
       <span class="u">V</span>
     </div>
-    <div class="row" title="Series resistance (wire, crossover DCR, amplifier output impedance). WinISD default is 0.1 Ω.">
-      <label>Series resistance</label>
+    <div class="row" title="Rg — Generator Resistance: the amplifier's output impedance plus wire, crossover DCR, and any other series resistance between the amp and the driver. WinISD default is 0.1 Ω. Rg loads the driver's electrical Q (Qes), so it affects sealed-box Fsc/Qtc.">
+      <label>Series resistance (Rg)</label>
       <input type="number" step="0.01" min="0" :value="state.P.Rs" @input="e => state.P.Rs = parseFloat((e.target as HTMLInputElement).value)||0">
       <span class="u">Ω</span>
     </div>

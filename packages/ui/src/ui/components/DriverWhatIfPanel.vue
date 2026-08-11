@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue';
 import { state, driver, driverRaw, driverCell, driverJSON, driverBaseline, driverBaselineName,
          driverConsistencyIssues, enterDriverField, clearDriverField, resetDriverToBaseline,
          revertDriverTo } from '../../logic/store.js';
@@ -174,10 +174,63 @@ function fieldClasses(f: Fld): Record<string, boolean> {
   };
 }
 
-// Consistency-group DQ mark. Typing a value that contradicts the rest of its group — an Mms
-// the entered Fs and Cms cannot produce — marks EVERY member of that group, here and in the
-// driver editor alike. It is a mark only: nothing on this panel is disabled by it.
-const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, key);
+const hoveredTooltip = ref<string | null>(null);
+const pinnedTooltip = ref<string | null>(null);
+const tooltipStyles = reactive<Record<string, { position: 'absolute'; top: string; left: string; bottom: string; right: string; transform: string }>>({});
+
+function updateTooltipPos(key: string, event: Event) {
+  const target = event.currentTarget as HTMLElement;
+  if (!target) return;
+  const rect = target.getBoundingClientRect();
+  const top = rect.top + window.scrollY - 6;
+  tooltipStyles[key] = {
+    position: 'absolute',
+    top: `${top}px`,
+    left: `-10px`,
+    bottom: 'auto',
+    right: 'auto',
+    transform: 'translateY(-100%)'
+  };
+}
+
+function showTooltip(key: string, event: Event) {
+  updateTooltipPos(key, event);
+  hoveredTooltip.value = key;
+}
+function hideTooltip(key: string) {
+  if (hoveredTooltip.value === key) {
+    hoveredTooltip.value = null;
+  }
+}
+function togglePin(key: string, event: Event) {
+  if (pinnedTooltip.value === key) {
+    pinnedTooltip.value = null;
+  } else {
+    updateTooltipPos(key, event);
+    pinnedTooltip.value = key;
+  }
+}
+function closeAllPins() {
+  pinnedTooltip.value = null;
+}
+onMounted(() => {
+  window.addEventListener('click', closeAllPins);
+});
+onUnmounted(() => {
+  window.removeEventListener('click', closeAllPins);
+});
+
+function isBadValue(key: NumKey): boolean {
+  const v = driverCell(key).value;
+  return typeof v === 'number' && !(v > 0);
+}
+
+const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.';
+
+const dqNote = (key: NumKey): string => {
+  if (isBadValue(key)) return BAD_VALUE_NOTE;
+  return consistencyNote(driverConsistencyIssues.value, key);
+};
 </script>
 
 <template>
@@ -191,7 +244,14 @@ const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, k
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
-      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
+      <div v-if="dqNote(f.key)" class="dq-tooltip-container">
+        <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
+        <Teleport to="body">
+          <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
+            {{ dqNote(f.key) }}
+          </div>
+        </Teleport>
+      </div>
       <span class="u">{{ f.unit }}</span>
     </div>
 
@@ -208,7 +268,14 @@ const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, k
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
-      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
+      <div v-if="dqNote(f.key)" class="dq-tooltip-container">
+        <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
+        <Teleport to="body">
+          <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
+            {{ dqNote(f.key) }}
+          </div>
+        </Teleport>
+      </div>
       <span class="u">{{ f.unit }}</span>
     </div>
 
@@ -218,7 +285,14 @@ const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, k
       <input type="number" step="any" :min="RANGES[f.key].min" :max="RANGES[f.key].max"
              :value="fieldVal(f)" :class="fieldClasses(f)"
              @input="handleInput(f, $event)" @blur="numBlur(f.key)">
-      <span v-if="dqNote(f.key)" class="de-dq" :title="dqNote(f.key)">&#9888;</span>
+      <div v-if="dqNote(f.key)" class="dq-tooltip-container">
+        <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
+        <Teleport to="body">
+          <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
+            {{ dqNote(f.key) }}
+          </div>
+        </Teleport>
+      </div>
       <span class="u">{{ f.unit }}</span>
     </div>
     <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override
@@ -258,4 +332,17 @@ const dqNote = (key: NumKey) => consistencyNote(driverConsistencyIssues.value, k
 .dep :deep(.row input) { width: 78px; flex: 0 0 78px; }
 .dep .btns { margin-top: 8px; }
 .dep .btns .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
+
+.dq-tooltip-container { position: relative; display: inline-flex; align-items: center; }
+.dq-tooltip-box {
+  position: absolute; z-index: 100;
+  width: 240px; background: #2b2b2b; color: #fff; border-radius: 4px;
+  padding: 8px 12px; font-size: 11px; line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: none; white-space: normal;
+  font-family: sans-serif; text-align: left;
+}
+.dq-tooltip-box::after {
+  content: ""; position: absolute; top: 100%; right: 8px;
+  border-width: 5px; border-style: solid; border-color: #2b2b2b transparent transparent transparent;
+}
 </style>

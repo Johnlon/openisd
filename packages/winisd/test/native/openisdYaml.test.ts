@@ -1,7 +1,4 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/openspec/specs/driver-database/spec.md?html
- */
-/**
  * openisdYaml — read tested against REAL Python-written output, not just self-consistency.
  * Fixture: verbatim content of a real openisd.yml this session read directly from the
  * repo (eminence/fs10-20a8, before drivers/ was later cleaned up) — a genuine interop
