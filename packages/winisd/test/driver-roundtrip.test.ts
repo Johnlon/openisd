@@ -62,11 +62,12 @@ describe('Driver — lossless WDR round-trip', () => {
     const out = parseWdrFields(d.toWdr());
     assert.ok(out.parState, 'export must carry a ParState line');
     assert.equal(out.parState.length, 49);
-    // Slot 0 (Znom) is excluded: WinISD writes C on this file, we emit N because no rule
-    // here computes Znom. Which is right is an open question awaiting a probe of WinISD
-    // across cases — ledger QO30. Every other slot must match exactly.
-    assert.equal(out.parState.slice(1), orig.parState!.slice(1),
-      `ParState[1..48] must round-trip identically\n  in:  ${orig.parState}\n  out: ${out.parState}`);
+    // ALL 49 slots, slot 0 included. It used to be excluded because WinISD writes C for Znom
+    // on this file and openisd emitted N, having no rule that computed it; the probe settled
+    // that Znom = 2·round_half_to_even(0.75·Re) and the engine now derives it (ledger QO30),
+    // so `Re=6` here gives `Znom=8` marked C on both sides.
+    assert.equal(out.parState, orig.parState,
+      `ParState must round-trip identically\n  in:  ${orig.parState}\n  out: ${out.parState}`);
   });
 
   it('fromWdr → toWdr writes no key WinISD does not write', () => {

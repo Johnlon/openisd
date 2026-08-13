@@ -132,12 +132,14 @@ direct analysis of 423 WDR files from `drivers/matt/` (human-curated, authoritat
 
 ### 3.2 T/S parameters (positions 8–25)
 
-All user-entered in the WinISD UI. Units are SI throughout — see §6 for conversion factors.
+Enterable in the WinISD UI, but not all of them are only entered: `Qts` and `Znom` are both
+CALCULATED when the human leaves them blank (rows 5 and 23 of §4). Units are SI throughout — see
+§6 for conversion factors.
 
 | Field | Unit    | Description and key notes                                                                                                                                                                                                                                                                                                                              |
 | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Qts   | —       | Total damping. Qts = (Qms × Qes)/(Qms + Qes). **Do not enter Qts manually when Qms and Qes are both present** — write Qts=C in ParState and let WinISD compute it. See §5.1.                                                                                                                                                                           |
-| Znom  | Ω       | Nominal impedance. **Descriptive only — not used in WinISD simulation.** Source: thielesmall.html. Always enter explicitly; WinISD sometimes assumes the wrong value.                                                                                                                                                                                  |
+| Znom  | Ω       | Nominal impedance. **Descriptive only — not used in WinISD simulation**, but **CALCULATED from `Re`** when left blank: `Znom = 2·round_half_to_even(0.75·Re)` (§4 row 23, probed 2026-08-13). Enter it explicitly to pin a value the rule would not give — WinISD never corrects an entered `Znom` against `Re`.                                        |
 | Fs    | Hz      | **Mandatory for woofers and midranges.** Free-air resonance frequency. AMT tweeters and compression drivers may legitimately omit Fs — the schema does not require it; the scraper must log its absence as a problem for human review.                                                                                                                 |
 | Pe    | W       | Thermal limited max. continuous power handling. If driven above Pe continuously, driver will fail. Source: thielesmall.html.                                                                                                                                                                                                                           |
 | SPL   | dB/W/1m | Power sensitivity. `0` if not set. If user enters SPL → ParState pos 4 = E. If WinISD computes it internally → stores the computed value with pos 4 = C. Source: plottypes.html, §8.4.                                                                                                                                                                 |
@@ -269,6 +271,7 @@ it treats as computable from which others — not a runtime validation dialog.
 | 20  | Vd, Sd, Xmax             | `Vd = Sd · Xmax`, solved in all three directions — `Xmax = Vd / Sd` and `Sd = Vd / Xmax` both fire; see §4.1                 |
 | 21  | Gloss, Fs, Xmax          | `Gloss = g / ((2π·Fs)² · Xmax)`, g = 9.80665 — static cone sag as a FRACTION of Xmax                                         |
 | 22  | SPLmaxLF, roo, Vd        | `SPLmaxLF = 20·log10( ρ₀·(2π·20)²·Vd / (2π·√2) / 20 µPa )` — excursion-limited half-space SPL at 20 Hz, 1 m                  |
+| 23  | Znom, Re                 | `Znom = 2·round_half_to_even(0.75·Re)` — one direction only; see §4.2                                                        |
 
 ### 4.1 How the solver actually behaves — ONE rule
 
@@ -358,6 +361,37 @@ anything, which is why one can read `C` while blank (`DISCOVERIES.md` BUG-005).
 
 **openisd reproduces this.** `DRIVER_RECORD_MODEL.md` §5 states the model side; this section is
 the observation the model and the parity suite are both held against.
+
+### 4.2 Row 23 — `Znom` from `Re`, and why the rounding is exact
+
+Probed 2026-08-13 under wine, 18/18 exact over `winisd_research/runs/znom_state.jsonl`
+(`toys/campaign_znom_state.py`). `Znom` is an integer, so the criterion is exact integer
+agreement, not a residual.
+
+- **It follows `Re` and nothing else.** A driver written with `Re=8` beside `Qes`/`Qts`/`Rms`
+  describing `Re=27` still gets `Znom=12`, not 40. A **calculated** `Re` feeds the rule just as
+  well as an entered one.
+- **`round` is half-to-EVEN**, pinned by three exact-`.5` ties, none decisive alone:
+  `Re=6` → 4.5 → 4 → 8 (half-up refuted); `Re=10` → 7.5 → 8 → 16 (half-down refuted);
+  `Re=2` → 1.5 → 2 → 4 (confirms both).
+- ⚠ **The product must be evaluated EXACTLY, on the decimal the file carries.** WinISD is Delphi
+  and computes in 80-bit Extended, so `0.75·Re` never rounds onto a tie. `Re=7.333333333333333`
+  gives exactly 5.49999999999999975 → 5 → `Znom=10`, where an IEEE double product is exactly 5.5
+  → 12; `Re=3.3333333333333335` gives 2.500000000000000125 → 3 → 6, where the double product is
+  exactly 2.5 → 4. WinISD matches the exact answer in both.
+- **One direction only.** Nothing derives `Re` from `Znom`, and an entered `Znom` is never
+  corrected against `Re`.
+- **A zero answer is a real answer.** `Re=0.6` rounds the product to 0 and WinISD saves `Znom=0`
+  marked `C` — a computed zero, distinct from the unset `Znom=0`/`N` of a blank driver.
+
+Slot 0 is an ordinary E/C field on the §4.1 rule, not a pin like `numVC`'s permanent `E`:
+entered → `E`, absent → `C`, entered-then-cleared → `C`, no `Re` at all → `N`.
+
+**Not probed:** `Re` entered with nothing else — the shape of `drivers/sample/winisd/s-re.wdr`
+(`Re=123`, `Znom=0`, slot 0 = `N`), which row 23 alone does not explain. Both attempts killed
+WinISD with `c000008e` (FLT_DIVIDE_BY_ZERO) before any value could be read — the BUG-003
+degenerate-driver crash class. Whether a driver too sparse to solve suppresses the `Znom`
+computation is UNTESTED.
 
 ## 5. Constraints and rules
 
@@ -491,7 +525,7 @@ confirmed; 2 unknown (pos 21 and 47, 1-indexed — always N, never reached by an
 
 | Pos | Field    | Probe file        | Notes                                                                                                 |
 | --- | -------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
-| 1   | Znom     | s-znom            |                                                                                                       |
+| 1   | Znom     | s-znom            | E when entered; C when WinISD calculates it from Re (§4.2); N when there is no Re to calculate from   |
 | 2   | Fs       | s-fs              |                                                                                                       |
 | 3   | Pe       | s-pe              |                                                                                                       |
 | 4   | SPL      | s-spl             | C when WinISD computes from T/S; E when user enters directly                                          |
