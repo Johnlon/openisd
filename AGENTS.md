@@ -364,6 +364,7 @@ one your task needs; it is documentation, not a trigger. Nothing auto-loads thes
 | -------------------------------------------------------------- | ------------------------------------------------- |
 | JS core functions (`packages/engine/src/`, engine, alignments) | `ARCHITECTURE.md` §AD-4 "Extract, do not rewrite" |
 | Vue components, CSS, stores, UI wiring                         | `docs/spec/SPEC_UI.md` §4 (UI-1…UI-4)             |
+| A field's unit, `:scale`, unit group, or a `.wdr`/`.wpr` value | `docs/research/UNIT_BOUNDARY_AUDIT.md` — file/SI/display/WinISD unit per field, with the oracle for each |
 | Either                                                         | "Two suites, both required" above                 |
 
 ---

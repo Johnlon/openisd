@@ -1,0 +1,64 @@
+{
+  "winisdVersion": "0.7.0.0",
+  "winisdExe": "/home/john/work/winisd/winisd_research/winisd/winisd.exe",
+  "winisdExeSha256": "a7dab23388a2ed4ab3111b59725dd6337532a0fc03cd28f9f5eb01ef6df386ae",
+  "winisdExeBytes": 2473472,
+  "wine": "wine-10.0 (Ubuntu 10.0~repack-12ubuntu1)",
+  "harnessRepo": "/home/john/work/winisd/winisd_research",
+  "harnessCommit": "78fed4904b00a1178e8c1a81ee3883fd6cb6aa75",
+  "harnessWorkingTreeDirty": true,
+  "generator": "scripts/qo8_parity_generator.py",
+  "scenariosFile": "/home/john/work/winisd/openisd/packages/winisd/test/fixtures/winisd-parity/scenarios.json",
+  "scenariosSha256": "da7b48b3d6d909702675e3d355b7c339ae96d250a05d89bd2bde5a18333f55e2",
+  "scenarios": [
+    {
+      "id": "sealed-small",
+      "inputSha256": "be19888bc25b2b889831da4cfbf5c463665c6374fe2465ebb9771743389c2ebe",
+      "goldenSha256": "fe44546419b95b76647f22297958f286989bd721cf9c9a5e06e2f6870edd8cd7",
+      "seconds": 29.7,
+      "at": "2026-08-13T18:25:13+0200"
+    },
+    {
+      "id": "sealed-large",
+      "inputSha256": "c77af1ec938c704ff0333d42c3e97d4ab6a6a5d6bf33be1e8631ec526b98103d",
+      "goldenSha256": "99deed9f6ae7688784a4d28f84ce5307039e9270fe0d51af89bc44faf840f238",
+      "seconds": 27.6,
+      "at": "2026-08-13T18:25:40+0200"
+    },
+    {
+      "id": "vented-b4",
+      "inputSha256": "31da55b0803f3a2128c1d460b6f6f2bad182d2ebf5efcc93afa017555e4b9a49",
+      "goldenSha256": "b59647d32368e77c50c68f0992e3b6a154160dac68319a04b691433549510098",
+      "seconds": 19.5,
+      "at": "2026-08-13T18:26:00+0200"
+    },
+    {
+      "id": "vented-small",
+      "inputSha256": "b4ae4a63a45aacedcb425affcc463a559e60f7ab80f9b3a1b3a1f7479a0ad99e",
+      "goldenSha256": "cc026d92abd728d509070185346621f3ee12a2d32767b695fc47592892119b00",
+      "seconds": 20.3,
+      "at": "2026-08-13T18:26:20+0200"
+    },
+    {
+      "id": "bandpass4",
+      "inputSha256": "51b747bac787a2dde7b0af71a12788e5682abdd060bceedddc01d39012c5f9bd",
+      "goldenSha256": "f44fcd2ba01e21a903a93afcb76c9f18e436cf7f29987e7bae679f611c4c84c9",
+      "seconds": 22.2,
+      "at": "2026-08-13T18:26:42+0200"
+    },
+    {
+      "id": "passive-radiator",
+      "inputSha256": "2f8fd288df2e28045a0573ef37ef363c1eb4feabc27c4f8879e6606ffd9659d8",
+      "goldenSha256": "5f28ccc110ed7d9a2197e854b511832a6dbf96948088f884f57e9a0e328fc757",
+      "seconds": 20.2,
+      "at": "2026-08-13T18:27:03+0200"
+    },
+    {
+      "id": "env-rh-00",
+      "inputSha256": "a9e67c9bbfe543b2cbbf42379afba891cefb55e3f1db60667ee3c748b733d19e",
+      "goldenSha256": "28acfa2e8b5f5cf1d30780ea2c3d967f2bf8b2e6b273e09402e3b1e918d1a265",
+      "seconds": 20.3,
+      "at": "2026-08-13T18:27:23+0200"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "about": "Differences the parity suite EXPECTS rather than flags. Each entry is a BOUND, not an exemption: the test fails if the field comes back into agreement (the entry is stale — delete it) and fails if the difference grows past what the stated cause can account for. `scenario: \"*\"` means the difference is a property of the code rather than of the case. `maxRelative` is the measured difference rounded up to one significant figure.",
+  "divergences": [
+    {
+      "scenario": "*",
+      "field": "ParState[23]",
+      "cause": "numVC: openisd's Driver#derive() autofills numVC = 1 for a record that omits it, so slot 23 reads C (the app supplied it). WinISD pins that slot E, asserting a human entered a value nobody typed. Ruled 2026-08-13 'there was a winisd bug here - obviously dont replicate that', so a red row here would be the suite being wrong, not the app.",
+      "reference": "ledger QO28; BACKLOG.md 'Quality / infrastructure'; packages/winisd/src/driver.ts #derive()"
+    }
+  ]
+}
