@@ -77,6 +77,25 @@ thermal-limit line on a chart a user sizes an amplifier from; being 3 dB optimis
 
 ---
 
+## Both rules read the wrong base, and that half is now visible on its own
+
+`cell('SPL')` returns the file's stated 90 as of the import fix in
+`bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`.
+`USPL` and `SPLmax` do not use it: `solveConsistencyGroup` blocks 12 and 13 read `SPLref`, the
+η₀-derived sensitivity, so both still start from 87.65 dB instead of 90.
+
+`inconsistent-fs` separates the two halves cleanly. Its `Fs` is written at twice its true
+value, which moves η₀ by 10 dB but must not move a STATED sensitivity at all:
+
+| | `USPL` | `SPLmax` |
+| --- | --- | --- |
+| WinISD | `90.9739289706469` — identical to `sealed-small` | `107` — identical to `sealed-small` |
+| openisd | `97.65068346041753` | `116.68158333033696` |
+
+WinISD's answers do not move, because it works from the stated `SPL`. openisd's move by 10 dB,
+because it works from η₀. So any authorised fix is **three** changes, not two: the base becomes
+the stated `SPL`, the 8 becomes 2.83², and the 3 dB is subtracted.
+
 ## Verification, once a decision is made
 
 `npx vitest run --project winisd packages/winisd/test/winisd-parity.test.ts` — 8 `USPL` rows and

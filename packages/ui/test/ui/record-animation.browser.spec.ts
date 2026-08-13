@@ -17,8 +17,7 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
 
-  // Select Original skin
-  await page.locator('.skin-picker select').selectOption('original');
+  // Original is the only shell, so there is nothing to select — just wait for it.
   await page.locator('.original-root').waitFor({ state: 'visible' });
 
   // Open the Driver Editor the way a user does. Services are constructed by the composition
