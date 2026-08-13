@@ -176,11 +176,11 @@ export function ventMaxReachableFb(P: UiParams, box?: string): number | null {
 export function ventTargetUnreachable(P: UiParams, box?: string): boolean {
   if (!P.entered.Fb || P.entered.ventL) return false;
   if (!ventDerivable(P, 'ventL', box) || !(P.Fb > 0)) return false;
-  const Sp = ventCrossArea(P);
-  const V = ventVolume(P, box);
-  if (!(V > 0) || !(Sp > 0)) return false;
+  if (ventMaxReachableFb(P, box) == null) return false;   // no volume or area — nothing to judge
   if (!(P.ventL > 0)) return true;
-  return Math.abs(tuningFromLength(V, P.ventL, Sp, P.endCorrection) - P.Fb) > 1e-6 * P.Fb;
+  const achieved = ventAchievedFb(P, box);
+  if (achieved == null) return false;
+  return Math.abs(achieved - P.Fb) > 1e-6 * P.Fb;
 }
 
 // ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------

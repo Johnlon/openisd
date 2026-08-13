@@ -120,6 +120,20 @@ manufacturer` for the DB's records; what changes is which field is authoritative
   - Scope note: this is a design/architecture task, not yet planned in detail — needs its own
     plan for the JS lib's package location, its CLI entry point, and what `rebuild_wdr.py`'s
     subprocess call looks like, before implementation starts.
+  - **The concrete cost of the two implementations, measured 2026-08-13 (human direction: this is
+    the reason `winisd_tools` must call the TS implementation).** 245 of 1622 library `.wdr` files
+    carry `Gloss = 0` despite holding the inputs to derive it. The ADT reads the carried `Gloss=`
+    line as ENTERED and backfills `0` when the key is absent, so a stale zero blocks the
+    derivation. It cannot simply leave the carried set — WinISD legitimately marks `Gloss` as `E`
+    in 4 oracle files — and the principled fix, honouring `ParState` slot 37, breaks an
+    oracle-backed round-trip test. `SPLmaxLF` and `Mcost` are unaffected: neither is a carried key.
+    The Python writer is what put those zeros in the records, so the fix belongs with the export
+    re-architecture, not in a patch to the reader.
+  - **Two dependent tasks, both blocked on this landing:** the record regeneration that clears
+    those 245 stale zeros (do not run it twice — fold it into this change), and the
+    re-architecture of `.wdr` export in `winisd_tools` so the Python side owns no mapping of its
+    own. `manufacturer`'s definition string is a second instance of the same shape: a value the
+    Python side serialises into all 1912 records, wrong, and only fixable by regenerating.
 
 - [ ] **Bookmarkable URL — UI state must live in the URL (reported broken).** The URL should be bookmarkable so that reopening it restores the full UI state (driver, box type, params, graph selection, comparisons). User reports this does **not** work today. Note the contradiction to resolve first: two "Shipped ✓" / Storage entries below already mark **URL-encoded designs** as implemented **and** `[ui]`-tested (`[x] [x] … no server needed [ui]`). So before building anything, **reproduce**: does the URL update as UI state changes, and does pasting that URL into a fresh tab restore that state? If it regressed, the existing `[ui]` test is not catching it — fix the test too. If it never covered bookmarkability (e.g. URL only updates on an explicit "share" action, not live as state changes), that gap is the actual feature. Distinguish "shareable link on demand" from "the address bar always reflects current state so a browser bookmark just works." The user wants the latter.
 

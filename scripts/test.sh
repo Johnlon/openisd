@@ -24,8 +24,36 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# ── npm eats leading flags, so "no arguments" can be a LIE ───────────────────────────────────
+# `npm test --workers=1` never reaches this script as an argument: npm claims every leading
+# `--flag` as its own config and turns it into `npm_config_workers=1` in the environment. The
+# script would see $# = 0 and launch the FULL browser suite — the precise accident this file
+# exists to prevent, and one that costs a whole Playwright run on a box where concurrent suites
+# manufacture false failures. The swallowed flag is still visible in the environment, so look
+# for the ones that can only have come from a test runner and refuse.
+SWALLOWED=""
+for f in workers headed ui debug grep grep_invert update_snapshots last_failed retries trace \
+         project reporter coverage watch shard max_failures timeout; do
+  var="npm_config_$f"
+  if [ -n "${!var:-}" ]; then SWALLOWED="$SWALLOWED --${f//_/-}=${!var}"; fi
+done
+
 # ── No arguments: the full gate, both suites, unit first (fail fast on the cheap one) ────────
 if [ "$#" -eq 0 ]; then
+  if [ -n "$SWALLOWED" ]; then
+    cat >&2 <<EOF
+ERROR: npm swallowed your flags, so this script received NO arguments:$SWALLOWED
+
+Running the full suite is not a safe reading of that. Put the flags after a bare \`--\`, which
+is what stops npm claiming them:
+
+  npm test -- packages/ui/test/ui/visual.browser.spec.ts --workers=1
+  npm test -- packages/engine/test/sealed-fc.test.ts
+
+Or call the runner directly. \`npm test\` with genuinely no arguments is the full gate.
+EOF
+    exit 1
+  fi
   npx vitest run
   bash "$SCRIPT_DIR/test-browser.sh"
   exit 0

@@ -1,5 +1,5 @@
 prefix: QO
-next: 34
+next: 35
 questions:
 - id: QO1
   title: UI TODO List
@@ -2885,6 +2885,62 @@ questions:
       README.md item 4, GAPS.md lines 227/374, WINE_HARNESS.md (new section: the two-edit sequence
       needed to get computed driver fields into a saved .wpr, plus the editor Save/dirty/rect facts
       this cost time to find).
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 IMPLEMENTED AND VERIFIED. Full evidence, recorded at the human's request.
+
+      WHERE: solveConsistencyGroup's full pass, packages/engine/src/driver.ts:237-268, same fill-if-absent
+      setVal semantics as the rest of the group.
+          loss     = G_STANDARD / ((2*pi*Fs)^2 * Xmax)        G_STANDARD = 9.80665, added to constants.ts
+          SPLmaxLF = 20*log10( rho * (2*pi*20)^2 * Vd / (2*pi*sqrt(2)) / P0 )
+          Mcost    = Rme * (1 + Xmax / min(Hc, Hg))           consumes the existing Rme route precedence
+      P0 is REUSED -- no second SPL constant was introduced.
+
+      ACCURACY: all three reproduce WinISD's stored values to <= 2.7e-15 relative across 13 oracle rows.
+
+      SPLmaxLF TRACKS THE AIR MODEL, NOT A LITERAL -- this was tested, not assumed. rho comes from
+      airOf(r): the record's own roo, else the engine RHO. The same driver at three different roo values
+      reproduces WinISD to < 5.3e-16 relative:
+          roo 0.9                 -> 81.4286971830493
+          roo 1.20095217714682    -> 83.9343612703015
+          roo 1.5                 -> 85.8656721753764
+      So it demonstrably follows the air properties rather than a hardcoded 1.20095.
+
+      BOTH RIVAL FORMS STAY REFUTED against the implementation: the Gloss rival is 4x out, the Mcost rival
+      40% out.
+
+      GLOSS UNIT BOUNDARY -- the .wdr carries the FRACTION, the panel shows PERCENT, and the x100 lives in
+      exactly ONE place: :scale="100" on the Gloss NumInput in DriverEditorModal.vue, the same mechanism
+      eta0 uses. Solver, parser and model all hold the fraction. Four tests pin it at
+      driver-editor-units.test.ts:169 -- the file carries the fraction and the parser does not scale it;
+      WinISD's own pair (file 0.0231721405215982 -> pane "2.3172") at the registry's 4 dp; typing the
+      percent back stores the fraction; an in-app driver gets a Gloss from the solver. Independently
+      corroborated by docs/design/WDR_SCHEMA.md:185 (WinISD's help file).
+
+      GLOSS LABEL WAS ALSO WRONG: it read "Cone material loss factor". Corrected to what the quantity
+      actually is.
+
+      MCOST ZERO-DIVISOR GUARDED: Hc or Hg missing or zero leaves Mcost ABSENT -- not 0, not Infinity.
+      Tested over {0,0}, {0.012,0}, {0,0.006}, {}. Reduces to Rme exactly at Xmax=0.
+
+      FILL-IF-ABSENT IS LOAD-BEARING: WinISD marks Gloss `E` in 4 corpus files, so these cannot be
+      unconditional overwrites.
+
+      GOLDENS: none moved. golden.test.ts 12/12 exact, no regeneration. The three fields live in the FULL
+      pass only; charts and sweeps go through deriveDriver's classic path.
+
+      GATES: lint 0 errors (25 pre-existing Playwright-plugin warnings in untouched files); typecheck clean
+      across engine/winisd/ui; vitest 131/131 on the affected set (advanced-figures 25, driver 28,
+      consistency 11, golden 12, wdr-carried-keys 34, driver-editor-units 21).
+
+      TWO ITEMS LEFT FOR A RULING, carried into the OpenISD-model migration:
+        1. 245 of 1622 library .wdr files still show Gloss = 0 despite Fs > 0 and Xmax > 0. The ADT imports
+           the carried `Gloss=` line as ENTERED and backfills `Gloss=0` when the key is missing, so a stale
+           zero blocks the derivation. It cannot simply be dropped from the carried set (Gloss is
+           legitimately E in 4 files), and the principled fix -- honour ParState slot 37 -- breaks an
+           oracle-backed round-trip test. SPLmaxLF and Mcost are unaffected: neither is a carried key.
+        2. packages/ui/src/logic/fields/fieldRegistry.ts still describes all three as "formula has NOT been
+           recovered".
 - id: QO33
   title: Repo-level skill symlinks into _agent_files are allowed; divergent copies remain banned
   status: open
@@ -3032,3 +3088,82 @@ questions:
           `test-driven-development` - and each listing costs context in every session, which
           _agent_files/README.md warns against. Retiring the `tdd` name needs that AGENTS.md line
           changed in the same edit.
+- id: QO34
+  title: 'Brand-primary scraper fix: verified or not, and the fate of the record-regeneration request'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      HUMAN RULING (verbatim): "that regen request is ancient delete it as long as the code fix has been made"
+
+      VERDICT: PARTIALLY implemented -> NOTHING DELETED from BACKLOG.md. The ruling was conditional
+      on the code fix being made; one production site of the fix is still outstanding.
+
+      1. DB directory path derives from BRAND -- IMPLEMENTED.
+         - winisd_tools/scrapers/scrapers/lib/plugins.py:268  `return datasheets_root() / self.brand_dir_slug`
+         - winisd_tools/scrapers/scrapers/framework/framework.py:1981  `record_dir = roots / plugin.brand_dir_slug`
+         - Unit gate binding that slug to the BRAND field: scrapers/tests/test_architecture.py:65-66
+           `expected = _ld_name_2_slug(plugin.brand)` / `assert plugin.brand_dir_slug == expected`
+         - Live-db gate: scrapers/tests/test_db_naming_consistency.py:126-130 compares the record dir
+           against `_scraped(data, "brand")`; its docstring at :110 says "Brand, not manufacturer".
+         - winisd_tools/scrapers/scrapers/lib/workspace.py:41-42 documents the LOCKED path as
+           `<brand-code>/<driver-sku>/` -- "BRAND, not manufacturer".
+
+      2. Record display/model name built from `<brand> <model>` -- NOT in winisd_tools; live in openisd.
+         - The record carries NO name field. On-disk openisd.yml top-level keys are
+           uuid/quality/manufacturer/brand/model/sku/... (winisd_drivers/db/datasheets/grs/8fr-8/openisd.yml).
+         - winisd_tools/scrapers/scrapers/lib/spec_emit.py:74 `display_name(brand, series, model)` has
+           ZERO call sites -- the only reference is a dead import at plugins/dayton_audio/emit.py:29.
+         - winisd_tools/scrapers/scrapers/lib/model_openisd.py:70-72 `save()` builds a stem from
+           `f"{self.brand.value} {self.model.value}"` and is likewise NEVER CALLED; records are written
+           under the fixed filename `openisd.yml` (rebuild_wdr.py:113, :152).
+         - Brand-primary naming IS live, but downstream in openisd:
+           scripts/bundle-drivers.mjs:143-145 `const lead = brand || manufacturer` and
+           packages/ui/src/logic/store.ts:668-669 `driverShort()`, which demotes manufacturer to a
+           trailing `(...)` shown only when it differs from brand.
+         Consequence: the winisd_tools CHECK at TODO.md:133-134 ("a regenerated record ... carries the
+         brand in its name") is unsatisfiable as written -- there is no name in a record to check.
+
+      3. manufacturer demoted -- NOT DONE. One LIVE production site still declares manufacturer
+         authoritative for the folder, and it is EMBEDDED IN EVERY EMITTED RECORD:
+         - winisd_tools/scrapers/scrapers/lib/record_registries.py:373
+             "manufacturer": "the company that makes the driver; also decides the record's folder",
+           That exact string appears in the emitted record at
+           winisd_drivers/db/datasheets/grs/8fr-8/openisd.yml:21 as the manufacturer field's `definition`.
+           This is precisely the site winisd_tools/TODO.md:123 names as needing to change.
+         - Stale prose still asserting manufacturer authority for the path:
+           scrapers/tests/scanspeak/test_out_dir_naming.py:34-42 (a LIVE gate asserting
+           `outbox_dir.name == slug("Scan-Speak")`, labelled slug(manufacturer) -- it passes only because
+           brand == manufacturer), test_db_naming_consistency.py:5, test_architecture.py:69,
+           DESIGN.md:138 and :147, DOCUMENTATION.md:50.
+
+      RE-MEASURED COUNTS (2026-08-13), over openisd/packages/ui/src/drivers-bundle.json:
+         total bundled records: 1912   (was 1526 on 2026-08-04 -- the DB has grown)
+         brand != manufacturer (both present): 0
+         manufacturer present, brand absent:   0
+         brand present, manufacturer absent:   0   (neither present: 0)
+      Command:
+         cd /home/john/work/winisd/openisd && python3 -c "
+         import json
+         d=json.load(open('packages/ui/src/drivers-bundle.json'))
+         files=d['sources'][0]['files']
+         diff=[f for f in files if (f['record']['inputs'].get('brand') or '').strip() and (f['record']['inputs'].get('manufacturer') or '').strip() and f['record']['inputs']['brand'].strip()!=f['record']['inputs']['manufacturer'].strip()]
+         nob=[f for f in files if (f['record']['inputs'].get('manufacturer') or '').strip() and not (f['record']['inputs'].get('brand') or '').strip()]
+         print(len(files), len(diff), len(nob))"
+
+      WHY THE REGENERATION REQUEST IS NOT YET MOOT: the outstanding fix (record_registries.py:373) is a
+      change to a string that is SERIALISED INTO ALL 1912 RECORDS. Regenerating today changes zero bytes;
+      regenerating after that one-line fix changes every record. So the regeneration request is coupled
+      to the one part of the code fix that has NOT been made -- deleting it now would drop the only note
+      that the records carry a stale definition.
+
+      ACTION TAKEN: openisd/BACKLOG.md UNCHANGED. The regeneration sentence at BACKLOG.md:81-83 and both
+      CROSS-REPO bullets at :75-83 are left in place. Recommended follow-up, in order:
+        (a) fix record_registries.py:373 so the definition names sku/brand as deciding the folder;
+        (b) then regenerate (regenerate-records skill) -- that is the change that needs it;
+        (c) then delete the regeneration sentence and the display-name bullet, and rewrite the
+            remaining path bullet as a statement of the model rather than a pending task.
+      LSP: unavailable this session (`ToolSearch("select:LSP")` -> "No matching deferred tools found");
+      all findings via `command grep` + Read, every cited line re-read before quoting.
