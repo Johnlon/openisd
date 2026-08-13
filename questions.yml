@@ -3662,6 +3662,52 @@ questions:
       (b) packages/ui/test/ui/architecture.test.ts = 2. Both are .vue files under packages/ui/src/ui
           importing @openisd/engine / @openisd/winisd — the layering violations Steps 9-11 own. That
           package is owned by another live agent and I did not touch it.
+  - at: '2026-08-13'
+    text: |-
+      PARITY ORACLE: 341 failed/122 passed -> 159 failed/304 passed of 463. No tolerance loosened, no
+      golden regenerated.
+
+      BUCKETS BY CAUSE (before -> after):
+      1. 9 of 16 goldens never captured (261 rows + 2 guard rows). Drove real WinISD 0.7.0.0 under wine
+         via winisd_research/scripts/qo8_parity_generator.py; captured 8. -> 29 rows remain, all
+         solve-from-mms-cms.
+      2. Truncated air constants RHO=1.20095 / C=343.68 vs WinISD's 1.20095217714682 / 343.684120962153
+         (82 rows: c, roo, air, no [1/c^3, exactly 3x], SPLmaxLF [20log10(rho ratio)], and
+         solve-from-q-pair's Cms/Mms/Rms/BL/gamma/Rme/Mpow via rho*c^2). NOT FIXED - permission gate.
+      3. USPL: WinISD is SPL + 10log10(2.83^2/Re), openisd 8/Re (15 rows). NOT FIXED - permission gate.
+      4. SPLmax: WinISD is SPL + 10log10(Pe) - 3 dB exactly (15 rows). NOT FIXED - permission gate.
+         3 and 4 also read SPLref (eta0-derived) where WinISD reads the STATED SPL.
+      5. ParState: openisd emits N for the 34 slots it does not model (15 rows). Step 8's WinISDDriver.
+      6. Gloss=0 (8 rows), SPL discarded (8 rows), Mcost vacuous (14 rows), divergence guard (1). FIXED.
+      7. Mpow: WinISD is Bl/sqrt(Re), openisd sqrt(Rme) - separated for the first time by the new
+         inconsistent-fs golden (1 row). NOT FIXED - permission gate.
+
+      FIXED (bugs recorded first, TDD, new test packages/winisd/test/wdr-import-fidelity.test.ts):
+      - bugs/BUG_20260813_fromwdr-fabricates-entered-defaults-for-absent-wdr-keys-and-pins-gloss-to-zero.md
+        fromWdr's export backfill fed fabricated defaults into the ENTERED bag, pinning Gloss=0 as E.
+      - bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md
+        ParState slot 3 (SPL) was not modelled, so a stated 90 dB became a computed 87.65 dB.
+      - bugs/BUG_20260813_the-parity-suite-rejects-its-own-wildcard-divergence-and-compares-fields-winisd-never-calculated.md
+        TEST defects: the guard rejected scenario "*"; and Mcost was compared against a golden 0 that
+        ParState slot 36 marks E (echoed default, Hc=Hg=0). gap-geometry is the control - slot 36 C,
+        Mcost=13.18359375, openisd reproduces it exactly and that row is compared and green.
+
+      BLOCKED ON YOU - AGENTS.md "Calculation logic - permission gate" forbids me changing formulas or
+      physical constants on a WinISD discrepancy. Each has an exact one-line proposed change and its
+      evidence: BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md
+      (also names the engine-golden rebaseline it forces, vs migration-plan DoD item 11),
+      BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md,
+      BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md. Authorising all three plus
+      the constants clears 113 of the 159 remaining rows.
+
+      LEFT RED DELIBERATELY: solve-from-mms-cms has no golden - WinISD hangs on load, 6 attempts across
+      3 runs, while its forward twin solve-from-q-pair captured in 15 s. It is the only scenario with Fs
+      absent. bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md
+
+      GATES: parity 304/463 pass. npm run typecheck 0 errors. npm run lint 0 errors (25 warnings).
+      npm run test:unit 915 passed / 161 failed - 159 parity, 2 in packages/ui/test/ui/architecture.test.ts
+      (the pre-existing .vue value-import offences the migration plan assigns to Steps 10/11; I am
+      forbidden to edit packages/ui/**).
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
@@ -3923,6 +3969,90 @@ questions:
       architecture.test.ts (above) and packages/winisd/test/winisd-parity.test.ts, which imports only
       @openisd/engine and packages/winisd/src/driver.js, so no edge reaches it from packages/ui; it is
       the live OpenISDDriver/AD-8 migration my brief fenced off.
+
+      NOTE: I did not commit. A concurrent session swept this session's in-flight tree into commits
+      cb42b95 and bbaa383 under its own subjects.
+  - at: '2026-08-13'
+    text: |-
+      Layering implemented; the 5 briefed assertions are GREEN (16 -> 0 violations).
+
+      BEFORE (5 assertions, 16 violations) -> AFTER:
+        service imports logic/store           3 -> 0
+        service imports sibling service       2 -> 0
+        ui skips logic into a service        11 -> 0
+        service exports a pre-built ref()     1 -> 0
+        service missing create*() factory     6 -> 0
+
+      Slices landed:
+        1. logging/flash.ts -> createLogging(); no module-level ref. Constructed at the root.
+        2. db/kv.ts: KeyValueStore (get/set/remove) + createLocalStorageStore/createMemoryStore.
+           myDrivers -> createMyDriverRepo(kv); new db/prefs.ts -> createPrefsStore(kv) (absorbs the
+           deleted logic/favorites.ts); prLibrary -> createPrRepo(kv, bundle).
+        3. db/useDriverLibrary.ts (812 lines) SPLIT by responsibility:
+             db/driverRepo.ts       — createDriverRepo({sources, bundle}); index/search/lookup,
+                                      classifyTypes, matchesCriteria, previewOf. Arguments in, data out.
+             logic/driverLibrary.ts — createDriverLibrary(deps); every ref/computed, the pool, the
+                                      filters, choose/clone/load-from-disk.
+           db/useDriverSelection.ts -> logic/driverSelection.ts as createDriverSelection({myDriverRepo}).
+           Its module-level `subject`/`editorDraft` lets are now closure state inside the factory.
+           driverShort moved out of logic/store.ts into src/driverName.ts (pure, so the repo can name
+           a bundled row without importing the store).
+        4. diagnostics/selftest.ts -> createDiagnostics({report}); flash arrives as an argument.
+        5. Composition root = packages/ui/src/main.ts (verified: index.html loads /src/main.ts). It is
+           the only place that constructs; it builds every service and the logic layer and installs the
+           facade via app.provide (logic/app.ts: AppLogic, APP_LOGIC key, provideApp, useApp).
+           8 components now inject instead of importing: App, Flash, ExportMenu, PRBrowser, PREditModal,
+           DriverBrowserWinisd, DriverEditorModal, OriginalShell. useDesignIO -> createDesignIO({logging}),
+           its module-level fileHandle now closure state.
+
+      STILL RED — two assertions a concurrent session added to the gate AFTER this brief was written
+      (commit bbaa383), about ui -> @openisd/* rather than ui -> service:
+        'the presentation layer depends on logic and nothing below it'  10 offences
+        'a component imports no value from the domain'                   7 offences
+
+      I believe these two contradict each other as written, and I have NOT edited the gate:
+        - Assertion 2's own docstring rules that `import type` "erases at compile time: it creates no
+          runtime edge, so it cannot make a component depend on the engine's behaviour", and its regex
+          deliberately skips type-only imports.
+        - Assertion 1 uses the generic importsOf(), which does NOT skip them, so it flags
+          OgFilters.vue `import type { Filter, FilterType }`, OgNewProject.vue and OriginalShell.vue
+          `import type { BoxType }` as violations.
+        A type-only import cannot be both "not a dependency" and "skipping a layer". One of the two
+        needs a ruling before the gate can go green.
+
+      The substantive half (7 VALUE imports: ebp/RHO/C/airFor/driveVoltage/prVas/... and DriverModel in
+      DriverEditorModal) is real work I did not attempt: it means moving each component computed into
+      logic, mostly in OriginalShell.vue and DriverEditorModal.vue on the Original skin, and it needs
+      its own TDD cycle per component rather than riding on this one.
+
+      ALSO NOT DONE (item 5 of the brief): `state` is still an importable module-level singleton in
+      logic/store.ts. The gate does not test it (the IoC assertions scan db/diagnostics/logging only),
+      and converting it reaches every .vue file and every logic module. Services and the composition
+      root no longer touch it; only logic/ and ui/ still import it.
+
+      SEPARATE PRE-EXISTING BREAKAGE FOUND AND PARTLY FIXED — commit a20b349 deleted the Classic/Modern
+      shells and left browser specs driving DOM that no longer exists. Proven by `git log -S`: `.nm`,
+      `.skin-picker`, `Browse / Select`, `#side` and `#boxtype` all disappear in a20b349.
+        - FIXED packages/ui/test/db/driver-selection.browser.spec.ts — all 8 tests were timing out at
+          60s. Picker now opened via the toolbar `.tb-btn[title^="Manage Drivers"]`, the project's
+          driver name read off the Original shell's `.driver-id-row` Brand/Model pair (selecting the
+          Driver tab only when it is not already active, because the picker overlay sits over it after
+          an edit), and the dead skin-picker line dropped.
+        - FIXED packages/ui/test/ui/record-animation.browser.spec.ts — dropped its `.skin-picker` line.
+        - NOT FIXED packages/ui/test/ui/app.browser.spec.ts — still drives `#side` and `#boxtype`,
+          which a20b349 deleted. Needs the same treatment; it is not touched by this layering work.
+        Four specs that reached into `/src/db/useDriverSelection.ts` at runtime to call
+        editProjectDriver() now click the Driver panel's Edit button instead — with services injected
+        there is no module-level instance to import, and the button is the honest seam.
+
+      GATES: architecture gate 6/8 (the 5 briefed ones green); typecheck clean; lint 0 errors,
+      25 pre-existing test-file warnings; test:unit 52/54 files pass — the 2 failures are
+      architecture.test.ts (above) and packages/winisd/test/winisd-parity.test.ts, which imports only
+      @openisd/engine and packages/winisd/src/driver.js, so no edge reaches it from packages/ui; it is
+      the live OpenISDDriver/AD-8 migration my brief fenced off.
+      BROWSER, --workers=1, the 7 specs touching anything I changed (driver-selection, my-drivers,
+      driver-favorites, driver-editor-solver, driver-editor-provenance, driver-provenance-inspector,
+      record-animation): 59/59 PASS, zero console errors, zero page errors, zero network errors.
 
       NOTE: I did not commit. A concurrent session swept this session's in-flight tree into commits
       cb42b95 and bbaa383 under its own subjects.

@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ebp, airFor, sealedFscWinisd, sourceLoadedQts } from '@openisd/engine';
 import { Driver } from '../src/driver.js';
+import { POS_TO_WDRKEY } from '../src/parstate.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixtures = join(here, 'fixtures', 'winisd-parity');
@@ -142,6 +143,29 @@ function findDivergence(scenario: string, field: string): KnownDivergence | unde
   return divergences.find(d => (d.scenario === scenario || d.scenario === '*') && d.field === field);
 }
 
+/**
+ * A golden's `[Driver]` block is NOT all WinISD's arithmetic. It also echoes the input back and
+ * writes 0 for a key the input omitted, and its own ParState says which is which: `C` is a value
+ * WinISD calculated, `E` a value it was given or defaulted to.
+ *
+ * So a field is one WinISD DECLINED to calculate when its slot reads `E` and the scenario never
+ * entered the key — WinISD had no answer and wrote its unset default. `Mcost` is the case:
+ * `Rme·(1 + Xmax/min(Hc,Hg))` has no value at `Hc = Hg = 0`, the harness (`lib/wdr.py`
+ * `write_wpr`) writes only the keys the scenario names, and every such golden marks slot 36 `E`
+ * beside `Mcost=0`. `gap-geometry` is the control: with `Hc = 12 mm, Hg = 6 mm` WinISD marks the
+ * slot `C` and writes `13.18359375`, which IS compared, and passes.
+ *
+ * The slot map is `packages/winisd/src/parstate.ts`, fixed by WinISD's own single-parameter
+ * probes in `drivers/sample/winisd/s-*.wdr` and pinned by `wdr-carried-keys.test.ts` — not by
+ * anything this suite computes.
+ */
+function winisdDeclined(scenario: Scenario, parState: string | undefined, key: string): boolean {
+  if (!parState) return false;
+  if (key in scenario.driver) return false;
+  const slot = POS_TO_WDRKEY.indexOf(key);
+  return slot >= 0 && parState[slot] === 'E';
+}
+
 function close(a: number, b: number): boolean {
   return Math.abs(a - b) <= Math.max(ABS_TOL, REL_TOL * Math.max(Math.abs(a), Math.abs(b)));
 }
@@ -195,7 +219,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
 
   it('every known divergence still names a scenario and a field that exist', () => {
     for (const d of divergences) {
-      assert.ok(scenarios.some(s => s.id === d.scenario), `divergence names unknown scenario ${d.scenario}`);
+      assert.ok(d.scenario === '*' || scenarios.some(s => s.id === d.scenario),
+        `divergence names unknown scenario ${d.scenario}`);
       assert.ok(d.cause.length > 20, `divergence ${d.scenario}/${d.field} states no mechanism`);
       assert.ok(d.reference.length > 0, `divergence ${d.scenario}/${d.field} cites nothing`);
     }
@@ -225,7 +250,10 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
 
           if (openisd === null) {
             // openisd leaves a field ABSENT where it has no route to it. That is a real
-            // answer, not a number, so it is only acceptable when recorded as such.
+            // answer, not a number, so it is only acceptable when WinISD had no route either
+            // (its ParState slot says the value was echoed, not calculated) or when the
+            // difference is recorded as deliberate.
+            if (winisdDeclined(s, golden.Driver?.ParState, key)) return;
             assert.ok(findDivergence(s.id, key),
               `${s.id}: openisd produced no ${key} at all, but WinISD wrote ${winisd}. ` +
               'Either openisd is missing a route or this belongs in divergences.json with its cause.');
