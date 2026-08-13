@@ -227,13 +227,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         const winisd = parseFloat(raw);
         const fs = drv.cell('Fs').value, qes = drv.cell('Qes').value;
         assert.ok(fs != null && qes != null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
-        const openisd = ebp({ Fs: fs, Qes: qes });
-        const known = findDivergence(s.id, 'EBP');
-        if (known) {
-          assert.ok(!close(winisd, openisd), `${s.id}: EBP divergence entry is stale — the two now agree`);
-          return;
-        }
-        assert.ok(close(winisd, openisd), `${s.id}: ${report('EBP', winisd, openisd)}`);
+        compare(s.id, 'EBP', winisd, ebp({ Fs: fs, Qes: qes }));
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
@@ -247,13 +241,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           ignoreHumidityAndPressure: true,
         });
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {
-          const winisd = parseFloat(golden.Driver[key]);
-          const known = findDivergence(s.id, `air.${key}`);
-          if (known) {
-            assert.ok(!close(winisd, got), `${s.id}: air.${key} divergence entry is stale`);
-            continue;
-          }
-          assert.ok(close(winisd, got), `${s.id}: ${report(`air.${key}`, winisd, got)}`);
+          compare(s.id, `air.${key}`, parseFloat(golden.Driver[key]), got);
         }
       });
 
@@ -273,12 +261,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).
             Qts: sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),
           });
-          const known = findDivergence(s.id, 'Box.Fr');
-          if (known) {
-            assert.ok(!close(winisd, openisd), `${s.id}: Box.Fr divergence entry is stale`);
-            return;
-          }
-          assert.ok(close(winisd, openisd), `${s.id}: ${report('Box.Fr', winisd, openisd)}`);
+          compare(s.id, 'Box.Fr', winisd, openisd);
         });
       }
 
