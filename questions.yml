@@ -2759,6 +2759,70 @@ questions:
       John-all-manu-populated.wdr, 49/49 characters (toys/bringup_parstate_in_wpr.py). Without it a
       CLI-loaded project marks EVERY field E, absent-and-zero ones included, so "unset" cannot be
       expressed and no mark means anything. Full write-up: winisd_research/SOLVER_GAPS.md 2.5/2.7.
+  - at: '2026-08-13'
+    text: |-
+      IMPLEMENTED 2026-08-13. The probe's rule is in the engine, the classic writer, and the docs; the
+      round-trip test no longer excludes slot 0.
+
+      THE FORMULA, exactly as probed:
+          Znom = 2 * round_half_to_even(0.75 * Re)
+      18/18 exact over runs/znom_state.jsonl (integer agreement, not a residual). Rounding pinned by the
+      three exact-.5 ties: Re=6 -> 8 (half-up refuted), Re=10 -> 16 (half-down refuted), Re=2 -> 4.
+
+      HOW THE DECIMAL-TEXT EVALUATION WAS HANDLED -- the point the ledger note warned about.
+      The engine receives Re as an IEEE double, not as the file's text, so "evaluate on the decimal
+      text" could not be taken literally. It did not need to be. Checked with exact rationals
+      (build/znom_check.py, Python Fractions over the exact decimal AND over the exact double):
+
+        route                                     16 swept rows
+        exact decimal text * 3/4                  16/16 correct
+        EXACT product of the parsed double * 3/4  16/16 correct   <- what is implemented
+        double-ROUNDED product (0.75 * Re)        14/16 -- fails BOTH near-ties
+
+      So the two readings never disagree; what breaks the naive version is the ROUNDING of the product,
+      not the parse. `0.75*Re` is `3*Re/4`, needing up to 55 mantissa bits against a double's 53, and on
+      Re=7.333333333333333 that rounds to exactly 5.5 (predicting 12 where WinISD wrote 10) and on
+      Re=3.3333333333333335 to exactly 2.5 (predicting 4 where WinISD wrote 6). Delphi's 80-bit Extended
+      never rounds there. `nominalImpedance` therefore carries the product as an unevaluated pair
+      hi + lo: Re/2 and Re/4 are each exact under binary scaling, and a two-sum recovers the residual
+      their addition discards. frac(hi) is a multiple of ulp(hi) while |lo| <= ulp(hi)/2, so lo can only
+      BREAK a genuine tie -- it can neither manufacture nor destroy one. That is Extended reproduced
+      exactly, not approximated.
+
+      WHERE IT LANDED
+        packages/engine/src/driver.ts   `nominalImpedance(Re)` + block 14 of solveConsistencyGroup's
+                                        full pass, placed after every block that can PRODUCE Re (6, 12)
+                                        because a CALCULATED Re feeds the rule (probe Z_re_unset). It
+                                        does NOT go through setVal: that refuses a non-positive result
+                                        and Re<2/3 yields a COMPUTED zero (Z_tie_re0.6 -> Znom=0 marked
+                                        C, distinct from a blank driver's unset 0/N).
+        packages/winisd/src/classic/wdr.ts  toWdr's `Znom = d.Z || d.Re` wrote Re itself (6 where WinISD
+                                        writes 8; 8 where it writes 12). Now `d.Z ?? nominalImpedance(d.Re)`.
+                                        parstate slot 0 is `E` entered / `C` calculated / `N` when there
+                                        is no Re to calculate from.
+
+      TESTS -- 11 new, expectations taken from the formula and the probe rows, never read back from code
+        packages/engine/test/znom.test.ts (9): all 16 swept rows; the three ties named individually;
+          both near-ties asserted AGAINST the naive double route so the exactness cannot be lost
+          silently; the computed zero; entered-Znom-contradicting-Re stays pinned; follows Re not the
+          damping factors (Z_incon_re8_qes27 -> 12, not 40); a calculated Re works as input
+          (Z_re_unset -> Re 6 -> Znom 8); no Re -> no Znom.
+        packages/winisd/test/classic/wdr.test.ts (2): Znom=8 from Re=5.6, and slot 0 C-vs-E.
+        packages/winisd/test/driver-roundtrip.test.ts: the slot-0 EXCLUSION IS GONE. All 49 characters
+          of John-all-manu-populated.wdr now round-trip -- the file that raised this question.
+
+      DOCS
+        docs/design/WDR_SCHEMA.md -- new relation row 23 (Znom, Re) and a new 4.2 stating the evidence,
+          the rounding mode, the exactness requirement, the four E/C/N cases, and the UNPROBED case
+          (Re entered with nothing else; both attempts died on the c000008e degenerate-driver crash).
+          3.2's "all user-entered" preamble and the Znom row corrected; the 8.4 probe table's slot-0 row
+          now states E/C/N.
+        docs/spec/SPEC_ENGINE.md 6(b) -- Znom added to the calculated set, with the warning that a .wdr
+          written with Znom copied from Re, or slot 0 marked N, disagrees with WinISD.
+
+      STILL STALE, NOT MINE TO EDIT: docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md:69 blocker B1 says
+      "nothing has been probed" and cites the slot-0 exclusion that no longer exists. Whoever owns the
+      migration plan should clear B1.
 - id: QO31
   title: 'Audit of the three never-loaded rule files: engine-source, engine-tests, ui-tests'
   status: open
@@ -3671,6 +3735,76 @@ questions:
       them.  A gate shaped like the existing ui/test/ui/driver-editor-units.test.ts, but pointed at the
       .wpr writer and the Original shell's unit-group bindings, would have caught F1 and F4
       mechanically.
+  - at: '2026-08-13'
+    text: |-
+      COMPLETION PASS 2026-08-13. The report was structurally complete against its brief -- all four
+      units per field, the oracle per row, findings ranked by blast radius, UNVERIFIED rows named with
+      their reason. What it was NOT was still true of the tree: nearly every citation had moved, and one
+      finding's subject no longer exists. Both are audit-discipline failures, so both were fixed rather
+      than left looking confirmed.
+
+      CITATIONS RE-RESOLVED -- all ~90 file:line references re-checked mechanically against the working
+      tree (build/check_audit_cites.py resolves each and prints the line it actually lands on).
+        DriverEditorModal.vue          uniformly +2 (cellVal('Qes') 478 -> 480 ... cellVal('loss') 711 -> 713)
+        OriginalShell.vue              non-uniform: Rs 1418->1423, advPressure 1403->1434, prSd 1342->1353,
+                                       prXmax 1345->1356, prMadd 1357->1362, prNum 1330->1361,
+                                       ventCrossArea 1291->1316, Ql/Qa/Qp 1450-1452->1481-1483, and more
+        fieldRegistry.ts               endCorrection 74-78 -> 126-130; ventCrossArea 133-137 -> 132-136;
+                                       fLe 398 -> 397; no 404 -> 403; listen* 210-218 -> 209-217
+        store.ts                       P_DEFAULTS 27-58 -> 26-57 and each row within it
+        engine/src/driver.ts           the whole advanced-figures block moved when the Xmax guard and
+                                       Znom landed: USPL 199->242, Rme 219->262, Mpow 228->271,
+                                       gamma 230->273, SPLmax 235->278, Gloss 246->289,
+                                       SPLmaxLF 253-255->296-298, Mcost 266-267->309-310
+        formulas.ts 15->16, useDesignIO.ts 139-140->151, wpr.ts/wprMapping.ts/parstate.ts unchanged
+      Two citations resolved to NO FILE, which is the next item.
+
+      COUNTS, corrected
+        117 fields swept (56 .wdr + 27 .wpr + 42 store/panel/chart/record) -- one row added
+          3 LIVE MISMATCHES touching 15 fields   F1 .wpr PR Vas in litres into an m3 field (1000x);
+                                                 F2 11 editor edits discarded on .wdr save;
+                                                 F3 three .wpr project values written as literals
+          5 INERT/LATENT traps  (was 6)          F4, F5, the .wpr boilerplate, Dia, DateModified
+          2 presentation-only divergences        F7 15 fields at wrong dp; F8 6 stale registry strings
+          1 VERIFIED NEGATIVE (new)              F6
+          4 UNVERIFIED rows, unchanged           dTVC unit, PR Me unit, Mcost's unit spelling,
+                                                 the record's fLe/KLe scale
+
+      F6 REVERSED, by test, not by opinion. It claimed a Modern-skin "define a new driver" dialog stored
+      dimensions in mm under the model's metre keys. That code is not in the tree:
+        command grep -rn 'dimOnly|outerMm|basketMm|magnetMm|vcDiaMm|magDepthMm' packages/{ui,winisd,engine}/src
+        -> ZERO hits
+      and `find packages/ui/src -name '*.vue'` lists 20 components, all under ui/, with
+      DriverEditorModal.vue the only driver-entry surface -- and it binds every dimension through
+      :scale=1000 / 1e6. F6 is now a VERIFIED NEGATIVE with that grep as its test. The F-numbers are
+      left alone: F7/F8/F9 are cited from the sweep tables and from this ledger.
+
+      ONE NEW FINDING, from the same sweep. packages/ui/src/ui/components/PREditModal.vue:22 recomputes
+      `prCms * prSd^2 * rho * c^2 * 1000` INLINE instead of calling prVas(). It is display-only (the
+      modal shows litres under an `L` label, correctly), so it is a duplicated formula rather than a
+      second instance of F1 -- but it will diverge the instant F1 is fixed in formulas.ts alone. Folded
+      into F6's section and into 8's step 1.
+
+      TOP THREE BY BLAST RADIUS -- unchanged, and all three still reproduce:
+        F1 (severest, corrupts a file WinISD reads) .wpr [PassiveRadiator].Vas is LITRES in a
+           cubic-metre field. formulas.ts:16 prVas() ends `* 1000`; wprMapping.ts:101 passes it
+           straight to wpr.ts:197. Oracle sample_project_Epique15_-_pr.wpr:151 `Vas=0.0048` renders as
+           `4.80 l` in WinISD's own PR pane, and every other key in that section is SI. The default
+           design exports Vas=20.074 where WinISD needs 0.020074. Untested because buildWprInput has no
+           test at all; wpr.test.ts:130 hand-feeds `Vas: 0.0048` and proves only the serialiser.
+        F2 driver-editor edits to 11 fields are silently discarded on .wdr save -- Vd Dd no SPL USPL
+           SPLmax SPLmaxLF Rme gamma Mpow Mcost. Dd bites hardest: it is a real geometry INPUT to
+           WinISD's solver, and #buildParState preserves the source's `E` mark over the replaced number.
+        F3 .wpr writes [SignalSource].Rg=0.1, [Box].alfaVC=0.0039 and [Box].dTVC=0 as literals, so
+           state.P.Rs / alfaVC / vcTempRise never reach the file. Units agree on both sides; only the
+           wiring is missing.
+
+      CAVEAT RECORDED IN 7: packages/ui/src is being restructured, so a packages/ui/... line is the
+      perishable half of the evidence. Every row quotes a durable locator beside it -- a `field="..."`
+      attribute, a `cellVal('...')` call, a registry `id:` -- and that is what to grep. Engine, winisd
+      and the .wpr/.wdr writer citations are stable.
+
+      STILL NO SOURCE FILE CHANGED BY THIS AUDIT.
 - id: QO38
   title: 'Layering ruling: ui depends on logic; logic consumes services (driver_db, browser stores, file
     io, diagnostics)'

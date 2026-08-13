@@ -303,6 +303,12 @@ export class Driver {
       raw[key] = val;
     }
 
+    // The keys the FILE actually stated. The backfill below adds more to `order`/`raw` so the
+    // export emits every key WinISD expects, and after it runs presence in `raw` no longer
+    // distinguishes "the file said this" from "we invented this for export". Only a key in
+    // this set may become an entered (E) value.
+    const fromFile = new Set(order);
+
     // Ensure the keys a genuine WinISD save always carries exist in order and raw, so they
     // are serialized on export even when the source file omitted them. Every key here is
     // one WinISD writes; the default is the value WinISD writes when nothing is set
@@ -339,6 +345,7 @@ export class Driver {
     // the entered bag so raw() exposes it uniformly, whether the Driver came from a WDR
     // or a plain DriverRaw. This does not touch toWdr (which echoes #wdrRaw) or ParState.
     for (const [wdrKey, field] of WDR_META) {
+      if (!fromFile.has(wdrKey)) continue;   // a backfilled default is not a stated value
       const v = raw[wdrKey];
       if (v == null || v === '') continue;
       if (WDR_META_NUMERIC.has(field)) {
