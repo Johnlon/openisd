@@ -1,5 +1,5 @@
 prefix: QO
-next: 36
+next: 37
 questions:
 - id: QO1
   title: UI TODO List
@@ -3226,3 +3226,38 @@ questions:
   status: open
   raised: '2026-08-13'
   body: ''
+- id: QO36
+  title: 'OpenISD model migration: readiness state and outstanding checks'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      DOC: docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md (indexed in AGENTS.md "Before starting work").
+
+      1. AD-8 is UNSTARTED in the app: grep for OpenISDRecord|SpecEntry|SpecSection|ScrapedField|winningReading
+         across packages/ui + packages/engine returns 0 lines. The native types, YAML I/O, derive adapter and
+         openisdYamlToWdr() all exist and are tested (25 it() over 4 files) with ZERO live callers.
+         No `class OpenISDDriver` and no `class WinISDDriver` exist anywhere. AD-9 untouched: DriverRaw intact
+         at packages/engine/src/types.ts:43-102, 100 refs / 23 files.
+      2. FIVE BLOCKERS before Phase 0 can start: (B1) QO30 Znom ParState slot-0 probe, unrun, and
+         driver-roundtrip.test.ts excludes slot 0 pending it; (B2) WDR_SCHEMA.md Xmax route precedence STILL
+         self-contradictory - line 268 says row 20 wins, line 310 table says row 19; (B3) the manual-origin
+         read_precision/actual_reading write shape, plan says do not invent it; (B4) lock whether a non-manual
+         origin displays as E; (B5) the QO8 parity suite must land - it is the only mechanical WinISD oracle.
+      3. QO8 parity suite is IN FLIGHT right now (a sibling agent is running winisd-parity.test.ts, a file not
+         yet in the tree; fixtures/winisd-parity/scenarios.json untracked). The unit-boundary sweep has landed
+         NOTHING - zero hits repo-wide, nothing untracked. No suite was run here: two sibling vitest runs were
+         live in this tree, and concurrent suites manufacture false failures (QO10).
+      4. TOP RISKS: 48 tests across 8 files are pinned to the dying Driver class, and driver-roundtrip.test.ts
+         is the ONLY witness for ParState 1..48 against a genuine WinISD save; the coverage gate
+         (15.8/78.5/54.0/15.8) fails mechanically when driver.ts is deleted and must be re-baselined, not
+         lowered; three .wdr writers exist and the mini-racer bridge that would retire rebuild_wdr.py appears
+         in no Python file, so the migration adds a writer rather than removing one.
+      5. DIVERGENCES THE NEW MODEL MUST PRESERVE: numVC ParState slot stays C (WinISD pins E on a value nobody
+         typed) - note the citation driver.ts:432 in BACKLOG.md:485-486, SPEC_ENGINE.md:397 and QO28 is now
+         STALE, the autofill is at driver.ts:445; humidity/pressure are live and default-on in
+         engine/src/air.ts:104-140 with an explicit opt-in flag to WinISD's ignore behaviour, and the parity
+         suite must run with that flag ON or it reports a permanent ~0.07 dB divergence at 30 C; VCCon=2 for
+         series wiring must not replicate WinISD's save bug.

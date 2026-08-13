@@ -64,14 +64,20 @@ interface Scenario {
   signal: { Rg: number; P: number };
 }
 
-/** One field openisd is known to compute differently from WinISD, on purpose or pending a fix. */
+/**
+ * One field openisd is known to compute differently from WinISD, on purpose or pending a fix.
+ *
+ * A recorded divergence is not an exemption — it is a BOUND. The field must still differ (or
+ * the entry is stale and the test says so) and must not differ by MORE than `maxRelative`, so
+ * a known 1.8e-6 constant truncation cannot quietly grow into a 3 % formula error under cover
+ * of its own entry.
+ */
 interface KnownDivergence {
+  /** A scenario id, or `*` for a difference that is a property of the code rather than the case. */
   scenario: string;
   field: string;
-  /** WinISD's value, from the golden — repeated here so a stale entry is visible. */
-  winisd: number | string;
-  /** openisd's value at the time the entry was written. */
-  openisd: number | string;
+  /** Largest relative difference this cause can account for. Omitted for non-numeric fields (ParState slots). */
+  maxRelative?: number;
   /** Why they differ. A divergence with no mechanism named is an unexplained failure, not a known one. */
   cause: string;
   /** Where the decision or the open question lives. */
@@ -124,16 +130,41 @@ const DRIVER_FIELDS = [
 ] as const;
 
 function findDivergence(scenario: string, field: string): KnownDivergence | undefined {
-  return divergences.find(d => d.scenario === scenario && d.field === field);
+  return divergences.find(d => (d.scenario === scenario || d.scenario === '*') && d.field === field);
 }
 
 function close(a: number, b: number): boolean {
   return Math.abs(a - b) <= Math.max(ABS_TOL, REL_TOL * Math.max(Math.abs(a), Math.abs(b)));
 }
 
+function relative(winisd: number, openisd: number): number {
+  return winisd === 0 ? Math.abs(openisd) : Math.abs(openisd - winisd) / Math.abs(winisd);
+}
+
 function report(field: string, winisd: number, openisd: number): string {
-  const rel = winisd === 0 ? NaN : Math.abs(openisd - winisd) / Math.abs(winisd);
-  return `${field}: WinISD ${winisd} vs openisd ${openisd} (relative ${rel.toExponential(3)})`;
+  return `${field}: WinISD ${winisd} vs openisd ${openisd} `
+       + `(relative ${relative(winisd, openisd).toExponential(3)})`;
+}
+
+/**
+ * Compare one field. A field with no recorded divergence must AGREE; a field with one must
+ * still differ, and by no more than the cause can account for.
+ */
+function compare(scenarioId: string, field: string, winisd: number, openisd: number): void {
+  const known = findDivergence(scenarioId, field);
+  if (!known) {
+    assert.ok(close(winisd, openisd), `${scenarioId}: ${report(field, winisd, openisd)}`);
+    return;
+  }
+  assert.ok(!close(winisd, openisd),
+    `${scenarioId}: ${field} is recorded in divergences.json as differing (${known.cause}), but the ` +
+    `two now AGREE (${openisd}). The entry is stale — delete it, do not loosen the test.`);
+  assert.ok(known.maxRelative != null,
+    `${scenarioId}: the divergence entry for ${field} states no maxRelative, so it bounds nothing`);
+  const rel = relative(winisd, openisd);
+  assert.ok(rel <= known.maxRelative,
+    `${scenarioId}: ${report(field, winisd, openisd)} — recorded cause "${known.cause}" accounts for ` +
+    `at most ${known.maxRelative.toExponential(3)}. The difference has GROWN beyond its explanation.`);
 }
 
 describe('WinISD parity — field calculations against goldens WinISD itself wrote', () => {
@@ -177,24 +208,16 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           assert.ok(raw != null, `${s.id}: WinISD wrote no ${key} — the golden cannot answer for it`);
           const winisd = parseFloat(raw);
           const cell = drv.cell(FIELD_ALIASES[key] ?? key);
-          const known = findDivergence(s.id, key);
 
           if (cell.value == null || !Number.isFinite(cell.value)) {
             // openisd leaves a field ABSENT where it has no route to it. That is a real
             // answer, not a number, so it is only acceptable when recorded as such.
-            assert.ok(known, `${s.id}: openisd produced no ${key} at all, but WinISD wrote ${winisd}. ` +
+            assert.ok(findDivergence(s.id, key),
+              `${s.id}: openisd produced no ${key} at all, but WinISD wrote ${winisd}. ` +
               'Either openisd is missing a route or this belongs in divergences.json with its cause.');
             return;
           }
-          const openisd = cell.value;
-
-          if (known) {
-            assert.ok(!close(winisd, openisd),
-              `${s.id}: ${key} is recorded in divergences.json as differing (${known.cause}), but the two ` +
-              `now AGREE (${openisd}). The entry is stale — delete it, do not loosen the test.`);
-            return;
-          }
-          assert.ok(close(winisd, openisd), `${s.id}: ${report(key, winisd, openisd)}`);
+          compare(s.id, key, winisd, cell.value);
         });
       }
 
