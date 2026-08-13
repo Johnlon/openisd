@@ -1,5 +1,5 @@
 prefix: QO
-next: 35
+next: 36
 questions:
 - id: QO1
   title: UI TODO List
@@ -2838,6 +2838,59 @@ questions:
       (engine + winisd + ui). Unit suite 52 files / 591 tests, all pass. Browser specs touched, all at
       --workers=1: visual 4 passed; the 4 migrated local specs 38 passed; micka-crosscheck 2 passed.
       The full browser suite was NOT run (three agents live; rule against concurrent suites).
+  - at: '2026-08-13'
+    text: |-
+      D7 — `npm test` ignored its argument and ran BOTH FULL SUITES. FIXED. (Raised by the coordinator
+      mid-pass; same class as D1 — an npm script that does not do what its invocation says.)
+
+      DIAGNOSIS. package.json "test" was the literal string `npm run test:unit && bash
+      scripts/test-browser.sh`. npm appends a script's arguments to the END of that string, so
+      `npm test <path>` became `npm run test:unit && bash scripts/test-browser.sh <path>`:
+        - vitest NEVER saw the path and ran the whole 52-file / 591-test unit suite;
+        - the path was then handed to Playwright, which for a vitest file matches nothing.
+      So a request for ONE file ran everything, and then failed on top. scripts/test-browser.sh does
+      accept a path and always did (it forwards "$@" to playwright); the npm script was dropping it
+      before that point by placing it after the wrong runner. Breaches openisd/AGENTS.md:42
+      (verified: "Do not run the full suite when an isolated test is sufficient ... run only the
+      specific target test file").
+
+      FIX. New scripts/test.sh (with the mandatory Git-Bash/WSL guard), and "test": "bash
+      scripts/test.sh". The two suites take different runners, so one path cannot be forwarded to
+      both; the suffix routes it, using playwright.config.js's own testMatch convention:
+        no arguments            -> the full gate, vitest then browser (unchanged; `npm run ci` intact)
+        any arg *.browser.spec.ts -> exec scripts/test-browser.sh "$@"
+        any arg with / or *.test.{ts,js,mjs} -> exec npx vitest run "$@"
+        flags only, no target   -> ERROR naming both narrow invocations, exit 1
+      Silently widening a narrow request is gone: the no-target case is refused, never expanded.
+
+      SECOND HAZARD FOUND WHILE PROVING IT — and it is the dangerous one. `npm test --workers=1` does
+      NOT reach the script at all: npm claims every LEADING `--flag` as its own config and re-exports
+      it as an environment variable. Verified: `npm run env --workers=1 | grep npm_config_workers` ->
+      `npm_config_workers=1`. The script therefore saw $# = 0 and launched the FULL browser suite — I
+      triggered this myself while testing and had to kill the run and free port 4100. Since the
+      swallowed flag survives in the environment, scripts/test.sh now scans npm_config_{workers,
+      headed,ui,debug,grep,grep_invert,update_snapshots,last_failed,retries,trace,project,reporter,
+      coverage,watch,shard,max_failures,timeout} and, if any is set while $# = 0, refuses with
+      "npm swallowed your flags" and the `npm test -- <target> <flags>` form. Those names are
+      Playwright/vitest flags with no npm config of the same name, so a real npm option cannot trip it.
+
+      CORRECT INVOCATION FOR A SINGLE FILE, now (this is what every agent prompt asks for):
+        npm test packages/engine/test/sealed-fc.test.ts                          # vitest, one file
+        npm test -- packages/ui/test/ui/visual.browser.spec.ts --workers=1       # playwright, one spec
+      The bare `--` is REQUIRED whenever flags are passed, or npm eats them.
+
+      PROOF — test COUNTS for a single file through the new invocation:
+        npm test packages/engine/test/sealed-fc.test.ts
+            -> "Test Files 1 passed (1) / Tests 6 passed (6)". Six is that file's own count; the unit
+               suite is 52 files / 591 tests, and no browser suite ran at all.
+        npm test -- packages/ui/test/ui/visual.browser.spec.ts --workers=1
+            -> "Running 4 tests using 1 worker ... 4 passed (59.0s)". Four is that spec's own count;
+               no unit suite ran.
+        npm test --workers=1        -> ERROR "npm swallowed your flags", exit 1, nothing executed.
+        npm test -- --workers=1     -> ERROR "no test target in the arguments", exit 1, nothing executed.
+      Comment references to the npm scripts still hold: `npm run test:visual -- --update-snapshots`
+      still collects 4 tests through the new D1 zero-test guard (verified with --list).
+      Re-ran after the change: lint 0 errors (25 pre-existing warnings).
 - id: QO32
   title: 'Advanced-panel formula recovery: Gloss, SPLmaxLF, Mcost'
   status: open
@@ -3167,3 +3220,9 @@ questions:
             remaining path bullet as a statement of the model rather than a pending task.
       LSP: unavailable this session (`ToolSearch("select:LSP")` -> "No matching deferred tools found");
       all findings via `command grep` + Read, every cited line re-read before quoting.
+- id: QO35
+  title: Check whether modeled:false on SPLmaxLF/Mcost/Gloss is correct, or is suppressing their ParState
+    slots
+  status: open
+  raised: '2026-08-13'
+  body: ''
