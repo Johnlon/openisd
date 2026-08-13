@@ -59,6 +59,70 @@
       "goldenSha256": "28acfa2e8b5f5cf1d30780ea2c3d967f2bf8b2e6b273e09402e3b1e918d1a265",
       "seconds": 20.3,
       "at": "2026-08-13T18:27:23+0200"
+    },
+    {
+      "id": "env-rh-30",
+      "inputSha256": "e8bf7a0d7b8fe70b0c8c192dc89c1964eb7a69b69d21b54ba4a9934c25c5ae48",
+      "goldenSha256": "bfbaacd19757701871ab38db1637f8a1953312b6a2b0531c58091829f6ffa20e",
+      "seconds": 16.5,
+      "at": "2026-08-13T20:31:45+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-rh-90",
+      "inputSha256": "de3833a4ed0d6dae995876f0eab6355b610c10c238e69385247ba98b0a191094",
+      "goldenSha256": "bae33f1007c78572a80165dcd4e6d313d9110d613b023b3af268b9835c272d79",
+      "seconds": 17.8,
+      "at": "2026-08-13T20:32:03+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-t-303",
+      "inputSha256": "9abda1c8e80daad6cdfb393b4d7e964c74dbbfe17996a531a93f16adab424495",
+      "goldenSha256": "45ce56ec93d650dfa9ae778d072cf378ccf1342d5042719de95bd8d5667ea641",
+      "seconds": 18.4,
+      "at": "2026-08-13T20:32:22+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-p-95000",
+      "inputSha256": "a2f503dedca5fbd944d032b149238eb4ca26d088cb644ae359a137e11bb5c660",
+      "goldenSha256": "d7862d089d6ffaa785b935b9c9913905f34cbcfef49feb345b2748017f11c172",
+      "seconds": 16.6,
+      "at": "2026-08-13T20:32:38+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-p-105000",
+      "inputSha256": "acaf029a6ed0071bb6262b235c573d2d149393a1c1f6c1897e368dea6b6c489e",
+      "goldenSha256": "56376c5445ab1c4009559ce24a5a48e9bcbe8f6fddc6199cbb56cb56e659e86e",
+      "seconds": 16.0,
+      "at": "2026-08-13T20:32:54+0200",
+      "attempts": 1
+    },
+    {
+      "id": "solve-from-q-pair",
+      "inputSha256": "45f6648e7c19272f9a6da3d31ec7c1b7ba3d57a05098b04737085c71990eed26",
+      "goldenSha256": "afb42db203eaa7232a8a6c3dafd84e133b310529e2e9aa27d08dae10eaa98488",
+      "seconds": 15.4,
+      "at": "2026-08-13T20:33:10+0200",
+      "attempts": 1
+    },
+    {
+      "id": "gap-geometry",
+      "inputSha256": "851e8769b86ecaa4e1f6f8e64dee2552ce182da8b9ccc17951ec15051fd31b15",
+      "goldenSha256": "b68a704e4b6ea6330af5e17bf1268e285097c6c7e8d9826ef1c29719bb934f47",
+      "seconds": 22.6,
+      "at": "2026-08-13T20:35:35+0200",
+      "attempts": 1
+    },
+    {
+      "id": "inconsistent-fs",
+      "inputSha256": "f1069b9e7c2e77be10b49c6e70093c686541b4ac5ba8bd8fd8200bd584b716bf",
+      "goldenSha256": "265e94f0710494c4b801fabca2eff38ba81ab3da6d378c84657d380cfb29aec9",
+      "seconds": 23.3,
+      "at": "2026-08-13T20:35:58+0200",
+      "attempts": 1
     }
   ]
 }

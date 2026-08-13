@@ -85,6 +85,11 @@ export const MODELED_SLOTS: readonly ModeledSlot[] = [
   { pos: 0,  wdrKey: 'Znom', field: 'Z' },
   { pos: 1,  wdrKey: 'Fs',   field: 'Fs' },
   { pos: 2,  wdrKey: 'Pe',   field: 'Pe' },
+  // Reference sensitivity is STATED, never computed by WinISD: `s-spl.wdr` (SPL=123 typed,
+  // everything else 0) marks slot 3 E with every derivable slot N, and all 16 parity goldens
+  // echo the scenario's own SPL at slot 3 = E beside an INDEPENDENTLY calculated η₀ at slot
+  // 22 = C. Omitting it here let openisd overwrite a datasheet figure with its own number.
+  { pos: 3,  wdrKey: 'SPL',  field: 'SPL' },
   { pos: 4,  wdrKey: 'Re',   field: 'Re' },
   { pos: 5,  wdrKey: 'Le',   field: 'Le' },
   { pos: 8,  wdrKey: 'BL',   field: 'Bl' },

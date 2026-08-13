@@ -38,7 +38,11 @@ function openPicker(page: Page) {
  * change — the library row it came from is left alone.
  */
 async function projectDriverName(page: Page): Promise<string> {
-  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  // Select the tab only when it is not already showing. Reading this AFTER an edit happens
+  // with the picker still open behind the editor, and a click would be intercepted by that
+  // overlay — whereas reading a value never needs the element to be clickable.
+  const tab = page.locator('.project-nav li', { hasText: 'Driver' });
+  if (!(await tab.evaluate(el => el.classList.contains('active')))) await tab.click();
   const ids = page.locator('.driver-id-row input');
   return `${(await ids.nth(0).inputValue()).trim()} ${(await ids.nth(1).inputValue()).trim()}`.trim();
 }
