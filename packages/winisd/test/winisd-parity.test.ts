@@ -129,6 +129,15 @@ const DRIVER_FIELDS = [
   'gamma', 'Rme', 'Mpow', 'Mcost', 'Gloss', 'c', 'roo',
 ] as const;
 
+/**
+ * A cell's value when it is a finite NUMBER. `cell()` answers for metadata strings too, and
+ * `null` here is a real answer — openisd leaves a field absent where it has no route to it.
+ */
+function num(drv: Driver, field: string): number | null {
+  const v = drv.cell(field).value;
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
 function findDivergence(scenario: string, field: string): KnownDivergence | undefined {
   return divergences.find(d => (d.scenario === scenario || d.scenario === '*') && d.field === field);
 }
@@ -194,7 +203,12 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
 
   for (const s of scenarios) {
     describe(s.id, () => {
-      const golden = parseIni(readFileSync(join(goldensDir, `${s.id}.wpr`), 'utf8'));
+      // Read lazily: a missing golden must be reported by the guard test above, with the
+      // regenerate command, not as a collection crash that hides every other scenario.
+      const path = join(goldensDir, `${s.id}.wpr`);
+      const golden = existsSync(path)
+        ? parseIni(readFileSync(path, 'utf8'))
+        : ({} as Record<string, Record<string, string>>);
       const drv = Driver.fromWdr(scenarioWdr(s));
 
       it('WinISD accepted the scenario and wrote a driver block back', () => {

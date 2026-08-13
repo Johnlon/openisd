@@ -1,5 +1,5 @@
 prefix: QO
-next: 37
+next: 38
 questions:
 - id: QO1
   title: UI TODO List
@@ -2151,6 +2151,93 @@ questions:
       ParState 'C' so fromWdr does not import it and it is re-derived through the engine's rounded
       RHO/C, and -1.6e-5 dB because the file's `roo`/`c` are not imported at all (neither is a modeled
       slot nor a carried key). Same cause already moves `no`/`SPL`; pre-existing, engine-side exact.
+  - at: '2026-08-13'
+    text: |-
+      VENT CLAMP REMOVED (human: "Remove the floor, show the failure")
+      - packages/engine/src/alignments.ts ventLength(): Math.max(..., 0.005) deleted. It now returns
+        the RAW SIGNED root of L = c^2*Sp/(4*pi^2*Fb^2*V) - k*d. Chosen over NaN/null because the
+        negative IS the answer: it carries how far past impossible the target is, it round-trips
+        exactly through tuningFromLength(), and every consumer already guards on `> 0` (portPipeResonance,
+        ventAchievedFb) so it degrades to "not available" rather than to a bogus positive. NaN would
+        poison state.P.ventL through persistence and the .wpr writer and destroy that magnitude.
+      - Every volume+area has a real ceiling: the tuning at L = 0, because the end correction alone
+        supplies acoustic mass. Default geometry (30 L, 5 cm vent, k=0.732) ceiling = 73.15 Hz;
+        the test geometry (k=0.6) = 80.79 Hz.
+      - The existing detector DID break: a negative length made ventAchievedFb() return null, and
+        ventTargetUnreachable() then reported "reachable" — the exact opposite of the truth. Fixed the
+        detector, floor NOT restored: a non-positive solved length is now itself the failure. Added
+        ventMaxReachableFb() (= tuningFromLength(V, 0, Sp, k)) so the warning quotes the true ceiling
+        instead of the vanished "shortest buildable vent".
+      - Boundary tested both sides at engine and UI level: ceiling*0.999 -> L > 0, reachable;
+        ceiling*1.001 -> L < 0, unreachable; at the ceiling exactly L == 0.
+      - No caller renders a negative length as buildable: the Vents pane readout shows it negative and
+        in red (.calculated.impossible), alongside the existing red notice on Box tab and Vents pane.
+
+      Fpr LABEL + THE Fs/SYSTEM-TUNING DISCREPANCY (resolved with primary evidence, NOT assumed)
+      - They are DIFFERENT quantities, and we were NOT conflating them. Evidence, same WinISD project
+        "Epique15 - pr": docs/winisd/view_3_passive_radiator.png shows PR-screen Fs = 30.00 Hz with NO
+        box volume anywhere on that screen (and "Fs (with added mass)" = 30.00 at 0 g, confirming it is
+        the radiator's own free-air resonance); docs/winisd/view_2_box.png shows Box-screen Fh = 40.25 Hz
+        for the SAME project. Two numbers, two screens, two labels.
+      - So Fpr was applied ONLY to the radiator's own free-air resonance, which is what our PR pane
+        already showed under WinISD's colliding "Fs": OriginalShell.vue "Fs"->"Fpr" and
+        "Fs (with added mass):"->"Fpr (with added mass):"; fieldRegistry prFs/prFsMass labels + formulas
+        match. The SYSTEM tuning keeps Fh on the Box tab (prTuning(), matches WinISD's 40.25). No
+        identifier, store key, WDR key or function renamed.
+
+      prFh BINDING AUDIT
+      - The sibling's closed-box fix is still correct: sealed Enclosure pane shows Fsc bound to
+        boxResonance (OriginalShell.vue:1373), and the Box tab's Fsc branch is sealed-only.
+      - Original skin is clean: DUAL_CHAMBER = {bandpass4,bandpass6,abc}, so the `v-else` "Fh" branch at
+        OriginalShell.vue:1047 is reachable for `pr` ONLY -> prTuning(). Correct quantity, correct symbol.
+      - ONE REAL DEFECT FOUND, same class, NOT fixed: BoxPanel.vue:37-41/117-121 computes
+        d.Fs*sqrt(1+d.Vas/Vb) — the SEALED Fc from the DRIVER's Fs/Vas — and renders it under the label
+        "Fh" when state.box === 'pr'. That is the GAPS.md A3 defect still live, a third quantity under
+        the PR system tuning's symbol. Reported not fixed because BoxPanel is Modern/Classic only
+        (SidePanel.vue, ClassicShell.vue:341) and AGENTS.md "Priority Skin" bans touching those skins
+        for their own sake. Needs a ruling.
+
+      TARGET TUNING ON THE VENTS PANE (QO11)
+      - Added, editable, labelled "Target Tuning Freq", same state.P.Fb, same E/C state and same setter
+        as the Box tab. Two-way sync tested both directions. Vents hint updated ("editable in either
+        place"). WinISD has no tuning field on its Vents screen (docs/winisd/view_3_ported.png) — this
+        is deliberately ours.
+      - It sits in the THIRD column, not beside the config fields: the pane's height is set by its
+        tallest column and a 4th row there overflowed the panel by 19 px (caught by
+        bottom-scroll.browser.spec.ts, scrollHeight 204 vs clientHeight 185). In column 3 every vent
+        shape stays at three rows.
+
+      fieldRegistry Fb — WHAT THE PROVENANCE INSPECTOR ACTUALLY CONSUMES
+      - It consumes NOTHING from fieldRegistry. The Provenance/Equation Inspector is
+        EquationInspectorModal.vue <- getProvenanceInfo() <- PROVENANCE_MAP, a hardcoded map in
+        packages/ui/src/logic/provenance.ts:21-152 that never imports the registry and has no 'Fb' entry.
+      - The registry's ONLY consumed fields are precision (fieldRegistry.ts:468-473), min/max
+        (limits(), 476-480, and fieldById() at NumInput.vue:107-109), unit
+        (driver-editor-units.test.ts:251-253) and END_CORRECTION_OPTIONS. label, provenance, formula and
+        dependsOn are read by nothing.
+      - BEFORE/AFTER for the Inspector: IDENTICAL — no observable change. The correction is to the
+        documentation SSOT only.
+      - Fb is now: label 'Target Tuning Freq (Fb)', provenance 'entered', formula/dependsOn dropped
+        (they described the non-default direction and contradicted 'entered'; the role swap is in the
+        description instead).
+
+      OTHER SYMBOL-BORROWING REGISTRY ENTRIES FOUND (only the unambiguous ones fixed)
+      - FIXED: prFs 'Fs' and prFsMass 'Fs (with added mass)' -> Fpr, matching the human's ruling and the
+        panel.
+      - REPORTED, NOT FIXED (WinISD genuinely prints these on its PR screen, so not unambiguous):
+        prSd 'Sd', prXmax 'Xmax', prVas 'Vas', prQms 'Qms' all borrow the DRIVER's symbols while separate
+        driver entries with those exact ids/labels exist.
+      - REPORTED: prMadd and driverAddedMass carry the IDENTICAL label 'Added mass to cone' for two
+        different bodies.
+      - REPORTED: fieldRegistry.ts:48 cites a gate 'fieldRegistry.test.ts' that does not exist anywhere
+        in the tree, so the "min/max REQUIRED for every numeric field" rule is unenforced.
+
+      GATES: lint 0 errors / 25 pre-existing warnings; typecheck engine OK, ui OK; vitest 593 passed;
+      browser original-tuning-target + bottom-scroll = 7 passed, --workers=1.
+      NOT MINE, still red: packages/winisd/test/winisd-parity.test.ts — untracked (git status '??'),
+      a concurrent agent's half-landed work, fails on its own missing fixture
+      fixtures/winisd-parity/goldens/sealed-small.wpr and has string|number typing errors. It did not
+      exist during my earlier clean full typecheck/test run. Left untouched.
   items:
   - text: 'A3: bind the PR pane''s Fh to prTuning() — trivial, export path already computes it, screen
       and file currently disagree (72.25 vs 194.87 Hz)'
@@ -3141,6 +3228,81 @@ questions:
           `test-driven-development` - and each listing costs context in every session, which
           _agent_files/README.md warns against. Retiring the `tdd` name needs that AGENTS.md line
           changed in the same edit.
+  - at: '2026-08-13'
+    text: |-
+      WORKSPACE-ROOT COPIES + GATE EXTENSION + tdd NAMING. 2026-08-13.
+
+      .openspec-target IS NOT A PATH — IT IS A TOOL ID. The sibling's premise was wrong and the
+      "regeneration trap" as described does not exist. Consumer:
+      @fission-ai/openspec@1.8.0 dist/core/shared-skill-target.js:5-20 (readSharedSkillTarget) and
+      :144-155 (writeSharedSkillTarget, which writes `${toolId}\n`). Its ONLY job is to disambiguate
+      which of the two AI_TOOLS entries sharing skillsDir '.agents' owns that root — Codex
+      (value 'codex') vs "Shared .agents skills" (value 'agents'), dist/core/config.js:28 and :63.
+      Proved by running the module: readSharedSkillTarget('/home/john/work/winisd','.agents') ==
+      "agents"; isSharedSkillTargetActive(...,'agents') == True; (...,'codex') == False. A directory
+      path written there matches no tool.value, falls through to inferSharedSkillTarget (:41-58) and
+      resolves to 'agents' anyway — a no-op. MARKER LEFT UNCHANGED AT "agents", which is correct.
+
+      openspec CANNOT recreate the 24 copies — it FAILS LOUDLY instead. FileSystemUtils
+      .assertPathWithin (dist/utils/file-system.js:95-106) realpath-canonicalises the target and
+      rejects anything resolving outside the project. Proved twice: (a) direct call on the real tree
+      throws "Path is outside the allowed directory: openisd/.claude/skills/openspec-propose/SKILL.md";
+      (b) a sandbox replica of the symlink farm run through `openspec update --force` printed
+      "✗ Failed: Claude Code (Path is outside the allowed directory: …/openspec-explore/SKILL.md)",
+      exited non-zero, and left every symlink and the shared source byte-identical. The real trade-off,
+      now written into _AGENTS.md §"Refreshing the openspec-* skills": openspec can no longer maintain
+      those skills in place; a version bump must be generated into a throwaway project and copied into
+      _agent_files/skills/. Side effect disclosed: that sandbox run also regenerated
+      ~/.minimax/skills/*/SKILL.md (MiniMax has a globalSkillsDir outside the project); same v1.8.0
+      output, mtimes only.
+
+      `openspec update` at the workspace root exits "No OpenSpec directory found" (update.js:57) —
+      there is no /home/john/work/winisd/openspec/, so .agents/skills/ was an ORPHAN nothing would
+      have regenerated.
+
+      diff -rq: ALL SIX workspace-root copies BYTE-IDENTICAL to _agent_files/skills/<same>, run per
+      directory immediately before each rm -rf. Zero differences, so nothing was stopped on. Replaced
+      with relative links `../../_agent_files/skills/<name>` (depth 2, not 3 — .agents/skills/ is one
+      level below the workspace root, the repos' .claude/skills/ is two). find -xtype l over every
+      config dir returns nothing.
+
+      GATE EXTENDED — test_workspace_config_layout.py now scans the workspace root's OWN agent
+      directories. New _ROOT_AGENT_DIRNAMES = ('.agents','.claude','.gemini'), restricted to the
+      _LINK_ONLY names (skills/agents/commands/rules); the per-entry logic is factored into
+      _link_only_offences() and shared with the repo scan, so both report the same COPY / FOREIGN LINK
+      classes. New _MARKER_FILES = {'.openspec-target'} permits the ownership marker beside the links.
+      BOTH-WAYS PROVED ON THE REAL TREE, not only tmp_path: injected .agents/skills/__probe_copy (real
+      dir) and .agents/skills/__probe_foreign -> openisd/openspec; the gate went RED naming exactly
+      those two, correctly classified; probes removed, 5/5 GREEN. Also baked in permanently as
+      test_the_guard_sees_the_workspace_root_agent_directory, which additionally asserts the tree goes
+      back to zero offenders once the copy is replaced and the foreign link repointed.
+      Root-level entries outside _LINK_ONLY are not scanned, so .agents/hooks.json is not flagged —
+      see the open item below.
+
+      tdd RETIRED — ONE NAME. Deleted openisd/.claude/skills/tdd and openisd/.gemini/skills/tdd (both
+      resolved to _agent_files/skills/test-driven-development, so the one skill was listed twice in
+      every session). openisd/AGENTS.md:72 now says `/test-driven-development`; verified the line said
+      "invoke the `/tdd` skill" before the edit. openisd/docs/plans/PLAN_OPENISD_DRIVER_MODEL.md:102
+      updated in the same change — it instructed "red→green per `/tdd`", which would no longer resolve.
+      Left alone: openisd/openspec/changes/harden-quality-gate-enforcement/proposal.md:26, prose
+      recording what a past change touched, not an invocation. Live confirmation: the session's skill
+      listing now shows one test-driven-development entry where it previously showed both.
+
+      _AGENTS.md §"The layout — do not deviate" now documents /home/john/work/winisd/.agents/ (links
+      only, plus the marker and hooks.json), so the rule text states what the extended gate enforces.
+
+      TWO OPEN ITEMS FOR A HUMAN, NEITHER ACTED ON:
+      1. openisd/skills-lock.json declares skill "tdd" from github mattpocock/skills
+         (skills/engineering/tdd/SKILL.md, hash 7a73c21e…). THIS is the real regeneration trap for the
+         divergent tdd skill the human just ordered folded in — nothing in the workspace references the
+         lock file and no `skills` CLI is on PATH, so it is inert today, but any run of that installer
+         reinstalls the external copy. It arrived in the squashed initial commit. Delete it, or keep it
+         deliberately?
+      2. .agents/hooks.json is BYTE-IDENTICAL (md5 9221b6f5…) in three places: the workspace root,
+         openisd/ and winisd_research/. Three sources for one file. It cannot move into _agent_files/
+         because AGY reads it only from <location>/.agents/hooks.json, but the two repo copies could be
+         symlinks to a shared one. Not fixed: the repo-level .agents/ dirs are outside the gate's
+         current scan and winisd_research/ was barred from this session.
 - id: QO34
   title: 'Brand-primary scraper fix: verified or not, and the fate of the record-regeneration request'
   status: open
@@ -3261,3 +3423,31 @@ questions:
          engine/src/air.ts:104-140 with an explicit opt-in flag to WinISD's ignore behaviour, and the parity
          suite must run with that flag ON or it reports a permanent ~0.07 dB divergence at 30 C; VCCon=2 for
          series wiring must not replicate WinISD's save bug.
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 -- B3 AND B4 RULED. Phase 1 is unblocked.
+
+      B3, the human verbatim: "for manual entered fields - not provided then Openisd omits them / for
+      manual fields entered the openisd records the value entered and sets spource to manual"
+        => A manually entered field carries the VALUE and `origin: manual`. `read_precision` and
+           `actual_reading` are OMITTED, not synthesised -- there was no source text and no stated
+           precision, so inventing one would be fabricating provenance. Every consumer must handle their
+           absence; there is no second record shape for manual entries.
+
+      B4 -- NOT answered directly by the human, DECIDED from the standing rule that WinISD is the golden
+      and neither existing docs nor existing code settle it. Human's instruction: "proceed with best
+      guesses knowing the winisd is the golden and not exisgighn docs or code if there is uncertainry".
+        => ANY REAL READING DISPLAYS AS `E`; only a computed value is `C`.
+           Evidence: WinISD loads a .wdr whose values came off a datasheet and shows them as E. E means
+           STATED, not TYPED-BY-THIS-USER. So origin `manual` and origin `<datasheet/measurement>` both
+           render E, and C is reserved for what the solver produced.
+           Consequence: a library driver looks exactly as it does today, and the E/C/N legend and every
+           existing E/C/N test keep their meaning. The finer provenance (which source a reading came
+           from) stays available on the record for the provenance inspector, but it does not split the
+           display state.
+           REVISIT IF: a WinISD probe shows a datasheet-sourced field rendering as something other than E.
+- id: QO37
+  title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
+  status: open
+  raised: '2026-08-13'
+  body: ''
