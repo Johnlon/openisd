@@ -447,6 +447,8 @@ repeatability.**
 **Project shape** (current — `packages/` is a monorepo, not a single `src/`):
 
 - `packages/engine/src/` — the physics engine, alignments, state. Pure TS, no DOM.
+- `packages/model/src/` — the OpenISD record and `OpenISDDriver`: the driver model, its
+  provenance and its derivation. Pure TS, no DOM, no file format.
 - `packages/winisd/src/` — WinISD interop: `.wdr`/`.wpr` parse/serialize, E/C/N provenance.
 - `packages/ui/src/` — Vue 3 UI, layered `ui/`/`logic/`/`db/`/`diagnostics/`/`logging/`.
 - `drivers/` — community driver records.

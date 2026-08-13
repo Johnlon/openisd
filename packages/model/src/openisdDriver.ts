@@ -7,8 +7,8 @@
  *
  * `.wdr`/`.wpr` do not appear here. WinISD is a CONSUMER of our files and a reference
  * oracle, not our model — everything about that format (ParState, the 49 slots, the
- * carried-key set, VCCon's 1/2 encoding) lives behind the serialisers in `classic/` and
- * `native/openisdToWdr.ts`, invisible from here.
+ * carried-key set, VCCon's 1/2 encoding) lives behind the serialisers in `@openisd/winisd`,
+ * which depends on this package and is invisible from here.
  *
  * ── Provenance to display state (ledger QO36 ruling B4) ──
  * ANY real reading displays as `E`; only a solver result is `C`; absent is `N`. `E` means

@@ -10,6 +10,7 @@ export default defineConfig({
       provider: 'v8',
       include: [
         'packages/engine/src/**/*.ts',
+        'packages/model/src/**/*.ts',
         'packages/winisd/src/**/*.ts',
         'packages/ui/src/**/*.{ts,vue}',
       ],
@@ -29,6 +30,14 @@ export default defineConfig({
         test: {
           name: 'engine',
           root: './packages/engine',
+          environment: 'node',
+          include: ['test/**/*.test.{mjs,ts}'],
+        },
+      },
+      {
+        test: {
+          name: 'model',
+          root: './packages/model',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
         },
