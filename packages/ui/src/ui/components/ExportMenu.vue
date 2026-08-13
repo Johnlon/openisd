@@ -8,9 +8,9 @@
  * without bespoke styling.
  */
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useDesignIO } from '../../logic/useDesignIO.js';
+import { useApp } from '../../logic/app.js';
 
-const { saveProjectAs, exportWpr, exportWdr, exportOwdr, shareLink } = useDesignIO();
+const { saveProjectAs, exportWpr, exportWdr, exportOwdr, shareLink } = useApp().designIO;
 const open = ref(false);
 function toggle(): void { open.value = !open.value; }
 function close(): void { open.value = false; }

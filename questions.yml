@@ -1,5 +1,5 @@
 prefix: QO
-next: 39
+next: 41
 questions:
 - id: QO1
   title: UI TODO List
@@ -2694,6 +2694,71 @@ questions:
       CURRENT STATE OF THE TEST: `driver-roundtrip.test.ts` asserts ParState[1..48] round-trip
       identically and EXCLUDES slot 0, naming this question. Nothing has been changed to make it
       pass; the divergence is recorded, not papered over.
+  - at: '2026-08-13'
+    text: |-
+      PROBED 2026-08-13 under wine (winisd.exe, wine 10.0, ~/.wine). Harness ran; 21 successful
+      probes in winisd_research/runs/znom_state.jsonl from toys/campaign_znom_state.py.
+
+      VERDICT: slot 0 is CALCULATED, not a pin. `C` there means WinISD derived Znom from Re.
+
+          Znom = 2 * round( 0.75 * Re )        round = half-to-EVEN (Delphi's Round)
+
+      18/18 EXACT (Znom is an integer, so the criterion is exact integer agreement, not a residual):
+
+          Re    0.6  1.5  2  3.2  3.3333333333333335  4  4.666666666666667  5.5  6  7.333333333333333  8  9  10  12  27  123
+          Znom  0    2    4  4    6                   6  8                  8    8  10                 12 14 16  18  40  184
+
+      ROUNDING MODE pinned by three EXACT-.5 ties; it takes all three, none alone is decisive:
+        Re=6  -> 0.75*Re = 4.5 -> 4 (even).  Half-up would give 5 -> Znom 10.  HALF-UP REFUTED.
+        Re=10 -> 7.5 -> 8 (even).            Half-down would give 7 -> Znom 14. HALF-DOWN REFUTED.
+        Re=2  -> 1.5 -> 2 (even).            Confirms both directions.
+
+      The two NEAR-ties must be evaluated on the DECIMAL TEXT in the file, not on a Python double.
+      Re=7.333333333333333 gives 0.75*Re = 5.49999999999999975 exactly -> 5 -> Znom 10 (a double
+      product rounds to exactly 5.5 and would predict 12). Re=3.3333333333333335 gives
+      2.500000000000000125 -> 3 -> Znom 6 (double gives exactly 2.5 -> would predict 4). WinISD
+      observes the exact-decimal answer in BOTH. Delphi's 80-bit Extended is why.
+
+      IT FOLLOWS Re, NOT THE DAMPING FACTORS. Z_incon_re8_qes27 writes Re=8 while Qes/Qts/Rms all
+      describe a driver with Re=27: Znom came out 12 = 2*round(0.75*8), not 40. A CALCULATED Re
+      serves equally: Z_re_unset leaves Re unset, WinISD back-derives Re=6 from row 2 and marks it
+      C, and Znom still lands on 8.
+
+      THE FOUR CASES THIS QUESTION ASKS FOR:
+
+        case                                     file in         Znom saved   slot 0
+        Znom ENTERED, agreeing with the rule     Znom=8, Re=6    8            E
+        Znom ENTERED, contradicting the rule     Znom=4, Re=6    4            E  (pinned, never
+                                                                                  corrected to 8)
+        Znom ABSENT                              Re=6            8            C
+        Znom entered then CLEARED in the editor  Znom=8, Re=6    8            C  (reverts to
+                                                                                  calculated)
+
+      So slot 0 is an ordinary E/C field on the WDR_SCHEMA 4.1 rule -- NOT a pin like numVC's
+      permanent E. Re=0.6 rounds the product to 0 and WinISD saves Znom=0 marked C: a COMPUTED
+      zero, distinct from the unset Znom=0/N of a blank driver. Reproduces the file that raised
+      this question: John-all-manu-populated.wdr has Re=6 -> 2*round(4.5) = 8, slot 0 = C.
+
+      WHAT THIS MEANS FOR openisd: emitting N at slot 0 is wrong whenever Re is known. The rule is
+        - Znom entered            -> E, value as entered (never corrected against Re)
+        - Znom not entered, Re known (entered OR calculated) -> C, value 2*round_half_even(0.75*Re)
+        - Znom not entered, Re unknown                       -> N
+      classic/wdr.ts parstate()'s `s[0] = num(raw.Z) ? 'E' : 'C'` has the right SHAPE but toWdr's
+      `Znom = d.Z || d.Re` has the wrong VALUE -- it writes Re where WinISD writes 2*round(0.75*Re).
+      For Re=6 that is 6 vs 8; for Re=8, 8 vs 12.
+
+      NOT PROBED, and not inferred: Re entered with NOTHING else -- the shape of
+      drivers/sample/winisd/s-re.wdr (Re=123, Znom=0, slot 0 = N), which the Re rule alone does not
+      explain. Both attempts (Z_re_only, Z_re_minimal) killed WinISD under wine with c000008e
+      (FLT_DIVIDE_BY_ZERO) before any value could be read -- the BUG-003 degenerate-driver crash
+      class. Recorded as a crash, NOT as a result. Whether a driver too sparse to solve suppresses
+      the Znom computation is UNTESTED.
+
+      CHANNEL (new, and reusable): a `ParState=` line written into a project's [Driver] block IS
+      honoured by a CLI load and round-trips byte-for-byte -- verified against
+      John-all-manu-populated.wdr, 49/49 characters (toys/bringup_parstate_in_wpr.py). Without it a
+      CLI-loaded project marks EVERY field E, absent-and-zero ones included, so "unset" cannot be
+      expressed and no mark means anything. Full write-up: winisd_research/SOLVER_GAPS.md 2.5/2.7.
 - id: QO31
   title: 'Audit of the three never-loaded rule files: engine-source, engine-tests, ui-tests'
   status: open
@@ -3574,3 +3639,225 @@ questions:
       INTERLOCK WITH THE MODEL MIGRATION (QO36): the migration rewrites exactly these files -- the
       store, the driver model, the library. Doing the layering fix as part of it is one pass; doing it
       after is two rewrites of the same code.
+- id: QO39
+  title: 'Xmax route precedence settled by probe: row 19 abs(Hc-Hg)/2 WINS, Vd/Sd is the fallback - WDR_SCHEMA
+    L268 is wrong, L310 is right'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      PROBED 2026-08-13 under wine (winisd.exe, wine 10.0, ~/.wine). Harness ran; 7 successful
+      probes in winisd_research/runs/xmax_route.jsonl from toys/campaign_xmax_route.py.
+
+      VERDICT: row 19 `abs(Hc-Hg)/2` WINS. Row 20 `Vd/Sd` is the fallback, used only when row 19
+      cannot supply the value. WDR_SCHEMA.md line 310's tie-break table is RIGHT; line 268's
+      "Row 20 takes precedence" is WRONG.
+
+      THE DECIDING CASE, stated before it was run: enter Hc, Hg, Vd and Sd, leave Xmax blank.
+        entered:    Hc=0.015  Hg=0.0034  Sd=0.022  Vd=0.000407     (Xmax marked N = unset)
+        prediction if line 268 is right (Vd/Sd)        -> Xmax = 0.0185
+        prediction if line 310 is right (|Hc-Hg|/2)    -> Xmax = 0.0058
+        OBSERVED                                       -> Xmax = 0.0058, mark C
+      The two routes are 3.19x apart, so the case cannot be settled by coincidence.
+
+      FULL EVIDENCE TABLE (Xmax marked N on input in every row but the last):
+
+        case               Hc      Hg      Sd     Vd        row19    row20    Xmax obs  mark  fired
+        A_hchg_only        0.015   0.0034  0.022  -         0.0058   -        0.0058    C     row 19
+        B_vdsd_only        -       -       0.022  0.000407  -        0.0185   0.0185    C     row 20
+        C_all_four         0.015   0.0034  0.022  0.000407  0.0058   0.0185   0.0058    C     ROW 19
+        E_all_four_b       0.011   0.001   0.035  0.00098   0.005    0.028    0.005     C     ROW 19
+        F_all_four_swap    0.0034  0.015   0.022  0.000407  0.0058   0.0185   0.0058    C     ROW 19
+        G_hchg_equal       0.012   0.012   0.022  0.000407  0        0.0185   0.0185    C     ROW 20
+        D_all_four_xmax    0.015   0.0034  0.022  0.000407  0.0058   0.0185   0.0093    E     neither
+                                                                        (entered Xmax=0.0093 pinned)
+
+      C, E and F are three independent all-four samples at different magnitudes and with Hc/Hg
+      swapped. All three give the geometry answer. A and B are the single-route controls.
+
+      SECOND, INDEPENDENT WITNESS, agreeing in every row. Gloss = g/((2*pi*Fs)^2 * Xmax) was
+      recovered to 3.6e-15 (SOLVER_GAPS.md 2.4), so inverting the saved Gloss recovers the Xmax the
+      solver used INTERNALLY, not merely the number it wrote to the field. It returns the observed
+      Xmax in all seven rows: 0.0058, 0.0185, 0.0058, 0.005, 0.0058, 0.0185, 0.0093.
+
+      IS IT FIXED OR CONDITIONAL? Fixed in precedence, conditional in APPLICABILITY. There is
+      exactly one exception, and it is not about which route ranks higher: when Hc == Hg, row 19's
+      answer is 0 and row 20 supplies Xmax instead (G_hchg_equal: Hc=Hg=0.012, Xmax came out
+      0.0185 = Vd/Sd, not 0). Row 19 is skipped when it would yield zero.
+
+      Vd IS NOT CORRECTED TO MATCH. In C/E/F/G the entered Vd keeps its typed value and its E mark
+      while Xmax is filled from geometry. E_all_four_b saves Vd=0.00098 beside Sd*Xmax=0.000175, a
+      5.6x contradiction, with no warning and no mark change. That is WDR_SCHEMA 4.1's
+      "contradiction is invisible", observed directly rather than inferred.
+
+      WHAT openisd MUST DO -- packages/engine/src/driver.ts:
+
+      1. THE BRANCH ORDER IS ALREADY CORRECT. `abs(Hc-Hg)/2` is at :151 and `Vd/Sd` at :160, both
+         guarded by `r.Xmax == null`, so the first match wins and row 19 already takes precedence.
+         NO REORDER IS NEEDED. (The task that raised this expected a reorder; the evidence says the
+         existing order is the right one.)
+
+      2. ONE REAL DIVERGENCE, at :151. When Hc == Hg the branch fires and sets Xmax = 0; :160 then
+         sees Xmax non-null and never runs, so openisd yields 0 where WinISD yields Vd/Sd. Guard it:
+             if (r.Xmax == null && r.Hc != null && r.Hg != null && r.Hc !== r.Hg)
+         The same guard is correct whichever mechanism WinISD uses internally (row 19 declining to
+         fire vs. row 19 producing a zero that is treated as unset), so it does not wait on that.
+
+      DOC FIX -- docs/design/WDR_SCHEMA.md, verified line numbers today:
+
+        L268 is WRONG. Currently:
+          | 19  | Xmax, Hc, Hg | `Xmax = abs(Hc - Hg) / 2` - **verified firing 2026-08-05**, but
+            only when `Vd` is absent. Row 20 takes precedence; see 4.1 |
+        Correct content:
+          | 19  | Xmax, Hc, Hg | `Xmax = abs(Hc - Hg) / 2` - **takes precedence over row 20**
+            (probed 2026-08-13); row 20 fills `Xmax` only when `Hc`/`Hg` are absent or equal;
+            see 4.1 |
+
+        L310 is RIGHT and needs no change: | `Xmax` | row 19 vs row 20 | row 19 |
+        The surrounding 4.1 prose (L313-L317) is also right and already says row 20 is the last
+        resort. L268 is the sole self-contradiction.
+
+        4.1's tie-break section should gain the Hc == Hg exception, which was not previously known.
+
+      CHANNEL (new, reusable): a `ParState=` line written into a project's [Driver] block IS
+      honoured by a CLI load and round-trips byte-for-byte - verified against openisd's own
+      drivers/sample/winisd/John-all-manu-populated.wdr, 49/49 characters
+      (winisd_research/toys/bringup_parstate_in_wpr.py). Without it a CLI-loaded project marks EVERY
+      field E, absent-and-zero ones included, so "unset" cannot be expressed at all. Full write-up:
+      winisd_research/SOLVER_GAPS.md 2.5/2.6.
+  - at: '2026-08-13'
+    text: |-
+      FOLLOW-UP 2026-08-13 -- one MECHANISM claim in the write-up is not carried by the evidence,
+      and the case that would settle it hangs WinISD.
+
+      WDR_SCHEMA.md 4.1 now reads: "The precedence is therefore on the RESULT, not purely
+      structural: row 19 wins only when it produces a non-zero value."
+
+      The second clause is an accurate description of all seven observations. The first clause
+      ("precedence is on the RESULT") picks ONE of two readings that the probes do not separate:
+        (a) row 19 DECLINES to fire when Hc == Hg;
+        (b) row 19 FIRES, produces 0, and that 0 is treated as still-unset so row 20 then fills.
+      Suggest softening to the observational form, or marking the mechanism sentence INFERRED.
+
+      THE DISCRIMINATING CASE HANGS. H_hchg_equal_novd -- Hc = Hg = 0.012, Sd entered, NO Vd, Xmax
+      unset -- would separate them: Xmax = 0 marked C means it fired (b); marked N means it declined
+      (a). Two runs, both killed by timeout (~8 min and ~4 min against ~45 s for every completed
+      case). No c000008e in the wine log; winisd.exe stays alive but stops answering WM_GETTEXT,
+      which blocks the agent's EnumChildWindows and therefore the harness. G_hchg_equal differs ONLY
+      in having Vd present and completes normally. Recorded as a HANG, not as a result -- no value
+      was read and none is inferred.
+
+      NOTHING WAITS ON IT. The openisd guard is identical under both readings:
+          packages/engine/src/driver.ts:151   add `&& r.Hc !== r.Hg`
+      so the engine fix can land now. The mechanism only affects how 4.1 words the rule.
+
+      Corresponding write-up: winisd_research/SOLVER_GAPS.md 2.6, which states the observation and
+      labels the mechanism UNTESTED.
+- id: QO40
+  title: 'Xmax is calculable: the input-only claim removed everywhere, and the WDR_SCHEMA route contradiction
+    resolved'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      HUMAN RULING, verbatim: "B2 remove anythind that says Xmas isn't calculatable - IT IS !!!"
+
+      XMAX IS CALCULATED, by BOTH routes, in the shipping engine — verified by Read:
+        packages/engine/src/driver.ts:151-152   Xmax = Math.abs(Hc - Hg) / 2
+        packages/engine/src/driver.ts:160-161   Xmax = Vd / Sd
+      Row 19's branch is evaluated BEFORE row 20's. Both are reached on the live UI path:
+      `Driver#derive()` calls `solveConsistencyGroup(entered, {full: true})`
+      (packages/winisd/src/driver.ts:426) and `cell()` (:185-196) returns 'C' for anything solve
+      filled. The full solver is gated at engine/driver.ts:73 (`if (!options?.full)`), and the live
+      path passes it.
+
+      TIE-BREAK: SETTLED. The sibling agent's probe HAD landed — 7 of 8 cases complete in
+      winisd_research/runs/xmax_route.jsonl (toys/campaign_xmax_route.py). Each case states its
+      ENTERED set through the project's ParState line, fires the derived pass with one typed Le edit,
+      and reads the saved file back.
+
+        case              Hc/Hg give   Vd/Sd give   WinISD wrote   fired
+        A_hchg_only       0.0058       -            0.0058 C       row 19
+        B_vdsd_only       -            0.0185       0.0185 C       row 20
+        C_all_four        0.0058       0.0185       0.0058 C       row 19   <- THE DECIDER
+        E_all_four_b      0.0050       0.0280       0.0050 C       row 19
+        F_all_four_swap   0.0058       0.0185       0.0058 C       row 19
+        G_hchg_equal      0 (Hc=Hg)    0.0185       0.0185 C       row 20
+        D_all_four_xmax   0.0058       0.0185       0.0093 E       neither
+
+        - ROW 19 abs(Hc-Hg)/2 WINS over row 20 Vd/Sd, at two magnitudes (C, E), abs() confirmed (F).
+        - Both routes fire alone (A, B), so Xmax is calculated either way.
+        - An entered Xmax pins against both and stays E (D).
+        - PRECEDENCE IS ON THE RESULT, NOT THE STRUCTURE: in G, Hc = Hg leaves row 19 with no
+          unknowns so it CAN fire, it yields 0, and WinISD wrote Vd/Sd instead. A zero row-19 answer
+          falls through to row 20.
+        (H_hchg_equal_novd was still running; it separates "row 19 fired and produced 0" from "row 19
+        declined". It does not affect the tie-break above.)
+
+      So WDR_SCHEMA.md's OLD line 268 ("Row 20 takes precedence") was the wrong half of the
+      contradiction; the §4.1 tie-break table (row 19 wins) was right. Both passages now agree and
+      carry the probe evidence.
+
+      ONE ENGINE DIVERGENCE, REPORTED NOT FIXED (packages/ is owned by other agents this session):
+      at Hc = Hg the engine writes Xmax = 0 at driver.ts:151-152, which makes :160-161 skip (Xmax is
+      no longer null), so row 20 never fires — where WinISD writes Vd/Sd. Needs a human ruling on
+      whether to match WinISD's zero fall-through. Recorded as the remaining half of blocker B2 in
+      docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md.
+
+      STATEMENTS CORRECTED — 6 passages across 5 files (line numbers are pre-prettier):
+        openisd/docs/design/WDR_SCHEMA.md:268
+          "verified firing 2026-08-05, but only when Vd is absent. Row 20 takes precedence"
+          -> row 19 fires whenever Hc and Hg are present and beats row 20 unless it yields zero.
+          Row 20 restated as solving in all three directions.
+        openisd/docs/design/WDR_SCHEMA.md:305-316 (now ~305-350)
+          tie-break section: added the 7-case probe table, the four consequences, and the explicit
+          statement that Xmax "is a CALCULATED field by either path - not an input-only one", plus
+          the engine's Hc=Hg divergence.
+        openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md:53-54
+          row 19 "not wired - deriveDriver's .value is discarded" -> live, cited at engine
+          driver.ts:151-152, evaluated ahead of row 20. Row 20's stale "cm3 (*1e6), the SI violation,
+          dead path" engine cell -> the three live SI-correct sites (:171-172, :160-161, :166-167).
+        openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md:205-208
+          "the Xmax(Hc,Hg) case never reaches cell('Xmax') at all - it simply never fires, so a
+          driver with Hc/Hg but no Xmax shows state:'N'" -> it reaches cell() and shows 'C'.
+        openisd/docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md:70
+          blocker B2 rewritten: precedence SETTLED with the probe evidence; only the Hc=Hg
+          fall-through ruling remains.
+        winisd_research/SOLVER_MODEL.md:160-164
+          "| Xmax from Vd/Sd | derived, both directions | **never derived** | circular ... it invents
+          an excursion limit line ..." -> the divergence row is now about the MARK, not a refusal;
+          added the explicit statement that openisd derives Xmax by both WinISD routes with the
+          human's 2026-08-13 ruling quoted.
+        winisd_research/SOLVER_MODEL.md:78-88
+          "row 20 ... running backwards only when geometric relations have two or more unknowns" ->
+          falsified by G (row 19 had NO unknowns and still lost); added the probe table.
+        winisd_research/presentation_winisd_reverse_engineering.md:153
+          row 19 "always overrides" row 20 -> overrides on the RESULT; G disproves "always".
+
+      NO RESIDUE: docs/design/DRIVER_RECORD_MODEL.md §5 (L103-128) was already correct — it states
+      the groups solve in every direction and that a derived Xmax is C, never E. Confirmed by Read,
+      no change needed.
+
+      TESTS ASSERTING XMAX IS NOT DERIVED: NONE FOUND. The suite already agrees with the probe:
+        packages/ui/test/logic/driver-editor-solver.browser.spec.ts:179
+          "UI prioritizes Row 19 (Hc,Hg -> Xmax) over Row 20 (Vd/Sd -> Xmax)" — matches the probe.
+        packages/engine/test/driver.test.ts:241-256 — Hc/Hg bi-directional solves, Row 6 over Row 20.
+      Three near-misses checked and cleared:
+        packages/winisd/test/classic/wdr.test.ts:118 `assert.equal(p[9], 'N', 'Xmax absent -> N')` —
+          its fixture carries no Vd and no Hc/Hg, so NEITHER route can fire; the N is correct.
+        packages/winisd/test/classic/wdr.test.ts:47-51 (Vd=0 when Xmax absent) — same fixture, correct.
+        packages/engine/test/advanced-options.test.ts:287 ("never limits a driver with no Xmax") —
+          about SPL limiting when Xmax is genuinely absent, not about derivation.
+
+      ADJACENT STALENESS FOUND, NOT FIXED (out of this task's scope, needs its own verification):
+        winisd_research/GAPS.md:191,193 — the A4 table's OpenISD column says Fs and Re are "never
+        derived", but engine/driver.ts:148 derives Fs and :145 derives Re in full-solver mode. The
+        nuance is that deriveDriver still gates on Fs as a required input, so the row is half true;
+        it needs its own check rather than a blind flip.
+
+      TOOLING: LSP was UNAVAILABLE — ToolSearch("select:LSP") returned "No matching deferred tools
+      found". Grep + Read were used throughout, and every cited line was verified by Read.

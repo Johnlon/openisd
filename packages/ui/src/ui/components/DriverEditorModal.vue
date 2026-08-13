@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import { ref, shallowRef, markRaw, computed, nextTick } from 'vue';
-import { state, driverShort } from '../../logic/store.js';
-import { editorSeed, acceptDriverEdit, cancelDriverEdit } from '../../db/useDriverSelection.js';
+import { state } from '../../logic/store.js';
+import { driverShort } from '../../driverName.js';
+import { useApp } from '../../logic/app.js';
 import { ebp, RHO, C } from '@openisd/engine';
 import { Driver as DriverModel } from '@openisd/winisd';
 import NumInput from './NumInput.vue';
@@ -10,11 +11,12 @@ import { precision } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote } from '../../logic/useDriverCells.js';
 import { saveTextAs } from '../../logic/fileSave.js';
-import { upsertMyDriver, loadMyDrivers, driverId } from '../../db/myDrivers.js';
 import { DriverFileFormat } from '../../driverFileFormat.js';
-import { flash } from '../../logging/flash.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import { getProvenanceInfo } from '../../logic/provenance.js';
+
+const { selection, myDrivers, logging } = useApp();
+const { editorSeed, acceptDriverEdit, cancelDriverEdit } = selection;
 
 // Driver editor — a real modal (unlike DriverWhatIfPanel, an inline overlay that keeps
 // the graph visible). Recreates WinISD's "Driver editor" dialog (docs/winisd/edit_driver_pg*.png):

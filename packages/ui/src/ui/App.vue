@@ -6,7 +6,9 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import { state, driverJSON, applyState, markProjectSaved } from '../logic/store.js';
 import { serialize, loadFromHash, loadLocal, saveLocal } from '../logic/persist.js';
-import { runSelfTest } from '../diagnostics/selftest.js';
+import { useApp } from '../logic/app.js';
+
+const { diagnostics } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash / self-test)
 // and the global overlays. The shell only arranges the shared components — no lifecycle or
@@ -34,7 +36,7 @@ onMounted(async () => {
   }
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
   saveReady = true;
-  runSelfTest();
+  diagnostics.run();
   window.addEventListener('hashchange', handleHashChange);
 });
 

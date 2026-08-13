@@ -173,22 +173,19 @@ model, so nothing above the domain layer knows what ParState is.
 
 ### Module responsibilities
 
-Definitions are [`openspec/project.md`](openspec/project.md) §"Tech Stack"; this table maps them
-to the tree as it stands.
-
 | Module | Path | Owns | May not contain |
 | --- | --- | --- | --- |
-| `@engine` | `packages/engine/src/` | All electro-acoustic maths — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState, provenance), file formats, DOM |
-| `@wdr` / `@wpr` | `packages/winisd/src/classic/` | Classic WinISD `.wdr`/`.wpr` parse + serialise, ParState position map, E/C/N provenance | DOM, any UI framework |
-| `@owdr` / `@owpr` | `packages/winisd/src/native/` | Native `openisd.yml` / `.owdr` read + write, record shape, derivation | DOM, any UI framework |
-| `@logic` | `packages/ui/src/logic/` | The app's ONLY state. Store, project/workspace model, the driver model, workflows, field registry, chart-series mapping | Maths (delegate to `@engine`), `.vue` imports |
-| `driverRepo` | `packages/ui/src/db/` | The driver commons: index, search, filter, lookup. Answers questions, returns records | App state, workflow, `.vue` imports |
-| `myDriverRepo` | `packages/ui/src/db/` | User-saved drivers: read, write, delete by identity | App state, workflow, `.vue` imports |
-| `prefsStore` | `packages/ui/src/db/` | Browser-local preferences — favourites, session, layout | App state, workflow, `.vue` imports |
-| `fileIO` | `packages/ui/src/logic/` | Open, save, import, export, share-link encode/decode | App state, workflow, `.vue` imports |
-| `@diagnostics` | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions | App state |
-| `@logging` | `packages/ui/src/logging/` | Application event/alert surface (flash messages) | Dependencies on any other module — it is a leaf |
-| `@ui` | `packages/ui/src/ui/` | Vue components, canvas drawing, directives, static presets | Physics, app state, anything a service should own |
+| `@openisd/engine` | `packages/engine/src/` | All electro-acoustic maths — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM |
+| `@openisd/model` | `packages/model/src/` | The OpenISD record and `OpenISDDriver`: the driver model itself, its provenance, its derivation | File formats, DOM, app state |
+| `@openisd/winisd` | `packages/winisd/src/` | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set | The driver model, DOM, app state |
+| `logic` | `packages/ui/src/logic/` | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping | Maths, `.vue` imports, direct construction of a service |
+| `driverRepo` | `packages/ui/src/services/` | The driver commons: index, search, filter, lookup. Answers questions, returns records | App state, workflow, `.vue` imports |
+| `myDriverRepo` | `packages/ui/src/services/` | User-saved drivers: read, write, delete by identity | App state, workflow, `.vue` imports |
+| `prefsStore` | `packages/ui/src/services/` | Browser-local preferences — favourites, session, layout | App state, workflow, `.vue` imports |
+| `fileIO` | `packages/ui/src/services/` | Open, save, import, export, share-link encode/decode | App state, workflow, `.vue` imports |
+| `diagnostics` | `packages/ui/src/services/` | Runtime self-test, solver troubleshooting, diagnostic assertions | App state |
+| `logging` | `packages/ui/src/services/` | Application event/alert surface (flash messages) | Any other module — it is a leaf |
+| `ui` | `packages/ui/src/ui/` | Vue components, canvas drawing, directives, static presets | Physics, app state, anything a service owns |
 
 ### Dependency rules, and what enforces them
 
@@ -196,23 +193,27 @@ to the tree as it stands.
 | --- | --- |
 | `@engine` depends on nothing (zero runtime dependencies) | `packages/engine/package.json` — empty `dependencies` |
 | `@openisd/winisd` depends only on `@engine` (+ `yaml`) | `packages/winisd/package.json` |
-| `@logic` / `@db` never import a `.vue` file | [`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts) |
-| `@ui` imports `logic` only — never a service directly | **no automated gate yet** (ledger QO38) |
-| A service never imports the store, and never imports `logic` | **no automated gate yet** (ledger QO38) |
-| No maths in `@ui` / `@logic` | `openspec/project.md` §"Important Constraints" — convention, **no automated gate** |
-| No global variables anywhere | `openspec/project.md` §"Architecture Patterns" — convention |
-| Behaviour shared by skins lives in one composable | AD-7 — convention, **no automated gate** |
+Every rule below is enforced by
+[`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts) unless the
+row says otherwise. It matches the SHAPE of the code — the import specifier, the exported
+declaration — never prose, so a comment naming a module cannot fail it.
 
-**Known deviation, recorded not hidden.** 12 `@ui` files import engine *functions*, not just
-types — `ebp` (`DriverPanel.vue:54`, `StatBar.vue:4`, `OgTune.vue:17`, `DriverWhatIfPanel.vue:6`,
-`DriverEditorModal.vue:6`), `sealedFromQtc`/`ventedAlignment` (`BoxPanel.vue:4`),
-`prTuning`/`prMassForFp` (`PRPanel.vue:4`, `PRWhatIfPanel.vue:4`), `soundVelocity`/`airDensity`
-(`OptionsModal.vue:54`, `OriginalShell.vue:40`, `ClassicShell.vue:20`), and `RHO`/`C`
-(`PRDefineModal.vue:4`, `PREditModal.vue:4`). The maths still lives in `@engine` — no formula is
-duplicated in a component — so `openspec/project.md`'s letter holds. But it means `@ui` is not
-the pure presentation layer AD-6 described: a second front-end would have to re-wire those calls
-rather than only re-skinning. Evidence: `grep -rn "from '@openisd/engine'" packages/ui/src/ui/`,
-run 2026-08-13, 18 hits across 20 files, 12 of them value imports.
+| Rule | Enforced by |
+| --- | --- |
+| `@engine` depends on nothing (zero runtime dependencies) | `packages/engine/package.json` — empty `dependencies` |
+| `@openisd/winisd` depends only on `@engine` (+ `yaml`) | `packages/winisd/package.json` |
+| Nothing below presentation imports a `.vue` file | the gate |
+| `ui` imports `logic` and nothing below it — no service, no engine, no serialiser | the gate |
+| A component imports no VALUE from `@openisd/*`; a `import type` is fine, it erases | the gate |
+| A service never imports `logic`, and never imports a sibling service | the gate |
+| No service exports a pre-built instance or a mutable binding | the gate |
+| Every service module offers one `create<Name>(deps)` factory | the gate |
+| No maths in `ui` / `logic` | `openspec/project.md` §"Important Constraints" — convention |
+
+**A component may not call the engine.** The formula stays in `@engine`, but a component that
+calls it has put a physics call in the view: the maths cannot then be changed without editing
+components, and a second front-end has to re-wire those calls rather than only re-skinning. The
+value a component needs is computed in `logic` and handed down as data.
 
 ---
 

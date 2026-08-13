@@ -30,10 +30,26 @@ import { referenceEfficiency, splFromEfficiency } from '@openisd/engine';
 import { deriveDriver } from '@openisd/engine';
 import { sweep } from '@openisd/engine';
 import type { SweepParams } from '@openisd/engine';
-import { flash } from '../logging/flash.js';
 
 declare global {
   interface Window { _selfTestDone?: boolean }
+}
+
+export interface Diagnostics {
+  /** Run every gate. Returns which passed, or a single failed row when the reference
+   *  driver itself will not derive. */
+  run(): DiagnosticsResult;
+}
+
+export type DiagnosticsResult =
+  | Array<{ label: string; pass: boolean; detail: string }>
+  | { p1: boolean; p2: boolean; p3: boolean };
+
+export interface DiagnosticsDeps {
+  /** Where a failure is surfaced to the user. The app passes `logging.flash`; a test passes
+   *  a collector. `logging` is a SIBLING service, so it arrives as an argument — reaching
+   *  for it directly would make one service depend on another. */
+  report: (msg: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +108,11 @@ const EXPECTED_Z_PEAKS         = 2;
 const Z_PEAK_THRESHOLD         = 1.5;   // × Re — minimum height to count as a peak
 const VENTED_THEORETICAL_SLOPE = 24;    // dB/oct — 4th-order Butterworth rolloff below Fb
 
-export function runSelfTest() {
+export function createDiagnostics(deps: DiagnosticsDeps): Diagnostics {
+  return { run: () => runSelfTest(deps.report) };
+}
+
+function runSelfTest(report: (msg: string) => void): DiagnosticsResult {
   const { value: d } = deriveDriver(REF_DRIVER);
   if (!d) return [{ label: 'Self-test', pass: false, detail: 'REF_DRIVER failed deriveDriver validation' }];
   const dNoLe = { ...d, Le: 0 }; // Le=0 isolates acoustic response from voice-coil inductance
@@ -163,7 +183,7 @@ export function runSelfTest() {
 
   if (!allPass) {
     const failed = [!p1 && 'GATE1', !p2 && 'GATE2', !p3 && 'GATE3'].filter(Boolean).join(', ');
-    flash(`⚠ Physics self-test FAILED (${failed}) — open console for details`);
+    report(`⚠ Physics self-test FAILED (${failed}) — open console for details`);
   }
 
   window._selfTestDone = true;

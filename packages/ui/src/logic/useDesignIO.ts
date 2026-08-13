@@ -19,7 +19,7 @@ import {
   isDriverWhatIfActive, cancelDriverWhatIf,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
-import { flash } from '../logging/flash.js';
+import type { Logging } from '../logging/flash.js';
 import { saveProject as fsSaveProject, saveProjectAs as fsSaveProjectAs } from './fileSave.js';
 import { projectNameFromFilename, projectFilename, copyOfName } from './projectFile.js';
 import { buildWprInput } from './wprMapping.js';
@@ -42,23 +42,38 @@ function endAnyActiveWhatIfBeforeIO(): void {
   state.editDriver = false; // close the Tune panel — same pairing OgTune's own Cancel uses
 }
 
-// MODULE-scoped, not per-composable-call: every shell's Save button and the shared
-// ExportMenu each call useDesignIO(), and they must agree on which file is open. A ref
-// created inside the function gave each caller its own handle, so Save As in the menu and
-// Save in the toolbar tracked different files. Session-only either way — the File System
-// Access API does not persist handles across a page load.
-const fileHandle = ref<FileSystemFileHandle | null>(null);
+export interface DesignIO {
+  saveProject(): Promise<boolean>;
+  saveProjectAs(): Promise<void>;
+  shareLink(): Promise<void>;
+  exportWdr(): void;
+  exportWpr(): void;
+  exportOwdr(): void;
+  importFile(f: File): void;
+  about(): void;
+}
 
-// Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
-// honest equivalent is to let go of the handle: the next Save prompts for a location, with
-// the new name already filled in. Without this, renaming would keep silently overwriting the
-// file that still carries the OLD name — the one thing the name↔file rule forbids.
-watch(() => state.project.name, (name) => {
-  const open = fileHandle.value;
-  if (open?.name && projectNameFromFilename(open.name) !== name) fileHandle.value = null;
-});
+/**
+ * Built ONCE by the composition root and handed to every consumer. Every shell's Save button
+ * and the shared ExportMenu must agree on which file is open; a second construction would
+ * give each its own handle, so Save As in the menu and Save in the toolbar would track
+ * different files. Session-only either way — the File System Access API does not persist
+ * handles across a page load.
+ */
+export function createDesignIO(deps: { logging: Logging }): DesignIO {
+  const flash = (msg: string) => deps.logging.flash(msg);
 
-export function useDesignIO() {
+  const fileHandle = ref<FileSystemFileHandle | null>(null);
+
+  // Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
+  // honest equivalent is to let go of the handle: the next Save prompts for a location, with
+  // the new name already filled in. Without this, renaming would keep silently overwriting the
+  // file that still carries the OLD name — the one thing the name↔file rule forbids.
+  watch(() => state.project.name, (name) => {
+    const open = fileHandle.value;
+    if (open?.name && projectNameFromFilename(open.name) !== name) fileHandle.value = null;
+  });
+
   function projectJsonText(): string {
     return JSON.stringify(serialize(state, driverJSON.value), null, 2);
   }

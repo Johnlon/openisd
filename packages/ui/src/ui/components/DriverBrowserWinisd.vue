@@ -2,10 +2,12 @@
 import { ref, watch } from 'vue';
 import { state } from '../../logic/store.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
-import { useDriverLibrary } from '../../db/useDriverLibrary.js';
-import type { FileEntry } from '../../db/useDriverLibrary.js';
+import { useApp } from '../../logic/app.js';
+import type { FileEntry } from '../../logic/driverLibrary.js';
 import { DriverFileFormat } from '../../driverFileFormat.js';
-import { openNewDriver } from '../../db/useDriverSelection.js';
+
+const { library, selection } = useApp();
+const { openNewDriver } = selection;
 
 // The WinISD-style driver library — markup and
 // CSS only (ARCHITECTURE.md AD-7). All behaviour is useDriverLibrary; callers differ in
@@ -31,7 +33,7 @@ const {
   previewFile, previewData, pickFile, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary, closeLibrary,
   shortSource, driverHasDqIssues,
-} = useDriverLibrary();
+} = library;
 
 const fileInputEl = ref<HTMLInputElement | null>(null);
 function triggerFileLoad() { fileInputEl.value?.click(); }

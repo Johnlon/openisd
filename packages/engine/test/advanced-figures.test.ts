@@ -251,3 +251,23 @@ describe('Mcost — Rme scaled by how far the coil leaves the gap', () => {
     assert.equal(solve({ ...ORACLE_INPUTS, Mcost: 7 }).Mcost, 7);
   });
 });
+
+describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case G)', () => {
+  it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
+    // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
+    // other route. Expected value is independent of the code: 140e-6 / 0.0095.
+    const r = solveConsistencyGroup(
+      { Hc: 0.012, Hg: 0.012, Vd: 140e-6, Sd: 0.0095 } as Record<string, number>,
+      { full: true },
+    ) as Record<string, number>;
+    assert.ok(Math.abs(r.Xmax - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax}`);
+  });
+
+  it('an unequal overhang wins over Vd/Sd', () => {
+    const r = solveConsistencyGroup(
+      { Hc: 0.0176, Hg: 0.006, Vd: 140e-6, Sd: 0.0095 } as Record<string, number>,
+      { full: true },
+    ) as Record<string, number>;
+    assert.ok(Math.abs(r.Xmax - 0.0058) < 1e-15, `Xmax was ${r.Xmax}`);
+  });
+});

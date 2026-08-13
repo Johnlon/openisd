@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { driverShort } from '../../src/logic/store.js';
+import { driverShort } from '../../src/driverName.js';
 
 // A driver is CALLED `<brand> <model>`. Brand leads because that is what the driver is sold
 // and filed under — `driverId()` and the driver database's folders key on it, and WinISD's
