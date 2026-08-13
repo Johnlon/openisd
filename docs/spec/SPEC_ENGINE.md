@@ -345,8 +345,10 @@ Defaults are `0`, except `numVC=1`, `VCCon=1`, `c=343.684120962152`, `roo=1.2009
 **(b) Every calculatable field is CALCULATED, not left at its default** (R3). The projection
 runs the full consistency-group derivation (§1.1) before writing, exactly as the WinISD UI
 populates the computed fields the moment the human finishes typing. `Vd`, `Dd`, `Dia`, `no`,
-`EBP`, `Rms`, `Cms`, `Mms`, `BL`, `SPLmax`, `SPLmaxLF`, `USPL`, `Rme`, `Mpow`, `gamma` and the
-rest are outputs of that pass.
+`EBP`, `Rms`, `Cms`, `Mms`, `BL`, `SPLmax`, `SPLmaxLF`, `USPL`, `Rme`, `Mpow`, `gamma`, `Znom`
+and the rest are outputs of that pass. `Znom` is the one that surprises: WinISD calculates it
+from `Re` as `2·round_half_to_even(0.75·Re)` (probed — `../design/WDR_SCHEMA.md` §4.2), so a
+`.wdr` written with `Znom` copied from `Re`, or with slot 0 marked `N`, disagrees with WinISD.
 
 A `0` on a line is therefore ambiguous on its own and must be read together with its ParState
 slot: `C` ⇒ calculated, and the answer was genuinely zero; `N` ⇒ not calculatable, so the line

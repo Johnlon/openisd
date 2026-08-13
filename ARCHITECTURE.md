@@ -256,6 +256,140 @@ value a component needs is computed in `logic` and handed down as data.
 a commit boundary, a derivation, a load/save flow — is written once as a composable under
 `packages/ui/src/logic/` and called from the view. A component that re-implements it is a defect.
 
+### Service interfaces
+
+Each service is reached only through the interface below. The composition root constructs one
+implementation of each and injects it; a test constructs a different one.
+
+```ts
+/** Browser-local storage, abstracted so a repository can be tested without a browser. */
+interface KeyValueStore {
+  get(key: string): string | null;
+  set(key: string, value: string): void;
+  remove(key: string): void;
+}
+
+/** The driver commons. Queries only — it owns no state and mutates nothing. */
+interface DriverRepo {
+  all(): readonly OpenISDRecord[];
+  byId(id: DriverId): OpenISDRecord | undefined;
+  search(query: string, filter?: DriverFilter): readonly OpenISDRecord[];
+}
+
+/** Drivers the user saved. Keyed by identity, which is `<brand>/<model-slug>`. */
+interface MyDriverRepo {
+  all(): readonly OpenISDRecord[];
+  byId(id: DriverId): OpenISDRecord | undefined;
+  save(record: OpenISDRecord): void;
+  remove(id: DriverId): void;
+}
+
+/** Browser-local preferences. Nothing here affects a simulation. */
+interface PrefsStore {
+  favourites(): readonly DriverId[];
+  setFavourite(id: DriverId, on: boolean): void;
+  read<T>(key: string): T | undefined;
+  write<T>(key: string, value: T): void;
+}
+
+/** Every crossing of the file boundary. The only place a byte stream is produced or consumed. */
+interface FileIO {
+  readRecord(text: string, format: RecordFormat): Result<OpenISDRecord>;
+  writeRecord(record: OpenISDRecord, format: RecordFormat): string;
+  readProject(text: string, format: ProjectFormat): Result<Project>;
+  writeProject(project: Project, format: ProjectFormat): string;
+  encodeShareLink(project: Project): Promise<string>;
+  decodeShareLink(url: string): Result<Project>;
+}
+
+/** The runtime self-test. Reports; it does not decide what to do about a failure. */
+interface Diagnostics {
+  run(): DiagnosticReport;
+}
+
+/** The user-facing event surface. A leaf: it depends on nothing. */
+interface Logging {
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
+```
+
+`RecordFormat` is `openisd.yml` / `.owdr` / `.wdr`; `ProjectFormat` is `.owpr` / `.wpr`. Both are
+closed unions, not open strings.
+
+### Key data types
+
+```ts
+/** Where a value came from. `manual` is the one non-URL role: a hand-entered value. */
+type SourceRole =
+  | 'manufacturer_datasheet' | 'manufacturer_product_page' | 'manufacturer_listing_page'
+  | 'distributor_datasheet'  | 'distributor_product_page'  | 'distributor_listing_page'
+  | 'manual';
+
+/** What ONE source published for a field. */
+interface Reading {
+  /** SI-canonical value. The only place a number lives. */
+  read_value: number;
+  /** The literal the source printed. ABSENT on a manual reading — there was no printed text. */
+  actual_reading?: string;
+  /** SI half-width of the interval the printed digits assert. ABSENT on a manual reading. */
+  read_precision?: number;
+}
+
+/** A T/S field. No flat value: the number is at `readings[origin].read_value` and nowhere else. */
+interface SpecEntry {
+  origin: SourceRole;
+  readings: Partial<Record<SourceRole, Reading>>;
+  dq: DqMark[];
+}
+
+/** The record. This is what `openisd.yml` and `.owdr` contain, and what a repository returns. */
+interface OpenISDRecord {
+  uuid: BookkeepingField<string>;
+  brand: ScrapedField<string>;
+  model: ScrapedField<string>;
+  manufacturer: ScrapedField<string>;
+  sku: DerivedField<string>;
+  driver_type: ScrapedField<string>;
+  disposition: DispositionField;
+  quality: QualityBlock;
+  specs: { woofer?: SpecSection; tweeter?: SpecSection; passive_radiator?: SpecSection };
+  curves?: CurvesBlock;
+}
+
+/** What a field looks like to the app. */
+type CellState = 'E' | 'C' | 'N';
+interface Cell {
+  value: number | null;
+  state: CellState;
+  /** The winning source. Present only for a stated value. */
+  origin?: SourceRole;
+}
+
+/** Failure is a value. Nothing in the engine throws. */
+interface Result<T> {
+  value: T | null;
+  errors: readonly DriverError[];
+}
+```
+
+**`OpenISDDriver`** is the live, editable form of an `OpenISDRecord`:
+
+```ts
+class OpenISDDriver {
+  static fromRecord(record: OpenISDRecord): OpenISDDriver;
+  toRecord(): OpenISDRecord;
+  cell(field: SpecField): Cell;
+  enter(field: SpecField, value: number): void;
+  clear(field: SpecField): void;
+  errors(): readonly DriverError[];
+  subscribe(fn: () => void): () => void;
+}
+```
+
+`SpecField` is the closed set of canonical field names, not an open string.
+
 ---
 
 ## 3. The driver model
@@ -369,24 +503,24 @@ on every edit.
 ```mermaid
 sequenceDiagram
     actor User
-    participant UI as @ui component
+    participant UI as ui component
     participant Store as logic store
-    participant Driver as OpenISDDriver<br/>@openisd/model
-    participant Engine as @openisd/engine
-    participant Canvas as @ui canvas
+    participant Driver as OpenISDDriver
+    participant Engine as engine
+    participant Canvas as ui canvas
 
-    User->>UI: edits a T/S field / box volume
-    UI->>Store: enterDriverField(field, value)
-    Store->>Driver: enter(field, value)
-    Note over Driver: records a manual reading;<br/>C/N derived, never set directly
-    Driver->>Engine: derive stated fields
-    Engine-->>Driver: Result{value, errors} — never throws
+    User->>UI: edits a T/S field or box volume
+    UI->>Store: enterDriverField field, value
+    Store->>Driver: enter field, value
+    Note over Driver: records a manual reading.<br/>C and N are derived, never set
+    Driver->>Engine: solve the stated fields
+    Engine-->>Driver: a Result carrying value and errors, never a throw
     Driver-->>Store: notify subscribers
-    Store->>Engine: sweep(driver, boxType, params)
-    Engine-->>Store: SweepResult — spl, phase, exc, zmag, tfMag, …
-    Store->>Store: series.ts maps arrays to renderer Series[]
-    Store-->>Canvas: reactive Series[]
-    Canvas-->>User: redrawn charts + StatBar readouts
+    Store->>Engine: sweep driver, boxType, params
+    Engine-->>Store: SweepResult - spl, phase, excursion, impedance
+    Store->>Store: map the arrays to renderer series
+    Store-->>Canvas: reactive series
+    Canvas-->>User: redrawn charts and readouts
 ```
 
 **File I/O sits beside this loop, not inside it.** Import builds an `OpenISDDriver` from an
@@ -435,8 +569,25 @@ closed-form Thiele/Small physics. Restructuring moves that code behind boundarie
 rewrite the formulas. A clean-room rewrite discards paid-for correctness and re-introduces the same
 class of bugs.
 
-**No module-level singletons.** Stated in §2 and enforced by the gate; restated here because it is
-a whole-system rule, not a service-directory convention.
+**NO GLOBAL VARIABLES.** This is a whole-system rule, not a service-directory convention. Nothing
+in this system holds state that another part can reach without being handed it. Specifically, and
+without exception:
+
+- **No module-level mutable binding.** No `export let`, no `export var`, no exported object that
+  is mutated after construction.
+- **No exported pre-built instance.** A module exports a `create<Name>(deps)` factory, never a
+  ready-made `new X()`, `reactive()` or `ref()`. An instance nobody can substitute makes every
+  consumer of it untestable in isolation.
+- **Nothing on `window`.** The one exception is `window._selfTestDone`, which carries no state —
+  it is a completion flag read by the browser test harness.
+- **`state` is not importable.** It is created by the store factory and passed to what needs it.
+- **No ambient singleton reached through a module import**, including caches, registries and
+  loggers. If two callers must share one, the composition root constructs it once and injects it
+  into both.
+
+Every collaborator arrives as an argument. That is what makes any part of this system testable
+with a substitute in place of the thing it depends on, and it is why the composition root is the
+only place that constructs.
 
 ---
 
