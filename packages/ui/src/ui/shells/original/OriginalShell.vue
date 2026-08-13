@@ -46,7 +46,6 @@ import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGene
 import { useDesignIO } from '../../../logic/useDesignIO.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import GraphPanel from '../../components/GraphPanel.vue';
-import SkinPicker from '../../components/SkinPicker.vue';
 import NumInput from '../../components/NumInput.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
@@ -917,7 +916,6 @@ watch(() => state.ui.originalEditorOpen, (open) => {
         <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
                 @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
         <div class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
-        <SkinPicker />
       </div>
     </div>
 
@@ -1603,10 +1601,6 @@ watch(() => state.ui.originalEditorOpen, (open) => {
   margin-left: 3px;
 }
 .cursor-readout .ro-val { min-width:76px; text-align:right; }
-/* Boosted vs the shared component's subtle default — easy to miss among the readout numbers. */
-.cursor-readout :deep(.skin-picker) { margin-top:0; padding:3px 8px; border:1px solid #7fb3ff; border-radius:3px; background:#eaf3ff; }
-.cursor-readout :deep(.skin-lbl) { color:#1868d1; font-weight:700; }
-.cursor-readout :deep(.skin-picker select) { border-color:#7fb3ff; font-weight:600; }
 
 /* dropdown menus */
 .dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; max-height:calc(100vh - 90px); overflow-y:auto; }

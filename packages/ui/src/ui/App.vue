@@ -44,12 +44,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="skin-original" style="display: contents;">
-    <OriginalShell />
-    <DriverBrowserWinisd />
-    <!-- The driver editor is global, so a driver picked from the library is always
-         reviewed before it reaches the design. -->
-    <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
-    <Flash />
-  </div>
+  <OriginalShell />
+  <DriverBrowserWinisd />
+  <!-- The driver editor is global, so a driver picked from the library is always
+       reviewed before it reaches the design. -->
+  <DriverEditorModal v-if="state.editDriverInfo" @close="state.editDriverInfo = false" />
+  <Flash />
 </template>

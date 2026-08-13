@@ -61,43 +61,115 @@ the next deploy.
 
 ## 2. Component architecture
 
-Three npm packages, and within the UI package five concern-boundary modules (AD-3). Dependency
-arrows point **one way only — downward**; there is no upward or lateral import.
+**Four layers. Every import points DOWNWARD, one layer at a time.** No upward import, no lateral
+import between siblings, and no skipping a layer — the UI does not reach past `logic` into a
+service, and a service does not reach back into the app's state.
+
+Each box is ONE responsibility. A module that both fetches data and drives the UI has two, and
+belongs in two places.
 
 ```mermaid
 graph TD
-    subgraph uipkg["@openisd/ui — packages/ui/src"]
-        UI["<b>@ui</b> · ui/<br/>components · shells classic/original/modern<br/>canvas · directives · presets<br/><i>DOM-coupled, swappable</i>"]
-        DB["<b>@db</b> · db/<br/>library index · search · selection<br/>My Drivers · PR library"]
-        DIAG["<b>@diagnostics</b> · diagnostics/<br/>runtime self-test AD-5"]
-        LOGIC["<b>@logic</b> · logic/<br/>store · composables · project model<br/>field registry · persistence · series"]
-        LOGGING["<b>@logging</b> · logging/<br/>flash / alerting"]
+    subgraph L1["PRESENTATION"]
+        UI["<b>ui/</b><br/>components · canvas · directives<br/><i>DOM. Renders state, raises intent.</i>"]
     end
 
-    WINISD["<b>@openisd/winisd</b> — packages/winisd/src<br/><b>@wdr @wpr</b> classic/ · ParState · Driver ADT<br/><b>@owdr @owpr</b> native/ · openisd.yml I/O<br/><i>headless, no DOM</i>"]
+    subgraph L2["APPLICATION"]
+        LOGIC["<b>logic/</b><br/>store · project · driver model<br/>workflows · field registry · series<br/><i>The only holder of app state.</i>"]
+    end
 
-    ENGINE["<b>@openisd/engine</b> — packages/engine/src<br/><b>@engine</b> · deriveDriver · sweep · circuit<br/>complex · alignments · filters · constants<br/><i>pure physics, zero WinISD concepts, no DOM</i>"]
+    subgraph L3["SERVICES — arguments in, data out, no app state"]
+        DRIVERREPO["<b>driverRepo</b><br/>the driver commons:<br/>index · search · lookup"]
+        MYREPO["<b>myDriverRepo</b><br/>user-saved drivers"]
+        PREFS["<b>prefsStore</b><br/>favourites · session · layout"]
+        FILEIO["<b>fileIO</b><br/>open · save · share link"]
+        DIAG["<b>diagnostics</b><br/>runtime self-test AD-5"]
+        LOGGING["<b>logging</b><br/>flash · alerting"]
+    end
 
-    UI --> DB
+    subgraph L4["DOMAIN — headless, no DOM, no browser"]
+        MODEL["<b>the OpenISD record</b><br/>the driver model itself"]
+        ENGINE["<b>@openisd/engine</b><br/>physics: derive · sweep · circuit<br/>alignments · filters · constants"]
+        SERIAL["<b>@openisd/winisd</b><br/>serialisation ONLY:<br/>.wdr · .wpr · ParState"]
+    end
+
+    ROOT["<b>composition root</b> · main.ts<br/><i>the ONLY place that constructs anything</i>"]
+
+    ROOT -.constructs & injects.-> LOGIC
+    ROOT -.constructs.-> DRIVERREPO
+    ROOT -.constructs.-> MYREPO
+    ROOT -.constructs.-> PREFS
+    ROOT -.constructs.-> FILEIO
+    ROOT -.constructs.-> DIAG
+    ROOT -.constructs.-> LOGGING
+
     UI --> LOGIC
-    UI --> LOGGING
-    UI --> DIAG
-    DB --> LOGIC
-    DB --> LOGGING
-    DB --> WINISD
+    LOGIC --> DRIVERREPO
+    LOGIC --> MYREPO
+    LOGIC --> PREFS
+    LOGIC --> FILEIO
+    LOGIC --> DIAG
     LOGIC --> LOGGING
-    LOGIC --> WINISD
+    LOGIC --> MODEL
+    DRIVERREPO --> MODEL
+    MYREPO --> MODEL
+    FILEIO --> SERIAL
+    FILEIO --> MODEL
     DIAG --> ENGINE
-    LOGIC --> ENGINE
-    WINISD --> ENGINE
+    MODEL --> ENGINE
+    SERIAL --> MODEL
 
-    classDef pure fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
-    classDef headless fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
-    classDef dom fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
-    class ENGINE pure
-    class WINISD headless
-    class UI dom
+    classDef pres fill:#3d2b16,stroke:#fbbf24,color:#fff8e8
+    classDef app fill:#2a2440,stroke:#a78bfa,color:#f2ecff
+    classDef svc fill:#1e3050,stroke:#60a5fa,color:#eaf2ff
+    classDef dom fill:#1b3a2f,stroke:#4ade80,color:#e8fff4
+    classDef root fill:#402020,stroke:#f87171,color:#ffecec
+    class UI pres
+    class LOGIC app
+    class DRIVERREPO,MYREPO,PREFS,FILEIO,DIAG,LOGGING svc
+    class MODEL,ENGINE,SERIAL dom
+    class ROOT root
 ```
+
+**Solid arrow = "is given, and calls". Dotted = "constructs".** Only the composition root
+constructs. Every other arrow is a collaborator that arrived as an argument, so the thing at the
+tail can be exercised in a test with a substitute at the head.
+
+### Modules, purpose, and injected dependencies
+
+**No module-level singletons, and no exported mutable bindings.** Each module exports a
+`create<Name>(deps)` factory and nothing pre-built: a ready-made instance cannot be substituted, so
+every consumer of one becomes untestable in isolation. `state` is created by the store factory and
+handed to whoever needs it — it is not importable.
+
+| Module | Single responsibility | Injected dependencies |
+| --- | --- | --- |
+| `main.ts` — composition root | Construct every service and the store, wire them, mount the app | — (it is the top; nothing injects into it) |
+| `createStore` | Hold the application's state and nothing else | `driverRepo`, `myDriverRepo`, `prefsStore`, `fileIO`, `logging` |
+| `logic/` workflows | Decide what the app does next — driver chosen, project opened, what-if applied | the store, plus whichever services that workflow needs |
+| `createDriverRepo` | Answer questions about the driver commons: index, search, filter, lookup | a bundle source (`() => DriverRecord[]`) |
+| `createMyDriverRepo` | Read, write and delete user-saved drivers by identity | a `KeyValueStore` |
+| `createPrefsStore` | Browser-local preferences: favourites, session, layout | a `KeyValueStore` |
+| `createFileIO` | Open, save, import, export, share-link encode and decode | the serialiser (`@openisd/winisd`), the record codec |
+| `createDiagnostics` | Run the self-test and report what it found | the engine, a reporter (`(msg) => void`) |
+| `createLogging` | Surface application events to the user | — (leaf; it depends on nothing) |
+| `ui/` | Render state, raise intent | the app facade, via Vue `provide`/`inject` at the root |
+
+A `KeyValueStore` is an interface — `get`/`set`/`remove`. `localStorage` is one implementation and
+an in-memory map is another, which is what lets the repositories be tested without a browser.
+
+**Why a repository, not a "db".** `driverRepo` and `myDriverRepo` answer questions about drivers
+and hand back records. They take arguments and return data. They do not know a dialog is open,
+they do not decide what happens next, and they never touch the store — a service that reads app
+state has inverted the arrow and dragged the layer above it into its own.
+
+**Where workflow lives.** "The user chose a driver" is a decision about what the app does next: it
+belongs in `logic`, which may call a repository to fetch the record and then update its own state.
+Putting that sequence inside a repository is what forces a service to import the store.
+
+**Serialisation is a leaf.** `@openisd/winisd` turns the OpenISD record into WinISD's bytes and
+back. WinISD is a consumer of our files and the reference oracle for our numbers — it is not our
+model, so nothing above the domain layer knows what ParState is.
 
 ### Module responsibilities
 
@@ -109,11 +181,14 @@ to the tree as it stands.
 | `@engine` | `packages/engine/src/` | All electro-acoustic maths — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState, provenance), file formats, DOM |
 | `@wdr` / `@wpr` | `packages/winisd/src/classic/` | Classic WinISD `.wdr`/`.wpr` parse + serialise, ParState position map, E/C/N provenance | DOM, any UI framework |
 | `@owdr` / `@owpr` | `packages/winisd/src/native/` | Native `openisd.yml` / `.owdr` read + write, record shape, derivation | DOM, any UI framework |
-| `@logic` | `packages/ui/src/logic/` | Reactive store, composables, project/workspace model, field registry, persistence, chart-series mapping | Maths (delegate to `@engine`), `.vue` imports |
-| `@db` | `packages/ui/src/db/` | Driver/PR library indexing, search, filtering, selection, My Drivers store | Maths, `.vue` imports |
-| `@diagnostics` | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions | — |
+| `@logic` | `packages/ui/src/logic/` | The app's ONLY state. Store, project/workspace model, the driver model, workflows, field registry, chart-series mapping | Maths (delegate to `@engine`), `.vue` imports |
+| `driverRepo` | `packages/ui/src/db/` | The driver commons: index, search, filter, lookup. Answers questions, returns records | App state, workflow, `.vue` imports |
+| `myDriverRepo` | `packages/ui/src/db/` | User-saved drivers: read, write, delete by identity | App state, workflow, `.vue` imports |
+| `prefsStore` | `packages/ui/src/db/` | Browser-local preferences — favourites, session, layout | App state, workflow, `.vue` imports |
+| `fileIO` | `packages/ui/src/logic/` | Open, save, import, export, share-link encode/decode | App state, workflow, `.vue` imports |
+| `@diagnostics` | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions | App state |
 | `@logging` | `packages/ui/src/logging/` | Application event/alert surface (flash messages) | Dependencies on any other module — it is a leaf |
-| `@ui` | `packages/ui/src/ui/` | Vue components, the three skins, canvas drawing, directives, static presets | Physics, business logic another skin would need (AD-7) |
+| `@ui` | `packages/ui/src/ui/` | Vue components, canvas drawing, directives, static presets | Physics, app state, anything a service should own |
 
 ### Dependency rules, and what enforces them
 
@@ -122,6 +197,8 @@ to the tree as it stands.
 | `@engine` depends on nothing (zero runtime dependencies) | `packages/engine/package.json` — empty `dependencies` |
 | `@openisd/winisd` depends only on `@engine` (+ `yaml`) | `packages/winisd/package.json` |
 | `@logic` / `@db` never import a `.vue` file | [`packages/ui/test/ui/architecture.test.ts`](packages/ui/test/ui/architecture.test.ts) |
+| `@ui` imports `logic` only — never a service directly | **no automated gate yet** (ledger QO38) |
+| A service never imports the store, and never imports `logic` | **no automated gate yet** (ledger QO38) |
 | No maths in `@ui` / `@logic` | `openspec/project.md` §"Important Constraints" — convention, **no automated gate** |
 | No global variables anywhere | `openspec/project.md` §"Architecture Patterns" — convention |
 | Behaviour shared by skins lives in one composable | AD-7 — convention, **no automated gate** |

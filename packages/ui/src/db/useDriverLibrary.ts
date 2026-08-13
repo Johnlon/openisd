@@ -13,12 +13,12 @@ import sourcesJson from '../../../../drivers/sources.json';
 import bundleJson from '../drivers-bundle.json';
 
 // The driver library — the ONE implementation of the picker's behaviour, shared by every
-// skin (ARCHITECTURE.md AD-7). Pool building, classification, search, filters, My Drivers,
+// component (ARCHITECTURE.md AD-7). Pool building, classification, search, filters, My Drivers,
 // custom GitHub sources, preview and selection all live here; the picker components own
 // markup and CSS only.
 //
 // Module-level singleton: the pool is thousands of drivers parsed from the bundle, so it is
-// built once for the session rather than once per skin.
+// built once for the session rather than once per consumer.
 
 export interface SourceEntry {
   key: string; name: string; type?: string;

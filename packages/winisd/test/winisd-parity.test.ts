@@ -221,9 +221,9 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           const raw = golden.Driver?.[key];
           assert.ok(raw != null, `${s.id}: WinISD wrote no ${key} — the golden cannot answer for it`);
           const winisd = parseFloat(raw);
-          const cell = drv.cell(FIELD_ALIASES[key] ?? key);
+          const openisd = num(drv, FIELD_ALIASES[key] ?? key);
 
-          if (cell.value == null || !Number.isFinite(cell.value)) {
+          if (openisd === null) {
             // openisd leaves a field ABSENT where it has no route to it. That is a real
             // answer, not a number, so it is only acceptable when recorded as such.
             assert.ok(findDivergence(s.id, key),
@@ -231,7 +231,7 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
               'Either openisd is missing a route or this belongs in divergences.json with its cause.');
             return;
           }
-          compare(s.id, key, winisd, cell.value);
+          compare(s.id, key, winisd, openisd);
         });
       }
 
@@ -239,8 +239,8 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
         const raw = golden.Driver?.EBP;
         assert.ok(raw != null, `${s.id}: WinISD wrote no EBP`);
         const winisd = parseFloat(raw);
-        const fs = drv.cell('Fs').value, qes = drv.cell('Qes').value;
-        assert.ok(fs != null && qes != null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
+        const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
+        assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
         compare(s.id, 'EBP', winisd, ebp({ Fs: fs, Qes: qes }));
       });
 
@@ -265,10 +265,10 @@ describe('WinISD parity — field calculations against goldens WinISD itself wro
           // significant digits (winisd_research/WINE_HARNESS.md). It is the one box-side
           // calculation WinISD commits to file at full precision.
           const winisd = parseFloat(golden.Box.Fr);
-          const fs = drv.cell('Fs').value, vas = drv.cell('Vas').value;
-          const qts = drv.cell('Qts').value, qms = drv.cell('Qms').value;
-          const qes = drv.cell('Qes').value, re = drv.cell('Re').value;
-          assert.ok(fs != null && vas != null && qts != null && re != null,
+          const fs = num(drv, 'Fs'), vas = num(drv, 'Vas');
+          const qts = num(drv, 'Qts'), qms = num(drv, 'Qms');
+          const qes = num(drv, 'Qes'), re = num(drv, 'Re');
+          assert.ok(fs !== null && vas !== null && qts !== null && re !== null,
             `${s.id}: openisd cannot form Fsc — Fs/Vas/Qts/Re missing`);
           const openisd = sealedFscWinisd({
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,

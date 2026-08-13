@@ -1,9 +1,8 @@
 <script setup lang="ts">
 /**
  * WinISD's Advanced-pane checkbox column — the five simulation-fidelity toggles
- * (docs/winisd/info/view_6_advanced.md). ONE implementation, shared by every skin:
- * Original and Classic embed it in their own Advanced panes, Modern gets it through
- * SidePanel. `inert-control-gate.test.ts` asserts this file binds every modeled toggle
+ * (docs/winisd/info/view_6_advanced.md). ONE implementation, embedded in the Advanced pane.
+ * `inert-control-gate.test.ts` asserts this file binds every modeled toggle
  * in the field registry, so a checkbox here can never go back to being decorative.
  *
  * Each field's full semantics, WinISD cross-reference and assumption status live in the

@@ -46,8 +46,7 @@ export function drawOne(
   ctx.clearRect(0, 0, W, H);
 
   // Chart colours are read from CSS custom properties on the canvas (inherited from the
-  // skin root), with the original dark values as defaults — so the modern skin is byte-for-
-  // byte unchanged while the classic (WinISD-light) skin gets a white chart with no fork.
+  // app root), so the chart follows the palette with no fork.
   const cs = getComputedStyle(canvas);
   const cvar = (name: string, fallback: string) => (cs.getPropertyValue(name).trim() || fallback);
   const COL = {
@@ -56,7 +55,7 @@ export function drawOne(
     cross:    cvar('--chart-cross', '#ffffff55'),
     band:     cvar('--chart-band', 'rgba(255,255,255,0.07)'),
     bandLine: cvar('--chart-band-line', 'rgba(255,255,255,0.35)'),
-    // A DIFFERENT custom property from the skin's own `--chart-bg` (used elsewhere for the
+    // A DIFFERENT custom property from the app's own `--chart-bg` (used elsewhere for the
     // .gpanel div's background, and inherited by every canvas — reading THAT one here would
     // make every render see a non-empty value and always fillRect, even with no user override).
     // `--chart-bg-override` is only ever set inline on the canvas by GraphPanel.vue when the

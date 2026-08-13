@@ -136,7 +136,7 @@ describe('cTanh — complex hyperbolic tangent', () => {
 
 describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
   const F_PIPE = C / (2 * LEFF);   // half-wave fundamental of the duct — the same figure the
-                                   // Original skin already reports as "1st port resonance"
+                                   // the UI already reports as "1st port resonance"
 
   it('converges on the lumped port mass as ω→0 — the lumped model IS its low-frequency limit', () => {
     // tanh(γL) → γL as ω→0, which makes Zport → Rap + jω·Map identically. So this is an

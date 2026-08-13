@@ -84,7 +84,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
     const ymin = Math.min(ymax - 45, Math.floor((lo - 3) / 5) * 5);
     // Reference lines (F3/F6/F10) + their legend — OpenISD value-add, but WinISD's plot is
-    // a bare trace, so the classic skin passes bare=true to suppress them (also removes the
+    // a bare trace, so the caller passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
       const f3 = rolloffFreq(sw, 3), f6 = rolloffFreq(sw, 6), f10 = rolloffFreq(sw, 10);
@@ -189,7 +189,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   FltMag: ({ meta, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.fltMag), color: meta.color, name: 'Filter chain' }];
     // Unity gain is this chart's DEFINING datum (it is what the help pins 0 dB to), not an
-    // optional annotation, so it is drawn in the bare/classic mode too — same reasoning as
+    // optional annotation, so it is drawn in the bare mode too — same reasoning as
     // TFMag's 0 dB line.
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
     const real = realDb(sw.fltMag);
@@ -257,7 +257,7 @@ export function buildPlotData(
 
   // Compare overlays may be hidden (visible === false) without being removed. Additive:
   // the current design is always drawn, and any overlay lacking the flag stays visible —
-  // so Modern (which never sets `visible`) renders exactly as before.
+  // so a design that never sets `visible` is always drawn.
   const designs = [currentDesign, ...compare.filter(d => d.visible !== false)];
   const multi = designs.length > 1;
   let out: PlotData | null = null;
@@ -269,7 +269,7 @@ export function buildPlotData(
       prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
       if (di > 0) delete prim.xlim; // compare overlays: solid color, no segmented coloring
     }
-    // Classic (WinISD) trace colour for the active project — matches its Color swatch.
+    // WinISD trace colour for the active project — matches its Color swatch.
     if (di === 0 && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);
     if (di === 0) for (let k = 1; k < pd.series.length; k++) out.series.push(pd.series[k]);

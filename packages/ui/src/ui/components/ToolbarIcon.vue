@@ -1,8 +1,7 @@
 <script setup lang="ts">
 /**
- * Shared WinISD-style toolbar icon set — ONE source for Original + Classic (both are
- * WinISD desktop recreations, so their toolbar iconography should be identical, not two
- * independently hand-drawn sets). Shapes/colours are modelled on the real WinISD 0.7.0.950
+ * Shared WinISD-style toolbar icon set — ONE source, so every toolbar that draws an icon
+ * draws the same one. Shapes/colours are modelled on the real WinISD 0.7.0.950
  * toolbar (docs/winisd/view_2_box.png): filled/shaded glyphs, not bare wireframe strokes —
  * orange folder, silver floppy disks, blue speaker/driver icon, blue info circle, pink
  * chart-curve icon. "saveAs" and "export" extend the real disk+pencil / disk+ribbon icons
@@ -53,7 +52,7 @@ defineProps<{
          with a full ring at each end and a bite cut from it — that reads as a dumbbell/lollipop,
          not a tool, because a real spanner's jaw is an open fork at the very tip, not a notch
          bitten out of a ring's middle.) The fork's gap is a MASK (true alpha cutout) so it reads
-         correctly on any skin's toolbar background. -->
+         correctly on the toolbar background. -->
     <defs>
       <mask id="wrenchFork">
         <rect x="0" y="0" width="26" height="26" fill="#fff"/>

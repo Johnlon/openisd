@@ -104,15 +104,10 @@ describe('share link carries skin + view context but not editor/working state', 
     return JSON.parse(json);
   }
 
-  it('serialize() carries the full ui (incl. skin) so localStorage remembers everything', () => {
-    assert.equal(serialize(uiState, drv).ui?.skin, 'classic');
-  });
-
-  it('stateToUrl() keeps skin + active tab + chart but drops the open-editor buffer', async () => {
+  it('stateToUrl() keeps the active tab + chart but drops the open-editor buffer', async () => {
     const shared = decodeShare(await stateToUrl(serialize(uiState, drv)));
     const ui = shared.ui as Record<string, unknown> | undefined;
     assert.ok(ui, 'shareable view context (ui) travels');
-    assert.equal(ui!.skin, 'classic');                    // recipient lands on the SENDER's skin
     assert.equal(ui!.originalProjectTab, 'signal');       // land on the same tab
     assert.equal(ui!.originalChartTab, 'Excursion');      // and the same chart
     assert.equal(ui!.originalChartLabel, 'Cone excursion');

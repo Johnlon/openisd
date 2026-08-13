@@ -43,8 +43,8 @@ export function serialize(state: AppState, driver: DriverJSON): SerializedState 
 }
 
 export async function stateToUrl(serialized: SerializedState): Promise<string> {
-  // A share link reproduces the sender's whole VIEW — same SKIN and same active tab/chart
-  // (both kept) — so the recipient lands on the identical page, not a generic default. It
+  // A share link reproduces the sender's whole VIEW — same active tab and chart — so the
+  // recipient lands on the identical page, not a generic default. It
   // still drops personal WORKING state that only makes sense mid-edit for the sender: an
   // open editor/what-if overlay + its uncommitted buffer (share the committed design, not
   // someone's half-finished edit), and per-field unit-display prefs (a recipient's own
@@ -56,7 +56,7 @@ export async function stateToUrl(serialized: SerializedState): Promise<string> {
             originalNavW: _nw, originalBottomH: _bh, originalNavCollapsed: _nc,
             originalBottomCollapsed: _bc, originalChartMax: _cm,
             username: _n, envDefaults: _v, chartColors: _c, ...shareableUi } = ui;
-    shareable.ui = shareableUi;   // Partial<UiState> — skin + tab/chart KEPT; open-editor state/buffer, unit prefs, device-local layout (panel sizes/collapse/maximise), and Options-dialog app-level prefs (username/env defaults/chart colors) dropped
+    shareable.ui = shareableUi;   // Partial<UiState> — tab/chart KEPT; open-editor state/buffer, unit prefs, device-local layout (panel sizes/collapse/maximise), and Options-dialog app-level prefs (username/env defaults/chart colors) dropped
   }
   const encoded = await gzipEncodeBase64Url(JSON.stringify(shareable));
   return location.origin + location.pathname + '#s=' + encoded;

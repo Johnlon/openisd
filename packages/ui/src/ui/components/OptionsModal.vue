@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Options dialog — recreates WinISD's "Options" modal (docs/winisd/options_general.png,
-// options_plot_window.png), opened via the wrench/tools toolbar icon on every skin.
+// options_plot_window.png), opened via the wrench/tools toolbar icon.
 //
 // General tab, top→bottom (matches the WinISD wireframe order):
 //   Username        — free-text app-level identity preference (state.ui.username).
@@ -25,7 +25,7 @@
 //   Colors  — WinISD has 6 swatches; OpenISD has a real rendering hook for 5 rows (wired via
 //             CSS custom properties on the canvas element, GraphPanel.vue → canvas.ts):
 //               Background  → --chart-bg-override (canvas fill; empty by default — transparent,
-//                              current skin's own .gpanel background shows through, unchanged).
+//                              app's own .gpanel background shows through, unchanged).
 //               Other lines → --chart-grid (frequency/level gridlines).
 //               Labels      → --chart-text (axis tick labels).
 //               Xmax limit  → --chart-pelimit (canvas.ts's amber Pe-limited trace segment — the
@@ -227,7 +227,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               <div class="opt-color-row" v-for="row in COLOR_ROWS" :key="row.key">
                 <label>{{ row.label }}</label>
                 <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                <button class="opt-clear-btn" title="Revert to the current skin's own color" @click="clearColor(row.key)">↺</button>
+                <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
               </div>
               <div class="opt-color-row opt-disabled" title="WinISD draws this on its 0 dB-normalized &quot;Transfer function magnitude&quot; chart — OpenISD's SPL chart plots absolute dB SPL, not a normalized transfer function, so there is no chart to draw this reference line on yet.">
                 <label>0 dB line</label>
@@ -276,7 +276,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 
 <style scoped>
 /* Fully self-contained (own overlay/modal shell, not the shared global .overlay/.modal) —
-   deliberately unique class names. Original/Classic each define their OWN unscoped `.overlay`/
+   deliberately unique class names. The shell defines its OWN unscoped `.overlay`/
    `.modal` rules for their native-style dialogs (e.g. Original's centers-at-top variant); Vue
    applies a parent's scoped-style attribute to a child component's ROOT element too, so reusing
    those same class names here would leak the shell's positioning/sizing onto this modal. */

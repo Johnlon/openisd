@@ -1,6 +1,6 @@
 /**
- * Signal-generator tone — a framework-free Web Audio wrapper shared by every skin
- * (the classic skin's "Signal Generator" box; available to modern/mobile too).
+ * Signal-generator tone — a framework-free Web Audio wrapper behind the
+ * "Signal Generator" box.
  *
  * WinISD's Signal Generator emits a real tone from the speakers; this matches that.
  * One oscillator → gain → destination. It is gesture-gated by design — construction
