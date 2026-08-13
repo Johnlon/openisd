@@ -29,6 +29,19 @@ describe('Driver Field Provenance Inspector Engine', () => {
     assert.notEqual(mmsInfo.paths[0].color, mmsInfo.paths[1].color, 'Each path must carry a distinct color');
   });
 
+  /* The inspector tells the user how a value was reached, so a path that names inputs the
+   * engine does not actually use is a lie about our own code. Rme takes 2π·Fs·Mms/Qes in
+   * preference to Bl²/Re (engine driver.ts block 13), and Mpow is √Rme so that it cannot
+   * print a number contradicting the Rme beside it. */
+  it('the Advanced figures of merit name the inputs the engine really uses', () => {
+    assert.deepEqual(getProvenanceInfo('Rme')?.paths[0].inputs, ['Fs', 'Mms', 'Qes']);
+    assert.deepEqual(getProvenanceInfo('gamma')?.paths[0].inputs, ['Bl', 'Mms']);
+    assert.deepEqual(getProvenanceInfo('Mpow')?.paths[0].inputs, ['Rme'],
+      'Mpow is derived from Rme, not independently from Bl and Re');
+    assert.deepEqual(getProvenanceInfo('SPLmax')?.paths[0].inputs, ['SPL', 'Pe']);
+    assert.match(getProvenanceInfo('SPLmax')?.paths[0].formulaText ?? '', /Pe/);
+  });
+
   it('substitutes live values into formula text', () => {
     const info = getProvenanceInfo('Qts', { Qes: 0.4, Qms: 4.0 });
     assert.ok(info);

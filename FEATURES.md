@@ -1,144 +1,20 @@
 # OpenISD — Feature List
 
-The full picture of what OpenISD is and where it's going. Includes notes on
-alternative tools (00 Enclosure Simulator, SpeakerDesign.dev, SpeakerBoxLite,
-SoundForm) for orientation. This doubles as a backlog: if a ⬜ item appeals,
-claim it in an issue.
+The full picture of what OpenISD is and where it's going. This doubles as a backlog: if a ⬜
+item appeals, claim it in an issue. For alternative tools (00 Enclosure Simulator,
+SpeakerDesign.dev, SpeakerBoxLite, Sonella, LoudspeakerLab, SoundForm, Biquad Cookbook) see
+[`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md).
 
 **Legend:** ✅ done · 🔨 in progress · ⬜ planned · _“seen in X”_ = demand already
 proven by another tool.
 
 ---
 
-## Alternative tools
-
-Good tools exist. Use whichever works best for you. These notes are for
-orientation, not criticism — we record them so contributors understand the
-landscape and can spot gaps worth filling.
-
----
-
-### 00 Enclosure Simulator — <https://simulator.00aud.io/>
-
-_by mbdavis · free, no login, closed source_
-
-The most fully-developed browser-based simulator in the field as of mid-2025.
-Around 65 shipped features including: amplifier-load graph, interactive
-lumped-model schematic view, on-graph parametric EQ + HP/LP + Linkwitz
-transform + shelf filters, URL-encoded shareable designs, imports **`.wdr`,
-`.wpr`, and Unibox** spreadsheets, exports WinISD-compatible files. Has a
-public voted roadmap (<https://simulator.00aud.io/roadmap>) and a WinISD
-feature comparison (<https://simulator.00aud.io/compare/winisd-vs-00-simulator>).
-
-The author has publicly pledged to open-source the code if the project ever
-goes inactive. The pledge is on record; the code is not yet public.
-
-Driver data and any design saves are not explicitly offered as open-access or
-exportable in bulk.
-
----
-
-### SpeakerDesign.dev — <https://speakerdesign.dev/>
-
-_free, no login, closed source_
-
-A broad, polished suite: guided Driver Wizard (sealed presets; vented
-QB3/SBB4/EBS), Box Simulator covering the same graph set as OpenISD plus
-full Ql/Qa/Qp losses, 1–4 vents (round or slot), selectable end-correction,
-drag-to-adjust Vb/Fb with axis locking, frequency range presets, and
-configurable listening distance. Also includes a detailed Box Calculator (six
-assembly cases, driver/port/bracing/lining displacement, cut list), a
-Cutlist Optimiser (bin-packing, kerf, rotate, fractional inches, PDF output),
-and an open knowledge base with tutorials.
-
-Sealed and vented only as of the survey date (bandpass, PR, and ABC listed as
-coming). No `.wdr` import or export noted. Broader than OpenISD on
-construction and education; roughly matched on core simulation.
-
----
-
-### SpeakerBoxLite — <https://speakerboxlite.com/>
-
-_freemium / pay-as-you-go, web + iOS + Android, closed source_
-
-The most feature-complete tool in the field: 5,000+ drivers, transmission
-line, full crossover suite, 3D enclosure builder, STL port export. A good,
-well-regarded site that covers the basics of enclosure simulation clearly.
-
-**Graph discrepancy noted:** for the same driver and box parameters, SpeakerBoxLite
-can produce noticeably different curves from OpenISD (and from WinISD) on some
-outputs — particularly SPL and excursion. The cause is not known. It may reflect
-a difference in the transfer-function model, loss assumptions, radiation
-convention, or a combination. This is an open question; anyone who diagnoses it
-is encouraged to open an issue or PR with findings.
-
-The driver database (5,000+ entries) is not made available as open-access data.
-Users can export individual designs but there is no bulk export or community
-commons equivalent to `drivers/`.
-
----
-
-### SoundForm
-
-_by u/BusyEntrepreneur9636 · closed beta, access by DM_
-<https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
-
-In closed beta as of the survey date. Crossover design and multi-driver
-summation appear to be a focus. No independent testing performed.
-
----
-
-### LoudspeakerLab — <https://loudspeakerlab.io/>
-
-_free, ad-free, web-based · licensing not stated_
-
-A different niche from OpenISD: a **full multiway system designer centred on passive-crossover
-synthesis**, where the enclosure is one sub-component rather than the whole product. An
-automated solver runs a multi-objective search over an ABCD-matrix circuit model, generating
-many candidate topologies per driver (HP/LP 0–4th order, asymmetric slopes, L-pad/T-pad/Zobel
-attenuation and R‖L/R‖C/L‖C compensation, LC/RLC trap networks) and combining them into
-full-system layouts, then scoring candidates on on-axis flatness, listening window,
-directivity, distortion avoidance, preference rating, simplicity, impedance and sensitivity.
-Values are snapped to E-series with real parasitics. Built on a **measurement-based, CTA-2034A**
-public community driver database — profiles are uploaded as **FRD / ZMA / distortion / off-axis**
-files (REW/ARTA/DATS), and the app computes CTA-2034A curves, Directivity Index and a Preference
-Rating with community accuracy voting. Box modelling covers **sealed and vented only** (default
-B4 vented alignment, from T/S params; merged into driver FR before the solve) — **no bandpass or
-passive radiator**. Crossovers can be **imported as a pasted SPICE netlist** and every design
-**exports a SPICE netlist**; the schematic exports as **PNG / SVG** and plots save as images.
-
-No WinISD `.wdr` import/export — its interchange is measurement-based (FRD/ZMA + SPICE netlist),
-not the lumped-T/S format OpenISD uses — so it is **not** a drop-in cross-check oracle. Full
-survey (verified by rendering the SPA with Playwright, 2026-07-05) in `OTHER_TOOLS.md §8`.
-
----
-
-### Biquad Cookbook EQ Designer — <https://loudifier.github.io/Biquad-Cookbook/>
-
-_by loudifier · free, open source, GitHub-hosted_
-
-A focused, modern web-based EQ filter designer that complements (not replaces)
-enclosure simulators. Provides 15+ filter types (1st/2nd order lowpass, highpass,
-allpass, shelves, peaking EQ, bandpass, notch, Linkwitz transform) with real-time
-visualization across four plot types: frequency response, phase, impulse response,
-and group delay. Includes a filter optimizer that matches a target curve or flattens
-a response. Saves/loads EQ configurations in YAML format. Orthogonal to OpenISD’s
-scope — Biquad focuses on signal-chain EQ filter design while OpenISD simulates
-enclosure acoustics. Users often chain both tools: design an enclosure in OpenISD,
-then use Biquad to design corrective EQ to flatten the result.
-
----
-
-> Feature notes for closed tools are taken from their own sites and authors’
-> public posts, not independent testing. Treat all claims as ⚠ unverified
-> unless a OpenISD contributor has directly compared outputs.
-
----
-
 ## 1. Enclosure types
 
 > Cross-tool support at a glance (which of these each surveyed tool models) lives in
-> `OTHER_TOOLS.md` → "Enclosure / box-type support at a glance".
+> [`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md) →
+> "Enclosure/box-type support at a glance".
 
 - ✅ Sealed (closed box)
 - ✅ Vented / ported (bass-reflex)

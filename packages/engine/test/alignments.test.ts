@@ -212,10 +212,39 @@ describe('Port / vent length calculation (ventLength)', () => {
   const PORT_D_M = 0.050; // m = 50 mm diameter port
   const Sp_m2  = Math.PI * (PORT_D_M / 2) ** 2; // circular port area
 
-  it('computes a positive vent length greater than 5 mm (physical minimum enforced)', () => {
+  it('returns the exact closed form L = Map·Sp/ρ − k·d, with nothing clamped', () => {
     const L = ventLength(Vb_m3, Fb_Hz, Sp_m2);
-    assert.ok(L >= 0.005,
-      `Vent length ${(L * 1000).toFixed(1)} mm should be ≥ 5 mm (practical minimum)`);
+    const Cab = Vb_m3 / (RHO * C * C);
+    const Map = 1 / ((2 * Math.PI * Fb_Hz) ** 2 * Cab);
+    const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
+    assert.ok(Math.abs(L - (Map * Sp_m2 / RHO - END_CORRECTION * d)) < 1e-15,
+      `Vent length ${(L * 1000).toFixed(3)} mm must be the raw solve`);
+  });
+
+  // A tuning above the L = 0 ceiling has no non-negative solution. The solver returns the
+  // raw negative root — the honest answer, and the one the UI's reachability detector reads.
+  // A floor would replace it with a buildable-looking vent that tunes somewhere else.
+  const CEIL_Vb = 0.030;                          // 30 L
+  const CEIL_Sp = Math.PI * 0.025 ** 2;           // 5 cm round vent
+  const CEIL_K  = 0.6;
+
+  it('an impossible target returns a NEGATIVE length, not a floored one', () => {
+    const L = ventLength(CEIL_Vb, 90, CEIL_Sp, CEIL_K);
+    assert.ok(L < 0,
+      `90 Hz in 30 L through a 5 cm vent needs L = ${(L * 1000).toFixed(2)} mm — must stay negative`);
+    assert.ok(Math.abs(tuningFromLength(CEIL_Vb, L, CEIL_Sp, CEIL_K) - 90) < 1e-9,
+      'the negative root is still an exact root: tuningFromLength must invert it');
+  });
+
+  it('the reachable boundary is L = 0 — just below it positive, just above it negative', () => {
+    const ceiling = tuningFromLength(CEIL_Vb, 0, CEIL_Sp, CEIL_K); // 80.79 Hz for this geometry
+    assert.ok(Math.abs(ceiling - 80.79) < 0.01, `ceiling ${ceiling.toFixed(4)} Hz`);
+    assert.ok(ventLength(CEIL_Vb, ceiling * 0.999, CEIL_Sp, CEIL_K) > 0,
+      'a target just BELOW the ceiling is reachable with a positive length');
+    assert.ok(ventLength(CEIL_Vb, ceiling * 1.001, CEIL_Sp, CEIL_K) < 0,
+      'a target just ABOVE the ceiling has no non-negative length');
+    assert.ok(Math.abs(ventLength(CEIL_Vb, ceiling, CEIL_Sp, CEIL_K)) < 1e-12,
+      'at the ceiling exactly the length is zero');
   });
 
   it('a longer vent results in a lower tuning frequency (Fb ∝ 1/√Leff)', () => {

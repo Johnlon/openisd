@@ -150,6 +150,27 @@ export default [
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
       ...noUnusedVars,
+      // ── The fixture is mandatory, and this is what makes it unbypassable ──────
+      // AGENTS.md §"Two suites, both required": every *.browser.spec.ts must take
+      // `test`/`expect` from packages/ui/test/fixtures.ts, because that module's
+      // `browserLog` auto-fixture is the ONLY thing asserting zero console errors,
+      // Vue duplicate-key warnings, uncaught page errors and failed same-origin
+      // requests. A spec importing them from '@playwright/test' still goes green on
+      // a DOM assertion while the app throws in the console.
+      //
+      // This matches the SHAPE of the import statement (an AST node), never prose —
+      // a comment or a string mentioning '@playwright/test' cannot trip it. Type-only
+      // imports are legitimate and stay allowed: `import type { Page }` carries no
+      // runtime binding, so it cannot bypass the fixture. A namespace import
+      // (`import * as pw`) is reported by the rule, so it is not an escape hatch.
+      '@typescript-eslint/no-restricted-imports': ['error', {
+        paths: [{
+          name: '@playwright/test',
+          importNames: ['test', 'expect'],
+          allowTypeImports: true,
+          message: "Import { test, expect } from the project fixture instead (e.g. '../fixtures.js'). @playwright/test's test/expect skip the browserLog console + network assertions that every browser spec must run.",
+        }],
+      }],
     },
   },
 ];

@@ -5,6 +5,18 @@ reverse-engineer its internal behaviour. **Not real drivers** — dummy values o
 
 THESE ARE REAL REFERENCES that have not been modified by AI.
 
+## 🔒 The only oracle is `winisd/`
+
+`winisd/` holds files WinISD ITSELF wrote — typed into the real UI and saved by it. That
+provenance is the only thing that makes a `.wdr` authoritative about the format.
+
+**A third-party database's export of driver data into `.wdr` shape is NOT an oracle**, however
+plausible or complete it looks. Such a file is one program's guess at WinISD's format, so its
+key set, its precision and its `ParState` are all unverified — and it will happily agree with
+a bug in our writer. Never take an expected value from one; never use one to assert
+conformance. Parse-robustness input is the only legitimate use, and it must be labelled as
+such at the point of use.
+
 "Auto calculate unknowns" was always enabled during all experiments. Because WinISD
 cannot derive anything from a single T/S input, every single-param probe produces
 exactly one new E position — a clean, unambiguous mapping.

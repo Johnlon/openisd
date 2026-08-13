@@ -35,7 +35,7 @@ export interface Result<T> {
  * be made with the specific intent of decommissioning it — migrating a call site off it, or
  * deleting a now-dead reference — never to extend or "fix" it in place. AD-8 still needs a
  * narrow successor type scoped to exactly what deriveDriver/sweep read; that is new work,
- * not a change to this interface. See PLAN_OPENISD_DRIVER_MODEL.md. */
+ * not a change to this interface. See docs/plans/PLAN_OPENISD_DRIVER_MODEL.md. */
 /**
  * Raw driver parameters as entered/imported — every field optional because a
  * partial driver is a valid intermediate state (parseWdr drops absent fields).
@@ -70,9 +70,6 @@ export interface DriverRaw {
   impedanceUrl?: string;
   // Non-modeled properties for lossless round-trip / metadata
   Xlim?: number;
-  hvc?: number;
-  hag?: number;
-  hc?: number;
   numVC?: number;
   VCCon?: number;
   tc?: number;
@@ -186,8 +183,24 @@ export interface SweepParams {
   prXmax?: number;
   // Signal chain
   filters?: Filter[];
+  // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------
+  /** Ambient temperature, K. Absent → `T_REF_K` (293.15). */
   tempK?: number;
-  // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. WINISD.md §12c.
+  /**
+   * Relative humidity, PERCENT (0–100). Absent → `RH_REF_PCT` (30). WinISD's `.wpr` `phi` is
+   * a FRACTION; the one conversion between the two lives in the `.wpr` writer.
+   */
+  humidityPct?: number;
+  /** Static air pressure, Pa. Absent → `P_REF_PA` (101325). */
+  pressurePa?: number;
+  /**
+   * Opt in to WinISD's behaviour of storing humidity and pressure but never reading them
+   * (ledger QO7). Absent/false — openisd's default — derives ρ and c from T, RH and p, and
+   * thence K in `SPL = K + 10·log₁₀(η₀)`. True pins ρ and c to the `RHO`/`C` constants,
+   * temperature-scaled. Worth about 0.077 dB of SPL at 30 °C. See air.ts.
+   */
+  ignoreHumidityAndPressure?: boolean;
+  // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
   vcTempRise?: number;

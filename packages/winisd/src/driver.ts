@@ -3,13 +3,13 @@
  * data model wearing a neutral name, not openisd.yml's, per AD-8's own diagnosis. Do NOT
  * maintain, extend, or add behavior to this class — a same-session attempt to patch a
  * feature onto it (a "DriverSession" auto-clear wrapper) was built and fully reverted for
- * exactly this reason; see STATE_MODEL.md's note. Any change here must be made with the
- * specific intent of decommissioning it — migrating a call site off it onto OpenISDDriver,
- * or deleting a now-dead reference — never to fix or improve it in place. Its derivation
- * algorithms are not thrown away (AD-4, extract don't rewrite) — they move onto
- * OpenISDDriver, per PLAN_OPENISD_DRIVER_MODEL.md. */
+ * exactly this reason; see docs/design/STATE_MODEL.md's note. Any change here must be made
+ * with the specific intent of decommissioning it — migrating a call site off it onto
+ * OpenISDDriver, or deleting a now-dead reference — never to fix or improve it in place. Its
+ * derivation algorithms are not thrown away (AD-4, extract don't rewrite) — they move onto
+ * OpenISDDriver, per docs/plans/PLAN_OPENISD_DRIVER_MODEL.md. */
 /**
- * Driver ADT — the E/C/N provenance model (docs/DRIVER_ADT_DESIGN.md).
+ * Driver ADT — the E/C/N provenance model (docs/design/DRIVER_ADT_DESIGN.md).
  *
  * The ONLY mutation path is enter/clear, so E/C/N can never drift out of sync with the
  * values: you cannot set a value without its mark updating, and there is no way to set a
@@ -23,7 +23,7 @@
  * exists.
  */
 
-import { deriveDriver, solveConsistencyGroup, checkConsistency, C, RHO } from '@openisd/engine';
+import { deriveDriver, solveConsistencyGroup, checkConsistency, splFromEfficiency, C, RHO } from '@openisd/engine';
 import type { DriverRaw, Driver as EngineDriver, DriverError, ConsistencyIssue } from '@openisd/engine';
 import { toWdr as toWdrRaw } from './classic/wdr.js';
 import { PARSTATE_LEN, MODELED_SLOTS, MODELED_BY_WDRKEY } from './parstate.js';
@@ -71,9 +71,19 @@ const ERROR_ALIASES: Record<string, string[]> = {
   Qts: ['Qms', 'Qes'],
 };
 
-// WDR header key → app metadata field. These are carried (not simulated), so on import
-// they are marked E and survive to raw()/re-save the same way the design's "carried
-// pass-through fields" do. `name` is composed from Brand + Model (as parseWdr did).
+// WDR file key → app field, for the carried (non-simulated) fields. On import they are
+// marked E and survive to raw()/re-save the same way the design's "carried pass-through
+// fields" do. `name` is composed from Brand + Model (as parseWdr did).
+//
+// The LEFT column is WinISD's spelling and nothing else. A key WinISD does not write is a
+// line WinISD ignores, so a value put there is lost on export AND contradicted by WinISD's
+// own line for the same quantity, which would be echoed back unchanged. The pairings come
+// from the single-parameter probes in `drivers/sample/winisd/` (`s-*.wdr` — one field set,
+// one new `E` in ParState), catalogued in `drivers/sample/README.md`.
+//
+// `Xlim` is the one entry with no WinISD key: WinISD holds it in ParState slot 10 only
+// (`s-xlim.wdr` writes no `Xlim=` line). It stays here so the value survives openisd's own
+// round-trip, and is never injected into a file that lacks it.
 const WDR_META: ReadonlyArray<[string, string]> = [
   ['Brand', 'brand'],
   ['Model', 'model'],
@@ -81,20 +91,24 @@ const WDR_META: ReadonlyArray<[string, string]> = [
   ['ProvidedBy', 'providedBy'],
   ['Comment', 'comment'],
   ['Xlim', 'Xlim'],
-  ['hvc', 'hvc'],
-  ['hag', 'hag'],
-  ['hc', 'hc'],
+  ['Hc', 'Hc'],
+  ['Hg', 'Hg'],
   ['numVC', 'numVC'],
   ['VCCon', 'VCCon'],
-  ['tc', 'tc'],
-  ['Rth', 'Rth'],
-  ['Cth', 'Cth'],
-  ['loss', 'loss'],
+  ['alfaVC', 'tc'],
+  ['Rt', 'Rth'],
+  ['Ct', 'Cth'],
+  ['Gloss', 'loss'],
   ['Thick', 'thick'],
   ['Depth', 'depth'],
-  ['MagnetDepth', 'magnetDepth'],
+  ['MagDepth', 'magnetDepth'],
+  ['Magnet', 'magnet'],
+  ['Basket', 'basket'],
+  ['Outer', 'outer'],
+  ['Vcd', 'VCd'],
+  ['DVol', 'basketDisplacement'],
   ['fLe', 'fLe'],
-  ['Le2', 'Le2'],
+  ['KLe', 'Le2'],
   ['DateAdded', 'added'],
 ];
 
@@ -102,14 +116,16 @@ const WDR_META: ReadonlyArray<[string, string]> = [
 // model holds one shape per field: the editor writes them back as numbers, and a field
 // that is a string on load and a number after an edit is two shapes of one concept.
 const WDR_META_NUMERIC = new Set([
-  'Xlim', 'hvc', 'hag', 'hc', 'numVC', 'VCCon', 'tc', 'Rth', 'Cth', 'loss',
-  'thick', 'depth', 'magnetDepth', 'fLe', 'Le2',
+  'Xlim', 'Hc', 'Hg', 'numVC', 'VCCon', 'tc', 'Rth', 'Cth', 'loss',
+  'thick', 'depth', 'magnetDepth', 'magnet', 'basket', 'outer', 'VCd',
+  'basketDisplacement', 'fLe', 'Le2',
 ]);
 
-// Format a modeled cell value back to a WDR value string. toPrecision(6) matches the
-// exporter's rounding, so an overlaid value stays numerically equal to the source.
+// Format a cell value back to a WDR value string. `String(x)` is the shortest text that
+// reparses to the identical double, so an overlaid value is bit-for-bit what was read —
+// which is what a genuine WinISD save carries (~15 significant figures).
 function fmtNum(x: number | string | undefined): string {
-  if (typeof x === 'number' && isFinite(x)) return String(+x.toPrecision(6));
+  if (typeof x === 'number' && isFinite(x)) return String(x);
   if (typeof x === 'string') return x;
   return '';
 }
@@ -287,23 +303,23 @@ export class Driver {
       raw[key] = val;
     }
 
-    // Ensure standard metadata keys exist in order and raw so they are always serialized on export
-    const standardKeys = [
-      'Comment', 'ProvidedBy', 'Manufacturer', 'Model', 'Brand',
-      'Xlim', 'hvc', 'hag', 'hc', 'numVC', 'VCCon', 'tc', 'Rth', 'Cth', 'loss',
-      'Thick', 'Depth', 'MagnetDepth', 'fLe', 'Le2'
+    // Ensure the keys a genuine WinISD save always carries exist in order and raw, so they
+    // are serialized on export even when the source file omitted them. Every key here is
+    // one WinISD writes; the default is the value WinISD writes when nothing is set
+    // (`drivers/sample/winisd/john-all-defaults.wdr`) — 0 for a numeric, not a blank line.
+    const STANDARD_TEXT_KEYS = ['Comment', 'Manufacturer', 'Model', 'Brand'];
+    const STANDARD_NUMERIC_KEYS = [
+      'Hc', 'Hg', 'alfaVC', 'Rt', 'Ct', 'Gloss',
+      'Thick', 'Depth', 'MagDepth', 'Magnet', 'Basket', 'Outer', 'Vcd', 'DVol',
+      'fLe', 'KLe',
     ];
-    for (const key of standardKeys) {
-      if (!order.includes(key)) {
-        order.unshift(key);
-        if (key === 'ProvidedBy') {
-          raw[key] = 'OpenISD';
-        } else if (key === 'numVC' || key === 'VCCon') {
-          raw[key] = '1';
-        } else {
-          raw[key] = '';
-        }
-      }
+    for (const key of [...STANDARD_TEXT_KEYS, ...STANDARD_NUMERIC_KEYS, 'ProvidedBy', 'numVC', 'VCCon']) {
+      if (order.includes(key)) continue;
+      order.unshift(key);
+      raw[key] = key === 'ProvidedBy' ? 'OpenISD'
+        : key === 'numVC' || key === 'VCCon' ? '1'
+        : STANDARD_NUMERIC_KEYS.includes(key) ? '0'
+        : '';
     }
 
     d.#wdrOrder = order;
@@ -359,11 +375,8 @@ export class Driver {
       } else {
         const metaPair = WDR_META.find(p => p[0] === key);
         if (metaPair) {
-          const metaField = metaPair[1];
-          const currentVal = this.#inputs[metaField];
-          if (currentVal !== undefined) {
-            val = String(currentVal);
-          }
+          const currentVal = this.#inputs[metaPair[1]];
+          if (currentVal !== undefined) val = fmtNum(currentVal);
         }
       }
       lines.push(key + '=' + val);
@@ -415,16 +428,21 @@ export class Driver {
 
     if (r.Dia == null && r.Dd != null) r.Dia = r.Dd;
 
-    if (this.#autoCalculate) {
-      // no/SPL — NOT part of solveConsistencyGroup
-      if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null)
-        r.no = 4 * Math.PI ** 2 / C ** 3 * r.Fs ** 3 * r.Vas / r.Qes;   // reference efficiency
-      if (r.SPL == null && r.no != null && r.no > 0) r.SPL = 112.1 + 10 * Math.log10(r.no);
-    }
-
     // Air constants autofill (state C) until overridden — matches the sim's constants.
     if (r.c == null) r.c = C;
     if (r.roo == null) r.roo = RHO;
+
+    if (this.#autoCalculate) {
+      // η₀ and SPL through the ONE implementation in @openisd/engine, evaluated at this
+      // driver's own air. solveConsistencyGroup already fills `no`/`SPLref`; `SPL` is the
+      // `.wdr` spelling of the same quantity.
+      if (r.SPL == null && r.no != null && r.no > 0) r.SPL = splFromEfficiency(r.no, r.roo, r.c);
+    }
+    // A driver has one voice coil unless someone says otherwise — WinISD shows Voicecoils=1
+    // on a blank driver. fromWdr already backfills numVC=1 for a file that omits the key, so
+    // without this every OTHER construction path (fromJSON, authored in-app) disagreed with
+    // it and the editor rendered the field blank. C, not E: the app supplied it, not a human.
+    if (r.numVC == null) r.numVC = 1;
 
     // Validation comes from the engine (single source of the required-field rules).
     // The resolved `r` (Sd filled from Dia, third Q filled) is what it checks, so a

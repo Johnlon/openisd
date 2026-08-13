@@ -3,7 +3,7 @@
  * Original-skin Tune panel — the mock's docked `.tune-panel`. This is a WHAT-IF editor:
  * changes preview LIVE on the charts (via the shared driver ADT's enterDriverField, the
  * same path the graph's reactive chain reads). A what-if is exploration-only and can never
- * become real driver data (STATE_MODEL.md rule 4) — there is no commit/"Keep" control.
+ * become real driver data (docs/design/STATE_MODEL.md rule 4) — there is no commit/"Keep" control.
  * Cancel is the only way the panel closes, and it always reverts to how the driver was
  * when Tune opened.
  *

@@ -1,6 +1,6 @@
 /**
  * The Original skin's Projects list. Open projects are INDEPENDENT documents: one never
- * carries, rebuilds or hides another (ARCHITECTURE.md AD-7 / STATE_MODEL.md). These tests
+ * carries, rebuilds or hides another (ARCHITECTURE.md AD-7 / docs/design/STATE_MODEL.md). These tests
  * pin the three ways that independence used to break —
  *   1. a row's show/hide checkbox being re-derived from a second copy of the same fact,
  *   2. the other open projects being written into the active design's state.compare

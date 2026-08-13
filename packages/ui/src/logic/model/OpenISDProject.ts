@@ -5,7 +5,7 @@ import type { BoxType, DriverJSON, ProjectMeta, UiParams } from '../../types.js'
  *
  * A project is an independent document: `{ id, name, box, P, driver, meta }` and nothing
  * else. It never contains, references or reconstructs another project — that is what made
- * saving one design write copies of the others into its file (see STATE_MODEL.md).
+ * saving one design write copies of the others into its file (see docs/design/STATE_MODEL.md).
  *
  * The class owns the project's whole memory, as layers:
  *

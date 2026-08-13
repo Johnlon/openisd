@@ -20,43 +20,50 @@ const BASE_DRIVER = {
   Re:5.6, Le:0.7e-3, Xmax:0.005, Pe:60, Z:8,
 };
 
+/* The air every golden was produced in, written into each fixture rather than left to the
+ * engine's defaults: ρ and c now follow temperature, humidity and pressure (air.ts), so a
+ * fixture that did not name its environment would not say what it is a snapshot OF.
+ * `ignoreHumidityAndPressure: false` is openisd's default — the physical model, NOT WinISD's
+ * frozen constants. The QO8 side-by-side parity suite is the one that runs with it true. */
+const ENV = { tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false };
+
 const DESIGNS: Design[] = [
   {
     name: 'sealed-single',
     driverRaw: BASE_DRIVER,
     box: 'sealed',
-    P: { Vb:0.020, Ql:7, eg:2.83, fmin:10, fmax:1000, N:200 },
+    P: { ...ENV, Vb:0.020, Ql:7, eg:2.83, fmin:10, fmax:1000, N:200 },
   },
   {
     name: 'vented-single',
     driverRaw: BASE_DRIVER,
     box: 'vented',
-    P: { Vb:0.020, Ql:7, Sp:Math.PI*0.025**2, Leff:0.12, eg:2.83, fmin:10, fmax:1000, N:200 },
+    P: { ...ENV, Vb:0.020, Ql:7, Sp:Math.PI*0.025**2, Leff:0.12, eg:2.83, fmin:10, fmax:1000, N:200 },
   },
   {
     name: 'bandpass4-single',
     driverRaw: BASE_DRIVER,
     box: 'bandpass4',
-    P: { Vb:0.015, Vf:0.020, Ql:7, Sp:Math.PI*0.025**2, Leff:0.15, eg:2.83, fmin:10, fmax:1000, N:200 },
+    P: { ...ENV, Vb:0.015, Vf:0.020, Ql:7, Sp:Math.PI*0.025**2, Leff:0.15, eg:2.83, fmin:10, fmax:1000, N:200 },
   },
   {
     name: 'pr-single',
     driverRaw: BASE_DRIVER,
     box: 'pr',
-    P: { Vb:0.020, Ql:7, prSd:0.0133, prMmd:0.030, prMadd:0, prCms:0.0008, prRms:1.0, prXmax:0.012,
+    P: { ...ENV, Vb:0.020, Ql:7, prSd:0.0133, prMmd:0.030, prMadd:0, prCms:0.0008, prRms:1.0, prXmax:0.012,
          eg:2.83, fmin:10, fmax:1000, N:200 },
   },
   {
     name: 'sealed-2drv-parallel',
     driverRaw: BASE_DRIVER,
     box: 'sealed',
-    P: { Vb:0.040, Ql:7, nDrivers:2, wiring:'parallel', eg:2.83, fmin:10, fmax:1000, N:200 },
+    P: { ...ENV, Vb:0.040, Ql:7, nDrivers:2, wiring:'parallel', eg:2.83, fmin:10, fmax:1000, N:200 },
   },
   {
     name: 'vented-2drv-series',
     driverRaw: BASE_DRIVER,
     box: 'vented',
-    P: { Vb:0.040, Ql:7, nDrivers:2, wiring:'series', Sp:Math.PI*0.025**2, Leff:0.12,
+    P: { ...ENV, Vb:0.040, Ql:7, nDrivers:2, wiring:'series', Sp:Math.PI*0.025**2, Leff:0.12,
          eg:2.83, fmin:10, fmax:1000, N:200 },
   },
 ];

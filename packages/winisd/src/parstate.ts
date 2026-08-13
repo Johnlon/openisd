@@ -19,7 +19,7 @@ export const POS_TO_WDRKEY: readonly (string | null)[] = [
   'Znom',   // 0
   'Fs',     // 1
   'Pe',     // 2
-  null,     // 3  SPL — computed, not written as a key in the modern format
+  'SPL',    // 3  written as a key — drivers/sample/winisd/john-all-defaults.wdr emits SPL=0
   'Re',     // 4
   'Le',     // 5
   'fLe',    // 6

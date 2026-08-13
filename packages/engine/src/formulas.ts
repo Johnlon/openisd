@@ -1,10 +1,10 @@
 /**
  * UI-facing closed-form derivations — pure functions shared by every skin and panel so the
  * physics lives in ONE place instead of being copy-pasted per component (PR Vas/Fs/Qms, drive
- * voltage, sound velocity previously duplicated 3–5× across the UI).
+ * voltage).
  *
- * These are ADDITIONS: they consolidate formulas that already existed identically in the UI.
- * The engine's own derivations (circuit/sweep/alignments) are untouched.
+ * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which every skin, the sweep and
+ * the circuit all call through `airFor`.
  */
 import { RHO, C } from './constants.js';
 
@@ -48,21 +48,3 @@ export function driveVoltage(pin: number, re: number): number {
   return Math.sqrt(pin * re);
 }
 
-/** The reference temperature `C` and `RHO` are quoted at: 20 °C in kelvin. */
-const T_REF_K = 293.15;
-
-/**
- * Speed of sound in air from absolute temperature: c = C · √(T[K] / T_REF_K) m/s.
- * At T_REF_K this returns `C` exactly.
- */
-export function soundVelocity(tempKelvin: number): number {
-  return C * Math.sqrt(tempKelvin / T_REF_K);
-}
-
-/**
- * Air density from absolute temperature, based on the ideal gas law:
- * ρ(T) = RHO · (T_REF_K / T). At T_REF_K this returns `RHO` exactly.
- */
-export function airDensity(tempKelvin: number): number {
-  return RHO * (T_REF_K / tempKelvin);
-}

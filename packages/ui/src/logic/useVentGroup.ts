@@ -14,7 +14,7 @@
  * just as hard — the ENTERED SET is the stored fact (`UiParams.entered`). Both `Fb` and
  * `ventL` remain fields; provenance decides which is authoritative. This is the same model
  * the driver already uses (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and what
- * STATE_MODEL.md rule 7 requires: provenance recorded where entry happens, never
+ * docs/design/STATE_MODEL.md rule 7 requires: provenance recorded where entry happens, never
  * reconstructed downstream from "is the field present".
  *
  * Note this is a GENERALISATION of WinISD, not a copy of it: WinISD's Vents tab is fixed —
@@ -49,6 +49,19 @@ export function ventSp(ventD: number): number {
   return Math.PI * (ventD / 2) ** 2;
 }
 
+/** The vent's cross-section as currently shaped — a round diameter, or a slot's W×H. */
+export function ventCrossArea(P: UiParams): number {
+  return P.ventShape === 'slotted' ? P.ventW * P.ventH : ventSp(P.ventD);
+}
+
+/**
+ * The volume this vent tunes. Per-chamber, not per-box: a bandpass4's port belongs to its
+ * FRONT chamber and tunes `Vf`; every other vented type ports the whole box, `Vb`.
+ */
+export function ventVolume(P: UiParams, box?: string): number {
+  return box === 'bandpass4' ? P.Vf : P.Vb;
+}
+
 /**
  * Can `field` be solved from the current entered set? One equation solves one unknown, so
  * every OTHER member must be entered.
@@ -78,8 +91,8 @@ export function ventDerivable(P: UiParams, field: VentField, box?: string): bool
  * which is mathematically impossible, with no warning and no correction.
  */
 export function solveVentGroup(P: UiParams, box?: string): void {
-  const Sp = P.ventShape === 'slotted' ? P.ventW * P.ventH : ventSp(P.ventD);
-  const V = box === 'bandpass4' ? P.Vf : P.Vb;
+  const Sp = ventCrossArea(P);
+  const V = ventVolume(P, box);
   if (!(V > 0) || !(Sp > 0)) return;
   if (!P.entered.ventL && ventDerivable(P, 'ventL', box)) {
     if (P.Fb > 0) P.ventL = ventLength(V, P.Fb, Sp, P.endCorrection);
@@ -121,7 +134,56 @@ export function ventFieldState(P: UiParams, field: VentField, box?: string): 'E'
   return ventDerivable(P, field, box) ? 'C' : 'N';
 }
 
-// ---- Restore suspension (STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------
+/**
+ * The tuning the CURRENT vent length actually delivers. Asks `tuningFromLength()` — the
+ * same relation `ventLength()` inverts — so there is one copy of the physics, not two.
+ */
+export function ventAchievedFb(P: UiParams, box?: string): number | null {
+  const Sp = ventCrossArea(P);
+  const V = ventVolume(P, box);
+  if (!(V > 0) || !(Sp > 0) || !(P.ventL > 0)) return null;
+  return tuningFromLength(V, P.ventL, Sp, P.endCorrection);
+}
+
+/**
+ * The highest tuning this volume and port area can reach with ANY vent — the tuning at L = 0.
+ * The end correction alone contributes acoustic mass, so a zero-length aperture still
+ * resonates, and there is nothing shorter than nothing. Asks `tuningFromLength()`, so this is
+ * the same single copy of the physics the solver inverts.
+ */
+export function ventMaxReachableFb(P: UiParams, box?: string): number | null {
+  const Sp = ventCrossArea(P);
+  const V = ventVolume(P, box);
+  if (!(V > 0) || !(Sp > 0)) return null;
+  return tuningFromLength(V, 0, Sp, P.endCorrection);
+}
+
+/**
+ * True when the SOLVER cannot deliver the entered target tuning with this volume and port
+ * area. Two ways it fails, and both are checked by CONSEQUENCE rather than by re-deriving a
+ * limit — there is no second copy of the physics here:
+ *
+ *   - the solved length is not positive. No vent is shorter than nothing, so a zero or
+ *     negative root means the target sits at or above the L = 0 ceiling.
+ *   - the solved length is positive but feeding it back through `tuningFromLength()` does
+ *     not reproduce the target. Nothing in the engine clamps today; this arm keeps the
+ *     detector honest if any caller ever hands the group a length it did not solve.
+ *
+ * Reported only while the length is the SOLVED member. An entered length is the user's own
+ * choice sitting alongside an entered tuning — over-determined, deliberately left alone
+ * (see `solveVentGroup`), and no claim of the solver's to contradict.
+ */
+export function ventTargetUnreachable(P: UiParams, box?: string): boolean {
+  if (!P.entered.Fb || P.entered.ventL) return false;
+  if (!ventDerivable(P, 'ventL', box) || !(P.Fb > 0)) return false;
+  const Sp = ventCrossArea(P);
+  const V = ventVolume(P, box);
+  if (!(V > 0) || !(Sp > 0)) return false;
+  if (!(P.ventL > 0)) return true;
+  return Math.abs(tuningFromLength(V, P.ventL, Sp, P.endCorrection) - P.Fb) > 1e-6 * P.Fb;
+}
+
+// ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------
 // A restore assigns a whole persisted `P` — both the entered set AND both members' values.
 // There is nothing to recompute, and recomputing is exactly what breaks byte-identity: the
 // solver would reproduce the calculated member from a value that was rounded on the way to

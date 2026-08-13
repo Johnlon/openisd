@@ -3,11 +3,25 @@
  * reverse-engineering + live gdb capture (research repo SEALED_FSC_MODEL.md §4). The reference
  * driver is Fs=40, Vas=7.47 L, with the Qts WinISD derives for it (0.395643).
  */
-import { describe, it, expect } from 'vitest';
-import { LossMode, sealedResonance, sealedFscWinisd, sourceLoadedQts } from '../src/lossMode.js';
+import { describe, it } from 'vitest';
+import assert from 'node:assert/strict';
+import {
+  LossMode,
+  sealedResonance,
+  sealedResonanceWinisd,
+  sealedFscWinisd,
+  sourceLoadedQts,
+} from '../src/lossMode.js';
 
 const DRIVER = { Fs: 40, Vas: 0.00747, Qts: 0.395643 };
 const p = (Vb: number, Ql: number, Qa = 10000) => ({ ...DRIVER, Vb, Ql, Qa });
+
+/** |got − want| < 10^−digits / 2 — the same window vitest's toBeCloseTo(want, digits) uses. */
+function closeTo(got: number, want: number, digits: number, msg: string) {
+  const tol = Math.pow(10, -digits) / 2;
+  assert.ok(Math.abs(got - want) < tol,
+    `${msg}: got ${got}, expected ${want} ±${tol}`);
+}
 
 describe('Sealed-Box Resonance Loss Models', () => {
   describe('WinisdLossy — bit-exact to WinISD readout', () => {
@@ -17,27 +31,101 @@ describe('Sealed-Box Resonance Loss Models', () => {
     ];
     for (const [Ql, fr] of oracle) {
       it(`Vb=6L Ql=${Ql} → ${fr} Hz`, () => {
-        expect(sealedFscWinisd(p(0.006, Ql))).toBeCloseTo(fr, 4);
+        closeTo(sealedFscWinisd(p(0.006, Ql)), fr, 4, `Fsc at Ql=${Ql}`);
       });
     }
     // Other volumes at Ql=10 (same driver) — from the oracle grid.
     it('tracks volume at Ql=10 (10L, 20L, 40L)', () => {
-      expect(sealedFscWinisd(p(0.010, 10))).toBeCloseTo(55.14994, 3);
-      expect(sealedFscWinisd(p(0.020, 10))).toBeCloseTo(48.40568, 3);
-      expect(sealedFscWinisd(p(0.040, 10))).toBeCloseTo(44.50218, 3);
+      closeTo(sealedFscWinisd(p(0.010, 10)), 55.14994, 3, 'Fsc at 10 L');
+      closeTo(sealedFscWinisd(p(0.020, 10)), 48.40568, 3, 'Fsc at 20 L');
+      closeTo(sealedFscWinisd(p(0.040, 10)), 44.50218, 3, 'Fsc at 40 L');
     });
   });
 
   describe('WinisdLossy converges to lossless as leakage vanishes', () => {
     it('Ql→∞ equals fs·√(1+Vas/Vb)', () => {
       const lossless = 40 * Math.sqrt(1 + 0.00747 / 0.006);
-      expect(sealedFscWinisd(p(0.006, 1e9))).toBeCloseTo(lossless, 6);
+      closeTo(sealedFscWinisd(p(0.006, 1e9)), lossless, 6, 'Fsc at Ql=1e9');
     });
     it('resonance rises monotonically as Ql falls', () => {
       const f = (Ql: number) => sealedFscWinisd(p(0.006, Ql));
-      expect(f(2)).toBeGreaterThan(f(5));
-      expect(f(5)).toBeGreaterThan(f(10));
-      expect(f(10)).toBeGreaterThan(f(100));
+      assert.ok(f(2) > f(5), 'Ql=2 must resonate above Ql=5');
+      assert.ok(f(5) > f(10), 'Ql=5 must resonate above Ql=10');
+      assert.ok(f(10) > f(100), 'Ql=10 must resonate above Ql=100');
+    });
+  });
+
+  // Direct tests of the pole solver itself. sealedFscWinisd and sealedResonance(WinisdLossy)
+  // both delegate here, so this is where the Qtc half of the readout and the two internal
+  // branches (complex pole pair vs the overdamped real-root fallback) are exercised head-on.
+  describe('sealedResonanceWinisd — the lossy pole solver, direct', () => {
+    it('returns the same Fsc that sealedFscWinisd projects out of it', () => {
+      // sealedFscWinisd is documented as "the pole frequency alone" — assert the delegation
+      // rather than assume it, since a divergence would silently split the Box tab readout.
+      for (const Ql of [2, 10, 100]) {
+        assert.equal(sealedResonanceWinisd(p(0.006, Ql)).Fsc, sealedFscWinisd(p(0.006, Ql)),
+          `Fsc must match sealedFscWinisd at Ql=${Ql}`);
+      }
+    });
+
+    it('is the mode WinisdLossy dispatches to', () => {
+      const direct = sealedResonanceWinisd(p(0.006, 10, 100));
+      const viaMode = sealedResonance(LossMode.WinisdLossy, p(0.006, 10, 100));
+      assert.deepEqual(viaMode, direct, 'WinisdLossy must be exactly this function');
+    });
+
+    it('short-circuits to the lossless closed form when there is no leakage', () => {
+      // Ql ≥ 1e6 (or non-positive) means "no leak", and the answer is then the textbook
+      // Fc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb) with no root-finding at all.
+      const ratio = Math.sqrt(1 + 0.00747 / 0.006);
+      for (const Ql of [1e6, 1e9, 0, -5]) {
+        const r = sealedResonanceWinisd(p(0.006, Ql));
+        closeTo(r.Fsc, 40 * ratio, 9, `Fsc for Ql=${Ql}`);
+        closeTo(r.Qtc, 0.395643 * ratio, 9, `Qtc for Ql=${Ql}`);
+      }
+    });
+
+    it('treats a non-positive or effectively-infinite Qa as no absorption loss', () => {
+      // Qa ≤ 0 and Qa ≥ 1e6 both collapse to the same "no damping material" case.
+      const base = sealedResonanceWinisd(p(0.006, 10, 1e9));
+      for (const Qa of [0, -1, 1e6, 1e12]) {
+        assert.deepEqual(sealedResonanceWinisd(p(0.006, 10, Qa)), base,
+          `Qa=${Qa} must read as no absorption loss`);
+      }
+    });
+
+    it('adding absorption loss lowers Q without moving resonance much', () => {
+      const light = sealedResonanceWinisd(p(0.006, 10, 10000));
+      const heavy = sealedResonanceWinisd(p(0.006, 10, 20));
+      assert.ok(heavy.Qtc < light.Qtc, 'stuffing must damp the system Q');
+      assert.ok(Math.abs(heavy.Fsc - light.Fsc) / light.Fsc < 0.05,
+        'absorption is a damping term — it must not shift Fsc by more than a few percent');
+    });
+
+    it('stays continuous through the overdamped/underdamped seam (Ql 0.1 → 10)', () => {
+      // Below roughly Ql = 0.33 the cubic has three REAL roots, so the complex-pole formula
+      // has nothing to grab and the two dominant real roots stand in for the pair. That
+      // fallback is only correct if it agrees with the pole-pair branch at the crossover —
+      // a wrong fallback shows up as a step in an otherwise smooth curve.
+      let prev: { Fsc: number; Qtc: number } | null = null;
+      let sawOverdamped = false, sawUnderdamped = false;
+      for (let i = 0; i <= 40; i++) {
+        const Ql = 0.1 * Math.pow(10, i / 20); // log grid, 0.1 → 10
+        const r = sealedResonanceWinisd(p(0.006, Ql));
+        assert.ok(Number.isFinite(r.Fsc) && r.Fsc > 0, `Fsc must be a real frequency at Ql=${Ql}`);
+        assert.ok(Number.isFinite(r.Qtc) && r.Qtc > 0, `Qtc must be positive at Ql=${Ql}`);
+        // Qtc = √(r0·r1)/(r0+r1) ≤ ½ by AM–GM, so a Qtc above ½ can only come from a
+        // genuine complex pole pair — which is how both branches are shown to be visited.
+        if (r.Qtc <= 0.5) sawOverdamped = true; else sawUnderdamped = true;
+        if (prev) {
+          assert.ok(r.Fsc < prev.Fsc, `Fsc must fall as Ql rises (at Ql=${Ql})`);
+          assert.ok((prev.Fsc - r.Fsc) / prev.Fsc < 0.10,
+            `no step in Fsc across the seam at Ql=${Ql}: ${prev.Fsc} → ${r.Fsc}`);
+        }
+        prev = r;
+      }
+      assert.ok(sawOverdamped, 'the grid must reach the overdamped real-root branch');
+      assert.ok(sawUnderdamped, 'the grid must reach the complex-pole branch');
     });
   });
 
@@ -46,9 +134,9 @@ describe('Sealed-Box Resonance Loss Models', () => {
       const r1 = sealedResonance(LossMode.Lossless, p(0.006, 10));
       const r2 = sealedResonance(LossMode.Lossless, p(0.006, 2));
       const expected = 40 * Math.sqrt(1 + 0.00747 / 0.006);
-      expect(r1.Fsc).toBeCloseTo(expected, 9);
-      expect(r2.Fsc).toBeCloseTo(expected, 9); // Ql does not move it
-      expect(r1.Qtc).toBeCloseTo(0.395643 * Math.sqrt(1 + 0.00747 / 0.006), 9);
+      closeTo(r1.Fsc, expected, 9, 'Fsc at Ql=10');
+      closeTo(r2.Fsc, expected, 9, 'Fsc at Ql=2 — Ql does not move it');
+      closeTo(r1.Qtc, 0.395643 * Math.sqrt(1 + 0.00747 / 0.006), 9, 'Qtc');
     });
   });
 
@@ -57,21 +145,22 @@ describe('Sealed-Box Resonance Loss Models', () => {
       const r = sealedResonance(LossMode.ConventionalLossy, p(0.006, 10, 100));
       const lossless = 40 * Math.sqrt(1 + 0.00747 / 0.006);
       const qtcLossless = 0.395643 * Math.sqrt(1 + 0.00747 / 0.006);
-      expect(r.Fsc).toBeCloseTo(lossless, 9); // frequency unchanged
-      expect(r.Qtc).toBeCloseTo(1 / (1 / qtcLossless + 1 / 10 + 1 / 100), 9);
+      closeTo(r.Fsc, lossless, 9, 'Fsc — frequency unchanged');
+      closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 10 + 1 / 100), 9, 'Qtc');
     });
   });
 
   describe('LossMode enum', () => {
     it('has exactly three members with WinISD as default', () => {
-      expect(LossMode.ALL.map(m => m.value)).toEqual(['lossless', 'conventional-lossy', 'winisd-lossy']);
-      expect(LossMode.Default).toBe(LossMode.WinisdLossy);
+      assert.deepEqual(LossMode.ALL.map(m => m.value),
+        ['lossless', 'conventional-lossy', 'winisd-lossy']);
+      assert.equal(LossMode.Default, LossMode.WinisdLossy);
     });
     it('parses wire values and falls back to the default', () => {
-      expect(LossMode.parse('lossless')).toBe(LossMode.Lossless);
-      expect(LossMode.parse('winisd-lossy')).toBe(LossMode.WinisdLossy);
-      expect(LossMode.parse('nonsense')).toBe(LossMode.Default);
-      expect(LossMode.parse(null)).toBe(LossMode.Default);
+      assert.equal(LossMode.parse('lossless'), LossMode.Lossless);
+      assert.equal(LossMode.parse('winisd-lossy'), LossMode.WinisdLossy);
+      assert.equal(LossMode.parse('nonsense'), LossMode.Default);
+      assert.equal(LossMode.parse(null), LossMode.Default);
     });
   });
 
@@ -92,21 +181,21 @@ describe('Sealed-Box Resonance Loss Models', () => {
 
     it('reproduces WinISD lossy 63.17 Hz / 0.599 with WinISD-derived Qts', () => {
       const r = sealedResonance(LossMode.WinisdLossy, { ...box, Qts: QTS_WINISD });
-      expect(r.Fsc).toBeCloseTo(63.17, 2);
-      expect(r.Qtc).toBeCloseTo(0.599, 3);
+      closeTo(r.Fsc, 63.17, 2, 'Fsc');
+      closeTo(r.Qtc, 0.599, 3, 'Qtc');
     });
     it('reproduces WinISD lossless 60.32 Hz / 0.596 with WinISD-derived Qts', () => {
       const r = sealedResonance(LossMode.Lossless, { ...box, Qts: QTS_WINISD });
-      expect(r.Fsc).toBeCloseTo(60.32, 2);
-      expect(r.Qtc).toBeCloseTo(0.596, 3);
+      closeTo(r.Fsc, 60.32, 2, 'Fsc');
+      closeTo(r.Qtc, 0.596, 3, 'Qtc');
     });
     it('every mode returns a physical resonance, never the 20 kHz impedance-peak artifact', () => {
       for (const q of [0.39, QTS_WINISD]) {
         for (const m of LossMode.ALL) {
           const r = sealedResonance(m, { ...box, Qts: q });
-          expect(r.Fsc).toBeGreaterThan(40);
-          expect(r.Fsc).toBeLessThan(100); // NOT ~20000
-          expect(r.Qtc).toBeGreaterThan(0.4); // NOT 0
+          assert.ok(r.Fsc > 40, `${m.value} Fsc must exceed Fs (Qts=${q})`);
+          assert.ok(r.Fsc < 100, `${m.value} Fsc must not be the ~20 kHz artifact (Qts=${q})`);
+          assert.ok(r.Qtc > 0.4, `${m.value} Qtc must not collapse to 0 (Qts=${q})`);
         }
       }
     });
@@ -122,18 +211,18 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const qtsNominal = 1 / (1 / Qms + 1 / Qes); // what openisd used to compute, ignoring Rg
 
     it('Rg=0 leaves Qts at the nominal (no-source-resistance) value', () => {
-      expect(sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal)).toBeCloseTo(qtsNominal, 9);
+      closeTo(sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal), qtsNominal, 9, 'Qts at Rg=0');
     });
 
     it('--fs 40 --vas 7.65 --qes 0.450 --qms 2.940 --re 6.6 --rg 0.1 --vb 6 --ql 10 --qa 100 → Fsc=63.1762Hz Qtc=0.5995', () => {
       const qts = sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
       const r = sealedResonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
-      expect(r.Fsc).toBeCloseTo(63.1762, 3);
-      expect(r.Qtc).toBeCloseTo(0.5995, 3);
+      closeTo(r.Fsc, 63.1762, 3, 'Fsc');
+      closeTo(r.Qtc, 0.5995, 3, 'Qtc');
     });
 
     it('falls back to the nominal Qts when Qms/Qes/Re are unavailable', () => {
-      expect(sourceLoadedQts(0, 0, 0, Rg, 0.42)).toBe(0.42);
+      assert.equal(sourceLoadedQts(0, 0, 0, Rg, 0.42), 0.42);
     });
   });
 });

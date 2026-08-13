@@ -1,10 +1,10 @@
 /**
- * Specification: http://localhost:8000/winisd/openisd/STATE_MODEL.md
+ * Specification: http://localhost:8000/winisd/openisd/docs/design/STATE_MODEL.md
  *
  * Strict state-layer encapsulation: a live Tune what-if is an UNCOMMITTED preview overlay
- * (STATE_MODEL.md's "What-if overlay" layer). Export/Save/Edit-Driver operate on the
+ * (docs/design/STATE_MODEL.md's "What-if overlay" layer). Export/Save/Edit-Driver operate on the
  * committed design (getDriverModel() always reads committed, never the whatif — by design,
- * see STATE_MODEL.md rule 4: "A what-if is not a modification"). Leaving the whatif silently
+ * see docs/design/STATE_MODEL.md rule 4: "A what-if is not a modification"). Leaving the whatif silently
  * OPEN after one of these actions is misleading: the user sees an edited value on screen that
  * the action just ignored, with no indication anything happened to their in-progress edit.
  *

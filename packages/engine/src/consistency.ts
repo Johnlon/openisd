@@ -5,7 +5,11 @@
  *
  * The groups and their relations are WDR_SCHEMA.md §4 verbatim; nothing here is a new formula.
  * §4 rows NOT covered, and why:
- *   7            Mcost — §4 itself gives no formula ("always 0 in practice").
+ *   7,21,22      Mcost, Gloss, SPLmaxLF — `solveConsistencyGroup` derives all three, one route
+ *                each (winisd_research/SOLVER_GAPS.md §2.4). Of the three only Gloss has a
+ *                carried `.wdr` value that could contradict its derivation; whether a stale
+ *                carried Gloss is a DQ mark is undecided (ledger QO24), so no relation is
+ *                declared for any of them.
  *   12           EBP — not a driver field; `ebp()` computes it on the way to the screen.
  *   14,15,16,17,18  the η₀ / SPL / USPL / SPLmax reference-efficiency chain, which
  *                `solveConsistencyGroup` deliberately excludes because three disagreeing
@@ -14,7 +18,6 @@
  *   19           `Xmax = |Hc−Hg|/2` — the solver reads `Hc`/`Hg`; nothing in the app writes
  *                those names (the editor's fields are `hc`/`hag`, carried passthrough), so the
  *                group can never be populated.
- *   21,22        Gloss, SPLmaxLF — §4 records the formula as unknown.
  *
  * WHAT COUNTS AS A DISAGREEMENT — precision, not exact equality.
  * Every recorded value is rounded, so a group agreeing to within its members' own rounding is

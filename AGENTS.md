@@ -1,11 +1,11 @@
 <!-- LOCAL RULES ONLY. Generic workspace rules live in the parent. -->
 
-@../_AGENTS.md
+@../_agent_files/_AGENTS.md
 
 > **Scope of this file: openisd ONLY.**
-> Workspace-wide rules live in **`../_AGENTS.md`** and are explicitly imported above via `@../_AGENTS.md`.
+> Workspace-wide rules live in **`../_agent_files/_AGENTS.md`** and are explicitly imported above via `@../_agent_files/_AGENTS.md`.
 >
-> **Anything here that would also be true of another repo belongs in `../_AGENTS.md`.** Promote
+> **Anything here that would also be true of another repo belongs in `../_agent_files/_AGENTS.md`.** Promote
 > it — add it there and delete it here in the same change. Never keep a copy in both.
 
 ---
@@ -26,7 +26,7 @@ requires — do not proactively fix, clean up, or improve Classic/Modern while t
 
 Unless the human explicitly names Classic or Modern, assume every request is about Original.
 
-## Priority TDD Behaviour 
+## Priority TDD Behaviour
 
 When perfroming TDD functions tell the user you are doing TDD.
 
@@ -71,7 +71,15 @@ Never reorder. "I added a test and a fix" without having seen the test fail firs
 
 **For test-first feature or bug work, invoke the `/tdd` skill** — the red→green-refactor workflow reference (what a good test is, where tests go, the anti-patterns, and the rules of the loop). Consult it before and during the loop, not after.
 
-**Domain-specific testing rules:** `DEVELOPMENT.md` §3 "Testing strategy — two suites, both required"
+**Two suites, both required.** `packages/engine/src/`: Vitest (`npm run test:unit`) — fast,
+deterministic, no browser; physics gates (sealed≡closed-form, sensitivity, vented rolloff +
+twin Z-peaks), `.wdr` parse/serialize round-trips, alignment + PR math. UI behavior:
+Playwright (`npx playwright test`) — **jsdom/no-op stubs prove "the script didn't throw," not
+that a curve was drawn; a headless browser is the only way to verify the actual app.** Every
+`packages/ui/test/**/*.browser.spec.ts` **must import from `packages/ui/test/fixtures.js`**,
+never `@playwright/test` directly — that module's `browserLog` auto-fixture captures and
+asserts on console errors, Vue warnings, and failed network requests for every test. A green
+DOM assertion alone is not enough.
 
 ---
 
@@ -114,7 +122,7 @@ arrives too late.
 **AI must never commit to or push `main` directly** except through the approved release workflow:
 
 - `/release-drivers` skill (driver data releases)
-- Any future release skill added to `.claude/skills/`
+- Any future release skill added to `../_agent_files/skills/`
 - Explicit human instruction in the current conversation that names `main` specifically
 
 **At the start of every conversation, check the current branch.** If on `main` accidentally, switch to `dev` immediately before doing any work.
@@ -227,6 +235,10 @@ The primary dev environment is **WSL2 (Ubuntu) on Windows 11**. Scripts must als
 
 **This principle does NOT apply to driver data files.** Scripts that touch, patch, normalise, backfill, or otherwise modify files in `drivers/` are banned. Driver data is produced by winisd_tools and lands here as records; openisd never rewrites it.
 
+**`drivers/matt/` is human-curated and protected.** Never touch it in any script or batch
+edit; stop and warn the human if a task would reach it. Only a human sets `reviewed_by` or
+any "human-verified" language on a driver record — an agent never sets it, on any file.
+
 **Available utility scripts:**
 
 | Script                          | Purpose                                                                                                    |
@@ -303,22 +315,41 @@ After writing or editing any `.md` file that contains tables, run `npx prettier 
 
 ## Reading context — what to load per task
 
+**Nothing in this repo auto-loads — including this file.** Claude Code injects only
+`~/.claude/CLAUDE.md` and its `@` imports. `AGENTS.md` is not a name it auto-loads, and
+`../_agent_files/_CLAUDE.md` is underscore-prefixed, which prevents the auto-load `CLAUDE.md`
+would get — a deliberate choice, explained in `../_agent_files/README.md`. Every file named
+below reaches an agent only because `~/.claude/behavioral_instructions.md` §"EXPLICIT RULE
+LOADING" tells it to go and read them. Treat that as the mechanism; there is no other.
+
 Before starting work, always read:
 
 - `BACKLOG.md` — feature backlog (P0 gates all feature work)
-- `PLAN.md` — re-architecture phases and scope guards (read before touching `packages/engine/src/` or any structural change)
-- `ARCHITECTURE.md` — hard architectural decisions
-- `DEVELOPMENT.md` — coding practices and testing contract
-- For driver data tasks: `WDR_SCHEMA.md`, `WDR_FILE_MODEL_AND_WORKFLOWS.md`
-- For WinISD-related tasks: `WINISD.md`
+- `ARCHITECTURE.md` — hard architectural decisions, the component diagram and the dependency
+  rules (read before touching `packages/engine/src/` or any structural change)
+- `docs/design/DRIVER_RECORD_MODEL.md` — what openisd stores about a driver; the design
+  authority for driver-data tasks
+- `docs/spec/SPEC_ENGINE.md`, `docs/spec/SPEC_UI.md` — the engine and UI contracts
 
-**Coding rules for each area load themselves.** They are path-scoped rule files in the
-workspace `.claude/rules/`, declaring the globs they govern in `paths:` frontmatter, so Claude
-loads one only when it reads a file that rule covers:
+> ⚠ **The two WinISD documents below are OBSOLESCENT as primary guidance — they are
+> WinISD-focused, and WinISD is no longer the model this app is built on.** `ARCHITECTURE.md`
+> AD-8 makes `OpenISDDriver`/`openisd.yml` the app's data model and demotes `.wdr` to a
+> serialisation format generated on demand. Read them as **reference for the foreign format and
+> for parity evidence** — never as a statement of how openisd should be shaped. If one of them
+> and `DRIVER_RECORD_MODEL.md` disagree about our own record, `DRIVER_RECORD_MODEL.md` wins.
+>
+> - `docs/design/WDR_SCHEMA.md` — reverse-engineered facts about WinISD's `.wdr` format
+> - `docs/research/WINISD_PARITY.md` — parity evidence and investigation notes
+
+**Coding rules for each area — READ THEM BY HAND from `../_agent_files/rules/`.** The `paths:`
+frontmatter on each file records which globs it governs, so you can tell at a glance which
+one your task needs; it is documentation, not a trigger. Nothing auto-loads these — the whole
+`_agent_files/` directory is deliberately outside every auto-load path
+(`../_agent_files/README.md`).
 
 | Rule file                    | Governs                                                   |
 | ---------------------------- | --------------------------------------------------------- |
-| `openisd-result-contract.md` | `packages/{engine,winisd}/src/`, `packages/ui/src/utils/` |
+| `openisd-result-contract.md` | `packages/{engine,winisd}/src/`, `packages/ui/src/{logic,db,diagnostics,logging}/` |
 | `openisd-engine-source.md`   | `packages/engine/src/`                                    |
 | `openisd-engine-tests.md`    | `packages/{engine,winisd}/test/`                          |
 | `openisd-ui-design.md`       | `packages/ui/src/`                                        |
@@ -326,11 +357,11 @@ loads one only when it reads a file that rule covers:
 
 **Read these yourself for the task domain** — they are documents, not scoped rules:
 
-| Task type                                                      | Load                                                    |
-| -------------------------------------------------------------- | ------------------------------------------------------- |
-| JS core functions (`packages/engine/src/`, engine, alignments) | `ARCHITECTURE.md` §AD-4 "Extract, do not rewrite"       |
-| Vue components, CSS, stores, UI wiring                         | `ARCHITECTURE.md` §UI-1…UI-4                            |
-| Either                                                         | `DEVELOPMENT.md` §3 — the two suites and their commands |
+| Task type                                                      | Load                                              |
+| -------------------------------------------------------------- | ------------------------------------------------- |
+| JS core functions (`packages/engine/src/`, engine, alignments) | `ARCHITECTURE.md` §AD-4 "Extract, do not rewrite" |
+| Vue components, CSS, stores, UI wiring                         | `docs/spec/SPEC_UI.md` §4 (UI-1…UI-4)             |
+| Either                                                         | "Two suites, both required" above                 |
 
 ---
 
@@ -363,7 +394,7 @@ If you cannot name the device with all six points, you do not have enough inform
 - **NEVER DEFEND AN INFERRED ROOT CAUSE OR CONJECTURE AS FACT.** If the exact internal binary execution path, disassembly, or code line of an external tool is not directly observed, explicitly state that it is an unverified hypothesis (`⚠ unverified`). Never double down, speculate, or defend inferred internal mechanisms to the human.
 - **Render JS SPAs with Playwright — do not conclude a page is empty from `WebFetch`/`curl`.** Most modern tool sites (loudspeakerlab.io, speakerboxlite.com, simulator.00aud.io, speakerdesign.dev, sonella.app …) are client-side SPAs: `WebFetch` and `curl` return only the empty app shell, which is **not** evidence about the tool. To get primary-source evidence, drive the site with headless Chromium via the repo's Playwright (`@playwright/test` — `import { chromium }`), `waitUntil: 'networkidle'`, expand any accordions/tabs, then read `document.body.innerText`. Put the throwaway probe script in `build/` (never `/tmp`) and delete it when done. Forum posts and search snippets are second-hand — prefer the rendered app, and only fall back to them when the app cannot be driven. Findings obtained this way are directly observed output (primary evidence); still mark anything the render did not settle as "⚠ unverified".
 - **The user must not have to verify my claims.** Any unverified external claim must be flagged inline with "⚠ unverified" before it reaches the user.
-- Inferred or assumed behaviour **must** be labelled as such. Record tool-behaviour assumptions in `WINISD.md` with an explicit "⚠ Assumption — NOT directly verified" marker.
+- Inferred or assumed behaviour **must** be labelled as such. Record tool-behaviour assumptions in `docs/research/WINISD_PARITY.md` with an explicit "⚠ Assumption — NOT directly verified" marker.
 - **Hard gate:** Before any comparative or causal claim about an external system, call `advisor` to review the claim. Do not state it to the user until advisor has confirmed it is grounded.
 
 ---
@@ -379,3 +410,52 @@ The evidence rule above is not limited to external tools. Most damaging mistakes
 - **Provenance — which values a human supplied vs the app computed — is sourced where entry happens** (the UI/edit session), not reconstructed downstream from "is it present." Presence cannot distinguish Entered from Calculated.
 
 **When the user pushes for speed ("do all", "just do it"), that raises the verification bar, not lowers it.** A confident wrong commit is worse than a slower correct one.
+
+---
+
+## For new human contributors
+
+You do not need to be an acoustician to help here. If you can edit a Vue component or open
+a pull request, you can contribute.
+
+**Quick start:** read `ARCHITECTURE.md` (hard decisions) and this file's Quality Gates section
+above, then `npm install && bash scripts/health-check.sh`. Pick work from `BACKLOG.md` — P0
+gates everything else. Never hand-edit driver data under `drivers/`; it's produced by
+`winisd_tools` and lands here as records — a wrong value is fixed at the source, not patched
+here. `drivers/matt/` is human-curated and off-limits to any script or agent.
+
+**Who owns what:**
+
+| Concern                                     | Human          | Agent      | Tooling             |
+| ------------------------------------------- | -------------- | ---------- | ------------------- |
+| What to build / priority (`BACKLOG.md`)     | **Decides**    | Suggests   | —                   |
+| Physics & calculation correctness           | **Decides**    | Implements | Cross-check (ref)   |
+| `packages/engine/src/` formulas & constants | **Approves**   | Proposes   | Unit + oracle tests |
+| Driver data (`drivers/**`)                  | Authorises     | Reads only | winisd_tools writes |
+| `drivers/matt/` (human-curated)             | **Owns**       | Excludes   | Excludes            |
+| `reviewed_by` / "human-verified" flags      | **Only**       | Never sets | —                   |
+| Tests                                       | Reviews        | **Writes** | Runs (CI)           |
+| Commits & merges                            | **Authorises** | Drafts msg | —                   |
+
+Rule of thumb: **human owns truth and intent, agent owns encoding and diligence, tooling owns
+repeatability.**
+
+**Project shape** (current — `packages/` is a monorepo, not a single `src/`):
+
+- `packages/engine/src/` — the physics engine, alignments, state. Pure TS, no DOM.
+- `packages/winisd/src/` — WinISD interop: `.wdr`/`.wpr` parse/serialize, E/C/N provenance.
+- `packages/ui/src/` — Vue 3 UI, layered `ui/`/`logic/`/`db/`/`diagnostics/`/`logging/`.
+- `drivers/` — community driver records.
+
+**How the engine works, conceptually:** a lumped-element electro-mechano-acoustical circuit
+solved in the acoustical impedance analogy, one complex value per frequency
+(`packages/engine/src/sweep.ts`/`circuit.ts` — see `ARCHITECTURE.md` AD-6 for the full layer
+diagram, `docs/spec/SPEC_ENGINE.md` for the actual formulas with test citations). `eg` is
+**RMS**, so SPL is RMS-referenced; excursion and port velocity are reported as **peak** (×√2)
+against Xmax/chuffing limits. For a vented/PR box, net radiated volume velocity is
+`U_0 = U_D − U_port` — the minus sign is load-bearing, it's what gives the 24 dB/oct rolloff;
+don't "simplify" it away.
+
+**Pull requests:** keep changes focused, describe what and why; if it touches the engine,
+paste the test output. By contributing you agree your work is released under the project's
+MIT license.

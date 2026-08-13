@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures.js';
 
-// STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
+// docs/design/STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
 // driver in, closes the picker, and returns the user to the project — there is no editor in
 // the way and no live link back to where the driver came from. Editing is a separate act,
 // from the Driver panel's Edit button, and it edits the project's own copy.

@@ -20,7 +20,7 @@ import { serialize, stateToUrl } from '../../src/logic/persist.js';
 import type { AppState, SerializedState, UiParams } from '../../src/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'SEAS_Prestige_L19RNX1.wdr');
+const SAMPLE = join(here, '..', '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
 const wdrText = readFileSync(SAMPLE, 'utf8');
 
 // A minimal AppState — serialize only reads box/P/graphs off it.
@@ -37,8 +37,8 @@ function restore(d: unknown): Driver {
 describe('persistence — provenance + carried fields survive a serialize round-trip', () => {
   it('E/C/N marks are identical after serialize → JSON → restore', () => {
     const src = Driver.fromWdr(wdrText);
-    // This scraper marks every field E; clear a derivable one so the fixture carries a
-    // genuine C (Cms recomputes from Fs/Vas/Sd) alongside the E fields.
+    // Clear a derivable field so the fixture carries a genuine C (Cms recomputes from
+    // Fs/Vas/Sd) alongside the E fields the WinISD save marks entered.
     src.clear('Cms');
     const wire = JSON.parse(JSON.stringify(serialize(miniState, src.toJSON())));
     const back = restore(wire.driver);

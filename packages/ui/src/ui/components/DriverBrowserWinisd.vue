@@ -11,7 +11,7 @@ import { openNewDriver } from '../../db/useDriverSelection.js';
 // CSS only (ARCHITECTURE.md AD-7). All behaviour is useDriverLibrary; the skins differ in
 // their own stylesheets, not in what a click does.
 //
-// Choosing a driver EMBEDS it in the project and closes this picker (STATE_MODEL.md rule 1) —
+// Choosing a driver EMBEDS it in the project and closes this picker (docs/design/STATE_MODEL.md rule 1) —
 // the user lands back in the project, not in an editor. The ✎ on a My Drivers row is the other
 // thing entirely: it edits that SAVED driver, and never touches the project.
 

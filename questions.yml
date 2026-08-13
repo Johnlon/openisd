@@ -1,5 +1,5 @@
 prefix: QO
-next: 26
+next: 34
 questions:
 - id: QO1
   title: UI TODO List
@@ -61,7 +61,7 @@ questions:
     text: close
 - id: QO3
   title: ❓ Open questions — deferred decisions
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: |
     Scope for every item below: the **WinISD picker**
@@ -147,6 +147,14 @@ questions:
     text: |-
       2026-08-11: human said "parked" on QO3.8 (remaining chart types) — stays open, no work started, no
       further research triggered right now. Revisit when the human raises it again.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      this is nt a decision or wuqqstion - just move it to backlog as todo
+
+      Moved: QO3.8 is now a todo under BACKLOG.md § "Charts & graph types", carrying the
+      ../winisd_research pointer and the do-not-build-while-unknowns-remain constraint.
+      QO3.1-.7 were already ticked/implemented.
 - id: QO4
   title: TODO — Engine hardening
   status: done
@@ -411,7 +419,7 @@ questions:
           does)". The tooltip should say what it costs: SPL differs by about 0.07 dB at 30 C.
 - id: QO8
   title: Side-by-side WinISD vs openisd validation suite, with mechanically regenerable golden fixtures
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -463,6 +471,13 @@ questions:
 
       THE EXTRACT IS ONE-OFF; THE REGENERATION MUST NOT BE. The point of encoding the scenarios
       mechanically is that a refresh is a command, not a repeat of the manual investigation.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      Q8 goes to bacoog
+
+      Moved to BACKLOG.md § "Quality / infrastructure" as a todo. Not a decision — a specified
+      work item. The curve-data-as-text blocker travels with it.
 - id: QO9
   title: Where do the orphaned rules live now that .claude/context/ is deleted?
   status: decided
@@ -542,7 +557,7 @@ questions:
   title: 'Browser suite runs green with --workers=1; the default 4-worker run overloads this WSL2 box
     and kills the dev server, which reads as false test failures. See the 2026-08-05 note: 188 passed
     / 0 failed at --workers=1.'
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -604,10 +619,19 @@ questions:
       SIGKILLed at launch'') was stale and wrong; it was already superseded by the 2026-08-05 CAUSE-FOUND
       note (worker concurrency, --workers=1 is green). Title corrected today. Note: an assistant work-summary
       had repeated the stale title as a current fact -- that was inaccurate.'
+  answer:
+    at: '2026-08-13'
+    text: |-
+      close it
+
+      Closed on the human's instruction with no ruling on (a) pinning workers:1 in playwright.config.js
+      or (b) failing the RUN on dev-server death. The cause is settled and recorded above; the
+      operator-side constraint is already covered by behavioral_instructions.md
+      "TEST-SUITE EXECUTION - background only, never concurrent".
 - id: QO11
   title: Every field must be editable so a CALCULATED value can be overridden — 17 panel readouts are
     read-only spans
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -728,6 +752,55 @@ questions:
   - text: NumInput swallows an invalid value while typing (onInput emits only when valid(si)), so the
       red border waits for blur
     done: true
+  answer:
+    at: '2026-08-13'
+    text: |-
+      MMs tot yes - pure calc.   Fp - is editable on the Vented UI as it is a 'target fp' - this must be renamed field 'Target Tuning Freq'  and an explanatory tool tip that it influences the port dimenaions calculation, and over on the port screen it tell the use that the calucs are based on htat tarrget port freq, and vented screen should show edit for Fp too and entetred in toteh port solver equation .  << backog if any of this isnt yet done
+
+      Total Mms: stays read-only, pure calculation - the open half of QO11 is now settled.
+      Fp: not a pinned system output, it is a TARGET INPUT to the port solver.
+
+      AUDIT (each verdict with the test that produced it):
+      R2 Fp editable on Vented UI - MET on the default skin, GAP on modern.
+         OriginalShell.vue:1011 renders <NumInput v-model="fbEntered" field="Fb"> when fbState==='E';
+         store.ts:38 ships `entered: {Vb,ventD,ventW,ventH,Fb,Frc,prMadd: true}` so Fb IS entered on a
+         fresh project, i.e. the editable branch is the shipping one. skins.ts resolveSkin() defaults
+         auto -> original. GAP: BoxPanel.vue:144 (modern skin) shows `Fb ~ {{fb.toFixed(1)}} Hz` as a
+         read-only <span>, no input.
+
+      R3 Label "Target Tuning Freq" - NOT MET.
+         Actual labels: "Tuning freq (Fb)" OriginalShell.vue:1011,:1012; "Tuning freq"/"Tuning freq
+         (Ffc)" :1049,:1054; "Fb ~" BoxPanel.vue:144; fieldRegistry.ts:93 label='Fh (tuning frequency)'.
+         grep "Target Tuning|target tuning" over packages/ui/src + packages/engine/src + docs/ returns
+         no label match (only prose/comments).
+
+      R4 Tooltip: influences PORT DIMENSIONS calc - NOT MET.
+         OriginalShell.vue:1011-1012 markup has no `title` attribute and no <HelpTip>; NumInput.vue has
+         no title/tooltip rendering (grep title|description|tooltip in NumInput.vue -> no hits), so the
+         field has no tooltip by any route. fieldRegistry.ts:96 description reads 'Box tuning frequency
+         (WinISD "Fh"). WinISD shows 2 dp (e.g. 40.25 Hz).' - never mentions the port.
+
+      R5 Port screen states calcs are based on the target freq - MET (Original).
+         OriginalShell.vue:1267 on the Vents pane, directly under the vent length / cross area / port
+         resonance fields: "The vent length is calculated to meet the target tuning frequency (Fb)
+         entered on the Box tab." GAP: modern BoxPanel.vue vent block (lines 131-152) has no equivalent.
+
+      R6 Entered Fp feeds the port solver equation - MET.
+         Chain: OriginalShell.vue:163 enterVentField('Fb', v) -> store.ts:129 passthrough ->
+         useVentGroup.ts:96-104 sets P.entered.Fb + calls solveVentGroup -> useVentGroup.ts:85
+         `P.ventL = ventLength(V, P.Fb, Sp, P.endCorrection)` -> engine alignments.ts:79-85 (Helmholtz).
+         EXECUTED: `npx vitest run packages/ui/test/logic/vent-group.test.ts` -> 10/10 passed, incl.
+         :59 "THE DIRECTION TEST" (entered Fb=40 never rewritten, length absorbs the diameter change)
+         and :48 reproducing WinISD's published lengths 0.154 m / 0.318 m.
+
+      Two registry defects found in passing (both backlogged):
+         fieldRegistry.ts:93 labels Fb 'Fh (tuning frequency)' - Fh is the PR/rear-chamber resonance's
+         own symbol (OriginalShell.vue:1018, BoxPanel.vue:118).
+         fieldRegistry.ts:94 declares provenance:'calculated', contradicting store.ts:38 (Fb entered by
+         default) and contradicting this ruling that Fb is a target INPUT.
+
+      BACKLOGGED: BACKLOG.md lines 289-313, section "## Vents & ports" - covers R3, R4, the modern-skin
+      R2/R5 gaps, and the two fieldRegistry defects. R6 and R5-on-Original needed no work.
 - id: QO12
   title: 'Over-determined driver: entering Mms while Fs/Vas/Sd stay E is accepted silently and poisons
     Bl/Rms'
@@ -963,7 +1036,7 @@ questions:
 - id: QO14
   title: Driver editor shows E/C/N colour on only 14 of 27 Parameters fields — the other 13 are permanently
     black
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1006,10 +1079,21 @@ questions:
       The underlying question in this item is NOT closed by that: whether E/C/N is a property of
       every driver field or only of the simulated T/S set is still the human's to rule. What has
       changed is that the panel is now consistent either way, instead of half-and-half.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      - Every driver field carries E/C/N — what's shipped, including passthrough/WDR-only fields that the simulation never reads. APPROVED
+
+      Ratifies the shipped implementation: 44 NumInputs across Parameters, Advanced parameters and
+      Dimensions carry :class="cellClass('<field>')", and input.st-n uses var(--mut) so "not entered" is
+      visibly distinct from untracked black. Enforced by
+      packages/ui/test/driver-editor-mandatory.browser.spec.ts -- "every Parameters input reports its
+      E/C/N state" fails naming any input lacking an st-e/st-c/st-n class, so a new field cannot pass
+      silently. No further work.
 - id: QO15
   title: 'Driver editor unit/binding defects: SPLref vs SPL, fLe scale x1000, VCCon 0/1 vs WinISD 1/2,
     Dimensions in metres, Thick in inches'
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1047,10 +1131,109 @@ questions:
 
       7. Dd is shown in metres at 2 dp (0.13 m) because `precision` defaults to 2 for any field
          with no registry entry — +/- 5 mm of resolution on a cone diameter.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      "My recommendation: dispatch an agent to fix 1, 3, 4, 5, 6, 7 with tests, and treat #2 as its own question resolved by WinISD evidence rather than preference." << YEs background now
+
+      D1 SPL FIELD BLANK — ALREADY FIXED before this pass, no work needed. The editor binds
+      cellVal('SPL') (DriverEditorModal.vue, the SPL field in Miscellaneous parameters), which is
+      exactly what the ADT writes (packages/winisd/src/driver.ts:422). No cellVal('SPLref') exists
+      anywhere in the component, and `git log -S` finds none in its history. Now guarded by
+      packages/ui/test/ui/driver-editor-units.test.ts :: "SPL and no read cells the ADT derives from
+      Fs/Vas/Qes", which resolves the bound cell against a real Driver rather than pinning a string —
+      it passed on first run, which is the evidence.
+
+      D3 fLe SCALE INVERTED — FIXED. NumInput renders display = SI x scale (NumInput.vue toDisp), and
+      .wdr stores fLe in HERTZ (docs/design/WDR_SCHEMA.md, fLe row) while WinISD shows kHz
+      (docs/winisd/edit_driver_pg2_parameters.png). :scale="1000" was therefore out by 1e6. Now
+      :scale="1e-3" with :precision="precision('fLe')".
+      Test: driver-editor-units.test.ts :: "fLe renders hertz as kilohertz" (1234 Hz -> 1.234 kHz)
+      and the general rule "every dimensional field converts SI to the unit it is labelled with",
+      which checks every field's scale against units.ts's own factors.
+
+      D4 VCCon MAPPING — the SELECT was already right; the real defect was in the WRITER. The editor
+      already offered 1=Parallel / 2=Series with a `?? 1` default, matching the file format on every
+      count: Driver.fromWdr backfills VCCon='1' when a .wdr omits it
+      (packages/winisd/src/driver.ts:301-302); openisdToWdr declares default 1
+      (packages/winisd/src/native/openisdToWdr.ts:58); DriverDefineModal documents "1 = parallel,
+      2 = series"; the sample file carries VCCon=1
+      (docs/winisd/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr:46); and WinISD's own Connection
+      dropdown reads "Parallel" on a blank driver (docs/winisd/edit_driver_pg2_parameters.png).
+      The 0=Parallel/1=Series mapping QO15 describes is not in the file or in its git history.
+      BUT the fresh-authored .wdr exporter wrote `VCCon=' + (raw.VCCon || 2)` — SERIES — so a driver
+      the editor showed as Parallel exported as Series. packages/winisd/src/classic/wdr.ts:32, live
+      for the Original skin via Driver.toWdr's no-carried-WDR branch. Fixed to `|| 1`.
+      Test: packages/winisd/test/classic/wdr.test.ts :: "defaults an unspecified voice-coil wiring to
+      parallel (VCCon=1), matching WinISD", plus "carries an explicitly wired series connection
+      through unchanged".
+
+      D5 Voicecoils BLANK — FIXED in the derivation, which is where the missing default was.
+      fromWdr defaulted numVC to 1 only for a .wdr that omits the key; every other construction path
+      (fromJSON, authored in-app) left it absent, so the editor rendered N/blank where WinISD shows 1
+      (docs/winisd/edit_driver_pg2_parameters.png). Added `if (r.numVC == null) r.numVC = 1;` to
+      Driver#derive, beside the existing c/roo autofills — same mechanism, so it reads C (Calculated),
+      not E: the app supplied it, not a human. An entered value still overrides and marks E.
+      Tests: packages/winisd/test/driver-derive.test.ts :: "numVC autofills to 1 as C on every
+      construction path, not only fromWdr" and "an entered numVC overrides the default and is marked
+      E"; plus driver-editor-units.test.ts :: "Voicecoils reads 1 on a driver that never specified a
+      coil count".
+
+      D6 DIMENSIONS TAB UNITS — FIXED, and QO15's premise about WinISD was wrong. Primary evidence
+      (docs/winisd/edit_driver_pg4_dimensions.png, the real WinISD Dimensions tab) shows WinISD
+      displaying Depth/Magnet Depth/Magnet/Basket/Outer/VCd in **m** at 3 dp, Thick in **in**, Dvol in
+      **in^3** — not mm. What makes mm correct anyway is that those unit labels CYCLE in WinISD:
+      docs/research/WINISD_PARITY.md's unit-cycle inventory lists m/mm/cm/in/ft/yd for every one of
+      them, so mm is a choice of default inside WinISD's own set, not a divergence from it — and it is
+      already this app's convention (Xmax/Hc/Hg/Dd on the Parameters tab, where WinISD shows m).
+      All seven now bind :scale="1000" under an "mm" label, so 0.165 m reads 165.00 mm instead of
+      "0.17", and Thick no longer prints a metre value beside "in". Dvol keeps cm^3 (:scale=1e6).
+      Test: driver-editor-units.test.ts :: "the Dimensions tab shows lengths in millimetres, not raw
+      metres under a wrong label".
+
+      D7 Dd PRECISION — the stated cause was wrong; the remaining half is FIXED. Dd DOES have a
+      registry entry (fieldRegistry.ts) and the call site already passed :scale="1000" with an "mm"
+      label, so it rendered 109.98 mm, not 0.13 m — the "no registry entry, dp defaults to 2" reading
+      no longer holds. What was still true is the special-casing: the call site hardcoded
+      :precision="2" while the registry declared unit 'm' at 3 dp, two disagreeing declarations of the
+      same field. Dd's registry row now records what the editor renders (mm, 2 dp = 0.01 mm, finer
+      than WinISD's 3 dp of a metre) and the call site binds :precision="precision('Dd')". The same
+      was done for fLe and all eight Dimensions fields, whose registry rows still described WinISD's
+      units while the editor drew something else.
+      Tests: driver-editor-units.test.ts :: "<field> binds precision('<id>') and renders that field's
+      declared unit" (10 fields) and "Dd resolves finer than a millimetre".
+
+      FILES CHANGED
+        packages/ui/src/ui/components/DriverEditorModal.vue     fLe scale, Dd precision, Dimensions tab
+        packages/ui/src/logic/fields/fieldRegistry.ts           Dd, fLe, dimThick..dimDvol rows
+        packages/winisd/src/driver.ts                           numVC default in #derive
+        packages/winisd/src/classic/wdr.ts                      VCCon default 2 -> 1
+        packages/ui/test/ui/driver-editor-units.test.ts         NEW — 16 tests
+        packages/winisd/test/driver-derive.test.ts              +2 tests
+        packages/winisd/test/classic/wdr.test.ts                +2 tests
+
+      GATES: lint 0 errors; npm run typecheck clean; vitest 435 passed; the narrow browser spec
+      driver-editor-provenance.browser.spec.ts (which walks the Dimensions tab) 6/6 passed with
+      --workers=1.
+
+      FOUND BUT NOT FIXED — needs a ruling, listed so they are not lost:
+        - AlfaVC on the driver editor's Advanced tab is labelled "1000/K" with NO :scale, while
+          fieldRegistry's AlfaVC row documents ":scale=1000" and OriginalShell binds the store's
+          alfaVC through the tempCoeff unit group with base perMilliK. Typing 3.9 therefore stores
+          3.9 /K, not 0.0039 /K. The editor's `tc` cell is a passthrough that nothing simulates (the
+          engine reads state.P.alfaVC), so this is currently inert — but the fix changes a STORED
+          value, so it is gated by the calculation-permission rule rather than done silently.
+        - The editor's AlfaVC cell is keyed `tc`, and Driver.fromWdr maps the WDR key `tc` — but real
+          WinISD files write `alfaVC=` (see the sample .wdr). The field can never load from a .wdr.
+        - Magnet / Basket / Outer / VCd / Dvol are absent from both WDR_META and the fresh-authored
+          exporter's key list, so they neither load from nor save to a .wdr; only Thick, Depth and
+          MagnetDepth round-trip.
+
+      Defect 2 split out as QO27.
 - id: QO16
   title: Required-field hint 'REQUIRED' wraps inside a 62px label and pushes the fixed-height editor into
     scroll/clipping
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1100,10 +1283,49 @@ questions:
       MEASURED after the change, 1400x900, worst case (all T/S cleared AND no brand/model):
         modal 626/626 · body 416/416 · strip 76/76 — scrollHeight == clientHeight everywhere,
         horizontally too, and the page itself does not scroll. Screenshot: build/editor-incomplete.png
+  - at: '2026-08-13'
+    text: |-
+      REFINEMENT from the human, verbatim: "show that same DQ triangle on empty fields too that are
+      required and/or cannot be calculated form other factoers"
+
+      So the marker is NOT on every blank. The rule is: a blank field gets the triangle when it is
+      REQUIRED, or when it CANNOT be derived from the other entered fields.
+
+      Implementation consequence -- derive the test, never hand-write a list. A field the solver CAN fill
+      is not blank in the first place: it renders with state C and a value. So blank already implies "not
+      derivable from what is entered". The triangle therefore keys off the engine's own report --
+      draftDriver.errors() and cell(field).state / cell(field).error -- exactly as the .de-incomplete
+      strip does, so the engine stays the single authority. A static "these fields are required" array in
+      the modal would be a second rule that drifts.
+
+      Group rules must not become per-field triangles: "any two of Qts/Qes/Qms" is a GROUP requirement,
+      already surfaced on all three via ERROR_ALIASES, and already red-borders as a group via
+      qIncomplete. It keeps that treatment.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      an empty field shoudl show thew DQ triabble alert and go red not the word REQUIRED
+
+      RULING: the word REQUIRED stays deleted (already done). An empty field must show the DQ WARNING
+      TRIANGLE marker and the red border. Reuse the DQ triangle component the app already renders for DQ
+      marks -- do not invent a second alert glyph for the editor.
+
+      IMPLEMENTATION PENDING, deliberately queued: a concurrent agent is editing DriverEditorModal.vue /
+      NumInput.vue for the QO15 unit-and-binding defects, so this fix is dispatched only after that agent
+      lands to avoid clobbering its tree.
+
+      Already done and ratified by this ruling:
+        - per-field "REQUIRED" word removed from the 62px labels
+        - red 2px border retained (NumInput :mandatory); Q trio red-borders as a GROUP while fewer than
+          two of Qts/Qes/Qms are usable
+        - .de-incomplete strip above the footer lists every reason the driver will not simulate, read
+          from draftDriver.errors()
+        - height: 550px -> min-height: 550px so the dialog grows instead of scrolling
+        - measured 1400x900 worst case: scrollHeight == clientHeight everywhere, no horizontal scroll
 - id: QO17
   title: Entered zero is treated as 'not entered' (isFieldEmpty value<=0), so 0.00 raises no DQ mark;
     the quick-fix CLEAR button is dead CSS
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1149,6 +1371,19 @@ questions:
       Locked in by "an entered zero is BAD DATA, shown and flagged — not treated as blank" in
       driver-editor-mandatory.browser.spec.ts: it types 0 into Fs and asserts the field still reads
       0.00, that .de-dq is visible, and that OK stays enabled.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      ratify
+
+      Ratifies the shipped implementation: not-entered renders blank; an entered 0 stays 0.00 and carries
+      the .de-dq warning triangle beside its unit with a tooltip saying it is bad data and that clearing
+      the field lets the value be calculated; it does not block saving; isFieldEmpty is replaced by
+      isBadValue(field); the dead .de-dq-badge / .de-dq-fix CSS and the stale quick-fix CLEAR comment are
+      deleted. Locked in by "an entered zero is BAD DATA, shown and flagged -- not treated as blank" in
+      driver-editor-mandatory.browser.spec.ts.
+
+      The .de-dq triangle built here is the marker QO16 now requires on EMPTY fields as well.
 - id: QO18
   title: Editor's OK gate omits the Q-pair check, so a driver the engine cannot simulate can be committed
   status: decided
@@ -1327,7 +1562,7 @@ questions:
       as far as it can be: Bl and Mms are editable, EBP is out of scope by ruling.
 - id: QO21
   title: Two documents cover the driver record model — DRIVER_RECORD_MODEL.md and WDR_FILE_MODEL_AND_WORKFLOWS.md
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -1375,6 +1610,20 @@ questions:
       was never updated, or it was misfiled from the start. Recommend closing QO21 as stale, or retitling it to
       track the filename/content mismatch (WDR_FILE_MODEL_AND_WORKFLOWS.md's name promises WDR file-model/workflow
       coverage it doesn't contain) if that's still worth fixing separately.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      close
+
+      Resolved by the working tree -- verified 2026-08-13. This is option (b) from the question, already
+      carried out and uncommitted:
+        WDR_FILE_MODEL_AND_WORKFLOWS.md   deleted (staged D)
+        its classification content        now BACKLOG.md:519 "Driver type classification and matching"
+        DRIVER_RECORD_MODEL.md            moved to docs/design/DRIVER_RECORD_MODEL.md
+        WDR_SCHEMA.md                     moved to docs/design/WDR_SCHEMA.md
+      One document owns the openisd record model, one owns the reverse-engineered WDR format, and the
+      driver-type classification plan is a backlog item rather than a "model". No duplicate field table
+      remains.
 - id: QO22
   title: Xmax is INPUT ONLY — never derived (ruled 2026-08-05)
   status: decided
@@ -1473,6 +1722,46 @@ questions:
       derives one-directionally (Vd from Sd x Xmax only). Matching WinISD means solving in every
       direction AND honouring the precedence order — and it moves computed values on every record
       holding two of any group's three members.
+  - at: '2026-08-13'
+    text: |-
+      RULED by the human 2026-08-13, verbatim: "winisd allows that Xmax back calc so Winisd wins that
+      decision << remove any contradictions in th ecode liek that madness comment"
+
+      This settles the point these notes left open. openisd adopts WinISD's GROUP SOLVER: relation
+      groups solve in every direction the entered data allows. A derived value carries state C, never
+      E, so "the excursion implied by a published Vd" stays distinguishable from "the limit the
+      manufacturer measured".
+
+      CODE STATE, measured in the current tree - the earlier note "the |Hc-Hg|/2 derivation was deleted
+      from driver.ts and stays deleted" is not true of the shipping code:
+        packages/engine/src/driver.ts:46   solveConsistencyGroup, iterates to a fixpoint
+        packages/engine/src/driver.ts:94   setVal writes only into a still-null field
+        packages/engine/src/driver.ts:135  Xmax = abs(Hc - Hg) / 2
+        packages/engine/src/driver.ts:144  Xmax = Vd / Sd
+      Both Xmax routes are live. Nothing needs restoring; the outstanding question is their ORDER,
+      because setVal makes source order the precedence.
+
+      ROUTE PRECEDENCE is part of the contract, not an implementation detail. One ordering is settled:
+        Rme : 2pi.Fs.Mms/Qes beats BL^2/Re - 18.22124 exact vs 18.27846, Beyma 10BR60_V2 fixture
+              (winisd_research/GAPS.md A5, lines 219-220).
+
+      THE Xmax ORDERING IS NOT SETTLED, and openisd/docs/design/WDR_SCHEMA.md contradicts itself on it:
+        line 268 (section 4 group table, row 19)   "Row 20 takes precedence" - Vd/Sd wins
+        line 310 (section 4.1 tie-break table)     winner row 19 - abs(Hc-Hg)/2 wins, row 20 is the
+                                                   last-resort fallback
+      QO23's answer backs line 310 and explicitly retro-explains the QO22 observation above ("Hc and Hg
+      were blank, so the preferred route was unavailable, not outranked"). If line 310 is right, the
+      current source order already matches WinISD and no reorder is needed. One WinISD session settles
+      it: enter Hc, Hg, Vd and Sd together with Xmax blank, read which value appears, then correct the
+      losing statement in WDR_SCHEMA.md. Recorded as the open half of the backlog item.
+
+      Written up at openisd/BACKLOG.md lines 338-343. docs/design/DRIVER_RECORD_MODEL.md section 5 is
+      rewritten to the current model - it previously asserted Xmax was input-only, which contradicted
+      lines 135 and 144 above as well as this ruling. docs/design/WDR_SCHEMA.md line 326 corrected:
+      openisd reproduces WinISD's solver rather than diverging from it.
+
+      CONSEQUENCE FOR QO8: the expectation that openisd reports no Xmax where WinISD synthesises one is
+      VOID. openisd matches WinISD here; the parity suite must not encode a divergence.
 - id: QO23
   title: Is WinISD's field solver PRECEDENCE-ordered or LAST-EDIT-WINS? One 3-edit test settles it
   status: decided
@@ -1599,6 +1888,269 @@ questions:
       BEHAVIOUR is the spec, not WinISD's exact outputs. That item also depends on QO23's solver rule
       and on the probe campaign in winisd_research/PROMPT_solver_probe_campaign.md, so it is the one
       item that should NOT be started until that campaign has run.
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 -- QO24.5 IS PARTLY WRONG AS WRITTEN. Human, verbatim:
+
+        ".5 implement Rme, gamma, Mpow; stop labelling four other fields 'calculated' when they're just
+         passed through << WRONG - winisd shows these are calculated and if I delete Rme for instance
+         then it calculated a value"
+
+      The human is right, and the repo already corroborates it. winisd_research/CALC_FINDINGS_FOR_REVIEW.md
+      records that editing Fs on a WinISD probe forced a full recompute and these ALL MOVED:
+          Mms, Rms, Re, no, EBP, SPL, SPLmax, USPL, gamma, Rme, Mpow, Gloss
+      and on the sample6->sample7 pair SPLmaxLF moved by recomputation round-off (...3015 -> ...3016).
+      A value that changes when an unrelated input is edited is being CALCULATED.
+
+      So GAPS.md A5's second half -- "mark Gloss/SPLmaxLF/SPLmax/Mcost honestly as stored pass-through,
+      not calculated" -- is refuted for THREE of its four fields:
+          Gloss     calculated  (moved on recompute)
+          SPLmax    calculated  (moved on recompute)
+          SPLmaxLF  calculated  (moved, round-off)
+          Mcost     UNEVIDENCED -- never observed moving. Plausibly genuine user data (a cost figure),
+                    but that is untested, not established. Do not mark it either way without a probe.
+
+      QO24.5's FIRST half stands and is reinforced: implement Rme, gamma and Mpow from the pinned
+      formulas. The human's own test -- deleting Rme and watching WinISD fill it -- is independent proof.
+
+      ACTION: correct GAPS.md A5 before implementing QO24.5, and probe Mcost.
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 -- HUMAN RULING ON THE WHOLE ADVANCED PANEL, verbatim:
+
+        "All figure of merit values are calculatblee on winisd - Alfa Vc / R(r) / C(t) as manail in
+         winisd all other advanced fieeds are calculatable.accoerding to winisd. on that panel"
+
+      THE RULE, complete and superseding the field-by-field guessing above:
+          MANUAL (entered only)  : alfaVC, Rt, Ct
+          CALCULATED             : every other field on the Advanced parameters panel --
+                                   SPLmax, SPLmaxLF, USPL, gamma, Rme, Mpow, Mcost, Gloss
+
+      This also settles Mcost, which the previous note left as unevidenced: it is calculated.
+      Nothing on that panel is "stored pass-through" except the three manual fields.
+
+      FORMULA INVENTORY -- five of the eight are already pinned, three are not:
+          Rme       BL^2/Re = 2*pi*Fs*Mms/Qes      KNOWN  winisd_research/KNOWLEDGE_REPORT.md:110
+          Mpow      BL/sqrt(Re) = sqrt(Rme)        KNOWN  KNOWLEDGE_REPORT.md:110
+          gamma     BL/Mms                         KNOWN  KNOWLEDGE_REPORT.md:111
+          SPLmax    SPL + 10*log10(Pe)             KNOWN  KNOWLEDGE_REPORT.md:111
+          USPL      SPL + 10*log10(8/Re)           KNOWN  KNOWLEDGE_REPORT.md:112 (8 = 2.83^2)
+          Gloss     f(Fs, Xmax)                    UNKNOWN  SOLVER_GAPS.md:165 -- one route, a 2-D
+                                                            Fs/Xmax sweep recovers it directly
+          SPLmaxLF  f(rho0, Vd)                    UNKNOWN  SOLVER_GAPS.md:166 -- one live input, one
+                                                            route, "the cheapest formula recovery available"
+          Mcost     --                             UNKNOWN  no formula recorded anywhere
+
+      CONSEQUENT SPLIT OF QO24.5:
+          (a) implement the five pinned formulas now;
+          (b) run the two probe sweeps SOLVER_GAPS rows 21 and 22 already specify, to recover Gloss and
+              SPLmaxLF; find or probe Mcost;
+          (c) correct GAPS.md A5 -- its "mark Gloss/SPLmaxLF/SPLmax/Mcost as stored pass-through" is
+              refuted for all four by this ruling.
+  - at: '2026-08-13'
+    text: |-
+      === .wdr WRITE FIDELITY — four fixes landed (unit gates green) ===
+
+      WHY THE DELETION HAPPENED. Human, verbatim: "(re samples/other - I msitakeenly thought
+      sloudspeakcer db was a reliabel source of wdr files - it is not". And: "`drivers/sample/other/`
+      - these files are evil - delete them entirely and use oracles created from winisd directly if
+      needed". Those files were a third-party loudspeaker database's export of driver data into
+      `.wdr` shape — one program's guess at WinISD's format, not WinISD's output. EVERY writer bug
+      below was MASKED by them: a third-party file agrees with our bug because neither side is
+      WinISD. That is the argument for the oracle rule, not a footnote to it.
+
+      1. DELETED `drivers/sample/other/` (untracked; 3 files: SEAS_Prestige_L19RNX1.wdr, Tang Band
+         W5-1138SMF.wdr, beyma-8BR40N-cms-vas-inconsistency.wdr). Both dependent tests repointed at
+         `drivers/sample/winisd/`. The oracle rule is restated so it stands without naming the dead
+         directory — an oracle `.wdr` is one WinISD ITSELF wrote — in `drivers/sample/README.md`,
+         `packages/winisd/src/native/openisdToWdr.ts`, and the headers of `openisdToWdr.test.ts`,
+         `driver-json.test.ts`, `driver-projection.test.ts`, `efficiency.test.ts`.
+         ⚠ ONE REFERENCE LEFT, IN A FILE THIS AGENT WAS BARRED FROM: `docs/spec/SPEC_ENGINE.md:368`
+         still has a bullet "`drivers/sample/other/` — third-party/vendor-distributed files…".
+         It needs the same restatement. Whoever owns SPEC_ENGINE.md must do it.
+
+      2. FULL PRECISION. Both writers rounded to 6 s.f.: `driver.ts fmtNum` (`String(+x.toPrecision(6))`)
+         and `classic/wdr.ts` `g()` (`+x.toPrecision(p=6)`). Both now emit `String(x)` — the shortest
+         text that reparses to the identical double, which is what `native/openisdToWdr.ts` already
+         used and what a genuine WinISD save carries (~15 s.f.). The comment claiming 6 s.f. "matches
+         the exporter's rounding so an overlaid value stays numerically equal to the source" was
+         circular: it only matched the OTHER openisd writer. Against WinISD it destroyed digits —
+         `Vas 0.141584099539285` exported as `0.141584`. Losslessness is strictly stronger than the
+         property removed. PROOF: `driver-roundtrip.test.ts` now asserts EXACT equality (`===`, no
+         tolerance) on every carried field of `John-all-manu-populated.wdr`; `roundtrip.test.ts`
+         asserts exact equality on the derived driver across export→import.
+
+      3. CARRIED-KEY MISMATCHES — all seven claims VERIFIED against `drivers/sample/winisd/` and
+         FIXED. Evidence: the complete key set across all 84 oracle files, plus the single-parameter
+         probes (`s-*.wdr`, one field set → one new E in ParState). The app-field↔label pairing is
+         the app's own, from `DriverEditorModal.vue:116-118` and its tooltips. Verdicts (app field →
+         key WinISD writes; the old key appears in NO WinISD file):
+           tc          -> alfaVC    MISMATCH, fixed  (modal: "WinISD: AlfaVC")
+           Rth         -> Rt        MISMATCH, fixed  (modal: "WinISD: R(t)")
+           Cth         -> Ct        MISMATCH, fixed  (modal: "WinISD: C(t)")
+           loss        -> Gloss     MISMATCH, fixed  (modal maps Gloss->loss)
+           MagnetDepth -> MagDepth  MISMATCH, fixed  (pure spelling)
+           Le2         -> KLe       MISMATCH, fixed  (modal: "Le semi-inductance coefficient — WinISD: KLe")
+           hc          -> Hc        MISMATCH, fixed  — and worse than reported: `hvc`/`hag`/`hc` were
+                                    THREE dead names (no UI, no engine consumer) for WinISD's TWO
+                                    keys Hc/Hg, while the editor binds `Hc`/`Hg`. All three deleted
+                                    from `WDR_META`, the standard-key list, `classic/wdr.ts` and
+                                    `DriverRaw` (engine/src/types.ts); `Hc`/`Hg` added.
+         The empty-`tc=` injection is gone with the key: the standard-key list now holds WinISD
+         spellings only, and its default for a numeric is `0` (what WinISD writes) not a blank.
+         NOT A MISMATCH, LEFT ALONE: `Xlim`. WinISD holds it in ParState slot 10 and writes NO key
+         (`s-xlim.wdr` proves it), so there is no WinISD key to move it to and no competing WinISD
+         line to contradict. Kept as openisd's own round-trip carrier and documented as such.
+
+      4. FIVE DIMENSION FIELDS added to `WDR_META`, the standard-key list and the fresh exporter,
+         with WinISD's exact spelling taken from the oracle (note `Vcd`, not `VCd`; `DVol`, not
+         `Dvol`): magnet->Magnet, basket->Basket, outer->Outer, VCd->Vcd,
+         basketDisplacement->DVol. All stored SI, and WinISD stores SI, so no conversion.
+
+      NEW TEST `packages/winisd/test/wdr-carried-keys.test.ts` (34 tests): for each of the 15
+      carried fields, on BOTH writers — enter a distinct probe value, export, assert the WinISD key
+      carries it, re-import, assert it comes back. Plus a generic gate (no enumeration of dead keys)
+      that the writer emits NO key outside the oracle's key set. 30 of the 34 were RED before the
+      fix; the reported symptom reproduced exactly — an edited `tc` left `alfaVC=0` untouched.
+
+      NEW QUESTION RAISED: QO30 — ParState slot 0 (Znom): WinISD writes C, openisd writes N. Human
+      ruled "Probe it first"; nothing changed, the test excludes slot 0 and names the question.
+
+      GATES: lint 0 errors (25 pre-existing Playwright warnings, none in touched files);
+      `npm run typecheck` clean (engine + winisd + ui); `npm run test:unit` 535 passed / 49 files /
+      0 failed. No browser suite run — no UI code changed.
+  - at: '2026-08-13'
+    text: |-
+      QO24.8 and QO24.5 IMPLEMENTED 2026-08-13.
+
+      QO24.8 (humidity + pressure, per the QO7 ruling).
+      New engine module packages/engine/src/air.ts is the ONE air model. Density: CIPM-2007 moist-air
+      composition (Picard/Davis/Glaser/Fujii, Metrologia 45 (2008) 149) evaluated as an ideal gas,
+      rho = p*Ma/(R*T)*[1 - xv*(1 - Mv/Ma)] with CIPM's own psv and enhancement factor. Speed of sound:
+      Laplace, c = sqrt(gamma*p/rho) with gamma = 1.4 -- chosen because WinISD's own stored pair satisfies
+      rho*c^2 = 1.4*p to 1.2e-15, so the identity is measured rather than assumed, and it keeps
+      Cab = Vb/(rho c^2) self-consistent. At 293.15 K / 30 % / 101325 Pa it returns rho = 1.2009621 and
+      c = 343.6826980, which are 8.3 ppm and 4.1 ppm from WinISD's stored 1.20095217714682 /
+      343.684120962153. The two alternatives fit markedly worse and were rejected on that evidence:
+      Cramer 1993 for c is 151 ppm out, full CIPM-2007 density including the compressibility factor Z is
+      381 ppm out. Pinned by packages/engine/test/air.test.ts.
+
+      SweepParams and UiParams gain humidityPct (PERCENT), pressurePa and ignoreHumidityAndPressure;
+      store P_DEFAULTS carry 30 / 101325 / false, so the environment is PER PROJECT as ruled. sweep.ts and
+      circuit.ts (x2) had three literal copies of "343.68*sqrt(T/293.15)" / "1.20095*(293.15/T)" -- all
+      three deleted, every one now calls airFor(P). formulas.ts's soundVelocity(T)/airDensity(T) were
+      deleted rather than kept beside the new model; their callers (OriginalShell, ClassicShell,
+      OptionsModal) all read airFor now.
+
+      The toggle lives in the shared AdvancedOptions.vue checkbox column as "Ignore humidity and air
+      pressure (as WinISD does)", default OFF, tooltip stating the cost as about 0.07 dB at 30 C. Air
+      density is surfaced beside sound velocity on the Original Advanced pane and in Options -> General ->
+      Environment. Registered in fieldRegistry as ignoreHumidityAndPressure, and advAirDensity's "not yet
+      implemented" note is gone because it now is.
+
+      Unit boundary: exactly one conversion, in packages/winisd/src/classic/wpr.ts, which gained an
+      `environment` input and writes T / p / phi with phi = humidityPct/100. wprMapping.ts feeds it the
+      live design. Covered by wpr.test.ts ("phi=0.8" from humidityPct 80, and not "phi=80").
+
+      Goldens: gen-golden.ts now writes tempK/humidityPct/pressurePa/ignoreHumidityAndPressure into every
+      fixture's design.P, and golden.test.ts gained six tests asserting each fixture NAMES the air it was
+      produced in -- so a fixture can no longer be silent about its mode. They were regenerated in the
+      DEFAULT physical mode (ignore=false); QO8's parity suite is the one that runs with it ON. Movement
+      was measured before regenerating: max 2.757e-4 dB on sweep.spl and 4.541e-4 dB on maxCurves.maxspl,
+      i.e. ~270x below the 0.073 dB worst case that would have been a stop. Modelled dK from 20 C to 30 C
+      at 30 % RH is -0.0775 dB, the same order as the 0.073 dB recorded in CALC_FINDINGS.
+
+      QO24.5 (the five pinned Advanced formulas).
+      Implemented in solveConsistencyGroup's full pass (packages/engine/src/driver.ts block 13) -- the
+      path the Driver ADT and openisdDerive both take, and the one whose fill-if-absent semantics match
+      the human's own test of deleting Rme and watching WinISD refill it. Entered values are never
+      overwritten.
+          Rme    = 2*pi*Fs*Mms/Qes, with Bl^2/Re ONLY as the fallback when that route cannot be evaluated.
+                   The order is reproduced, not just the formulas: on Beyma 10BR60/V2 the motional route
+                   gives 18.2212373908208 and Bl^2/Re gives 18.27846153846154, and WinISD prints the first.
+          Mpow   = sqrt(Rme), so it cannot print a number contradicting the Rme beside it (Bl/sqrt(Re)
+                   would give 4.27533 against an Rme whose root is 4.26863). WinISD's own choice between
+                   the two routes is unverified and is marked so.
+          gamma  = Bl/Mms.
+          SPLmax = SPLref + 10*log10(Pe).
+          USPL   = SPLref + 10*log10(8/Re), already present.
+      SPLmax and USPL are offsets from the SAME SPLref that efficiency.ts's splFromEfficiency produced --
+      no second copy of the SPL constant was created. Pinned by packages/engine/test/advanced-figures.ts.
+      The UI provenance inspector claimed Mpow came from Bl and Re; corrected to Rme, and SPLmax added.
+
+      Still blank, honestly marked as not-yet-derivable (NOT "stored pass-through", which the human's
+      ruling refutes): Gloss, SPLmaxLF, Mcost. All three are calculated by WinISD, but no formula has been
+      recovered -- SOLVER_GAPS.md rows 21 and 22 specify the probe sweeps that would recover Gloss and
+      SPLmaxLF, and nothing anywhere records one for Mcost. The registry now says exactly that per field,
+      with the recovery route, instead of "Figure of merit (WinISD 5 dp)".
+
+      Gates: lint 0 errors (25 pre-existing warnings, all in untouched Playwright specs), npm run typecheck
+      0 errors across engine/winisd/ui, vitest 50 files / 547 tests passed, and a new 3-test Playwright
+      spec advanced-environment.browser.spec.ts passed with --workers=1.
+
+      Left for whoever owns BACKLOG.md (restricted this session): line 263's P1 "Environment model --
+      derive c/rho from temperature / humidity / air pressure" is now done and should be closed.
+  - at: '2026-08-13'
+    text: |-
+      ADVANCED-PANEL FORMULAS IMPLEMENTED — Gloss, SPLmaxLF, Mcost (QO32's recovery, landed).
+
+      WHERE: packages/engine/src/driver.ts, solveConsistencyGroup's FULL pass, immediately after the
+      Rme/Mpow/gamma/SPLmax block, same fill-if-absent `setVal` semantics so an entered value survives
+      (WinISD does mark Gloss 'E' in 4 corpus files, so that guarantee is load-bearing, not theoretical).
+      `G_STANDARD = 9.80665` added to packages/engine/src/constants.ts; `P0` reused, no second copy of
+      the SPL constant.
+
+        loss     = G_STANDARD / ((2*pi*Fs)^2 * Xmax)          -- FRACTION, not percent
+        SPLmaxLF = 20*log10( air.rho * (2*pi*20)^2 * Vd / (2*pi*sqrt2) / P0 )
+        Mcost    = Rme * (1 + Xmax / min(Hc, Hg))             -- consumes the Rme precedence produced
+
+      RHO0 ROUTE. SPLmaxLF takes rho from `airOf(r)` — the record's own `roo`, else the engine RHO
+      constant. Nothing is hardcoded. Verified: identical drivers with roo 0.9 / 1.20095217714682 / 1.5
+      reproduce WinISD's 81.4286971830493 / 83.9343612703015 / 85.8656721753764 to <5.3e-16 relative.
+      At WinISD's own constants the recovered form reproduces the stored value exactly.
+
+      GLOSS FRACTION/PERCENT BOUNDARY — the point that could have been a 100x bug. The .wdr carries the
+      FRACTION (probe gloss_fs40_xmax0.0067: file Gloss=0.0231721405215982, WinISD's pane "2.3172"), and
+      docs/design/WDR_SCHEMA.md line 185 independently says the same from WinISD's help file. The x100
+      lives in EXACTLY ONE place: `:scale="100"` on the Gloss NumInput in DriverEditorModal.vue, the same
+      mechanism eta0 already uses. Solver, parser and model all hold the fraction. Pinned by 4 tests in
+      packages/ui/test/ui/driver-editor-units.test.ts: the .wdr carries the fraction and the parser does
+      not scale it; the file's 0.0231721405215982 renders as "2.3172" at the registry's 4 dp; typing
+      "2.3172" back stores the fraction; and an in-app-authored driver gets a Gloss from the solver.
+      Its label was also wrong ("Cone material loss factor") and now says what it is.
+
+      MCOST ZERO DIVISOR. min(Hc,Hg) guarded: when Hc or Hg is missing or zero the field stays ABSENT —
+      not 0, not Infinity. Tested over {0,0}, {0.012,0}, {0,0.006} and {}. Mcost reduces to Rme exactly
+      when Xmax=0. Confirmed the corpus reads Mcost=0 only for this reason.
+
+      GOLDENS: none moved. packages/engine/test/golden.test.ts 12/12 exact — the three fields are in the
+      FULL pass only, and charts/sweeps go through deriveDriver's classic path.
+
+      GATES: lint 0 errors (25 pre-existing Playwright-plugin warnings), typecheck clean across
+      engine/winisd/ui, affected-set vitest 131/131 (advanced-figures 25, driver 28, consistency 11,
+      golden 12, wdr-carried-keys 34, driver-editor-units 21).
+
+      TWO THINGS THAT NEED YOUR RULING, NOT SILENTLY FIXED:
+
+      1. 245 of 1622 library .wdr files render Gloss as 0 despite having Fs>0 and Xmax>0. Cause: the
+         Driver ADT imports the carried `Gloss=` line as an ENTERED value (WDR_META in
+         packages/winisd/src/driver.ts), and fromWdr additionally backfills `Gloss=0` for any file
+         lacking the key — so a stale 0 blocks the derivation. Those files carry no ParState at all.
+         This contradicts your QO24 ruling that Gloss is calculated, but WinISD DOES mark Gloss 'E' in 4
+         files, so it cannot simply be dropped from the carried set; the principled fix is to import it
+         as entered only when ParState slot 37 is 'E'. That changes provenance on hundreds of records and
+         breaks the oracle-backed round-trip row in wdr-carried-keys.test.ts, so it needs your decision.
+         SPLmaxLF and Mcost are unaffected — neither is a carried key, so both compute on every file.
+
+      2. packages/ui/src/logic/fields/fieldRegistry.ts still describes all three as "formula has NOT been
+         recovered ... OpenISD leaves it blank". That file is owned by another agent this session so I
+         did not touch it; the three descriptions need rewriting.
+
+      Also noted, not acted on: through the ADT (not the engine) SPLmaxLF lands 9.6e-5 dB from WinISD's
+      stored value on the oracle file. Mechanism, measured not guessed: +1.12e-4 dB because Sd is
+      ParState 'C' so fromWdr does not import it and it is re-derived through the engine's rounded
+      RHO/C, and -1.6e-5 dB because the file's `roo`/`c` are not imported at all (neither is a modeled
+      slot nor a carried key). Same cause already moves `no`/`SPL`; pre-existing, engine-side exact.
   items:
   - text: 'A3: bind the PR pane''s Fh to prTuning() — trivial, export path already computes it, screen
       and file currently disagree (72.25 vs 194.87 Hz)'
@@ -1636,6 +2188,847 @@ questions:
   title: |-
     Understand @openisd/engine and @openisd/winisd: what each package is for, and why both export
     a type/class named `Driver`
-  status: open
+  status: decided
   raised: '2026-08-12'
   body: ''
+  answer:
+    at: '2026-08-13'
+    text: |-
+      These are guikd to be revised in the reqorkign coming up -
+
+      Explanation recorded; the driver types are revised in the upcoming rework, so no separate action.
+
+      WHAT THE TWO PACKAGES ARE:
+        @openisd/engine  -- the physics. Pure functions, zero dependencies: sweeps, alignments, filters,
+          circuits, the T/S consistency solver. Its `Driver` (packages/engine/src/types.ts:113) is an
+          INTERFACE extending DriverRaw, requiring Fs/Re/Sd/Vas/Qts/Qes/Qms/Cms/Mms/Rms/Bl non-null. It is
+          the RESULT type of deriveDriver: "a driver with nothing missing, ready to simulate".
+        @openisd/winisd  -- WinISD interop: .wdr/.wpr parse and serialise, ParState E/C/N provenance. Its
+          `Driver` (packages/winisd/src/driver.ts:117) is a CLASS: the editable document. It holds
+          #inputs (what the human entered => state E), a memoised derivation dropped on every mutation,
+          memoised consistency issues, the autoCalculate toggle, and change listeners.
+
+      So engine's Driver is a RESULT and winisd's Driver is a DOCUMENT. They are not two versions of one
+      concept. packages/winisd/src/driver.ts:27 already imports engine's as EngineDriver to keep the two
+      apart at the call site.
+
+      FOUR driver-shaped types are in play -- DriverRaw, engine Driver, winisd Driver, OpenISDDriver --
+      and ARCHITECTURE.md AD-9 already plans DriverRaw's retirement
+      (noted at packages/winisd/src/native/openisdDerive.ts:54). Per this ruling that consolidation lands
+      with the upcoming rework rather than as its own pass.
+- id: QO26
+  title: 'Five path-scoped rule files are inert: they live in workspace claude/rules/ (undotted), not
+    .claude/rules/ as AGENTS.md:327 claims -'
+  status: decided
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      Drift confirmed, strengthening option (c). Auditing all five rule files' frontmatter found a
+      second staleness independent of the dotted-directory problem:
+
+      `openisd-result-contract.md` declared `paths: openisd/packages/ui/src/utils/**/*` -- a glob
+      matching a directory DELETED in commit c410b31 (the concern-boundary reorg that split
+      `ui/src/utils/` into `logic/`, `db/`, `diagnostics/`, `logging/`). The glob matched nothing.
+
+      Fixed on sight, since the correction is right under all three options above and the old glob
+      had no effect either way -- replaced with the four real successor directories, and corrected
+      the matching row in `AGENTS.md`'s rule table which had faithfully copied the stale path.
+
+      Also fixed in `openisd-ui-design.md` the same turn: its pointer to `ARCHITECTURE.md` UI-1..UI-4
+      (content moved to `docs/spec/SPEC_UI.md` section 4), and a stale
+      `components/DriverDefineModal.vue` -> `ui/components/DriverDefineModal.vue`.
+
+      That is 2 of 5 files carrying stale paths, found without looking for them. The remaining three
+      (`openisd-engine-source.md`, `openisd-engine-tests.md`, `openisd-ui-tests.md`) have globs that
+      still resolve, but their BODIES are unaudited -- they have never been validated against the code
+      since being written, because nothing loaded them.
+  - at: '2026-08-13'
+    text: |-
+      Wider than the rules directory -- NOTHING in the repo auto-loads, including AGENTS.md itself
+      (human raised this 2026-08-13: "does claude look at this file at all even given our config?").
+
+      Verified this session:
+        - Claude Code injects only `~/.claude/CLAUDE.md` plus its `@` imports
+          (`behavioral_instructions.md`, `functional.md`). Evidence: this session's own system prompt
+          lists exactly those; `openisd/AGENTS.md` is NOT among them.
+        - There is no `openisd/CLAUDE.md`.
+        - `winisd/_CLAUDE.md` is a symlink to `_AGENTS.md`, and BOTH are underscore-prefixed -- which
+          prevents the auto-load a plain `CLAUDE.md` would get.
+        - `openisd/.claude/settings.json` contains only Read-deny permissions; no rule/context config.
+          There is no `winisd/.claude/settings.json`.
+
+      So the entire chain -- `_AGENTS.md` -> `openisd/AGENTS.md` -> `BACKLOG.md`/`ARCHITECTURE.md` --
+      reaches an agent ONLY because `behavioral_instructions.md` §"EXPLICIT RULE LOADING" instructs it
+      to read those files. That is a behavioural instruction, not a mechanism. It works when the agent
+      complies and silently does not when it doesn't.
+
+      Consequence worth deciding on alongside the dotted-directory question: AGENTS.md's own
+      "Before starting work, always read: ..." list is second-order -- it only fires if the agent
+      already read AGENTS.md. If the underscore prefixes are deliberate (to keep them out of every
+      turn's context), that is a coherent design and the fix is only to stop the files CLAIMING a
+      mechanism they don't have. If they are not deliberate, renaming `_CLAUDE.md` -> `CLAUDE.md`
+      makes the chain load automatically -- at the cost of ~27 KB (`_AGENTS.md`) + ~32 KB
+      (`openisd/AGENTS.md`) in every single turn.
+
+      AGENTS.md's "Reading context" section has been corrected to state the true mechanism rather than
+      the false one; the underlying rename decision is still yours.
+  - at: '2026-08-13'
+    text: |-
+      IMPLEMENTED 2026-08-13. The whole undotted workspace `claude/` directory plus the two agent
+      files moved to a new top-level `/home/john/work/winisd/_agent_files/` (plain `mv` — none of
+      them was git-tracked at the old path, so `git mv` did not apply):
+
+          claude/{rules,agents,commands,skills,bin,settings.json,settings.local.json}
+              -> _agent_files/{same}
+          _AGENTS.md              -> _agent_files/_AGENTS.md
+          _CLAUDE.md -> _AGENTS.md -> _agent_files/_CLAUDE.md (symlink target unchanged, still resolves)
+
+      Scope reading: the human's "move IT" is the whole reusable dir, not just `rules/`. Decided on
+      the evidence that (a) `rules/` alone is openisd-specific and not reusable, while `skills/` is
+      shared by every repo, and (b) "fix the links in this project and the other project" only has
+      referents if the whole dir moves — the links in question are 20 SYMLINKS in openisd pointing
+      into `claude/skills/`, and none points into `claude/rules/`.
+
+      Links updated — 20 symlinks + 34 text references across 15 files:
+        - openisd/.claude/skills/*  (10 symlinks) -> ../../../_agent_files/skills/*
+        - openisd/.gemini/skills/*  (10 symlinks) -> ../../../_agent_files/skills/*
+        - openisd/AGENTS.md         (@ import, 4 prose refs, the rules-dir paragraph, the
+                                     "Reading context" mechanism paragraph, release-skill path)
+        - winisd_tools/AGENTS.md, winisd_drivers/AGENTS.md  (@ import + 3 prose refs each)
+        - winisd_tools/scrapers/tests/test_workspace_config_layout.py  (the gate asserted
+          `_WORKSPACE/".claude"` exists — a directory that is not on disk, so the gate had been red;
+          now points at `_agent_files` and that assertion passes)
+        - winisd_tools/gates.py, workspace gates.py  (runner path in the contract docstring)
+        - _agent_files/_AGENTS.md   (layout diagram, the ALL AGENT CONFIG LIVES IN THE PARENT
+                                     section, the review-adversaries file list, both run_gates.py
+                                     refs, the config-resolution table row, the verify-before-finish
+                                     command)
+        - _agent_files/settings.json (both run_gates.py hook commands)
+        - _agent_files/{commands/build.md, commands/arch-review.md, commands/review.md,
+                        agents/arch-reviewer.md, agents/COMPLIANCE_GATE.md,
+                        skills/git-actions/SKILL.md, skills/review-orchestration/SKILL.md,
+                        rules/openisd-engine-source.md}
+      References to a REPO'S OWN `.claude/` (openisd settings.json, safe-tools' generic
+      `.claude/tools/` guidance, winisd_tools' own PreToolUse guard) were left alone — they are not
+      links to the moved set.
+
+      NOT rewritten, deliberately: `TODO.md`, `questions.yml`, `brain/*.md`. Those are decision and
+      review ledgers; rewriting a recorded ruling's text would falsify the record.
+
+      README: /home/john/work/winisd/_agent_files/README.md — states the directory is the ONE
+      reusable rule set shared by all three repos, that the `_` prefix and the undotted directory
+      name are deliberate (nothing here matches a name Claude auto-loads; `_AGENTS.md` ~27 KB +
+      `openisd/AGENTS.md` ~33 KB would otherwise sit in every request of every session), and that
+      the files reach an agent only because `~/.claude/behavioral_instructions.md`
+      §"EXPLICIT RULE LOADING" tells it to read them — a behavioural instruction, not a mechanism.
+
+      Verification (run after the move):
+          grep -rnI -e '/home/john/work/winisd/claude' -e '../claude/' -e '@../_AGENTS.md' \
+              -e 'winisd/_AGENTS.md' -e 'winisd/_CLAUDE.md' . \
+              --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.venv --exclude=o.tar
+        -> no output, exit 1. `find . -xtype l` over the workspace reports no broken symlinks.
+
+      The three unaudited rule files: all globs still resolve after the move — the rules directory
+      is still at depth 1 from the workspace root, so the workspace-root-relative globs are
+      unchanged in meaning. Measured: openisd/packages/engine/src 15 files, engine/test 26,
+      winisd/test 17, ui/src 76, ui/test 65. THEIR BODIES REMAIN UNAUDITED against the code — that
+      work is still outstanding. One body defect spotted in passing and not fixed:
+      `openisd-engine-tests.md` points at `openisd/DEVELOPMENT.md` §3, and `DEVELOPMENT.md` is
+      deleted in the working tree.
+
+      Two pre-existing problems surfaced by the move, neither caused by it and neither fixed:
+      1. `test_no_repo_claude_directory_holds_discovered_config` FAILS on
+         `openisd/.claude/settings.json`, `openisd/.claude/skills`, `winisd_research/.claude/skills`
+         — the workspace rule and human ruling of 2026-08-02 forbid a repo `.claude/` holding
+         skills "not even links", yet openisd holds 22 of them across `.claude` and `.gemini`.
+         Either the ruling or the directories must go; that is a human decision.
+      2. `winisd_tools/AGENTS.md` SECTION INDEX is stale. Not from this change — every edit here was
+         a 1-line-for-1-line substitution; the +1 line is another session's uncommitted bug-list
+         bullet at :1046. Left for whoever owns that edit to reindex.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      the intendion of claude was to keep it as a reusable dir - move it and the to agent files to
+      _agent_files and fix the links in this project and the other project then pur a readme in the
+      top of the _agent_files dir to explain tis deliberate decision
+- id: QO27
+  title: Two live formulas and two conventions for reference efficiency `no` — fraction vs percent, 112.1
+    vs 112.2
+  status: decided
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      Split out of QO15 defect 2 on the human's ruling: "treat #2 as its own question resolved by
+      WinISD evidence rather than preference".
+
+      LINE NUMBERS BELOW WERE RE-VERIFIED 2026-08-13 against the working tree (QO15's originals,
+      recorded 2026-08-05, had all moved).
+
+      THREE IMPLEMENTATIONS ARE LIVE AND THEY DISAGREE ON BOTH THE UNIT AND THE CONSTANT:
+
+        1. The Driver ADT — `no` as a FRACTION, constant 112.1
+           packages/winisd/src/driver.ts:421  r.no = 4*pi^2/c^3 * Fs^3*Vas/Qes
+           packages/winisd/src/driver.ts:422  r.SPL = 112.1 + 10*log10(no)
+           The driver editor multiplies by 100 to show a percentage
+           (DriverEditorModal.vue, the `no` field's :scale="100" under a "%" label).
+
+        2. The engine's solveConsistencyGroup — `no` as a FRACTION, constant 112.2
+           packages/engine/src/driver.ts:161  setVal('no', CONST_NO * Fs^3 * Vas / Qes)   (CONST_NO = 4*pi^2/c^3, line 54)
+           packages/engine/src/driver.ts:174  setVal('SPLref', 112.2 + 10*log10(no))
+           Same formula as the ADT, different constant.
+
+        3. The engine's deriveDriver — `no` as a PERCENT, constant 112.2
+           packages/engine/src/driver.ts:256  r.no = 9.64e-10 * Fs^3 * (Vas*1000) / Qes     (Vas in litres)
+           packages/engine/src/driver.ts:258  r.SPLref = 112.2 + 10*log10(no/100)
+           The /100 makes this the only one of the three that reads its own `no` as a percentage.
+
+      A FOURTH constant is named in the code but unused: the comment at
+      packages/engine/src/driver.ts:252-254 records "three disagreeing constants exist across the
+      codebase (109 inferred / 112.1 / 112.2, PLAN_JS_CALC_CONSOLIDATION.md section 2 row 18)" and
+      says resolving it was out of scope for that pass. It is now user-visible: the driver editor's
+      SPL field renders from (1) while the charts run on the engine.
+
+      EVIDENCE ALREADY IN THE REPO — resolves the UNIT axis, not the CONSTANT:
+        - docs/design/WDR_SCHEMA.md:169 states the .wdr stores `no` as a FRACTION and WinISD
+          DISPLAYS it as a percent ("0.000754 = 0.0754%"). That makes (3)'s percent reading the
+          odd one out.
+        - docs/winisd/edit_driver_pg2_parameters.png (real WinISD Driver editor) shows `no` at
+          4 dp under a "%" label and SPL at 2 dp under "dB", confirming the display side only.
+        - docs/winisd/sample_drive_Dayton_Audio_Epique_E150HE-44.wdr carries no=0 and SPL=0, so no
+          sample in the tree pins the constant.
+
+      WHAT STILL NEEDS MEASURING, AND HOW:
+        Resolve against WinISD, not by preference — the workspace rule is that where WinISD deviates
+        from textbook acoustics the .wdr must match WINISD, because WinISD is the consumer. Needed:
+        what WinISD writes into `no` and `SPL` in a .wdr for a driver whose Fs/Vas/Qes are known and
+        non-zero, and therefore which additive constant reproduces its own printed SPL. The win32
+        harness in ../winisd_research (lib/control.py, lib/probes.py, lib/wdr.py) is the tool; the
+        probe pattern already exists there (runs/map2.wdr is one such seeded file).
+
+      WHEN IT IS RESOLVED there must be ONE implementation, not three — the two engine sites and the
+      ADT site all compute the same physical quantity.
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 -- THE WINISD ORACLE IS ALREADY ON DISK. This question is answerable now; only the
+      consolidation work remains.
+
+      HUMAN RULING, verbatim: "Alwyas use winisd as oracle - but min DP is 2dp"
+
+      WHAT WINISD ACTUALLY DOES, from winisd_research/CALC_FINDINGS_FOR_REVIEW.md:733, back-solved
+      against winisd_research/runs/env_sample1.wpr:
+
+        1. `no` IS STORED AS A FRACTION, never a percent. It reproduces from BOTH routes:
+              4*pi^2/c^3 * Fs^3*Vas/Qes            -3.3e-16
+              roo/(2*pi*c) * BL^2*Sd^2/(Re*Mms^2)  -3.5e-16
+           against the stored 0.180345391899866.
+
+        2. THE CONSTANT IS NEITHER 112.1 NOR 112.2 -- IT IS DERIVED:
+              SPL = K + 10*log10(no)      K = 10*log10(roo*c / (2*pi*p_ref^2))      p_ref = 20e-6 Pa
+              K = 112.154453213, agreeing with the stored SPL to 1.4e-13 dB.
+           109 / 112.1 / 112.2 are all rounded approximations of that derived quantity. Because WinISD
+           fixes c and roo, K is fixed too -- but an implementation that varies air properties MUST vary
+           K with them (0.073 dB from 20 C to 30 C). That interlocks with QO7's ruling: openisd uses
+           humidity and pressure by default, so openisd's K is NOT a literal.
+
+      FOUR LIVE SITES DISAGREE (verify line numbers, recorded 2026-08-13):
+          packages/winisd/src/driver.ts:422              112.1, `no` as fraction    -0.054 dB
+          packages/winisd/src/native/openisdDerive.ts:48 112.1, `no` as fraction    -0.054 dB
+          packages/engine/src/driver.ts:175              112.2, `no` as fraction    +0.046 dB
+          packages/engine/src/driver.ts:257              112.2, `no`/100 as PERCENT  -20 dB
+      The last is a genuine 20 dB error: CONST_NO at engine/src/driver.ts:54 is 4*pi^2/c^3, the FRACTION
+      form, so the /100 divides a fraction that was never a percent. QO15's note misattributed that /100
+      to lines 163-165; it is line 257.
+      engine/src/driver.ts:178 carries the inverse and uses 112.2 too.
+
+      THE FIX: ONE implementation. K derived from roo and c (not a literal), `no` a fraction everywhere,
+      the three duplicate copies deleted rather than reconciled. Display honours the human's minimum of
+      2 decimal places.
+  answer:
+    at: '2026-08-13'
+    text: |-
+      "fix it logocal - no duplication"
+
+      ONE implementation, new module packages/engine/src/efficiency.ts, exported from @openisd/engine:
+        efficiencyConstant(c)            4pi^2/c^3
+        referenceEfficiency(Fs,Vas,Qes,c)  eta0 as a FRACTION
+        splReferenceConstantDb(rho,c)    K = 10*log10(rho*c/(2*pi*p_ref^2))  -- DERIVED, no literal
+        splFromEfficiency(no,rho,c)      SPL = K + 10*log10(no)
+        efficiencyFromSpl(spl,rho,c)     the exact inverse
+
+      TRUE COUNT OF DUPLICATES (the earlier report of three was short by half):
+        eta0 computed in 6 places, SPL-from-eta0 in 7. All deleted, none left as a shim.
+          engine/src/driver.ts:161  solveConsistencyGroup  CONST_NO, fraction
+          engine/src/driver.ts:175/178  SPLref<->no, 112.2 (incl. the inverse)
+          engine/src/driver.ts:255/257  deriveDriver, 9.64e-10 + `no`/100 -- read a FRACTION as a
+                                        PERCENT, a +19.99 dB error on SPLref/USPL (measured)
+          engine/src/sweep.ts:211/214   eta0 + the already-correct derived-K form
+          winisd/src/driver.ts:421/422  112.1
+          winisd/src/native/openisdDerive.ts:47/48  112.1
+          ui/src/diagnostics/selftest.ts:93/120/121  SPL_EFFICIENCY_OFFSET_DB = 112.1
+        Plus two test copies (engine/test/engine.test.ts:133, winisd/test/driver-derive.test.ts:66)
+        and two user-visible formula strings (DriverDefineModal.vue, logic/provenance.ts) that
+        printed the literal.
+
+      selftest.ts keeps NO copy: it now calls the same engine functions, so the gate tests the
+      sweep's circuit solution against the closed form rather than one constant against another.
+
+      ORACLE, in-repo and exact: drivers/sample/winisd/John-all-manu-populated.wdr carries its own
+      c=343.684120962152, roo=1.20095217714682, no=8.81202645607949E-6, SPL=61.605211136107.
+      referenceEfficiency reproduces `no` at relative error 0, and cross-checks against the
+      independent motor-side route roo/(2pi c)*BL^2 Sd^2/(Re Mms^2) to 3.8e-16. splFromEfficiency
+      reproduces the stored SPL to 7.1e-15 dB. K = 112.15439 at the app's air; 112.1 and 112.2 are
+      +0.0544/-0.0456 dB from it. A 20->30 C change moves K ~0.07 dB, gated by a test, so K can
+      never be frozen back into a literal (QO7).
+      Per-record air is honoured where the record has it: solveConsistencyGroup reads the driver's
+      own c/roo. Driver/DriverRaw model no air at all and that interface is frozen by AD-9, so
+      deriveDriver uses the app constants rather than having a field added to it.
+
+      GOLDEN: max observed delta 0.000 dB -- all 6 fixtures still pass with exact ===, nothing
+      regenerated. eta0/SPLref/USPL feed no golden field, and the sweep rewrite is algebraically
+      and bitwise identical (measured delta exactly 0).
+
+      Display: min 2 dp already enforced for every numeric field at NumInput.vue:50
+      (`Math.max(2, ...)`), so SPL and eta0 already honour the floor.
+
+      Gates: lint 0 errors, typecheck clean, vitest 477/477 in 46 files.
+      New gate packages/engine/test/efficiency.test.ts (12 tests) pins the oracle and scans
+      engine/winisd/ui src for any surviving 112.1/112.2 literal or re-derived 4pi^2/c^3.
+- id: QO28
+  title: 'numVC ParState slot: openisd emits C where WinISD pins E'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      NO CODE WORK NEEDED. This exists so the divergence is not later "fixed" back into WinISD's
+      bug by someone reading a red row in the side-by-side parity suite (BACKLOG.md, the
+      "Side-by-side WinISD vs openisd validation suite" item under "Quality / infrastructure").
+
+      Human ruling, verbatim (2026-08-13):
+        "Voicecoils << there was a winisd bug here - obvuously dont replicate that"
+
+      THE WINISD BUG. `numVC` is pinned to ParState state `E` permanently, regardless of input:
+      `winisd_research/KNOWLEDGE_REPORT.md:190` ("Several fields are permanently pinned regardless
+      of input: `numVC` is always `E`") and `:198` (a reset puts `numVC` back to `E=1`). `E` means
+      ENTERED BY THE HUMAN — WinISD asserts that of a value nobody typed.
+
+      WHAT OPENISD DOES, verified by reading the file this turn:
+        packages/winisd/src/driver.ts:432 — `if (r.numVC == null) r.numVC = 1;`
+      inside `#derive()` (declared at :395), immediately after the `c`/`roo` autofills at :426-427.
+      The app supplied the value, so it reports as `C` (calculated/default), never `E`. Correct as
+      it stands — do not change it.
+
+      CONSEQUENCE. openisd's exported ParState carries `C` in the `numVC` slot where WinISD writes
+      `E`. A deliberate one-character divergence. The parity suite must EXPECT it, not flag it.
+
+      RECORDED IN:
+        - docs/spec/SPEC_ENGINE.md — the ParState paragraph now states WinISD's New+Save skeleton
+          as an observation and adds that openisd writes `C` there, with the driver.ts:432 citation.
+          The old parenthetical "(`E` — it has a real default)" endorsed the bug: having a default
+          is exactly why the slot should be `C`. That endorsement is gone; the observation stays.
+        - BACKLOG.md — a "Known deliberate divergences the suite EXPECTS rather than flags"
+          sub-bullet on the parity-suite item.
+
+      NOT A DIVERGENCE: `Xmax`. BACKLOG.md's group-solver item already records that this suite must
+      DROP its `Xmax` divergence expectation because openisd matches WinISD on the group solve
+      (both back-calc routes present: packages/engine/src/driver.ts:135 `abs(Hc-Hg)/2` and :144
+      `Vd/Sd`). Not duplicated here.
+- id: QO29
+  title: GAPS.md A7 claims WinISD end correction is 0.6; the human states it is 0.732
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      Human ruling, verbatim (2026-08-13): "winisd defaults to 0.732"
+
+      Consequences:
+
+      1. openisd's shipped default is CORRECT and must not change. `END_CORRECTION = 0.732`
+         (packages/engine/src/constants.ts:20), the dropdown default
+         (packages/ui/src/logic/fields/fieldRegistry.ts:74-78), and the description at
+         fieldRegistry.ts:130 asserting "default 0.732 ... WinISD parity" all stand. No code change.
+         Corroborating evidence: 0.732 is the port end-correction constant in the WinISD binary
+         (winisd_research/DECOMPILATION_ATTEMPT.md:25, RE_GHIDRA_FINDINGS.md:44) and WinISD's own
+         help table gives one-flanged+one-free = 0.731 (docs/research/WINISD_PARITY.md:1050).
+         The 0.6 observed live is the separate constant WinISD writes for UNCONFIGURED vents in the
+         .wpr (DECOMPILATION_ATTEMPT.md:26, RE_GHIDRA_FINDINGS.md:45) — it was the value carried by
+         the probe session's seed project, not WinISD's default.
+
+      2. GAPS.md A7 corrected accordingly (winisd_research/GAPS.md:279-313): heading, opening claim,
+         table framing and recommendation now state 0.732 as WinISD's default. The E.2 row asserting
+         fieldRegistry's "default 0.732 ... WinISD parity" was wrong has been deleted, since the
+         ruling confirms that description is right. Priority table item 2 rewritten.
+
+      3. A7's SEPARATE suggestion is untouched by this ruling and may still be worth doing: WinISD's
+         End Correction is a free editable number PER VENT, persisted in the .wpr as `endcorrection`;
+         openisd offers a closed three-item <select>
+         (packages/ui/src/ui/shells/original/OriginalShell.vue:1208-1209). A project whose vent
+         carries any other coefficient cannot round-trip. Allowing free numeric entry alongside the
+         three named presets, keeping 0.732 as the default, remains open work.
+- id: QO30
+  title: 'ParState slot 0 (Znom): WinISD writes C where openisd writes N - probe before changing the rule'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      HUMAN RULING: "Probe it first". The E/C/N rule for ParState slot 0 must NOT change until a
+      probe establishes what WinISD actually does across cases.
+
+      HOW IT SURFACED: `packages/winisd/test/driver-roundtrip.test.ts` previously ran against a
+      third-party `.wdr` (now deleted) whose Znom was ENTERED, so slot 0 read `E` on both sides and
+      the divergence was invisible. Pointing the test at a genuine WinISD save
+      (`drivers/sample/winisd/John-all-manu-populated.wdr`) exposed it immediately.
+
+      WHAT EACH SIDE EMITS, on that file:
+        - WinISD writes `Znom=8` with ParState[0] = `C` — it considers Znom CALCULATED.
+        - openisd emits ParState[0] = `N`. `Znom` is MODELED_SLOTS pos 0 → field `Z`
+          (`packages/winisd/src/parstate.ts`), the file's ParState says C so `fromWdr` does not
+          enter it, and no rule in `solveConsistencyGroup` computes `Z` — so `cell('Z').state`
+          falls through to N.
+        - The fresh-authored writer disagrees with BOTH: `classic/wdr.ts parstate()` hardcodes
+          `s[0] = num(raw.Z) ? 'E' : 'C'`, i.e. C whenever Znom was not entered, and `toWdr` then
+          writes `Znom = d.Z || d.Re`.
+
+      WHAT THE PROBE MUST ESTABLISH: whether WinISD marks Znom C unconditionally, or only when it
+      derived it from something (Re? a dropdown default?), and what it writes on the Znom line in
+      each case. `drivers/sample/winisd/s-znom.wdr` covers only the ENTERED case (slot 0 = E).
+      The blank file `john-all-defaults.wdr` has `Znom=0` with slot 0 = `N`, so C is NOT
+      unconditional — something about a populated driver turns it on. That is the case to probe.
+
+      CURRENT STATE OF THE TEST: `driver-roundtrip.test.ts` asserts ParState[1..48] round-trip
+      identically and EXCLUDES slot 0, naming this question. Nothing has been changed to make it
+      pass; the divergence is recorded, not papered over.
+- id: QO31
+  title: 'Audit of the three never-loaded rule files: engine-source, engine-tests, ui-tests'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      AUDIT RESULT — three rule files that had never been loaded, now validated against code.
+      LSP: UNAVAILABLE (ToolSearch("select:LSP") -> "No matching deferred tools found"). Grep/Read used.
+
+      GLOBS — all three frontmatter `paths:` resolve non-empty:
+        engine-source  openisd/packages/engine/src/**/*   -> 16 files
+        engine-tests   openisd/packages/engine/test/**/*  -> 27; openisd/packages/winisd/test/**/* -> 18
+        ui-tests       openisd/packages/ui/src/**/*       -> 76; openisd/packages/ui/test/**/*     -> 65
+
+      FILE 1 — _agent_files/rules/openisd-engine-source.md
+        Claims checked: 4. ACCURATE 4 / STALE 0 / WRONG 0 / OBSOLETE 0 / UNVERIFIED 0. No edits.
+        - "No magic numbers, named constant preferred" — packages/engine/src/constants.ts:11-27 (RHO, C,
+          P0, END_CORRECTION, FLAT_MAX_BOOST_DB each carry meaning + source). Policy only: NO mechanical
+          gate exists; packages/engine/test/architecture.test.ts guards AD-3 (no DOM/Vue) and nothing else.
+        - "Citations must be verified" — constants.ts:5,8 carry Wikipedia refs; normative, no gate.
+        - xref `_agent_files/rules/openisd-engine-tests.md` — file exists.
+        - xref `openisd/AGENTS.md` §"Calculation logic — permission gate" — AGENTS.md:86. Exact heading.
+
+      FILE 2 — _agent_files/rules/openisd-engine-tests.md
+        Claims checked: 8. ACCURATE 6 / STALE 1 / WRONG 0 / OBSOLETE 0 / UNVERIFIED 1. 1 edit.
+        - STALE (fixed): "gates are in `openisd/DEVELOPMENT.md` §3". DEVELOPMENT.md is staged-deleted
+          (`git status`: `D  DEVELOPMENT.md`). Content merged into openisd/AGENTS.md by openspec change
+          reorganize-project-docs (tasks.md:21 "2.4 Merge DEVELOPMENT.md's corrected content into
+          AGENTS.md", 2.5 delete — both [x]). Old §3 was "Testing strategy — two suites, both required";
+          it now lives at AGENTS.md:35 §"Quality gates — non-negotiable" (command table AGENTS.md:44-49,
+          "Two suites, both required" AGENTS.md:74-82). Rule repointed there.
+        - ACCURATE "Vitest + node:assert/strict" — 31 of 33 test files import node:assert/strict.
+          2 deviate to vitest expect(): packages/engine/test/loss-mode.test.ts,
+          packages/winisd/test/classic/wpr.test.ts. Convention holds; deviations reported as defect D5.
+        - ACCURATE `npm run test:unit` = "vitest run" (package.json:24); `npx vitest` = watch default.
+        - ACCURATE `npm run lint` (package.json:11 "eslint packages/"), `npx playwright test`
+          (AGENTS.md:47), red->green order (AGENTS.md:62-70).
+        - UNVERIFIED->contradicted "Every function in packages/engine/src/ has direct unit tests in
+          test/". Mechanical check of 68 exported functions: 5 are never referenced by name in
+          packages/engine/test/*.ts — alignments.ts:58 sealedFc, complex.ts:13 cExp, filters.ts:85
+          lowShelf, filters.ts:101 highShelf, lossMode.ts:119 sealedResonanceWinisd. lowShelf/highShelf
+          and sealedResonanceWinisd are covered indirectly (engine.test.ts:649,658; lossMode.ts:156,178);
+          sealedFc has a consumer (ui/src/logic/wprMapping.ts:70) but no direct test. Left as the
+          requirement it is; gaps reported as defect D4. Not rewritten into a description of the gap.
+
+      FILE 3 — _agent_files/rules/openisd-ui-tests.md
+        Claims checked: 14. ACCURATE 5 / STALE 5 / WRONG 4 / OBSOLETE 0 / UNVERIFIED 0. 6 edits.
+        WRONG (worst — a hard-rule violation the file would have taught every agent):
+        - Post-deploy smoke step 1 said `curl ... http://localhost:4200/`. AGENTS.md:265 is a human
+          standing order of 2026-08-05, "4000 IS THE ONLY APP PORT ... The AI starts NO server on any
+          other port". 4200 is the agent dev server (scripts/dev-4200.sh:11, scripts/start-http.sh:6)
+          and serves the WORKING TREE, so after `npm run build` it proves nothing about the build —
+          `vite preview` on 4000 serves packages/ui/dist (scripts/preview-4000.sh:13) and
+          scripts/verify-preview.sh:11 already runs exactly this curl against 4000. Corrected to 4000.
+        WRONG (rest):
+        - "asserts at teardown that every collector is empty". packages/ui/test/fixtures.ts:88-93
+          asserts FOUR categories: console errors, page errors, same-origin network failures, and only
+          the `/duplicate key/i`-filtered subset of consoleWarnings. fixtures.ts:21-25 states outright
+          that benign general warnings are NOT failed. An agent would have believed a Vue injection
+          warning fails the suite; it does not. Corrected, incl. the net::ERR_ABORTED exclusion
+          (fixtures.ts:53).
+        - "test/driver-search-interactive.browser.spec.ts searches a duplicate-named driver to force the
+          key collision". Read in full: its two tests seed openisd_my_drivers with a driver carrying no
+          `name` and assert the derived label lists/searches/deletes. The word "duplicate" does not
+          appear in the file. The real duplicate-identity guard is
+          packages/ui/test/db/drivers-bundle.test.ts:76-77. Example replaced with what the file does.
+        - "test/scenarios.ts is the source of truth for every UI test case". Only two importers exist:
+          test/logic/micka-crosscheck.browser.spec.ts:21 and test/gen-scenarios.ts:27. 37 browser specs
+          exist; 1 consumes SCENARIOS. Narrowed to "source of truth for the micka.de crosscheck cases".
+        - "not in normal CI — these tests hit an external site". playwright.config.js:5-6 is
+          testDir './packages/ui/test' + testMatch '**/*.browser.spec.ts' with NO testIgnore, so
+          micka-crosscheck runs in every `npx playwright test` and in scripts/health-check.sh:36.
+          Corrected to say it does run in the full suite, and to check network/micka.de before calling a
+          failure a physics regression. (Spec header says ~25s each, not the rule's 15s.)
+        STALE (all from the test/ subdirectory reorganisation into db/ logic/ ui/):
+        - `packages/ui/test/*.browser.spec.ts` -> `**/*.browser.spec.ts`. No .browser.spec.ts sits
+          directly in test/ any more. AGENTS.md:79 and eslint.config.js:140 both already use `**`.
+        - fixtures import specifier: file is fixtures.ts, specs import '../fixtures.js'. Both stated.
+        - test/visual.browser.spec.ts -> test/ui/visual.browser.spec.ts
+        - test/visual.browser.spec.ts-snapshots/ -> test/ui/visual.browser.spec.ts-snapshots/
+          (playwright.config.js:14 snapshotPathTemplate '{testDir}/{testFileDir}/{testFileName}-...')
+        - test/app.browser.spec.ts -> test/ui/app.browser.spec.ts
+        ACCURATE (left alone):
+        - the gate "any Vue/template/CSS/store/engine-wiring change -> run playwright" (AGENTS.md:35-49)
+        - "importing from fixtures.ts is the whole contract; browserLog.reset() to re-baseline"
+          (fixtures.ts:35-42,105 `{ auto: true }`)
+        - "use page.waitForFunction(), never page.waitForTimeout() — the ESLint playwright rule forbids
+          it" — eslint.config.js:151 'playwright/no-wait-for-timeout': 'error', scoped at
+          eslint.config.js:140 to packages/ui/test/**/*.browser.spec.ts
+        - "attaches full console+network to the report on failure" (fixtures.ts:76-82)
+        - visual covers all four box types — 4 tests / 4 baselines (visual.browser.spec.ts:83,103,126,153
+          -> sealed-spl.png, vented-spl.png, bandpass4-spl.png, pr-spl.png)
+
+      CODE DEFECTS FOUND — NOT FIXED (file restriction: rules files only)
+        D1 (build-breaking, silent) package.json:25-26 point at paths that no longer exist:
+           test:crosscheck -> packages/ui/test/micka-crosscheck.browser.spec.ts
+           test:visual     -> packages/ui/test/visual.browser.spec.ts
+           Command run: `npx playwright test packages/ui/test/visual.browser.spec.ts --list`
+             -> "Error: No tests found. ... Total: 0 tests in 0 files", EXIT 0.
+           Same for micka-crosscheck. The correct paths (test/ui/, test/logic/) list 2 tests / 1 file.
+           Both npm scripts therefore EXIT 0 having run NOTHING — a green that means zero coverage.
+           The rule files now name the direct `bash scripts/test-browser.sh <real path>` invocation;
+           once package.json is fixed they can go back to the npm script names.
+        D2 5 browser specs bypass the mandatory fixtures import and so run with NO console/network
+           assertion at all — logic/driver-editor-provenance.browser.spec.ts:1,
+           logic/driver-editor-solver.browser.spec.ts:1, logic/driver-provenance-inspector.browser.spec.ts:1,
+           logic/micka-crosscheck.browser.spec.ts:20, ui/record-animation.browser.spec.ts:6.
+           Nothing enforces the rule: no check in eslint.config.js, none in ui/test/ui/architecture.test.ts
+           (which only guards composable/skin boundaries), none in scripts/health-check.sh.
+        D3 Orphaned baseline directory packages/ui/test/visual.browser.spec.ts-snapshots/ holds 4 PNGs
+           that playwright.config.js:14 can no longer resolve to; the live set is
+           packages/ui/test/ui/visual.browser.spec.ts-snapshots/. Two divergent copies of the baselines.
+           Related: visual.browser.spec.ts:13 comment still names "test/visual.browser.spec.js-snapshots/".
+        D4 packages/engine/src/complex.ts:13 `cExp` is exported, has ZERO consumers anywhere under
+           packages/ (grep across all of packages/, excl. node_modules) and zero tests. Dead export.
+           packages/engine/src/alignments.ts:58 `sealedFc` has a consumer
+           (packages/ui/src/logic/wprMapping.ts:70) but no direct engine test.
+        D5 Two test files deviate from the node:assert/strict house style to vitest expect():
+           packages/engine/test/loss-mode.test.ts, packages/winisd/test/classic/wpr.test.ts.
+        D6 micka-crosscheck (external network, ~25s/scenario) is inside the default browser gate with no
+           testIgnore, so scripts/health-check.sh depends on micka.de being reachable. Combined with
+           playwright.config.js:8 "A SKIP IS A FAIL", a network outage turns the whole gate red.
+
+      CROSS-FILE NOTE: the DEVELOPMENT.md dangling pointer was in BOTH engine-tests.md AND ui-tests.md,
+      not only the one flagged. Both repointed to AGENTS.md §"Quality gates — non-negotiable".
+      No file is obsolete; all three govern live code and should be kept.
+  - at: '2026-08-13'
+    text: |-
+      FIX PASS on the six defects above. LSP: UNAVAILABLE (ToolSearch("select:LSP") -> "No matching
+      deferred tools found"). Grep/Read used; every cited line re-Read before editing.
+
+      D1 — FIXED. package.json:25-26 pointed at pre-reorg paths. Correct paths:
+        test:visual     -> packages/ui/test/ui/visual.browser.spec.ts
+        test:crosscheck -> packages/ui/test/logic/micka-crosscheck.browser.spec.ts (+ OPENISD_EXTERNAL=1, see D6)
+        Test count BEFORE: 0 tests in 0 files for BOTH. AFTER: test:visual 4 tests in 1 file (4 passed,
+        --workers=1); test:crosscheck 2 tests in 1 file (2 passed).
+        DIAGNOSIS CORRECTION to the audit above: the reported "EXIT 0" was a MEASUREMENT ERROR, not
+        playwright behaviour. `npx playwright test <stale path> --list | tail -5; echo $?` reports tail's
+        status. Measured directly, `npx playwright test packages/ui/test/visual.browser.spec.ts --list;
+        echo $?` -> EXIT 1, and the same for micka-crosscheck. Playwright 1.61.0 already FAILS an empty
+        suite by default: `npx playwright test --help` offers `--pass-with-no-tests` ("Makes test run
+        succeed even if no tests were...") and NO `--fail-on-empty` — failing IS the default, the opt-out
+        is the flag. So the npm scripts did not silently pass; they failed for a reason ("No tests found")
+        that three `--last-failed` retry banners in scripts/test-browser.sh buried under what reads as an
+        infrastructure wobble.
+        ZERO-TEST RUN NOW FAILS EXPLICITLY: scripts/test-browser.sh:31-43 collects with
+        `npx playwright test --list "$@"` BEFORE running anything and exits 1 unless the output matches
+        `^Total: [1-9][0-9]* test`, printing `ERROR: zero tests matched — a gate that runs nothing must
+        not pass. Args: <args>`. Proven both ways: stale path -> that message, exit 1, no browser
+        launched; no-arg full-suite path -> guard passes (Total: 250 tests), so health-check.sh:36 is
+        unaffected. This also survives anyone later adding --pass-with-no-tests.
+
+      D2 — FIXED, with a mechanical gate. The 5 specs that took VALUE bindings from '@playwright/test'
+        (the other 30 hits are `import type { Page }`, which carry no runtime binding and cannot bypass
+        anything) now import from the fixture:
+          logic/driver-editor-provenance.browser.spec.ts:1, logic/driver-editor-solver.browser.spec.ts:1,
+          logic/driver-provenance-inspector.browser.spec.ts:1, logic/micka-crosscheck.browser.spec.ts:20,
+          ui/record-animation.browser.spec.ts:6   -> `import { test, expect } from '../fixtures.js'`.
+        All 5 run GREEN under the fixture: 38 passed at --workers=1 for the 4 local specs, 2 passed for
+        micka. The fixture caught nothing fatal; the one thing it surfaced is a benign browser warning
+        ("The specified value \"banana\" cannot be parsed") in the solver spec's invalid-input test, which
+        fixtures.ts:21-25 deliberately does NOT fail.
+        GATE SHAPE — eslint.config.js:152-176, inside the existing
+        `files: ['packages/ui/test/**/*.browser.spec.ts']` block:
+          '@typescript-eslint/no-restricted-imports': ['error', { paths: [{ name: '@playwright/test',
+            importNames: ['test','expect'], allowTypeImports: true, message: ... }] }]
+        It matches the AST ImportDeclaration/specifier, never prose — per AGENTS.md's "test the SHAPE of
+        the code" rule. PROVEN BOTH WAYS with a throwaway spec under packages/ui/test/ui/ (created and
+        deleted in one command):
+          (a) `import { test, expect } from '../fixtures.js'` + `import type { Page } from
+              '@playwright/test'` + a COMMENT containing the string '@playwright/test'  -> 0 errors.
+          (b) `import { test, expect } from '@playwright/test'`  -> 2 errors at 1:10 and 1:16.
+          (c) `import * as pw from '@playwright/test'`           -> 1 error at 1:8 ("* import is invalid
+              because 'test' and 'expect' ... are restricted") — the namespace escape hatch is closed too.
+        Also fixed while in record-animation.browser.spec.ts: it wrote frames to /tmp/ui_frames, against
+        AGENTS.md "Scratch files — repo-local build/". Now build/ui_frames (5 frames verified written).
+
+      D3 — FIXED. Live baselines are packages/ui/test/ui/visual.browser.spec.ts-snapshots/ — the path
+        playwright.config.js snapshotPathTemplate '{testDir}/{testFileDir}/{testFileName}-snapshots/'
+        resolves for test/ui/visual.browser.spec.ts. The two sets held DIFFERENT bytes (all 4 md5s
+        differ), so only one could be live. `git rm -r packages/ui/test/visual.browser.spec.ts-snapshots/`
+        (4 PNGs), then re-ran the visual suite -> still passes, which is the proof the deleted set was not
+        consumed. visual.browser.spec.ts:13 comment repointed to the real directory.
+
+      D4 — FIXED. `cExp` deleted from packages/engine/src/complex.ts. Zero consumers confirmed by a repo-
+        wide grep over .ts/.js/.vue/.mjs/.md excluding node_modules and dist: the ONLY hit was its own
+        definition. Nothing broke — typecheck and the full unit suite are green after removal.
+
+      D5 — FIXED. Both files converted from vitest `expect()` to the house `node:assert/strict`
+        (_agent_files/rules/openisd-engine-tests.md:9): packages/engine/test/loss-mode.test.ts and
+        packages/winisd/test/classic/wpr.test.ts. toBeCloseTo(v,n) is preserved exactly by a local
+        `closeTo()` using vitest's own window |got-want| < 10^-n/2; toContain/toMatch/toEqual/toBe map to
+        includes+assert.ok / assert.match / assert.deepEqual / assert.equal, each carrying a failure
+        message. 24 tests pass in loss-mode.test.ts, 14 in wpr.test.ts. No `expect` from vitest remains
+        anywhere under packages/engine/test or packages/winisd/test.
+
+      D6 — FIXED. playwright.config.js:1-12 declares EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.
+        browser.spec.ts'] and sets `testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] :
+        EXTERNAL_NETWORK_SPECS`. Default gate: 248 tests in 36 files, micka absent (grep count 0). Opt-in:
+        250 tests in 37 files, micka present. HOW IT IS NOW INVOKED — `npm run test:crosscheck` (which
+        sets OPENISD_EXTERNAL=1 itself), or ad hoc `OPENISD_EXTERNAL=1 npx playwright test <path>`. Still
+        fully runnable, not disabled: `npm run test:crosscheck -- --workers=1` -> 2 passed against
+        micka.de. scripts/health-check.sh:36 now depends only on this repo.
+
+      NEW DIRECT UNIT TESTS for the 4 survivors of the "every function has direct unit tests" gap (cExp,
+      the 5th, is deleted). Every expected value is hand-derived from the documented transfer function or
+      closed form and written out in the test; none is read back from the implementation.
+        packages/engine/test/sealed-fc.test.ts (6 tests) — sealedFc: 30 L Vas / 10 L box -> exactly 80 Hz;
+          Vb=Vas -> Fs·√2; the large-box limit asserted as the FIRST-ORDER lift Fs·Vas/(2Vb)=6e-7 Hz
+          rather than a loose tolerance; monotonicity; null for Vb<=0; and the inverse round-trip through
+          sealedFromQtc landing on Fs·(Qtc/Qts).
+        packages/engine/test/shelf-filters.test.ts (10 tests) — lowShelf/highShelf: DC and HF asymptotes
+          with the O(w0/w) residual ASSERTED (lowShelf -> 1 − j·0.9r, highShelf -> 100 + j·90r at
+          r=1e-6), the exact mid-shelf points 10 − j·99√10 and 10 + j·99√10 derived on paper at
+          f=fc/√A and f=fc·√A with Q=√A, 0 dB pass-through, and negative gain.
+        packages/engine/test/loss-mode.test.ts — a new "sealedResonanceWinisd, direct" block (6 tests):
+          the delegation contract Fsc === sealedFscWinisd, deepEqual with LossMode.WinisdLossy's dispatch,
+          the no-leak short-circuit for Ql in {1e6, 1e9, 0, -5}, Qa in {0,-1,1e6,1e12} all collapsing to
+          "no absorption", stuffing lowering Qtc without moving Fsc >5%, and — the branch nothing reached
+          before — continuity across the overdamped/underdamped seam over Ql 0.1->10 on a log grid,
+          asserting monotonic Fsc, no step >10%, and that BOTH branches are visited (Qtc<=0.5 is only
+          reachable via the real-root fallback, by AM-GM).
+        Caveat for the rule file: the claim "every function has direct unit tests" was verified only for
+        these 5. The other 63 exported functions were not re-audited in this pass.
+
+      GATES: lint 0 errors (25 pre-existing playwright-plugin warnings, unchanged). typecheck clean
+      (engine + winisd + ui). Unit suite 52 files / 591 tests, all pass. Browser specs touched, all at
+      --workers=1: visual 4 passed; the 4 migrated local specs 38 passed; micka-crosscheck 2 passed.
+      The full browser suite was NOT run (three agents live; rule against concurrent suites).
+- id: QO32
+  title: 'Advanced-panel formula recovery: Gloss, SPLmaxLF, Mcost'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      RAN. The wine harness works from this machine as-is: wine 10.0, ~/.wine prefix already
+      bootstrapped (openal32 + Windows Python present), winisd.exe launches, Driver editor drives
+      end to end. 34 live probes in runs/advanced_formulas.jsonl (~20 s each, one relaunch per
+      sample), plus the 7 pre-existing runs/env_sample*.wpr = 41 samples.
+
+      ALL THREE RECOVERED (refit any time: toys/fit_advanced_formulas.py):
+
+        Gloss    = g / ((2*pi*Fs)^2 * Xmax),  g = 9.80665     41 samples, worst rel resid 3.6e-15
+        SPLmaxLF = 20*log10( rho0*(2*pi*20)^2*Vd / (2*pi*sqrt2) / 20uPa )
+                                                              41 samples, worst rel resid 6.8e-16
+        Mcost    = Rme * (1 + Xmax / min(Hc, Hg))             10 samples, worst rel resid 1.5e-15
+
+      Two competing forms were REFUTED by purpose-built discriminators, not merely unpreferred:
+        - Gloss = g*Mms*Cms/Xmax is exact on every self-consistent driver (Mms*Cms = 1/(2*pi*Fs)^2
+          there). Three drivers with Fs written to disagree with Mms*Cms separate them: Gloss
+          follows the stored Fs; the Mms*Cms form lands at relative residual 3.0.
+        - Mcost = Rme*(Hc+Hg)/(2*min(Hc,Hg)) is exact on all four stage-1 samples because each had
+          Xmax = |Hc-Hg|/2. Two drivers with Xmax written away from Hc/Hg separate them: that form
+          lands at 0.40. Mcost reads Xmax itself, not the gap geometry's implied excursion.
+
+      MCOST IS DERIVED, NOT USER DATA. It reads 0 in every pre-existing file only because Hc/Hg
+      are 0 there and min(Hc,Hg) is the divisor. Populate them and it computes. Its unit is Ns/m,
+      the same as Rme, to which it reduces when the coil never leaves the gap.
+
+      GLOSS IS A FRACTION IN THE FILE AND A PERCENT IN THE UI (x100). That reconciles GAPS.md's
+      Beyma figure Gloss=4.5441 with the 0.0037-scale values stored in .wpr files.
+
+      ONE CORPUS FILE IS NOT SELF-CONSISTENT: runs/env_sample5.wpr stores Fs=200 while its own
+      Mms*Cms give 201.0, and its Gloss matches 201.0 to 1.4e-16 - its Fs key is stale.
+
+      STILL UNKNOWN / NOT ATTEMPTED HERE: rows 1-5, 8-11, 14-18 remain unprobed for route
+      attribution (SOLVER_GAPS section 2.3); row 18 (SPL from eta0) is still an inferred relation,
+      not binary-confirmed. Nothing about the Box/Vents solver was touched.
+
+      DOCS UPDATED: SOLVER_GAPS.md (rows 7/21/22 + new section 2.4 with the residual table and the
+      two refutations), KNOWLEDGE_REPORT.md (formula block + the inferred-formulas bullets),
+      README.md item 4, GAPS.md lines 227/374, WINE_HARNESS.md (new section: the two-edit sequence
+      needed to get computed driver fields into a saved .wpr, plus the editor Save/dirty/rect facts
+      this cost time to find).
+- id: QO33
+  title: Repo-level skill symlinks into _agent_files are allowed; divergent copies remain banned
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      HUMAN RULING, verbatim, asked whether to enforce the 2026-08-02 no-repo-skills ruling or amend it:
+      "Keep them, amend the ruling"
+
+      WHERE THE RULE NOW LIVES (three places, all rewritten to the amended text, no history left behind):
+        1. _agent_files/_AGENTS.md  §"ONE SHARED AGENT-CONFIG DIRECTORY - a repo LINKS to it, never COPIES it"
+        2. _agent_files/README.md   §"Working here", first bullet
+        3. winisd_tools/scrapers/tests/test_workspace_config_layout.py  module docstring
+
+      THE RULE: <repo>/.claude and <repo>/.gemini MAY hold skills/ agents/ commands/ rules/ PROVIDED every
+      entry is a symlink resolving inside _agent_files/. A real file or directory there is forbidden, and so
+      is a symlink pointing anywhere else - both are a SECOND source that starts identical and is then edited
+      on one side only.
+
+      settings.json VERDICT: LEGITIMATELY REPO-LOCAL, permissions ONLY. openisd/.claude/settings.json denies
+      reads under its own node_modules/ dist/ build/ coverage/ *-snapshots/ - paths only that repo has - and a
+      settings file is not a discovered skill so it costs no per-session context. A "hooks" key there would
+      fire only for a session launched inside the repo and be invisible to one launched in the parent, which
+      is why gates run from _agent_files/settings.json -> bin/run_gates.py -> <repo>/gates.py. The gate parses
+      the JSON and fails on any top-level key other than "permissions".
+
+      WHAT THE GATE ASSERTS - test_no_repo_agent_directory_holds_a_second_copy (renamed from
+      test_no_repo_claude_directory_holds_discovered_config; the old name asserted the opposite of the amended
+      rule. The one reference to it, _AGENTS.md, was updated in the same change). Scans .claude AND .gemini of
+      every sibling git repo. Permitted real entries: worktrees/, settings.local.json, settings.json
+      (permissions only). skills/agents/commands/rules: link-only. Two failure classes are reported
+      separately because the fixes differ - COPY (delete, replace with a link) and FOREIGN LINK (move the
+      target into _agent_files/, repoint).
+
+      BOTH-WAYS PROOF, baked in as test_the_guard_catches_both_violation_classes so it is permanent rather
+      than a one-off: builds a tmp_path workspace with a correct symlink, a real directory and a symlink to a
+      target outside _agent_files/, and asserts the checker returns EXACTLY the two violations and does not
+      flag the good link; then that settings.local.json/worktrees/settings.json{permissions} add no offence;
+      then that settings.json{permissions,hooks} does. PASSES.
+
+      *** THE REAL TREE DOES NOT PASS - 26 GENUINE VIOLATIONS, AND THE PREMISE OF THE RULING IS INCOMPLETE ***
+      The ruling was taken on the understanding that the repo-level entries are all symlinks into _agent_files/.
+      They are not. Only 11 of the 13 entries in openisd are. Measured 2026-08-13:
+        24 x COPY - openspec-{apply-change,archive-change,explore,propose,sync-specs,update-change} exist as
+           REAL DIRECTORIES in openisd/.claude/skills, openisd/.gemini/skills, winisd_research/.claude/skills,
+           winisd_research/.gemini/skills. All 24 are byte-identical to _agent_files/skills/<same> today
+           (verified with diff -rq, 24/24 identical), so the remedy is mechanical and behaviour-preserving:
+             rm -rf <path> && ln -s ../../../_agent_files/skills/<name> <path>
+           They are installed by the openspec tooling (see .agents/skills/.openspec-target), so whatever runs
+           it will recreate them unless it is pointed at the shared dir.
+        2 x FOREIGN LINK - openisd/.claude/skills/tdd and openisd/.gemini/skills/tdd both point at
+           openisd/.agents/skills/tdd, a repo-local real directory that DIFFERS from
+           _agent_files/skills/test-driven-development (SKILL.md differs; the shared one also has
+           testing-anti-patterns.md). This is the exact drift the rule exists to prevent, already happened.
+           Remedy needs a human decision because it is a content question, not a link question: either
+           `git mv openisd/.agents/skills/tdd _agent_files/skills/tdd` and repoint both links (keeps both
+           skills, one source each), or fold tdd into test-driven-development and drop it.
+      NOT FIXED BY THIS AGENT: three agents were live and this session was barred from winisd_research/ and
+      told its area was the rule files, the AGENTS.md files, the gate and SPEC_ENGINE.md. Mutating three
+      repos' live skill trees mid-session was not in that grant. The gate is therefore RED on 26 real
+      offenders - it was previously red on ALL repo-level entries including the 11 correct links, so this is
+      strictly a narrowing onto genuine violations.
+
+      ALSO LANDED THIS TURN: docs/spec/SPEC_ENGINE.md:368 - the last stale reference to the deleted
+      drivers/sample/other/ - restated as a standalone oracle rule matching drivers/sample/README.md and
+      packages/winisd/src/native/openisdToWdr.ts, naming no dead file. `command grep -rn "sample/other"` over
+      the workspace now returns ONLY this ledger's own prose (openisd/questions.yml), which is the sanctioned
+      record of the ruling. NOTE FOR ANY AGENT VERIFYING THAT: a bare `grep` in this shell is a ugrep shell
+      function with --ignore-files, and the workspace .gitignore lists openisd/ winisd_drivers/ winisd_tools/,
+      so `grep -rn <pat> /home/john/work/winisd` returns EMPTY WHATEVER IS THERE. Use `command grep`.
+  - at: '2026-08-13'
+    text: |-
+      IMPLEMENTED 2026-08-13. Gate test_no_repo_agent_directory_holds_a_second_copy now PASSES on the
+      real tree (4/4 in test_workspace_config_layout.py). Zero broken links: `find . -xtype l` from the
+      workspace root returns nothing.
+
+      TDD MERGE (human: "Fold tdd into the shared one"). openisd/.agents/skills/tdd DELETED (its
+      mocking.md and tests.md were byte-identical to the shared copies; only SKILL.md differed).
+      openisd/{.claude,.gemini}/skills/tdd now symlink ../../../_agent_files/skills/test-driven-development,
+      so openisd/AGENTS.md:72's `/tdd` invocation still resolves. ONE TDD skill source in the workspace.
+
+      Merged INTO _agent_files/skills/test-driven-development/SKILL.md, content the shared skill lacked:
+        - the whole hard rule "Functional test required for every user-visible behavior" (unit test proves
+          the formula, not that it is wired to the screen; unit+functional pairing), with the
+          findImpedancePeak / Original-skin Fsc regression kept as scoped openisd evidence;
+        - "Discover the stack first" - the per-repo command discovery rule and openisd's real vitest /
+          playwright commands, scoped;
+        - the Prove-It Pattern, 5 steps, absorbing the two-line "Debugging Integration" section;
+        - the CAUTION callout enumerating what may not be written before the test (type signatures,
+          helper functions, layout markup, CSS);
+        - "Tests are proof" framing; the "Unit-only for a user-facing change" anti-pattern; WinISD's
+          measured readout as an independent source of truth for the tautological anti-pattern;
+          "the unit test covers it" rationalisation row; the functional-test checklist item.
+
+      THREE CONFLICTS FOUND, TWO RESOLVED WITH EVIDENCE, ONE LEFT OPEN FOR THE HUMAN:
+
+      1. RESOLVED in favour of tdd. Shared said `npm test path/to/test.test.ts` in Verify RED, Verify
+         GREEN and the bug-fix example; tdd said "Never assume `npm test` - check package.json". openisd's
+         package.json defines "test": "npm run test:unit && bash scripts/test-browser.sh" - it runs BOTH
+         FULL SUITES and ignores the path argument, so the shared skill's literal command breached
+         openisd/AGENTS.md:42 ("do not run the full suite when an isolated test is sufficient") and the
+         global one-suite-at-a-time rule. Shared skill's hardcoded commands replaced with "run the single
+         test file, with this repo's real command".
+
+      2. RESOLVED as a framing difference, stated once. Shared framed REFACTOR as stage 3 of the cycle;
+         tdd said "Refactoring is not part of the red->green loop, it is a separate stage". Both mean
+         "only on green, adds no behavior". openisd/AGENTS.md:62-68 numbers the loop red->green with NO
+         refactor step, so the merged REFACTOR section states it as a separate stage entered and left
+         green, with "new behavior means a new RED".
+
+      3. *** OPEN - NEEDS A HUMAN RULING, both texts kept inline in the Seams section ***
+         Shared: "Before writing any test, write down the seams under test and confirm them with the
+         user. No test is written at an unconfirmed seam."
+         tdd:    "...confirm them with the user if the scope is non-obvious."
+         The merged file uses the SCOPED version and carries the absolute one in a marked "UNRESOLVED"
+         blockquote. Reason for the interim preference: an absolute confirm-first gate cannot coexist
+         with openisd/AGENTS.md:62 "USE TDD EXCLUSIVELY FOR ALL CHANGES" + :70 "Every single code
+         modification... MUST have a corresponding failing test written and observed first" - together
+         they would make every change block on the human. Neither statement has been retired.
+
+      24 COPIES REPLACED WITH SYMLINKS (human: "Replace with symlinks"). diff -rq against
+      _agent_files/skills/<name> run TWICE - once as a survey, once immediately before each rm -rf -
+      and returned EMPTY for all 24. NONE differed, so none was left alone. openspec-{apply-change,
+      archive-change,explore,propose,sync-specs,update-change} x openisd/{.claude,.gemini}/skills and
+      winisd_research/{.claude,.gemini}/skills, each now `../../../_agent_files/skills/<name>`, the same
+      relative style as the 11 pre-existing correct links.
+
+      GATE PROVED BOTH WAYS ON THE REAL TREE, not only on tmp_path. Injected one real directory
+      (openisd/.claude/skills/__probe_copy) and one foreign link
+      (winisd_research/.claude/skills/__probe_foreign -> openisd/openspec); the gate reported EXACTLY
+      those two, correctly classified COPY and FOREIGN LINK, and went red. Probes removed, 4/4 green.
+      test_the_guard_catches_both_violation_classes also still passes.
+
+      STILL OUTSTANDING, OUTSIDE THIS SESSION'S GRANT (skill directories only):
+        - /home/john/work/winisd/.agents/skills/ - the WORKSPACE ROOT, not a repo - holds a 5th real
+          copy of all six openspec-* skills plus the marker .openspec-target (contents: "agents"). The
+          gate scans sibling git repos' .claude/.gemini only, so it does not see this and passes. It is
+          still a second source of the same six skills and will drift.
+        - The openspec tooling installs into whatever .openspec-target names; unless it is pointed at
+          _agent_files/skills it will recreate all 24 copies on its next run and re-red the gate.
+        - openisd/AGENTS.md:72 still says "invoke the `/tdd` skill". It resolves (the tdd symlink was
+          kept for exactly this reason), but openisd now lists the one skill twice - as `tdd` and as
+          `test-driven-development` - and each listing costs context in every session, which
+          _agent_files/README.md warns against. Retiring the `tdd` name needs that AGENTS.md line
+          changed in the same edit.

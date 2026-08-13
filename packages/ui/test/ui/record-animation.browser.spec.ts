@@ -3,12 +3,14 @@
    for a walkthrough animation. The pauses are the capture interval — the thing being
    waited for is "the UI has settled enough to photograph", which no DOM condition
    expresses. Every real spec still uses waitForFunction; the rule stands everywhere else. */
-import { test } from '@playwright/test';
+import { test } from '../fixtures.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'node:url';
 
 test('record UI browser automation frames in Original WinISD skin', async ({ page }) => {
-  const framesDir = '/tmp/ui_frames';
+  // Repo-local build/, never an OS temp path — AGENTS.md §"Scratch files".
+  const framesDir = fileURLToPath(new URL('../../../../build/ui_frames', import.meta.url));
   if (!fs.existsSync(framesDir)) fs.mkdirSync(framesDir, { recursive: true });
 
   await page.goto('/');

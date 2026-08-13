@@ -96,6 +96,23 @@ export interface WprInput {
     /** Transmission-line port model. */
     tlPorts?: boolean;
   };
+  /**
+   * `[Box]`'s ambient block — real per-project design state, written from the caller's own
+   * environment rather than as boilerplate. Absent → WinISD's defaults (293.15 K, 101325 Pa,
+   * 30 % RH). WinISD stores all three and reads none of them, but it round-trips them
+   * faithfully, so writing the user's actual air is what makes the file honest.
+   */
+  environment?: {
+    /** Temperature, K — the same unit on both sides. */
+    tempK?: number;
+    /** Static pressure, Pa — the same unit on both sides. */
+    pressurePa?: number;
+    /**
+     * Relative humidity as a PERCENTAGE, which is what OpenISD carries everywhere.
+     * WinISD's `phi` is a FRACTION, so this is the ONE place the ÷100 happens.
+     */
+    humidityPct?: number;
+  };
 }
 
 /** Format a number the WinISD way: plain decimal, full precision, non-finite → 0. */
@@ -127,6 +144,7 @@ function ventSection(header: string, v: WprVent | undefined): string {
 
 export function toWpr(input: WprInput): string {
   const { project, box, signal, plot, pr } = input;
+  const env = input.environment ?? {};
 
   const projectInfo = section('[ProjectInfo]', [
     ['Description', project.description ?? ''],
@@ -150,8 +168,10 @@ export function toWpr(input: WprInput): string {
     ['Vc', 0], ['Fc', 0], ['Qlc', 0], ['Qac', 0], ['Qpc', 0],
     // Inter-chamber coupling losses (defaults from corpus).
     ['Qiclfr', 100], ['Qiclfc', 0], ['Qiclcr', 0],
-    // Ambient + placement + thermal (all WinISD defaults; OpenISD does not vary these).
-    ['T', 293.15], ['p', 101325], ['phi', 0.3], ['d', 1], ['Med', 0], ['Nd', 1],
+    // Ambient — the project's own. `phi` is WinISD's FRACTION; the ÷100 from OpenISD's
+    // percentage happens HERE and nowhere else. Placement + thermal stay WinISD defaults.
+    ['T', num(env.tempK ?? 293.15)], ['p', num(env.pressurePa ?? 101325)],
+    ['phi', num((env.humidityPct ?? 30) / 100)], ['d', 1], ['Med', 0], ['Nd', 1],
     ['Angle', 0], ['Isobarik', 0], ['alfaVC', 0.0039], ['dTVC', 0],
     ['Sdfport', num(box.SdFront)], ['Sdrport', num(box.SdRear)],
   ];

@@ -17,7 +17,7 @@ import { limits } from '../../../logic/fields/fieldRegistry.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
 import { useDesignIO } from '../../../logic/useDesignIO.js';
 import { prVas as calcPrVas, prFs as calcPrFs, prQms as calcPrQms,
-         driveVoltage, soundVelocity } from '@openisd/engine';
+         driveVoltage, airFor } from '@openisd/engine';
 import BoxPanel from '../../components/BoxPanel.vue';
 import FiltersPanel from '../../components/FiltersPanel.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -53,8 +53,10 @@ const driveV = computed(() => driveVoltage(state.P.Pin ?? 1, driver.value?.Re ||
 const advTemp = ref(state.ui.envDefaults.tempK);
 const advHumidity = ref(state.ui.envDefaults.humidityPct);
 const advPressure = ref(state.ui.envDefaults.pressurePa);
-const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
-const advAirDensity = ref(1.20095);
+const advAir = computed(() => airFor({
+  tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
+  ignoreHumidityAndPressure: state.P.ignoreHumidityAndPressure,
+}));
 
 // Driver "Edit" (state.editDriverInfo) opens DriverEditorModal — a real popup, since
 // it recreates WinISD's own multi-tab "Driver editor" dialog and doesn't need the
@@ -403,8 +405,8 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
           </div>
           <div class="cl-arrow">---&gt;</div>
           <div class="cl-adv-row">
-            <div class="cl-fld cl-dim"><label>Sound velocity</label><div class="cl-unit"><input type="text" :value="advSoundVelocity.toFixed(2)" readonly><span>m/s</span></div></div>
-            <div class="cl-fld cl-dim"><label>Air density</label><div class="cl-unit"><input type="text" :value="advAirDensity.toFixed(5)" readonly><span>kg/m³</span></div></div>
+            <div class="cl-fld cl-dim"><label>Sound velocity</label><div class="cl-unit"><input type="text" :value="advAir.c.toFixed(2)" readonly><span>m/s</span></div></div>
+            <div class="cl-fld cl-dim"><label>Air density</label><div class="cl-unit"><input type="text" :value="advAir.rho.toFixed(5)" readonly><span>kg/m³</span></div></div>
           </div>
           <div class="cl-adv-checks">
             <AdvancedOptions />

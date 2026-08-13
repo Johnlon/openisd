@@ -159,7 +159,7 @@ export interface UiParams {
    * recomputed. Absence ⇒ Calculated, re-solved whenever an entered member changes.
    *
    * Same model as the driver's provenance (`Driver.#inputs`, docs/DRIVER_ADT_DESIGN.md) and
-   * the same reason: STATE_MODEL.md rule 7 — provenance is recorded where entry happens,
+   * the same reason: docs/design/STATE_MODEL.md rule 7 — provenance is recorded where entry happens,
    * never reconstructed downstream from "is the field present".
    *
    * `Fb` and `ventL` are the pair this arbitrates, and BOTH stay fields.
@@ -200,7 +200,7 @@ export interface UiParams {
   N: number;
   circuitModel: 'winisd' | 'gyrator';
   filters: Filter[];
-  // WinISD-parity driver inputs (WINISD.md §12c). SI/engine units: vcTempRise K, alfaVC /K
+  // WinISD-parity driver inputs (docs/research/WINISD_PARITY.md). SI/engine units: vcTempRise K, alfaVC /K
   // (UI shows 1000/K), driverAddedMass kg (UI shows g). All 0-safe: no-op at the default.
   vcTempRise: number;
   alfaVC: number;
@@ -219,7 +219,18 @@ export interface UiParams {
   forceFlatResponse: boolean;
   /** Plot the SPL chart backed off to Xmax (engine `splXlim`) instead of the raw SPL. */
   splXmaxLimited: boolean;
+  // ---- Environment — per project, as WinISD's .wpr [Box] T / p / phi ------------------
+  /** Ambient temperature, K. */
   tempK?: number;
+  /** Relative humidity, PERCENT. The .wpr's `phi` is a FRACTION — converted in that writer only. */
+  humidityPct?: number;
+  /** Static air pressure, Pa. */
+  pressurePa?: number;
+  /**
+   * Opt in to WinISD's behaviour of ignoring humidity and air pressure (ledger QO7).
+   * Default false — openisd derives ρ and c from T, RH and p, and thence the SPL constant K.
+   */
+  ignoreHumidityAndPressure?: boolean;
 }
 
 /**

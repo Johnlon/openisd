@@ -13,9 +13,11 @@
  */
 
 import { P0, FLAT_MAX_BOOST_DB } from './constants.js';
+import { airFor } from './air.js';
 import { cx, cScale, cMul, cAbs, cArg } from './complex.js';
 import { solve } from './circuit.js';
 import { withAddedMass } from './driver.js';
+import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
 import { applyFilters } from './filters.js';
 import type { Driver, BoxType, SweepParams, SweepResult, MaxCurvesResult, DriverError } from './types.js';
 
@@ -121,12 +123,10 @@ export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
 export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
-  // Driver-side added mass (WINISD.md §12c) shifts Mms/Fs/Q's before the circuit sees it.
+  // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(drv, P.driverAddedMass ?? 0);
-  const tempK = P.tempK ?? 293.15;
-  const rho   = 1.20095 * (293.15 / tempK);
-  const c     = 343.68 * Math.sqrt(tempK / 293.15);
+  const { rho, c } = airFor(P);
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
@@ -208,10 +208,13 @@ export function sweep(drv: Driver, box: BoxType, P: SweepParams): SweepResult {
   let splRefLimit: number | undefined = undefined;
   if (d.Fs > 0 && d.Vas > 0 && d.Qes > 0 && d.Re > 0 && P.eg > 0) {
     const np = (P.wiring || 'parallel') === 'parallel' ? (P.nDrivers || 1) : 1;
-    const eta0 = (4 * Math.PI ** 2 / Math.pow(c, 3)) * (d.Fs ** 3 * d.Vas / d.Qes);
-    const P0_val = 20e-6;
-    const r_dist = 1;
-    splRefLimit = 10 * Math.log10((rho * c / (2 * Math.PI * r_dist * r_dist * P0_val * P0_val)) * eta0 * (P.eg * P.eg / d.Re) * np * np);
+    // η₀ and the SPL constant come from the ONE implementation (efficiency.ts), evaluated at
+    // the ρ and c this sweep is actually running on — the eg²/Re and n² terms are this
+    // caller's own drive conditions, not part of the reference formula.
+    const eta0 = referenceEfficiency(d.Fs, d.Vas, d.Qes, c);
+    splRefLimit = splFromEfficiency(eta0, rho, c)
+                + 10 * Math.log10(P.eg * P.eg / d.Re)
+                + 20 * Math.log10(np);
   }
 
   return { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlim, xlimited, flatClamped,

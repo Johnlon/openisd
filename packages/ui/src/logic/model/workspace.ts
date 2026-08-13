@@ -2,7 +2,7 @@ import { OpenISDProject, type ProjectContent } from './OpenISDProject.js';
 
 /**
  * The workspace: which projects are open, which one is active, and the per-row view state
- * that belongs to the session rather than to any project (STATE_MODEL.md).
+ * that belongs to the session rather than to any project (docs/design/STATE_MODEL.md).
  *
  * Two separate persisted things, never one:
  *   documents   the projects, each an independent record with its own id.

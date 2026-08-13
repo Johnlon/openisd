@@ -2,7 +2,7 @@
  * @openisd/winisd — Driver ADT (class) behaviour.
  *
  * Seam under test: the Driver public API — enter, clear, cell(field), errors(),
- * subscribe(listener). This is the E/C/N provenance model (docs/DRIVER_ADT_DESIGN.md):
+ * subscribe(listener). This is the E/C/N provenance model (docs/design/DRIVER_ADT_DESIGN.md):
  * the only mutation path is enter/clear, and E/C/N is derived, never settable directly.
  *
  * Framework-free reactivity: the class carries its own subscribe() observer and must

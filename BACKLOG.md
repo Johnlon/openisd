@@ -5,9 +5,8 @@ enclosure-design tool. Items are described on their own terms; each notes how it
 fits the existing engine so it can become a GitHub issue. Priorities are a guide,
 not a contract — pick what interests you and open a PR.
 
-Companion documents: [PLAN.md](PLAN.md) (re-architecture phases and gates) ·
-[DEVELOPMENT.md](DEVELOPMENT.md) (coding practices) · [ARCHITECTURE.md](ARCHITECTURE.md)
-(hard decisions).
+Companion documents: [ARCHITECTURE.md](ARCHITECTURE.md) (hard decisions) ·
+[AGENTS.md](AGENTS.md) (coding practices).
 
 **P0** = foundation, gates everything below · **P1** = high value, tractable on
 today's engine · **P2** = larger but well-defined · **P3** = big rocks (design first).
@@ -103,13 +102,13 @@ manufacturer` for the DB's records; what changes is which field is authoritative
     the Python pipeline calls the JS lib's `ymlToWdr()` through the same embedded V8 runtime
     (`mini-racer`) used for all other Python→JS calc calls — not a subprocess, not a CLI — so
     there is exactly one implementation and one bridge.
-  - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/PLAN_JS_CALC_CONSOLIDATION.md#L1)
+  - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md#L1)
     for the calc half of this ruling (TODO.md QT39). `.owdr` and `openisd.yml` are the same
     schema per [ARCHITECTURE.md AD-8](http://localhost:8000/winisd/openisd/ARCHITECTURE.md#L400-L406) —
     line 32 above is accurate.
   - The bridge (embedded V8 via `mini-racer`, not a Node CLI) and the math API it shares with
     this call are specified in
-    [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/MATH_MIGRATION.md#L474-L491),
+    [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/docs/plans/MATH_MIGRATION.md#L474-L491),
     which also covers precision-propagation parity and the full retirement/testing plan.
   - **Same pattern, other direction (human, 2026-07-31, `ARCHITECTURE.md` AD-8):**
     `openisd.yml` itself is read and written EXCLUSIVELY by this JS/TS code, never by Python.
@@ -126,7 +125,7 @@ manufacturer` for the DB's records; what changes is which field is authoritative
 
 - [ ] **Max-SPL/Power when BOTH Xmax and Pe are missing** — with neither limit, the max curve is genuinely undefined (currently +∞). Treat it as a "chart issue": show the missing-limit message instead of drawing an unbounded curve. Follow-up to the Xmax=0 fix (which handled Xmax-absent-with-Pe-present).
 
-- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. See `CLASSIC-SKIN-review.md` #2. `[ui]`
+- [ ] **Classic-skin Color swatch is inert — wire it to a real per-design colour.** The "Color" control in the classic (WinISD) skin's Project rail (`ClassicShell.vue`, `.cl-color`) is a static yellow-green swatch (`WINISD_TRACE`), not a picker — no click handler, no `<input type="color">`. WinISD's Color button opens a chooser and sets the current design's trace colour on the graph. There is no colour-picker component anywhere in the app yet. Add a real control (native `<input type="color">` is enough) that writes a per-design colour into the store and threads it into the trace (replacing the hardcoded `WINISD_TRACE` constant) and the Color swatch itself. `[ui]`
 
 - [ ] **Skin-selection gate on load — require an explicit skin choice.** On every page load, block the app behind a full-screen chooser presenting the three skins (Auto / Classic (WinISD) / Modern, from `SKIN_IDS` / `SKIN_LABELS` in `packages/ui/src/skins.ts`); the app is not shown or interactable until the human picks one, which sets `state.ui.skin` (`packages/ui/src/store.ts`) and `App.vue` swaps the shell via `resolveSkin()`. Prompt on **every** visit (ignore the saved preference for the gate — drive it from a session/ephemeral flag, letting the persisted skin only seed the highlighted default), and show the gate **even when a shared `#`-design link is opened** (skin is already stripped from shared URLs at `persist.ts`). Reuse the existing overlay pattern (`DriverBrowser.vue` + `useEscToClose`) mounted in `App.vue`; reuse `SKIN_LABELS` for the button text so the gate never drifts from the picker. `[ui]`
 
@@ -153,17 +152,17 @@ manufacturer` for the DB's records; what changes is which field is authoritative
 ## P0 — Test & architecture foundation
 
 **Status: complete.** `packages/engine/src/` is fully extracted (7 modules), golden-master
-fixtures cover all box types, CONTRACT.md is written and versioned, per-module unit
-tests exist, the Vue UI consumes only the public contract, and Playwright + CI are
-both live. The description below is preserved for history.
+fixtures cover all box types, the engine/UI contract is specified in
+[`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) and
+[`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md), per-module unit tests exist, the Vue UI
+consumes only the public contract, and Playwright + CI are both live. The description below
+is preserved for history.
 
 > ~~OpenISD is a spike: logic is one inline script in `index.html`, "verified" by a
 > self-test that string-slices the engine out and `eval`s it, with no real UI tests.~~
-> Completed — see [PLAN.md](PLAN.md).
+> Completed.
 
-Full plan: [PLAN.md](PLAN.md) ·
-practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
-[REFERENCES.md](REFERENCES.md).
+Oracles: [`docs/research/REFERENCES.md`](docs/research/REFERENCES.md).
 
 - [x] [x] **P0 · Phase 0** Golden-master fixtures: freeze current sweep outputs for
       every box type, assert equality — the net that proves extraction preserves
@@ -172,7 +171,9 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
       `sweep`, `alignments`, `filters`) into `packages/engine/src/*.js` — no DOM — one module
       at a time, **extracting not rewriting**. `[unit]`
 - [x] [x] **P0 · Phase 2** Define & version the `Design → Curves` contract
-      (`CONTRACT.md`) — the documented API third-party UIs depend on. `[unit]`
+      ([`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md),
+      [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md)) — the documented API third-party UIs
+      depend on. `[unit]`
 - [x] [x] **P0 · Phase 3** Per-module functional tests vs tiered oracles (closed
       forms > datasheets > alignment tables > cross-tool). `[unit]`
 - [x] [x] **P0 · Phase 4** Rebuild the OpenISD UI on the core contract only. `[ui]`
@@ -202,6 +203,10 @@ practices: [DEVELOPMENT.md](DEVELOPMENT.md) · oracles:
 ## Charts & graph types
 
 WinISD chart inventory mapped to OpenISD status. Box-type scope notes: `[PR]` = passive radiator only · `[BP]` = 4th-order bandpass only · `[EQ]` = only when EQ/Filter is active.
+
+- [ ] **Implement the remaining unticked chart types below**, built from the WinISD findings in
+      `../winisd_research`. **Do not build a chart while unknowns remain** — raise it with the
+      human and do more research first.
 
 ### Universal (all box types)
 
@@ -253,7 +258,7 @@ WinISD chart inventory mapped to OpenISD status. Box-type scope notes: `[PR]` = 
 ## WinISD input/feature parity
 
 Gaps found by auditing the WinISD 0.7.0.950 screenshots against OpenISD's UI —
-full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md).
+full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_PARITY.md).
 
 - [ ] **P1** Environment model — derive `c`/`ρ` from **temperature / humidity / air pressure** (per-project + app default), replacing the single hardcoded constant. WinISD: Advanced pane.
 - [ ] **P1** Off-axis **listening angle** + configurable **distance** (OpenISD is fixed 1 m on-axis). WinISD: Signal pane.
@@ -281,6 +286,31 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
       LENGTH and holds the tuning (WinISD's behaviour) while entering a length instead makes
       the tuning the solved member. Restores are adopted verbatim — re-solving on restore
       breaks STATE_MODEL.md rule 3. `[unit]` `vent-group.test.ts`
+- [ ] **P1** **Fb is a TARGET input — label it "Target Tuning Freq" and say what it drives.**
+      Human ruling (QO11): Fb is not a system output to be pinned, it is the target the port
+      solver designs to. The plumbing already matches the ruling — `OriginalShell.vue:157`
+      `fbEntered` writes through `enterVentField('Fb', v)`, and `useVentGroup.ts:85` solves
+      `ventL = ventLength(V, P.Fb, Sp, P.endCorrection)`; `vent-group.test.ts:59` asserts an
+      entered tuning is never rewritten and the length absorbs a diameter change (10/10 pass).
+      What is missing is the presentation:
+  - Rename the field to **"Target Tuning Freq"**. It currently reads `Tuning freq (Fb)`
+    (`OriginalShell.vue:1011`, `:1012`) and `Tuning freq` / `Tuning freq (Ffc)` (`:1049`,
+    `:1054`). No occurrence of "Target Tuning" exists anywhere under `packages/ui/src`.
+  - Add a tooltip on that field explaining it drives the PORT DIMENSIONS calculation. Those
+    rows carry no `title` and no `<HelpTip>`, and `NumInput.vue` renders no tooltip of its
+    own, so the field has none at all. The registry description
+    (`fieldRegistry.ts:96`, `'Box tuning frequency (WinISD "Fh"). WinISD shows 2 dp…'`)
+    never mentions the port, so it is not usable as-is.
+  - Fix two defects in the same registry entry while there: `fieldRegistry.ts:93` labels Fb
+    `'Fh (tuning frequency)'`, borrowing the symbol the PR / rear-chamber resonance already
+    owns (`OriginalShell.vue:1018`, `BoxPanel.vue:118`); and `:94` declares
+    `provenance: 'calculated'`, which contradicts both `store.ts:38` (ships `Fb: true` in the
+    default entered set) and the ruling that Fb is an input.
+  - Modern skin only: `BoxPanel.vue:144` renders Fb as a read-only span
+    (`Fb ≈ {{ fb.toFixed(1) }} Hz`) with no input, and its vent block has no "length is
+    calculated to meet the target tuning" hint. The Original Vents pane already carries that
+    sentence (`OriginalShell.vue:1267`) and Original is the default skin (`skins.ts`
+    `resolveSkin`), so this is a secondary-skin gap, not a shipping-path one.
 - [ ] **P1** Multiple vents (1–4) sharing the tuning
 - [ ] **P1** Slot / rectangular vents (in addition to round)
 - [ ] **P1** Selectable end-correction (free/flanged combinations, custom value)
@@ -305,11 +335,18 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
 
 ## Driver data & T/S
 
+- [ ] **P1** **Group solver — relation groups solve in every direction, with WinISD's route precedence.** Ruled 2026-08-13: _"winisd allows that Xmax back calc so Winisd wins that decision"_. WinISD is the oracle, so a group solves in whichever direction the entered data allows — `{Vd, Sd, Xmax}` yields `Xmax = Vd / Sd` as readily as `Vd = Sd · Xmax`. `solveConsistencyGroup` ([`packages/engine/src/driver.ts:46`](packages/engine/src/driver.ts)) already runs to a fixpoint and already carries both `Xmax` routes — `abs(Hc − Hg) / 2` at line 135, `Vd / Sd` at line 144 — so the formulas are not what is missing.
+      **Route precedence is part of the contract, and it is what the code does not yet express.** `setVal` (line 94) writes only into a still-null field, so whichever branch is reached first wins and source order silently _is_ the precedence. Two engines with identical, correct formulas disagree on any record supplying inputs for both routes, so the order must be stated and tested rather than inherited from line numbering. `Rme` is settled: `2π·Fs·Mms/Qes` beats `BL² / Re`, measured exactly against the Beyma 10BR60_V2 fixture — 18.22124 vs 18.27846 (`winisd_research/GAPS.md` §A5).
+      **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WDR_SCHEMA.md` in the same change.
+      **Blast radius — every record holding two members of any group's three.** Computed values move across the whole collection, so the golden fixtures move with them: expect `packages/engine/test/golden.test.ts` to go red and regenerate it with `npm run gen-golden`. A fixture diff is the expected outcome of this change, not evidence of a regression.
+      **A derived value carries state `C`, never `E`.** `Xmax = Vd / Sd` claims _the excursion implied by a published `Vd`_, not _the linear limit the manufacturer measured_; the mark is what keeps those two apart — see [`docs/design/DRIVER_RECORD_MODEL.md` §5](docs/design/DRIVER_RECORD_MODEL.md).
+      **Related.** `winisd_research/GAPS.md` §A4 ("the driver editor cannot express WinISD's group solve") records the same gap generally and ranks it item 11 in its §F table. The side-by-side parity suite (ledger QO8) must drop its expectation of an `Xmax` divergence — openisd matches WinISD here.
 - [ ] **P1** Guided parameter entry — step-by-step flow following the WinISD-recommended order (Mms+Cms → Sd+BL+Re → Qms → Hc/Hg/Pe → numVC → Znom). Each step shows which fields to fill, why they matter, and what WinISD computes from them. Minimum viable path (Qts+Vas+Fs) clearly signposted. WinISD gives you a blank form with no guidance; this should be meaningfully better.
 - [ ] **P1** Paste raw datasheet text → infer T/S parameters
 - [x] [x] **P1** In-app driver database search / filter (by size, brand, parameters) `[ui]`
 - [ ] **P1** "Duplicate / copy from" an existing driver to speed manual entry
-- [ ] **P1** WDR writer: when OpenISD writes `.wdr` files, write `VCCon=2` for series wiring — the scraper always writes `VCCon=1` (correct for parallel/single-VC), but the full writer must emit the correct value. WinISD has a save bug and always writes 1; OpenISD should not replicate that bug. See `WINISD.md §12`.
+- [ ] **P1** WDR writer: when OpenISD writes `.wdr` files, write `VCCon=2` for series wiring — the scraper always writes `VCCon=1` (correct for parallel/single-VC), but the full writer must emit the correct value. WinISD has a save bug and always writes 1; OpenISD should not replicate that bug. See
+      [`docs/research/WINISD_PARITY.md` §12](docs/research/WINISD_PARITY.md).
 - [ ] **P2** WinISD `.wpr` project import — format is decoded (INI sections:
       ProjectInfo, Driver, Box, Vent*, PassiveRadiator, SignalSource, Filters)
 - [ ] **P2** Unibox spreadsheet import
@@ -399,17 +436,60 @@ full evidence table in [docs/winisd/INPUT_PARITY.md](docs/winisd/INPUT_PARITY.md
       only a hover tooltip. Origin: WinISD's wizard pre-selects box type from EBP with no
       indication it is recommending anything; the human used it for years without knowing.
 - [x] [ ] **P2** In-app parameter explanations / tooltips on inputs and curves — `title=` attributes on all controls
-- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `WINISD_OPENISD_COMPARISON.md` + `docs/winisd/INPUT_PARITY.md`. Also surface a short version in `README.md`.
+- [ ] **P2** "Coming from WinISD?" onboarding view — help page for WinISD users mapping each WinISD pane/control to its OpenISD equivalent, driven by the annotated screenshots in `docs/winisd/`. Present it as a **horizontally draggable before/after image comparison slider** (a vertical splitter the user drags left/right to wipe between the WinISD screenshot and the matching OpenISD view). Sourced from `docs/research/WINISD_PARITY.md`. Also surface a short version in `README.md`.
 - [ ] **P3** Open, community-editable knowledge base (T/S, box types, tuning, losses)
 - [ ] **P3** Worked-example tutorial
 
 ## Quality / infrastructure
 
 - [ ] **P1** Fix existing code-review / vibe-coding issues before adding new features — run `/code-review` and clear all findings first
-- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); see `OTHER_TOOLS.md`
+- [ ] **P1** Enforce architecture at build time — wire ESLint plugins into `vite build` (fail build on lint errors); add `eslint-plugin-functional` (immutability), `eslint-plugin-boundaries` (module layers), `eslint-plugin-sonarjs` (complexity), `eslint-plugin-import` (no-cycle), `dependency-cruiser` (dep graph); see `docs/research/COMPETITIVE_LANDSCAPE.md`
 - [ ] **P1** `scripts/` utility (+ CI step) to detect duplicate / same-model drivers as the library grows
+- [ ] **P1** **Side-by-side WinISD vs openisd validation suite, with mechanically regenerable
+      golden fixtures.** Same inputs into both, compare the CHARTS and the FIELD CALCULATIONS,
+      fail on divergence. Today parity is asserted by hand-checked spot values; nothing
+      mechanically proves openisd still matches.
+  - **Scenarios required.** Humidity varied with T and p fixed (settles QO7 empirically rather
+    than by back-solve — read WinISD's derived sound velocity and air density off the Advanced
+    pane and prove RH moves them). Temperature 293.15 → 303.15 K at RH 30%, p 101325 (derived
+    c should read ~349.51 m/s, ρ ~1.16133 if c is derived rather than fixed). Pressure varied
+    alone (ρ moves, c does not). Plus a spread of ordinary alignments across sealed, vented,
+    bandpass and PR, so the chart comparison is not only environmental edge cases.
+  - **Fixtures are parameterised by VALUES, never by naming a driver from the database.** Encode
+    each scenario as explicit T/S figures, electrical parameters and environment settings. A
+    fixture that says "Dayton RS180-8" silently re-baselines itself when the scraper pipeline
+    regenerates that record; one that says Fs=37.2, Qts=0.38, Vas=23.1, Re=6.4 does not.
+  - **Extraction is automated via the existing win32 harness in `../winisd_research`** —
+    `lib/control.py` (UI automation), `lib/probes.py` (reading values back out), `lib/wdr.py`
+    (`.wdr` handling), `overnight_runner.py`, `runs/`, `screenshots/` (run scaffolding), and
+    `vm/` + `vm_guest_assets/winisd_bin` (the Windows VM WinISD runs in).
+  - **⚠ OPEN TECHNICAL BLOCKER — getting CURVES out as text rather than pixels.** Reading a chart
+    from a screenshot is not acceptable as a golden. Establish whether WinISD can export curve
+    data, or whether the harness must read the plotted series out of the control, and write down
+    what was found either way.
+  - **Deliverables.** (1) A scenario definition file a script can consume mechanically, one entry
+    per scenario, all values explicit. (2) A generator that drives WinISD from it and writes the
+    goldens as text. (3) The goldens committed as test fixtures. (4) A comparison test running
+    openisd over the same scenario file and diffing against the goldens, with a stated numeric
+    tolerance **and the reason for that tolerance**. (5) A README beside the fixtures giving
+    exactly how they were made, which WinISD build and which harness commit produced them, what
+    every parameter means, and the exact refresh command — a golden nobody can regenerate becomes
+    unfalsifiable the first time it disagrees with reality.
+  - **The extract is one-off; the REGENERATION must not be.** The point of encoding the scenarios
+    mechanically is that a refresh is a single command, not a repeat of the manual investigation.
+  - **Cross-reference QO7.** Its ruling means this suite must run with "Ignore humidity and air
+    pressure (as WinISD does)" ON, or it reports a permanent ~0.07 dB divergence at 30 °C.
+  - **Known deliberate divergences the suite EXPECTS rather than flags.** `numVC`'s `ParState`
+    slot: openisd emits `C`, WinISD pins `E`. WinISD marks that slot `E` — entered by the human —
+    on a value nobody typed (`../winisd_research/KNOWLEDGE_REPORT.md:190`, `:198`); openisd
+    autofills `numVC = 1` in `Driver#derive()`
+    ([`packages/winisd/src/driver.ts:432`](packages/winisd/src/driver.ts)) so the slot reads `C`.
+    Ruled 2026-08-13: _"there was a winisd bug here - obvuously dont replicate that"_. A red row
+    here is the suite being wrong, not the app. `Xmax` is NOT such a divergence — see the group
+    solver item above.
+- [ ] **P2** Share one implementation of the three physics gates between the runtime self-test and the unit suite — `packages/ui/src/diagnostics/selftest.ts:43-47` and `packages/engine/test/engine.test.ts:29-33` each declare the same driver fixture independently (Fs 37, Qts 0.38, Vas 0.030), and each reimplements the gates over it. Two declarations of one fixture drift silently. `ARCHITECTURE.md` AD-5 explains why the two test layers both exist — that stays; only the duplication goes. `[unit]`
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
-- [ ] **P1** Driver as an ADT — `enter`/`clear`/`state` own the E/C/N provenance invariant, lossless `fromWdr`/`toWdr` round-trip, kills the interim raw-vs-derived ParState heuristic and the lossy `parseWdr`; see `PLAN_DRIVER_ADT.md`
+- [x] **P1** ~~Driver as an ADT~~ — **DONE, AND NOW OBSOLESCENT: this item is WinISD-focused.** It framed the app's data model around `.wdr` — `enter`/`clear`/`state` over a flat WinISD-shaped bag, with a lossless `fromWdr`/`toWdr` round-trip as the goal. That shipped (`packages/winisd/src/driver.ts`) and killed the raw-vs-derived ParState heuristic and the lossy `parseWdr`. But `ARCHITECTURE.md` AD-8 then reversed the premise: `OpenISDDriver`/`openisd.yml` is the app's model and `.wdr` is a serialisation format generated on demand, so the class this item built is condemned rather than extended. Do not add work to it — successor plan: [`docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`](docs/plans/PLAN_OPENISD_DRIVER_MODEL.md)
 
 ---
 
@@ -449,3 +529,87 @@ These measurements are often available in datasheets (PDF dimensions section, me
 2. How to parse dimension sections in PDFs reliably?
 3. Unit handling (mm, cm, inches)?
 4. Fallback: derive from other measurements (e.g., Sd → cone diameter via Sd=π(Dd/2)²)?
+
+## Driver type classification and matching
+
+**Priority:** P3
+**Status:** Not started — design only, unverified
+
+> ⚠ **UNVERIFIED DRAFT — for discussion only.** The rules below are written from general DIY
+> and small-signal loudspeaker design understanding. No primary sources (textbooks, AES
+> papers, or authoritative community references) were fetched or verified. Every threshold
+> and formula should be cross-checked before this section is treated as authoritative.
+> Citations are TBD. Do not implement algorithms based on the numbers here without
+> verification.
+
+Two planned features built on top of the driver record model
+(`docs/design/DRIVER_RECORD_MODEL.md`) and WDR schema (`docs/design/WDR_SCHEMA.md`):
+
+1. **Type-based filtering** in the driver browser (tweeter / midrange / woofer / subwoofer /
+   passive radiator / full-range).
+2. **Matching assistant** — given a loaded driver, suggest complementary drivers from the
+   library (e.g. "tweeters that pair well with the DS115-8").
+
+### Driver type classification
+
+A driver's type is not stored in the WDR format; it must be inferred from T/S parameters.
+Proposed heuristics:
+
+| Type             | Primary criterion     | Secondary checks                           |
+| ---------------- | --------------------- | ------------------------------------------ |
+| Subwoofer        | Fs < 35 Hz            | Sd large, Pe > 100 W, Xmax > 10 mm         |
+| Woofer           | 35 Hz ≤ Fs < 100 Hz   | Sd > 80 cm², Pe > 30 W                     |
+| Mid-bass         | 100 Hz ≤ Fs < 300 Hz  | Sd 30–150 cm²                              |
+| Midrange         | 300 Hz ≤ Fs < 1000 Hz | Sd 5–50 cm²                                |
+| Full-range       | 80 Hz ≤ Fs < 600 Hz   | Sd small (< 40 cm²), wide usable bandwidth |
+| Tweeter          | Fs ≥ 1000 Hz          | Sd < 10 cm², Pe < 50 W                     |
+| Passive radiator | No voice coil         | Re = 0 or missing, no Qes                  |
+
+Thresholds are approximate; many drivers (especially full-range) overlap multiple categories
+— should be a best-guess label, not a hard gate. `Fs ≥ 1000 Hz` alone is a weak tweeter
+discriminator (many dome tweeters sit at 500–1000 Hz); `Sd < 10 cm²` (small piston) is the
+stronger primary criterion, `Fs` a secondary check only.
+
+### Crossover matching rules
+
+All rules must be satisfied simultaneously for a "good match"; passing only some flags a
+"marginal match":
+
+1. **Tweeter minimum crossover**: `f_cross_min = k × Fs_tweeter`, k = 3 minimum (some
+   designers use 4). Crossing closer to Fs risks over-excursion near resonance.
+2. **Woofer maximum crossover (beaming)**: onset `f_beam ≈ c / (π × Dd)`, c = 344 m/s,
+   `Dd = 2 × √(Sd / π)`. ⚠ Convention-dependent — `c/(π·Dd)` (ka=1 onset) is conservative;
+   `c/Dd` is ~3× higher. The choice is load-bearing.
+3. **Valid crossover window**: `f_cross_min < f_cross < f_cross_max`. Negative window ⇒
+   incompatible pair; window < 1 octave ⇒ "tight, requires care."
+4. **Sensitivity matching**: ≤2 dB excellent, 2–4 dB good, 4–6 dB marginal (padding
+   needed), >6 dB poor (large L-pad, impedance complications). ⚠ Applies at the crossover
+   frequency, not 1W/1m nominal — needs full FRD data for accuracy.
+5. **Power handling**: tweeter Pe should be ≥20% of total system rated power for a 2-way at
+   moderate slope; higher-order filters (24 dB/oct) offer better protection. ⚠ Simplified —
+   actual split depends on programme content and filter shape.
+
+### EBP as a box-type guide
+
+`EBP = Fs / Qes`: <50 → sealed (high Qes, better electrically damped); 50–100 → either; >100
+→ vented (low Qes, benefits from port tuning). ⚠ Fast heuristic, not a modelling substitute —
+a driver with EBP=110 can still work well sealed if cabinet size/extension allow.
+
+### Passive radiator sizing rules
+
+| Parameter | Rule                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------- |
+| Sd (PR)   | ≥ Sd of the active driver, ideally 1.0–2.0× ⚠                                                |
+| Mmd (PR)  | `Mmd ≈ (ρ₀ × c² × Sd_pr²) / (Vas × (2π×fb)²)` so PR-box resonance fb ≈ port-tuned equivalent |
+| Qms (PR)  | Should be >>3 (very low mechanical loss) — a lossy PR damps the tuning peak                  |
+| Fs (PR)   | Lower is better — ideally Fs_pr < fb so the PR moves freely at tuning frequency              |
+
+### Proposed matching algorithm (future implementation)
+
+Given a loaded driver D: classify D, compute its crossover constraint (`f_cross_max` if
+woofer/mid-bass, `f_cross_min` if tweeter); for each library candidate C, classify it, skip
+same-type pairs, compute the crossover window (rule 3, skip if negative), score by window
+width (wider better), sensitivity delta (smaller better, fail >6 dB), and power handling; sort
+by score, return top N. The algorithm deliberately does not pick the crossover frequency
+itself — it reports whether a pair _can_ be crossed, not where, since that depends on room
+acoustics, baffle diffraction, and filter design beyond T/S parameters alone.

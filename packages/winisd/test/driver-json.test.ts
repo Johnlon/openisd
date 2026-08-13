@@ -10,6 +10,10 @@
  * Independent oracle: the driver's own toWdr() output — if JSON round-trip is lossless,
  * fromJSON(toJSON()) must produce byte-identical toWdr() (all carried fields + ParState),
  * and every cell's E/C/N state must be unchanged.
+ *
+ * 🔒 Fixture from `drivers/sample/winisd/` (johnl, out of WinISD itself) — the only sanctioned
+ * source of a genuine WinISD save. A third-party database's export of driver data into `.wdr`
+ * shape is not one, however plausible it looks.
  */
 
 import { describe, it } from 'vitest';
@@ -20,7 +24,7 @@ import { dirname, join } from 'node:path';
 import { Driver } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SAMPLE = join(here, '..', '..', '..', 'drivers', 'sample', 'SEAS_Prestige_L19RNX1.wdr');
+const SAMPLE = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
 const text = readFileSync(SAMPLE, 'utf8');
 
 // Every field whose E/C/N must be identical after a JSON round-trip.

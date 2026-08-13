@@ -1,5 +1,5 @@
 /**
- * Filter edits must drive a re-sweep (CLASSIC-SKIN-review.md #1).
+ * Filter edits must drive a re-sweep.
  *
  * The sweep is re-run by `watch([driver, syncedP, box], …)` in store.ts. `syncedP` is a
  * computed derived from `state.P`; if it doesn't take a reactive dependency on the

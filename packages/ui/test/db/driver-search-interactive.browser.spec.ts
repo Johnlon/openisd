@@ -25,7 +25,7 @@ test('a saved driver with no name is listed and searchable under its derived nam
   const driverRow = page.locator('.my-ditem', { hasText: 'Dayton Audio Epique Series E150HE-44' });
   await expect(driverRow).toBeVisible();
 
-  // Choosing it embeds it in the project and closes the picker (STATE_MODEL.md rule 1).
+  // Choosing it embeds it in the project and closes the picker (docs/design/STATE_MODEL.md rule 1).
   await driverRow.locator('b').click();
   const use = page.locator('.use-btn');
   await use.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});

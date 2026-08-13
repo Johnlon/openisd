@@ -12,7 +12,7 @@ Thiele/Small parameters. No install, no licence key, runs in any browser.
 Validated against the closed-form physics, with a self-test that proves it
 on every load.
 
-It started as a quick spike, and it has come a long way since. The physics engine (`packages/engine/src/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. If someone calls this "vibe-coded", [VIBE_CODING.md](VIBE_CODING.md) is the reply: it asks what that phrase is supposed to mean, then lays out — trait by trait, with evidence — the tests and guardrails that keep OpenISD honest, and where it still falls short. The plan for turning the remaining fixes into checks the build runs automatically is in [PLAN.md](PLAN.md) and [SDLC.md](SDLC.md).
+It started as a quick spike, and it has come a long way since. The physics engine (`packages/engine/src/`) is now clean and modular, with a full unit, golden, and browser test suite checked against the exact closed-form solutions. Two rough spots from the prototype days remain, and both are tracked in the open: some duplicated structure on the data-scraper side, and the engine's input-validation boundary — incomplete input can still produce a `NaN` instead of a clear error. See [AGENTS.md](AGENTS.md) for the workflow and guardrails that keep OpenISD honest, and the [backlog](BACKLOG.md) for what's still open.
 
 WinISD has been abandoned and is closed source, so there is no way to move it forward. OpenISD exists to build a modern, open alternative — compatible with WinISD's file formats (and others), and answering the many complaints about the old tool. The long-term goal is something that doesn't rot when I drop dead or lose interest — a tool that stays trustworthy because the rules that keep it clean are enforced by the build, not by memory.
 
@@ -123,8 +123,7 @@ Every model is validated against the exact closed-form solutions:
 
 The app runs these as a self-test in your browser console on load, and they run in
 CI from `test/engine.test.mjs`. If the physics is wrong, the test goes red — in
-public. See [CONTRIBUTING.md](CONTRIBUTING.md) for the model, and
-[VIBE_CODING.md](VIBE_CODING.md) for the full accounting of the guardrails.
+public. See [AGENTS.md](AGENTS.md) for the model and the full accounting of the guardrails.
 
 ## Run it
 
@@ -163,7 +162,7 @@ the graphs update live.
 
 Newcomers welcome — you do not need to be an acoustician. The physics engine lives
 in `packages/engine/src/`; a new box type or filter is a weekend and a pull request. Start
-with [CONTRIBUTING.md](CONTRIBUTING.md) and the [backlog](BACKLOG.md).
+with [AGENTS.md](AGENTS.md) and the [backlog](BACKLOG.md).
 
 ## Free?
 

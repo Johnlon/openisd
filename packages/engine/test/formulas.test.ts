@@ -1,21 +1,17 @@
 /**
- * Unit tests for src/formulas.ts — the UI-facing closed-form derivations that were
- * previously copy-pasted across the skins/panels (PR Vas/Fs/Qms, drive voltage, sound
- * velocity). These are ADDITIONS consolidating existing duplicated formulas; the expected
- * values are computed independently here so the extraction is proven behaviour-preserving.
+ * Unit tests for src/formulas.ts — the UI-facing closed-form derivations shared by the skins
+ * and panels (PR Vas/Fs/Qms, drive voltage). The expected values are computed independently
+ * here, so a shared algebra error fails rather than agreeing with itself.
+ *
+ * Air properties live in air.ts and are pinned by air.test.ts.
  */
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { prVas, prFs, prFsWithMass, prQms, driveVoltage, soundVelocity } from '../src/index.js';
+import { prVas, prFs, prFsWithMass, prQms, driveVoltage } from '../src/index.js';
 
 describe('formulas — drive voltage V = √(Pin·Re)', () => {
   it('√(100·4) = 20 V', () => assert.equal(driveVoltage(100, 4), 20));
   it('√(1·8) = 2√2 V', () => assert.ok(Math.abs(driveVoltage(1, 8) - Math.sqrt(8)) < 1e-12));
-});
-
-describe('formulas — speed of sound c = 20.05·√(T[K])', () => {
-  it('at 293.15 K = 343.68 m/s', () => assert.ok(Math.abs(soundVelocity(293.15) - 343.68) < 1e-9));
-  it('is ~343 m/s at room temperature', () => assert.ok(soundVelocity(293.15) > 342 && soundVelocity(293.15) < 344));
 });
 
 describe('formulas — passive radiator derivations', () => {

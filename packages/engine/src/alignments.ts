@@ -75,13 +75,20 @@ export function ventedAlignment(drv: Pick<Driver, 'Fs' | 'Qts' | 'Vas'>): { Vb: 
  * Helmholtz resonator: f = (c/2π) · √(A / (V₀ · L_eq))
  * where L_eq = L + END_CORRECTION·d  (flanged at the baffle, free into the box)
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
+ *
+ * The result is the RAW SIGNED root, never clamped. The end correction alone already supplies
+ * acoustic mass, so every volume + port area has a ceiling — the tuning at L = 0 — above which
+ * the equation's only solution is a negative length. That negative IS the answer: it says the
+ * target is unreachable and by how much, it round-trips exactly through `tuningFromLength()`,
+ * and callers guard on `> 0`. Flooring it instead would return a buildable-looking vent that
+ * tunes somewhere else entirely, which is a wrong number wearing a right one's clothes.
  */
 export function ventLength(Vb: number, fb: number, Sp: number, endCorrection: number = END_CORRECTION): number {
   const Cab = Vb / (RHO * C * C);
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Math.max(Map * Sp / RHO - endCorrection * d, 0.005);
+  return Map * Sp / RHO - endCorrection * d;
 }
 
 /**

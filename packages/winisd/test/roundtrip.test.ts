@@ -1,9 +1,9 @@
 /**
- * @openisd/winisd — real-world .wdr import/export round-trip via the Driver ADT.
+ * @openisd/winisd — .wdr import/export round-trip via the Driver ADT.
  *
- * Uses a committed real driver fixture (Tang Band W5-1138SMF) to verify that
- * Driver.fromWdr reads the correct values and fromWdr → toWdr → fromWdr round-trips the
- * T/S parameters. deriveDriver (via toDriver) gives the internal-consistency check.
+ * Verifies that Driver.fromWdr reads the values the bytes say, and that
+ * fromWdr → toWdr → fromWdr round-trips the T/S parameters. deriveDriver (via toDriver)
+ * gives the internal-consistency check.
  */
 
 import { describe, it } from 'vitest';
@@ -15,51 +15,54 @@ import { Driver } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-// 1e-4 relative: .wdr round-trip allows tiny rounding from toPrecision(6) formatting.
-const WDR_ROUNDTRIP_RELATIVE_TOLERANCE = 1e-4;
-
 describe('.wdr driver file import and export (Driver ADT)', () => {
 
-  // The Tang Band W5-1138SMF .wdr is a committed test fixture — a real driver file
-  // originally from the loudspeakerdatabase collection. Its known parameters verify the read.
-  const TANG_BAND_WDR_PATH = join(here, '..', '..', '..', 'drivers', 'sample', 'Tang Band W5-1138SMF.wdr');
-  const EXPECTED_MODEL_NAME = 'Tang Band W5-1138SMF';
-  const EXPECTED_FS_HZ      = 45;      // Hz — as written in the .wdr file
-  const EXPECTED_SD_M2      = 0.0094;  // m² — as written in the .wdr file
+  // 🔒 ORACLE — `drivers/sample/winisd/` holds files WinISD itself wrote. The assertions
+  // below are still only self-consistency (parse what the bytes say, then in == out across
+  // export/import), but the input is a genuine save, so nothing here can be satisfied by a
+  // writer bug that a third party's .wdr-shaped export happens to share.
+  const SAMPLES = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd');
+  const WDR_PATH = join(SAMPLES, 'John-all-manu-populated.wdr');
+  const EXPECTED_NAME   = 'John all-manu-populated';
+  const EXPECTED_FS_HZ  = 4;                    // Hz  — entered in the file (ParState[1]=E)
+  const EXPECTED_VAS_M3 = 0.141584099539285;    // m³  — entered at 15 s.f. (ParState[19]=E)
+  const EXPECTED_MMS_KG = 0.005;                // kg  — entered (ParState[16]=E)
 
-  const text = readFileSync(TANG_BAND_WDR_PATH, 'utf8');
+  const text = readFileSync(WDR_PATH, 'utf8');
 
-  it('reads the model name, Fs, and Sd from a real-world .wdr file', () => {
+  it('reads the composed name and the entered values from a genuine WinISD .wdr file', () => {
     const d = Driver.fromWdr(text);
-    assert.equal((d.raw() as Record<string, unknown>).name, EXPECTED_MODEL_NAME,
-      `name should be "${EXPECTED_MODEL_NAME}"`);
-    assert.equal(d.cell('Fs').value, EXPECTED_FS_HZ, `Fs should be ${EXPECTED_FS_HZ} Hz`);
-    assert.equal(d.cell('Sd').value, EXPECTED_SD_M2, `Sd should be ${EXPECTED_SD_M2} m²`);
+    assert.equal((d.raw() as Record<string, unknown>).name, EXPECTED_NAME,
+      `name should be "${EXPECTED_NAME}"`);
+    assert.equal(d.cell('Fs').value,  EXPECTED_FS_HZ,  `Fs should be ${EXPECTED_FS_HZ} Hz`);
+    assert.equal(d.cell('Vas').value, EXPECTED_VAS_M3, `Vas should be ${EXPECTED_VAS_M3} m³, every digit`);
+    assert.equal(d.cell('Mms').value, EXPECTED_MMS_KG, `Mms should be ${EXPECTED_MMS_KG} kg`);
   });
 
-  it('exports to .wdr text and round-trips all T/S parameters to within 0.01%', () => {
-    // toWdr uses toPrecision(6) which introduces tiny rounding — relative tolerance
-    // of 1e-4 (= 0.01%) captures any real mismatch while allowing formatting drift.
+  it('exports to .wdr text and round-trips every T/S parameter with no loss at all', () => {
+    // The writer emits full precision, so this is exact equality — not a tolerance.
     const d  = Driver.fromWdr(text);
     const rt = Driver.fromWdr(d.toWdr());
     const params = ['Fs', 'Qts', 'Qes', 'Qms', 'Vas', 'Sd', 'Re', 'Le', 'Xmax', 'Pe', 'Z'];
     for (const k of params) {
       const a = d.cell(k).value, b = rt.cell(k).value;
       if (typeof a !== 'number' || typeof b !== 'number') continue;
-      const rel = Math.abs(a - b) / Math.abs(a);
-      assert.ok(rel < WDR_ROUNDTRIP_RELATIVE_TOLERANCE,
-        `${k}: ${a} → export → import → ${b} (relative error ${rel.toExponential(2)})`);
+      assert.equal(b, a, `${k}: ${a} → export → import → ${b} (the write is lossy)`);
     }
   });
 
-  it('the re-imported .wdr is internally self-consistent: toDriver gives the same Fs, Qts, Qes', () => {
-    // If the export/import round-trip is clean, the derived driver should reproduce the
-    // same key parameters (within floating-point tolerance).
-    const dv = Driver.fromWdr(Driver.fromWdr(text).toWdr()).toDriver();
-    assert.ok(dv, 'the re-imported driver must derive');
-    assert.ok(Math.abs(dv.Fs  - EXPECTED_FS_HZ) < 1e-6, `Fs should be ${EXPECTED_FS_HZ} Hz, got ${dv.Fs}`);
-    assert.ok(Math.abs(dv.Qts - 0.49) < 1e-3, `Qts should be ~0.49, got ${dv.Qts.toFixed(4)}`);
-    assert.ok(Math.abs(dv.Qes - 0.57) < 1e-3, `Qes should be ~0.57, got ${dv.Qes.toFixed(4)}`);
+  it('the re-imported .wdr is internally self-consistent: toDriver reproduces every parameter', () => {
+    // A physically coherent oracle driver (Qes=0.38, Qms=6.2 ⇒ Qts=0.358), so deriveDriver
+    // resolves. If the export/import round-trip is clean the derived driver is IDENTICAL —
+    // exact equality, because the writer loses nothing.
+    const coherent = readFileSync(join(SAMPLES, 'inconsistency-test-qts-C.wdr'), 'utf8');
+    const before = Driver.fromWdr(coherent).toDriver();
+    const after  = Driver.fromWdr(Driver.fromWdr(coherent).toWdr()).toDriver();
+    assert.ok(before && after, 'both the source and the re-imported driver must derive');
+    for (const k of ['Fs', 'Re', 'Sd', 'Vas', 'Qts', 'Qes', 'Qms', 'Cms', 'Mms', 'Rms', 'Bl'] as const) {
+      assert.equal(after[k], before[k], `${k}: ${before[k]} → export → import → ${after[k]}`);
+    }
+    assert.equal(before.Fs, 38, 'sanity: the fixture states Fs=38');
   });
 
 });

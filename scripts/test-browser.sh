@@ -28,6 +28,22 @@ cleanup_chrome
 
 bash "$SCRIPT_DIR/kill-http.sh" 4100
 
+# A run that EXECUTES NOTHING must never report success. Playwright's own default is to fail
+# on an empty suite (the opt-out is `--pass-with-no-tests`; there is no `--fail-on-empty`),
+# but a stale path reaches that default only after the two --last-failed retries below have
+# each printed their own "interrupted/failed" banner, which reads as an infrastructure wobble
+# rather than "this gate matches no files any more". Collect first and refuse up front, naming
+# the args, so a gate pointing at a moved spec is unmistakable.
+set +e
+LIST_OUT="$(npx playwright test --list "$@" 2>&1)"
+set -e
+if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
+  printf '%s\n' "$LIST_OUT" >&2
+  echo "" >&2
+  echo "ERROR: zero tests matched — a gate that runs nothing must not pass. Args: ${*:-<none>}" >&2
+  exit 1
+fi
+
 # Run tests using the worker configuration from playwright.config.js
 set +e
 npx playwright test "$@"

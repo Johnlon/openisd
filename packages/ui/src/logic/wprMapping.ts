@@ -61,6 +61,9 @@ export function buildWprInput(
       flatResponse: P.forceFlatResponse,
       tlPorts:      P.tlPortModel,
     },
+    // [Box] ambient — the design's own environment, per project as in WinISD. Humidity stays
+    // a PERCENTAGE here; toWpr does the single conversion to WinISD's `phi` fraction.
+    environment: { tempK: P.tempK, pressurePa: P.pressurePa, humidityPct: P.humidityPct },
   };
 
   const peak = (driver && curves) ? findImpedancePeak(curves, driver.Re) : null;

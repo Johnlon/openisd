@@ -1,0 +1,216 @@
+uuid:
+  value: 0635404a-1652-435b-89e6-5105c5dc3b64
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  disposition:
+    value: ok
+    definition: 'the record''s standing — one of: ok, no-ts-published, incomplete'
+    detail: nothing unusual about this one — the datasheet was found, the specs came
+      out cleanly, and every output file was generated
+  rating: M
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Tang Band
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; also decides the record's folder
+brand:
+  value: Tang Band
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: W5-1138SMF
+  origin: manufacturer_product_page
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: w5-1138smf
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_product_page
+    reading: W5-1138SMF
+    definition: the printed designation the code was derived from
+  - origin: manufacturer_product_page
+    reading: https://www.tb-speaker.com/products/w5-1138smf
+    definition: the source URL that corroborated the derivation
+driver_type:
+  value: subwoofer
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+data_sources:
+  value:
+    manufacturer_datasheet: https://www.tb-speaker.com/uploads/files/cadcecac0ea8af7e07014e520d4ea00d.pdf
+    manufacturer_product_page: https://www.tb-speaker.com/products/w5-1138smf
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_datasheet
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+description:
+  value: 5" Paper Subwoofer
+  origin: manufacturer_product_page
+  definition: the manufacturer's own product blurb, page chrome stripped
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 45 Hz
+          read_value: 45.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: free-air resonance frequency (Hz)
+    Re:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 3.4 W
+          read_value: 3.4
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: DC voice coil resistance (Ω)
+    Le:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.34 mH
+          read_value: 0.00034
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: voice-coil inductance (H)
+    Znom:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 4 W
+          read_value: 4.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: nominal impedance (Ω)
+    Qts:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '0.49'
+          read_value: 0.49
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: total Q factor at Fs (dimensionless)
+    Qes:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.57VOICE:886.2.26570282 FAX:886.2.26580166
+          read_value: 0.57
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: electrical Q factor at Fs (dimensionless)
+    Qms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: '3.56'
+          read_value: 3.56
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: mechanical Q factor at Fs (dimensionless)
+    Vas:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 4.85 Litr
+          read_value: 0.00485
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: equivalent compliance volume — stored in m³, not litres
+    Sd:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 0.0094 M
+          read_value: 0.0094
+          read_precision: 5.0e-05
+      dq_status: UNMATCHED
+      definition: effective piston area — stored in m², not cm²
+    BL:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 7.17 TM
+          read_value: 7.17
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: motor force factor (T·m)
+    Mms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 28.81 g
+          read_value: 0.02881
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: moving mass including air load — stored in kg, not g
+    Cms:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 368.72 uMN
+          read_value: 0.00036872
+          read_precision: 5.0e-09
+      dq_status: UNMATCHED
+      definition: suspension compliance (m/N)
+    Xmax:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 9.25 mm
+          read_value: 0.00925
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: one-way linear excursion limit — stored in m, not mm
+    Pe:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 40 W
+          read_value: 40.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: rated thermal power handling (W, IEC 268-5)
+    voice_coil_dia_mm:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 32 mm
+          read_value: 32.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: voice coil diameter (mm)
+    Hg_mm:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 5 mm
+          read_value: 5.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: magnetic air-gap height (mm)
+    power_peak_W:
+      origin: manufacturer_datasheet
+      readings:
+        manufacturer_datasheet:
+          actual_reading: 80 W
+          read_value: 80.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: short-term/peak power handling (W)

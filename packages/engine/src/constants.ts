@@ -14,6 +14,11 @@ export const RHO = 1.20095;  // air density        kg/m³   (20 °C — WinISD)
 export const C   = 343.68;   // speed of sound      m/s     (20 °C — WinISD)
 export const P0  = 20e-6;    // SPL reference       Pa RMS  (0 dB SPL)
 
+// Standard acceleration of gravity, CGPM 1901 — the exact defined value, m/s².
+// WinISD's `Gloss` (static cone sag as a fraction of Xmax) is g/((2π·Fs)²·Xmax), and 41
+// probe samples fit that to 3.6e-15 relative only at this figure, not at 9.81 or 9.8.
+export const G_STANDARD = 9.80665;
+
 // Port end correction for a vent flanged at one end (baffle) and free at the other
 // (open into the box) — WinISD's own default (Vents tab "End Correction" field;
 // see docs/winisd/view_3_ported.png).

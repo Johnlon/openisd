@@ -9,7 +9,7 @@ import { DriverFileFormat } from '../driverFileFormat.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //
-// STATE_MODEL.md's memory layers, applied to the library picker:
+// docs/design/STATE_MODEL.md's memory layers, applied to the library picker:
 //   library / My Drivers / disk  →  the project's OWN driver  →  editor draft
 //
 // Choosing EMBEDS. WinISD has no driver database and no live link from a project to a

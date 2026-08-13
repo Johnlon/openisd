@@ -4,7 +4,7 @@ import { toSnapshot, fromSnapshot } from '../../src/logic/model/workspace.js';
 import type { UiParams, ProjectMeta } from '../../src/types.js';
 
 /**
- * The project model's contract (STATE_MODEL.md):
+ * The project model's contract (docs/design/STATE_MODEL.md):
  *   save    → the working state becomes the file's sole content AND the new ground
  *   load    → the file's state becomes the ground, so the project opens clean
  *   copy    → an independent, unsaved project with no link back to its source
