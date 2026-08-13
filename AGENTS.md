@@ -69,7 +69,7 @@ When a TDD turn begin NEVER start by editing a main source file, always create a
 
 Never reorder. "I added a test and a fix" without having seen the test fail first is not TDD. Every single code modification or feature addition MUST have a corresponding failing test written and observed first.
 
-**For test-first feature or bug work, invoke the `/tdd` skill** — the red→green-refactor workflow reference (what a good test is, where tests go, the anti-patterns, and the rules of the loop). Consult it before and during the loop, not after.
+**For test-first feature or bug work, invoke the `/test-driven-development` skill** — the red→green-refactor workflow reference (what a good test is, where tests go, the anti-patterns, and the rules of the loop). Consult it before and during the loop, not after.
 
 **Two suites, both required.** `packages/engine/src/`: Vitest (`npm run test:unit`) — fast,
 deterministic, no browser; physics gates (sealed≡closed-form, sensitivity, vented rolloff +
@@ -330,6 +330,9 @@ Before starting work, always read:
 - `docs/design/DRIVER_RECORD_MODEL.md` — what openisd stores about a driver; the design
   authority for driver-data tasks
 - `docs/spec/SPEC_ENGINE.md`, `docs/spec/SPEC_UI.md` — the engine and UI contracts
+- `docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md` — where the AD-8/AD-9 migration stands, the
+  checks that block it, and the divergences the new model must preserve (read with
+  `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md` before any driver-model work)
 
 > ⚠ **The two WinISD documents below are OBSOLESCENT as primary guidance — they are
 > WinISD-focused, and WinISD is no longer the model this app is built on.** `ARCHITECTURE.md`
