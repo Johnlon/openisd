@@ -99,7 +99,7 @@ absence from `specs[driverType]` entirely is C/N). Lock this before Phase 1's te
 written — it is the field that used to be `Driver`'s binary E-vs-not-E and is now a
 `SourceRole` with more than two values.
 
-## Phase 1 — Build `OpenISDDriver` (TDD, red→green per `/tdd`)
+## Phase 1 — Build `OpenISDDriver` (TDD, red→green per `/test-driven-development`)
 
 Per the locked API above. Write failing tests first for:
 - `enter('Fs', 40)` on a record whose `specs.woofer` has no `Fs` → `cell('Fs')` is
