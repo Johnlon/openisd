@@ -36,6 +36,8 @@ export function driverId(d: DriverRaw): string {
 }
 
 export interface MyDriverRepo {
+  /** The identity this repository files a driver under — `<brand>/<model>`. */
+  identityOf(d: DriverRaw): string;
   /** Every saved driver, in the order they were saved. */
   list(): DriverRaw[];
   /** Replace the whole bucket — used by "reset to the demo samples". */
@@ -65,6 +67,7 @@ export function createMyDriverRepo(store: KeyValueStore): MyDriverRepo {
   }
 
   return {
+    identityOf: driverId,
     list,
     replaceAll,
     upsert(d) {

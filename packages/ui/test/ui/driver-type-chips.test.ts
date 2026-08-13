@@ -18,7 +18,8 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { DriverType, Chip } from '../../src/driverType.js';
-import { DRIVER_TYPES, classifyTypes } from '../../src/db/useDriverLibrary.js';
+import { classifyTypes } from '../../src/db/driverRepo.js';
+import { DRIVER_TYPES } from '../../src/logic/driverLibrary.js';
 
 const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
 const chipValues = (dt: DriverType) => dt.chips.map(c => c.value);
