@@ -3511,6 +3511,35 @@ questions:
            from) stays available on the record for the provenance inspector, but it does not split the
            display state.
            REVISIT IF: a WinISD probe shows a datasheet-sourced field rendering as something other than E.
+  - at: '2026-08-13'
+    text: |-
+      2026-08-13 -- PLAN LANDED: docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md, 16 steps (1 land the in-flight
+      layering move; 2 extract @openisd/model; 3 Xmax Hc==Hg guard; 4 determine the ParState slot-0 Znom rule;
+      5 turn the parity suite green; 6 determine OpenISDDriver's required API from the 34 call sites; 7 complete
+      OpenISDDriver; 8 build WinISDDriver one class both directions; 9 composition root + createDiagnostics;
+      10 swap the model in logic and expose the facade; 11 route every ui import through logic; 12 persistence
+      carries OpenISDRecord; 13 retire DriverRaw; 14 delete driver.ts and port its 71 it(); 15 rebaseline the
+      coverage gate; 16 repoint the 41 AD-n citations). DONE = @openisd/model exists and depends only on
+      @openisd/engine; zero `class Driver`, zero DriverRaw, zero DriverJSON; ui/src touches @openisd/winisd only
+      via fileIO; a project-saved driver and its .owdr export are byte-identical; architecture.test.ts 8/8 with 0
+      offences; main.ts holds every create*() call; no .vue value-imports @openisd/* or db//diagnostics//logging/;
+      winisd-parity 463/463 with deliberate differences in divergences.json; the self-test's three gates pass;
+      coverage thresholds REBASELINED UPWARD from 15.8/78.5/54.0/15.8 (never lowered); vue-tsc 0 errors; browser
+      suite green at --workers=1.
+
+      MEASURED TODAY, correcting the readiness doc: OpenISDDriver HAS LANDED (native/openisdDriver.ts, 199 lines,
+      4 tests pass) but is NOT exported from the winisd barrel; winisd-parity.test.ts HAS LANDED and is committed
+      but is RED at 341 failed / 122 passed of 463; architecture.test.ts is 3 failed / 5 passed of 8 with 29
+      offences (21 ui->service/domain, 7 component value-imports of the domain, 1 missing create*() factory on
+      diagnostics/selftest.ts); main.ts is 14 lines and is NOT a composition root; there is ONE UI (ui/shells/
+      holds only original/, ui/skins.ts is gone); the tree is mid-refactor and BROKEN -- db/useDriverLibrary.ts
+      and db/useDriverSelection.ts are deleted while 5 import specifiers in 3 .vue files still name them.
+      Real consumer counts: Driver class 3 value-import sites in ui/src + 34 DriverModel call sites + 11 test
+      files / 71 it(); DriverRaw 104 lines / 23 files; DriverJSON 37 lines / 9 files; engine Driver interface 26
+      annotation sites.
+
+      ARCHITECTURE.md rewritten as the SPEC and declared the supreme authority: conflicting docs are TODOs in the
+      plan and never block implementation. Decision-log apparatus (Status/Rationale/AD-n/Superseded) deleted.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open
@@ -3639,6 +3668,72 @@ questions:
       INTERLOCK WITH THE MODEL MIGRATION (QO36): the migration rewrites exactly these files -- the
       store, the driver model, the library. Doing the layering fix as part of it is one pass; doing it
       after is two rewrites of the same code.
+  - at: '2026-08-13'
+    text: |-
+      Layering implemented; the 5 briefed assertions are GREEN (16 -> 0 violations).
+
+      BEFORE (5 assertions, 16 violations) -> AFTER:
+        service imports logic/store           3 -> 0
+        service imports sibling service       2 -> 0
+        ui skips logic into a service        11 -> 0
+        service exports a pre-built ref()     1 -> 0
+        service missing create*() factory     6 -> 0
+
+      Slices landed:
+        1. logging/flash.ts -> createLogging(); no module-level ref. Constructed at the root.
+        2. db/kv.ts: KeyValueStore (get/set/remove) + createLocalStorageStore/createMemoryStore.
+           myDrivers -> createMyDriverRepo(kv); new db/prefs.ts -> createPrefsStore(kv) (absorbs the
+           deleted logic/favorites.ts); prLibrary -> createPrRepo(kv, bundle).
+        3. db/useDriverLibrary.ts (812 lines) SPLIT by responsibility:
+             db/driverRepo.ts       — createDriverRepo({sources, bundle}); index/search/lookup,
+                                      classifyTypes, matchesCriteria, previewOf. Arguments in, data out.
+             logic/driverLibrary.ts — createDriverLibrary(deps); every ref/computed, the pool, the
+                                      filters, choose/clone/load-from-disk.
+           db/useDriverSelection.ts -> logic/driverSelection.ts as createDriverSelection({myDriverRepo}).
+           Its module-level `subject`/`editorDraft` lets are now closure state inside the factory.
+           driverShort moved out of logic/store.ts into src/driverName.ts (pure, so the repo can name
+           a bundled row without importing the store).
+        4. diagnostics/selftest.ts -> createDiagnostics({report}); flash arrives as an argument.
+        5. Composition root = packages/ui/src/main.ts. It is the only place that constructs; it builds
+           every service and the logic layer and installs the facade via app.provide (logic/app.ts:
+           AppLogic, APP_LOGIC key, provideApp, useApp). 8 components now inject instead of importing:
+           App, Flash, ExportMenu, PRBrowser, PREditModal, DriverBrowserWinisd, DriverEditorModal,
+           OriginalShell. useDesignIO -> createDesignIO({logging}), its module-level fileHandle now
+           closure state.
+
+      STILL RED — two assertions a concurrent session added to the gate AFTER this brief was written
+      (commit bbaa383), about ui -> @openisd/* rather than ui -> service:
+        'the presentation layer depends on logic and nothing below it'  10 offences
+        'a component imports no value from the domain'                   7 offences
+
+      I believe these two contradict each other as written, and I have NOT edited the gate:
+        - Assertion 2's own docstring rules that `import type` "erases at compile time: it creates no
+          runtime edge, so it cannot make a component depend on the engine's behaviour", and its regex
+          deliberately skips type-only imports.
+        - Assertion 1 uses the generic importsOf(), which does NOT skip them, so it flags
+          OgFilters.vue `import type { Filter, FilterType }`, OgNewProject.vue and OriginalShell.vue
+          `import type { BoxType }` as violations.
+        A type-only import cannot be both "not a dependency" and "skipping a layer". One of the two
+        needs a ruling before the gate can go green.
+
+      The substantive half (7 VALUE imports: ebp/RHO/C/airFor/driveVoltage/prVas/... and DriverModel in
+      DriverEditorModal) is real work I did not attempt: it means moving each component computed into
+      logic, mostly in OriginalShell.vue and DriverEditorModal.vue on the Original skin, and it needs
+      its own TDD cycle per component rather than riding on this one.
+
+      ALSO NOT DONE (item 5 of the brief): `state` is still an importable module-level singleton in
+      logic/store.ts. The gate does not test it (the IoC assertions scan db/diagnostics/logging only),
+      and converting it reaches every .vue file and every logic module. Services and the composition
+      root no longer touch it; only logic/ and ui/ still import it.
+
+      GATES: architecture gate 6/8 (the 5 briefed ones green); typecheck clean; lint 0 errors,
+      25 pre-existing test-file warnings; test:unit 52/54 files pass — the 2 failures are
+      architecture.test.ts (above) and packages/winisd/test/winisd-parity.test.ts, which imports only
+      @openisd/engine and packages/winisd/src/driver.js, so no edge reaches it from packages/ui; it is
+      the live OpenISDDriver/AD-8 migration my brief fenced off.
+
+      NOTE: I did not commit. A concurrent session swept this session's in-flight tree into commits
+      cb42b95 and bbaa383 under its own subjects.
 - id: QO39
   title: 'Xmax route precedence settled by probe: row 19 abs(Hc-Hg)/2 WINS, Vd/Sd is the fallback - WDR_SCHEMA
     L268 is wrong, L310 is right'

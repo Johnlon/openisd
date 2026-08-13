@@ -12,12 +12,10 @@ test.describe('Driver Field Provenance Inspector & Equation Inspector', () => {
     await page.evaluate(() => localStorage.clear());
     await page.goto('/');
 
-    // Open Driver Editor Modal on project driver
-    await page.evaluate(async () => {
-      const spec = '/src/db/useDriverSelection.ts';
-      const mod = await import(/* @vite-ignore */ spec);
-      mod.editProjectDriver();
-    });
+    // Open the Driver Editor the way a user does. Services are constructed by the composition
+    // root and injected, so there is no module-level instance to import and call.
+    await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+    await page.locator('.edit-btn', { hasText: 'Edit' }).click();
 
     await page.locator('.de-body').waitFor({ state: 'visible' });
   });

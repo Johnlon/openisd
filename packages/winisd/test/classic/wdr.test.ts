@@ -38,10 +38,24 @@ describe('toWdr — missing optional fields use fallback branches', () => {
     assert.match(wdr, /^Comment=$/m, 'Comment line must be empty when comment absent');
   });
 
-  it('uses Re as Znom when Z (nominal impedance) is not provided — '
-   + 'Znom= falls back to the DC resistance Re', () => {
+  it('CALCULATES Znom from Re when Z (nominal impedance) is not provided — '
+   + 'Znom = 2·round_half_to_even(0.75·Re), never Re itself', () => {
+    // WinISD derives Znom from Re; it does not copy it (probe QO30,
+    // winisd_research/runs/znom_state.jsonl — Re=6 gives 8, Re=8 gives 12).
+    // BARE_DRIVER's Re=5.6 ⇒ 0.75·5.6 = 4.2 → 4 → Znom = 8.
     const wdr = toWdr(BARE_DRIVER);
-    assert.match(wdr, /^Znom=5\.6/m, 'Znom must fall back to Re when Z is absent');
+    assert.match(wdr, /^Znom=8$/m, 'Znom must be 2·round(0.75·5.6) = 8, not the Re of 5.6');
+  });
+
+  it('marks ParState slot 0 C for a calculated Znom, E for an entered one', () => {
+    // The probe's own four cases: entered → E (never corrected against Re), absent → C,
+    // cleared → C. An unknown Re leaves nothing to calculate from, so the slot stays N.
+    const calc = parstate(BARE_DRIVER, deriveDriver(BARE_DRIVER).value!);
+    assert.equal(calc[0], 'C', 'Znom derived from Re → C');
+
+    const entered = { ...BARE_DRIVER, Z: 4 };
+    const ent = parstate(entered, deriveDriver(entered).value!);
+    assert.equal(ent[0], 'E', 'an entered Znom → E, even at 4 where the rule gives 8');
   });
 
   it('produces Vd=0 when Xmax is absent — zero peak displacement volume', () => {

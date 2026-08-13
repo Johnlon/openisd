@@ -34,14 +34,11 @@ test.describe('Exhaustive Driver Editor UI Solver Test Suite', () => {
     await page.evaluate(() => localStorage.clear());
     await page.goto('/');
 
-    // Open Driver Editor Modal
-    await page.evaluate(async () => {
-      // Specifier in a variable on purpose — this import runs in the PAGE, where vite serves
-    // the path; a literal makes tsc try to resolve it against the filesystem and fail.
-    const spec = '/src/db/useDriverSelection.ts';
-    const mod = await import(/* @vite-ignore */ spec);
-      mod.editProjectDriver();
-    });
+    // Open the Driver Editor the way a user does. Services are constructed by the composition
+    // root and injected, so there is no module-level instance to import and call — the button
+    // is the seam, and driving it also proves the wiring behind it.
+    await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+    await page.locator('.edit-btn', { hasText: 'Edit' }).click();
 
     await page.locator('.de-body').waitFor({ state: 'visible' });
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
