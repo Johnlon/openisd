@@ -148,7 +148,10 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     if (r.Fs == null && r.Qes != null && r.Bl != null && r.Mms != null && r.Re != null && r.Mms > 0 && r.Re > 0) setVal('Fs', r.Qes * r.Bl * r.Bl / (TAU * r.Mms * r.Re));
 
     // 7. Xmax / Hc / Hg relations
-    if (r.Xmax == null && r.Hc != null && r.Hg != null) {
+    // Precedence between the two Xmax routes is on the RESULT, not the route: WinISD prefers
+    // abs(Hc-Hg)/2, but an equal overhang gives 0 — not an excursion limit — and it falls
+    // through to Vd/Sd below. Probe case G, ledger QO39/QO40.
+    if (r.Xmax == null && r.Hc != null && r.Hg != null && r.Hc !== r.Hg) {
       setVal('Xmax', Math.abs(r.Hc - r.Hg) / 2);
     }
     if (r.Hc == null && r.Xmax != null && r.Hg != null) {

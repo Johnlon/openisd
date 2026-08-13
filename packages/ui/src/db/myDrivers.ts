@@ -1,9 +1,13 @@
 import type { DriverRaw } from '@openisd/engine';
+import type { KeyValueStore } from './kv.js';
 
 // "My Drivers" — the user's own saved drivers, a bucket of its own in browser storage.
 // THE one place that knows the storage key and its shape, and THE one write path: every
 // route that creates a user driver (Add new, Clone, Load File, Save-and-reload) ends in
-// `upsertMyDriver`, so there is exactly one rule for what saving means.
+// `upsert`, so there is exactly one rule for what saving means.
+//
+// A REPOSITORY: it is handed a store, takes arguments and returns records. It does not know
+// a dialog is open and it never decides what happens next — that is the logic layer's job.
 //
 // IDENTITY is `<brand>/<model-slug>` — the same scheme the driver database uses on disk
 // (`dayton-audio/pro-8`), so a saved driver and a database driver are named the same way.
@@ -31,37 +35,54 @@ export function driverId(d: DriverRaw): string {
   return `${brand}/${model}`;
 }
 
-export function loadMyDrivers(): DriverRaw[] {
-  try { return JSON.parse(localStorage.getItem(MY_DRIVERS_KEY) ?? '[]'); } catch { return []; }
+export interface MyDriverRepo {
+  /** Every saved driver, in the order they were saved. */
+  list(): DriverRaw[];
+  /** Replace the whole bucket — used by "reset to the demo samples". */
+  replaceAll(list: DriverRaw[]): void;
+  /**
+   * Save one driver. It overwrites the entry already holding the resulting `<brand>/<model>`
+   * identity, and adds one when none does — a driver IS its identity, so saving under a name
+   * that is already taken means saving THAT driver, not a twin of it.
+   *
+   * Returns true when an existing entry was overwritten, false when one was added.
+   */
+  upsert(d: DriverRaw): boolean;
+  /** Remove the saved driver with this identity. Returns true when one was removed. */
+  remove(id: string): boolean;
 }
 
-export function saveMyDrivers(list: DriverRaw[]): void {
-  try { localStorage.setItem(MY_DRIVERS_KEY, JSON.stringify(list)); } catch { /* storage disabled/full — non-fatal */ }
-}
+export function createMyDriverRepo(store: KeyValueStore): MyDriverRepo {
+  function list(): DriverRaw[] {
+    try {
+      const parsed: unknown = JSON.parse(store.get(MY_DRIVERS_KEY) ?? '[]');
+      return Array.isArray(parsed) ? (parsed as DriverRaw[]) : [];
+    } catch { return []; }
+  }
 
-/**
- * Save one driver into My Drivers. It overwrites the entry already holding the resulting
- * `<brand>/<model>` identity, and adds one when none does — a driver IS its identity, so
- * saving under a name that is already taken means saving THAT driver, not a twin of it.
- *
- * Returns true when an existing entry was overwritten, false when one was added.
- */
-export function upsertMyDriver(d: DriverRaw): boolean {
-  const entry = { ...d };
-  const id = driverId(entry);
-  const list = loadMyDrivers();
-  const idx = id ? list.findIndex(x => driverId(x) === id) : -1;
-  if (idx >= 0) list[idx] = entry; else list.push(entry);
-  saveMyDrivers(list);
-  return idx >= 0;
-}
+  function replaceAll(next: DriverRaw[]): void {
+    store.set(MY_DRIVERS_KEY, JSON.stringify(next));
+  }
 
-/** Remove the saved driver with this identity. Returns true when one was removed. */
-export function removeMyDriver(id: string): boolean {
-  if (!id) return false;   // unidentifiable driver: refuse rather than delete an arbitrary row
-  const list = loadMyDrivers();
-  const kept = list.filter(d => driverId(d) !== id);
-  if (kept.length === list.length) return false;
-  saveMyDrivers(kept);
-  return true;
+  return {
+    list,
+    replaceAll,
+    upsert(d) {
+      const entry = { ...d };
+      const id = driverId(entry);
+      const next = list();
+      const idx = id ? next.findIndex(x => driverId(x) === id) : -1;
+      if (idx >= 0) next[idx] = entry; else next.push(entry);
+      replaceAll(next);
+      return idx >= 0;
+    },
+    remove(id) {
+      if (!id) return false;   // unidentifiable driver: refuse rather than delete an arbitrary row
+      const before = list();
+      const kept = before.filter(d => driverId(d) !== id);
+      if (kept.length === before.length) return false;
+      replaceAll(kept);
+      return true;
+    },
+  };
 }

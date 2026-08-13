@@ -186,8 +186,8 @@ All user-entered in the WinISD UI. Units are SI throughout — see §6 for conve
 
 ### 3.5 Voice coil connection (position 45)
 
-| Field | Type    | Values                   | Notes                                                                                                                                                                                                           |
-| ----- | ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field | Type    | Values                   | Notes                                                                                                                                                                                                                                |
+| ----- | ------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | VCCon | integer | 1 = parallel, 2 = series | **Save bug:** WinISD always writes `VCCon=1` on save regardless of UI selection. `VCCon=2` can only be set by hand-editing the file; subsequent saves preserve it. Source: verified 2026-06-26 (docs/research/WINISD_PARITY.md §12). |
 
 **Project rule for scrapers:** Write `VCCon=1`. This matches what WinISD natively writes and is correct for all single-VC drivers.
@@ -245,30 +245,30 @@ manual check. WinISD resolves inconsistencies via the C/E mode system (see §5.1
 warnings. These groups document WinISD's internal parameter dependency graph — which fields
 it treats as computable from which others — not a runtime validation dialog.
 
-| #   | Fields in group          | Formula / relationship                                                                                                      |
-| --- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Qms, Fs, Cms, Rms        | `Rms = 2π·Fs·Mms/Qms` (Mms implicit via `Cms = 1/(Mms·(2π·Fs)²)`)                                                           |
-| 2   | BL, Fs, Mms, Re, Qes     | `Qes = 2π·Fs·Mms·Re / BL²`                                                                                                  |
-| 3   | Rme, BL, Re              | `Rme = BL² / Re`                                                                                                            |
-| 4   | Rme, Fs, Mms, Qes        | `Rme = 2π·Fs·Mms / Qes` (alternate path to same Rme)                                                                        |
-| 5   | **Qts, Qms, Qes**        | `Qts = (Qms · Qes) / (Qms + Qes)` — **the group that fires when Qts is entered manually alongside Qms and Qes**             |
-| 6   | Sd, Dd                   | `Dd = 2·√(Sd/π)`                                                                                                            |
+| #   | Fields in group          | Formula / relationship                                                                                                       |
+| --- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Qms, Fs, Cms, Rms        | `Rms = 2π·Fs·Mms/Qms` (Mms implicit via `Cms = 1/(Mms·(2π·Fs)²)`)                                                            |
+| 2   | BL, Fs, Mms, Re, Qes     | `Qes = 2π·Fs·Mms·Re / BL²`                                                                                                   |
+| 3   | Rme, BL, Re              | `Rme = BL² / Re`                                                                                                             |
+| 4   | Rme, Fs, Mms, Qes        | `Rme = 2π·Fs·Mms / Qes` (alternate path to same Rme)                                                                         |
+| 5   | **Qts, Qms, Qes**        | `Qts = (Qms · Qes) / (Qms + Qes)` — **the group that fires when Qts is entered manually alongside Qms and Qes**              |
+| 6   | Sd, Dd                   | `Dd = 2·√(Sd/π)`                                                                                                             |
 | 7   | Mcost, Rme, Hc, Hg, Xmax | `Mcost = Rme · (1 + Xmax/min(Hc, Hg))` — 0 in practice only because min(Hc,Hg) is the divisor and Hc/Hg are rarely populated |
-| 8   | Mpow, BL, Re             | `Mpow = BL / √Re`                                                                                                           |
-| 9   | Mpow, Rme                | `Mpow = √Rme`                                                                                                               |
-| 10  | Cms, Vas, Sd             | `Vas = ρ₀ · c² · Sd² · Cms`                                                                                                 |
-| 11  | Fs, Mms, Cms             | `Fs = 1 / (2π·√(Mms·Cms))`                                                                                                  |
-| 12  | EBP, Fs, Qes             | `EBP = Fs / Qes`                                                                                                            |
-| 13  | gamma, BL, Mms           | `gamma = BL / Mms`                                                                                                          |
-| 14  | no, c, Fs, Qes, Vas      | `η₀ = (4π²/c³)·Fs³·Vas/Qes`                                                                                                 |
-| 15  | no, Sd, BL, Mms, Re      | `η₀ = (ρ₀/(2π·c))·BL²·Sd²/(Mms²·Re)` (alternate efficiency route)                                                           |
-| 16  | SPLmax, Pe, SPL          | `SPLmax = SPL + 10·log10(Pe)`                                                                                               |
-| 17  | USPL, SPL, Re            | `USPL = SPL + 10·log10(8/Re)` where 8 = 2.83²                                                                               |
-| 18  | no, SPL, roo, c          | `SPL = 10·log10(η₀) + 10·log10(ρ₀·c²/(2π)) + 109` ⚠ inferred — converts efficiency to sensitivity                           |
-| 19  | Xmax, Hc, Hg             | `Xmax = abs(Hc − Hg) / 2` — **verified firing 2026-08-05**, but only when `Vd` is absent. Row 20 takes precedence; see §4.1 |
-| 20  | Vd, Sd, Xmax             | `Vd = Sd · Xmax`                                                                                                            |
-| 21  | Gloss, Fs, Xmax          | `Gloss = g / ((2π·Fs)² · Xmax)`, g = 9.80665 — static cone sag as a FRACTION of Xmax                                        |
-| 22  | SPLmaxLF, roo, Vd        | `SPLmaxLF = 20·log10( ρ₀·(2π·20)²·Vd / (2π·√2) / 20 µPa )` — excursion-limited half-space SPL at 20 Hz, 1 m                 |
+| 8   | Mpow, BL, Re             | `Mpow = BL / √Re`                                                                                                            |
+| 9   | Mpow, Rme                | `Mpow = √Rme`                                                                                                                |
+| 10  | Cms, Vas, Sd             | `Vas = ρ₀ · c² · Sd² · Cms`                                                                                                  |
+| 11  | Fs, Mms, Cms             | `Fs = 1 / (2π·√(Mms·Cms))`                                                                                                   |
+| 12  | EBP, Fs, Qes             | `EBP = Fs / Qes`                                                                                                             |
+| 13  | gamma, BL, Mms           | `gamma = BL / Mms`                                                                                                           |
+| 14  | no, c, Fs, Qes, Vas      | `η₀ = (4π²/c³)·Fs³·Vas/Qes`                                                                                                  |
+| 15  | no, Sd, BL, Mms, Re      | `η₀ = (ρ₀/(2π·c))·BL²·Sd²/(Mms²·Re)` (alternate efficiency route)                                                            |
+| 16  | SPLmax, Pe, SPL          | `SPLmax = SPL + 10·log10(Pe)`                                                                                                |
+| 17  | USPL, SPL, Re            | `USPL = SPL + 10·log10(8/Re)` where 8 = 2.83²                                                                                |
+| 18  | no, SPL, roo, c          | `SPL = 10·log10(η₀) + 10·log10(ρ₀·c²/(2π)) + 109` ⚠ inferred — converts efficiency to sensitivity                            |
+| 19  | Xmax, Hc, Hg             | `Xmax = abs(Hc − Hg) / 2` — fires whenever `Hc` and `Hg` are both present, and beats row 20 unless it yields zero; see §4.1  |
+| 20  | Vd, Sd, Xmax             | `Vd = Sd · Xmax`, solved in all three directions — `Xmax = Vd / Sd` and `Sd = Vd / Xmax` both fire; see §4.1                 |
+| 21  | Gloss, Fs, Xmax          | `Gloss = g / ((2π·Fs)² · Xmax)`, g = 9.80665 — static cone sag as a FRACTION of Xmax                                         |
+| 22  | SPLmaxLF, roo, Vd        | `SPLmaxLF = 20·log10( ρ₀·(2π·20)²·Vd / (2π·√2) / 20 µPa )` — excursion-limited half-space SPL at 20 Hz, 1 m                  |
 
 ### 4.1 How the solver actually behaves — ONE rule
 
@@ -303,7 +303,7 @@ not recency — both were proposed here earlier and both are wrong.
   never been observed firing: by construction there is never a conflict to report.
 
 **Where two relations could both fill the same hole, row 20 (`Vd = Sd × Xmax`) LOSES.** It is
-the fallback, used only when nothing else can supply the field. Observed twice:
+the fallback, used only when nothing else can supply the field:
 
 | hole   | competing routes                       | winner |
 | ------ | -------------------------------------- | ------ |
@@ -314,6 +314,39 @@ Physically consistent: `Dd` and `Hc`/`Hg` are measured geometry, while `Vd` is a
 volume derived FROM geometry. WinISD treats row 20 as producing `Vd` and runs it backwards only
 as a last resort — which is why `Xmax` takes `Vd/Sd` when `Hc`/`Hg` are blank, and takes the
 geometry answer as soon as they are not.
+
+**`Xmax`'s tie-break, settled by direct observation** — seven WinISD runs driving the real
+binary, one blank `Xmax` per run, recorded in
+[`runs/xmax_route.jsonl`](http://localhost:8000/winisd/winisd_research/runs/xmax_route.jsonl)
+(`toys/campaign_xmax_route.py`). Each run states which fields are ENTERED via the project's
+`ParState` line, fires the derived pass with one typed `Le` edit, and reads the saved file back:
+
+| case              | `Hc`/`Hg` give | `Vd`/`Sd` give | WinISD wrote | fired   |
+| ----------------- | -------------- | -------------- | ------------ | ------- |
+| `A_hchg_only`     | 0.0058         | —              | 0.0058 `C`   | row 19  |
+| `B_vdsd_only`     | —              | 0.0185         | 0.0185 `C`   | row 20  |
+| `C_all_four`      | 0.0058         | 0.0185         | 0.0058 `C`   | row 19  |
+| `E_all_four_b`    | 0.0050         | 0.0280         | 0.0050 `C`   | row 19  |
+| `F_all_four_swap` | 0.0058         | 0.0185         | 0.0058 `C`   | row 19  |
+| `G_hchg_equal`    | 0 (`Hc = Hg`)  | 0.0185         | 0.0185 `C`   | row 20  |
+| `D_all_four_xmax` | 0.0058         | 0.0185         | 0.0093 `E`   | neither |
+
+Five consequences, each carried by a case above:
+
+- **Both routes are live.** `A` and `B` each fire alone, so `Xmax` is a CALCULATED field by
+  either path — not an input-only one.
+- **Row 19 beats row 20** whenever both can fire (`C`, `E`, `F`), at two different magnitudes.
+- **`abs()` is real.** `F` swaps `Hc` and `Hg` against `C` and gets the same `0.0058`.
+- **A zero row-19 answer falls through to row 20.** `G` sets `Hc = Hg`, so row 19 yields 0 and
+  WinISD wrote `Vd/Sd` instead. The precedence is therefore on the RESULT, not purely
+  structural: row 19 wins only when it produces a non-zero value.
+- **An entered `Xmax` pins against both.** `D` supplies `0.0093`, disagreeing with both routes,
+  and WinISD keeps it and marks it `E` — consistent with "an entered value is never recomputed".
+
+**openisd's engine agrees on the ordering and diverges at `Hc = Hg`.**
+`packages/engine/src/driver.ts:151-152` runs `abs(Hc − Hg)/2` before `:160-161` runs `Vd/Sd`,
+which reproduces `A`, `B`, `C`, `E` and `F`. On `G` it writes `Xmax = 0` and row 20 never fires,
+where WinISD writes `0.0185` — the zero fall-through is not implemented.
 
 **These are not independent groups but one connected GRAPH.** `Dd ↔ Sd ↔ {Vd, Xmax}` is a
 single component, so an edit to `Dd` can propagate as far as `Xmax`, two hops away.
@@ -494,7 +527,7 @@ confirmed; 2 unknown (pos 21 and 47, 1-indexed — always N, never reached by an
 | 34  | EBP      | s-ebp             | C when computable (Fs/Qes). **Note: EBP is at pos 34, not adjacent to Rme/Mpow in WDR write order**   |
 | 35  | Rme      | s-rme             | C when computable (BL²/Re)                                                                            |
 | 36  | Mpow     | s-mpow            | C when computable (BL/√Re)                                                                            |
-| 37  | Mcost    | s-mcost           | C when Hc and Hg are both non-zero; N otherwise (min(Hc,Hg) is the divisor)                            |
+| 37  | Mcost    | s-mcost           | C when Hc and Hg are both non-zero; N otherwise (min(Hc,Hg) is the divisor)                           |
 | 38  | Gloss    | s-gloss           | C when computable                                                                                     |
 | 39  | Thick    | s-thick           | N unless physical dims entered                                                                        |
 | 40  | Depth    | s-depth           | N unless physical dims entered                                                                        |

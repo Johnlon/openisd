@@ -85,14 +85,35 @@ describe('layering — every arrow points downward', () => {
     assert.deepEqual(offences, [], 'Services are siblings; one may not depend on another.');
   });
 
-  it('the presentation layer reaches services only through logic', () => {
+  it('the presentation layer depends on logic and nothing below it', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
-        .filter(s => layerOf(s) === 'service')
+        .filter(s => layerOf(s) === 'service' || layerOf(s) === 'domain')
         .map(s => `${rel(f)} imports ${s}`));
 
     assert.deepEqual(offences, [],
-      'ui depends on logic and nothing else. Reaching past it into a service skips a layer.');
+      'ui depends on logic and nothing else. Reaching past it — into a service, into the ' +
+      'engine, or into the serialiser — skips a layer, and a second front-end would have to ' +
+      're-wire those calls rather than only re-skinning.');
+  });
+
+  it('a component imports no value from the domain — a type-only import is not a dependency', () => {
+    // `import type` erases at compile time: it creates no runtime edge, so it cannot make a
+    // component depend on the engine's behaviour. A VALUE import does, and is the violation.
+    const VALUE_IMPORT_OF_DOMAIN =
+      /^\s*import\s+(?!type\b)([^;]*?)\bfrom\s+['"](@openisd\/[^'"]+)['"]/gm;
+    const offences: string[] = [];
+    for (const f of filesUnder(join(UI_SRC, 'ui'))) {
+      const text = readFileSync(f, 'utf8');
+      for (const m of text.matchAll(VALUE_IMPORT_OF_DOMAIN)) {
+        // `import { type X }` inside the braces is also erased; only a bare binding is real.
+        const bindings = m[1].replace(/\{[^}]*\}/g, b => b.replace(/\btype\s+\w+,?/g, ''));
+        if (/\w/.test(bindings.replace(/[{},\s]/g, ''))) offences.push(`${rel(f)} imports ${m[2]}`);
+      }
+    }
+    assert.deepEqual(offences, [],
+      'Physics belongs behind logic. A component calling the engine directly puts a formula ' +
+      'call in the view, so the maths cannot be changed without editing components.');
   });
 
   it('logic and the services hold no view components', () => {

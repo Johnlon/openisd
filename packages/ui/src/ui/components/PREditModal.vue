@@ -2,9 +2,11 @@
 import { computed, ref } from 'vue';
 import { state } from '../../logic/store.js';
 import { RHO, C } from '@openisd/engine';
-import { savePR, listPRs, deletePR } from '../../db/prLibrary.js';
 import type { PRLibEntry } from '../../types.js';
 import NumInput from './NumInput.vue';
+import { useApp } from '../../logic/app.js';
+
+const { prLibrary } = useApp();
 
 // PR "Edit" — a real popup (unlike the driver What-If, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
@@ -49,11 +51,11 @@ function setWinIsdVas(newVasL: number) {
   state.P.prRms = Math.sqrt(newMmd / newCms) / Qms_curr;
 }
 
-const prLib = ref(listPRs());
+const prLib = ref(prLibrary.list());
 const showPRLib = ref(false);
 function saveCurrentPR() {
   const name = (state.P.prName || '').trim() || 'Custom PR';
-  prLib.value = savePR(name, state.P);
+  prLib.value = prLibrary.save(name, state.P);
 }
 function loadPR(entry: PRLibEntry) {
   state.P.prName = entry.name;
@@ -64,7 +66,7 @@ function loadPR(entry: PRLibEntry) {
   state.P.prXmax = entry.prXmax;
   showPRLib.value = false;
 }
-function removePR(id: number) { prLib.value = deletePR(id); }
+function removePR(id: number) { prLib.value = prLibrary.remove(id); }
 
 function close() { emit('close'); }
 </script>

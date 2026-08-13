@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { flashMsg } from '../../logging/flash.js';
+import { useApp } from '../../logic/app.js';
+
+const { logging } = useApp();
 </script>
 <template>
-  <div v-if="flashMsg" class="flash">{{ flashMsg }}</div>
+  <div v-if="logging.message.value" class="flash">{{ logging.message.value }}</div>
 </template>

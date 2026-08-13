@@ -21,7 +21,7 @@ const buildDatetime = __BUILD_DATETIME__;
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
-  state, driver, driverRaw, driverShort, driverJSON,
+  state, driver, driverRaw, driverJSON,
   syncedP, curvesData, maxData, driverErrors,
   isModified, resetProjectToGround, _ground, markProjectSaved,
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
@@ -30,6 +30,7 @@ import {
   enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
 } from '../../../logic/store.js';
+import { driverShort } from '../../../driverName.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type { BoxType } from '@openisd/engine';
 import type { PRLibEntry, BundledPR, Design } from '../../../types.js';
@@ -43,7 +44,7 @@ import type { ChartTabId } from '../../../logic/series.js';
 import { DPAL } from '../../presets.js';
 import { copyOfName, uniqueName } from '../../../logic/projectFile.js';
 import { createToneGenerator, type ToneGenerator } from '../../../logic/toneGenerator.js';
-import { useDesignIO } from '../../../logic/useDesignIO.js';
+import { useApp } from '../../../logic/app.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import GraphPanel from '../../components/GraphPanel.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -58,9 +59,10 @@ import PREditModal from '../../components/PREditModal.vue';
 import PRDefineModal from '../../components/PRDefineModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
-import { editProjectDriver } from '../../../db/useDriverSelection.js';
 
-const { saveProject, importFile, about } = useDesignIO();
+const { designIO, selection } = useApp();
+const { saveProject, importFile, about } = designIO;
+const { editProjectDriver } = selection;
 
 // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
 // The current design's trace colour. The Color button cycles it through a small
