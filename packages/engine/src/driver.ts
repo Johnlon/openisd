@@ -35,6 +35,46 @@ function airOf(r: Readonly<Record<string, number | undefined>>): { c: number; rh
 }
 
 /**
+ * WinISD's nominal impedance, CALCULATED from the DC resistance:
+ *
+ *     Znom = 2 · round_half_to_even(0.75 · Re)
+ *
+ * Recovered exactly (18/18, integer agreement) from 21 probes of real WinISD — ledger QO30,
+ * `winisd_research/runs/znom_state.jsonl`. `Znom` follows `Re` alone: a driver written with
+ * `Re = 8` beside `Qes`/`Qts`/`Rms` describing `Re = 27` still gets 12, and a *derived* `Re`
+ * serves as input just as well as an entered one. `Re = 0.6` yields a COMPUTED zero, which is
+ * why the caller writes 0 rather than treating it as "no answer".
+ *
+ * ⚠ THE PRODUCT IS EVALUATED EXACTLY, AND THAT IS LOAD-BEARING. WinISD is Delphi and computes
+ * in 80-bit Extended, where `0.75·Re` never needs rounding. In a double it does: `0.75·Re` is
+ * `3·Re/4`, whose exact value needs up to 55 mantissa bits against a double's 53. On two probed
+ * values the rounding lands the product exactly ON the `.5` tie and flips the answer —
+ * `Re = 7.333333333333333` (exactly 5.49999999999999975, so 5 → 10, while the double product is
+ * 5.5 → 12) and `Re = 3.3333333333333335` (2.500000000000000125, so 3 → 6, while the double
+ * product is 2.5 → 4). So the product is carried as an unevaluated pair `hi + lo`: `Re/2` and
+ * `Re/4` are each exact (binary scaling), and a two-sum recovers the residual their addition
+ * discards. `frac` is a multiple of `ulp(hi)` while `|lo| ≤ ulp(hi)/2`, so `lo` can only ever
+ * BREAK a true tie — it can neither manufacture nor destroy one.
+ */
+export function nominalImpedance(Re: number): number {
+  if (!(Re > 0) || !isFinite(Re)) return NaN;
+
+  const a = Re / 2, b = Re / 4;
+  const hi = a + b;
+  const t  = hi - a;
+  const lo = (a - (hi - t)) + (b - t);   // exact: hi + lo === a + b, for any doubles a, b
+
+  const fl = Math.floor(hi);
+  const frac = hi - fl;                  // exact — floor never costs a mantissa bit
+  const n = frac > 0.5 ? fl + 1
+          : frac < 0.5 ? fl
+          : lo   > 0   ? fl + 1
+          : lo   < 0   ? fl
+          : (fl % 2 === 0 ? fl : fl + 1);  // a genuine tie: round half to EVEN
+  return 2 * n;
+}
+
+/**
  * Solve every derivable Thiele/Small field from whatever is already present in `d`,
  * without requiring a complete set — an entered (non-null) value is NEVER overwritten
  * (WinISD's fixed-E override semantics). This is the ONE place these formulas exist;
@@ -268,6 +308,16 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     const minHeight = r.Hc != null && r.Hg != null ? Math.min(r.Hc, r.Hg) : 0;
     if (r.Mcost == null && r.Rme != null && r.Xmax != null && minHeight > 0) {
       setVal('Mcost', r.Rme * (1 + r.Xmax / minHeight));
+    }
+
+    // 14. Znom from Re — `nominalImpedance` above. Placed after every block that can PRODUCE
+    // `Re` (6 and 12), because WinISD accepts a calculated Re as this rule's input. It does not
+    // go through `setVal`: that refuses a non-positive result, and Re < 2/3 legitimately yields
+    // a COMPUTED zero (probe Z_tie_re0.6 — Znom=0 marked C, not the unset Znom=0/N of a blank
+    // driver). An entered Z is never touched, so a Znom contradicting its own Re stays pinned.
+    if (r.Z == null && r.Re != null && r.Re > 0) {
+      r.Z = nominalImpedance(r.Re);
+      changed = true;
     }
 
     iterations++;

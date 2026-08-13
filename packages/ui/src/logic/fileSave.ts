@@ -6,7 +6,7 @@
  * there is no in-place overwrite in that fallback, only a fresh file each time).
  *
  * The retained `FileSystemFileHandle` is session-only (kept in a Vue ref by the caller,
- * useDesignIO.ts) — this module never persists it across a reload.
+ * createDesignIO in useDesignIO.ts) — this module never persists it across a reload.
  */
 import { download } from './persist.js';
 

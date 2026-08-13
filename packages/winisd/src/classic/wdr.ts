@@ -8,7 +8,7 @@
  * Driver.fromWdr — so there is no parser here.
  */
 
-import { deriveDriver } from '@openisd/engine';
+import { deriveDriver, nominalImpedance } from '@openisd/engine';
 import type { DriverRaw, Driver } from '@openisd/engine';
 
 export function toWdr(raw: DriverRaw): string {
@@ -26,7 +26,9 @@ export function toWdr(raw: DriverRaw): string {
   const L = [
     '[Driver]', 'Brand=' + brand, 'Model=' + model, 'Manufacturer=' + (raw.manufacturer || ''),
     'ProvidedBy=' + (raw.providedBy || 'OpenISD'), 'Comment=' + (raw.comment || ''), 'DateAdded=' + (raw.added || ''), 'DateModified=',
-    'Qts=' + g(d.Qts), 'Znom=' + g(d.Z || d.Re),
+    // Znom is CALCULATED from Re — 2·round_half_to_even(0.75·Re), the engine's
+    // `nominalImpedance` (probe QO30). Copying Re here wrote 6 where WinISD writes 8.
+    'Qts=' + g(d.Qts), 'Znom=' + g(d.Z ?? (d.Re > 0 ? nominalImpedance(d.Re) : undefined)),
     'Fs=' + g(d.Fs), 'Pe=' + g(d.Pe), 'Re=' + g(d.Re), 'Le=' + g(d.Le),
     'BL=' + g(d.Bl), 'Xmax=' + g(d.Xmax),
     'Cms=' + g(d.Cms), 'Qms=' + g(d.Qms), 'Qes=' + g(d.Qes), 'Rms=' + g(d.Rms),
@@ -75,7 +77,9 @@ export function parstate(raw: DriverRaw, d: Driver): string {
   s[47] = 'C'; s[48] = 'C';                          // c (speed of sound), roo (air density)
   s[3]  = 'C';                                       // SPL — WinISD computes it (OpenISD supplies none)
 
-  s[0] = num(raw.Z) ? 'E' : 'C';                     // Znom: entered, else defaulted from Re
+  // Znom: entered → E (WinISD never corrects it against Re); else calculated from Re → C;
+  // with no Re there is nothing to calculate from → N. Probe QO30's four cases.
+  s[0] = num(raw.Z) ? 'E' : (num(d.Re) ? 'C' : 'N');
   mark(1,  raw.Fs,   d.Fs);
   mark(2,  raw.Pe,   d.Pe);                          // Pe/Le/Xmax pass through: E if supplied, else N
   mark(4,  raw.Re,   d.Re);

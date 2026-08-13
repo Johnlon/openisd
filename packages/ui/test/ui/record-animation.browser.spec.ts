@@ -21,14 +21,10 @@ test('record UI browser automation frames in Original WinISD skin', async ({ pag
   await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.original-root').waitFor({ state: 'visible' });
 
-  // Open Driver Editor Modal via store composable
-  await page.evaluate(async () => {
-    // Specifier in a variable on purpose — this import runs in the PAGE, where vite serves
-    // the path; a literal makes tsc try to resolve it against the filesystem and fail.
-    const spec = '/src/db/useDriverSelection.ts';
-    const mod = await import(/* @vite-ignore */ spec);
-    mod.editProjectDriver();
-  });
+  // Open the Driver Editor the way a user does. Services are constructed by the composition
+  // root and injected, so there is no module-level instance to import and call.
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
 
   await page.locator('.de-body').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();

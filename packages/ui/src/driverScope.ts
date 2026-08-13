@@ -23,7 +23,7 @@ export class DriverScope {
     readonly description: string,
     /**
      * Whether the app's own driver database is a candidate. That pool is `allFiles` in
-     * useDriverLibrary — everything the build ships; a federated source added from another
+     * driverRepo — everything the build ships; a federated source added from another
      * picker joins the same pool and is scoped with it.
      */
     readonly includesBundled: boolean,

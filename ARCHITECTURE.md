@@ -49,7 +49,7 @@ graph LR
     end
 
     PAGES["GitHub Pages<br/>openisd.app<br/>static host + PWA cache"]
-    LS[("localStorage<br/>My Drivers · favourites<br/>session · URL-hash share")]
+    LS[("localStorage<br/>committed design · My Drivers<br/>favourites · session · URL-hash share")]
     BUNDLE[("drivers-bundle.json<br/>driver commons, bundled at build")]
     WDR[("WinISD files<br/>.wdr driver · .wpr project")]
     OWDR[("Native files<br/>.owdr driver · .owpr project")]
@@ -90,6 +90,12 @@ next deploy.
 There is one implementation of each transform, not one per language. When the Python pipeline in
 `winisd_tools` needs an `openisd.yml` from a `driver.yml`, or a `.wdr` from an `openisd.yml`, it
 invokes the OpenISD JS/TS with input and output paths.
+
+**The call is in-process, into an embedded V8** — not a subprocess and not an RPC. The contract
+across that boundary is **string in, string out, and it never throws**: invalid input and
+well-formed-but-wrong input both come back as `Result{value: null, errors}`, because a thrown value
+cannot usefully cross an embedded-V8 boundary. The projection algorithm itself is
+[`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) §4.7.
 
 ---
 
@@ -216,7 +222,7 @@ model, so nothing above the domain layer knows what ParState is.
 | `driverRepo` | `packages/ui/src/db/` | The driver commons: index, search, filter, lookup. Answers questions, returns records | App state, workflow, `.vue` imports |
 | `myDriverRepo` | `packages/ui/src/db/` | User-saved drivers: read, write, delete by identity | App state, workflow, `.vue` imports |
 | `prefsStore` | `packages/ui/src/db/` | Browser-local preferences — favourites, session, layout | App state, workflow, `.vue` imports |
-| `fileIO` | `packages/ui/src/db/` | Open, save, import, export, share-link encode/decode | App state, workflow, `.vue` imports |
+| `designIO` | `packages/ui/src/logic/` | Open, save, import, export, share-link encode/decode | Maths, `.vue` imports, direct construction of a service |
 | `diagnostics` | `packages/ui/src/diagnostics/` | Runtime self-test, solver troubleshooting, diagnostic assertions | App state |
 | `logging` | `packages/ui/src/logging/` | Application event/alert surface (flash messages) | Any other module — it is a leaf |
 | `ui` | `packages/ui/src/ui/` | Vue components, canvas drawing, directives, static presets | Physics, app state, anything a service owns |
@@ -305,6 +311,46 @@ not derive, hold live state, or persist between calls.
   instance — as a data-quality signal rather than silently overwriting.
 - `.wdr` is therefore 100 % derivable from `OpenISDDriver`: generated on demand, never stored. The
   same relationship holds upstream — `openisd.yml` is 100 % derivable from `driver.yml`.
+
+### File formats, and what crossing that boundary guarantees
+
+The app reads and writes five formats. Two are ours, three are WinISD's.
+
+| Format | Content | Direction |
+| --- | --- | --- |
+| `openisd.yml` | the OpenISD record — the canonical on-disk form | read (commons, at build time) |
+| `.owdr` | one OpenISD driver record, the same schema as `openisd.yml` byte for byte | read / write |
+| `.owpr` | one `OpenISDProject` — box, vent, PR, filters, signal, and its driver records | read / write |
+| `.wdr` | one WinISD driver | read / write |
+| `.wpr` | one WinISD project | read / write |
+
+**No import loses data.** Every field a file carries survives the round trip, including metadata
+the app does not itself display. A `.wdr` written back out matches the original byte for byte, or
+conforms strictly to the layout rules where a byte-exact match is impossible — the layout rules are
+[`docs/design/WDR_SCHEMA.md`](docs/design/WDR_SCHEMA.md) and the round-trip contract is
+[`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) §4.6.
+
+**The two formats carry deliberately different content, and the asymmetry is the point.**
+
+| | `openisd.yml` / `.owdr` | `.wdr` |
+| --- | --- | --- |
+| Asserted values | carried | carried |
+| Derivable values nobody asserted | **absent** | **carried** |
+| The `E`/`C`/`N` character | **never stored** | computed at emit time |
+
+A field is in an OpenISD record because someone stated it, so **presence is the assertion** and
+absence is not a value. `.wdr` must additionally carry every calculated value, because WinISD does
+not recompute on open — so `openisd.yml` → `.wdr` is **not a serialisation**: it goes through
+`OpenISDDriver`, which supplies what the file does not hold. That is what keeps one place where
+calculation happens, and is why the browser's exporter and the pipeline's exporter cannot drift.
+
+The fields themselves — what each one means and which source may state it — are
+[`docs/design/DRIVER_RECORD_MODEL.md`](docs/design/DRIVER_RECORD_MODEL.md)'s.
+
+**The oracle is WinISD itself.** `.wdr` files written by WinISD are the reference for our writer's
+output; a third-party database's `.wdr`-shaped export is not an oracle however plausible it looks.
+Where OpenISD deliberately differs from WinISD, the difference is recorded with its ruling and the
+parity suite expects it — it is never silently absorbed as a tolerance.
 
 ### Scope: the driver record only
 
@@ -429,9 +475,23 @@ tests — it is a synchronisation signal, not a result.
 
 ### Persistence
 
-`localStorage` holds My Drivers, favourites, session and layout, reached only through
-`myDriverRepo` and `prefsStore`. A share link carries a project in the URL hash. Both persist the
-`OpenISDRecord` shape — a saved project's driver and a saved `.owdr` are the same bytes.
+Three things persist in `localStorage`, each reached only through the service that owns it:
+
+| Key owner | Holds |
+| --- | --- |
+| the store, via `fileIO` (`openisd.state`) | the **committed design** — box, params, the driver with its marks, project metadata |
+| `myDriverRepo` | user-saved drivers |
+| `prefsStore` | favourites, session, layout |
+
+**Drafts and active what-ifs never persist.** An uncommitted value must not return after a refresh
+looking like a decision the user made. The commit boundary that decides this is
+[`docs/design/STATE_MODEL.md`](docs/design/STATE_MODEL.md)'s.
+
+**State restores on load.** The app starts from what was stored — active project, open panels — and
+restores it reactively.
+
+A share link carries the same committed design in the URL hash. Every one of these persists the
+`OpenISDRecord` shape, so a saved project's driver and a saved `.owdr` are the same bytes.
 
 ---
 

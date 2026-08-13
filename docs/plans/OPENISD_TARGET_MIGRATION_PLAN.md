@@ -1,182 +1,404 @@
-# Plan — reach the architecture specification
+# OpenISD target migration plan
 
-[`ARCHITECTURE.md`](../../ARCHITECTURE.md) specifies the system. This plan is the ordered work
-that makes the code match it. Where the two disagree, the specification is correct.
+**The goal, verbatim (human, 2026-08-13):** *"complete the impmt to make openisd the base model for
+the app and sideline winisd into the serialisation to file according to the findings and the
+plan"*.
 
-Two strands run through the same files, so they are interleaved rather than sequenced:
+[`ARCHITECTURE.md`](../../ARCHITECTURE.md) specifies the system. This plan is the ordered set of
+changes that makes the code match it. Where this plan and `ARCHITECTURE.md` disagree,
+`ARCHITECTURE.md` is correct.
 
-- **M** — the OpenISD record becomes the app's driver model; `@openisd/winisd` becomes
-  serialisation only.
-- **L** — the layering: `ui → logic → services → domain`, a composition root, injected
-  dependencies, no module-level singletons.
-
-Each step states **what changes**, **the proof**, and **what it unblocks**. A step is done when
-its proof is green.
+Every step below states **what changes · the proof · what it unblocks**. A step whose input is
+unknown is a step to DETERMINE that input, not a caveat on another step.
 
 ---
 
-## Starting position
+## Where the code is, measured 2026-08-13
 
-Measured 2026-08-13.
+Every number here came from a command run on this tree today.
 
-| Fact | Value |
+| Fact | Measurement |
 | --- | --- |
-| `OpenISDDriver` | exists, `packages/winisd/src/native/openisdDriver.ts`, 4 tests green |
-| App code consuming the OpenISD record types | **0 files** outside `packages/winisd` |
-| `Driver` class consumers | 4 value-import sites · 35 call sites · 8 test files / 48 tests |
-| `DriverRaw` | 100 references across 23 files |
-| `DriverJSON` | 37 references across 9 files |
-| engine `Driver` interface | 15 annotation sites |
-| Architecture gate | red — layering and IoC violations enumerated by the test itself |
-| Only witness for ParState slots 1–48 against a genuine WinISD save | `driver-roundtrip.test.ts` |
-| Coverage gate | 15.8 / 78.5 / 54.0 / 15.8 |
+| `OpenISDDriver` exists | `packages/winisd/src/native/openisdDriver.ts`, 199 lines. `fromRecord`, `toRecord`, `section`, `cell`, `enter`, `clear`, `errors`, `subscribe` |
+| Its tests | `packages/winisd/test/native/openisdDriver.test.ts` — **4 tests, all pass** (`npx vitest run`, 2026-08-13) |
+| It is not reachable | **Not exported** from `packages/winisd/src/index.ts` — the barrel lists 8 modules and `native/openisdDriver.js` is not one |
+| `@openisd/model` | **Does not exist.** `packages/model/` is absent; `native/` sits inside `packages/winisd/src/` |
+| The old `Driver` class | `packages/winisd/src/driver.ts`, 469 lines. **3 value-import sites in `packages/ui/src`** — `logic/store.ts:5`, `logic/driverSelection.ts:1`, `ui/components/DriverEditorModal.vue:8` — and **34 `DriverModel.`/`DriverModel(` call sites** under `packages/ui/src` |
+| Tests pinned to it | **11 test files / 71 `it()`** import `Driver` — 9 in `packages/winisd/test` (driver-class 10, driver-derive 9, winisd-parity 9, driver-projection 8, wdr-carried-keys 6, driver-json 5, driver-roundtrip 5, driver-hardening 4, roundtrip 3) and 2 outside it (`ui/test/ui/driver-editor-units.test.ts` 12, `ui/test/logic/persist.test.ts` 9) |
+| `DriverRaw` | `packages/engine/src/types.ts:43-102`. **104 referencing lines across 23 files** — 13 under `packages/*/src`, 10 under `packages/*/test` |
+| Engine `Driver` interface | `packages/engine/src/types.ts:110-122`, `extends DriverRaw`. **26 type-annotation sites** |
+| `DriverJSON` | **37 referencing lines across 9 files** — `ui/src/{types.ts,db/driverRepo.ts,logic/{store,persist,driverSelection,useDesignIO,projectFile}.ts,logic/model/OpenISDProject.ts}` plus `winisd/src/driver.ts` |
+| Architecture gate | `packages/ui/test/ui/architecture.test.ts` — **3 failed, 5 passed of 8**, **29 offences** |
+| Parity suite | `packages/winisd/test/winisd-parity.test.ts` exists and is committed — **341 failed, 122 passed of 463**. 7 goldens under `test/fixtures/winisd-parity/goldens/` |
+| Composition root | **Does not exist.** `packages/ui/src/main.ts` is 14 lines: `createApp(App).directive(…).mount('#app')`. It constructs no service and injects nothing |
+| Skins | **One UI.** `packages/ui/src/ui/shells/` contains only `original/`; `packages/ui/src/ui/skins.ts` does not exist |
+| Working tree | **Mid-refactor and broken.** `db/useDriverLibrary.ts` and `db/useDriverSelection.ts` are deleted; their replacements are `logic/driverLibrary.ts` and `logic/driverSelection.ts` (untracked). **5 import specifiers in 3 `.vue` files still name the deleted modules** |
 
-The app has not moved onto the new model at all. That is the useful fact in this table: there is
-nothing to unpick, only wiring to do.
+### The 29 architecture-gate offences, by assertion
 
----
+| Assertion | Result | Offences |
+| --- | --- | --- |
+| a service never imports the application state or the logic layer | **PASS** | 0 |
+| a service never imports a sibling service | **PASS** | 0 |
+| the presentation layer depends on logic and nothing below it | **FAIL** | **21**, across 11 `.vue` files: `App.vue`→`diagnostics/selftest`; `DriverBrowserWinisd.vue`→`db/useDriverLibrary`×2, `db/useDriverSelection`; `DriverEditorModal.vue`→`db/useDriverSelection`, `@openisd/engine`, `@openisd/winisd`, `db/myDrivers`, `logging/flash`; `Flash.vue`→`logging/flash`; `OptionsModal.vue`→`@openisd/engine`; `PRBrowser.vue`→`db/prLibrary`; `PRDefineModal.vue`→`@openisd/engine`; `PREditModal.vue`→`@openisd/engine`, `db/prLibrary`; `OgFilters.vue`, `OgNewProject.vue`, `OgTune.vue`→`@openisd/engine`; `OriginalShell.vue`→`@openisd/engine`×2, `db/useDriverSelection` |
+| a component imports no value from the domain | **FAIL** | **7**, across 6 files: `DriverEditorModal.vue`(engine, winisd), `OptionsModal.vue`, `PRDefineModal.vue`, `PREditModal.vue`, `OgTune.vue`, `OriginalShell.vue` |
+| logic and the services hold no view components | **PASS** | 0 |
+| a service exports no mutable module-level binding | **PASS** | 0 |
+| a service exports no pre-built instance | **PASS** | 0 |
+| every service module offers a `create*()` factory | **FAIL** | **1** — `diagnostics/selftest.ts` |
 
-## Step 1 — `@openisd/model` becomes a package (M)
+### Rulings this plan implements
 
-**Change.** `packages/winisd/src/native/` moves to `packages/model/src/` as `@openisd/model`:
-the record types, the YAML codec, the derivation adapter, `OpenISDDriver`. `packages/winisd`
-keeps `classic/` and depends on `@openisd/model`.
-
-**Proof.** `packages/winisd/package.json` lists `@openisd/model`; `@openisd/model`'s own
-`package.json` lists only `@openisd/engine` and `yaml`; typecheck clean; the moved tests pass at
-their new paths.
-
-**Unblocks.** Everything. While the model lives inside the WinISD package, no consumer can depend
-on the model without also depending on the serialiser, and the specification's dependency table
-cannot be satisfied.
-
----
-
-## Step 2 — `OpenISDDriver` covers what the app needs (M)
-
-**Change.** Extend `OpenISDDriver` to the surface the store actually calls. Read
-`packages/winisd/src/driver.ts` and enumerate every public member the 35 call sites use;
-implement each on `OpenISDDriver` against the OpenISD record. Includes at minimum: consistency
-issues, the auto-calculate toggle, the errors list, and the field-group rules the editor relies
-on.
-
-**Proof.** A test per member, expected values derived from the T/S relations, not read back from
-the implementation. The enumeration itself is a checked list in this step's ledger note.
-
-**Unblocks.** Step 4.
+| Ledger | Ruling |
+| --- | --- |
+| QO36 B3 | A manually entered field carries the value and `origin: manual`. `read_precision` and `actual_reading` are OMITTED, not synthesised. One reading shape, those two absent |
+| QO36 B4 | Any real reading displays as `E`; only a solver result is `C`. `E` means STATED, not typed-by-this-user |
+| QO38 | `ui → logic → services → domain`. `ui` depends on `logic` and nothing else. A service never reads or writes the app's state. The layering fix and the model swap touch the same files, so they run as one pass, not two |
+| QO39 | Xmax row 19 `abs(Hc−Hg)/2` WINS; `Vd/Sd` is the fallback. The branch order at `packages/engine/src/driver.ts:151`/`:160` is already right. **One divergence:** when `Hc === Hg`, row 19 must decline so `Vd/Sd` supplies the value |
 
 ---
 
-## Step 3 — the services layer and the composition root (L)
+## Why the steps run in this order
 
-**Change.** Create `packages/ui/src/services/` holding `driverRepo`, `myDriverRepo`, `prefsStore`,
-`fileIO`, `diagnostics`, `logging`. Each exports one `create<Name>(deps)` factory and nothing
-pre-built. `KeyValueStore` is an interface with a `localStorage` implementation and an in-memory
-implementation. `main.ts` becomes the composition root: it constructs every service and the store,
-wires them, and mounts the app.
+Two strands, and they collide in three files.
 
-The workflow currently in `db/` — "the user chose a driver", the browse-dialog state, the
-reload-on-edit watch — moves **up** into `logic/`. What remains is query and persistence.
+**Strand A — the model.** The OpenISD record becomes the app's driver model; WinISD becomes
+serialisation only.
 
-**Proof.** These architecture-gate assertions go green: a service imports neither `logic` nor a
-sibling service; no service exports a pre-built instance or a mutable binding; every service module
-offers a `create*()` factory.
+**Strand B — the layering.** `ui → logic → services → domain`, a real composition root, injected
+dependencies, no module-level singletons.
 
-**Unblocks.** Step 5, and it is the step that stops the dependency arrow pointing backwards.
+**The collision.** `logic/store.ts`, `logic/driverSelection.ts` and
+`ui/components/DriverEditorModal.vue` are the files that both hold the old `Driver` and violate the
+layering. Doing A then B rewrites them twice. **Steps 10 and 11 do both strands in one pass on
+those files**, which is why the pure-layering work that touches no driver code (Step 9) runs first
+and the pure-model work that touches no view (Steps 2–8) runs before that.
 
----
-
-## Step 4 — the store holds `OpenISDDriver` (M)
-
-**Change.** `createStore` holds an `OpenISDDriver`. The driver enters the store from
-`driverRepo`/`myDriverRepo` as an `OpenISDRecord`. `logic` computes every value a component
-displays.
-
-**Proof.** The unit suite green. The parity suite green with the WinISD-compatibility toggle on.
-The golden fixtures unmoved, or moved by an amount that is explained and stated before regenerating.
-
-**Unblocks.** Steps 6 and 7.
+**The oracle comes first.** Steps 3–5 fix the engine's one known numerical divergence and turn the
+parity suite green *before* any call site moves. Refactoring the whole driver layer with a red
+oracle means no regression net for the numbers.
 
 ---
 
-## Step 5 — `ui` depends on `logic` alone (L)
+## The steps
 
-**Change.** Components stop importing services, the engine and the serialiser. The app facade is
-provided at the root and injected. Every value a component renders arrives as data.
+### Step 1 — Land the in-flight layering move
 
-**Proof.** These gate assertions go green: `ui` imports nothing below `logic`; a component imports
-no value from `@openisd/*`.
+**Changes.** Repoint the 5 dangling import specifiers in `ui/components/DriverBrowserWinisd.vue`
+(3), `ui/components/DriverEditorModal.vue` (1) and `ui/shells/original/OriginalShell.vue` (1) from
+`db/useDriverLibrary.js` / `db/useDriverSelection.js` onto `logic/driverLibrary.js` /
+`logic/driverSelection.js`. Commit `logic/driverLibrary.ts`, `logic/driverSelection.ts`,
+`db/driverRepo.ts`, `db/kv.ts`, `db/prefs.ts`, `driverName.ts`.
 
-**Unblocks.** Step 7, and any future second front-end.
+**Proof.** `npx vue-tsc --noEmit` reports zero unresolved-module errors. The full unit suite runs
+green on a quiet tree.
 
----
-
-## Step 6 — delete the WinISD-shaped model (M)
-
-**Change.** Delete the `Driver` class, `DriverRaw`, `DriverJSON` and the engine's `Driver`
-interface. Migrate every consumer as it breaks. No shim, no adapter, no re-export: a caller that
-breaks is the signal that it must be migrated.
-
-**Before deleting**, `driver-roundtrip.test.ts` must assert ParState slots 1–48 against a genuine
-WinISD save through the NEW serialisation path. It is the only witness for those slots, and it
-currently runs through the class being deleted.
-
-**Proof.** Zero references to the four types. Typecheck clean. The unit suite green. The coverage
-gate **rebaselined** — recomputed against the smaller tree, not lowered.
-
-**Unblocks.** Step 7.
+**Unblocks.** Everything. No step can be verified on a tree that does not typecheck.
 
 ---
 
-## Step 7 — `@openisd/winisd` is serialisation only (M)
+### Step 2 — Extract `@openisd/model`
 
-**Change.** The package exports a reader and a writer over `.wdr`/`.wpr` and nothing else. No
-model, no state, no derivation. ParState, the carried-key set, the voice-coil encoding and write
-precision are internal to it.
+**Changes.** Create `packages/model/` with `name: "@openisd/model"` and
+`dependencies: { "@openisd/engine": "*" }`. Move `packages/winisd/src/native/*` (6 files:
+`openisdRecord.ts`, `openisdYaml.ts`, `openisdDerive.ts`, `openisdDriver.ts`, `openisdToWdr.ts`,
+and the barrel) into `packages/model/src/`, except `openisdToWdr.ts`, which is serialisation and
+stays in `@openisd/winisd`. Move `packages/winisd/test/native/*` alongside. Add a `model` vitest
+project. Export `OpenISDDriver` from the `@openisd/model` barrel. Add `@openisd/model` to
+`packages/winisd/package.json` dependencies. Delete the record re-exports from
+`packages/winisd/src/index.ts`.
 
-**Proof.** Its public surface is a reader and a writer. `command grep -rn "ParState" packages/ui
-packages/model` returns nothing.
+**Proof.** `packages/model/package.json` `dependencies` is exactly `{"@openisd/engine":"*"}`.
+`packages/engine/package.json` `dependencies` is still empty. The moved test files pass under the
+new project. `grep -rn "native/" packages/winisd/src` returns nothing but `openisdToWdr`.
 
-**Unblocks.** The `winisd_tools` half: Python stops carrying its own `.wdr` mapping and calls this
-one, which is what ends the two-writer divergence that put `Gloss = 0` into 245 library records.
+**Unblocks.** The dependency-rule table in `ARCHITECTURE.md` §2 becomes expressible and checkable;
+`@openisd/winisd` can be reduced to serialisation without dragging the record with it.
 
 ---
 
-## Step 8 — the gate is green and stays green (L)
+### Step 3 — Fix the Xmax `Hc === Hg` fall-through
 
-**Change.** Any assertion still red is resolved by changing the code. An assertion is only changed
-if it is wrong, and then the reasoning is recorded.
+**Changes.** `packages/engine/src/driver.ts:151` — guard the `abs(Hc−Hg)/2` branch so it declines
+when `Hc === Hg`, letting `:160`'s `Vd/Sd` supply the value:
 
-**Proof.** `npx vitest run packages/ui/test/ui/architecture.test.ts` — all assertions green.
+```ts
+if (r.Xmax == null && r.Hc != null && r.Hg != null && r.Hc !== r.Hg)
+```
+
+**Proof.** A test asserting `Hc = Hg = 0.012, Sd = 0.022, Vd = 0.000407 → Xmax = 0.0185`, matching
+probe row `G_hchg_equal` in `winisd_research/runs/xmax_route.jsonl`. The six other probe rows keep
+their current answers.
+
+**Unblocks.** Step 5 — a golden pinned before this fix bakes `Xmax = 0` into the parity fixtures.
+
+---
+
+### Step 4 — Determine the ParState slot-0 (`Znom`) rule
+
+**Changes.** Run the WinISD probe under wine, the way QO39's Xmax campaign was run: author drivers
+with `Znom` stated, absent, and defaulted, save each from WinISD, and read slot 0. Write the rule
+into `docs/design/WDR_SCHEMA.md` with the observed rows. Remove the slot-0 exclusion from
+`packages/winisd/test/driver-roundtrip.test.ts`.
+
+**Proof.** A probe run file under `winisd_research/runs/`, and `driver-roundtrip.test.ts` asserting
+slots 0..48 with no exclusion.
+
+**Unblocks.** Step 8 — `WinISDDriver`'s writer must emit slot 0, and today three implementations
+give three different answers (WinISD writes `C` on `drivers/sample/winisd/John-all-manu-populated.wdr`,
+openisd emits `N`, `classic/wdr.ts parstate()` emits a third).
+
+---
+
+### Step 5 — Turn the parity suite green
+
+**Changes.** Work `packages/winisd/test/winisd-parity.test.ts` from 341 failures to zero. Each
+failure resolves exactly one of three ways, and the step records which: **(a)** openisd is wrong →
+fix openisd; **(b)** the golden lacks the field WinISD never wrote (the `EBP` case at
+`winisd-parity.test.ts:240` is this shape) → fix the assertion to skip a field the oracle does not
+carry, not to accept a wrong value; **(c)** openisd is deliberately different → add the row to
+`test/fixtures/winisd-parity/divergences.json` with its ruling. The three standing divergences go
+in `divergences.json` now: `numVC` ParState stays `C`; `VCCon = 2` for series wiring; humidity and
+pressure are live, so the suite runs with the `air.ts:81` ignore-flag ON.
+
+**Proof.** `npx vitest run packages/winisd/test/winisd-parity.test.ts` — 463 passed, 0 failed.
+`divergences.json` has one entry per deliberate difference, each naming its ruling.
+
+**Unblocks.** Steps 7, 8, 10, 12, 13, 14. This is the only mechanical proof that openisd's numbers
+match WinISD's. Every step after it that moves a call site is verified against it.
+
+---
+
+### Step 6 — Determine `OpenISDDriver`'s required API
+
+**Changes.** Enumerate every member the 34 `DriverModel.` call sites and the 71 pinned tests use on
+the old `Driver`, and classify each: **belongs on `OpenISDDriver`** (live model behaviour),
+**belongs on `WinISDDriver`** (`.wdr` shape), **belongs in `logic`** (workflow that never was model
+behaviour), or **dies**. Write the classification into this file as a table.
+
+**Proof.** The table exists, every one of the 34 call sites appears in it exactly once, and every
+member classified "belongs on `OpenISDDriver`" is either already on it (the 8 members it has) or
+listed in Step 7's work.
+
+**Unblocks.** Step 7. Building the class against a guessed surface is the failure mode that forces
+a second rewrite.
+
+---
+
+### Step 7 — Complete `OpenISDDriver` to that API
+
+**Changes.** Implement the members Step 6 classified as model behaviour, TDD, red→green per
+`/test-driven-development`. The derivation algorithms move off `driver.ts` rather than being
+re-derived — the engine is validated to < 0.03 dB and that correctness is not re-paid. `E`/`C`/`N`
+follows QO36 B4; `enter()` writes the B3 shape.
+
+**Proof.** `packages/model/test/openisdDriver.test.ts` covers every member. The E/C/N tests ported
+from `driver-class.test.ts` (10 `it()`) pass against `OpenISDDriver`. The parity suite stays at 463
+passed.
+
+**Unblocks.** Step 10 — the call sites cannot move onto a class that lacks what they call.
+
+---
+
+### Step 8 — Build `WinISDDriver`, one class, both directions
+
+**Changes.** One class in `@openisd/winisd`, replacing `classic/wdr.ts`'s `toWdr()` and
+`native/openisdToWdr.ts`'s `openisdYamlToWdr()` with a single writer, and adding the reader half.
+It validates, holds no live state, derives nothing, and does not persist between calls. Import
+diffs the as-read values against what `OpenISDDriver` independently derives and reports a mismatch
+as a data-quality signal instead of overwriting. Slot 0 follows Step 4's rule.
+
+**Proof.** `grep -c "function toWdr\|function openisdYamlToWdr" packages/winisd/src` → 0; one
+`class WinISDDriver`. The 11 `it()` of `openisdToWdr.test.ts` and the 6 of `wdr-carried-keys.test.ts`
+pass against the class. `driver-roundtrip.test.ts` round-trips slots 0..48 against the genuine
+WinISD save. The parity suite stays at 463 passed.
+
+**Unblocks.** Step 14 — `driver.ts` cannot be deleted while it is the only `.wdr` reader.
+
+---
+
+### Step 9 — Composition root and the last service factory
+
+**Changes.** `packages/ui/src/main.ts` becomes the composition root: it constructs `driverRepo`,
+`myDriverRepo`, `prefsStore`, `fileIO`, `diagnostics`, `logging`, then the store, injects them, and
+provides the app facade at the root via Vue `provide`. `diagnostics/selftest.ts` gains
+`createDiagnostics(deps)` taking the engine and a reporter. No module below `main.ts` constructs a
+service.
+
+**Proof.** The gate's `every service module offers a create*() factory` assertion passes — 8 of 8
+architecture-gate assertions is not yet reached, but this one is green. `main.ts` contains every
+`create*()` call in `packages/ui/src`.
+
+**Unblocks.** Step 11 — `ui` can only be routed through `logic` once `logic` is something that was
+handed the services rather than importing them.
+
+---
+
+### Step 10 — Swap the model in `logic`, and give `logic` a facade
+
+**Changes.** One pass over `logic/store.ts`, `logic/driverSelection.ts` and `logic/driverLibrary.ts`:
+replace `Driver as DriverModel` with `OpenISDDriver` from `@openisd/model` at all 34 call sites, and
+in the same edit expose the facade `ui` will consume — the selectors and intents that replace `ui`'s
+21 direct reaches into services and the domain. `logic` calls the services it was injected with; it
+constructs none.
+
+**Proof.** `grep -rn "@openisd/winisd" packages/ui/src/logic` returns only `fileIO`'s serialiser
+edge. The unit suite is green. The parity suite stays at 463 passed. The self-test's three gates
+pass in the browser (`window._selfTestDone`).
+
+**Unblocks.** Step 11, Step 12, Step 14. This is the step that makes OpenISD the app's base model.
+
+---
+
+### Step 11 — Route every `ui` import through `logic`
+
+**Changes.** The 21 offending specifiers across the 11 `.vue` files listed above become `logic`
+imports of the facade Step 10 exposed. The 7 domain value-imports become values `logic` computed
+and handed down as data — a component may hold an `import type` from `@openisd/*`, which erases,
+but no value import.
+
+**Proof.** The gate's `the presentation layer depends on logic and nothing below it` and
+`a component imports no value from the domain` assertions both pass. **8 of 8 architecture-gate
+assertions green.** The browser suite passes on `--workers=1`.
+
+**Unblocks.** The layering strand is complete. Nothing further depends on it, but the gate now
+stops a regression silently reintroducing the inversion.
+
+---
+
+### Step 12 — Persistence carries `OpenISDRecord`
+
+**Changes.** Replace `DriverJSON` with `OpenISDRecord` at all 37 referencing lines across the 9
+files. `localStorage` My Drivers, the URL-hash share link and `.owpr` all carry the record shape.
+Complete `openisdYaml.ts`'s write parity with the Python canonical serializer (`_KEY_PRIORITY`,
+`_FLOW_LIST_KEYS`), which becomes load-bearing the moment the app writes `.owdr`.
+
+**Proof.** `grep -rn "DriverJSON" packages` → 0. A test asserting a driver saved into a project and
+the same driver exported as `.owdr` produce identical bytes. `ui/test/logic/persist.test.ts` (9
+`it()`) passes against the record shape. A round-trip test against a real
+`packages/model/test/fixtures/openisd/*.openisd.yml` reproduces the file byte for byte.
+
+**Unblocks.** Step 14 — `driver.ts` owns `DriverJSON` and cannot be deleted while anything persists it.
+
+---
+
+### Step 13 — Retire `DriverRaw`
+
+**Changes.** Delete `DriverRaw` from `packages/engine/src/types.ts:43-102` and replace it at the
+`deriveDriver`/`sweep` boundary with a type scoped to exactly the fields those functions read — no
+all-optional bag, no metadata fields, no URL fields. Reshape the engine `Driver` interface
+(`types.ts:110-122`), which inherits from it. Update the 104 referencing lines across 23 files.
+
+**Proof.** `grep -rn "DriverRaw" packages` → 0. `deriveDriver`'s parameter type lists only fields
+its body reads — checked by reading the body against the type. The parity suite stays at 463 passed
+and the engine's golden-master tests are unchanged.
+
+**Unblocks.** Step 15 — the last shape that is not the OpenISD record is gone, so the coverage
+baseline that follows is the final one.
+
+---
+
+### Step 14 — Delete `driver.ts` and port its tests
+
+**Changes.** Delete `packages/winisd/src/driver.ts` (469 lines) and its export from the barrel.
+Port the 71 pinned `it()` onto `OpenISDDriver` and `WinISDDriver` — every one of them, or a written
+statement of which assertion is now meaningless and why. `driver-roundtrip.test.ts` in particular is
+the only witness that ParState slots round-trip against a genuine WinISD save.
+
+**Proof.** `grep -rn "from '@openisd/winisd'" packages | grep Driver` returns only `WinISDDriver`.
+No test file imports `Driver`. The full unit suite and the browser suite are green on a quiet tree,
+one suite at a time.
+
+**Unblocks.** Step 15.
+
+---
+
+### Step 15 — Rebaseline the coverage gate
+
+**Changes.** Recompute `vitest.config.js:20-25` thresholds (today statements 15.8, branches 78.5,
+functions 54.0, lines 15.8) from the post-migration run and set them to the measured numbers.
+**Rebaseline, not lower:** a threshold is set to what the suite now achieves, and if a number falls
+the missing tests are written before it is written down.
+
+**Proof.** `npm run test:unit -- --coverage` passes with the new thresholds, and each threshold
+equals the measured coverage to one decimal place.
+
+**Unblocks.** The gate stops reporting a mechanical failure as a quality regression.
+
+---
+
+### Step 16 — Repoint the citations `ARCHITECTURE.md` no longer carries
+
+**Changes.** `ARCHITECTURE.md` is a specification with named sections, not a numbered decision log.
+Repoint the **41 `AD-n` citations across 22 files under `packages/`** and the citations in the 15
+markdown files that carry them (`AGENTS.md`, `BACKLOG.md`, `LOG.md`, `docs/spec/SPEC_ENGINE.md`,
+`docs/design/{STATE_MODEL,DRIVER_ADT_DESIGN}.md`, `docs/plans/*`, `drivers/demos/README.md`,
+`packages/ui/src/drivers-bundle.README.md`, `openspec/changes/reorganize-project-docs/*`) at the
+section that now owns each rule. Repoint the three stale `driver.ts:432` citations
+(`BACKLOG.md:485-486`, `docs/spec/SPEC_ENGINE.md:397`, QO28) — the `numVC` autofill is at
+`driver.ts:445`, and both die with the file at Step 14.
+
+**Proof.** `grep -rn "AD-[0-9]" .` returns nothing outside `LOG.md` and the ledger, which are
+historical records.
+
+**Unblocks.** Nothing depends on it. It is the cleanup that keeps `ARCHITECTURE.md` reachable from
+the code.
+
+---
+
+## TODO — documents that conflict with `ARCHITECTURE.md`
+
+These are cleanup items. **None of them blocks any step above.** `ARCHITECTURE.md` is correct; each
+file below is wrong and gets corrected when someone is next in it.
+
+| Conflict | File | Correction |
+| --- | --- | --- |
+| **A live `SHALL` requiring multiple skins.** `openspec/specs/ui-presentation/spec.md:23-25` — *"The UI SHALL support multiple distinct skin layouts (Modern, Classic, Original)"*. Its own cited tests `classic-skin.browser.spec.ts` and `skins.test.ts` do not exist on disk | `openspec/specs/ui-presentation/spec.md:23-25`, `openspec/project.md:60` | There is ONE UI, `packages/ui/src/ui/shells/original/`. Delete the requirement |
+| Refers to skins in the plural / names `classic` or `modern` | `AGENTS.md` (9 lines), `docs/spec/SPEC_ENGINE.md` (2), `docs/design/STATE_MODEL.md` (2), `openspec/project.md` (2), `docs/spec/SPEC_UI.md` (1) | There is ONE UI |
+| **`openspec/project.md:58` declares a different taxonomy** — nine boundaries `@ui`/`@logic`/`@engine`/`@wdr`/`@wpr`/`@owdr`/`@owpr`/`@db`/`@logging`/`@diagnostics`, with `@owdr`/`@owpr` as modules separate from `@wdr`/`@wpr` (`project.md:28-30`) | `openspec/project.md:28-30,58` | `ARCHITECTURE.md` §2 carves the system into four layers and eleven modules. `.owdr`/`.owpr` are formats, not modules; one serialiser handles them |
+| **`docs/spec/SPEC_ENGINE.md:237` says dependency arrows "point up only"** — the exact inverse of the spec | `docs/spec/SPEC_ENGINE.md:237` | Every import points DOWNWARD (`ARCHITECTURE.md` §2) |
+| **`.owdr` called "OpenISD native JSON format"** | `openspec/specs/driver-database/spec.md:32` | `.owdr` is the `openisd.yml` schema byte for byte — YAML, not JSON |
+| Cites `AD-n` decision numbers, which no longer exist as anchors | the 15 markdown files and 22 source files in Step 16 — verified dangling: `docs/spec/SPEC_ENGINE.md:94` (AD-8/AD-9), `:237` (AD-6), `:257` (AD-8), `docs/design/STATE_MODEL.md:9` (AD-7), `:17` (AD-8) | Cite the `ARCHITECTURE.md` section |
+| `docs/design/WDR_SCHEMA.md:268` says Xmax row 20 takes precedence | `docs/design/WDR_SCHEMA.md` | Row 19 wins (QO39). Line 310's table is right; line 268 is wrong |
+| `PLAN_OPENISD_DRIVER_MODEL.md:34-36` says the `.wdr` writer does not exist | `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md` | `openisdYamlToWdr()` exists; only the reader half is missing |
+| `OPENISD_MODEL_MIGRATION_READINESS.md` says `OpenISDDriver` is UNTOUCHED and the parity suite is untracked | `docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md` | Both have landed. `openisdDriver.ts` is committed with 4 passing tests; `winisd-parity.test.ts` is committed and red at 341/463 |
+| `AGENTS.md:450` gives `packages/winisd/src/` "E/C/N provenance" | `AGENTS.md:450` | Provenance belongs to `@openisd/model`; `@openisd/winisd` is `.wdr`/`.wpr` bytes only |
 
 ---
 
 ## Definition of done
 
-All of the following are true at once:
+The goal is met when every assertion below is green in one run on a quiet tree.
 
-1. `packages/ui/test/ui/architecture.test.ts` — every assertion green.
-2. No reference anywhere to `Driver` (the class), `DriverRaw`, `DriverJSON`, or the engine's
-   `Driver` interface.
-3. `@openisd/winisd`'s public surface is a reader and a writer over WinISD's files.
-4. `ParState` appears in no package above the domain layer.
-5. `npm run typecheck` clean across every package.
-6. `npm run test:unit` green.
-7. The browser suite green at `--workers=1`.
-8. The parity suite green with the WinISD-compatibility toggle on, and every deliberate divergence
-   expected by name rather than reported.
-9. The coverage gate green against a recomputed baseline.
+**The model.**
 
----
+1. `packages/model/` exists, exports `OpenISDDriver` and the record types, and depends only on
+   `@openisd/engine`.
+2. `grep -rn "class Driver\b" packages` → 0. `packages/winisd/src/driver.ts` does not exist.
+3. `grep -rn "DriverRaw\|DriverJSON" packages` → 0.
+4. `grep -rn "@openisd/winisd" packages/ui/src` matches only the `fileIO` service.
+5. Every driver the app holds is an `OpenISDDriver`; every `.wdr` is produced by `WinISDDriver` on
+   demand and never stored.
+6. A driver saved into a project and the same driver exported as `.owdr` are byte-identical.
 
-## Conflicts to clean up
+**The layering.**
 
-Documents that disagree with the specification. Each is a TODO. **None of them blocks a step
-above.**
+7. `npx vitest run packages/ui/test/ui/architecture.test.ts` — **8 assertions, 8 pass, 0 offences.**
+8. `packages/ui/src/main.ts` contains every `create*()` call in `packages/ui/src`.
+9. No `.vue` file imports a value from `@openisd/*` or from `db/`, `diagnostics/`, `logging/`.
 
-| Document | Conflict |
-| --- | --- |
-| `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md` | Its phase numbering predates the specification |
-| `docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md` | Its blocker list is superseded by this plan's steps |
-| `openspec/project.md` | Names the module set the specification replaces |
-| `openspec/specs/*/spec.md` | Written against the current component boundaries |
+**The numbers.**
+
+10. `npx vitest run packages/winisd/test/winisd-parity.test.ts` — **463 passed, 0 failed**, with
+    every deliberate difference carried in `divergences.json`.
+11. The engine golden-master tests are byte-unchanged from before Step 3, except the `Hc === Hg`
+    row.
+12. The runtime self-test's three gates pass in the browser and `window._selfTestDone` is set.
+
+**The gates.**
+
+13. `npm run test:unit -- --coverage` passes, with each threshold equal to the measured coverage —
+    rebaselined upward from 15.8 / 78.5 / 54.0 / 15.8, never lowered.
+14. `npx vue-tsc --noEmit` — 0 errors.
+15. The browser suite passes at `--workers=1`.
+16. `grep -rn "AD-[0-9]" .` returns nothing outside `LOG.md` and the ledger.
