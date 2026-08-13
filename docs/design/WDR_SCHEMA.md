@@ -341,15 +341,21 @@ Five consequences, each carried by a case above:
 - **Row 19 beats row 20** whenever both can fire (`C`, `E`, `F`), at two different magnitudes.
 - **`abs()` is real.** `F` swaps `Hc` and `Hg` against `C` and gets the same `0.0058`.
 - **A zero row-19 answer falls through to row 20.** `G` sets `Hc = Hg`, so row 19 yields 0 and
-  WinISD wrote `Vd/Sd` instead. The precedence is therefore on the RESULT, not purely
-  structural: row 19 wins only when it produces a non-zero value.
+  WinISD wrote `Vd/Sd` instead. **Row 19 wins only when it produces a non-zero value** — that is
+  the observation, and it holds in all seven cases.
+  ⚠ **The MECHANISM behind it is INFERRED, not observed.** Two readings fit every case run: (a)
+  row 19 DECLINES to fire when `Hc == Hg`; (b) row 19 fires, produces 0, and that 0 is treated as
+  still-unset so row 20 fills. The discriminating case — `Hc = Hg` with **no** `Vd`, where
+  `Xmax = 0` marked `C` means (b) and `N` means (a) — **hangs WinISD**, twice, recorded in
+  `winisd_research/WINE_HARNESS.md` §"Known HANG". Nothing depends on the answer: the guard
+  openisd needs is the same either way.
 - **An entered `Xmax` pins against both.** `D` supplies `0.0093`, disagreeing with both routes,
   and WinISD keeps it and marks it `E` — consistent with "an entered value is never recomputed".
 
-**openisd's engine agrees on the ordering and diverges at `Hc = Hg`.**
-`packages/engine/src/driver.ts:151-152` runs `abs(Hc − Hg)/2` before `:160-161` runs `Vd/Sd`,
-which reproduces `A`, `B`, `C`, `E` and `F`. On `G` it writes `Xmax = 0` and row 20 never fires,
-where WinISD writes `0.0185` — the zero fall-through is not implemented.
+**openisd's engine matches all seven cases.** `packages/engine/src/driver.ts:194-195` runs
+`abs(Hc − Hg)/2` before `:203-204` runs `Vd/Sd`, reproducing `A`, `B`, `C`, `E` and `F`; the
+first route additionally requires `Hc !== Hg`, so on `G` it produces nothing, leaves `Xmax` null,
+and row 20 supplies `0.0185` — the zero fall-through WinISD performs.
 
 **These are not independent groups but one connected GRAPH.** `Dd ↔ Sd ↔ {Vd, Xmax}` is a
 single component, so an edit to `Dd` can propagate as far as `Xmax`, two hops away.

@@ -13,7 +13,7 @@ import { test, expect } from '../fixtures.js';
 
 const PICKED = 'Spec Fixture Driver';
 const EDITOR = '.de-modal';
-const PICKER = '.modal:not(.de-modal)';   // the library dialog, whichever skin drew it
+const PICKER = '.modal:not(.de-modal)';   // the library dialog
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -27,25 +27,34 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-// Open the library and choose the seeded driver — the flow every skin shares.
+/** Open the library — the toolbar's Manage Drivers button, visible on every tab. */
+function openPicker(page: Page) {
+  return page.locator('.tb-btn[title^="Manage Drivers"]').click();
+}
+
 /**
- * Open the full driver editor on the PROJECT's driver. Only the WinISD-style shells carry a
- * real Edit button for it (`OriginalShell.vue` → `state.editDriverInfo`); the Modern skin
- * edits through its inline What-If panel instead. So these tests switch to Original, which
- * is also the app's default outside the test port.
+ * What the project's driver is CALLED, read off the Driver tab's read-only Brand/Model pair.
+ * That pair reflects the PROJECT's own copy, which is exactly what "choosing embeds" has to
+ * change — the library row it came from is left alone.
  */
+async function projectDriverName(page: Page): Promise<string> {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  const ids = page.locator('.driver-id-row input');
+  return `${(await ids.nth(0).inputValue()).trim()} ${(await ids.nth(1).inputValue()).trim()}`.trim();
+}
+
+/** Open the full driver editor on the PROJECT's driver, from the Driver panel's Edit button. */
 async function openProjectDriverEditor(page: Page) {
-  await page.locator('.skin-picker select').selectOption('original');
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
   await expect(page.locator(EDITOR)).toBeVisible();
 }
 
+/** Open the library and choose the seeded driver. */
 async function pickSeededDriver(page: Page) {
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await openPicker(page);
   await page.locator('.my-ditem b', { hasText: PICKED }).click();
-  // The Modern skin previews first, so "Use this driver" is the choice there; the
-  // WinISD-style skins choose on the row click itself.
+  // A row click summarises; "Use" is what chooses.
   const use = page.locator('.use-btn');
   await use.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
   if (await use.isVisible()) await use.click();
@@ -55,7 +64,7 @@ test('choosing a driver embeds it in the project and closes the picker', async (
   // No goto here: beforeEach already loaded the seeded page. A third navigation cancels the
   // second load's in-flight requests — `icon.svg` aborts — and the fixture rightly counts an
   // aborted same-origin request as a network failure.
-  const before = (await page.locator('.nm').first().textContent())?.trim();
+  const before = await projectDriverName(page);
 
   await pickSeededDriver(page);
 
@@ -64,7 +73,7 @@ test('choosing a driver embeds it in the project and closes the picker', async (
   await expect(page.locator(PICKER)).toBeHidden();
 
   // And the project now holds the chosen driver.
-  const after = (await page.locator('.nm').first().textContent())?.trim();
+  const after = await projectDriverName(page);
   expect(after).not.toBe(before);
   expect(after).toContain('Spec');
 });
@@ -124,7 +133,7 @@ test('Escape closes the editor and leaves the project driver as it was', async (
 // which, so the user is never guessing what OK will change.
 
 test('the ✎ on a My Drivers row opens the editor on that saved driver', async ({ page }) => {
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
   await expect(page.locator(EDITOR)).toBeVisible();
@@ -134,9 +143,9 @@ test('the ✎ on a My Drivers row opens the editor on that saved driver', async 
 });
 
 test('editing a saved driver rewrites its entry and leaves the project alone', async ({ page }) => {
-  const beforeProject = (await page.locator('.nm').first().textContent())?.trim();
+  const beforeProject = await projectDriverName(page);
 
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
@@ -150,11 +159,11 @@ test('editing a saved driver rewrites its entry and leaves the project alone', a
   expect(saved.map((d: { model: string }) => d.model)).toEqual(['Fixture Mk2']);
 
   // The project's driver never entered into it.
-  expect((await page.locator('.nm').first().textContent())?.trim()).toBe(beforeProject);
+  expect(await projectDriverName(page)).toBe(beforeProject);
 });
 
 test('the picker shows the new name as soon as the editor closes', async ({ page }) => {
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');
@@ -168,7 +177,7 @@ test('the picker shows the new name as soon as the editor closes', async ({ page
 });
 
 test('Cancel on a saved driver writes nothing', async ({ page }) => {
-  await page.getByRole('button', { name: /Browse \/ Select/ }).click();
+  await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
 
   const modelInput = page.locator('.de-fld', { has: page.locator('label', { hasText: 'Model' }) }).locator('input');

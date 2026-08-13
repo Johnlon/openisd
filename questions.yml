@@ -3540,6 +3540,64 @@ questions:
 
       ARCHITECTURE.md rewritten as the SPEC and declared the supreme authority: conflicting docs are TODOs in the
       plan and never block implementation. Decision-log apparatus (Status/Rationale/AD-n/Superseded) deleted.
+  - at: '2026-08-13'
+    text: |-
+      STEP 2 DONE — @openisd/model extracted.
+
+      MOVED (git mv, history preserved) packages/winisd/src/native/ -> packages/model/src/:
+      openisdRecord.ts, openisdYaml.ts, openisdDerive.ts, openisdDriver.ts. New barrel
+      packages/model/src/index.ts exports all four, so OpenISDDriver is now REACHABLE for the
+      first time (it was never exported from the winisd barrel).
+
+      Tests moved whole to packages/model/test/: openisdRecord/openisdYaml/openisdDerive/
+      openisdDriver.test.ts, with fixtures real_openisd_fs10-20a8.yml and openisd/8fr-8.openisd.yml.
+      No test deleted, none weakened.
+
+      STAYED in @openisd/winisd: src/native/openisdToWdr.ts and test/native/openisdToWdr.test.ts
+      (serialisation), plus fixtures openisd/{w5-1138smf,e150he-44}.openisd.yml. openisdToWdr.ts now
+      imports deriveOpenISDFields/fromYaml/winningReading from '@openisd/model' instead of siblings.
+      Record re-exports deleted from packages/winisd/src/index.ts.
+
+      DEPENDENCIES: @openisd/model = {"@openisd/engine":"*", "yaml":"^2.9.0"}. @openisd/winisd
+      gains "@openisd/model":"*". @openisd/engine still has NO dependencies key.
+
+      NO CYCLE. Every import in packages/model/src is either intra-package, '@openisd/engine', or
+      'yaml' — nothing reaches into @openisd/winisd. Direction is winisd -> model, as specified.
+
+      DISCREPANCY vs ARCHITECTURE.md §2 dependency table (I must not edit that file): it says
+      "@openisd/model depends only on @openisd/engine" and gives yaml to @openisd/winisd. The YAML
+      codec (openisdYaml.ts) is the model's codec and it imports 'yaml', so model genuinely needs
+      yaml. After the move NOTHING in packages/winisd/src imports 'yaml' at all, yet winisd's
+      package.json still declares it because the spec table says "+ yaml". One of those two rows
+      needs a human ruling: either the yaml row moves to @openisd/model, or the codec was meant to
+      stay in the serialiser. Left both declarations in place pending that ruling.
+
+      WIRING: packages/model/{package.json,tsconfig.json} added; vitest.config.ts gains a 'model'
+      project and packages/model/src in coverage include; root package.json gains typecheck:model
+      (chained into `typecheck`) and "@openisd/model":"*"; npm install linked the workspace.
+      Also updated the stale fixture paths in docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md R5 and
+      added packages/model to the AGENTS.md project-shape list.
+
+      GATES:
+      - npm run typecheck: CLEAN on all four — engine, model, winisd, ui (vue-tsc).
+      - npm run lint: 0 errors, 25 warnings (all pre-existing playwright warnings in packages/ui/test).
+      - npx vitest run --project model: 4 files, 18 tests, ALL PASS.
+      - npm run test:unit (full): 53/55 files pass, 728 pass / 343 fail.
+
+      THE 343 FAILURES ARE PRE-EXISTING AND NOT CAUSED BY THIS STEP — evidence, not assertion:
+      (a) packages/winisd/test/winisd-parity.test.ts = 341. It imports only '@openisd/engine' and
+          '../src/driver.js'; `git status --porcelain packages/` shows packages/engine/** and
+          packages/winisd/src/driver.ts are UNMODIFIED, so it runs entirely on committed code.
+          Two distinct causes inside it: 261 failures (9 scenarios x 29) are missing goldens —
+          scenarios.json lists 16 scenarios but only 7 .wpr goldens exist, and `git log --all
+          --diff-filter=D` over fixtures/winisd-parity/goldens/ shows the other 9 were NEVER
+          committed (env-rh-30, env-rh-90, env-t-303, env-p-95000, env-p-105000, solve-from-q-pair,
+          solve-from-mms-cms, gap-geometry, inconsistent-fs). The remaining 77 (7 x 11) are the real
+          numeric divergences (air.c 343.684..., SPLmaxLF, ParState) that plan Steps 3-5 exist to fix
+          — the plan itself says Steps 3-5 "turn the parity suite green".
+      (b) packages/ui/test/ui/architecture.test.ts = 2. Both are .vue files under packages/ui/src/ui
+          importing @openisd/engine / @openisd/winisd — the layering violations Steps 9-11 own. That
+          package is owned by another live agent and I did not touch it.
 - id: QO37
   title: 'Unit-boundary sweep: every field''s file/SI/display/WinISD units compared'
   status: open

@@ -22,11 +22,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { OpenISDDriver } from '../../src/native/openisdDriver.js';
-import { fromYaml } from '../../src/native/openisdYaml.js';
-import type { OpenISDRecord } from '../../src/native/openisdRecord.js';
+import { OpenISDDriver } from '../src/openisdDriver.js';
+import { fromYaml } from '../src/openisdYaml.js';
+import type { OpenISDRecord } from '../src/openisdRecord.js';
 
-const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'openisd');
+const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
 /** A fresh copy of the real GRS 8FR-8 record for every test. */
 function grs8fr8(): OpenISDRecord {

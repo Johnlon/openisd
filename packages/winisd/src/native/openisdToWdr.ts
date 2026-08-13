@@ -19,11 +19,9 @@
  * serving a different caller (a driver authored in the OpenISD UI). Two writers exist
  * because two formats exist, not because one is a variant of the other.
  */
-import { deriveOpenISDFields } from './openisdDerive.js';
-import { fromYaml } from './openisdYaml.js';
-import { winningReading } from './openisdRecord.js';
+import { deriveOpenISDFields, fromYaml, winningReading } from '@openisd/model';
 import { PARSTATE_LEN, POS_TO_WDRKEY } from '../parstate.js';
-import type { OpenISDRecord, SpecSection, SpecEntry } from './openisdRecord.js';
+import type { OpenISDRecord, SpecSection, SpecEntry } from '@openisd/model';
 import type { DriverError, Result } from '@openisd/engine';
 
 /**

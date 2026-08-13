@@ -237,8 +237,8 @@ declaration — never prose, so a comment naming a module cannot fail it.
 | Rule | Enforced by |
 | --- | --- |
 | `@openisd/engine` depends on nothing (zero runtime dependencies) | `packages/engine/package.json` — empty `dependencies` |
-| `@openisd/model` depends only on `@openisd/engine` | `packages/model/package.json` |
-| `@openisd/winisd` depends only on `@openisd/model`, `@openisd/engine` (+ `yaml`) | `packages/winisd/package.json` |
+| `@openisd/model` depends only on `@openisd/engine` (+ `yaml`, for the record codec) | `packages/model/package.json` |
+| `@openisd/winisd` depends only on `@openisd/model` | `packages/winisd/package.json` |
 | Nothing below presentation imports a `.vue` file | the gate |
 | `ui` imports `logic` and nothing below it — no service, no engine, no serialiser | the gate |
 | A component imports no VALUE from `@openisd/*`; an `import type` is fine, it erases | the gate |
