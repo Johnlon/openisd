@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'vitest';
+import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -6,6 +7,14 @@ import { toWpr } from '@openisd/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLE_WPR_PATH = join(here, '..', '..', '..', '..', 'docs', 'winisd', 'sample_project_Epique15_-_pr.wpr');
+
+/** Substring assertions carry the needle in the message, so a failure names the missing line. */
+function contains(haystack: string, needle: string, label: string) {
+  assert.ok(haystack.includes(needle), `${label}: expected to contain ${JSON.stringify(needle)}`);
+}
+function omits(haystack: string, needle: string, label: string) {
+  assert.ok(!haystack.includes(needle), `${label}: expected NOT to contain ${JSON.stringify(needle)}`);
+}
 
 // A minimal driver section as Driver.toWdr() would emit it (header + fields + ParState).
 const DRIVER_SECTION = '[Driver]\nBrand=Dayton Audio\nModel=E150HE-44\nParState=EEEEEE';
@@ -23,6 +32,35 @@ function prProject() {
   });
 }
 
+describe('toWpr — [Box] environment, and the percent/fraction boundary', () => {
+  /* WinISD's `phi` is a FRACTION (0.3 = 30 %) while openisd carries a PERCENTAGE everywhere
+   * else — engine `humidityPct`, store, UI. This writer is the ONE place the two meet, so it
+   * is the one place the ÷100 may appear. `T` and `p` are the same units on both sides.
+   * Evidence for the fraction: winisd_research/CALC_FINDINGS_FOR_REVIEW.md §"WinISD persists
+   * temperature, air pressure and relative humidity". */
+  it('writes the project\'s own T / p / phi, with humidity converted percent → fraction', () => {
+    const s = toWpr({
+      project: {}, driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+      environment: { tempK: 303.15, pressurePa: 90000, humidityPct: 80 },
+    });
+    contains(s, 'T=303.15', 'temperature');
+    contains(s, 'p=90000', 'pressure');
+    contains(s, 'phi=0.8', 'humidity as a fraction');
+    omits(s, 'phi=80', 'humidity must not be written as a percentage');
+  });
+
+  it('defaults to WinISD\'s own ambient when the caller supplies no environment', () => {
+    const s = toWpr({
+      project: {}, driverSection: DRIVER_SECTION,
+      box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
+    });
+    contains(s, 'T=293.15', 'default temperature');
+    contains(s, 'p=101325', 'default pressure');
+    contains(s, 'phi=0.3', 'default humidity');
+  });
+});
+
 describe('toWpr — WinISD .wpr project serializer', () => {
   it('[SimulatorOptions] reflects the design\'s real flags, not a fixed placeholder', () => {
     const on = toWpr({
@@ -30,9 +68,9 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
       simulatorOptions: { vcInductance: true, flatResponse: false, tlPorts: true },
     });
-    expect(on).toContain('VCInd=1');
-    expect(on).toContain('FlatResponse=0');
-    expect(on).toContain('TLPorts=1');
+    contains(on, 'VCInd=1', 'voice-coil inductance flag');
+    contains(on, 'FlatResponse=0', 'flat-response flag');
+    contains(on, 'TLPorts=1', 'transmission-line ports flag');
   });
 
   it('[SimulatorOptions] defaults to WinISD\'s own all-off when the caller supplies nothing', () => {
@@ -40,16 +78,16 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       project: {}, driverSection: DRIVER_SECTION,
       box: { bType: 1, Vr: 0.030, Fr: 35 }, signal: { P: 1 },
     });
-    expect(s).toContain('VCInd=0');
-    expect(s).toContain('FlatResponse=0');
-    expect(s).toContain('TLPorts=0');
+    contains(s, 'VCInd=0', 'default voice-coil inductance flag');
+    contains(s, 'FlatResponse=0', 'default flat-response flag');
+    contains(s, 'TLPorts=0', 'default transmission-line ports flag');
   });
 
   it('emits CRLF line endings and a trailing CRLF', () => {
     const s = prProject();
-    expect(s.includes('\r\n')).toBe(true);
-    expect(s.includes('\n\n')).toBe(false); // no bare-LF blank lines
-    expect(s.endsWith('\r\n')).toBe(true);
+    assert.ok(s.includes('\r\n'), 'must use CRLF line endings');
+    assert.ok(!s.includes('\n\n'), 'must contain no bare-LF blank lines');
+    assert.ok(s.endsWith('\r\n'), 'must end with a trailing CRLF');
   });
 
   it('emits the 11 sections in WinISD order', () => {
@@ -59,38 +97,43 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       '[PlotSettings]', '[SignalSource]', '[Filters]', '[PassiveRadiator]', '[SimulatorOptions]',
     ];
     const positions = order.map(h => s.indexOf(h));
-    expect(positions.every(p => p >= 0)).toBe(true);
-    expect(positions).toEqual([...positions].sort((a, b) => a - b)); // strictly increasing
+    for (const [i, pos] of positions.entries()) {
+      assert.ok(pos >= 0, `section ${order[i]} is missing`);
+    }
+    assert.deepEqual(positions, [...positions].sort((a, b) => a - b),
+      'sections must appear in WinISD order');
   });
 
   it('splices the driver section verbatim under [Driver]', () => {
     const s = prProject().replace(/\r\n/g, '\n');
-    expect(s).toContain('[Driver]\nBrand=Dayton Audio\nModel=E150HE-44\nParState=EEEEEE');
+    contains(s, '[Driver]\nBrand=Dayton Audio\nModel=E150HE-44\nParState=EEEEEE', '[Driver] block');
   });
 
   it('[ProjectInfo] carries creator + YYYYMMDD dates', () => {
     const s = prProject().replace(/\r\n/g, '\n');
-    expect(s).toContain('[ProjectInfo]\nDescription=\nCreator=johnl\nCreateDate=20260621\nModifyDate=20260703');
+    contains(s, '[ProjectInfo]\nDescription=\nCreator=johnl\nCreateDate=20260621\nModifyDate=20260703',
+      '[ProjectInfo] block');
   });
 
   it('[Box] for a passive radiator: BType=4, rear chamber populated, Npr present, port areas zero', () => {
     const s = prProject().replace(/\r\n/g, '\n');
-    expect(s).toMatch(/\[Box\]\nBType=4\n/);
-    expect(s).toContain('Vr=0.00372');
-    expect(s).toContain('Fr=45.4014352480254');
-    expect(s).toContain('Sdfport=0');
-    expect(s).toContain('Sdrport=0');
-    expect(s).toContain('Npr=1');
+    assert.match(s, /\[Box\]\nBType=4\n/);
+    contains(s, 'Vr=0.00372', 'rear chamber volume');
+    contains(s, 'Fr=45.4014352480254', 'rear chamber tuning');
+    contains(s, 'Sdfport=0', 'front port area');
+    contains(s, 'Sdrport=0', 'rear port area');
+    contains(s, 'Npr=1', 'passive radiator count');
   });
 
   it('[PassiveRadiator] populated only for BType=4', () => {
     const s = prProject().replace(/\r\n/g, '\n');
-    expect(s).toContain('[PassiveRadiator]\nVas=0.0048\nQms=3.3\nFs=30\nSd=0.0095\nXmax=19\nMe=0');
+    contains(s, '[PassiveRadiator]\nVas=0.0048\nQms=3.3\nFs=30\nSd=0.0095\nXmax=19\nMe=0',
+      '[PassiveRadiator] block');
   });
 
   it('[SignalSource] carries drive power P and default Rg=0.1', () => {
     const s = prProject().replace(/\r\n/g, '\n');
-    expect(s).toContain('[SignalSource]\nRg=0.1\nP=140');
+    contains(s, '[SignalSource]\nRg=0.1\nP=140', '[SignalSource] block');
   });
 
   it('vented box (BType=1) writes a real rear port and non-zero Sdrport', () => {
@@ -101,15 +144,15 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       ventRear: { dia: 0.05, len: 0.12, endCorrection: 0.732 },
       signal: { P: 40 },
     }).replace(/\r\n/g, '\n');
-    expect(s).toMatch(/\[Box\]\nBType=1\n/);
-    expect(s).toContain('Sdrport=0.00196349540849362');
-    expect(s).toContain('[VentRear]\nNum=1\nShape=1');
-    expect(s).toContain('dia1=0.05');
-    expect(s).toContain('len=0.12');
-    expect(s).toContain('endcorrection=0.732');
-    expect(s).not.toContain('Npr='); // no Npr for non-PR boxes
+    assert.match(s, /\[Box\]\nBType=1\n/);
+    contains(s, 'Sdrport=0.00196349540849362', 'rear port area');
+    contains(s, '[VentRear]\nNum=1\nShape=1', '[VentRear] header');
+    contains(s, 'dia1=0.05', 'vent diameter');
+    contains(s, 'len=0.12', 'vent length');
+    contains(s, 'endcorrection=0.732', 'vent end correction');
+    omits(s, 'Npr=', 'no Npr for non-PR boxes');
     // [PassiveRadiator] present as an empty section header for a vented box
-    expect(s).toMatch(/\[PassiveRadiator\]\n\n\[SimulatorOptions\]/);
+    assert.match(s, /\[PassiveRadiator\]\n\n\[SimulatorOptions\]/);
   });
 
   it('matches the real WinISD sample .wpr on container format + every WinISD-invariant [Box]/[PassiveRadiator] value', () => {
@@ -120,7 +163,7 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // constant/default our serializer must reproduce exactly, plus the real project's own
     // [Box]/[PassiveRadiator] physics values, read straight out of the sample file.
     const sample = readFileSync(SAMPLE_WPR_PATH, 'utf8');
-    expect(sample.includes('\r\n')).toBe(true); // confirms our CRLF assumption against ground truth
+    assert.ok(sample.includes('\r\n'), 'ground truth confirms the CRLF assumption');
 
     const s = toWpr({
       project: { creator: 'johnl', createDate: '20260621', modifyDate: '20260703' },
@@ -134,25 +177,26 @@ describe('toWpr — WinISD .wpr project serializer', () => {
     // Section order — identical corpus-confirmed sequence.
     const order = ['[ProjectInfo]', '[Driver]', '[Box]', '[VentFront]', '[VentRear]', '[VentIntra]',
       '[PlotSettings]', '[SignalSource]', '[Filters]', '[PassiveRadiator]', '[SimulatorOptions]'];
-    for (const h of order) expect(sampleLf).toContain(h); // sanity: sample really has all 11
+    // sanity: sample really has all 11
+    for (const h of order) contains(sampleLf, h, 'WinISD sample section');
 
     // [Box] values read from the real file, reproduced by our serializer for the same inputs.
     for (const line of ['BType=4', 'Vr=0.00372', 'Fr=45.4014352480254', 'Qlr=10', 'Qar=100', 'Qpr=100',
       'T=293.15', 'p=101325', 'phi=0.3', 'Nd=1', 'Isobarik=0', 'Sdfport=0', 'Sdrport=0', 'Npr=1']) {
-      expect(sampleLf).toContain(line); // confirms our default/constant assumption against the real file
-      expect(s).toContain(line); // confirms our output matches it
+      contains(sampleLf, line, 'WinISD sample [Box]');   // our default/constant assumption vs the real file
+      contains(s, line, 'our [Box] output');             // our output matches it
     }
 
     // [PassiveRadiator] — real project's own T/S values, byte-identical in our output.
     for (const line of ['Vas=0.0048', 'Qms=3.3', 'Fs=30', 'Sd=0.0095', 'Xmax=19', 'Me=0']) {
-      expect(sampleLf).toContain(line);
-      expect(s).toContain(line);
+      contains(sampleLf, line, 'WinISD sample [PassiveRadiator]');
+      contains(s, line, 'our [PassiveRadiator] output');
     }
 
     // [VentFront]/[VentRear] boilerplate defaults for a PR project — real file vs ours.
     for (const line of ['Shape=1', 'dia1=0.102', 'dia2=0.102', 'endcorrection=0.732', 'crosscalc=1']) {
-      expect(sampleLf).toContain(line);
-      expect(s).toContain(line);
+      contains(sampleLf, line, 'WinISD sample vent boilerplate');
+      contains(s, line, 'our vent boilerplate output');
     }
   });
 
@@ -163,8 +207,8 @@ describe('toWpr — WinISD .wpr project serializer', () => {
       box: { bType: 0, Vr: 0.02, Fr: 58 },
       signal: { P: 40 },
     }).replace(/\r\n/g, '\n');
-    expect(s).toMatch(/\[Box\]\nBType=0\n/);
-    expect(s).toContain('Sdfport=0');
-    expect(s).toContain('Sdrport=0');
+    assert.match(s, /\[Box\]\nBType=0\n/);
+    contains(s, 'Sdfport=0', 'front port area');
+    contains(s, 'Sdrport=0', 'rear port area');
   });
 });

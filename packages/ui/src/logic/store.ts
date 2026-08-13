@@ -10,6 +10,8 @@ import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve, ventSp,
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, type VentField, type VentEntryField,
+  ventAchievedFb as ventAchievedFbOn, ventTargetUnreachable as ventUnreachableOn,
+  ventMaxReachableFb as ventMaxReachableFbOn,
 } from './useVentGroup.js';
 import {
   solvePrGroup, prTargetUnreachable as prUnreachableOn,
@@ -48,7 +50,11 @@ const P_DEFAULTS: UiParams = {
   // existing design changes nothing. NOTE rgAtDriverSide defaults true where WinISD's own
   // checkbox ships unchecked — see PLAN_ADVANCED_SIM_OPTIONS.md Q3.
   rgAtDriverSide: false, tlPortModel: false, forceFlatResponse: false, splXmaxLimited: false,
-  tempK: 293.15,
+  // Environment — PER PROJECT, as in WinISD's .wpr [Box] section (T / p / phi). ρ and c are
+  // derived from all three (engine air.ts). `ignoreHumidityAndPressure` opts in to WinISD's
+  // behaviour of storing them and never reading them; openisd's default is the physics
+  // (ledger QO7). Humidity is a PERCENT here; the .wpr's fraction is converted in the writer.
+  tempK: 293.15, humidityPct: 30, pressurePa: 101325, ignoreHumidityAndPressure: false,
 };
 
 // Persistence has a SINGLE source of truth: openisd.state (utils/persist.js),
@@ -103,7 +109,7 @@ export const state: AppState = getOrInit('state', () => reactive({
 //                   point, L → Fb → L need not land on the identical double, so an
 //                   unguarded watch on all four can oscillate instead of settling.
 //   ventSolveSuspended() — a restore assigns a whole persisted P and must be adopted
-//                   verbatim (STATE_MODEL.md rule 3, "Cancel means byte-identical").
+//                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
 let _solvingVent = false;
 watch(
   () => [
@@ -136,6 +142,18 @@ export function clearVentField(field: VentField): void {
 /** E / C / N for a vent-group field, in the driver editor's own vocabulary. */
 export function ventFieldState(field: VentField): 'E' | 'C' | 'N' {
   return ventFieldStateOn(state.P, field, state.box);
+}
+/** The tuning the current vent length actually delivers on this design. */
+export function ventAchievedFb(): number | null {
+  return ventAchievedFbOn(state.P, state.box);
+}
+/** True when the entered target tuning is not reachable with this volume and port area. */
+export function ventTargetUnreachable(): boolean {
+  return ventUnreachableOn(state.P, state.box);
+}
+/** The highest tuning any vent of this area can deliver in this volume — the L = 0 tuning. */
+export function ventMaxReachableFb(): number | null {
+  return ventMaxReachableFbOn(state.P, state.box);
 }
 
 // ---- PR tuning group: added mass ↔ system tuning -----------------------------------------
@@ -212,7 +230,7 @@ function setModel(m: DriverModel): void {
     ctx._unsub = _unsub;
   }
 }
-// ---- Library baseline (STATE_MODEL.md: what "Reset" goes back to) ------------------
+// ---- Library baseline (docs/design/STATE_MODEL.md: what "Reset" goes back to) ------------------
 // The driver AS LOADED, before the user's edits — one record, in the model's own shape,
 // written only by the load paths below and by an explicit save. Components read it; none
 // of them maintains their own copy.
@@ -256,12 +274,12 @@ export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undef
   else setModel(DriverModel.fromRaw((d ?? {}) as DriverRaw));
   _baseline.value = getDriverModel().toJSON();
 }
-// ---- What-if overlay (STATE_MODEL.md, Increment 2) ---------------------------------
+// ---- What-if overlay (docs/design/STATE_MODEL.md, Increment 2) ---------------------------------
 // A driver-only what-if is a live COPY of the committed model. While active, the charts,
 // StatBar, and the open editor read the copy (via the effective accessors below), so the
 // preview updates live; but the committed `_model` — and therefore persistence and the
 // ground fingerprint — is untouched, so scrubbing a what-if never dirties the project. A
-// what-if can NEVER commit (STATE_MODEL.md rule 4) — cancelDriverWhatIf is the only way a
+// what-if can NEVER commit (docs/design/STATE_MODEL.md rule 4) — cancelDriverWhatIf is the only way a
 // what-if session ends. An Entered field that no longer reconciles with a freshly-typed
 // sibling (e.g. Qts vs. new Qes/Qms) is surfaced by `driverConsistencyIssues` (a DQ mark) —
 // it is never silently cleared or overridden (DRIVER_RECORD_MODEL.md §4, QP18 ruling: "which
@@ -290,7 +308,7 @@ export function startDriverWhatIf(): void {
   }
 }
 /** Cancel: discard the what-if overlay; the committed driver is unchanged. A what-if can
- *  never commit (STATE_MODEL.md rule 4 — it is exploration only, not real driver data) — this
+ *  never commit (docs/design/STATE_MODEL.md rule 4 — it is exploration only, not real driver data) — this
  *  is the ONLY way a what-if session ends. */
 export function cancelDriverWhatIf(): void {
   if (_whatIfUnsub) { _whatIfUnsub(); _whatIfUnsub = null; }
@@ -302,7 +320,7 @@ export function cancelDriverWhatIf(): void {
 }
 
 /**
- * Open the driver picker — the ONE governed entry point (STATE_MODEL.md strict layer
+ * Open the driver picker — the ONE governed entry point (docs/design/STATE_MODEL.md strict layer
  * encapsulation). Auto-cancels any active what-if first: an uncommitted Tune preview must
  * never be left dangling once the user has moved on to picking a different driver. Every
  * "Select Driver" / "Browse…" trigger across every skin calls this, never a raw
@@ -398,7 +416,7 @@ export const syncedP = computed<SyncedParams>(() => {
   // Deep-copy the filters so this computed depends on each filter's fields (fc/Q/gain)
   // AND the array length — the shallow `{ ...state.P }` above only captures the array
   // reference, so editing or adding/removing a filter would not recompute syncedP and
-  // the sweep would never re-run (CLASSIC-SKIN-review.md #1).
+  // the sweep would never re-run.
   p.filters = state.P.filters.map(f => ({ ...f }));
   if (state.box === 'vented' || state.box === 'bandpass4') {
     if (state.P.ventShape === 'slotted') {
@@ -480,10 +498,10 @@ export const paramIssues = computed<DriverError[]>(() => validateParams(state.bo
 export const allIssues = computed<DriverError[]>(
   () => [...driverErrors.value, ...paramIssues.value, ...curveIssues.value]);
 
-// ---- Project state: ground ↔ modified layer (STATE_MODEL.md) ----------------------
+// ---- Project state: ground ↔ modified layer (docs/design/STATE_MODEL.md) ----------------------
 // A project fingerprint captures the whole design (box + params + driver). "Ground" is
 // the last loaded/saved fingerprint; the project is "modified" when the live design
-// differs from it. This is the ground↔modified layer of STATE_MODEL.md; the what-if/edit
+// differs from it. This is the ground↔modified layer of docs/design/STATE_MODEL.md; the what-if/edit
 // priorityState proxy layers are built on top of it separately. Additive — components keep
 // reading state.P/state.box directly; this only observes and can restore them.
 function projectFingerprint(): string {
@@ -502,7 +520,7 @@ export function resetProjectToGround(): void {
   state.box = g.box;
   // Adopt the stored params verbatim. The ground snapshot already holds BOTH vent-group
   // members and the entered set, so there is nothing to re-solve — and re-solving is exactly
-  // what breaks "Cancel means byte-identical" (STATE_MODEL.md rule 3): the solver would
+  // what breaks "Cancel means byte-identical" (docs/design/STATE_MODEL.md rule 3): the solver would
   // reproduce the calculated member from a value that was rounded on its way through JSON
   // and land on a different double.
   suspendVentSolve(() => Object.assign(state.P, g.P));
@@ -619,7 +637,7 @@ export function formatInUnit(
 /**
  * WinISD's "Simulate voice coil inductance" (Advanced pane, `.wpr` VCInd) — an alias over
  * `circuitModel`, NOT a second stored flag. Le in the acoustic circuit is exactly what the
- * WinISD/gyrator circuit-model switch already selects (WINISD.md §9), so the Advanced
+ * WinISD/gyrator circuit-model switch already selects (docs/research/WINISD_PARITY.md §9), so the Advanced
  * checkbox and SignalPanel's circuit-model select are two wordings of one setting; storing
  * it twice is how the two would drift apart.
  *

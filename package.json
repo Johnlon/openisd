@@ -20,10 +20,10 @@
     "prebuild": "node scripts/bundle-drivers.mjs && npm run lint",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "npm run test:unit && bash scripts/test-browser.sh",
+    "test": "bash scripts/test.sh",
     "test:unit": "vitest run",
-    "test:crosscheck": "bash scripts/test-browser.sh packages/ui/test/micka-crosscheck.browser.spec.ts --timeout=60000",
-    "test:visual": "bash scripts/test-browser.sh packages/ui/test/visual.browser.spec.ts",
+    "test:crosscheck": "OPENISD_EXTERNAL=1 bash scripts/test-browser.sh packages/ui/test/logic/micka-crosscheck.browser.spec.ts --timeout=60000",
+    "test:visual": "bash scripts/test-browser.sh packages/ui/test/ui/visual.browser.spec.ts",
     "gen-scenarios": "vite-node packages/ui/test/gen-scenarios.ts",
     "gen-golden": "vite-node packages/engine/test/gen-golden.ts"
   },

@@ -27,7 +27,7 @@ import {
   isDriverWhatIfActive, whatIfJSON, restoreDriverWhatIf,
   formatInUnit as fmtU,
   setDriverFromRaw,
-  enterVentField, clearVentField, ventFieldState,
+  enterVentField, clearVentField, ventFieldState, ventMaxReachableFb, ventTargetUnreachable,
   newProject,
 } from '../../../logic/store.js';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -37,7 +37,7 @@ import { C,
          prVas as calcPrVas, prFs as calcPrFs, prFsWithMass as calcPrFsMass, prQms as calcPrQms,
          prTuning,
          sealedResonance, LossMode, sourceLoadedQts,
-         driveVoltage, soundVelocity, airDensity } from '@openisd/engine';
+         driveVoltage, airFor } from '@openisd/engine';
 import { TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
 import { DPAL } from '../../presets.js';
@@ -195,6 +195,26 @@ const ventHModel = computed<number>({
 // E / C / N for the two members whose roles can swap.
 const fbState    = computed(() => ventFieldState('Fb'));
 const ventLState = computed(() => ventFieldState('ventL'));
+// What the port solver can actually deliver. `ventLength()` returns the raw signed root, so a
+// target above the L = 0 ceiling comes back as a NEGATIVE length — invisible while the LENGTH
+// was the input, user-facing now the TARGET is (GAPS.md §A1). The tooltip on the target field
+// promises the port is designed to it; when it cannot be, the pane says so and names the
+// highest tuning this volume and vent area can actually reach.
+const fbUnreachable = computed(() => ventTargetUnreachable());
+const fbCeiling     = computed(() => ventMaxReachableFb());
+/** Explains the miss in the user's own terms, on both the Box tab and the Vents tab. */
+const fbUnreachableMsg = computed(() =>
+  `Target not reachable: no vent of this diameter in this volume tunes above `
+  + `${fbCeiling.value != null ? fbCeiling.value.toFixed(2) : '—'} Hz — the solved length is `
+  + `negative, which is not a port you can build. Use a smaller vent diameter, or a larger `
+  + `volume, to reach ${state.P.Fb.toFixed(2)} Hz.`);
+/** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
+const frontChamberTuningLabel = computed(() =>
+  DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
+/** The tooltip the QO11 ruling requires: Fb is the target the port solver designs to. */
+const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a readout: the '
+  + 'port dimensions are calculated from it — the vent length on the enclosure tab is solved '
+  + 'to deliver this tuning, and moves whenever you change the vent diameter or the volume.';
 // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
 // c/(2·L), a standing wave in the vent, DISTINCT from the box Helmholtz tuning ventFb. Uses the
 // PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly: its 86.87 Hz =
@@ -702,16 +722,25 @@ const driveV = computed<number>({
   set: (v) => { state.P.Pin = (v * v) / (driver.value?.Re || 8); },
 });
 
-// ---- Advanced tab: environment (not modelled by the engine yet — honest static
-// defaults + one live derivation). The checkbox column is the shared AdvancedOptions
-// component, which drives the real sweep. -------------------------------------------
+// ---- Advanced tab: environment. All three inputs drive the real sweep: ρ and c come from
+// temperature, relative humidity and static pressure (engine air.ts), and thence the SPL
+// constant K. The "Ignore humidity and air pressure (as WinISD does)" checkbox in the shared
+// AdvancedOptions column opts back out of the last two. ------------------------------
 // Seeded from the app-level Options → General → Environment defaults (state.ui.envDefaults),
 // not a hardcoded literal — editing this project's Advanced pane doesn't touch that default.
+// The environment is PER PROJECT (WinISD keeps T/p/phi in the .wpr [Box] section), so each
+// input writes through to state.P.
 const advTemp = ref(state.ui.envDefaults.tempK);
 watch(advTemp, (v) => { state.P.tempK = v; }, { immediate: true });
 const advHumidity = ref(state.ui.envDefaults.humidityPct);
+watch(advHumidity, (v) => { state.P.humidityPct = v; }, { immediate: true });
 const advPressure = ref(state.ui.envDefaults.pressurePa);
-const advSoundVelocity = computed(() => soundVelocity(advTemp.value));
+watch(advPressure, (v) => { state.P.pressurePa = v; }, { immediate: true });
+/** The air the sweep is actually running in — one call, both readouts. */
+const advAir = computed(() => airFor({
+  tempK: advTemp.value, humidityPct: advHumidity.value, pressurePa: advPressure.value,
+  ignoreHumidityAndPressure: state.P.ignoreHumidityAndPressure,
+}));
 
 // ---- Placement (Signal path multipliers already in the store) ------------------
 // Standard vs Iso-Barik: only Standard is modelled; the radio is shown for parity.
@@ -1008,15 +1037,16 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" class="field entered"><label>Tuning freq (Fb)</label><NumInput v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div v-else class="field"><label>Tuning freq (Fb)</label><input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
-                  <div class="field"><label>Fsc</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
+                  <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
                   <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
                 </template>
-                <div v-else class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                <div v-else class="field"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
+              <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>
 
@@ -1045,17 +1075,18 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vf" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
-                  <div v-if="fbState === 'E'" class="field entered">
-                    <label>{{ selectedBox === 'bandpass4' || selectedBox === 'bandpass6' || selectedBox === 'abc' ? 'Tuning freq (Ffc)' : 'Tuning freq' }}</label>
-                    <NumInput v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                  <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
+                    <label>{{ frontChamberTuningLabel }}</label>
+                    <NumInput id="og-ffc-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
-                  <div v-else class="field">
-                    <label>{{ selectedBox === 'bandpass4' || selectedBox === 'bandpass6' || selectedBox === 'abc' ? 'Tuning freq (Ffc)' : 'Tuning freq' }}</label>
+                  <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
+                    <label>{{ frontChamberTuningLabel }}</label>
                     <input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
+                <p v-if="fbUnreachable" id="og-ffc-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               </div>
             </template>
 
@@ -1190,6 +1221,23 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <div class="two-col">
               <!-- Column 1: Config -->
               <div class="vent-config-col">
+                <!-- The target tuning is the port solver's INPUT, so it belongs here as well as
+                     on the Box tab — you are sizing a vent, and this is the number it is sized
+                     to (human ruling QO11). WinISD shows it only on its Box screen; carrying it
+                     here is deliberately ours. Same `state.P.Fb`, same E/C state, same setter as
+                     the Box tab: one stored value with two places to see and edit it. -->
+                <div class="field-row">
+                  <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
+                    <label>Target Tuning Freq</label>
+                    <NumInput id="og-vent-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                  <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
+                    <label>Target Tuning Freq</label>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                </div>
                 <div class="field-row">
                   <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
                 </div>
@@ -1248,7 +1296,10 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                   </div>
                   <div v-else class="field">
                     <label>Vent length</label>
-                    <input class="calculated greyed" :value="fmtU(state.P.ventL, 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
+                    <!-- Shown exactly as solved, negative included: a target above the L = 0
+                         ceiling has no buildable port, and the honest readout says so instead
+                         of a floored length that tunes somewhere else. -->
+                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: state.P.ventL <= 0 }" :value="fmtU(state.P.ventL, 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -1264,7 +1315,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 </div>
               </div>
             </div>
-            <p class="hint" style="margin-top: 8px;">The vent length is calculated to meet the target tuning frequency ({{ selectedBox === 'bandpass4' ? 'Ffc' : 'Fb' }}) entered on the Box tab.</p>
+            <p class="hint" style="margin-top: 8px;">The vent length is calculated to meet the target tuning frequency ({{ selectedBox === 'bandpass4' ? 'Ffc' : 'Fb' }}) above — the same value the Box tab shows, editable in either place.</p>
+            <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
           </div>
 
           <!-- passive radiator -->
@@ -1286,7 +1338,13 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                   <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(prQms, fieldDp('prQms'))" readonly></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>Fs</label><input class="calculated greyed" :value="fmtU(prFs, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
+                       WinISD labels this "Fs" on its PR screen (docs/winisd/view_3_passive_
+                       radiator.png: 30.00 Hz), which collides with the DRIVER's Fs; `Fpr` is
+                       this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
+                       (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
+                       compliance in series with the PR's own — two quantities, two readouts. -->
+                  <div class="field"><label>Fpr</label><input id="og-pr-fs" class="calculated greyed" :value="fmtU(prFs, 'prFs', 'freq', 'Hz', fieldDp('prFs'))" readonly><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                   <div class="field entered"><label>Sd</label><NumInput v-model="state.P.prSd" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
@@ -1296,8 +1354,8 @@ watch(() => state.ui.originalEditorOpen, (open) => {
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput v-model="state.P.prNum" field="prNum" :scale="1" :precision="fieldDp('prNum')" /></div></div>
-                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
-                <div class="field-row"><div class="field"><label>Fs (with added mass):</label><input class="calculated greyed" :value="fmtU(prFsMass, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Added mass to cone:</label><NumInput id="og-pr-madd" v-model="state.P.prMadd" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div></div>
+                <div class="field-row"><div class="field"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -1308,7 +1366,11 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <div class="section-header">Rear chamber</div>
             <div class="field-row">
               <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-              <div class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(prFh, 'prFh', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="prFh" group="freq" base="Hz" unit-class="unit" /></div>
+              <!-- A closed box has no passive radiator, so the PR system tuning is not a
+                   quantity it HAS. Its resonance is the sealed Fsc the Box tab already
+                   reports, from the same `boxResonance` — GAPS.md §A3 is exactly this class
+                   of defect: a real number from another model, under a foreign label. -->
+              <div class="field"><label>Fsc</label><input id="og-sealed-enclosure-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit" /></div>
             </div>
             <p class="hint">Closed enclosure — no vents or passive radiator configured.</p>
           </div>
@@ -1368,13 +1430,13 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             </div>
             <p class="env-arrow">&#8594;</p>
             <div style="--label-w:96px;">
-              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advSoundVelocity, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="airDensity(advTemp).toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
+              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
             </div>
             <div class="checkbox-col">
               <AdvancedOptions />
             </div>
-            <p class="hint side-hint">The temperature above scales sound velocity and air density in the simulation.</p>
+            <p class="hint side-hint">Temperature, humidity and pressure set the sound velocity and air density the simulation runs on. WinISD stores all three and uses none — tick the box to match it.</p>
           </div>
         </section>
 
@@ -1731,6 +1793,9 @@ watch(() => state.ui.originalEditorOpen, (open) => {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
+/* A solved length of zero or less is not a port that can be built — it reads as the failure it
+   is, matching the red unreachable notice below the pane rather than looking like a dimension. */
+.field input.calculated.impossible { color:#a11; border-color:#a11; }
 .field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
 .field .unit { color:#555; min-width:3.5em; }
 textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }

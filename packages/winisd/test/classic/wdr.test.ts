@@ -49,6 +49,22 @@ describe('toWdr — missing optional fields use fallback branches', () => {
     assert.match(wdr, /^Vd=0$/m, 'Vd must be 0 when Xmax is absent');
     assert.match(wdr, /^Xmax=$/m, 'Xmax= must be empty string when Xmax is absent');
   });
+
+  it('defaults an unspecified voice-coil wiring to parallel (VCCon=1), matching WinISD', () => {
+    // VCCon is 1=parallel / 2=series: Driver.fromWdr backfills '1' for a file that omits it,
+    // openisdToWdr declares the same default, and WinISD's Connection dropdown reads
+    // "Parallel" on a blank driver (docs/winisd/edit_driver_pg2_parameters.png). Writing 2
+    // here made a driver the editor displays as Parallel export as Series.
+    const wdr = toWdr(BARE_DRIVER);
+    assert.match(wdr, /^VCCon=1$/m, 'an unspecified connection must export as parallel');
+    assert.match(wdr, /^numVC=1$/m, 'an unspecified coil count must export as 1');
+  });
+
+  it('carries an explicitly wired series connection through unchanged', () => {
+    const wdr = toWdr({ ...BARE_DRIVER, numVC: 2, VCCon: 2 });
+    assert.match(wdr, /^VCCon=2$/m);
+    assert.match(wdr, /^numVC=2$/m);
+  });
 });
 
 // ── parstate — WinISD ParState: E (entered) vs C (computed) vs N (absent) ─────

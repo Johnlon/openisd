@@ -18,7 +18,9 @@ export function toWdr(raw: DriverRaw): string {
   // matching this file's needs directly) — no local recomputation. Vd defaults to 0
   // rather than being left absent: WinISD writes Vd=0 when Xmax is unset, not a blank.
   const Vd = d.Vd ?? 0;
-  const g   = (x: number | null | undefined, p = 6): string | number => (x == null || !isFinite(x)) ? '' : (+x.toPrecision(p));
+  // Full precision: `String(x)` is the shortest text that reparses to the identical
+  // double, so load → save is lossless. A genuine WinISD save carries ~15 s.f.
+  const g   = (x: number | null | undefined): string => (x == null || !isFinite(x)) ? '' : String(x);
   const brand = raw.brand || '', model = raw.model || '';
   const ParState = parstate(raw, d);
   const L = [
@@ -29,11 +31,20 @@ export function toWdr(raw: DriverRaw): string {
     'BL=' + g(d.Bl), 'Xmax=' + g(d.Xmax),
     'Cms=' + g(d.Cms), 'Qms=' + g(d.Qms), 'Qes=' + g(d.Qes), 'Rms=' + g(d.Rms),
     'Mms=' + g(d.Mms), 'Sd=' + g(d.Sd), 'Vas=' + g(d.Vas),
-    'Vd=' + g(Vd), 'Dd=' + g(d.Dd), 'numVC=' + (raw.numVC || 1), 'VCCon=' + (raw.VCCon || 2),
-    'Xlim=' + g(raw.Xlim), 'hvc=' + g(raw.hvc), 'hag=' + g(raw.hag), 'hc=' + g(raw.hc),
-    'tc=' + g(raw.tc), 'Rth=' + g(raw.Rth), 'Cth=' + g(raw.Cth), 'loss=' + g(raw.loss),
-    'Thick=' + g(raw.thick), 'Depth=' + g(raw.depth), 'MagnetDepth=' + g(raw.magnetDepth),
-    'fLe=' + g(raw.fLe), 'Le2=' + g(raw.Le2),
+    // VCCon is 1=parallel / 2=series. An unspecified wiring is PARALLEL — the value
+    // Driver.fromWdr backfills, the value openisdToWdr writes, and what WinISD's Connection
+    // dropdown shows on a blank driver.
+    'Vd=' + g(Vd), 'Dd=' + g(d.Dd), 'numVC=' + (raw.numVC || 1), 'VCCon=' + (raw.VCCon || 1),
+    // Carried, non-simulated fields. Every key is WinISD's own spelling (probe-confirmed in
+    // `drivers/sample/winisd/`) — a value on any other key is one WinISD never reads.
+    // `Xlim` is the exception WinISD forces: it lives in ParState slot 10 with no key of its
+    // own (`s-xlim.wdr`), so this line exists purely for openisd's own round-trip.
+    'Xlim=' + g(raw.Xlim), 'Hc=' + g(raw.Hc), 'Hg=' + g(raw.Hg),
+    'alfaVC=' + g(raw.tc), 'Rt=' + g(raw.Rth), 'Ct=' + g(raw.Cth), 'Gloss=' + g(raw.loss),
+    'Thick=' + g(raw.thick), 'Depth=' + g(raw.depth), 'MagDepth=' + g(raw.magnetDepth),
+    'Magnet=' + g(raw.magnet), 'Basket=' + g(raw.basket), 'Outer=' + g(raw.outer),
+    'Vcd=' + g(raw.VCd), 'DVol=' + g(raw.basketDisplacement),
+    'fLe=' + g(raw.fLe), 'KLe=' + g(raw.Le2),
     'ParState=' + ParState, '',
   ];
   return L.join('\n');

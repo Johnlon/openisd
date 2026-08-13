@@ -27,6 +27,7 @@
  */
 
 
+import { airFor } from './air.js';
 import { hotRe } from './driver.js';
 import { cx, cAdd, cSub, cMul, cDiv, cInv, cScale, cPar, cTanh } from './complex.js';
 import type { Complex, Driver, BoxType, SweepParams, Solution } from './types.js';
@@ -61,9 +62,7 @@ export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): nu
  */
 export function portImpedance(w: number, P: SweepParams): Complex {
   const Sp = P.Sp!, Leff = P.Leff!;
-  const tempK = P.tempK ?? 293.15;
-  const c     = 343.68 * Math.sqrt(tempK / 293.15);
-  const rho   = 1.20095 * (293.15 / tempK);
+  const { rho, c } = airFor(P);
 
   const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
   if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));
@@ -94,9 +93,7 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   const eg     = P.eg;
   const Sdt    = drv.Sd * n;
 
-  const tempK = P.tempK ?? 293.15;
-  const c     = 343.68 * Math.sqrt(tempK / 293.15);
-  const rho   = 1.20095 * (293.15 / tempK);
+  const { rho, c } = airFor(P);
 
   // Voice coil impedance — two variants matching WinISD's model split:
   //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)
@@ -104,7 +101,7 @@ export function solve(f: number, drv: Driver, box: BoxType, P: SweepParams): Sol
   // Source: research/winisd/help/aboutequivalentcircuits.html
   //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  // Thermal power compression (WINISD.md §12c): the coil's DC resistance rises with temperature.
+  // Thermal power compression (docs/research/WINISD_PARITY.md): the coil's DC resistance rises with temperature.
   // vcTempRise=0/absent → hotRe returns drv.Re exactly, so the circuit is unchanged (golden-safe).
   // Le is optional on a Driver (many datasheets omit it). Absent means "no inductor
   // specified", i.e. 0 H — NOT an unknown that should poison Zel with NaN.

@@ -1,5 +1,5 @@
 /**
- * Voice-coil thermal power compression (WinISD parity, WINISD.md §12c).
+ * Voice-coil thermal power compression (WinISD parity, docs/research/WINISD_PARITY.md).
  * As the coil heats, Re rises: Re_hot = Re·(1 + alfaVC·ΔT). The same drive voltage then
  * pushes less current → SPL drops and the impedance floor rises. ΔT=0 (or alfaVC=0) must be
  * an exact no-op so existing goldens stay byte-identical.

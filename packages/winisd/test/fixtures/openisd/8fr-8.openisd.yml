@@ -1,0 +1,256 @@
+uuid:
+  value: 4e91f5df-4b64-4ba4-9628-cb064afee1c6
+  definition: stable record identity, minted by the pipeline at first emit and never
+    re-derived
+quality:
+  disposition:
+    value: ok
+    definition: 'the record''s standing — one of: ok, no-ts-published, incomplete'
+    detail: nothing unusual about this one — the datasheet was found, the specs came
+      out cleanly, and every output file was generated
+  rating: M
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: GRS
+  origin: manufacturer_product_page
+  definition: the company that makes the driver; also decides the record's folder
+brand:
+  value: GRS
+  origin: manufacturer_product_page
+  definition: the selling brand; equals the manufacturer except for house brands
+model:
+  value: 8FR-8
+  origin: manufacturer_product_page
+  definition: the vendor's exact designation including the impedance variant — unique
+    within a brand, and the name shown in the driver browser
+sku:
+  value: 8fr-8
+  definition: the canonical identity code — the vendor designation slugified, impedance
+    variant included; names the record directory (guard-enforced equal) and is unique
+    within the manufacturer
+  grounds:
+  - origin: manufacturer_product_page
+    reading: 8FR-8
+    definition: the printed designation the code was derived from
+  - origin: manufacturer_product_page
+    reading: https://www.parts-express.com/GRS-8FR-8-Full-Range-8-Speaker-Pioneer-Type-B20FU20-51FW-292-430
+    definition: the source URL that corroborated the derivation
+driver_type:
+  value: full-range
+  origin: manufacturer_product_page
+  definition: what kind of driver this is (closed vocabulary); decides which specs
+    section applies
+data_sources:
+  value:
+    manufacturer_product_page: https://www.parts-express.com/GRS-8FR-8-Full-Range-8-Speaker-Pioneer-Type-B20FU20-51FW-292-430
+  definition: the record-wide provenance index — every source role used anywhere in
+    this file resolves to a URL here
+authoritative:
+  value: manufacturer_product_page
+  definition: which indexed source wins the datasheet waterfall for this record —
+    the document the specs are extracted from; other sources only corroborate
+product_image:
+  value: https://www.parts-express.com/SSP Applications/PartsExpress@SuiteCentric/SCA
+    2019.1/img/292-430_HR_0.default.jpg
+  origin: manufacturer_product_page
+  definition: the manufacturer's product photo for this driver
+description:
+  value: GRS 8FR-8 Full-Range 8" Replacement Speaker Pioneer Type B20FU20-51FW
+  origin: manufacturer_product_page
+  definition: the manufacturer's own product blurb, page chrome stripped
+specs:
+  woofer:
+    Fs:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '45.0'
+          read_value: 45.0
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: free-air resonance frequency (Hz)
+    Re:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '7.3'
+          read_value: 7.3
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: DC voice coil resistance (Ω)
+    Le:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '1.2'
+          read_value: 0.0012
+          read_precision: 5.0e-05
+      dq_status: UNMATCHED
+      definition: voice-coil inductance (H)
+    Znom:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '8.0'
+          read_value: 8.0
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: nominal impedance (Ω)
+    Qts:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '0.56'
+          read_value: 0.56
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: total Q factor at Fs (dimensionless)
+    Qes:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '0.63'
+          read_value: 0.63
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: electrical Q factor at Fs (dimensionless)
+    Qms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '4.83'
+          read_value: 4.83
+          read_precision: 0.005
+      dq_status: UNMATCHED
+      definition: mechanical Q factor at Fs (dimensionless)
+    Vas:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '1.31'
+          read_value: 0.037095008
+          read_precision: 0.000141584
+      dq_status: UNMATCHED
+      definition: equivalent compliance volume — stored in m³, not litres
+    Sd:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '215.0'
+          read_value: 0.0215
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: effective piston area — stored in m², not cm²
+    BL:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '8.5'
+          read_value: 8.5
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: motor force factor (T·m)
+    Mms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '22.2'
+          read_value: 0.0222
+          read_precision: 5.0e-05
+      dq_status: UNMATCHED
+      definition: moving mass including air load — stored in kg, not g
+    Cms:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '0.56'
+          read_value: 0.00056
+          read_precision: 5.0e-06
+      dq_status: UNMATCHED
+      definition: suspension compliance (m/N)
+    Xmax:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '3.0'
+          read_value: 0.003
+          read_precision: 5.0e-05
+      dq_status: UNMATCHED
+      definition: one-way linear excursion limit — stored in m, not mm
+    SPL:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '90.0'
+          read_value: 90.0
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: sensitivity (dB)
+    Pe:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '60.0'
+          read_value: 60.0
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: rated thermal power handling (W, IEC 268-5)
+    voice_coil_dia_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '1.5'
+          read_value: 38.1
+          read_precision: 1.27
+      dq_status: UNMATCHED
+      definition: voice coil diameter (mm)
+    freq_low_hz:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '39'
+          read_value: 39.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: usable/recommended frequency range, low end (Hz)
+    freq_high_hz:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '16'
+          read_value: 16.0
+          read_precision: 0.5
+      dq_status: UNMATCHED
+      definition: usable/recommended frequency range, high end (Hz)
+    power_peak_W:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '120.0'
+          read_value: 120.0
+          read_precision: 0.05
+      dq_status: UNMATCHED
+      definition: short-term/peak power handling (W)
+    depth_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '3.875'
+          read_value: 98.425
+          read_precision: 0.0127
+      dq_status: UNMATCHED
+      definition: overall driver depth (mm)
+    outer_dia_mm:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          actual_reading: '8'
+          read_value: 203.2
+          read_precision: 12.7
+      dq_status: UNMATCHED
+      definition: outer flange diameter — space needed on the baffle (mm)

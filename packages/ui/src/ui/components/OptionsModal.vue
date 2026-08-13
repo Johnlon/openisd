@@ -10,14 +10,14 @@
 //                      shell's Advanced-pane refs on mount (OriginalShell.vue/ClassicShell.vue),
 //                      replacing what used to be a hardcoded literal (293.15 K / 101325 Pa /
 //                      30%) — an already-open project's Advanced-pane values are never touched
-//                      by editing this. (WINISD.md/BACKLOG.md: whether real WinISD's Options
+//                      by editing this. (docs/research/WINISD_PARITY.md / BACKLOG.md: whether real WinISD's Options
 //                      dialog seeds a brand-new WinISD *project's* Advanced defaults the same
 //                      way is inferred from matching screenshot values, not directly observed —
 //                      ⚠ unverified. This app-level-default behaviour is OpenISD's own design
 //                      choice, made regardless of that WinISD inference.)
 //   Units           — WinISD's own "Reset to Metric (l, mm, …)" button: a one-click GLOBAL
 //                      unit-system reset, distinct from the per-field unit-cycling behaviour
-//                      (WINISD.md §14). store.resetUnitTokens() clears state.ui.unitTokens, so
+//                      (docs/research/WINISD_PARITY.md §14). store.resetUnitTokens() clears state.ui.unitTokens, so
 //                      every field reverts to its own default display unit — never touches the
 //                      stored SI design.
 //
@@ -51,7 +51,7 @@
 //             (same gap as the two disabled Colors rows above); WinISD's "SPL" row already
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
 import { computed, reactive, ref } from 'vue';
-import { soundVelocity } from '@openisd/engine';
+import { airFor } from '@openisd/engine';
 import { state, resetUnitTokens } from '../../logic/store.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
 import { useEscToClose } from '../../logic/useEscToClose.js';
@@ -109,7 +109,14 @@ function saveAndClose() {
 function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
 }
-const soundVel = computed(() => soundVelocity(draft.envDefaults.tempK));
+/* Sound velocity and air density for the DEFAULT environment. All three inputs feed them
+ * (engine air.ts); "Ignore humidity and air pressure" is per project, not an app default, so
+ * this readout always shows the physics. */
+const defaultAir = computed(() => airFor({
+  tempK: draft.envDefaults.tempK,
+  humidityPct: draft.envDefaults.humidityPct,
+  pressurePa: draft.envDefaults.pressurePa,
+}));
 
 type ColorKey = 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
 const COLOR_ROWS: { key: ColorKey; label: string }[] = [
@@ -194,8 +201,13 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               </div>
               <div class="opt-fld">
                 <label>Sound velocity</label>
-                <input class="opt-num opt-greyed" type="text" :value="fmt(soundVel, fieldDp('advSoundVelocity'))" readonly />
+                <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, fieldDp('advSoundVelocity'))" readonly />
                 <span class="opt-unit">m/s</span>
+              </div>
+              <div class="opt-fld">
+                <label>Air density</label>
+                <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, fieldDp('advAirDensity'))" readonly />
+                <span class="opt-unit">kg/m³</span>
               </div>
             </div>
           </fieldset>

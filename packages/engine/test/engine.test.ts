@@ -14,6 +14,7 @@ import {
   deriveDriver, sweep,
   prTuning, prMassForFp,
   RHO, C,
+  referenceEfficiency, splFromEfficiency,
   highPass, lowPass, linkwitz, peakingEQ, evalFilter, applyFilters,
   unwrap, portLoss,
   cAbs,
@@ -122,16 +123,19 @@ describe('Sealed box simulation', () => {
   it('passband SPL matches the Thiele/Small radiation efficiency formula (Beranek 1954)', () => {
     // Efficiency eta0 = (4pi²/c³)·(Fs³·Vas/Qes)
     // Reference sensitivity at 2.83 V (= 1 W into 8 Ω):
-    //   Lref = 112.1 + 10·log10(eta0) + 10·log10(V²/Re)
-    // 112.1 dB = 20·log10(sqrt(8)/(20e-6)) — SPL at 1m for 1W into 8Ω, piston in 2pi sr
+    //   Lref = K + 10·log10(eta0) + 10·log10(V²/Re),  K = 10·log10(rho·c/(2pi·p_ref²))
     // Ref: Beranek, L.L. "Acoustics." McGraw-Hill 1954.  See also:
     //   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Efficiency
+    //
+    // The reference side uses the engine's own efficiency functions — the project's single
+    // definition of that level — so what this gate actually tests is the CIRCUIT solution
+    // in sweep() against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const { value: d }     = deriveDriver({ ...REF_DRIVER, Le: 0 });
     assert.ok(d);
-    const eta0  = (4 * Math.PI ** 2 / C ** 3) * (d.Fs ** 3 * d.Vas / d.Qes);
-    const predicted = 112.1 + 10 * Math.log10(eta0) + 10 * Math.log10(EG ** 2 / d.Re);
+    const eta0  = referenceEfficiency(d.Fs, d.Vas, d.Qes, C);
+    const predicted = splFromEfficiency(eta0, RHO, C) + 10 * Math.log10(EG ** 2 / d.Re);
     const { fs, spl } = sweep(d, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 });
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,

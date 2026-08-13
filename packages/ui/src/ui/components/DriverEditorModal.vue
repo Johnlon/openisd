@@ -538,7 +538,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" :style="getFieldStyle('Dd')" title="Diaphragm/dome diameter — WinISD: Dd">
                 <label>Dd</label>
-                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" :scale="1000" :precision="2" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
+                <NumInput :class="cellClass('Dd')" :model-value="cellVal('Dd')" :scale="1000" :precision="precision('Dd')" @update:model-value="v => setNum('Dd', v)"></NumInput><span v-if="dqNote('Dd')" class="de-dq" :title="dqNote('Dd')">&#9888;</span>
                 <span class="u">mm</span>
               </div>
               <div class="de-fld" :style="getFieldStyle('Le')" title="Voice coil inductance. 0 = resistive-only model. WinISD: Le">
@@ -553,9 +553,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 </NumInput><span v-if="dqNote('Sd')" class="de-dq" :title="dqNote('Sd')">&#9888;</span>
                 <span class="u">cm²</span>
               </div>
+              <!-- fLe is STORED IN HERTZ (docs/design/WDR_SCHEMA.md) and shown in kHz, so the
+                   scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
+                   Hz as kHz and put the field out by 1e6. -->
               <div class="de-fld" :style="getFieldStyle('fLe')" title="Voice-coil inductance corner frequency — WinISD: fLe">
                 <label>fLe</label>
-                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" :scale="1000" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
+                <NumInput :class="cellClass('fLe')" :model-value="cellVal('fLe')" :scale="1e-3" :precision="precision('fLe')" @update:model-value="v => setNum('fLe', v)"></NumInput><span v-if="dqNote('fLe')" class="de-dq" :title="dqNote('fLe')">&#9888;</span>
                 <span class="u">kHz</span>
               </div>
               <div class="de-fld" :style="getFieldStyle('Le2')" title="Le semi-inductance coefficient — WinISD: KLe">
@@ -648,7 +651,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-cols">
               <div class="de-fld" :style="getFieldStyle('tc')" title="Voice coil resistance temperature coefficient — WinISD: AlfaVC">
                 <label>AlfaVC</label>
-                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
+                <NumInput :class="cellClass('tc')" :model-value="cellVal('tc')" :scale="1000" @update:model-value="v => setNum('tc', v)"></NumInput><span v-if="dqNote('tc')" class="de-dq" :title="dqNote('tc')">&#9888;</span>
                 <span class="u">1000/K</span>
               </div>
               <div class="de-fld" :style="getFieldStyle('Rth')" title="Thermal resistance voice coil→ambient — WinISD: R(t)">
@@ -701,9 +704,11 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <label>EBP</label>
                 <input type="text" readonly :value="ebpVal() != null ? ebpVal()!.toFixed(1) : ''"><span class="u">Hz</span>
               </div>
-              <div class="de-fld" title="Cone material loss factor — WinISD: Gloss">
+              <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
+                   percentage. `:scale="100"` is the ONE place that conversion happens. -->
+              <div class="de-fld" :style="getFieldStyle('loss')" title="Static cone sag under gravity, as a percentage of Xmax — WinISD: Gloss">
                 <label>Gloss</label>
-                <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="dqNote('loss')" class="de-dq" :title="dqNote('loss')">&#9888;</span>
+                <NumInput :class="cellClass('loss')" :model-value="cellVal('loss')" :scale="100" :precision="precision('Gloss')" @update:model-value="v => setNum('loss', v)"></NumInput><span v-if="dqNote('loss')" class="de-dq" :title="dqNote('loss')">&#9888;</span>
                 <span class="u">%</span>
               </div>
             </div>
@@ -728,14 +733,18 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
         <div v-if="tab === 'Dimensions'" class="de-dims">
           <div class="de-dimlist">
             <div class="de-hdr">Dimensions</div>
-            <div class="de-fld" title="Frame flange thickness — WinISD: Thick"><label>Thick</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><span class="u">in</span></div>
-            <div class="de-fld" title="Overall driver depth — WinISD: Depth"><label>Depth</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Magnet stack depth — WinISD: Magnet depth"><label>Magnet Depth</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Magnet diameter — WinISD: Magnet"><label>Magnet</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Basket/frame diameter — WinISD: Basket"><label>Basket</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Overall outer frame diameter — WinISD: Outer"><label>Outer</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Voice coil diameter — WinISD: VCd"><label>VCd</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><span class="u">m</span></div>
-            <div class="de-fld" title="Basket displacement volume — WinISD: Dvol"><label>Dvol</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" :scale="1e6" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><span class="u">cm³</span></div>
+            <!-- Every length below is stored in METRES and shown in MILLIMETRES (:scale=1000),
+                 the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
+                 WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
+                 Thick read a metre value under an inches label. -->
+            <div class="de-fld" title="Frame flange thickness — WinISD: Thick"><label>Thick</label><NumInput :class="cellClass('thick')" :model-value="cellVal('thick')" :scale="1000" :precision="precision('dimThick')" @update:model-value="v => setNum('thick', v)"></NumInput><span v-if="dqNote('thick')" class="de-dq" :title="dqNote('thick')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Overall driver depth — WinISD: Depth"><label>Depth</label><NumInput :class="cellClass('depth')" :model-value="cellVal('depth')" :scale="1000" :precision="precision('dimDepth')" @update:model-value="v => setNum('depth', v)"></NumInput><span v-if="dqNote('depth')" class="de-dq" :title="dqNote('depth')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Magnet stack depth — WinISD: Magnet depth"><label>Magnet Depth</label><NumInput :class="cellClass('magnetDepth')" :model-value="cellVal('magnetDepth')" :scale="1000" :precision="precision('dimMagnetDepth')" @update:model-value="v => setNum('magnetDepth', v)"></NumInput><span v-if="dqNote('magnetDepth')" class="de-dq" :title="dqNote('magnetDepth')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Magnet diameter — WinISD: Magnet"><label>Magnet</label><NumInput :class="cellClass('magnet')" :model-value="cellVal('magnet')" :scale="1000" :precision="precision('dimMagnet')" @update:model-value="v => setNum('magnet', v)"></NumInput><span v-if="dqNote('magnet')" class="de-dq" :title="dqNote('magnet')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Basket/frame diameter — WinISD: Basket"><label>Basket</label><NumInput :class="cellClass('basket')" :model-value="cellVal('basket')" :scale="1000" :precision="precision('dimBasket')" @update:model-value="v => setNum('basket', v)"></NumInput><span v-if="dqNote('basket')" class="de-dq" :title="dqNote('basket')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Overall outer frame diameter — WinISD: Outer"><label>Outer</label><NumInput :class="cellClass('outer')" :model-value="cellVal('outer')" :scale="1000" :precision="precision('dimOuter')" @update:model-value="v => setNum('outer', v)"></NumInput><span v-if="dqNote('outer')" class="de-dq" :title="dqNote('outer')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Voice coil diameter — WinISD: VCd"><label>VCd</label><NumInput :class="cellClass('VCd')" :model-value="cellVal('VCd')" :scale="1000" :precision="precision('dimVCd')" @update:model-value="v => setNum('VCd', v)"></NumInput><span v-if="dqNote('VCd')" class="de-dq" :title="dqNote('VCd')">&#9888;</span><span class="u">mm</span></div>
+            <div class="de-fld" title="Basket displacement volume — WinISD: Dvol"><label>Dvol</label><NumInput :class="cellClass('basketDisplacement')" :model-value="cellVal('basketDisplacement')" :scale="1e6" :precision="precision('dimDvol')" @update:model-value="v => setNum('basketDisplacement', v)"></NumInput><span v-if="dqNote('basketDisplacement')" class="de-dq" :title="dqNote('basketDisplacement')">&#9888;</span><span class="u">cm³</span></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">

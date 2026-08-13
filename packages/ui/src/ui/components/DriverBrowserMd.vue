@@ -10,7 +10,7 @@ import { DriverFileFormat } from '../../driverFileFormat.js';
 // below is a call into useDriverLibrary; this component decides only what is on screen.
 //
 // Selecting a driver does NOT change the design: it opens the editor on a draft and this
-// picker stays open behind it (STATE_MODEL.md). OK commits and closes both; Cancel returns
+// picker stays open behind it (docs/design/STATE_MODEL.md). OK commits and closes both; Cancel returns
 // here with the design untouched.
 
 const {

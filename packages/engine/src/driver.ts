@@ -12,8 +12,27 @@
  * here — this module is pure physics with no file-format concern (ARCHITECTURE.md AD-6).
  */
 
-import { RHO, C } from './constants.js';
+import { RHO, C, P0, G_STANDARD } from './constants.js';
+import { efficiencyConstant, referenceEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
 import type { DriverRaw, Driver, DriverError, Result } from './types.js';
+
+/**
+ * The air a driver record itself carries. A `.wdr` stores `c` and `roo`, and the Driver ADT
+ * passes them straight through, so a WinISD-authored driver reproduces WinISD's own `no`/`SPL`
+ * exactly. Reference efficiency and the SPL constant derived from it are both functions of the
+ * air, which is why this is read per record rather than taken from the module constants.
+ *
+ * Only `solveConsistencyGroup` can use it: it works on the untyped record it was handed, which
+ * is where those two keys actually arrive. `Driver`/`DriverRaw` do not model air at all (see
+ * the OBSOLETE note on `DriverRaw` in types.ts — that interface is frozen pending AD-9's
+ * successor type), so `deriveDriver` has nothing to read and uses the app constants.
+ */
+function airOf(r: Readonly<Record<string, number | undefined>>): { c: number; rho: number } {
+  return {
+    c:   r.c   != null && r.c   > 0 ? r.c   : C,
+    rho: r.roo != null && r.roo > 0 ? r.roo : RHO,
+  };
+}
 
 /**
  * Solve every derivable Thiele/Small field from whatever is already present in `d`,
@@ -35,13 +54,10 @@ import type { DriverRaw, Driver, DriverError, Result } from './types.js';
  * Two passes: a later formula (e.g. Fs from Mms+Cms) can unlock an earlier block
  * (Cms's own downstream chain) on the next iteration.
  *
- * Deliberately excludes the no/SPLref/USPL/SPL reference-efficiency chain — three
- * disagreeing constants exist across the pre-consolidation copies this function
- * replaces (109 inferred / 112.1 / 112.2 — PLAN_JS_CALC_CONSOLIDATION.md §2 row 18),
- * and none of the three is currently wired to anything the UI displays (verified:
- * DriverEditorModal.vue's SPLref/USPL fields bind to the raw entered value, not to
- * any derived result). Picking one silently here would be resolving an open defect
- * as a side effect of an unrelated refactor — it needs its own dedicated audit.
+ * The η₀/SPLref/USPL reference-efficiency chain is solved here too, entirely through
+ * `efficiency.ts` — the single implementation of η₀ and of the SPL constant derived from
+ * the air in use (`airOf`). η₀ is a FRACTION throughout; the percent lives in the display
+ * layer only.
  */
 export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }): DriverRaw {
   // Keyed access, not `any`: the solver writes fields by name (`r[key] = val` in the full
@@ -50,8 +66,8 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
   const r = { ...d } as unknown as Record<string, number | undefined>;
 
   const TAU = 2 * Math.PI;
-  const c3 = C ** 3;
-  const CONST_NO = (4 * Math.PI ** 2) / c3;
+  const air = airOf(r);
+  const CONST_NO = efficiencyConstant(air.c);
 
   // Run full solver ONLY when explicitly requested, otherwise run classic path to avoid test drift/failures
   if (!options?.full) {
@@ -158,7 +174,7 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
 
     // 10. no, Fs, Qes, Vas
     if (r.no == null && r.Fs != null && r.Vas != null && r.Qes != null) {
-      setVal('no', CONST_NO * (r.Fs ** 3) * r.Vas / r.Qes);
+      setVal('no', referenceEfficiency(r.Fs, r.Vas, r.Qes, air.c));
     }
     if (r.Vas == null && r.no != null && r.Qes != null && r.Fs != null && r.Fs > 0) {
       setVal('Vas', r.no * r.Qes / (CONST_NO * (r.Fs ** 3)));
@@ -172,10 +188,10 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
 
     // 11. SPLref <-> no
     if (r.SPLref == null && r.no != null && r.no > 0) {
-      setVal('SPLref', 112.2 + 10 * Math.log10(r.no));
+      setVal('SPLref', splFromEfficiency(r.no, air.rho, air.c));
     }
     if (r.no == null && r.SPLref != null) {
-      setVal('no', Math.pow(10, (r.SPLref - 112.2) / 10));
+      setVal('no', efficiencyFromSpl(r.SPLref, air.rho, air.c));
     }
 
     // 12. USPL, SPLref, Re
@@ -187,6 +203,68 @@ export function solveConsistencyGroup(d: DriverRaw, options?: { full?: boolean }
     }
     if (r.SPLref == null && r.USPL != null && r.Re != null && r.Re > 0) {
       setVal('SPLref', r.USPL - 10 * Math.log10(8 / r.Re));
+    }
+
+    // 13. WinISD's Advanced-pane figures of merit (KNOWLEDGE_REPORT.md §4). Everything on
+    // that panel except alfaVC/Rt/Ct is calculated — deleting one in WinISD makes it fill
+    // the value back in (human ruling, ledger QO24).
+    //
+    // Rme has TWO routes, and the ORDER matters. They are the same number whenever
+    // Bl = √(2π·Fs·Mms·Re/Qes) holds, so they diverge only on a record whose stored Bl
+    // disagrees with its own Fs/Mms/Re/Qes — which real records do. On the Beyma 10BR60/V2
+    // fixture the motional route gives 18.22124 and Bl²/Re gives 18.27846, and WinISD's own
+    // value is the first: the motional route WINS, and Bl²/Re is only the fallback for a
+    // record that cannot evaluate it.
+    if (r.Rme == null && r.Fs != null && r.Mms != null && r.Qes != null && r.Qes > 0) {
+      setVal('Rme', TAU * r.Fs * r.Mms / r.Qes);
+    }
+    if (r.Rme == null && r.Bl != null && r.Re != null && r.Re > 0) {
+      setVal('Rme', r.Bl * r.Bl / r.Re);
+    }
+    // Mpow = Bl/√Re = √Rme. Stated as √Rme so it cannot contradict the Rme actually produced
+    // — taking Bl/√Re on the Beyma fixture would print 4.27533 beside an Rme of 18.22124,
+    // whose square root is 4.26863. ⚠ WinISD's own choice between the two is unverified; this
+    // one is chosen because it keeps the pinned identity Mpow = √Rme true of our output.
+    if (r.Mpow == null && r.Rme != null && r.Rme > 0) setVal('Mpow', Math.sqrt(r.Rme));
+    // gamma = Bl/Mms — one route only.
+    if (r.gamma == null && r.Bl != null && r.Mms != null && r.Mms > 0) setVal('gamma', r.Bl / r.Mms);
+    // SPLmax = SPL + 10·log₁₀(Pe): the thermal-limit offset from the SAME reference
+    // sensitivity USPL offsets from, which efficiency.ts produced at block 11. No second copy
+    // of the SPL constant exists here.
+    if (r.SPLmax == null && r.SPLref != null && r.Pe != null && r.Pe > 0) {
+      setVal('SPLmax', r.SPLref + 10 * Math.log10(r.Pe));
+    }
+    // Gloss — the static gravitational cone sag as a FRACTION of Xmax: g/((2π·Fs)²·Xmax)
+    // (winisd_research/SOLVER_GAPS.md §2.4 — 41 live samples, worst relative residual 3.6e-15).
+    // It reads the STORED Fs. The rival g·Mms·Cms/Xmax is exact on every self-consistent
+    // driver, because Mms·Cms = 1/(2π·Fs)² there, and lands at relative residual 3.0 on a
+    // driver whose Fs is written to disagree with its own Mms·Cms — so the two are separated,
+    // not merely ranked. `loss` is the record's ONE name for the quantity (the `.wdr` key is
+    // `Gloss`), and what goes in it is the fraction the file carries; the percent WinISD's pane
+    // shows is the display layer's ×100 and exists nowhere in this module.
+    if (r.loss == null && r.Fs != null && r.Fs > 0 && r.Xmax != null && r.Xmax > 0) {
+      setVal('loss', G_STANDARD / ((TAU * r.Fs) ** 2 * r.Xmax));
+    }
+    // SPLmaxLF — the excursion-limited half-space SPL at 20 Hz, 1 m, as dB re 20 µPa. The
+    // bracket is the far-field RMS pressure of a piston of volume displacement Vd,
+    // p = ρ₀·ω²·Vd/(2π·r·√2) at r = 1 m, ω = 2π·20. ρ₀ is the air the RECORD carries (`airOf`
+    // above — a .wdr's own `roo`, else the app constant), never a literal: WinISD moves
+    // SPLmaxLF by exactly 20·log₁₀(ρ ratio) when `roo` alone is changed.
+    if (r.SPLmaxLF == null && r.Vd != null && r.Vd > 0) {
+      const p20 = air.rho * (TAU * 20) ** 2 * r.Vd / (TAU * Math.SQRT2);
+      setVal('SPLmaxLF', 20 * Math.log10(p20 / P0));
+    }
+    // Mcost — Rme scaled by how far the coil leaves the gap: Rme·(1 + Xmax/min(Hc,Hg)). It
+    // carries Rme's unit and reduces to Rme exactly when the coil never leaves. It reads Xmax
+    // ITSELF: the rival Rme·(Hc+Hg)/(2·min) is exact whenever Xmax = |Hc−Hg|/2 (which the block
+    // above makes true of any record that lets it) and lands at 0.40 on a record where Xmax is
+    // written away from the gap geometry. Uses the Rme the precedence above produced — there is
+    // no second Rme here. min(Hc,Hg) is the DIVISOR and both are 0 on essentially every real
+    // record, which is the whole reason WinISD's own files read Mcost=0; when it is zero or
+    // missing the field stays ABSENT, because neither 0 nor Infinity is a number this driver has.
+    const minHeight = r.Hc != null && r.Hg != null ? Math.min(r.Hc, r.Hg) : 0;
+    if (r.Mcost == null && r.Rme != null && r.Xmax != null && minHeight > 0) {
+      setVal('Mcost', r.Rme * (1 + r.Xmax / minHeight));
     }
 
     iterations++;
@@ -248,13 +326,13 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
   // solver, single copy (see its docstring for what's deliberately excluded).
   Object.assign(r, solveConsistencyGroup(r));
 
-  // Derive calculated sensitivity / efficiency metrics (WinISD equivalents). NOT part
-  // of solveConsistencyGroup — three disagreeing constants exist across the codebase
-  // (109 inferred / 112.1 / 112.2, PLAN_JS_CALC_CONSOLIDATION.md §2 row 18) and none is
-  // currently consumed by the UI, so resolving that is out of scope for this pass.
-  r.no = (9.64e-10 * Math.pow(r.Fs, 3) * (r.Vas * 1000)) / r.Qes; // Vas from m³ to L is *1000
+  // Calculated sensitivity / efficiency (WinISD equivalents), through the single
+  // implementation in efficiency.ts. η₀ is a FRACTION, so nothing here divides by 100.
+  // `Driver` carries no air of its own, so the app constants are the air in use here; a
+  // record that DOES carry `c`/`roo` gets them honoured in solveConsistencyGroup above.
+  r.no = referenceEfficiency(r.Fs, r.Vas, r.Qes, C);
   if (r.no > 0) {
-    r.SPLref = 112.2 + 10 * Math.log10(r.no / 100);
+    r.SPLref = splFromEfficiency(r.no, RHO, C);
     if (r.Re > 0) {
       r.USPL = r.SPLref + 10 * Math.log10(8 / r.Re);
     }
@@ -265,7 +343,7 @@ export function deriveDriver(d: DriverRaw): Result<Driver> {
 
 /**
  * Voice-coil DC resistance at an elevated temperature — thermal power compression (WinISD
- * parity, WINISD.md §12c): `Re_hot = Re·(1 + alfaVC·ΔT)`, where `alfaVC` is the SI temperature
+ * parity, docs/research/WINISD_PARITY.md): `Re_hot = Re·(1 + alfaVC·ΔT)`, where `alfaVC` is the SI temperature
  * coefficient (/K; the UI's `1000/K` value ÷ 1000) and ΔT is the coil rise (K). ΔT=0 or
  * alfaVC=0 returns `Re` exactly (no-op).
  */
@@ -276,7 +354,7 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
 /**
  * Return a copy of the driver with `MaddKg` kilograms added to the cone's moving mass
  * (driver-side added mass — the WinISD "Added mass to cone" field, verified used in
- * WINISD.md §12c). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by
+ * docs/research/WINISD_PARITY.md). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by
  * the mass; the resonance and Q's follow from the heavier Mms:
  *   Mms' = Mms + Madd,  Fs' = 1/(2π√(Mms'·Cms)),
  *   Qms' = ωs'·Mms'/Rms,  Qes' = ωs'·Mms'·Re/Bl²,  Qts' = Qes'·Qms'/(Qes'+Qms').

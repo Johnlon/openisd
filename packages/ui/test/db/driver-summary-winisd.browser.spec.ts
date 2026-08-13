@@ -5,7 +5,7 @@ import { test, expect } from '../fixtures.js';
 // (DriverBrowserWinisd.vue), which until now selected straight off the row click. The Modern
 // picker has always previewed first; this brings the WinISD one to the same behaviour.
 //
-// STATE_MODEL.md rule 1 governs what a selection DOES, and it changed under this spec: a
+// docs/design/STATE_MODEL.md rule 1 governs what a selection DOES, and it changed under this spec: a
 // choice now EMBEDS the driver in the project and closes the picker — no editor in the way.
 // So the summary is a reading step in front of that embed, and Use is the moment of choice.
 // Editing is a separate act afterwards, from the Driver panel.
@@ -82,7 +82,7 @@ test('Use embeds the driver in the project and closes the picker', async ({ page
 
   await page.locator(`${SUMMARY} .use-btn`).click();
 
-  // STATE_MODEL.md rule 1: the choice IS the commit. No editor stands in the way, and the
+  // docs/design/STATE_MODEL.md rule 1: the choice IS the commit. No editor stands in the way, and the
   // picker gets out of the way too. `.wb-modal` is this picker's own class — the broader
   // `.modal:not(.de-modal)` matches two elements in the Original shell.
   await expect(page.locator(EDITOR), 'Use opened the editor — choosing is not editing')

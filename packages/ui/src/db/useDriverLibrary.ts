@@ -661,7 +661,7 @@ const previewData = computed(() => {
 function pickFile(f: FileEntry | null): void { previewFile.value = f; }
 
 // ---- selection ------------------------------------------------------------------------
-// Choosing a driver COPIES it into the project and closes the picker (STATE_MODEL.md) —
+// Choosing a driver COPIES it into the project and closes the picker (docs/design/STATE_MODEL.md) —
 // the user lands back in the project, not in an editor. Editing is a separate act, from
 // the Driver panel.
 

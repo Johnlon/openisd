@@ -65,7 +65,7 @@ const PARAMS: Param[] = [
   { key: 'Bl',   unit: 'T·m',   sect: 'Derived', label: 'Bl',    wdr: 'BL',  desc: 'Motor force factor = √(2π·Fs·Mms·Re/Qes). Derived from the core inputs (state C); type to override. Not a direct chart input. WinISD: BL' },
   { key: 'Vd',   unit: 'cm³',   sect: 'Derived', label: 'Vd',    desc: 'Volume displacement = Sd × Xmax. Derived (state C); type to override. Reference value — not a direct chart input.' },
   { key: 'no',   unit: '%',     sect: 'Derived', label: 'η₀',    wdr: 'no',  desc: 'Reference efficiency = (4π²/c³)·Fs³·Vas/Qes. Derived (state C); type to override. Sets the SPL reference level. WinISD: no', newRow: true },
-  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', wdr: 'SPL', desc: '1W/1m sensitivity = 112.1 + 10·log₁₀(η₀). Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
+  { key: 'SPL',  unit: 'dB',    sect: 'Derived', label: '1W/1m', wdr: 'SPL', desc: '1W/1m sensitivity = K + 10·log₁₀(η₀), K = 10·log₁₀(ρ·c/(2π·p_ref²)) for the air in use. Derived (state C); type to override. The absolute level the SPL graph is anchored to. WinISD: SPL' },
   // Physical dimensions — diameters row, axial depths row, misc row
   { key: 'outerMm',    unit: 'mm', sect: 'Dimensions', label: 'Outer ⌀',   desc: 'Overall outer frame diameter (baffle space to reserve). Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Outer', optional: true, dimOnly: true },
   { key: 'basketMm',   unit: 'mm', sect: 'Dimensions', label: 'Basket',    desc: 'Basket diameter = the hole to cut in the baffle. Cabinet-planning geometry only — not used in the response simulation. WinISD Dimensions: Basket', optional: true, dimOnly: true },

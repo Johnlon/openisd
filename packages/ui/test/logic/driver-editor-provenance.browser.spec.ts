@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures.js';
 
 /**
  * Playwright Browser Test Suite: E/C/N Provenance Class Audit across all Driver Editor Fields

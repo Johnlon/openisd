@@ -113,7 +113,7 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
   },
   SPL: {
     paths: [
-      { formulaText: 'SPL = 112 + 10 × log₁₀(η₀)', inputs: ['no'] }
+      { formulaText: 'SPL = K + 10 × log₁₀(η₀),  K = 10 × log₁₀(ρ × c / (2π × p_ref²))', inputs: ['no'] }
     ]
   },
   USPL: {
@@ -136,9 +136,17 @@ export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string
       { formulaText: 'γ = BL / Mms', inputs: ['Bl', 'Mms'] }
     ]
   },
+  // √Rme rather than BL/√Re: the two are the same quantity only on a record whose stored BL
+  // agrees with its own Fs/Mms/Re/Qes, and the engine takes the Rme route (driver.ts block 13),
+  // so naming BL and Re here would describe a derivation that did not happen.
   Mpow: {
     paths: [
-      { formulaText: 'Mpow = BL / √Re', inputs: ['Bl', 'Re'] }
+      { formulaText: 'Mpow = √Rme', inputs: ['Rme'] }
+    ]
+  },
+  SPLmax: {
+    paths: [
+      { formulaText: 'SPLmax = SPL + 10 × log₁₀(Pe)', inputs: ['SPL', 'Pe'] }
     ]
   }
 };

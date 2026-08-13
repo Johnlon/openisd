@@ -1,5 +1,5 @@
 /**
- * withAddedMass — driver-side cone mass (WinISD parity, WINISD.md §12c).
+ * withAddedMass — driver-side cone mass (WinISD parity, docs/research/WINISD_PARITY.md).
  * Adding mass to the active driver's cone raises Mms, lowering Fs and raising Q's, holding
  * the suspension (Cms, Rms), motor (Bl), Re and Sd fixed. Madd=0 must be an exact no-op so
  * every existing golden stays byte-identical.

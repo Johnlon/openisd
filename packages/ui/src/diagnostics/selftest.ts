@@ -26,6 +26,7 @@
  * See ARCHITECTURE.md AD-5 for the full rationale.
  */
 import { RHO, C } from '@openisd/engine';
+import { referenceEfficiency, splFromEfficiency } from '@openisd/engine';
 import { deriveDriver } from '@openisd/engine';
 import { sweep } from '@openisd/engine';
 import type { SweepParams } from '@openisd/engine';
@@ -90,8 +91,6 @@ const VENTED_QL          = 7;    // —   — box leakage Q for vented test
 const EXPECTED_Z_PEAKS         = 2;
 const Z_PEAK_THRESHOLD         = 1.5;   // × Re — minimum height to count as a peak
 const VENTED_THEORETICAL_SLOPE = 24;    // dB/oct — 4th-order Butterworth rolloff below Fb
-const SPL_EFFICIENCY_OFFSET_DB = 112.1; // dB — constant in T/S radiation efficiency → SPL formula
-                                        // = 20·log10(ρ·c²/(4π²·p_ref)) at standard conditions
 
 export function runSelfTest() {
   const { value: d } = deriveDriver(REF_DRIVER);
@@ -115,10 +114,16 @@ export function runSelfTest() {
   }
 
   // --- Gate 2: passband sensitivity vs Thiele/Small radiation efficiency ---
-  // η₀ = (4π²/c³)·(Fs³·Vas/Qes),  Lref = 112.1 + 10·log₁₀(η₀) + 10·log₁₀(V²/Re)
+  // η₀ = (4π²/c³)·(Fs³·Vas/Qes),  Lref = K + 10·log₁₀(η₀) + 10·log₁₀(V²/Re),
+  // K = 10·log₁₀(ρ·c/(2π·p_ref²)) — derived from the air, never a literal.
   // Ref: Beranek, L.L. "Acoustics." McGraw-Hill 1954.
-  const eta0    = (4 * Math.PI ** 2 / C ** 3) * (d.Fs ** 3 * d.Vas) / d.Qes;
-  const sensPredicted = SPL_EFFICIENCY_OFFSET_DB + 10 * Math.log10(eta0) + 10 * Math.log10(EG_V ** 2 / d.Re);
+  //
+  // This diagnostic deliberately calls the SAME engine functions the sweep does rather than
+  // keeping its own copy: it checks the sweep's CIRCUIT solution against the closed-form
+  // reference level, so the reference side must be the project's one definition of that
+  // level. A second copy here would only ever prove the two copies agree.
+  const eta0    = referenceEfficiency(d.Fs, d.Vas, d.Qes, C);
+  const sensPredicted = splFromEfficiency(eta0, RHO, C) + 10 * Math.log10(EG_V ** 2 / d.Re);
   const i300    = sw.fs.findIndex(f => f >= PASSBAND_REF_HZ);
   const pb      = sw.spl[i300];
 

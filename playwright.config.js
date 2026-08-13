@@ -1,9 +1,17 @@
 import { defineConfig } from '@playwright/test';
 import os from 'os';
 
+// Specs that reach a third-party site. The default gate must depend on THIS repo only:
+// combined with "A SKIP IS A FAIL" below, an outage at micka.de would otherwise turn
+// `npx playwright test` and scripts/health-check.sh red for a cause outside the codebase.
+// They stay fully runnable — `npm run test:crosscheck` sets OPENISD_EXTERNAL=1, and so can
+// any ad-hoc run: `OPENISD_EXTERNAL=1 npx playwright test <path>`.
+const EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.browser.spec.ts'];
+
 export default defineConfig({
   testDir: './packages/ui/test',
   testMatch: '**/*.browser.spec.ts',
+  testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
   timeout: 60000,
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
   reporter: [['list'], ['./scripts/test-reporters/no-skips-playwright.js']],

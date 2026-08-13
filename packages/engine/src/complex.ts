@@ -9,8 +9,6 @@ export const cInv   = (a: Complex): Complex => { const d = a.re*a.re + a.im*a.im
 export const cAbs   = (a: Complex): number => Math.hypot(a.re, a.im);
 export const cArg   = (a: Complex): number => Math.atan2(a.im, a.re);
 export const cScale = (a: Complex, k: number): Complex => ({ re: a.re*k, im: a.im*k });
-/** e^z = e^x·(cos y + j·sin y)  https://en.wikipedia.org/wiki/Exponential_function#Complex_exponential */
-export const cExp   = (a: Complex): Complex => { const m = Math.exp(a.re); return { re: m*Math.cos(a.im), im: m*Math.sin(a.im) }; };
 /**
  * tanh(x + jy) = [sinh 2x + j·sin 2y] / [cosh 2x + cos 2y]
  * https://en.wikipedia.org/wiki/Hyperbolic_functions#Hyperbolic_tangent

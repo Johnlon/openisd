@@ -30,7 +30,7 @@ function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
-// STATE_MODEL.md strict layer encapsulation: a live what-if is an uncommitted preview
+// docs/design/STATE_MODEL.md strict layer encapsulation: a live what-if is an uncommitted preview
 // (rule 4, "A what-if is not a modification"). Design I/O — Save/Export — always operates on
 // the COMMITTED design (getDriverModel() never reads the whatif), so leaving the overlay open
 // afterward would show an edited value on screen that the action just silently ignored. Every

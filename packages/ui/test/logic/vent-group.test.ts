@@ -14,7 +14,7 @@
  *   - "a restore is bit-identical" fails any implementation that re-solves on restore. That
  *     defect is what broke three original-skin Revert specs the first time this shipped —
  *     the solver reproduced the calculated member from a JSON-rounded value and landed on a
- *     different double (STATE_MODEL.md rule 3, "Cancel means byte-identical").
+ *     different double (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
  *
  * Numbers come from WinISD 0.7.0.950 itself, Vents tab, Vb=0.02 m³ / Fb=40 Hz / k=0.6:
  * 0.154 m at d=5 cm and 0.318 m at d=7 cm (winisd_research/CALC_FINDINGS_FOR_REVIEW.md).

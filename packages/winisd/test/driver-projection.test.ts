@@ -84,15 +84,18 @@ describe('Driver.toDriver — the derived engine Driver for the sim', () => {
 
 describe('Driver.fromWdr — metadata is carried into the entered bag', () => {
   const here = dirname(fileURLToPath(import.meta.url));
-  const SAMPLE = join(here, '..', '..', '..', 'drivers', 'sample', 'SEAS_Prestige_L19RNX1.wdr');
+  // 🔒 Fixture from `drivers/sample/winisd/` (johnl, out of WinISD itself) — the header layout
+  // asserted here is WinISD's own. Only a file WinISD wrote can prove that; a third-party
+  // database's export of driver data into `.wdr` shape cannot.
+  const SAMPLE = join(here, '..', '..', '..', 'drivers', 'sample', 'winisd', 'John-all-manu-populated.wdr');
   const text = readFileSync(SAMPLE, 'utf8');
 
   it('raw() exposes brand/model/name from the WDR header, marked E', () => {
     const d = Driver.fromWdr(text);
     const r = d.raw() as Record<string, unknown>;
-    assert.equal(r.brand, 'SEAS Prestige');
-    assert.equal(r.model, 'L19RNX1');
-    assert.equal(r.name, 'SEAS Prestige L19RNX1');
+    assert.equal(r.brand, 'John');
+    assert.equal(r.model, 'all-manu-populated');
+    assert.equal(r.name, 'John all-manu-populated');
     assert.equal(d.cell('brand').state, 'E');
   });
 });

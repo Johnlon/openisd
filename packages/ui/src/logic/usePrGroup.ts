@@ -16,7 +16,7 @@
  * to a single one-shot button.
  *
  * Same entered-set model as the vent group (`useVentGroup.ts`) and the driver
- * (`Driver.#inputs`), for the same reason: STATE_MODEL.md rule 7 puts provenance where entry
+ * (`Driver.#inputs`), for the same reason: docs/design/STATE_MODEL.md rule 7 puts provenance where entry
  * happens rather than reconstructing it downstream. The default set is `{prMadd}` — mass
  * entered, tuning solved — which is the behaviour the panel has always had.
  *

@@ -32,6 +32,21 @@ const cmpArray = (label: string, got: unknown, exp: unknown[]) => {
 };
 
 describe('golden-master — engine reproduces committed fixtures exactly', () => {
+  /* ρ and c follow temperature, humidity and pressure (air.ts), and `ignoreHumidityAndPressure`
+   * switches to WinISD's frozen pair instead — so a fixture that does not name its environment
+   * does not say what it is a snapshot OF. Every one must carry all four, explicitly, rather
+   * than inheriting whatever the engine's defaults happen to be on the day. */
+  for (const name of NAMES) {
+    it(`${name} — states the air it was produced in`, () => {
+      const { design: { P } } = JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
+      assert.equal(P.tempK, 293.15, `${name}: fixture does not state its temperature`);
+      assert.equal(P.humidityPct, 30, `${name}: fixture does not state its relative humidity`);
+      assert.equal(P.pressurePa, 101325, `${name}: fixture does not state its air pressure`);
+      assert.equal(P.ignoreHumidityAndPressure, false,
+        `${name}: fixture does not state whether it was produced in openisd's physical air or WinISD's`);
+    });
+  }
+
   for (const name of NAMES) {
     it(`${name} — sweep + maxCurves are byte-identical to the fixture`, () => {
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =

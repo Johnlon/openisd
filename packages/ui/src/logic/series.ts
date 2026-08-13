@@ -15,7 +15,7 @@ interface TabMeta { id: ChartTabId; name: string; unit: string; color: string }
  */
 export const TAB_META: Record<ChartTabId, TabMeta> = {
   SPL:       { id:'SPL',       name:'SPL response',    unit:'dB',  color:'#4fb0ff' },
-  // Same underlying response as SPL (WINISD.md §17, verified from real WinISD screenshots:
+  // Same underlying response as SPL (docs/research/WINISD_PARITY.md §17, verified from real WinISD screenshots:
   // identical cursor value in both charts) — renormalized so 0 dB = passband output, with a
   // dashed -3 dB reference line. A DISPLAY MODE derived from the same sweep, not a new engine
   // computation; see the 'TFMag' builder below.

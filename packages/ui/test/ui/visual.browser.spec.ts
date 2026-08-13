@@ -10,7 +10,8 @@
  * Fine numerical regressions (sub-dB) are caught by test/golden.test.mjs instead.
  *
  * ── Baseline management ────────────────────────────────────────────────────────
- * Baselines live in test/visual.browser.spec.js-snapshots/ and are committed.
+ * Baselines live in test/ui/visual.browser.spec.ts-snapshots/ and are committed — the path
+ * playwright.config.js's snapshotPathTemplate resolves for this file.
  * When a visual change is intentional:
  *   npm run test:visual -- --update-snapshots
  * Review the diff (git diff), confirm the change is correct, then commit.

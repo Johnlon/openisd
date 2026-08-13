@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures.js';
 
 /**
  * Playwright Browser Test Suite: Driver Field Provenance Inspector & Equation Inspector

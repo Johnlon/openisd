@@ -12,7 +12,7 @@
 
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { C, RHO } from '@openisd/engine';
+import { C, RHO, splFromEfficiency } from '@openisd/engine';
 import { Driver } from '@openisd/winisd';
 
 // Complete core driver in SI (Vas m³, Sd m², Le H, Xmax m).
@@ -62,8 +62,10 @@ describe('Driver — extra derived display fields', () => {
     assert.equal(d.cell('no').state, 'C');
     assert.ok((d.cell('no').value as number) > 0);
     assert.equal(d.cell('SPL').state, 'C');
-    // SPL = 112.1 + 10·log10(no)
-    const expected = 112.1 + 10 * Math.log10(d.cell('no').value as number);
+    // SPL = K + 10·log10(no), K derived from the driver's own air — the ONE implementation
+    // (@openisd/engine efficiency.ts), pinned to the WinISD oracle by engine/test/efficiency.test.ts.
+    const expected = splFromEfficiency(
+      d.cell('no').value as number, d.cell('roo').value as number, d.cell('c').value as number);
     assert.ok(Math.abs((d.cell('SPL').value as number) - expected) < 1e-9);
   });
 
@@ -73,6 +75,24 @@ describe('Driver — extra derived display fields', () => {
     assert.ok(Math.abs((d.cell('c').value as number) - C) < 1e-9);
     assert.equal(d.cell('roo').state, 'C');
     assert.ok(Math.abs((d.cell('roo').value as number) - RHO) < 1e-9);
+  });
+
+  it('numVC autofills to 1 as C on every construction path, not only fromWdr', () => {
+    // A driver has one voice coil unless someone says otherwise: WinISD's Parameters tab
+    // shows Voicecoils=1 on a blank driver (docs/winisd/edit_driver_pg2_parameters.png), and
+    // Driver.fromWdr already writes numVC=1 for a .wdr that omits the key. A driver built
+    // from JSON or authored in-app got no such default, so the editor showed it blank —
+    // "nobody knows" where the truth is "one".
+    const d = core();
+    assert.equal(d.cell('numVC').state, 'C', 'an unspecified coil count is a defaulted value, not an absent one');
+    assert.equal(d.cell('numVC').value, 1);
+  });
+
+  it('an entered numVC overrides the default and is marked E', () => {
+    const d = core();
+    d.enter('numVC', 2);
+    assert.equal(d.cell('numVC').state, 'E');
+    assert.equal(d.cell('numVC').value, 2);
   });
 });
 
