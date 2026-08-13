@@ -7,8 +7,8 @@ import type { FileEntry } from '../../db/useDriverLibrary.js';
 import { DriverFileFormat } from '../../driverFileFormat.js';
 import { openNewDriver } from '../../db/useDriverSelection.js';
 
-// The WinISD-style driver library, shared by the Classic and Original skins — markup and
-// CSS only (ARCHITECTURE.md AD-7). All behaviour is useDriverLibrary; the skins differ in
+// The WinISD-style driver library — markup and
+// CSS only (ARCHITECTURE.md AD-7). All behaviour is useDriverLibrary; callers differ in
 // their own stylesheets, not in what a click does.
 //
 // Choosing a driver EMBEDS it in the project and closes this picker (docs/design/STATE_MODEL.md rule 1) —

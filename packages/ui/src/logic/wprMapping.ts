@@ -11,7 +11,7 @@
  *   vented     → 1, Vr/Fr = box volume + port-tuned frequency, rear port area = Sp
  *   bandpass4  → 2, rear (Vr/Fr) is SEALED — driver's own chamber, same formula as
  *                `sealed`; front (Vf/Ff) is VENTED — port-tuned off Vf, front port area = Sp
- *                (topology per WINISD_WPR_FILE_SCHEMA.md §4; OpenISD's own Original-skin UI
+ *                (topology per WINISD_WPR_FILE_SCHEMA.md §4; OpenISD's own UI
  *                already treats bandpass4's rear "Frc" with the same sealed-style formula —
  *                see OriginalShell.vue's rearResonance)
  *   pr         → 4, Vr/Fr = prTuning(P), Npr = prNum, [PassiveRadiator] from the PR T/S

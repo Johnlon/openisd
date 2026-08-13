@@ -1,7 +1,7 @@
 /**
  * Display-unit registry — the single place that knows how to render an SI quantity in an
  * alternate unit and convert typed input back. The store ALWAYS holds SI (m³, m, m², Hz, kg);
- * a skin shows `SI × factor` and, on input, divides by the same factor. Clicking a field's
+ * the UI shows `SI × factor` and, on input, divides by the same factor. Clicking a field's
  * unit label rotates the selected token (persisted per field in `state.ui.unitTokens`), which
  * changes the factor + precision only — never the stored value. This is what makes the
  * clickable unit a real conversion instead of a decorative label.

@@ -1,8 +1,8 @@
 /**
  * Design file I/O — Save/Save As the project (.openisd.json) to the filesystem, export
  * a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.json, and the
- * About text. Extracted from AppHeader so every shell's chrome (modern header, classic
- * toolbar, original toolbar) reuses ONE implementation — no duplication.
+ * About text. Lives in a composable, not in the shell, so the toolbar and the export menu
+ * reuse ONE implementation — no duplication.
  *
  * Save/Save As write to a file the user picked via the File System Access API (Chromium),
  * retaining the handle so Save overwrites the SAME file; browsers without the API

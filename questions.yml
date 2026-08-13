@@ -1,5 +1,5 @@
 prefix: QO
-next: 38
+next: 39
 questions:
 - id: QO1
   title: UI TODO List
@@ -3451,3 +3451,126 @@ questions:
   status: open
   raised: '2026-08-13'
   body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      Read-only sweep, 2026-08-13. Report: docs/research/UNIT_BOUNDARY_AUDIT.md (indexed in
+      AGENTS.md's task-type table). Every field's four units — .wdr/.wpr file unit, engine/store SI,
+      panel display via :scale or the units.ts group, and WinISD 0.7.0.950's own displayed unit from
+      docs/winisd/*.png — tabulated with the oracle read for each row.
+
+      COUNTS
+        116 fields swept (56 .wdr keys + 27 .wpr keys + 41 store/panel/chart/record rows)
+          3 LIVE MISMATCHES, touching 15 fields  — reach a written file
+          6 INERT/LATENT traps                   — declared wrong, nothing consumes them today
+          2 presentation-only divergences        — 15 fields at wrong dp, 6 stale registry unit strings
+          4 UNVERIFIED rows                      — no test available, reasons recorded per row
+
+      TOP THREE FINDINGS
+
+      F1 (severest — corrupts a file WinISD reads).  .wpr [PassiveRadiator].Vas is written in
+      LITRES into a cubic-metre field: 1000x too large.  engine/src/formulas.ts:15 prVas() ends
+      `* 1000`; ui/src/logic/wprMapping.ts:101 passes that straight to winisd/src/classic/wpr.ts:197.
+      Oracle: sample_project_Epique15_-_pr.wpr:151 `Vas=0.0048` which WinISD's own PR pane renders as
+      `4.80 l` (docs/winisd/view_3_passive_radiator.png) — so the file is m3.  Every other key in that
+      section IS SI (Sd=0.0095 -> `95.0 cm^2`, Xmax=19 -> `19000.0 mm`), so this is not a section
+      convention.  The default design exports `Vas=20.074` where WinISD needs `0.020074`.
+      Why nothing caught it: winisd/test/classic/wpr.test.ts:130 hand-feeds `Vas: 0.0048`, proving the
+      SERIALISER; `buildWprInput` has zero tests (grep over packages/ui/test/ returns nothing).
+
+      F2.  Driver-editor edits to 11 fields are silently discarded on .wdr save — Vd, Dd, no, SPL,
+      USPL, SPLmax, SPLmaxLF, Rme, gamma, Mpow, Mcost.  Driver.toWdr() rewrites a line only for keys in
+      MODELED_BY_WDRKEY (parstate.ts:84-100, 15 keys) or WDR_META (driver.ts:87-113, 25 keys); none of
+      the 11 is in either, so winisd/src/driver.ts:369-383 echoes the source file's line.  Dd is the
+      one that bites: it is a real geometry INPUT to WinISD's solver (WDR_SCHEMA §4.1), and
+      #buildParState (driver.ts:393-399) preserves the source's `E` mark over the replaced number.
+
+      F3.  .wpr writes three project values as literals: [SignalSource].Rg = 0.1 (wpr.ts:187;
+      wprMapping.ts:54 never passes Rs), [Box].alfaVC = 0.0039 and [Box].dTVC = 0 (wpr.ts:175) — so
+      state.P.Rs / alfaVC / vcTempRise never reach the file.  Units match on both sides; only the
+      wiring is missing.
+
+      LEADS FROM THE BRIEF — all resolved
+        `no` fraction-vs-percent   FIXED (editor :scale=100; engine holds the fraction end to end)
+        Gloss fraction-vs-percent  FIXED THIS SESSION and single-placed — DriverEditorModal :scale=100
+                                   is the ONE x100; engine driver.ts:242-246 keeps the percent out.
+                                   BONUS: the formula WDR_SCHEMA §4 row 21 calls "unknown" IS recovered —
+                                   Gloss = g/((2pi*Fs)^2 * Xmax) reproduces john-all-noncalc-fields-
+                                   manually-entered.wdr's 1.72503712771898 to 14 significant figures.
+        fLe inverted scale         FIXED (:scale=1e-3) — but its REGISTRY BOUND is still max:100 in
+                                   HERTZ under a kHz label (F4), which would reject every real fLe the
+                                   moment someone adds the field= prop.
+        Dimensions m-under-mm      FIXED, all eight at :scale=1000 / 1e6
+        phi fraction vs humidityPct  CORRECT and single-placed (wpr.ts:174; oracle phi=0.3 <-> 30%)
+        VCCon defaulting to 2      openisd side is CORRECT — every writer defaults to 1 (parallel).
+                                   The offending writer is winisd_tools/scrapers/plugins/visaton/emit.py,
+                                   outside this repo.
+        AlfaVC bound without scale FIXED in both places (editor :scale=1000; OriginalShell
+                                   group="tempCoeff" base="perMilliK")
+
+      ORACLE WARNING recorded in §F9: do NOT use sample_project_Epique15_-_pr.wpr as a Gloss oracle.
+      Its `Gloss=0.0000105614518023611` is exactly 1000x the value the recovered formula gives from
+      that same file's Fs=40/Xmax=0.0147.  Hypothesis (marked unverified — WinISD internals were not
+      observed): the driver arrived as a third-party .wdr export and WinISD only fills HOLES
+      (WDR_SCHEMA §4.1), so it never recomputed it.  Anyone chasing that number will ship a 1000x error.
+
+      NO SOURCE FILE WAS CHANGED.  Suggested order if the human wants it fixed: F1, F2, F3, then the
+      two registry bounds (F4/F5) before anyone "tidies up" by adding the field= prop that activates
+      them.  A gate shaped like the existing ui/test/ui/driver-editor-units.test.ts, but pointed at the
+      .wpr writer and the Original shell's unit-group bindings, would have caught F1 and F4
+      mechanically.
+- id: QO38
+  title: 'Layering ruling: ui depends on logic; logic consumes services (driver_db, browser stores, file
+    io, diagnostics)'
+  status: open
+  raised: '2026-08-13'
+  body: ''
+  notes:
+  - at: '2026-08-13'
+    text: |-
+      RULED by the human 2026-08-13, verbatim:
+
+        "ui shoudl depende on logic and logic uses servcices like the driver_db and internal browser
+         stores abdn file io and diagnostics etc."
+
+      THE LAYERING:
+
+          ui  ->  logic  ->  services  ->  engine / serialisation
+
+        ui         presentation only. Depends on `logic` and NOTHING else. It does not reach past it
+                   into a service.
+        logic      the app's orchestration and its model. Owns the store, the project, the driver
+                   model, the workflows. CONSUMES services; is consumed only by ui.
+        services   driver_db, the browser-local stores (localStorage: My Drivers, favourites,
+                   session), file I/O, diagnostics, logging. Each takes arguments and returns data.
+                   A service NEVER reads or writes the app's global `state`.
+        engine     pure physics. Serialisation (.wdr/.wpr) is the other leaf, reached from logic.
+
+      VIOLATIONS IN THE TREE TODAY, measured 2026-08-13:
+
+        1. `db -> logic` -- BACKWARDS. `packages/ui/src/db/useDriverLibrary.ts:5,10` imports `state`,
+           `driverShort`, and the favourites persistence from `logic/`; `db/useDriverSelection.ts:6`
+           imports `state`, `setDriverFromSerialized`, `getDriverModel`, `setDriverBaseline`,
+           `cancelDriverWhatIf`, `isDriverWhatIfActive`. No cycle exists (nothing in `logic/` imports
+           `db/`), but the arrow points the wrong way.
+
+        2. THE CAUSE: `db/` is not a store. It mixes genuine data access (library index, search, My
+           Drivers persistence) with UI WORKFLOW. `useDriverSelection.ts` is "the user chose a driver":
+           it sets `state.browseOpen`, `state.editDriverInfo`, `state.editDriver` and cancels the
+           what-if overlay. `useDriverLibrary.ts:747` even `watch`es `state.editDriverInfo` to reload.
+           Controller code cannot help reaching up into the store -- that is why the dependency
+           inverted.
+
+        3. `ui -> db`, `ui -> diagnostics`, `ui -> logging` -- ui reaching past logic directly into
+           services.
+
+      THE FIX, and it is structural, not cosmetic:
+        - The workflow half of `db/` moves UP into `logic/`. "The user chose a driver" is orchestration.
+        - What remains in `db/` becomes a real service: arguments in, data out, no `state` import.
+        - ui's imports of db/diagnostics/logging are routed through logic.
+        - A mechanical gate should then enforce the layering by import SHAPE, so a new file cannot
+          reintroduce the inversion silently.
+
+      INTERLOCK WITH THE MODEL MIGRATION (QO36): the migration rewrites exactly these files -- the
+      store, the driver model, the library. Doing the layering fix as part of it is one pass; doing it
+      after is two rewrites of the same code.

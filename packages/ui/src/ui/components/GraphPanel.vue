@@ -7,9 +7,8 @@ import { drawOne } from '../canvas.js';
 import { DPAL } from '../presets.js';
 import type { Geo, Design } from '../../types.js';
 
-// `bare`/`primaryColor` are the classic (WinISD) chart mode: a clean single trace with no
-// F3/F6/F10 reference lines or legend, coloured to match the skin's Color swatch. Both
-// default off so every other consumer (modern's GraphGrid) is unaffected.
+// `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
+// F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
 // `overlays` are the extra traces drawn behind the current design — other PROJECTS the
 // caller wants seen alongside this one (the Original skin's open project rows). A design
 // never holds another design to get it drawn, so there is no default set to fall back to:
@@ -32,7 +31,7 @@ const currentDesign = computed(() => ({
 // driver is invalid OR the sweep is mid-recompute), errors are the issues to explain it.
 // `allIssues` rather than `driverErrors` alone: a box parameter the engine rejects (Vb = 0)
 // and a sweep that produced no finite point are both reasons a chart cannot be drawn, and
-// this panel is the only place the Original and Classic skins can say so.
+// this panel is the only place the app can say so.
 const plot        = computed(() =>
   buildPlotData(props.tabId, state.P.fmin, state.P.fmax, currentDesign.value, overlayDesigns.value, allIssues.value,
     { bare: props.bare, primaryColor: props.primaryColor })
@@ -45,7 +44,7 @@ const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'er
 //   • a missing required T/S param — no driver, so no plot object at all;
 //   • a degenerate design like Vb = 0 — a VALID driver whose sweep is NaN at every frequency.
 //     `curves` is non-null there, so a `!plotData` test read it as "fine" and the panel showed
-//     a blank canvas with no explanation. Original and Classic have no issue list; the chart
+//     a blank canvas with no explanation. There is no separate issue list; the chart
 //     is the only place they can say anything.
 // A transient null during sweep recompute carries NO errors, so it still shows nothing —
 // that case is covered by the errors array being empty, not by the plot being null.

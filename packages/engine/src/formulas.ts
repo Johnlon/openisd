@@ -1,9 +1,9 @@
 /**
- * UI-facing closed-form derivations — pure functions shared by every skin and panel so the
+ * UI-facing closed-form derivations — pure functions shared by every panel so the
  * physics lives in ONE place instead of being copy-pasted per component (PR Vas/Fs/Qms, drive
  * voltage).
  *
- * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which every skin, the sweep and
+ * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
  * the circuit all call through `airFor`.
  */
 import { RHO, C } from './constants.js';

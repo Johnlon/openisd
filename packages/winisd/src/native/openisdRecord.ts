@@ -45,12 +45,15 @@ export type SourceRole =
 // fact — one is the printed literal, the other its SI-canonical parse. Neither is derived
 // from the other; both come from one parse of the literal.
 export interface Reading {
-  /** The literal the source printed, verbatim: "8.55 Cm2", "32.5 g", "88 dB @ 1W/1m". */
-  actual_reading: string;
+  /** The literal the source printed, verbatim: "8.55 Cm2", "32.5 g", "88 dB @ 1W/1m".
+   *  ABSENT on a `manual` reading: a typed value has no source text to echo, and
+   *  synthesising one would fabricate provenance (ledger QO36 ruling B3). */
+  actual_reading?: string;
   /** SI-canonical parse of actual_reading: 0.000855, 0.0325, 0.40. */
   read_value: number;
-  /** SI half-width of the rounding interval the printed digits assert. */
-  read_precision: number;
+  /** SI half-width of the rounding interval the printed digits assert.
+   *  ABSENT on a `manual` reading — nothing stated a precision (QO36 B3). */
+  read_precision?: number;
   conformed_reading?: string;
   conformed_by?: string;
   /** Present ⇒ this reading must NOT be used (e.g. an OCR mistranslation) — kept, not

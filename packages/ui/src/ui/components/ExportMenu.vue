@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
  * The combined Save-As / Export menu — every project output that isn't the in-place
- * "Save" action, shared by every skin so the four actions stay identical everywhere:
+ * "Save" action, so the four actions stay identical everywhere:
  * Save As (native .openisd.json, via the File System Access API), Save as a WinISD .wpr
  * project, export the driver as .wdr, and copy a share link. Self-contained: styled off
- * the app's shared CSS vars (--panel/--fg/--line/--acc), which each skin overrides on its
- * root, so this adapts automatically without per-skin styling.
+ * the app's shared CSS vars (--panel/--fg/--line/--acc), so this adapts automatically
+ * without bespoke styling.
  */
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useDesignIO } from '../../logic/useDesignIO.js';
@@ -29,15 +29,15 @@ onUnmounted(() => document.removeEventListener('click', close));
       <button type="button" title="Export the full design as a WinISD-compatible project (.wpr)" @click="exportWpr(); close()">Save As WinISD project (.wpr)</button>
       <button type="button" title="Export the current driver parameters as an OpenISD driver (.owdr)" @click="exportOwdr(); close()">Export OpenISD Driver (.owdr)</button>
       <button type="button" title="Export the current driver parameters as a WinISD-compatible driver (.wdr)" @click="exportWdr(); close()">Export WinISD Driver (.wdr)</button>
-      <button type="button" id="btnShare" title="Copy a shareable URL that encodes the current design, skin, and tab" @click="shareLink(); close()">Share Link to Project (http:)</button>
+      <button type="button" id="btnShare" title="Copy a shareable URL that encodes the current design and tab" @click="shareLink(); close()">Share Link to Project (http:)</button>
     </div>
   </div>
 </template>
 
 <style scoped>
 .export-menu { position: relative; display: inline-block; }
-/* Trigger inherits ambient button styling by default (Modern's plain <button>); a caller
-   passing an icon via the default slot (Classic/Original) sizes/positions its own SVG —
+/* Trigger inherits ambient button styling by default; a caller
+   passing an icon via the default slot sizes/positions its own SVG —
    this rule only supplies layout, never overrides a slotted icon's own look. */
 .export-menu-trigger { display: inline-flex; align-items: center; }
 .export-menu-list {

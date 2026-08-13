@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/formulas.ts — the UI-facing closed-form derivations shared by the skins
+ * Unit tests for src/formulas.ts — the UI-facing closed-form derivations shared by the UI
  * and panels (PR Vas/Fs/Qms, drive voltage). The expected values are computed independently
  * here, so a shared algebra error fails rather than agreeing with itself.
  *

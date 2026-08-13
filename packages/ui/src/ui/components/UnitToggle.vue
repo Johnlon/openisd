@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The clickable unit label. Rotating it switches the field's display unit for every widget
 // bound to the same field id (the paired NumInput, or a calculated readout) — the store stays
-// SI; only the chosen token changes. Reusable across all skins: pass the skin's own unit-span
+// SI; only the chosen token changes. Pass the caller's own unit-span
 // class via `unitClass`. This replaces the old decorative cycleUnit, which rotated the text but
 // never converted the value.
 import { computed } from 'vue';
@@ -15,7 +15,7 @@ const props = defineProps<{
   group: UnitGroup;
   /** The field's base (default) unit token, shown until the user rotates it. */
   base: string;
-  /** Skin-specific CSS class for the unit span (e.g. 'unit unit-cyc' or 'u'). */
+  /** CSS class for the unit span (e.g. 'unit unit-cyc' or 'u'). */
   unitClass?: string;
 }>();
 

@@ -4,7 +4,6 @@
  */
 import type { Driver, DriverRaw, BoxType, SweepParams, SweepResult, MaxCurvesResult, Filter } from '@openisd/engine';
 import type { DriverJSON } from '@openisd/winisd';
-import type { SkinId } from './ui/skins.js';
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in
@@ -64,7 +63,7 @@ export interface Design {
   name?: string;
   color?: string;
   /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
-   * the graph. Additive: designs without this field are always drawn (Modern default). */
+   * the graph. Additive: a design without this field is always drawn. */
   visible?: boolean;
   project?: { name: string; creator?: string; created?: string; modified?: string; description?: string };
   _ground?: string;
@@ -245,35 +244,29 @@ export interface YRange { min: number; max: number }
 
 /** UI-only preferences (not part of a design). Local to the device — never shared. */
 export interface UiState {
-  /** The chosen presentation skin. See skins.ts. */
-  skin: SkinId;
-  /** Classic skin — the selected Project tab rail entry (persists across reload). */
-  classicProjectTab?: string;
-  /** Classic skin — the selected chart type (persists across reload). */
-  classicChartTab?: string;
-  /** Original skin — the selected Project tab rail entry (persists across reload). */
+  /** The selected Project tab rail entry (persists across reload). */
   originalProjectTab?: string;
-  /** Original skin — the selected chart type (persists across reload). */
+  /** The selected chart type (persists across reload). */
   originalChartTab?: string;
-  /** Original skin — the chosen chart menu label (may name an engine-unavailable chart). */
+  /** The chosen chart menu label (may name an engine-unavailable chart). */
   originalChartLabel?: string;
-  /** Original skin — a Tune (what-if) panel is open. Persisted so a refresh reopens it. */
+  /** A Tune (what-if) panel is open. Persisted so a refresh reopens it. */
   originalTuneOpen?: boolean;
-  /** Original skin — the open Tune's uncommitted what-if buffer (overlay), so a refresh
+  /** The open Tune's uncommitted what-if buffer (overlay), so a refresh
    *  restores the in-progress values. Local-only (stripped from share links via stateToUrl). */
   originalWhatIf?: DriverJSON | null;
-  /** Original skin — the Driver Editor modal is open. Persisted so a refresh reopens it. */
+  /** The Driver Editor modal is open. Persisted so a refresh reopens it. */
   originalEditorOpen?: boolean;
-  /** Original skin — left panel width in px (splitter-dragged). Local-only layout pref
+  /** Left panel width in px (splitter-dragged). Local-only layout pref
    *  (device/screen-specific): persisted across refresh, stripped from share links. */
   originalNavW?: number;
-  /** Original skin — bottom section height in px (splitter-dragged). Local-only layout pref. */
+  /** Bottom section height in px (splitter-dragged). Local-only layout pref. */
   originalBottomH?: number;
-  /** Original skin — the left panel (Projects / Signal Generator) is collapsed. Local-only. */
+  /** The left panel (Projects / Signal Generator) is collapsed. Local-only. */
   originalNavCollapsed?: boolean;
-  /** Original skin — the bottom section (tab rail + content) is collapsed. Local-only. */
+  /** The bottom section (tab rail + content) is collapsed. Local-only. */
   originalBottomCollapsed?: boolean;
-  /** Original skin — the chart is maximised over the whole main area (toolbar stays). Local-only. */
+  /** The chart is maximised over the whole main area (toolbar stays). Local-only. */
   originalChartMax?: boolean;
   /** Per-field selected display-unit token (keyed by field id; see fields/units.ts). The store
    *  always holds SI — this only picks how a field is shown/entered. Absent field ⇒ its base
@@ -291,7 +284,7 @@ export interface UiState {
   envDefaults: { tempK: number; pressurePa: number; humidityPct: number };
   /** Options dialog → Plot Window tab "Colors" group (WinISD parity, partial — see
    *  OptionsModal.vue header comment for which of WinISD's 6 swatches have a real OpenISD
-   *  hook). Absent key = the skin's own default (CSS custom property / hardcoded constant).
+   *  hook). Absent key = the app's own default (CSS custom property / hardcoded constant).
    *  Local-only presentation preference, stripped from share links. */
   chartColors?: Partial<Record<'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor', string>>;
 }
@@ -337,7 +330,7 @@ export interface SerializedState {
   lossMode?: string;
   P: UiParams;
   graphs: string[];
-  // A local save carries the full ui; stateToUrl() carries most of it too (skin, active
+  // A local save carries the full ui; stateToUrl() carries most of it too (active
   // tab/chart), stripping only personal working state (open-editor buffer, unit prefs) —
   // see persist.ts.
   ui?: UiState;
