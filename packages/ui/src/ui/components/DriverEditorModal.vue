@@ -256,7 +256,7 @@ const saveTargetId = computed(() => {
 
 const saveAlreadyExists = computed(() => {
   if (!saveTargetId.value) return false;
-  return loadMyDrivers().some(d => driverId(d) === saveTargetId.value);
+  return myDrivers.list().some(d => myDrivers.identityOf(d) === saveTargetId.value);
 });
 
 function openSaveMyDialog(forCopy: boolean = false) {
@@ -282,7 +282,7 @@ function confirmSaveToMyDrivers() {
   forceUpdate();
 
   if (isCopyAction.value) {
-    const overwrote = upsertMyDriver(draftDriver.value.raw());
+    const overwrote = myDrivers.upsert(draftDriver.value.raw());
     saveMyDialogOpen.value = false;
     copiedMsg.value = overwrote ? 'Updated in My Drivers' : 'Copied to My Drivers';
     setTimeout(() => { copiedMsg.value = ''; }, 2000);
@@ -414,7 +414,7 @@ async function writeDriver(format: DriverFileFormat) {
   // offered ".owdr, .json" and `text/plain` offered ".wdr, .txt, .text" — a save dialog
   // inviting the user to write a driver to a filename the app will not read back.
   const r = await saveTextAs(text, format.fileName(base), format.label, format.mime, '.' + format.value);
-  if (!r.cancelled) flash(`Driver saved as .${format.value}`);
+  if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
 }
 
 useEscToClose(() => state.editDriverInfo, cancel);
