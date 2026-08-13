@@ -8,6 +8,15 @@
 
 ---
 
+## 2026-08-12 — Options modal draft isolation, wider input boxes, dynamic colors, and scrollbar optimizations
+
+- **Options modal edits are drafted and only applied when clicking 'OK'.** Implemented draft settings reactive state in `OptionsModal.vue` so that edits are discarded when closing the dialog via "Cancel" or "✕" and only committed on clicking "OK".
+- **Added a 'Defaults' button to easily restore default settings.** Included a "Defaults" button in the footer of the options modal that resets all draft values back to system defaults.
+- **Wired up options tab chart colors dynamically on the canvas.** Bound active custom chart colors to CSS custom properties on the canvas element in `GraphPanel.vue`, triggering instant chart redraws on color adjustments.
+- **Made options inputs wider and removed spinners.** Extended the widths of options tab input boxes by 50% to prevent number clipping and styled them to hide spinners.
+- **Prevented vertical scrollbars in the Box tab of the Original skin at small viewport heights.** Added a `max-height` media query to `OriginalShell.vue` to dynamically compress layout margins/paddings when the window height is small (400px), ensuring the content fits perfectly.
+- **Avoided Vite HMR class parsing errors by using TypeScript private properties.** Replaced private `#` syntax with standard TypeScript `private` keywords in `driverSession.ts` to ensure flawless hot module replacement compilation.
+
 ## 2026-08-11 — Prevent bottom panels vertical scrollbars and add UI arch test
 
 - **Prevent vertical scrollbars on the bottom project panels and prioritize layout height.** Removed the `max-height: 45vh` constraint on `.content-panel` so the bottom panel maintains its full required height, letting the chart shrink instead.

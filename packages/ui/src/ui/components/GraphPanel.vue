@@ -370,12 +370,29 @@ onUnmounted(() => {
   document.removeEventListener('click', onDocClick);
 });
 
-watch([viewPlot, effectiveF, localDragRange, blocked], redraw, { flush: 'post' });
+const canvasStyles = computed(() => {
+  const colors = state.ui.chartColors;
+  if (!colors) return {};
+  const styles: Record<string, string> = {};
+  if (colors.background) styles['--chart-bg-override'] = colors.background;
+  if (colors.otherLines) styles['--chart-grid'] = colors.otherLines;
+  if (colors.labels) styles['--chart-text'] = colors.labels;
+  if (colors.xmaxLimit) styles['--chart-pelimit'] = colors.xmaxLimit;
+  if (colors.cursor) {
+    styles['--chart-cross'] = colors.cursor;
+    styles['--chart-band-line'] = colors.cursor;
+    styles['--chart-band'] = `color-mix(in srgb, ${colors.cursor} 7%, transparent)`;
+  }
+  return styles;
+});
+
+watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { flush: 'post' });
 </script>
 
 <template>
   <div class="gpanel" :class="{ 'y-manual': !!yOverride }">
     <canvas ref="canvasEl"
+            :style="canvasStyles"
             @pointerdown="onPointerDown"
             @pointerup="onPointerUp"
             @pointermove="onPointerMove"

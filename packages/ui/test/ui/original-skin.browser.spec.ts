@@ -252,12 +252,14 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(0);
 });
 
-test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per state model)', async ({ page }) => {
+test('the Tune what-if panel previews live and Cancel reverts — no Keep/commit path exists', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Tune' }).click();
   const tune = page.locator('.tune-panel');
   await expect(tune).toBeVisible();
-  await expect(tune.locator('button', { hasText: 'Keep' })).toBeVisible();
+  // A what-if is exploration-only — it can never become real driver data, so there is no
+  // "Keep"/commit control at all. cancel (✕ / Cancel) is the only way the panel closes.
+  await expect(tune.locator('button', { hasText: 'Keep' })).toHaveCount(0);
   await expect(tune.locator('button', { hasText: 'Cancel' })).toBeVisible();
 
   const readFs = () => page.evaluate(async () => {
@@ -277,7 +279,7 @@ test('the Tune what-if panel previews live and Cancel reverts (Keep/Cancel per s
   expect(await readFs()).toBeCloseTo(before, 1); // Cancel reverted the what-if
 });
 
-test('a live Tune what-if is isolated from the modified state until Keep (STATE_MODEL: what-if ≠ modified)', async ({ page }) => {
+test('a Tune what-if can never dirty the project, however it closes (STATE_MODEL: what-if never commits)', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.locator('.skin-picker select').selectOption('original');
@@ -289,7 +291,6 @@ test('a live Tune what-if is isolated from the modified state until Keep (STATE_
   const readFs = () => page.evaluate(async () => {
     const modPath = '/src/logic/store.ts';
     const s = await import(/* @vite-ignore */ modPath);
-    console.log('--- TEST readFs --- raw Fs:', s.driverRaw.value.Fs, 'model Fs:', s.getDriverModel().raw().Fs);
     return s.driverRaw.value.Fs;
   });
   const before = await readFs();
@@ -301,12 +302,14 @@ test('a live Tune what-if is isolated from the modified state until Keep (STATE_
   await fsInput.dispatchEvent('input');
 
   expect(await readFs()).toBeCloseTo(before + 6, 1); // effective driver previews the what-if live
-  await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied yet
+  await expect(unsaved).toBeHidden();                // ...but the project is NOT dirtied
 
-  await tune.locator('button', { hasText: 'Keep' }).click();
+  // Closing via the titlebar ✕ (the only other close path besides Cancel) must discard the
+  // what-if exactly like Cancel does — there is no path that keeps it.
+  await tune.locator('.tune-titlebar .close-btn').click();
   await expect(tune).toBeHidden();
-  await expect(unsaved).toBeVisible();               // Keep commits it → now modified
-  expect(await readFs()).toBeCloseTo(before + 6, 1); // and the value stuck
+  await expect(unsaved).toBeHidden();                // still clean — nothing to commit, ever
+  expect(await readFs()).toBeCloseTo(before, 1);      // reverted to the pre-what-if value
 });
 
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
@@ -920,6 +923,75 @@ test('Original skin: Options dialog is centered on screen, not pinned to the top
   // this modal's root element via Vue's parent-scope-on-child-root behaviour).
   expect(Math.abs(modalMidY - viewport.height / 2)).toBeLessThan(viewport.height * 0.15);
   expect(box).toBeTruthy();
+});
+
+test('Original skin: Options modal input boxes are 50% wider and do not show spinners', async ({ page }) => {
+  await page.locator('.tb-btn[title="Options"]').click();
+  const modal = page.locator('.opt-modal');
+  await expect(modal).toBeVisible();
+
+  // General tab: Environment input boxes should be 150px wide
+  const envInput = page.locator('.opt-env-grid .opt-num').first();
+  const envInputWidth = await envInput.evaluate(el => window.getComputedStyle(el).width);
+  expect(envInputWidth).toBe('150px');
+
+  // Verify no spinners (appearance: none / textfield)
+  const appearance = await envInput.evaluate(el => window.getComputedStyle(el).webkitAppearance);
+  expect(appearance).toBe('none');
+
+  // Plot Window tab: Limit input boxes should be 90px wide
+  await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
+  const limitInput = page.locator('.opt-limits .opt-num').first();
+  const limitInputWidth = await limitInput.evaluate(el => window.getComputedStyle(el).width);
+  expect(limitInputWidth).toBe('90px');
+});
+
+test('Original skin: Options dialog edits are draft-only and discard on Cancel, apply on OK, and reset on Defaults', async ({ page }) => {
+  // Helper to get environment temp from store in browser
+  const getStoreTemp = async () => {
+    return await page.evaluate(async () => {
+      const modPath = '/src/logic/store.ts';
+      const s = await import(/* @vite-ignore */ modPath);
+      return s.state.ui.envDefaults.tempK;
+    });
+  };
+
+  // Initially it is default 293.15
+  expect(await getStoreTemp()).toBe(293.15);
+
+  // 1. Open options, change Temperature, and click Cancel
+  await page.locator('.tb-btn[title="Options"]').click();
+  const tempInput = page.locator('.opt-fld', { hasText: 'Temperature' }).locator('input');
+  await tempInput.click();
+  await tempInput.press('Control+a');
+  await tempInput.press('Delete');
+  await tempInput.pressSequentially('300.00');
+  await tempInput.blur();
+  await page.locator('.opt-footer button', { hasText: 'Cancel' }).click();
+
+  // Verification: should still be 293.15 (not applied!)
+  expect(await getStoreTemp()).toBe(293.15);
+
+  // 2. Open options, change Temperature, and click OK
+  await page.locator('.tb-btn[title="Options"]').click();
+  const tempInput2 = page.locator('.opt-fld', { hasText: 'Temperature' }).locator('input');
+  await tempInput2.click();
+  await tempInput2.press('Control+a');
+  await tempInput2.press('Delete');
+  await tempInput2.pressSequentially('300.00');
+  await tempInput2.blur();
+  await page.locator('.opt-footer button', { hasText: 'OK' }).click();
+
+  // Verification: should now be 300 (applied!)
+  expect(await getStoreTemp()).toBe(300);
+
+  // 3. Open options, click Defaults, click OK
+  await page.locator('.tb-btn[title="Options"]').click();
+  await page.locator('.opt-footer button', { hasText: 'Defaults' }).click();
+  await page.locator('.opt-footer button', { hasText: 'OK' }).click();
+
+  // Verification: should be back to 293.15 (applied default!)
+  expect(await getStoreTemp()).toBe(293.15);
 });
 
 test('Original skin: Open the two samples and switch between them, ensuring the active selection highlight moves correctly', async ({ page }) => {

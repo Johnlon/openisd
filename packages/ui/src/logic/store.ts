@@ -189,7 +189,13 @@ let _model = getOrInit('_model', () => {
 });
 let _unsub = ctx._unsub;
 
-/** The current Driver ADT instance — call enter/clear/toWdr on it directly. */
+/** The COMMITTED Driver ADT instance ONLY — never the what-if overlay, matching driverJSON's
+ *  committed-only contract. For a display/effective read that must reflect an active what-if,
+ *  use `driver`/`driverRaw`/`driverCell` instead. A caller that must not silently disagree
+ *  with a what-if the user has on screen cancels it first (`cancelDriverWhatIf`,
+ *  `isDriverWhatIfActive`) rather than reaching for this. Never call `.enter()`/`.clear()` on
+ *  the result — mutate through `enterDriverField`/`clearDriverField`, which route to whichever
+ *  layer (what-if or committed) is actually active. */
 export function getDriverModel(): DriverModel {
   if (globalCtx && ctx._model) return ctx._model;
   return _model;
@@ -254,12 +260,17 @@ export function setDriverFromSerialized(d: DriverJSON | DriverRaw | null | undef
 // A driver-only what-if is a live COPY of the committed model. While active, the charts,
 // StatBar, and the open editor read the copy (via the effective accessors below), so the
 // preview updates live; but the committed `_model` — and therefore persistence and the
-// ground fingerprint — is untouched, so scrubbing a what-if never dirties the project.
+// ground fingerprint — is untouched, so scrubbing a what-if never dirties the project. A
+// what-if can NEVER commit (STATE_MODEL.md rule 4) — cancelDriverWhatIf is the only way a
+// what-if session ends. An Entered field that no longer reconciles with a freshly-typed
+// sibling (e.g. Qts vs. new Qes/Qms) is surfaced by `driverConsistencyIssues` (a DQ mark) —
+// it is never silently cleared or overridden (DRIVER_RECORD_MODEL.md §4, QP18 ruling: "which
+// member is left to be derived does not matter; what matters is that the disagreement is
+// visible").
 // `priorityState` (STATE_MODEL): the effective model IS the highest-priority layer that
 // exists — what-if overlay when active, else the committed model. Reactive readers hang off
-// the effective accessors; start/keep/cancel just swap which layer they resolve to.
+// the effective accessors; start/cancel just swap which layer they resolve to.
 // Modern/Classic never start a what-if here, so effective ≡ committed there (Invariant 1).
-// const _whatIf       = getOrInit('_whatIf', () => shallowRef<DriverModel | null>(null));
 const _whatIf       = getOrInit('_whatIf', () => shallowRef<DriverModel | null>(null));
 const _whatIfVersion = getOrInit('_whatIfVersion', () => ref(0));
 let _whatIfUnsub = getOrInit('_whatIfUnsub', () => null as (() => void) | null);
@@ -271,10 +282,6 @@ function _effModel(): DriverModel {
 export function startDriverWhatIf(): void {
   if (_whatIf.value) return;
   const m = DriverModel.fromJSON(_model.toJSON());   // deep copy of the committed driver
-  // QO13: mark every field the copy inherits as this session's baseline, so editing a
-  // consistency group (e.g. Qes+Qms) during Tune auto-clears the one stale inherited member
-  // (e.g. a library-loaded Qts) instead of leaving it silently overriding the fresh values.
-  m.beginSession();
   _whatIfUnsub = m.subscribe(() => { _whatIfVersion.value++; });
   _whatIf.value = m;
   _whatIfVersion.value++;
@@ -282,7 +289,10 @@ export function startDriverWhatIf(): void {
     ctx._whatIfUnsub = _whatIfUnsub;
   }
 }
-function _clearWhatIf(): void {
+/** Cancel: discard the what-if overlay; the committed driver is unchanged. A what-if can
+ *  never commit (STATE_MODEL.md rule 4 — it is exploration only, not real driver data) — this
+ *  is the ONLY way a what-if session ends. */
+export function cancelDriverWhatIf(): void {
   if (_whatIfUnsub) { _whatIfUnsub(); _whatIfUnsub = null; }
   _whatIf.value = null;
   _whatIfVersion.value++;
@@ -290,15 +300,18 @@ function _clearWhatIf(): void {
     ctx._whatIfUnsub = null;
   }
 }
-/** Keep: commit the what-if overlay as the live driver (→ modified), then drop the overlay. */
-export function keepDriverWhatIf(): void {
-  if (!_whatIf.value) return;
-  const j = _whatIf.value.toJSON();
-  _clearWhatIf();
-  setModel(DriverModel.fromJSON(j));   // becomes the committed model → project is now modified
+
+/**
+ * Open the driver picker — the ONE governed entry point (STATE_MODEL.md strict layer
+ * encapsulation). Auto-cancels any active what-if first: an uncommitted Tune preview must
+ * never be left dangling once the user has moved on to picking a different driver. Every
+ * "Select Driver" / "Browse…" trigger across every skin calls this, never a raw
+ * `state.browseOpen = true`.
+ */
+export function openDriverPicker(): void {
+  if (_whatIf.value) { cancelDriverWhatIf(); state.editDriver = false; }
+  state.browseOpen = true;
 }
-/** Cancel: discard the what-if overlay; the committed driver is unchanged. */
-export function cancelDriverWhatIf(): void { _clearWhatIf(); }
 /** Set the what-if overlay's driver from a raw bag (e.g. Tune's "Reset to library"). */
 export function setWhatIfFromRaw(raw: DriverRaw | null | undefined): void {
   if (!_whatIf.value) return;
@@ -345,7 +358,7 @@ export function driverCell(field: string): FieldCell {
 
 // driver / driverRaw / driverErrors are EFFECTIVE: they resolve to the what-if overlay when
 // one is active, else the committed model. They touch both version refs so they re-derive on
-// a committed edit, a what-if edit, or an overlay start/keep/cancel.
+// a committed edit, a what-if edit, or an overlay start/cancel.
 export const driver = computed<Driver | null>(() => {
   void _version.value; void _whatIfVersion.value;
   return _effModel().toDriver();

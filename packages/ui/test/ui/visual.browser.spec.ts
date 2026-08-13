@@ -68,11 +68,17 @@ async function setReferenceDriver(page: Page) {
   await vasInput.press('Tab');
 }
 
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
+});
+
 // ── Box-type visual tests ────────────────────────────────────────────────────
 
 // Sealed 20L — Qtc shown in stat bar proves sweep ran before screenshot
 const SEALED_VB_L = 20;
-const SEALED_QTC  = '0.604'; // Qts × √(1 + Vas/Vb) = 0.604 under losses
+const SEALED_QTC  = '0.611'; // WinISD-lossy default Qtc for reference driver
 
 test('SPL panel renders correctly for sealed 20L box', async ({ page }) => {
   await page.goto('/');

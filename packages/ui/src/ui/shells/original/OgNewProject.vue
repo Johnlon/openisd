@@ -9,7 +9,7 @@
  * simulate (6th-order bandpass / ABC are pending everywhere), same rule as elsewhere.
  */
 import { ref, computed } from 'vue';
-import { state, isModified, newProject, markProjectSaved } from '../../../logic/store.js';
+import { state, isModified, newProject, markProjectSaved, openDriverPicker } from '../../../logic/store.js';
 import type { BoxType } from '@openisd/engine';
 
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -49,7 +49,7 @@ function create() {
   if (isDual.value) state.P.Vf = frontVol.value / 1000;
   markProjectSaved();                             // the new design (name + box + volume) is the clean ground
   emit('close');
-  state.browseOpen = true;                        // hand off to the driver picker
+  openDriverPicker();                              // hand off to the driver picker
 }
 </script>
 

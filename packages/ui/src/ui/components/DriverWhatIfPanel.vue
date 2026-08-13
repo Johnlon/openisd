@@ -186,7 +186,7 @@ function updateTooltipPos(key: string, event: Event) {
   tooltipStyles[key] = {
     position: 'absolute',
     top: `${top}px`,
-    left: `-10px`,
+    left: `${rect.right + window.scrollX - 240}px`,
     bottom: 'auto',
     right: 'auto',
     transform: 'translateY(-100%)'

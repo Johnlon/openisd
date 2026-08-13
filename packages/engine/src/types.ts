@@ -30,6 +30,12 @@ export interface Result<T> {
   errors: DriverError[];
 }
 
+/* OBSOLETE: DriverRaw is retired by ARCHITECTURE.md AD-9 ("nothing inherits its shape
+ * unmodified"). Do NOT add fields to it or build new consumers of it. Any change here must
+ * be made with the specific intent of decommissioning it — migrating a call site off it, or
+ * deleting a now-dead reference — never to extend or "fix" it in place. AD-8 still needs a
+ * narrow successor type scoped to exactly what deriveDriver/sweep read; that is new work,
+ * not a change to this interface. See PLAN_OPENISD_DRIVER_MODEL.md. */
 /**
  * Raw driver parameters as entered/imported — every field optional because a
  * partial driver is a valid intermediate state (parseWdr drops absent fields).

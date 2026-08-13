@@ -15,7 +15,8 @@
  */
 import { ref, watch } from 'vue';
 import {
-  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState, curvesData
+  state, driver, driverRaw, driverJSON, getDriverModel, setDriverFromWdr, setDriverFromSerialized, markProjectSaved, applyState, curvesData,
+  isDriverWhatIfActive, cancelDriverWhatIf,
 } from './store.js';
 import { serialize, stateToUrl, download } from './persist.js';
 import { flash } from '../logging/flash.js';
@@ -27,6 +28,18 @@ import type { SerializedState, DriverJSON, UiParams } from '../types.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
+}
+
+// STATE_MODEL.md strict layer encapsulation: a live what-if is an uncommitted preview
+// (rule 4, "A what-if is not a modification"). Design I/O — Save/Export — always operates on
+// the COMMITTED design (getDriverModel() never reads the whatif), so leaving the overlay open
+// afterward would show an edited value on screen that the action just silently ignored. Every
+// I/O action calls this first, so there is never an ambiguous moment where the screen and the
+// file/save disagree.
+function endAnyActiveWhatIfBeforeIO(): void {
+  if (!isDriverWhatIfActive.value) return;
+  cancelDriverWhatIf();
+  state.editDriver = false; // close the Tune panel — same pairing OgTune's own Cancel uses
 }
 
 // MODULE-scoped, not per-composable-call: every shell's Save button and the shared
@@ -59,6 +72,7 @@ export function useDesignIO() {
   /** Returns true when the project was written, false when the user cancelled the file
    *  dialog — a caller doing "save, then close" must not close on a cancelled save. */
   async function saveProject(): Promise<boolean> {
+    endAnyActiveWhatIfBeforeIO();
     const suggested = projectFilename(state.project.name);
     const result = await fsSaveProject(projectJsonText(), suggested, fileHandle.value);
     if (result.cancelled) return false;
@@ -83,6 +97,7 @@ export function useDesignIO() {
    * gives a genuinely new project rather than a second file claiming the same name.
    */
   async function saveProjectAs(): Promise<void> {
+    endAnyActiveWhatIfBeforeIO();
     const suggested = projectFilename(fileHandle.value ? copyOfName(state.project.name) : state.project.name);
     const result = await fsSaveProjectAs(projectJsonText(), suggested);
     if (result.cancelled) return;
@@ -107,16 +122,19 @@ export function useDesignIO() {
   }
 
   function exportWdr(): void {
+    endAnyActiveWhatIfBeforeIO();
     // The ADT's own toWdr is lossless — carried fields + live ParState provenance.
     download(sanitizeFilename(driverRaw.value.name) + '.wdr', getDriverModel().toWdr(), 'text/plain');
   }
 
   function exportOwdr(): void {
+    endAnyActiveWhatIfBeforeIO();
     download(sanitizeFilename(driverRaw.value.name) + '.owdr', JSON.stringify(driverJSON.value, null, 2), 'application/json');
   }
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
+    endAnyActiveWhatIfBeforeIO();
     const driverSection = getDriverModel().toWdr();
     const input = buildWprInput(state.box, state.P, driver.value, driverSection, state.project, new Date(), curvesData.value);
     download(sanitizeFilename(driverRaw.value.name) + '.wpr', toWpr(input), 'text/plain');

@@ -34,6 +34,7 @@ run "ESLint"            npm run lint
 run "Type check"        npm run typecheck
 run "Unit tests"        npm run test:unit
 run "Browser tests"     bash scripts/test-browser.sh
+run "Verify Preview"    bash scripts/verify-preview.sh
 
 echo ""
 echo "========================================"

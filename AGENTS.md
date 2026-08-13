@@ -1,21 +1,30 @@
 <!-- LOCAL RULES ONLY. Generic workspace rules live in the parent. -->
 
+@../_AGENTS.md
+
 > **Scope of this file: openisd ONLY.**
-> Workspace-wide rules live in **`../AGENTS.md`** — read it if your runtime did not load it
-> automatically. Claude Code loads ancestor files at launch, so it already has them; do NOT
-> add an `@../AGENTS.md` import here, which would load that content twice.
+> Workspace-wide rules live in **`../_AGENTS.md`** and are explicitly imported above via `@../_AGENTS.md`.
 >
-> **Anything here that would also be true of another repo belongs in `../AGENTS.md`.** Promote
+> **Anything here that would also be true of another repo belongs in `../_AGENTS.md`.** Promote
 > it — add it there and delete it here in the same change. Never keep a copy in both.
 
 ---
 
 # Claude Code rules for this project
 
-## Priority Skin
+## Priority Skin — hard rule
 
-Unless otherwise instructed then the human is referring to the 'Original' OG skin and NOT the 'Classic' or 'Modern' skins.
-Do not waste time searching the Classic/Modern skins for references to what the human is talking about as the human does nto visit those views anymore.
+**THE HUMAN EXPECTS THE AGENT TO MAINTAIN THE ORIGINAL SKIN AND ITS LOGIC. NOT THE MODERN
+SKIN, NOR THE CLASSIC SKIN.** Those two skins are present in the codebase but are **NOT
+CURRENTLY MAINTAINED**. Do not read, reference, search, fix, extend, or otherwise touch
+Classic or Modern code for their own sake — the human does not visit those views anymore.
+
+The only permitted exception: touching Classic/Modern **as strictly necessary to support an
+Original-skin change** (e.g. a shared component both Original and another skin import, where
+Original's fix requires touching the shared file). Even then, change only what Original's fix
+requires — do not proactively fix, clean up, or improve Classic/Modern while there.
+
+Unless the human explicitly names Classic or Modern, assume every request is about Original.
 
 ## Priority TDD Behaviour 
 

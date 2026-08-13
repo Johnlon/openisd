@@ -1,5 +1,5 @@
 prefix: QO
-next: 25
+next: 26
 questions:
 - id: QO1
   title: UI TODO List
@@ -879,7 +879,7 @@ questions:
 - id: QO13
   title: Qts never recalculates from Qms/Qes because a library driver arrives with EVERY field marked
     Entered
-  status: open
+  status: decided
   raised: '2026-08-05'
   body: ''
   notes:
@@ -938,6 +938,28 @@ questions:
       WHAT IS STILL OPEN HERE: this does not answer QO13's own question. The stale-Qts symptom
       ("editing Qms leaves the old Qts sitting there") is untouched — it now merely acquires a DQ mark
       once the stale value drifts beyond precision. QO13's (a)/(b)/(c) still needs a human ruling.
+  answer:
+    at: '2026-08-12'
+    text: |-
+      RULING (2026-08-12): option (b) from the 2026-08-05 note (auto-evict the stale group member)
+      is WRONG and rejected. It contradicts the already-ruled DQ-marking policy (DRIVER_RECORD_MODEL.md
+      §4, QP18): "which member is left to be derived does not matter; what matters is that the
+      disagreement is visible." An Entered value is never silently cleared or overridden.
+
+      Correct answer is closest to option (c): do nothing to entry/eviction. openisd.yml carries
+      ASSERTED values only (DRIVER_RECORD_MODEL.md §1) -- a library driver arriving with Qts/Qes/Qms
+      all Entered is CORRECT, not over-determination-as-bug, because presence in openisd.yml means
+      someone genuinely asserted it (datasheet or human), full stop. When a fresh edit leaves an
+      inherited Entered value no longer reconciling with freshly-typed siblings, checkConsistency()
+      (packages/engine/src/consistency.ts) already flags the whole group with a DQ mark -- this
+      mechanism already exists and is already tested (consistency.test.ts: "marks all three Q fields
+      when Qts contradicts Qes and Qms"). The remaining question is only whether that DQ mark is
+      sufficiently VISIBLE in the UI (Tune panel / Driver Editor) for this exact scenario -- that's a
+      UI-surfacing check, not a data-model change, and is separate follow-up work, not this ruling.
+
+      A same-session attempt at a "DriverSession" auto-clear/eviction class was built, then reverted
+      in full once this ruling was reached -- see STATE_MODEL.md's note and PLAN_OPENISD_DRIVER_MODEL.md.
+      Closing QO13 as answered by this ruling.
 - id: QO14
   title: Driver editor shows E/C/N colour on only 14 of 27 Parameters fields — the other 13 are permanently
     black
@@ -1343,6 +1365,16 @@ questions:
 
       Recommend (b): its field table is a second copy of WDR_SCHEMA's, which is exactly the drift
       risk the single-source rule exists to prevent.
+  - at: '2026-08-12'
+    text: |-
+      Re-checked both docs directly (2026-08-12). The premise no longer holds: WDR_FILE_MODEL_AND_WORKFLOWS.md's
+      actual content is entirely "driver type classification and crossover matching" (tweeter/woofer heuristics,
+      EBP box-type guide, PR sizing) — an unrelated future feature. It does NOT cover the driver record model at
+      all, so it no longer duplicates/conflicts with DRIVER_RECORD_MODEL.md (asserted-vs-computed fields, ParState
+      character derivation). Either the file was rewritten/repurposed after this question was raised and the ledger
+      was never updated, or it was misfiled from the start. Recommend closing QO21 as stale, or retitling it to
+      track the filename/content mismatch (WDR_FILE_MODEL_AND_WORKFLOWS.md's name promises WDR file-model/workflow
+      coverage it doesn't contain) if that's still worth fixing separately.
 - id: QO22
   title: Xmax is INPUT ONLY — never derived (ruled 2026-08-05)
   status: decided
@@ -1600,3 +1632,10 @@ questions:
   - text: 'A4: make the driver editor a group solver rather than a fixed substitution chain — LARGE, and
       BLOCKED on the probe campaign. Do not copy WinISD''s numbers'
     done: false
+- id: QO25
+  title: |-
+    Understand @openisd/engine and @openisd/winisd: what each package is for, and why both export
+    a type/class named `Driver`
+  status: open
+  raised: '2026-08-12'
+  body: ''

@@ -2,6 +2,7 @@ import { Driver as DriverModel, type DriverJSON } from '@openisd/winisd';
 import type { DriverRaw } from '@openisd/engine';
 import {
   state, setDriverFromSerialized, getDriverModel, setDriverBaseline,
+  cancelDriverWhatIf, isDriverWhatIfActive,
 } from '../logic/store.js';
 import { upsertMyDriver, removeMyDriver, driverId } from './myDrivers.js';
 import { DriverFileFormat } from '../driverFileFormat.js';
@@ -224,8 +225,11 @@ export async function editOverviewDriver(f: LibraryEntry): Promise<SelectionResu
   return { ok: true };
 }
 
-/** Open the editor on the project's own driver. */
+/** Open the editor on the project's own driver. Auto-cancels any active Tune what-if first —
+ *  the editor always seeds from getDriverModel() (committed-only), so a live preview left
+ *  open would silently disagree with what the editor shows. */
 export function editProjectDriver(): void {
+  if (isDriverWhatIfActive.value) { cancelDriverWhatIf(); state.editDriver = false; }
   subject = { kind: 'project' };
   editorDraft = null;
   state.editDriverInfo = true;
