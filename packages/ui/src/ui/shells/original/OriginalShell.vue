@@ -1221,23 +1221,6 @@ watch(() => state.ui.originalEditorOpen, (open) => {
             <div class="two-col">
               <!-- Column 1: Config -->
               <div class="vent-config-col">
-                <!-- The target tuning is the port solver's INPUT, so it belongs here as well as
-                     on the Box tab — you are sizing a vent, and this is the number it is sized
-                     to (human ruling QO11). WinISD shows it only on its Box screen; carrying it
-                     here is deliberately ours. Same `state.P.Fb`, same E/C state, same setter as
-                     the Box tab: one stored value with two places to see and edit it. -->
-                <div class="field-row">
-                  <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
-                    <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
-                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
-                  </div>
-                  <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
-                    <label>Target Tuning Freq</label>
-                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
-                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
-                  </div>
-                </div>
                 <div class="field-row">
                   <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
                 </div>
@@ -1305,8 +1288,30 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                 </div>
               </div>
 
-              <!-- Column 3: Readouts -->
+              <!-- Column 3: the solver's target, then what the geometry yields -->
               <div>
+                <!-- The target tuning is the port solver's INPUT, so it belongs on this pane as
+                     well as the Box tab — you are sizing a vent, and this is the number it is
+                     sized to (human ruling QO11). WinISD shows it only on its Box screen
+                     (docs/winisd/view_3_ported.png has no tuning field); carrying it here is
+                     deliberately ours. Same `state.P.Fb`, same E/C state and same setter as the
+                     Box tab: ONE stored value with two places to see and edit it.
+                     It sits in this column, not beside the other config fields, because the
+                     pane's height is set by its tallest column: a fourth row in either of the
+                     first two overflows the panel for the round or the slotted shape
+                     (test/ui/bottom-scroll.browser.spec.ts). Here every shape stays at three. -->
+                <div class="field-row">
+                  <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
+                    <label>Target Tuning Freq</label>
+                    <NumInput id="og-vent-fb-target" v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                  <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
+                    <label>Target Tuning Freq</label>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
+                  </div>
+                </div>
                 <div class="field-row">
                   <div class="field"><label>Cross area</label><input class="calculated greyed" :value="fmtU(ventArea, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>

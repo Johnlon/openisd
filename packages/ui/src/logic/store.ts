@@ -10,8 +10,7 @@ import {
   solveVentGroup, ventSolveSuspended, suspendVentSolve, ventSp,
   enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
   ventFieldState as ventFieldStateOn, type VentField, type VentEntryField,
-  ventAchievedFb as ventAchievedFbOn, ventTargetUnreachable as ventUnreachableOn,
-  ventMaxReachableFb as ventMaxReachableFbOn,
+  ventTargetUnreachable as ventUnreachableOn, ventMaxReachableFb as ventMaxReachableFbOn,
 } from './useVentGroup.js';
 import {
   solvePrGroup, prTargetUnreachable as prUnreachableOn,
@@ -142,10 +141,6 @@ export function clearVentField(field: VentField): void {
 /** E / C / N for a vent-group field, in the driver editor's own vocabulary. */
 export function ventFieldState(field: VentField): 'E' | 'C' | 'N' {
   return ventFieldStateOn(state.P, field, state.box);
-}
-/** The tuning the current vent length actually delivers on this design. */
-export function ventAchievedFb(): number | null {
-  return ventAchievedFbOn(state.P, state.box);
 }
 /** True when the entered target tuning is not reachable with this volume and port area. */
 export function ventTargetUnreachable(): boolean {

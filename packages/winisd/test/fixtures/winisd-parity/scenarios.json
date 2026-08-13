@@ -1,0 +1,278 @@
+{
+  "about": "QO8 side-by-side WinISD/openisd parity scenarios. Every scenario is stated in EXPLICIT VALUES and names no driver from the database — a fixture that said 'Dayton RS180-8' would silently re-baseline itself the next time the scraper pipeline regenerated that record. Keys are WinISD's own .wdr/.wpr key names, so the generator writes them straight into a project file and the goldens read back in the same vocabulary. See README.md for the method, the WinISD build, the refresh command and what every parameter means.",
+  "driverKeysAreEnteredValues": "Only the keys listed under `driver` are written to the project file. Everything else is left ABSENT so WinISD's own consistency solver decides it — which is the thing under test. A scenario that lists Qts, Cms, Mms, Rms, BL and Vas leaves the solver nothing to do and tests the derived/advanced pass alone.",
+  "scenarios": [
+    {
+      "id": "sealed-small",
+      "purpose": "Sealed alignment, 20 L. Box.Fr is WinISD's computed sealed system resonance Fsc at full precision, so this scenario carries a box-side row as well as the driver-side ones.",
+      "driver": {
+        "Brand": "QO8", "Model": "sealed-small",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "sealed-large",
+      "purpose": "Sealed alignment, 60 L — the same driver in three times the volume, so Fsc moves a long way and a box-side error cannot hide inside the driver-side agreement.",
+      "driver": {
+        "Brand": "QO8", "Model": "sealed-large",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.06, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "vented-b4",
+      "purpose": "Vented alignment, 35 L tuned to 36 Hz through a 75 mm round port. Proves the extraction works under BType=1 and captures the driver-side pass in a vented project.",
+      "driver": {
+        "Brand": "QO8", "Model": "vented-b4",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 1, "Vr": 0.035, "Fr": 36, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "ventRear": {
+        "Num": 1, "Shape": 1, "Fb": 36, "Vb": 0.035, "dia1": 0.075, "dia2": 0.075,
+        "carea": 0, "len": 0.12, "endcorrection": 0.6, "crosscalc": 1
+      },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "vented-small",
+      "purpose": "A second vented point — 20 L, 45 Hz, 60 mm port — on a smaller, higher-Fs, 4-ohm driver, so no row can be right by coincidence of one driver's numbers.",
+      "driver": {
+        "Brand": "QO8", "Model": "vented-small",
+        "Znom": 4, "Pe": 60, "SPL": 87, "Le": 0.00031, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.0045,
+        "Fs": 52.0, "Mms": 0.0089, "Cms": 0.0010525520207509658, "Re": 3.2,
+        "Qms": 5.1, "BL": 6.1, "Sd": 0.0087, "Qes": 0.25007111294062573,
+        "Qts": 0.23838237830379005, "Rms": 0.5701682666985712,
+        "Vas": 0.011301256256935635
+      },
+      "box": { "BType": 1, "Vr": 0.02, "Fr": 45, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "ventRear": {
+        "Num": 1, "Shape": 1, "Fb": 45, "Vb": 0.02, "dia1": 0.06, "dia2": 0.06,
+        "carea": 0, "len": 0.1, "endcorrection": 0.6, "crosscalc": 1
+      },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "bandpass4",
+      "purpose": "4th-order bandpass (BType=2): 20 L sealed rear chamber, 35 L front chamber vented at 60 Hz. Proves the extraction works with both chambers populated.",
+      "driver": {
+        "Brand": "QO8", "Model": "bandpass4",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": {
+        "BType": 2, "Vr": 0.02, "Fr": 0, "Qlr": 10, "Qar": 100, "Qpr": 100,
+        "Vf": 0.035, "Ff": 60, "Qlf": 10, "Qaf": 100, "Qpf": 100
+      },
+      "ventFront": {
+        "Num": 1, "Shape": 1, "Fb": 60, "Vb": 0.035, "dia1": 0.075, "dia2": 0.075,
+        "carea": 0, "len": 0.08, "endcorrection": 0.6, "crosscalc": 1
+      },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "passive-radiator",
+      "purpose": "Passive radiator (BType=4, Npr=1) in 40 L. Box.Fr is WinISD's computed PR tuning here, not an entered vent frequency, so this scenario carries a second box-side row.",
+      "driver": {
+        "Brand": "QO8", "Model": "passive-radiator",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 4, "Vr": 0.04, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "passiveRadiator": {
+        "Vas": 0.0048, "Qms": 3.3, "Fs": 30, "Sd": 0.0095, "Xmax": 0.019, "Me": 0
+      },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+
+    {
+      "id": "env-rh-00",
+      "purpose": "Humidity leg 1 of 3: RH 0 % with T and p fixed at the reference. WinISD stores phi as a FRACTION (0.0-1.0); openisd's humidityPct is a percentage, and the one conversion lives at the .wpr boundary.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-rh-00",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.0 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "env-rh-30",
+      "purpose": "Humidity leg 2 of 3: RH 30 %, the reference condition. Identical to sealed-small in every other respect, so the humidity triple is self-contained and readable on its own.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-rh-30",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "env-rh-90",
+      "purpose": "Humidity leg 3 of 3: RH 90 %. Against leg 1 this spans the whole practical humidity range at fixed T and p, which is what settles QO7 by measurement rather than by back-solve.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-rh-90",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.9 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "env-t-303",
+      "purpose": "Temperature leg: 303.15 K at RH 30 %, p 101325 — the exact case BACKLOG names. Physically derived air would give c about 349.51 m/s and rho about 1.16133; env-rh-30 is its 293.15 K twin, identical in every other value.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-t-303",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 303.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "env-p-95000",
+      "purpose": "Pressure leg 1 of 2: 95000 Pa with T and RH at the reference. Under the physical model rho moves and c does not, because c = sqrt(gamma*p/rho) and rho is proportional to p.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-p-95000",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 95000, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "env-p-105000",
+      "purpose": "Pressure leg 2 of 2: 105000 Pa. With leg 1 it brackets the reference, so a pressure term that is present but wrongly signed cannot pass.",
+      "driver": {
+        "Brand": "QO8", "Model": "env-p-105000",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 105000, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+
+    {
+      "id": "solve-from-q-pair",
+      "purpose": "Consistency solver, forward direction: Qts, Cms, Mms, Rms and BL are all OMITTED, so WinISD must derive them from Fs, Qes, Qms, Re, Sd and Vas. This is the classic route openisd's solveConsistencyGroup takes.",
+      "driver": {
+        "Brand": "QO8", "Model": "solve-from-q-pair",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 37.2, "Re": 6.4, "Qms": 3.8, "Sd": 0.0132,
+        "Qes": 0.41220376440829154, "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "solve-from-mms-cms",
+      "purpose": "Consistency solver, reverse direction: Fs, Qes, Qts, Rms and Vas are OMITTED and must come out of Mms, Cms, BL, Re, Qms and Sd. The reverse routes are separate code in both programs, so forward agreement does not imply this.",
+      "driver": {
+        "Brand": "QO8", "Model": "solve-from-mms-cms",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4, "Qms": 3.8,
+        "BL": 7.5, "Sd": 0.0132
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "gap-geometry",
+      "purpose": "Non-zero motor geometry: Hc 12 mm, Hg 6 mm, Xmax 3 mm — all three ENTERED and mutually consistent (Xmax = |Hc-Hg|/2), so nothing here depends on which route WinISD prefers when one of them is absent. min(Hc,Hg) > 0 is what makes Mcost a real number instead of the 0 every ordinary record carries.",
+      "driver": {
+        "Brand": "QO8", "Model": "gap-geometry",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0.012, "Hg": 0.006, "Xmax": 0.003,
+        "Fs": 37.2, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    },
+    {
+      "id": "inconsistent-fs",
+      "purpose": "A DELIBERATELY inconsistent record: every value is sealed-small's except Fs, which is written at twice its true 1/(2*pi*sqrt(Mms*Cms)). Fields computed from the STORED Fs and fields computed from Mms*Cms are identical on any self-consistent driver and differ by a factor of 4 here, so this separates the two families of route.",
+      "driver": {
+        "Brand": "QO8", "Model": "inconsistent-fs",
+        "Znom": 8, "Pe": 100, "SPL": 90, "Le": 0.0005, "numVC": 1, "VCCon": 2,
+        "Hc": 0, "Hg": 0, "Xmax": 0.006,
+        "Fs": 74.4, "Mms": 0.0155, "Cms": 0.0011809260025671645, "Re": 6.4,
+        "Qms": 3.8, "BL": 7.5, "Sd": 0.0132, "Qes": 0.41220376440829154,
+        "Qts": 0.3718657482780974, "Rms": 0.9533906968736183,
+        "Vas": 0.029188729770327368
+      },
+      "box": { "BType": 0, "Vr": 0.02, "Qlr": 10, "Qar": 100, "Qpr": 100 },
+      "environment": { "T": 293.15, "p": 101325, "phi": 0.3 },
+      "signal": { "Rg": 0.1, "P": 1 }
+    }
+  ]
+}
