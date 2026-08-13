@@ -1,5 +1,10 @@
 # Driver model as an ADT — E/C/N provenance & lossless WDR round-trip
 
+`Driver` carries no session, what-if, or edit-draft concept — it is a pure calculation/
+provenance ADT. Session-scoped bookkeeping (which fields a what-if or editor draft inherited
+vs. which the user typed this session) is `DriverSession`, layered on top; see
+[STATE_MODEL.md](../STATE_MODEL.md) rule 10.
+
 ## Why this exists
 
 A WinISD `.wdr` marks every field as **E**ntered (human typed it), **C**alculated

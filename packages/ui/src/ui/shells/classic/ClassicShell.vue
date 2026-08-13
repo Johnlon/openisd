@@ -10,7 +10,7 @@ const buildDatetime = __BUILD_DATETIME__;
  * field layout, but bound to the same store — presentation differs per skin, logic does not.
  */
 import { ref, computed, watch, onUnmounted } from 'vue';
-import { state, driver, driverErrors, syncedP, curvesData, maxData, driverShort, driverRaw } from '../../../logic/store.js';
+import { state, driver, driverErrors, syncedP, curvesData, maxData, driverShort, driverRaw, openDriverPicker } from '../../../logic/store.js';
 import { TABS, TAB_META, parseChartTabId, buildPlotData } from '../../../logic/series.js';
 import type { ChartTabId } from '../../../logic/series.js';
 import { limits } from '../../../logic/fields/fieldRegistry.js';
@@ -206,7 +206,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
       <button class="cl-ico" title="Open / import a .wdr driver or .json design" @click="importClick">
         <ToolbarIcon name="open" />
       </button>
-      <button class="cl-ico" title="New — pick a driver from the library" @click="state.browseOpen = true">
+      <button class="cl-ico" title="New — pick a driver from the library" @click="openDriverPicker">
         <ToolbarIcon name="new" />
       </button>
       <button class="cl-ico" title="Save — write the design as an OpenISD .json project to the file you picked (or pick one now)" @click="saveProject">
@@ -216,7 +216,7 @@ const model = computed(() => driverRaw.value.model || driverShort(driverRaw.valu
         <ToolbarIcon name="saveAs" />
       </ExportMenu>
       <span class="cl-sep"></span>
-      <button class="cl-ico" title="Choose a driver from the library" @click="state.browseOpen = true">
+      <button class="cl-ico" title="Choose a driver from the library" @click="openDriverPicker">
         <ToolbarIcon name="drivers" />
       </button>
       <button class="cl-ico" title="Options" @click="optionsOpen = true">

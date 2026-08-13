@@ -2,8 +2,10 @@
 /**
  * Original-skin Tune panel — the mock's docked `.tune-panel`. This is a WHAT-IF editor:
  * changes preview LIVE on the charts (via the shared driver ADT's enterDriverField, the
- * same path the graph's reactive chain reads). Per STATE_MODEL.md the accept button is
- * "Keep"; Cancel reverts to how the driver was when Tune opened.
+ * same path the graph's reactive chain reads). A what-if is exploration-only and can never
+ * become real driver data (STATE_MODEL.md rule 4) — there is no commit/"Keep" control.
+ * Cancel is the only way the panel closes, and it always reverts to how the driver was
+ * when Tune opened.
  *
  * A per-skin presentation under shells/original/ — NOT an edit of the shared
  * DriverWhatIfPanel, so Modern is untouched (Invariant 1) and the what-if logic stays
@@ -11,7 +13,7 @@
  */
 import { computed, reactive, watch, ref, onMounted, onUnmounted } from 'vue';
 import { state, driver, driverCell, driverConsistencyIssues, enterDriverField, clearDriverField,
-         startDriverWhatIf, keepDriverWhatIf, cancelDriverWhatIf, setWhatIfFromBaseline } from '../../../logic/store.js';
+         startDriverWhatIf, cancelDriverWhatIf, setWhatIfFromBaseline } from '../../../logic/store.js';
 import { ebp } from '@openisd/engine';
 import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
 import { cellClassOf, useQGroupIncomplete, consistencyNote, Q_GROUP } from '../../../logic/useDriverCells.js';
@@ -104,7 +106,7 @@ function updateTooltipPos(key: string, event: Event) {
   tooltipStyles[key] = {
     position: 'absolute',
     top: `${top}px`,
-    left: `-10px`,
+    left: `${rect.right + window.scrollX - 240}px`,
     bottom: 'auto',
     right: 'auto',
     transform: 'translateY(-100%)'
@@ -154,10 +156,11 @@ const ebpVal = computed(() => (driver.value ? ebp(driver.value) : null));
 function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
 
 // Open the what-if overlay as Tune opens: edits go to a live COPY, so the charts preview
-// live but the committed project stays clean until Keep (STATE_MODEL what-if ≠ modified).
-// The watch (immediate) survives a future switch from v-if to v-show.
-// On close by any path other than Keep (which commits+clears first), discard the overlay so
-// a stray close can never strand the charts on an abandoned what-if.
+// live but the committed project stays clean — a what-if can never dirty it, by any path
+// (STATE_MODEL what-if ≠ modified, and never becomes modified). The watch (immediate)
+// survives a future switch from v-if to v-show.
+// On EVERY close path (✕ or Cancel — there is no other), discard the overlay so a stray
+// close can never strand the charts on an abandoned what-if.
 // Box volume is BOX state, not driver state, so the driver what-if overlay does not cover it —
 // a Vb scrubbed here writes straight through to state.P.Vb (the SAME binding the Box panel
 // uses; there is no second copy). Cancel must therefore put Vb back itself, or a panel whose
@@ -168,7 +171,6 @@ watch(() => state.editDriver, (open) => {
   else cancelDriverWhatIf();
 }, { immediate: true });
 
-function keep()   { keepDriverWhatIf();   state.editDriver = false; } // commit what-if → modified
 function cancel() { cancelDriverWhatIf(); state.P.Vb = vbSnapshot; state.editDriver = false; }
 function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb is not a driver value)
 </script>
@@ -179,7 +181,7 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
       <span>Tune — What-if</span>
       <span class="close-btn" role="button" tabindex="0" title="Cancel — discard these what-if changes" @click="cancel" @keydown.enter="cancel">✕</span>
     </div>
-    <p class="tune-hint">Live what-if: the charts update as you scrub. <b>Keep</b> applies the changes; <b>Cancel</b> reverts.</p>
+    <p class="tune-hint">Live what-if: the charts update as you scrub, but nothing here is ever saved — <b>Cancel</b> reverts. To make a value real, use <b>Edit</b> instead.</p>
 
     <div class="tune-grid">
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
@@ -255,8 +257,7 @@ function reset()  { setWhatIfFromBaseline(); } // overlay ← library values (Vb
 
     <div class="tune-btns">
       <button title="Reset — back to the library driver's values" @click="reset">Reset</button>
-      <button class="cancel" title="Cancel — discard these what-if changes; the charts revert to how they were before Tune" @click="cancel">Cancel</button>
-      <button class="footer-buttons-pri" title="Keep — apply these what-if changes to the project" @click="keep">Keep</button>
+      <button class="cancel footer-buttons-pri" title="Cancel — discard these what-if changes; the charts revert to how they were before Tune" @click="cancel">Cancel</button>
     </div>
   </div>
 </template>

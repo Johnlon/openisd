@@ -50,7 +50,7 @@
 //             separate normalized-transfer-function or EQ/filter-only chart tab to bind them to
 //             (same gap as the two disabled Colors rows above); WinISD's "SPL" row already
 //             covers OpenISD's one 'SPL' tab (absolute dB SPL).
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { soundVelocity } from '@openisd/engine';
 import { state, resetUnitTokens } from '../../logic/store.js';
 import { precision as fieldDp, limits } from '../../logic/fields/fieldRegistry.js';
@@ -66,10 +66,50 @@ useEscToClose(() => true, close);
 type Tab = 'General' | 'Plot Window';
 const tab = reactive({ v: 'General' as Tab });
 
+const draft = reactive({
+  username: state.ui.username,
+  envDefaults: JSON.parse(JSON.stringify(state.ui.envDefaults)),
+  chartColors: JSON.parse(JSON.stringify(state.ui.chartColors ?? {})),
+  unitTokens: JSON.parse(JSON.stringify(state.ui.unitTokens ?? {})),
+  yRanges: JSON.parse(JSON.stringify(state.yRanges)),
+  P: { fmin: state.P.fmin, fmax: state.P.fmax }
+});
+
+const unitsResetPending = ref(false);
+
+function resetUnitsDraft() {
+  unitsResetPending.value = true;
+  draft.unitTokens = {};
+}
+
+function restoreDefaults() {
+  draft.username = '';
+  draft.envDefaults = { tempK: 293.15, pressurePa: 101325.0, humidityPct: 30.0 };
+  draft.chartColors = {};
+  draft.unitTokens = {};
+  draft.yRanges = {};
+  draft.P = { fmin: 1, fmax: 20000 };
+  unitsResetPending.value = true;
+}
+
+function saveAndClose() {
+  state.ui.username = draft.username;
+  state.ui.envDefaults = { ...draft.envDefaults };
+  state.ui.chartColors = { ...draft.chartColors };
+  state.ui.unitTokens = { ...draft.unitTokens };
+  state.yRanges = { ...draft.yRanges };
+  state.P.fmin = draft.P.fmin;
+  state.P.fmax = draft.P.fmax;
+  if (unitsResetPending.value) {
+    resetUnitTokens();
+  }
+  close();
+}
+
 function fmt(n: number | null | undefined, dp: number): string {
   return n != null && isFinite(n) ? n.toFixed(dp) : '—';
 }
-const soundVel = computed(() => soundVelocity(state.ui.envDefaults.tempK));
+const soundVel = computed(() => soundVelocity(draft.envDefaults.tempK));
 
 type ColorKey = 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
 const COLOR_ROWS: { key: ColorKey; label: string }[] = [
@@ -80,15 +120,14 @@ const COLOR_ROWS: { key: ColorKey; label: string }[] = [
   { key: 'cursor',      label: 'Cursor lines' },
 ];
 function colorValue(key: ColorKey): string {
-  return state.ui.chartColors?.[key] ?? '#888888';
+  return draft.chartColors?.[key] ?? '#888888';
 }
 function setColor(key: ColorKey, e: Event) {
   const v = (e.target as HTMLInputElement).value;
-  if (!state.ui.chartColors) state.ui.chartColors = {};
-  state.ui.chartColors[key] = v;
+  draft.chartColors[key] = v;
 }
 function clearColor(key: ColorKey) {
-  if (state.ui.chartColors) delete state.ui.chartColors[key];
+  delete draft.chartColors[key];
 }
 
 // WinISD's default Start/End shown as this row's placeholder until the user sets an override;
@@ -105,15 +144,15 @@ const LIMIT_ROWS: { tab: string; label: string; start: number; end: number; unit
 ];
 function setLimit(tabId: string, key: 'min' | 'max', e: Event) {
   const v = parseFloat((e.target as HTMLInputElement).value);
-  const cur = state.yRanges[tabId] ?? { min: NaN, max: NaN };
-  state.yRanges[tabId] = { ...cur, [key]: v };
+  const cur = draft.yRanges[tabId] ?? { min: NaN, max: NaN };
+  draft.yRanges[tabId] = { ...cur, [key]: v };
 }
-function resetLimit(tabId: string) { delete state.yRanges[tabId]; }
+function resetLimit(tabId: string) { delete draft.yRanges[tabId]; }
 // A number input's `:value` must never be literally NaN (an unset half of a partial edit) —
 // the DOM emits a console warning ("value 'NaN' cannot be parsed") for that. undefined renders
 // as an empty field instead, so the placeholder (WinISD's default) shows through as intended.
 function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
-  const v = state.yRanges[tabId]?.[key];
+  const v = draft.yRanges[tabId]?.[key];
   return v != null && isFinite(v) ? v : undefined;
 }
 </script>
@@ -132,7 +171,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
         <template v-if="tab.v === 'General'">
           <div class="opt-row">
             <label>Username</label>
-            <input class="opt-input" type="text" v-model="state.ui.username" placeholder="johnl" />
+            <input class="opt-input" type="text" v-model="draft.username" placeholder="johnl" />
           </div>
 
           <fieldset class="opt-group">
@@ -140,17 +179,17 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
             <div class="opt-env-grid">
               <div class="opt-fld">
                 <label>Temperature</label>
-                <NumInput v-model="state.ui.envDefaults.tempK" field="advTemp" group="temp" base="K" :precision="2" />
+                <NumInput class="opt-num" v-model="draft.envDefaults.tempK" field="advTemp" group="temp" base="K" :precision="2" />
                 <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
               </div>
               <div class="opt-fld">
                 <label>Air pressure</label>
-                <NumInput v-model="state.ui.envDefaults.pressurePa" field="advPressure" group="pressure" base="Pa" :precision="1" />
+                <NumInput class="opt-num" v-model="draft.envDefaults.pressurePa" field="advPressure" group="pressure" base="Pa" :precision="1" />
                 <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
               </div>
               <div class="opt-fld">
                 <label>Relative humidity</label>
-                <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="state.ui.envDefaults.humidityPct" />
+                <input class="opt-num" type="number" v-limits="limits('advHumidity')" v-model.number="draft.envDefaults.humidityPct" />
                 <span class="opt-unit">%</span>
               </div>
               <div class="opt-fld">
@@ -163,7 +202,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 
           <fieldset class="opt-group">
             <legend>Units</legend>
-            <button class="opt-reset-btn" title="Reset every field's display unit back to its default (cm, L, g, Hz, K, Pa…) — undoes any unit clicking. The stored design is never affected." @click="resetUnitTokens">
+            <button class="opt-reset-btn" title="Reset every field's display unit back to its default (cm, L, g, Hz, K, Pa…) — undoes any unit clicking. The stored design is never affected." @click="resetUnitsDraft">
               Reset to Metric (l, mm, …)
             </button>
           </fieldset>
@@ -196,8 +235,8 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
               <tbody>
                 <tr>
                   <td>Frequency range</td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 20000 }" v-model.number="state.P.fmin" /></td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 40000 }" v-model.number="state.P.fmax" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 20000 }" v-model.number="draft.P.fmin" /></td>
+                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 40000 }" v-model.number="draft.P.fmax" /></td>
                   <td>Hz</td>
                   <td></td>
                 </tr>
@@ -215,7 +254,8 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
       </div>
 
       <div class="opt-footer">
-        <button class="opt-ok" @click="close">OK</button>
+        <button class="opt-defaults-btn" @click="restoreDefaults">Defaults</button>
+        <button class="opt-ok" @click="saveAndClose">OK</button>
         <button @click="close">Cancel</button>
       </div>
     </div>
@@ -256,6 +296,7 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 .opt-reset-btn { width: 100%; padding: 6px 0; cursor: pointer; }
 .opt-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .opt-ok { font-weight: 600; }
+.opt-defaults-btn { margin-right: auto; cursor: pointer; }
 
 .opt-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
 .opt-row label { flex: 0 0 90px; color: var(--mut); }
@@ -268,9 +309,22 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 .opt-env-grid { display: flex; flex-direction: column; gap: 8px; }
 .opt-fld { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .opt-fld label { flex: 0 0 120px; color: var(--mut); }
-.opt-num { width: 100px; padding: 3px 5px; }
+.opt-num,
+.opt-body :deep(.opt-num) { width: 150px; padding: 3px 5px; }
 .opt-greyed { color: var(--mut); }
 .opt-unit { font-size: 11px; color: var(--mut); min-width: 2.2em; }
+
+/* Hide number spinners for environment and limit inputs */
+.opt-body :deep(input::-webkit-outer-spin-button),
+.opt-body :deep(input::-webkit-inner-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.opt-body :deep(input[type="number"]) {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+}
 
 .opt-color-grid { display: grid; gap: 6px; }
 .opt-color-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
@@ -283,5 +337,6 @@ function limitVal(tabId: string, key: 'min' | 'max'): number | undefined {
 .opt-limits { width: 100%; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
-.opt-limits .opt-num { width: 60px; }
+.opt-limits .opt-num,
+.opt-limits :deep(.opt-num) { width: 90px; }
 </style>

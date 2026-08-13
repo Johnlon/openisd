@@ -28,18 +28,18 @@ cleanup_chrome
 
 bash "$SCRIPT_DIR/kill-http.sh" 4100
 
-# Run with 4 workers as requested
+# Run tests using the worker configuration from playwright.config.js
 set +e
-npx playwright test --workers=4 "$@"
+npx playwright test "$@"
 STATUS=$?
 set -e
 
 if [ $STATUS -ne 0 ]; then
   echo ""
-  echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed (workers=4)..." >&2
+  echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed..." >&2
   bash "$SCRIPT_DIR/kill-http.sh" 4100
   set +e
-  npx playwright test --last-failed --workers=4 "$@"
+  npx playwright test --last-failed "$@"
   STATUS=$?
   set -e
 fi

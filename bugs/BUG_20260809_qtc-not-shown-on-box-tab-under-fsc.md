@@ -2,6 +2,9 @@
 
 **Status:** OPEN — not yet fixed.
 
+> [!NOTE]
+> The **Original** skin (the only currently maintained skin per repository rules) **does** show `Fsc` and `Qtc` on its Box tab. This bug only applies to the unmaintained Modern and Classic skins which reuse the shared `BoxPanel.vue` component.
+
 ## Symptom
 
 When a sealed enclosure is selected, the Box tab in OpenISD (both in the Modern skin and the Classic skin, which reuse the shared `BoxPanel.vue` component) does not display the calculated system resonance frequency (`Fsc`) or the calculated system Q (`Qtc`).

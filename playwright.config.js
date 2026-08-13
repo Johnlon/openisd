@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test';
+import os from 'os';
 
 export default defineConfig({
   testDir: './packages/ui/test',
@@ -15,10 +16,10 @@ export default defineConfig({
   // here: every such run showed a transport or launch error and ZERO assertion mismatches.
   // One retry absorbs it; a test that genuinely fails still fails on the retry.
   retries: 1,
-  // Default is 50% of cores — 9 here, and several sessions run suites at once, so the real
-  // figure is a multiple of that. Renderer death is load-dependent (see `channel` below), so
-  // the cap is the lever that addresses the cause rather than the symptom.
-  workers: 4,
+  // Runs tests within a single file in parallel.
+  fullyParallel: true,
+  // Scale workers based on cores (up to 8) to speed up local runs, but capped to avoid renderer death under heavy WSL load.
+  workers: Math.min(8, Math.ceil(os.cpus().length / 2)),
   use: {
     browserName: 'chromium',
     // `channel: 'chromium'` selects the full browser. WITHOUT it Playwright launches

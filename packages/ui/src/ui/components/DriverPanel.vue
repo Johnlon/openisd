@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, reactive, watch, nextTick } from 'vue';
 import { state, driver, driverRaw, driverJSON, driverBaseline, driverBaselineName, allIssues, driverShort,
-         enterDriverField, clearDriverField, setDriverFromRaw, setDriverBaseline, resetDriverToBaseline } from '../../logic/store.js';
+         enterDriverField, clearDriverField, setDriverFromRaw, setDriverBaseline, resetDriverToBaseline,
+         openDriverPicker } from '../../logic/store.js';
 import type { DriverRaw } from '@openisd/engine';
 import DriverDefineModal from './DriverDefineModal.vue';
 import { upsertMyDriver } from '../../db/myDrivers.js';
@@ -153,7 +154,7 @@ function applyDefine(raw: DriverRaw) {
       </ul>
     </div>
     <div class="row" style="margin-bottom:6px">
-      <button style="flex:1" @click="state.browseOpen = true" title="Browse the driver library — click any driver to see its specs, then load it into the current design">Browse / Select…</button>
+      <button style="flex:1" @click="openDriverPicker" title="Browse the driver library — click any driver to see its specs, then load it into the current design">Browse / Select…</button>
       <button style="flex:1" @click="state.defineOpen = true" title="Enter T/S parameters from a datasheet to create a new custom driver model">Define new…</button>
     </div>
     <DriverDefineModal :open="state.defineOpen" @close="state.defineOpen = false" @apply="applyDefine" />

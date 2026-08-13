@@ -184,4 +184,6 @@ function autoVentAlign() {
   line-height: 1.5;
 }
 .losses-note { font-style: italic; }
+.row { margin: 1px 0; }
+.btns { margin: 2px 0; }
 </style>

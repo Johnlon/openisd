@@ -981,21 +981,28 @@ watch(() => state.ui.originalEditorOpen, (open) => {
         <section v-show="activeTab === 'box'" class="tab-section" :class="{ active: activeTab === 'box' }">
           <div class="box-tab-row">
           <div class="box-tab-main">
-          <div class="field-row">
+          <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
-              <select id="og-box-type" v-model="selectedBox" style="width:240px">
+              <select id="og-box-type" v-model="selectedBox" style="width:170px">
                 <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
+              </select>
+            </div>
+            <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
+              title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
+              <label style="width:auto;">Model</label>
+              <select id="lossmode" v-model="state.lossMode" style="width:130px">
+                <option v-for="m in LossMode.ALL" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
           </div>
 
           <div class="box-layout">
-            <div v-if="!isDual" class="box-fields-col" style="width: 312px;">
+            <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
                 <div class="field entered"><label>Volume</label><NumInput v-model="state.P.Vb" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
               </div>
-              <div class="field-row">
+              <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
                      degree of freedom), so WinISD makes it entered and solves the vent LENGTH
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
@@ -1004,10 +1011,11 @@ watch(() => state.ui.originalEditorOpen, (open) => {
                   <div v-if="fbState === 'E'" class="field entered"><label>Tuning freq (Fb)</label><NumInput v-model="fbEntered" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                   <div v-else class="field"><label>Tuning freq (Fb)</label><input class="calculated greyed" :value="fmtU(state.P.Fb, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
-                <div v-else class="field"><label>{{ selectedBox === 'sealed' ? 'Fsc' : 'Fh' }}</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-              </div>
-              <div v-if="selectedBox === 'sealed'" class="field-row">
-                <div class="field"><label>Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
+                <template v-else-if="selectedBox === 'sealed'">
+                  <div class="field"><label>Fsc</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
+                  <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
+                </template>
+                <div v-else class="field"><label>Fh</label><input class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
             </div>

@@ -6,8 +6,10 @@ test.beforeEach(async ({ page }) => {
   // while the chart shrinks.
   await page.setViewportSize({ width: 1600, height: 400 });
   await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/');
   await page.locator('.skin-picker select').selectOption('original');
-  await expect(page.locator('.original-root')).toBeVisible();
+  await page.locator('.original-root').waitFor({ state: 'visible' });
 });
 
 async function checkScrollbars(page: Page) {
@@ -32,7 +34,38 @@ async function checkScrollbars(page: Page) {
   });
 }
 
-test('bottom panels never get scrollbars', async ({ page }) => {
+async function checkNoChildOverflows(page: Page) {
+  return page.evaluate(() => {
+    const container = document.querySelector('.tab-section.active');
+    if (!container) return { ok: false, error: 'Active tab-section not found' };
+    
+    const containerRect = container.getBoundingClientRect();
+    const children = container.querySelectorAll('*');
+    const overflows: string[] = [];
+    
+    for (const child of children) {
+      const el = child as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      
+      // Check if child bottom or right boundaries extend past container limits.
+      // Allow a subpixel rounding buffer of 1px.
+      if (rect.bottom > containerRect.bottom + 1) {
+        overflows.push(`${el.tagName}.${el.className.split(' ').join('.')} bottom(${rect.bottom.toFixed(1)}) > container(${containerRect.bottom.toFixed(1)})`);
+      }
+      if (rect.right > containerRect.right + 1) {
+        overflows.push(`${el.tagName}.${el.className.split(' ').join('.')} right(${rect.right.toFixed(1)}) > container(${containerRect.right.toFixed(1)})`);
+      }
+    }
+    
+    return {
+      ok: overflows.length === 0,
+      overflows
+    };
+  });
+}
+
+test('bottom panels never get scrollbars and contents do not overflow', async ({ page }) => {
   const boxTypes = ['vented', 'sealed', 'bandpass4', 'bandpass6', 'abc'];
   
   for (const boxType of boxTypes) {
@@ -57,6 +90,12 @@ test('bottom panels never get scrollbars', async ({ page }) => {
         res.hasHScroll,
         `Tab "${tabName}" for box type "${boxType}" should not have a horizontal scrollbar. Details: ${JSON.stringify(res)}`
       ).toBe(false);
+
+      const overflowRes = await checkNoChildOverflows(page);
+      expect(
+        overflowRes.ok,
+        `Tab "${tabName}" for box type "${boxType}" contains elements overflowing the container panel. Overflowing elements: ${JSON.stringify(overflowRes.overflows)}`
+      ).toBe(true);
     }
   }
 });
