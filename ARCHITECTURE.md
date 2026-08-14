@@ -214,7 +214,7 @@ model, so nothing above the domain layer knows what ParState is.
 
 | Module            | Path                           | Owns                                                                                                           | May not contain                                               |
 | ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants. No other module contains a formula | WinISD concepts (WDR, ParState), file formats, DOM, app state |
+| `@openisd/engine` | `packages/engine/src/`         | **The only place electro-acoustic maths exists** — driver derivation, circuit solve, sweeps, alignments, filters, physical constants | WinISD concepts (WDR, ParState), file formats, DOM, app state |
 | `@openisd/model`  | `packages/model/src/`          | The OpenISD record and `OpenISDDriver`: the driver model itself, its provenance, its derivation                | File formats, DOM, app state                                  |
 | `@openisd/winisd` | `packages/winisd/src/`         | Serialisation to and from WinISD's files: `.wdr`, `.wpr`, ParState, the carried-key set                        | The driver model, derivation, live state, DOM, app state      |
 | `logic`           | `packages/ui/src/logic/`       | The app's ONLY state. Store, project/workspace model, workflows, field registry, chart-series mapping          | Maths, `.vue` imports, direct construction of a service       |
