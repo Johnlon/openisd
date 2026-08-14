@@ -57,6 +57,21 @@ ordered array; identity is the entry's own id. `logic/model/workspace.ts` alread
 `projects: WorkspaceEntry[]` — that is correct and must stay a list. Anything that introduces a
 `Map`/`Record` keyed by project name is a defect.
 
+**EVERY PURCHASABLE COMPONENT HAS A LIVE CLASS AND A RECORD FORM, and both are named for it:**
+
+| Component | live class | record form |
+| --- | --- | --- |
+| driver | `OpenISDDriver` | `OpenISDDriverJson` |
+| passive radiator | `OpenISDPassiveRadiator` | `OpenISDPassiveRadiatorJson` |
+
+The class is what a project holds and edits; the record is what the catalogue, a file and a share
+link carry. A PR comes from the db and is a purchasable manufactured component exactly as a driver
+is, so it gets both — this is not a driver-only pattern. A CONFIGURATION (vent, alignment) has NO
+record form of its own: it is not fetched from a catalogue, so it is simply part of
+`OpenISDProject`'s serialised shape.
+
+The old `DriverJSON` name is dead — it named the CONDEMNED ADT's shape, not this one.
+
 **RECORDS CROSS BOUNDARIES; INSTANCES DO NOT.** A repository, `FileIO` and the catalogue all deal
 in RECORDS — plain data. A live `OpenISDDriver` exists ONLY as a member of an `OpenISDProject` held
 by a `ManagedProject`, and nothing hands one out. That is what makes the containment total: there
@@ -194,6 +209,7 @@ disagree — is the thing to keep hunting.
 | R12 | **Diagrams must be readable.** They cannot be enlarged in the viewer, so a 46-box diagram is worthless. | DONE — as-built is now a 10-box shape + tables |
 | R13 | **Arch tests must ENFORCE the architecture**, including deliberately-failing ones that stay red until the violation is deleted. | DONE — see §4 |
 | R14 | **We never force-push.** | Respected |
+| R22 | **Each purchasable component has a live class AND a record form**: `OpenISDDriver`/`OpenISDDriverJson`, `OpenISDPassiveRadiator`/`OpenISDPassiveRadiatorJson`. Configurations have no record form of their own. | SPECIFIED. `OpenISDPassiveRadiator*` not built. |
 | R21 | **Repositories and `FileIO` return RECORDS, never live instances.** An `OpenISDDriver` exists only inside an `OpenISDProject` inside a `ManagedProject`. | Code already correct; spec fixed |
 | R19 | **The project is DOMAIN data.** `@openisd/model` owns `OpenISDProject` and every member; `logic/` owns only the state layers over it (`Workspace`, `ManagedProject`). Every domain type carries the `OpenISD` prefix — no bare nouns. | SPECIFIED. Diagrams updated. |
 | R20 | **Each box type is its own data type** — sealed / vented / bandpass4 / passive-radiator alignments, all held at once, one active, the rest dormant with data intact. The vent belongs to the vented alignment, the radiator to the PR alignment. | SPECIFIED. Not built. |
